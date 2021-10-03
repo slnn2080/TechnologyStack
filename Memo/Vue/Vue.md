@@ -7581,6 +7581,33 @@ allowed in .vue files - render functions are required elsewhere
   /about/news
  -->
 
+
+> 总结：
+- 首先决定路由是否嵌套 就要看该组件需要通过 router-view 来展示
+- 如果是 就要看 router-view 定义在哪个组件里 那么通过这个标签来展示的组件就是子组件 子组件就要定义在该组件的路由规则的children属性中
+<!-- 
+  // 比如 我们的 welcome 组件就要在 home 的 router-view 中展示 
+  {
+    path: "/home",
+    component: Home,
+    redirect: "/welcome",
+    children:[
+      {
+        方式1： path里面加 / 
+        代表路径为 http://localhost:8080/welcome 单开形式
+        path:"/welcome",
+
+        方式2: path里面不加 / 
+        代表路径为 http://localhost:8080/home/welcome 嵌套路由形式
+        path:"welcome",
+
+        component: Welcome
+      }
+    ]
+  },
+ -->
+
+
 **注意：**
 - 1. vue发现一级路由中有children属性的时候会自动遍历该数组 然后自动在二级路由的前面添加 /
 - 所以我们在二级路由的前面不要添加 /

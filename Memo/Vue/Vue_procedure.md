@@ -1,3 +1,6 @@
+### https://www.cnblogs.com/haiyan123/p/9765447.html
+
+
 ### 项目概述
 > 1. 电商后台管理系统的功能
 - 用户登录
@@ -898,3 +901,1226 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
 
 > 问题2：导航栏右侧有一条线多余
 - .el-menu {border-right: none}
+
+
+> 首页路由的重定向
+- 现在的效果是 当我们登陆成功后 会跳转到 /home 的页面
+- 现在我们要在 home组件里面 放入一个 欢迎组件 当登陆成功后就会自动到home下的 欢迎组件 也就是说 要把 欢迎组件 当做是 home组件的子路由 
+
+- 关于路由的配置信息 那么就要放在 router 的配置文件里面
+<!-- 
+  {
+    path: "/home",
+    component: Home,
+
+    //重定向的时候写 /uri 二级路由要带上完整的路径
+    redirect: "/home/welcome",
+    children: [
+      {
+        // 二级路由的前面不要加斜线
+        path:"welcome",
+        component: Welcome
+      }
+    ]
+  }
+ -->
+
+ - 不要忘记放置 <router-view>
+
+
+> <menu :router="true">
+ > 导航菜单的每一项改成 router-link的形式
+ - 我们左侧的每一个菜单项都是通过 el-menu-item来实现的 如下：
+ <!-- 
+  <el-menu-item :index="i.id + ''" v-for="i of item.children" :key="i.id">
+    <template slot="title">
+      <i class="el-icon-menu menu-icon-color"></i>
+      <span>{{i.authName}}</span>
+    </template>
+  </el-menu-item>
+  -->
+
+- 我们要将每一个二级菜单改成路由连接 利用 <menu router> 属性
+- 是否使用 vue-router 的模式，启用该模式会在激活导航时
+- 以 <el-menu-item index> 的index属性作为 path 进行路由跳转
+<!-- 
+  // 当我们给 el-menu 绑定 router 的时候 此菜单栏就会以
+  <el-menu :router="true">
+
+  // 就会以 index 的值为 跳转路径 
+  <el-menu-item :index="`/${i.path}`" >
+
+  下面是以id为跳转的路径 我们应该以 path 做为 index 属性的值
+  但是 服务器返回的结果是
+
+  menuList是一个数组对象 其中的path属性
+  path:"users"
+
+  要知道我们的路由地址都是以 / 开头 所以我们要 这样修改下
+  <el-menu-item :index="`/${i.path}`" >
+ -->
+
+ -----------------
+
+### 用户列表
+
+> 点击 导航按钮 跳转到对应组件
+- 创建用户列表连接对应的组件页面
+- 我们登录后直接渲染的是home组件 而我们在home组件里布局的 所以包括导航栏和对应的展示区
+- 所以所有的路由组件都可以看做是home.vue的子组件
+- 那么就意味着它的子组件都要定义在router配置文件中的 children 属性里面
+
+
+> 这里有需要注意的地方
+- 1. 如果 我希望 我的路径是 /home/user 那么配置的时候要这样
+- 二级嵌套路由的前面不要加上 / vue会自动帮我们组成这样的形式
+<!-- 
+  {
+    path: "/home",
+    component: Home,
+    children: [
+      {
+        path: "user",
+        component: User
+      }
+    ]
+  }
+ -->
+
+- 2. 如果 我希望虽然我是在home组件下 但希望我的路径是 /user 那么我们就要这样
+- path的部分要加上/ 就更新开了一个号似的
+<!-- 
+  {
+    path: "/home",
+    component: Home,
+    children: [
+      {
+        path: "/user",
+        component: User
+      }
+    ]
+  }
+ -->
+
+-----------------
+
+> 保存 菜单栏的激活状态
+- 现在我们点击完导航区的按钮后 也展示了对应的组件 但是 按钮并没有高亮
+- 我们刷新页面后 虽然用户列表的组件展示了 但是导航区都处于合并状态 没有对应的展开
+
+> <el-menu default-active>
+- 当前激活菜单的 index  接收的值是一个str
+- 也是 NavMenu 组件的属性 我们需要将当前菜单项 <el-menu-item index> 的index赋值给 这个属性
+
+- 而我们现在<el-menu-item index>是 path /users
+<!-- 
+  // 这里我们写死了 所以展开和刷新后，高亮的都是 el-menu-item 里的index 值
+  <el-menu
+    :router="true"
+    default-active="/users"
+  >
+ -->
+
+- 那怎么样才能动态的调整呢 而不是写死呢？
+> 老师的思路：
+- 我们可以把 <el-menu-item index> index对应的值 也就是 path 地址 保存在 sessionStorage中
+- 当我们刷新页面的时候可以把这个值从sessionStorage中取出来 动态的赋值给 <el-menu default-active>
+<!-- 
+  我的思路：
+  按钮区都在 home 组件中，我们可以在展示users的时候 通过$route将路径存起来 然后利用子传父 传回home组件
+
+
+  弹幕的思路：
+  既然 index 里面存的是路径 那么 :default-active="$route.path"
+  这种方式也可以把
+ -->
+
+- 1. 点击链接的时候 将对应的地址保存在 sessionStorage 中
+<!-- 
+  那就要给所有的菜单绑定单击事件 在单击事件中 存储path值
+  这样都能在一个组件中完成哦 那我们的做法好费劲哦
+ -->
+
+- 2. 当再次刷新页面的时候 也就是home组件刚被创建的时候 就立即再将值取出来 赋值给左侧的菜单就可以了
+
+<!-- 
+  <el-menu
+    :router="true"
+    :default-active="activePath"
+  >
+
+  data() {
+    return {
+      activePath: "",
+
+
+  methods: {
+    saveNavState(value) {
+      window.sessionStorage.set("activePath", value)
+
+      // 当点击链接的时候 不光要将 值存到 session中 还要将赋值给 menu
+      this.activePath = value
+    },
+
+  
+  created() {
+    this.getMenuList(),
+    this.activePath = window.sessionStorage.getItem("activePath")
+  }
+ -->
+
+-----------------
+
+ > 绘制 用户列表 的结构
+ > 头部： 面包屑 导航 区域
+ - 我们使用 element 提供的 Breadcrumb 组件 
+ <!-- 
+  <el-breadcrumb separator="/">
+    <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+    <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+    <el-breadcrumb-item>用户列表</el-breadcrumb-item>
+  </el-breadcrumb>
+  -->
+
+-----------------
+
+> 用户列表区：Card 组件
+- 这里再提一下 我们可以直接将组件名作为类名 进行样式的覆盖 如果没有效果可以考虑
+- >>> 样式穿透 或者是 /deep/ 用来修改组件样式的时候
+
+-----------------
+
+> 带搜索的输入框 
+<!-- 
+  <el-card class="usersList">
+    <el-row :gutter="24">
+
+      <el-col :span="8">
+        <div>
+          <el-input placeholder="请输入内容">
+            <el-button slot="append" icon="el-icon-search"></el-button>
+          </el-input>
+        </div>
+      </el-col>
+
+      <el-col :span="4">
+        <el-button type="primary">添加用户</el-button>
+      </el-col>
+
+    </el-row>
+  </el-card>
+ -->
+
+- 问题1：
+- 这个 input 框占满了整体屏幕 为了解决宽度的问题 我们可以使用 栅格系统来解决
+
+-----------------
+
+> 获取用户列表数据
+- 我们在created里面发起请求首屏的 获取数据 用户展示列表
+
+> API：
+- 请求路径：users
+- 请求方法：get
+- 请求参数：
+  - query     查询参数      可以为空
+  - pagenum   当前页码      不能为空
+  - pagesize  每页显示条数   不能为空
+<!-- 
+  - 响应参数
+
+    totalpage   总记录数
+    pagenum     当前页码
+    users       用户数据集合
+
+  
+  - 数据格式
+  {
+    "data": {
+      "totalpage": 5,
+      "pagenum": 4,
+      "users": [
+        {
+          "id": 25,
+          "username": "tige117",
+          "mobile": "18616358651",
+          "type": 1,
+          "email": "tige112@163.com",
+          "create_time": "2017-11-09T20:36:26.000Z",
+          "mg_state": true, // 当前用户的状态
+          "role_name": "炒鸡管理员"
+        }
+      ]
+    },
+    "meta": {
+      "msg": "获取成功",
+      "status": 200
+    }
+  }
+ -->
+
+-----------------
+
+> 分页请求的逻辑
+- 思路：
+- 我们在一刷新页面的时候就要请求数据 发起axios请求 请求数据用于展示
+
+> 1. 发起get请求的时候要注意请求参数 在vue中一般请参数在data配置项中定义
+- 同时 get 参数 在 params 中定义
+
+  - get请求需要传递的参数一般会有：
+    - 查询条件
+    - 当前页码
+    - 一页显示多少数据
+
+
+**注意：**
+- 我们返回的数据 user数据列表和 total 和 pagenum 是同级的说明一样重要
+
+
+- 其中服务器返回的数据里面的参数有：
+  - total： 所有的用户记录数量 可以通过它来实现数据的分页
+  - users： 是一个数组 包含第一页中的两条记录
+<!-- 
+  total: 0,
+  queryInfo: {
+    query: "",
+
+    // 当前页码 表格中一页显示的数据 当前是第几页 
+    pagenum: 1,
+
+    // 一页显示多少条数据
+    pagesize: 2
+  }
+
+  async getUsersList() {
+    let {data :res} = await request({
+      url: "/users",
+      method: "get",
+      params: this.queryInfo
+    })
+    console.log(res)
+  }
+
+
+  // 返回数据的格式：
+  pagenum: 1
+  total: 4
+  users: (2) [{…}, {…}]
+      create_time: 1486720211
+      email: "adsfad@qq.com"
+      id: 500
+      mg_state: true
+      mobile: "12345678"
+      role_name: "超级管理员"
+      username: "admin"
+
+  meta: {msg: '获取管理员列表成功', status: 200}
+ -->
+
+
+> 2. 当获取数据成功的时候 我们将数据保存在 data 配置项里面
+- 我们在data配置项中 初始化了两个数据
+<!-- 
+  data() {
+    return {
+      userList: [],
+      total: "",      这里我们最好是 total: 0 要不element会报错
+    }
+  }
+ -->
+
+
+> 3. pagination组件 的使用方式
+- 为了实现分页效果 我们要使用 element ui 中的 Pagination 组件
+
+- 属性：
+  - size-change： 
+  - 切换每页显示多少条的下拉菜单 只要切换就触发回调 在回调中可以拿到最新的pagesize
+  - 例：拿到的是 5 10 15
+  - 一般我们在这个回调中会处理 将用户选择的值 赋值给我们保存在data配置项中的 pagesize
+
+
+  - current-change:
+  - 页码值发现了切换就会触发这个回调 在回调中可以拿到最新的页码值
+  - 一般我们在这个回调中会处理 将用户选择的值 赋值给我们保存在data配置项中的 pagenum
+
+
+  - current-page：
+  - 当前显示的第几页的数据（我们可以通过服务器返回的数据中会有当前显示第几页的数据 queryInfo.pagenum ）
+
+
+  - page-sizes:
+  - 它的类型是一个字符串数组 会有下拉框展示我们数组中的值 供我们选择 100条/页
+
+
+  - page-size：
+  - 当前每页显示多少条数据
+
+
+  - layout：
+  - 它的类型是一个字符串 用于展示页面上有哪些功能组件
+  - total：例： 共 400 条
+  - sizes：例： 5条/页  10条/页  30条/页  50条/页
+
+
+  - total：
+  - 一共有多少条数据 这个是服务器返回给我们的结果
+  - element 这里要求 total 要是一个 number 类型的数据
+
+<!-- 
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    :current-page="queryInfo.pagenum"
+    :page-sizes="[5, 10, 30, 50]"
+    :page-size="queryInfo.pagesize"
+    layout="total, sizes, prev, pager, next, jumper"
+    :total="total"
+  >
+  </el-pagination>
+ -->
+
+> 完整代码
+<!-- 
+  // 监听 pagesize 改变的事件
+  handleSizeChange(newSize) {
+    console.log("newSize", newSize)
+
+    // 我们将用户选择的newSize 赋值给 data配置项中的  queryInfo.pagesize
+    this.queryInfo.pagesize = newSize
+
+    // 既然我们用户选择了最新的 pagesize 那么我们就需要拿着这个最新的pagesize 去请求数据
+    this.getUsersList()
+  },
+
+  // 监听 页码值 改变的事件
+  handleCurrentChange(newPage) {
+    console.log("newPage", newPage)
+    this.queryInfo.pagenum = newPage
+    this.getUsersList()
+  },
+
+  async getUsersList() {
+    let {data :res} = await request({
+      url: "/users",
+      method: "get",
+      params: this.queryInfo
+    })
+      
+    // 根据服务器返回的状态码判断
+    if(res.meta.status !== 200) return this.$message({
+      message: "获取用户数据失败",
+      type: "error",
+      duration: 1000
+    })
+
+    // 如果没有return出去那么代表用户获取成功
+    this.userList = res.data.users
+    this.total = res.data.total
+    }
+  },
+  created() {
+    this.getUsersList()
+  },
+ -->
+
+
+> 逻辑梳理
+- 1. 我们 首先 要参考 get请求 需要的参数 发送请求 这里要注意我们需要什么必传参数
+<!-- 
+   - get请求需要传递的参数一般会有：
+    - 查询条件
+    - 当前页码
+    - 一页显示多少数据
+ -->
+
+- 2. 我们从服务器请求回来的数据里面 会有关于分页的信息
+- 比如用户数据 总记录数 
+- 我们将获取的数据 报错到data配置项里面 方便其他的地方使用
+
+- 3. 导入 分页组件 需要使用以下的属性和方法
+<!-- 
+  // 当用户选择每页显示多少条记录的时候触发
+  @size-change="handleSizeChange"
+      内部逻辑： 将用户选择的结果 保存在 data配置项中 重新发起请求
+
+
+  // 当用户选择点击了第几页的时候触发
+  @current-change="handleCurrentChange"
+      内部逻辑： 将用户选择的结果 保存在 data配置项中 重新发起请求
+
+  // 现在是第几页
+  :current-page="queryInfo.pagenum"
+
+
+  :page-sizes="[5, 10, 30, 50]"
+  :page-size="queryInfo.pagesize"
+  layout="total, sizes, prev, pager, next, jumper"
+
+  // 服务器返回的总记录数 应该是一个数字
+  :total="total"
+ -->
+
+-----------------
+
+> 根据数据渲染列表
+- 我们使用 table 组件
+
+- 配置索引列：
+- 我们格外添加一个列 注意设置 type="index" 属性
+<!-- 
+  <el-table-column type="index" label="序号" align="center"></el-table-column>
+ -->
+
+
+ - 动态生成 column 的时候 一定要注意的是 v-bind="item"
+
+ - 修改表格的字号 我们自己设置的class没有作用的时候
+ - 1. 重置 组件名类名
+ - 2. 使用 deep
+
+
+ > 表格中的作用域插槽
+ - 当该列指定作用域插槽后 该列的prop就不再生效了
+ - 我们返回的数据里面 有一个 用户状态的字段 mg_state 它是一个布尔值
+ - table没办法把布尔值渲染成 内容 而且我们要将这个 mg_state 设置成 单选框 的样式
+ - 所以这里我们就要使用作用域插槽
+ - 只要我们拿到这一行的数据 就能.mg_state 具体的值 然后我们就可以根据值 渲染对应的单选框
+
+ - 我们要想在表格中使用 作用域插槽 就要在 table-column 组件里面写上 template 并且指定上 slot-scope="scope" 其中 scope.row 就是这一行的数据
+ <!-- 
+  <el-table-column>
+    <template slot-scope="scope">
+
+    <template>
+  </el-table-column>
+  -->
+
+- 那我们拿到数据了 怎么才能渲染成开关呢？
+- 这里我们使用 element ui 提供的 Switch 开关
+<!-- 
+  <el-switch
+    v-model="value"
+    active-color="#13ce66"
+    inactive-color="#ff4949">
+  </el-switch>
+
+  绑定v-model到一个Boolean类型的变量。可以使用active-color属性与inactive-color属性来设置开关的背景色。
+ -->
+
+- 一个表格中 不同单元格 渲染不同类型的数据
+<!-- 
+  <el-table-column 
+    v-for="item of this.columnData" 
+    :key="item.id" 
+    v-bind="item"
+  >
+
+    <template scope="scope" v-if="item.type == 'switch'">
+      <el-switch
+        v-model="scope.row.mg_state"
+      >
+      </el-switch>
+    </template>
+
+    <template scope="scope" v-else>
+      {{showData(scope.row, item.prop)}}
+    </template>
+  </el-table-column>
+
+
+  computed: {
+    showData() {
+      return (row, prop) => {
+        return row[prop]
+      }
+    }
+  }
+ -->
+
+-----------------
+
+ > 表格中 操作本行数据的按钮
+- 因为不管编辑还是删除我们都需要本行的id 也就是本行的数据 所以 我们还是要通过 表格中的作用域插槽来做
+- 比如我们可以访问 姓名 id 等等
+- 我们要在这里面放置，修改 删除 分配角色按钮
+
+- 这里我们使用 elementui的 图标按钮
+<!-- 
+  <el-table-column label="操作" width="200">
+    <template scope="scope">
+      <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+      <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+      <el-button type="warning" icon="el-icon-share" size="mini"></el-button>
+    </template>
+  </el-table-column>
+ -->
+
+-----------------
+
+> 按钮的提示组件
+- Tooltip 组件
+- 我们使用这个组件 将我们的按钮包裹起来就可以了
+  - content： 提示文字
+  - effect： 风格
+  - placement： 出现的位置
+  - enterable: 将它设置为false 要不然会挡住其它的内容
+<!-- 
+  <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
+    <el-button type="warning" icon="el-icon-share" size="mini"></el-button>
+  </el-tooltip>
+ -->
+
+-----------------
+
+> 用户状态的修改
+- 我们的表格中有用户的状态 它是一个开关，现在的问题是 当我们改变这个状态的时候 刷新页面 用户的状态又回到未修改之前了
+
+- 没有保存下来的原因 只是因为我们在前台把用户的状态进行了修改 但是并没有同步到后台的数据库里面 所以在刷新页面的时候 会变回去了
+
+- 解决问题的方式很简单 只需要将这次的修改 保存到数据库中
+
+- 思路：
+- 1. 我们需要监听到 Switch开头的改变 从而拿到最新的状态
+- 2. 调用对应的api接口 把这次的修改 同步到数据库中
+
+- 1. 完成1的话 我们要使用 <el-switch> 的 change 事件
+- 该事件会在 switch 状态发生变化时的回调函数 调用 我们在回调中可以拿到最新的状态值
+<!-- 
+  <el-switch
+    v-model="scope.row.mg_state"
+    @change="userStateChange(scope.row)"
+  >
+
+  用户选择的最新的状态值，双向绑定到了 scope.row.mg_state 这个属性中
+  所以我们将 scope.row 这行的数据 也就是最新的数据 传到事件回调里面
+
+  userStateChange(userInfo) {
+
+    // 这里我们就能获取到 修改后的 这个用户的最新数据
+    console.log(userInfo)
+  },
+ -->
+
+- 2. 接下来我们就要在这个事件回调中 使用对应的api接口 发送请求
+- 这里我们使用这个接口
+
+- API：
+- 该接口用于 修改用户状态
+
+- 1. put请求
+<!-- 
+  post和put的区别：
+
+  post 用于 新建一条记录
+  put  用于 更新一条记录 
+    理论上要求前端传递一个完整的userInfo对象
+    如果你用了put，但却没有提供完整的UserInfo，那么缺了的那些字段应该被清空
+
+  patch 用于 局部更新一条记录 
+    表示该请求是一个局部更新，后端仅更新接收到的字段。
+ -->
+
+  - 请求路径：users/:uId/state/:type
+  - 请求参数
+    - uId   用户ID      不能为空`携带在url中`
+    - type  用户状态     不能为空`携带在url中`，值为 true 或者 false
+
+<!-- 
+  // 响应数据
+
+  {
+    "data": {
+      "id": 566,
+      "rid": 30,
+      "username": "admin",
+      "mobile": "123456",
+      "email": "bb@itcast.com",
+      "mg_state": 0
+    },
+    "meta": {
+      "msg": "设置状态成功",
+      "status": 200
+    }
+  }
+ -->
+
+
+- 前面我们的mg_state数据应该是true和false 这里的请求结果是 1 0 ？ 这样会不会影响显示效果呢？
+<!-- 
+  data:
+    email: "asdf@qq.com"
+    id: 502
+    mg_state: 1
+    mobile: "1213213123"
+    rid: 34
+    username: "linken"
+
+  meta: {msg: '设置状态成功', status: 200}
+ -->
+
+- 完整代码部分：
+<!-- 
+  // 监听 switch 开关状态的改变
+    async userStateChange(userInfo) {
+    console.log(userInfo)
+
+    // 获取到最新的用户状态之后 发起请求 修改数据库
+    let {data: res} = await request({
+      url: `users/${userInfo.id}/state/${userInfo.mg_state}`,
+      method: "put"
+    })
+
+    console.log(res)
+    if(res.meta.status !== 200) {
+      // 这里要注意 因为没有成功修改数据库 但是前端页面的显示效果发生了变化 变成了true 所以我们要将true修改回去false
+      userInfo.mg_state = !userInfo.mg_state
+
+      return
+      this.$message({
+        type: "error",
+        message: "更新用户数据出错",
+        duration: 1000
+      })
+    }
+
+    // 更新状态成功
+    this.$message({
+      type: "success",
+      message: "更新状态成功",
+      duration: 1000
+    })
+
+  },
+ -->
+
+**注意：请求部分的注意事项**
+- 我们发送请求的时候一定要看接口文档 因为每一种接口传递参数和携带参数的位置都不一样
+- 比如这次的put 请求 使用的就是 pathInfo 格式 在url上拼接的方式
+- 我觉得这是因为后台在设计接口的方面 采取的就是这种模式 所以需要让前端按照这种模式来传递数据
+
+-----------------
+
+> 使用 搜索框 搜索用户
+- 在用户输入了用户名称的时候 根据输入结果展示对应的用户
+- 这部分的逻辑放在了后台 根据前端发请求时传递的查询条件 进行了模糊匹配 然后返回数据
+
+
+- 思路：
+- 我们要将 input 文本框 和 data 中的数据做双向绑定
+- 然后点击按钮的时候调用获取用户列表的函数 进行数据的查询就可以了
+
+
+- 1. 设计 input 的 v-model 绑定给谁
+- 我们在页面一渲染的时候 会发起 用户列表的请求 这个时候 服务器会返回给我们下面的数据格式 而其中query就是用于查询的字段 我们就把input绑定到这个属性上
+<!-- 
+  query: "",
+  pagenum
+  pagesize
+ -->
+
+- 2. 我们给 搜索按钮 绑定一个单击事件 只要点击了它就会根据 input 的关键字进行搜索 只要点击了按钮就要发起查询用户的请求
+<!-- 
+  // 这里将用户输入的结果 绑定在了 queryInfo 里面的 query 中 这个queryInfo就是查询用户列表数据的时候 作为查询参数的 params的参数对象
+  <el-input placeholder="请输入内容" size="small" v-model="queryInfo.query">
+
+    <el-button
+      size="small"
+      slot="append"
+      icon="el-icon-search"
+
+      // 这里直接调用的是 请求用户列表的函数
+      @click="getUsersList"
+    ></el-button>
+
+  </el-input>
+ -->
+
+
+- 3. 优化：
+- 当我们再想看全部内容的时候，我们在input框里面提供一个清空按钮 当用户点击清空文本框的按钮之后 展现全部的数据
+
+- <el-input clearable v-model="queryInfo.query">
+- 给input添加可清空功能 添加 clearable 属性
+            
+- 当点击清空按钮时触发的回调 
+- clear 事件
+
+- 当我们点击 清空按钮就会触发 clear事件 我们在clear事件中重新发起请求就可以获取全部用户数据了
+<!-- 
+  <el-input 
+    clearable placeholder="请输入内容" 
+    size="small" 
+    v-model="queryInfo.query"
+
+    // 当点击清空按钮的时候 发起获取用户数据的请求
+    @clear="getUsersList"
+  >
+ -->
+
+
+**注意： 数据查询**
+- 这里的数据查询是 利用发送请求的方式 也就是说 后端做了数据查询的处理 比如模糊查询
+
+- 而我在工作中用的方式是 前端处理方式，筛选数据 做显示而已 数据还是后端的那些数据
+
+-----------------
+
+> 添加用户
+- 我们点击添加按钮 会弹出 dialog 对话框
+- 这里我们就使用了 element ui 的 Dialog 组件
+- 放的位置随意
+
+> Dialog 组件
+- 属性：
+  - title：
+  - 对话框的标题
+
+  - visible.sync
+  - 用户控制对话框的显示和隐藏
+
+  - width
+  - 用于控制对话框的宽度
+
+  - before-close
+  - 在对话框关闭之前的事件
+
+<!-- 
+  <el-dialog
+    title="提示"
+    :visible.sync="dialogVisible"
+    width="30%"
+    :before-close="handleClose">
+
+    // 这就是内容主体区
+    <span>这是一段信息</span>
+
+    // 对话框底部的按钮区
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="dialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+    </span>
+  </el-dialog>
+ -->
+
+
+> 在 添加用户的对话框中 渲染一个 添加用户的表单
+- 我们要在对话框中 添加一个 表单
+<!-- 
+  其中有 用户名 密码 邮箱 手机 同时这4项都要有表单验证的效果
+ -->
+
+- html代码部分
+<!-- 
+  <el-form 
+    :model="addForm" 
+    :rules="addFormRules" 
+    ref="addFormRef" 
+    label-width="70px" 
+  >
+    <el-form-item label="用户名" prop="username">
+      <el-input v-model="addForm.username"></el-input>
+    </el-form-item>
+    <el-form-item label="密码" prop="password">
+      <el-input v-model="addForm.password"></el-input>
+    </el-form-item>
+    <el-form-item label="邮箱" prop="email">
+      <el-input v-model="addForm.email"></el-input>
+    </el-form-item>
+    <el-form-item label="手机" prop="mobile">
+      <el-input v-model="addForm.mobile"></el-input>
+    </el-form-item>
+  </el-form>
+
+  // 添加用户的表单数据
+  addForm:{
+    username: "",
+    password: "",
+    email: "",
+    mobile: ""
+  },
+
+  // 添加用户表单的验证规则
+  addFormRules:{
+    username: [
+      {required: true, message: "请输入用户名", trigger: "blur"},
+      {min:4, max: 10, message: "用户名的长度要在3 ~ 10个字符之间", trigger: "blur"}
+    ],
+    password: [
+      {required: true, message: "请输入密码", trigger: "blur"},
+      {min:6, max: 15, message: "密码的长度要在6 ~ 15个字符之间", trigger: "blur"}
+    ],
+    email: [
+      {required: true, message: "请输入邮箱", trigger: "blur"},
+    ],
+    mobile: [
+      {required: true, message: "请输入邮箱", trigger: "blur"},
+    ]
+  },
+ -->
+
+- 我们将form中的数据 同步到了 data配置项中的addForm里 而我们的每一个子项都在addForm中的每一个属性身上，这样我们收集的数据都会在这个addForm里面
+
+
+- 但是 上面针对 邮箱和手机号的验证规则 肯定是不对的 那如何自定义校验规则呢？
+
+
+> form表单的自定义校验规则
+- element在data配置项里面定义了一个 箭头函数 这个函数就是自定义校验规则
+- 在箭头函数中包含了 3个 参数
+- rule: 
+    验证规则
+
+- value：
+    需要验证的那个值
+
+- callback：
+    如果雁阵通过了 我们就可以直接调用callback 代表验证通过 这个效果可能是element配置好的
+      if(value) {return callback()}
+
+    如果验证失败了 我们就需要在callback中传递一个 错误对象
+      if(!value) {return  callback(new Error("年龄不能为空"))}
+
+<!-- 
+  data() {
+    
+    form表单的自定义校验规则 在这个部分配置 使用箭头函数的形式
+    var checkAge = (rule, value, callback) => { ... }
+
+    return {
+      平时的时候 我们都是在这里配置数据
+    }
+  }
+ -->
+
+- 如何使用呢？
+- 我们定义好自定义规则函数后 在 data配置项的校验规则对象中 使用
+- validator:
+    该关键字 可以指向 自定义校验函数
+<!-- 
+  rules: {
+    age: [
+      { validator: checkAge, trigger: 'blur' }
+    ]
+  }
+ -->
+
+
+> 代码部分
+<!-- 
+  data() {
+
+    // 定义 添加用户 时的校验规则
+    let checkMail = (rule, value, callback) => {
+      let reg = /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/
+      if(reg.test(value)) {
+
+        // 合法的邮箱
+        return callback()
+      } else {
+        return callback(new Error("您输入的邮箱不合法"))
+      }
+    }
+
+    let checkMobile = (rule, value, callback) => {
+      let reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
+      if(reg.test(value)) {
+
+        // 合法电话
+        return callback()
+      } else {
+        return callback(new Error("您输入的电话不合法"))
+      }
+    }
+
+    return {
+      // 添加用户的表单数据
+      addForm:{
+        username: "",
+        password: "",
+        email: "",
+        mobile: ""
+      },
+
+      // 添加用户表单的验证规则
+      addFormRules:{
+        username: [
+          {required: true, message: "请输入用户名", trigger: "blur"},
+          {min:4, max: 10, message: "用户名的长度要在3 ~ 10个字符之间", trigger: "blur"}
+        ],
+        password: [
+          {required: true, message: "请输入密码", trigger: "blur"},
+          {min:6, max: 15, message: "密码的长度要在6 ~ 15个字符之间", trigger: "blur"}
+        ],
+        email: [
+          // 校验是否输入了邮箱
+          {required: true, message: "请输入邮箱", trigger: "blur"},
+          // 校验输入的是否合法
+          {validator: checkMail, trigger: "blur"}
+        ],
+        mobile: [
+          {required: true, message: "请输入邮箱", trigger: "blur"},
+          {validator: checkMobile, trigger: "blur"}
+        ]
+      },
+    }
+  },
+ -->
+
+
+> 添加用户的重置操作
+- 当我们先点击 取消 再次点击打开对话框的时候 上次输入的结果并没有消失 我们希望是一个重置的状态 
+
+- 思路：
+- 我们在关闭对话框的时候 重置整个表单就可以了
+- 我们监听对话框关闭的事件 在事件中做重置表单的操作
+
+> Dialog close事件
+- 该事件在对话框关闭的时候会触发
+<!-- 
+  <el-dialog
+    title="添加用户"
+    :visible.sync="dialogVisible"
+    width="50%"
+    @close="dialogClose"
+  >
+
+  dialogClose() {
+    this.$refs.addFormRef.resetFields()
+  },
+ -->
+
+
+> 添加表单前的预校验操作
+- 当我们在 添加用户 的表单对话框中 点击 确定按钮的时候
+- 应该进行下表单预验证
+
+- 这里我们要使用 表单组件身上的 validate() 方法
+
+> formref对象.validate((valid) => { ... })
+- 对整个表单进行校验的方法，参数为一个回调函数。
+- 该回调函数会在校验结束后被调用，并传入两个参数：是否校验成功和未通过校验的字段。若不传入回调函数，则会返回一个 promise
+
+<!-- 
+  // 当我们点击 确定后 先进行 表单的预验证 也就是取得 各个表单的验证 结果
+
+  valid：
+    当验证全部通过 它是 true
+    当验证失败     它是 false
+
+  参数2： 是验证失败的字段
+
+
+  addUser() {
+    // 在这里 我们首先要对整个表单进行预校验
+    this.$refs.addFormRef.validate((valid,a) => {
+      console.log(valid,a)
+    })
+  },
+ -->
+
+
+> 发起 添加用户的请求
+- 上面的逻辑已经都完成了 也就是说我们可以在点击确定的时候 添加用户信息
+
+- 我们还是要先看api文档 看看我们要发送什么样的请求 和 所需的参数是什么？
+- 请求路径：users
+- 请求方法：post
+- 请求参数：
+    username
+    password
+    email
+    mobile
+
+<!-- 
+  // 响应数据格式：
+
+  "data": {
+    "id": 28,
+    "username": "tige1200",
+    "mobile": "test",
+    "type": 1,
+    "openid": "",
+    "email": "test@test.com",
+    "create_time": "2017-11-10T03:47:13.533Z",
+    "modify_time": null,
+    "is_delete": false,
+    "is_active": false
+  },
+  "meta": {
+    "msg": "用户创建成功",
+    "status": 201
+  }
+ -->
+
+- 完整代码：
+<!-- 
+  // 在添加用户的对话框中 点击确定 添加用户
+  addUser() {
+    // 在这里 我们首先要对整个表单进行预校验
+    this.$refs.addFormRef.validate(async (valid) => {
+
+      // 如果验证没有通过 我们就不走 添加的逻辑了
+      if(!valid) return
+
+      // 如果验证没有通过 那么我们就可以开始 走添加的逻辑了 发起添加用户的请求
+      let {data: res} = await request({
+        url: "/users",
+        method: "post",
+        data: this.addForm
+      })
+
+      console.log(res)
+      if(res.meta.status !== 201) {
+        this.$message({
+          type: "error",
+          message: "添加用户失败",
+          duration: 1000
+        })
+      }
+
+      this.$message({
+        type: "success",
+        message: "添加用户成功",
+        duration: 1000
+      })
+
+      this.dialogVisible = false
+
+      // 我们添加了一个新用户后 别忘记还需要刷新用户列表
+      this.getUsersList()
+    })
+  },
+ -->
+
+- 要点：
+- 因为我们添加了一条数据 那么就要获取用户列表数据 用于显示最新数据
+
+-----------------
+
+> 编辑用户信息
+- 当我们点击 编辑按钮 的时候 会弹出 修改用户信息的对话框
+- 用户名是只读的 用户可以修改 邮箱和手机 点击确定 发起修改请求
+
+- 思路：
+- 1. 我们点击 编辑按钮 后 展示 修改用户信息的对话框
+- 2. 点击 编辑按钮 后 我们还要将用户信息 添加到 input 里面
+<!-- 
+  用户名： linken
+  邮箱： xxxx@mail.com
+  收集： 12123123
+ -->
+
+- 也就是说在点击 编辑按钮 的时候 我们要根据用户的id 查询到用户所对应的旧数据 并且给它保存起来 用我们在表单中进行填充
+
+- 那我们怎么能拿到id呢？ html模板中 可以通过 scope.row 拿到改行的所有数据 我们可以把当前用户的id传递过来
+<!-- 
+  // 点击 编辑按钮 会弹出 对话框
+  <el-button 
+    @click="openUpdateUser(scope.row.id)" 
+    type="primary" 
+    icon="el-icon-edit" 
+    size="mini"
+  >
+  </el-button>
+
+
+  // 编辑按钮的回调
+  // 打开编辑用户信息的回调
+  openUpdateUser(id) {
+
+    // 点击 编辑按钮 后的第一件事 打开编辑用户信息的表单对话框
+    this.updateDialogVisible = true
+    console.log(id)
+  },
+ -->
+
+
+- id拿到了 紧接着就是调用对应的接口 获取用户的信息
+- 请求路径：users/:id     不能为空`携带在url中`
+- 请求方法：get
+- 请求参数
+<!-- 
+  // 响应对象
+  {
+    "data": {
+        "id": 503,                用户id
+        "username": "admin3",
+        "role_id": 0,             角色id
+        "mobile": "00000",
+        "email": "new@new.com"
+    },
+    "meta": {
+        "msg": "查询成功",
+        "status": 200
+    }
+  }
+ -->
+
+> 完整代码
+<!-- 
+  // 打开编辑用户信息的回调
+  async openUpdateUser(id) {
+    let {data: res} = await request({
+      url: `users/${id}`,
+      method: "get"
+    })
+
+    if(res.meta.status !== 200) {
+      return this.$message({
+        type: "error",
+        message: "查询用户信息出错",
+        duration: 1000
+      })
+    }
+
+    // 如果没有return出去说明查询用户信息成功 那我们就把查询到的结果 保存起供页面来使用
+    this.updateForm = res.data
+
+    this.updateDialogVisible = true
+  },
+ -->
+
+- 逻辑梳理：
+- 为了在我们点击编辑按钮之后 在随之打开的对话框中 填入 这个用户的信息
+- 我们要在点击编辑按钮的回调里面 根据这个用户的id请求数据， 将请求回来的数据保存到data配置项中 然后做展示
+
+
+> 编辑按钮 -- 对话框中的表单
+- 要点：
+- 1. 所有的功能表单 我们都要 创建一个form数据对象 让input里面的v-model都绑定到这个form数据对象中的一个属性中
+
+- 2. 这个数据对象中的属性名都是后台接口要求的字段
+
+- 3. 如果其中的一个input不想被编辑 那么就给它设置为 disabled
+
+- 4. 需要验证规则的input项 就使用prop 如果不需要的话 就不用写
+<!-- 
+  <el-form 
+    :model="updateForm" 
+    :rules="updateFormRules" 
+    ref="updateFormRef" 
+    label-width="70px"
+  >
+    <el-form-item label="用户名">
+      <el-input disabled v-model="updateForm.username"></el-input>
+    </el-form-item>
+    <el-form-item label="邮箱" prop="email">
+      <el-input v-model="updateForm.email"></el-input>
+    </el-form-item>
+    <el-form-item label="电话" prop="mobile">
+      <el-input v-model="updateForm.mobile"></el-input>
+    </el-form-item>
+  </el-form>
+
+
+  因为 上面所有的input的值都是v-model绑定了 updateForm 
+  而 updateForm 的数据都是 打开对话框时发起了请求 将请求结果放到了 updateForm中
+
+  所以我们打开后input里面就有默认值了
+ -->
+
+> 技巧：
+- 让input框有默认值，不一定要将请求回来的数据 使用js等方法渲染到input中
+- 而是可以利用一个data配置项中的对象 我们把请求数据的结果保存到这个对象中 然后利用v-model 让input和这个数据对象进行绑定 进行关联
