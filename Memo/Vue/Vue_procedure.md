@@ -2124,3 +2124,158 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
 > 技巧：
 - 让input框有默认值，不一定要将请求回来的数据 使用js等方法渲染到input中
 - 而是可以利用一个data配置项中的对象 我们把请求数据的结果保存到这个对象中 然后利用v-model 让input和这个数据对象进行绑定 进行关联
+
+
+> 编辑按钮 -- 对话框中的表单 -- 点击确定时候的预验证
+- 当我们点击确定按钮的时候 我们应该先对用户的输入进行预验证
+- 只有预验证通过了之后才应该发起网络请求 进行真正的修改
+
+- 表单的预校验
+- 我们要先拿到 目标表单的ref对象，通过这个对象调用它的方法
+- this.$refs.updateFormRef.validate((valid) => { ... })
+
+
+> 发起 修改 请求
+- 请求路径：users/:id
+- 请求方法：put
+- 请求参数
+  id      不能为空 `参数是url参数:id`
+  email   可以为空
+  mobile  可以为空
+<!-- 
+  // 响应数据
+  "data": {
+    "id": 503,
+    "username": "admin3",
+    "role_id": 0,
+    "mobile": "111",
+    "email": "123@123.com"
+  },
+  "meta": {
+    "msg": "更新成功",
+    "status": 200
+  }
+-->
+
+
+> 思路：
+- 1. 我们填写完表单后在发送请求前 要先对表单进行预校验 获取到目标form的ref调用对应的方法
+
+- 2. 发起请求 这里我们发起的是 put请求 参数放在了data中 也就是请求体中
+
+- 3. 发送请求后 要根据返回的状态码做判断
+
+- 4. 修改数据后 要先关闭对话框 然后调用用户数据的请求函数 然后提示修改成功
+
+> 完整代码
+<!-- 
+  // 编辑按钮 中的对话框的确定按钮事件 
+  editUserInfo() {
+    // 我们在这里进行修改用户信息 填写的数据的预校验 与 提交
+    this.$refs.updateFormRef.validate( async (valid) => {
+      if(!valid) {
+        this.$message({
+          type: "error",
+          message: "输入数据格式不正确",
+          duration: 1000
+        })
+        return
+      }
+
+      // 发起修改请求
+      // updateForm 这个对象是我们打开编辑用户信息的按钮是 请求回来的该行这个人的数据 里面有id
+      let {data: res} = await request({
+        url: `users/${this.updateForm.id}`,
+        method: "put",
+        data: {
+          email: this.updateForm.email,
+          mobile: this.updateForm.mobile
+        } 
+      })
+      if(res.meta.status !== 200) {
+        this.$message({
+            type: "error",
+          message: "用户更新失败",
+          duration: 1000
+        })
+        return
+      }
+
+       // 先关闭对话框
+      this.updateDialogVisible = false;
+
+      // 刷新数据列表
+      this.getUsersList()
+
+      // 提示修改成功
+      this.$message({
+        type: "success",
+        message: "用户数据更新成功",
+        duration: 1000
+      })
+    })
+  },
+ -->
+
+
+> 删除用户的逻辑
+- 我们点击删除按钮后不能马上的将用户删除 因为他可能是不小心点到了这个按钮 
+
+- 我们应该在用户点击删除按钮后提示用户是否真的进行删除
+- 当用户取消删除的时候 我们提示 已取消删除
+- 当用户点击确认删除的时候 才会真正的删除数据
+
+- 提示框：
+- 我们使用 element ui 中的 Message Box 组件
+
+- 使用方式：
+- import {MessageBox} from "element-ui"
+- Vue.prototype.$confirm = MessageBox.confirm
+
+<!-- 
+  this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    }).catch(() => {
+      this.$message({
+        type: 'info',
+        message: '已取消删除'
+      });          
+    });
+  }
+-->
+
+> this.$confirm("参数1", "参数2", "参数3")
+- 参数1： 提示消息
+- 参数2： 标题
+- 参数3： 配置对象
+  确定按钮的文本
+  取消按钮的问题
+  前面的小图标
+
+- 它的返回值是一个promise对象
+- 当点击确定的时候 返回值为 confirm
+- 当点击取消的时候 返回值为 cancel
+
+- 1. 我们给 删除按钮 绑定删除用户事件 然后把用户的id传递过去 通过 scope.row.id
+<!-- 
+  // 根据id删除对应的用户信息
+  async removeUserById(row) {
+    // 先弹框进行提示
+    let res = await this.$confirm(`此操作将永久删除 ${row.username}, 是否继续?`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).catch(err => err)
+
+    if(res !== "confirm") {
+      return  this.$message.info("已经取消删除")
+    } 
+  },
+ -->
