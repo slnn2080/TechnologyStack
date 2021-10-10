@@ -2279,3 +2279,1376 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
     } 
   },
  -->
+
+
+> 删除 用户 请求
+- 请求路径：users/:id
+- 请求方法：delete
+- 请求参数
+    id    不能为空`参数是url参数:id`
+
+<!-- 
+  // 响应数据的格式：
+  {
+    "data": null,
+    "meta": {
+      "msg": "删除成功",
+      "status": 200
+    }
+  }
+ -->
+
+
+> Git 相关
+- 老师已经把一个功能大概的完成了 现在要开始提交仓库进行保存
+<!-- 
+  // git branch
+
+  我们的项目总共有两个分支
+  main
+  login
+  
+  我们把所有的代码都放在main分支上是不合适的 我们要将 main 上完成的逻辑迁移到 新的分支上
+
+
+  // git checkout -b user
+  先创建一个子分支 user 然后使用 checkout 命令切换到这个分支上
+  这样所有在main分支上的修改 都被迁移到了 user分支上
+
+
+  // git push -u origin user
+  将本地的分支推送到云端的user分支上 因为是第一次 所以有-u
+
+  如果云端有了的分支 比如 本地是user 云端也有user 因为第一次已经用了 -u了
+  所以 我们再接下来使用 命令推送的时候 直接使用 
+
+  git push就可以了
+ -->
+
+- 分配权限的功能还没有做
+
+-----------------
+
+### 权限管理
+- 每一个新的模块都要创建一个新的分支，现在我们要完成权限管理的模块 所以先创建一个分支 最后再合并到主干
+<!-- 
+  创建一个新分支
+  git checkout -b role  
+
+  将新分支进行推送到云端
+  git push -u origin role
+ -->
+
+
+> 权限列表组件
+- 大概的结构是
+    - 面包屑导航
+    - 卡片视图
+      - 数据表格
+
+
+> 请求权限列表数据 在table中做展示
+- 请求路径：rights/:type
+- 请求方法：get
+- 请求参数
+    type： `参数是url 参数:type`
+    值 list 或 tree , list 列表显示权限, tree 树状显示权限,
+
+- 请求参数的类型可以传递 tree 和 list
+- 如果我们传递的是list 那我们获取的数据结构是 列表的结构 每一项之间都是彼此独立的
+<!-- 
+  [
+    {}
+    {}
+  ]
+ -->
+
+- 如果我们传递的是tree 那我们获取的数据结构是 树状的结构 每一级的结构之间是通过 children属性来链接的
+<!-- 
+  [
+    {
+      {
+
+      }
+    }
+  ]
+ -->
+
+- 这里我们只需要是用表格展示 所以我们的type用 list 来展示
+<!-- 
+  响应数据的说明：
+    id           权限 ID 
+    authName     权限说明
+    level        权限层级
+    pid          权限父 I
+    path         对应访问路径
+ -->
+
+- 下面是一个页面 请求数据 的代码部分
+<!-- 
+  import {request} from "../../network/request"
+  export default {
+    name: "Rights",
+
+    data() {
+      return {
+        // 权限列表
+        rightsList: []
+      }
+    },
+    created() {
+      this.getRightsList()
+    },
+
+    methods: {
+      async getRightsList() {
+      let {data: res} = await request({
+        url: "rights/list",
+        method: "get"
+      })
+
+      if(res.meta.status !== 200) {
+        this.$message({
+          type: "error",
+          message: "查询权限列表失败",
+          duration: 1000
+        })
+        return
+      }
+
+      // 将获取的数据放到 data配置项的 rightsList 里面供模板进行使用
+      this.rightsList = res.data
+    }
+  }
+ -->
+
+
+> 将获取到的 权限列表的数据渲染成表格
+- 要点：
+- 1. 我们使用 el-tag 标签 来修饰 权限等级
+- 以前我在项目里都是通过prop来传递tag的颜色 然后根据请求回来的数据使用计算属性 决定显示什么样的数据
+
+- 这里使用了这种方式
+- 我们定义了三种显示方式 内容写死 然后根据 请求回来的数据做判断 展示对应的项
+<!-- 
+  <el-table-column 
+    v-for="(item, index) of columnData" 
+    :key="item.id" 
+    v-bind="item"
+  >
+    <template v-if="item.type == 'tag'" scope="scope">
+      <el-tag v-if="scope.row.level == '0'">一级</el-tag>
+      <el-tag v-else-if="scope.row.level == '1'" type="success">二级</el-tag>
+      <el-tag v-else="scope.row.level == '2'" type="warning">三级</el-tag>
+    </template>
+  </el-table-column>
+ -->
+
+
+> 权限管理业务分析
+- 通过权限管理模块控制不同的用户可以进行哪些操作
+- 具体可以通过角色的方式进行控制 即每个用户分配一个特定的角色 角色包括不同的功能权限
+
+- 用户： 代表这个系统中的每一个账号
+- 权限： 代表用户所拥有的能力
+<!-- 
+  比如对一个列表有增删改查等操作 有的用户只有添加的权限 有的用户只有查询和增加 没有删除的权限 
+
+  我们的这个按钮中 并没有将权限直接绑定到用户身上 和是在 用户 和 权限之间设置了不同的角色
+
+  我们把权限分配给不同的角色 再把角色分配给不同的用户 这样只要用户拥有了角色 这个用户肯定拥有对应的权限
+-->
+
+
+-----------------
+
+### 角色管理
+- 获取角色列表的相关数据
+- 请求路径：roles
+- 请求方法：get
+
+- 响应数据说明
+  - 第一层为角色信息
+  - 第二层开始为权限说明，权限一共有 3 层权限
+  - 最后一层权限，不包含 `children` 属性
+
+- 整个 data 是一个数组 数组里每一个对象都是一个角色
+- roleName  角色的名称
+- id        角色的id
+- children  这里面是当前角色所拥有的所有权限
+
+- 权限分为3级权限 每一级权限都是通过children来进行嵌套的
+- 比如 商品管理是 主管 的一级权限  商品列表就是二级权限 添加商品就是三级权限都是用过children来进行嵌套的
+<!-- 
+  这里就可以通过 它有没有children属性可以判断出它是否是3级权限
+ -->
+
+<!-- 
+  "data": [
+    {
+      "id": 30,
+      "roleName": "主管",
+      "roleDesc": "技术负责人",
+
+      "children": [
+        {
+          "id": 101,
+          "authName": "商品管理",
+          "path": null,
+          "children": [
+            {
+              "id": 104,
+              "authName": "商品列表",
+              "path": null,
+              "children": [
+                {
+                  "id": 105,
+                  "authName": "添加商品",
+                  "path": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "meta": {
+      "msg": "获取成功",
+      "status": 200
+  }
+ -->
+
+- 我们拿到的数据层次嵌套的很深啊 怎么用呢？
+- 目前为止我们是根据数据 渲染了第一层结构
+<!-- 
+  {
+    id: 30, 
+    roleName: '主管', 
+    roleDesc: '技术负责人',
+
+    children:  {
+      id: 101, 
+      authName: '商品管理', 
+      path: 'goods', 
+
+      children: 
+        authName: "商品列表"
+        id: 104
+        path: "goods"
+
+          children：
+            authName: "商品修改"
+            id: 116
+            path: "goods"
+ -->
+
+- 之前我们在表格中添加索引列使用的是：
+<!-- 
+  <el-table-column 
+    type="index" 
+    label="#" 
+    align="center"
+  >
+  </el-table-column>
+ -->
+
+- 现在我们要做一个展开列
+<!-- 
+  <el-table-column 
+    type="expand" 
+  >
+  </el-table-column>
+ -->
+
+
+- 角色列表所具有的功能：
+- 1. 点击分配权限按钮 可以弹出一个 树形结构 的复选框 可以修改角色的权限
+- 2. 点击展开列可以打开该角色所对应的权限
+
+-----------------
+
+> 角色列表 点击展开列 显示权限数据
+- 要点：
+- 1. 我们要在展开行中拿到角色对应的所有权限
+<!-- 
+  我们在请求 角色列表 的时候 在请求回来的数据中已经包含了 权限的数据
+
+  {
+    id: 30, 
+    roleName: '主管', 
+    roleDesc: '技术负责人',
+
+    children:  {
+      id: 101, 
+      authName: '商品管理', 
+      path: 'goods', 
+
+      children: 
+        authName: "商品列表"
+        id: 104
+        path: "goods"
+
+          children：
+            authName: "商品修改"
+            id: 116
+            path: "goods"
+
+  在data中每一个对象都是一个角色 在对象中有一个children属性 这个children就是当前角色拥有的所有权限
+
+  我们只需要拿到表格中一行的角色信息 在拿到它的children属性就可以了
+
+  怎么拿到这行的数据？ 我们通过作用域插槽就非常的方便
+ -->
+
+- 2. 通过三层for循环渲染三层权限
+- 我们通过作用域插槽拿到 表格中该行的所有数据 其中 children 是一个数组 我们可以遍历进行渲染
+- scope.row.children 我们通过遍历可以得到一级权限
+- 每一个children中还有children来嵌套了二级权限 里面还有三级权限
+- 假如我们想完成这样的一个扩展列表的话 我们需要使用三层for循环来解决
+- 最外层的for循环用来渲染一级权限 第二个for循环用来渲染二级权限 第三个for循环用来渲染三级权限
+<!-- 
+  <el-table-column type="expand">
+    <template scope="scope">
+      {[scope.row}}     children > children > children
+    </template>
+  </el-table-column>
+ -->
+
+
+> 渲染一级权限
+- 我们在上面的这个作用域插槽中做下 栅格布局
+<!-- 
+  <el-table-column type="expand">
+    <template scope="scope">
+      <el-row>
+
+        // 一级权限区域
+        <el-col :span="5">
+          渲染这里
+        </el-col>
+
+        // 二级权限区域
+        <el-col :span="19">
+
+        </el-col>
+      </el-row>
+    </template>
+  </el-table-column>
+ -->
+
+- 
+- 然后我们需要遍历数据渲染每一行的1级权限
+- 思考：
+- 我们将 展开行 里面做了布局 现在每一行对应一个角色 我们要渲染该角色下的一级权限 v-for 加在哪里？
+
+- 每一行每个角色每个权限类别都会有一个 el-row 是吧 那是不是说我们应该加在v-for el-row里面 这样 我们每循环一次都会往第一列里面放一个el-tag标签
+
+
+> 技巧
+- 背景：
+- 我需要给每一个 el-tag 上下添加一条线
+- 1. 给 el-row 添加 class 这样添加的线会是一整行
+- 2. 我们定义两个类 我们先给所有el-row添加上 下边框 然后给第一个el-row添加上上边框就行了
+<!-- 
+  .bdtop {
+    border-top: 1px solid #eee
+  }
+
+  .bdbottom {
+    boder-bottom: 1px solid #eee
+  }
+
+  <el-row 
+    v-for="(item, index1) of scope.row.children" 
+    :key="item.id"
+    class="tag-wrap"
+    :class="['tag-row-bottom', index1 === 0 ? 'tag-row-top' : '']"
+  >
+
+  要点：
+  动态绑定class 数组的方式 不用在data配置项中定义 直接使用的是style中的类名 同时只有当行为0的时候才添加这个类
+ -->
+
+
+> 渲染二级权限
+<!--
+  <el-table-column type="expand">
+    <template scope="scope">
+      <el-row>
+
+        // 一级权限区域
+        <el-col :span="5">
+          
+        </el-col>
+
+        // 二级权限区域
+        <el-col :span="19">
+          渲染这里
+        </el-col>
+      </el-row>
+    </template>
+  </el-table-column>
+ -->
+
+- 二级权限的渲染 要点在于 我们在 二级权限的区域 再次使用 row col 进行了布局 并且再次使用了 v-for 注意这里 二级权限v-for也是加在 el-row上的 但是三级直接加在了 el-tag 上
+<!-- 
+  渲染二 三级权限>
+  <el-col :span="19">
+    <div>
+      通过for循环嵌套渲染二级权限
+      <el-row 
+        v-for="(i, index2) of item.children" 
+        :key="i.id"
+        :class="[index2 == 0 ? '' : 'tag-row-top']"
+      >
+
+        二级权
+        <el-col :span="6">
+          <div>
+            <el-tag type="success">{{i.authName}}</el-tag>
+            <i class="el-icon-caret-right"></i>
+          </div>
+        </el-col>
+
+        三级权限
+        <el-col :span="6">
+          <div>
+            <el-tag type="warning" v-for="(ii, index3) of i.children" :key="ii.id">{{ii.authName}}</el-tag>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+  </el-col>
+ -->
+
+> 点击 el-tag 上的删除按钮 删除权限
+- 可删除的 tag 标签
+
+> <el-tag closable>
+- close事件	关闭 Tag 时触发的事件
+- 我们在用户点击 删除 的时候 先提示 然后 发起对应的 删除请求
+
+- 请求路径：roles/:roleId/rights/:rightId
+- 请求方法：delete
+- 请求参数
+  | :roleId  | 角色 ID  | 不能为空`携带在url中` |
+  | :rightId | 权限 ID  | 不能为空`携带在url中` |
+
+- 删除哪个角色下的哪个id
+- delete请求是一个 url 拼接的格式呢
+
+<!-- 
+  返回的data是最新的权限信息
+  {
+    "data": [
+      {
+        "id": 101,
+        "authName": "商品管理",
+        "path": null,
+        "children": [
+          {
+            "id": 104,
+            "authName": "商品列表",
+            "path": null,
+            "children": [
+              {
+                "id": 105,
+                "authName": "添加商品",
+                "path": null
+              },
+              {
+                  "id": 116,
+                  "authName": "修改",
+                  "path": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+  "meta": {
+    "msg": "取消权限成功",
+    "status": 200
+    }
+  }
+ -->
+
+> 删除权限逻辑的完整代码
+- 要点：
+- 1. this.$confirm() 方法返回的是一个promise对象 但是它不是axios会返回res.data 我们直接用一个变量接收结果 cancel or confirm
+
+- 2. 当到删除的逻辑的时候我们要发起的是删除请求 delete 请求好像使用了 resful 风格的接口 
+
+- 3. 角色id 和 权限id 是通过 scope.row 和 item.id 的传参方式获取的
+- 4. 也是最值得吸收的一点
+
+- 1 this.getRolesList()
+- 2 role.children = res.data
+
+- 正常我们删除之后会重新获取用户数据当在删除的逻辑中 并不适合获取整个页面的数据 因为这样会导致这个页面完全的被刷新 这样我们本来展开的行会关闭 体验不好 
+
+- 我们想直接看到被删除的效果 那么 我们可以用上面的2的方式
+- 因为删除的响应数据是一个删除操作后该行该角色的完整的最新的权限数据 所以我们直接给 scope.row.children 就可以了 可以做到局部的刷新数据
+
+<!-- 
+   async removeItemById(role, rightId) {
+    // 弹窗提示用户是否删除
+    let deleteInfo = await this.$confirm("此操作将永久删除权限信息", "删除提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }).catch(err => err)
+
+    if(deleteInfo !== "confirm") {
+      this.$message({
+        type: "info",
+        message: "取消了删除",
+        duration: 1000
+      })
+      return
+    }
+
+    // 发起删除对应权限的请求
+    let {data: res} = await request({
+      url:`roles/${role.id}/rights/${rightId}`,
+      method: "delete"
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "删除权限失败",
+        duration: 1000
+      })
+      return
+    }
+
+    this.$message({
+      type: "success",
+      message: "删除数据成功",
+      duration: 1000
+    })
+
+    // this.getRolesList()
+    role.children = res.data
+  },
+ -->
+
+
+> 分配权限的功能
+- 当我们点击按钮的时候 会弹出 分配权限的对话框 在弹出对话框的同时 我们将该角色对应的权限数据获取回来
+
+- 在弹出对话框的 同时 我们将该角色的权限数据 以树形结构 给它获取回来 保存到data中 供页面进行使用
+<!-- 
+  // 展示分配权限的对话框
+  showSetRightDialog() {
+
+    // 在打开点击 分配权限 按钮的对话框之前 获取 数据
+    this.setRightDialogVisible = true
+  },
+ -->
+
+- 请求路径：rights/:type
+- 请求方法：get
+- 请求参数
+    type： `参数是url 参数:type`
+    值 list 或 tree , list 列表显示权限, tree 树状显示权限,
+
+<!-- 
+  // 展示分配权限的对话框
+  async showSetRightDialog() {
+    // 获取所有权限的数据
+    let {data: res} = await request({
+      url: `rights/tree`,
+      method: "get"
+    })
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "info",
+        message: "获取权限列表失败",
+        duration: 1000
+      })
+      return
+    }
+
+    // 将请求回来的数据保存到data中
+    this.rightsList = res.data
+    this.setRightDialogVisible = true
+  },
+ -->
+
+
+> Tree 组件
+- 为了将请求回来的数据加载到 对话框 中 我们选择了 tree 组件
+- <el-tree :data="rightsList" :props="defaultProps" show-checkbox></el-tree>
+- :data:　数据源
+- :prop:　数据绑定的字段
+- show-checkbox: 展示复选框
+<!-- 
+  prop的值是一个对象 
+  defaultProps: {
+    children: "children"      实现嵌套关系的属性是哪个
+    label:"label"             展示的文本信息又是哪个属性
+  }
+ -->
+
+
+- 我们可以 tree 组件使用了 show-checkbox 属性 这样所有的文本前就会多了一个复选框
+- 但是当我们点击复选框的时候 我们要拿到一个值 总不能拿到的是 文本信息吧 我们应该拿到的是 对应的 id值
+- 那怎么指定当我们选择了项的时候 取到的是id值呢？
+
+> <el-tree node-key="id">
+- 我们通过这个 node-key 绑定一个 value值
+- 也就是当我们点击该项的时候 它会获取到 数据中的哪个字段的值
+
+
+> <el-tree default-expand-all>
+- boolean
+- 是否上来默认展开所有的内容
+
+
+> <el-tree default-checked-keys>
+- array
+- 默认勾选的节点的 key 的数组
+- 现在我们只是将所有权限列表请求回来并做了展示，但是角色身上对应的权限并没有在这个tree中体现出来
+- 我们想要的效果是 a角色现在身上现有的权限 在tree中做出体现 已有的权限是被选中的状态
+
+<!-- 
+  1. data配置项中定义 一个数组
+  // tree组件 用户权限对应体现 默认选中的节点id值数组 因为id绑定了取值
+  这个id值跟node-key="id"是有关系的
+
+  defKeys: [],
+
+
+  2. 把角色已有的权限 加载到tree组件上 点击 分配角色的按钮的同时 立即把当前角色的已有的三级权限id 我们只获取三级权限id 把所有的id都添加到 defKeys 数组中就可以
+ -->
+
+> 使用递归函数获取三级权限id
+- 使用递归的思路
+- 1. 我们要先考虑最终结果，本例中我们要找三级节点 它的条件就是 !node.child 节点中没有该属性了 
+
+- 2. else 里继续调用自己
+
+- 3. 这里面的node我们传递的是一个对象
+<!-- 
+  // 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
+    getLeafKeys(node, arr) {
+    // node用来判断是否是3级权限节点 是否为3级节点我们可以判断它是否包含children属性
+
+    // 如果该节点包含了children属性 证明它不是三级节点 如果没有children属性则证明它是三级节点
+    if(!node.children) {
+      return arr.push(node.id)
+    } else {
+      node.children.forEach(item => {
+        this.getLeafKeys(item, arr)
+      })
+    }
+  }
+ -->
+
+- 整体逻辑进行梳理
+- 1. 我们要过滤 点击按钮这行 的 这个角色的数据 将这个角色的三级权限项 所对应的id找出来 push 到一个新的数组中 用于 tree组件的 default-checked-keys 属性来使用 用户默认展示该角色所对应的权限勾选情况
+
+- 2. 我们先定义了一个 defKeys 数组 用户接收 三级权限的id
+- 3. 在我们点击 分配权限按钮的时候 我们要将该行该角色的数据传递过去 scope.row 是一个对象，用于筛选
+<!-- 
+  // tree组件 用户权限对应体现 默认选中的节点id值数组
+  defKeys: [],
+
+
+  // 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
+  getLeafKeys(node, arr) {
+    if(!node.children) {
+      return arr.push(node.id)
+    } else {
+      node.children.forEach(item => {
+        this.getLeafKeys(item, arr)
+      })
+    }
+  }
+
+
+  <el-button 
+    @click="showSetRightDialog(scope.row)"
+  >
+    分配权限
+  </el-button>
+
+  <el-tree 
+    :data="rightsList" 
+    :props="treeProps" 
+    show-checkbox
+    node-key="id"
+    default-expand-all
+
+
+    :default-checked-keys="defKeys"
+
+
+  ></el-tree>
+ -->
+
+
+> 每次关闭对话框的时候要清空 defKeys 的
+- 也可以在弹窗前处理这个逻辑
+<!-- 
+  <el-dialog
+    title="分配权限"
+    :visible.sync="setRightDialogVisible"
+    width="50%"
+    @close="setRightDialogClosed"
+  >
+
+  setRightDialogClosed() {
+    this.defKeys = []
+  },
+ -->
+
+
+> 分配权限
+- 比如我们现在已经在tree组件中为角色勾选了几个状态， 当我点击确定的时候 应该向服务器发起请求 把勾选的状态都保存到服务器中 进行数据的持久化
+
+- 请求路径：roles/:roleId/rights
+- 请求方法：post
+- 请求参数：通过 `请求体` 发送给后端
+    :roleId   |  角色 ID  | 不能为空`携带在url中
+    rids      | 权限 ID 列表（字符串） |
+    
+    以 `,` 分割的权限 ID 列表（获取所有被选中、叶子节点的key和半选中节点的key, 包括 1，2，3级节点） |
+
+- roleId：
+- 为哪个角色分配权限 就需要把哪个id传递到url地址中
+
+- 同时我们还要在请求体中发送一个 rids 的字符串 这个字符串是以英文, 分割的权限id列表 我们要把已选中节点的id 和 半选中节点的id 整理成1,2,3 
+
+<!-- 
+  {
+    "data": null,
+    "meta": {
+        "msg": "更新成功",
+        "status": 200
+    }
+  }
+ -->
+
+- 怎么得到全选中和半选中的id呢？tree组件中给我们提供了两个方法
+
+- 我们需要给组件绑定ref 拿到该组件对象 然后调用组件对象的方法
+
+> getCheckedKeys
+- 若节点可被选择（即 show-checkbox 为 true），则返回目前被选中的节点的 key 所组成的数组 也就是node-key的值
+
+> getHalfCheckedKeys
+- 若节点可被选择（即 show-checkbox 为 true），则返回目前半选中的节点所组成的数组 也就是node-key的值
+
+<!-- 
+  // 点击确认按钮 为角色分配权限
+  async allotRights() {
+    const keys = [
+      ...this.$refs.treeRef.getCheckedKeys(),
+      ...this.$refs.treeRef.getHalfCheckedKeys()
+    ]
+
+    // 将获取到的数组拼接成一个以逗号分隔的字符串
+    let idStr = keys.join(",")
+    
+    let {data: res} = await request({
+      url: `roles/${this.roleId}/rights`,
+      method: "post",
+      data: {
+        rids: idStr
+      }
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "用户更新权限失败",
+        duration: 1000
+      })
+      return
+    }
+    
+    this.getRolesList()
+    this.$message({
+      type: "success",
+      message: "用户更新权限成功",
+      duration: 1000
+    })
+    this.setRightDialogVisible = false
+  },
+ -->
+
+- 思路整理
+- 当点击分配权限的按钮的时候 我们将该角色的id保存到了data中
+- 在点击确定按钮的时候我们获取了 tree 组件中半选和全选的id值 然后把他们合并成了一个完整的数组 我们将这个数组整理成后台接口所需要的格式
+
+
+> 用户管理 -- 用户列表 -- 分配角色功能
+- 我们要完成的效果是 点击表格中的一行中的 分配按钮后 
+- 在弹出的对话框中显示该条用户的基本信息，和提供一个下拉菜单 供选择待分配角色
+<!-- 
+  当前的用户：
+  当前的角色：
+  分配新角色：  下拉框
+ -->
+
+- 思路：
+- 1. 我们做的第一步就是点击分配按钮后 弹出一个对话框，同时在点击分配按钮后 将该行用户的数据 保存到data配置项中 用html模板使用
+
+- 2. 点击这个 分配角色 的按钮的同时 直接获取所有角色的数据列表 并保存在data配置项中
+<!-- 
+  // 展示分配角色的对话框
+  async setRole(userInfo) {
+    this.userInfo = userInfo
+    // 在展示对话框前，获取所有角色的列表
+    let {data: res} = await request({
+      url: "roles",
+      method: "get"
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "权限列表刷新失败",
+        duration: 1000
+      })
+    }
+
+    this.rolesList = res.data
+    this.setRoleDialogVisible = true
+  },
+ -->
+
+- 3. 根据我们请求回来的角色数据列表 在html模板中进行渲染数据
+<!-- 
+  <el-select v-model="selectedRoleId" placeholder="请选择">
+    <el-option
+      v-for="item in rolesList"
+      :key="item.id"
+      :label="item.roleName"
+      :value="item.id">
+    </el-option>
+  </el-select>
+ -->
+
+- 4. 剩下的就是 点击 确定按钮 将选中的角色 保存到用户的信息中
+<!--  
+  // 监听分配角色对话框 关闭事件 不然再次点开对话框后会有信息的残留
+  setRoleDialogClosed() {
+    this.selectedRoleId = ""
+    this.userInfo = {}
+  },
+
+  // 点击 分配角色 按钮里面的 确定按钮 分配角色
+  async saveRoleInfo() {
+    // 证明用户没有选择新的角色
+    if(!this.selectedRoleId) {
+      this.$message({
+        type: "error",
+        message: "请选择要分配的角色",
+        duration: 1000
+      })
+    }
+
+
+    // 如果没有return出去代表用户选择了一个角色 那我们就要发起请求
+    let {data: res} = await request({
+      url: `users/${this.userInfo.id}/role`,
+      method: "put",
+      data: {rid: this.selectedRoleId}
+    })
+    
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "更新用户角色失败",
+        duration: 1000
+      })
+    }
+
+    this.$message({
+      type: "success",
+      message: "更新用户角色成功",
+      duration: 1000
+    })
+
+    this.getUsersList()
+    this.setRoleDialogVisible = false
+  },
+
+
+  // 展示分配角色的对话框
+  async setRole(userInfo) {
+    this.userInfo = userInfo
+    // 在展示对话框前，获取所有角色的列表
+    let {data: res} = await request({
+      url: "roles",
+      method: "get"
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "权限列表刷新失败",
+        duration: 1000
+      })
+    }
+
+    this.rolesList = res.data
+    this.setRoleDialogVisible = true
+  },
+ -->
+
+
+> Git相关
+- 我们已经把权限相关的功能开发完了 接下来我们要将代码保存到git上
+- git branch
+<!-- 
+  我们所处在 role 分支上 我们先将本地的修改 提交到 云端的role分支上
+ -->
+
+- 我们需要将role分支的代码合并到主分支
+<!-- 
+  git checkout main
+  git merge role
+ -->
+
+-----------------
+
+### 分类管理
+- 商品分类主要在购物的时候 快速的找到要购买的商品 可以通过电商平台主页直观的看到
+- 当开发一个新功能的时候 我们需要创建一个新的分支
+- git checkout -b category
+- git push -u origin category
+
+- 获取商品分类数据列表 渲染出表格
+
+- 请求路径：categories
+- 请求方法：get
+- 请求参数
+    type: 1, 2, 3  分别表示显示一层二层三层分类列表
+  【可选参数】如果不传递，则默认获取所有级别的分类
+
+    pagenum:  当前页码值 【可选参数】如果不传递，则默认获取所有分类数据
+    pagesize: 每页显示多少条数据
+
+
+- 我们的页面里面是需要获取所有的分类 所以我们的type值可以指定3 或者 不传递
+- 我们的表格具有分页的效果 所以一定要指定 pagenum 和 pagesize
+- 我们每页只有5条数据 所以 pagesize 是 5
+- 默认应该选择第一页 所以 pagenum 是 1
+
+<!-- 
+  响应数据
+  "data": [
+    {
+      "cat_id": 1,
+      "cat_name": "大家电",
+      "cat_pid": 0,
+      "cat_level": 0,
+      "cat_deleted": false,
+      "children": [
+        {
+          "cat_id": 3,
+          "cat_name": "电视",
+          "cat_pid": 1,
+          "cat_level": 1,
+          "cat_deleted": false,
+          "children": [
+            {
+              "cat_id": 6,
+              "cat_name": "曲面电视",
+              "cat_pid": 3,
+              "cat_level": 2,
+              "cat_deleted": false
+            },
+            {
+              "cat_id": 7,
+              "cat_name": "海信",
+              "cat_pid": 3,
+              "cat_level": 2,
+              "cat_deleted": false
+            }
+          ]
+        }
+      ] 
+    }
+  ],
+  "meta": {
+    "msg": "获取成功",
+    "status": 200
+  }
+ -->  
+
+
+> 设置 分页 的逻辑
+- 1. 将发请求时传递的参数都设置成对象 保存在data配置项里
+- 2. 同时也将服务器返回的结果中的total也保存在data配置项中 total的默认值为0
+<!-- 
+  queryInfo: {
+    type: 3,
+    pagenum: 1,     默认为第一页
+    pagesize: 5     我们每页显示5条记录
+  },
+  total: 0
+
+   发送请求返回的响应结果：
+   {total: 30, pagenum: 0, pagesize: 5, result: Array(5)}
+   {msg: '获取成功', status: 200}
+
+   返回的数据有 
+    total 一共多少条记录
+    pagenum： 0
+    pagesize: 5
+    result: 数据
+ -->
+
+<!-- 
+  async getCategoryList() {
+    let {data: res} = await request({
+      url: "/categories",
+      method: "get",
+      params: this.queryInfo
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "获取商品分类失败",
+        duration: 1000
+      })
+    }
+    this.total = res.data.total
+    this.catagoryList = res.data.result
+    }
+  },
+  created() {
+    this.getCategoryList()
+  }
+ -->
+
+
+> 将请求回来的数据 渲染成 树形表格
+- element中并没有树形结构的表格 这里我们用插件来完成效果
+- npm i vue-table-with-tree-grid --save
+- https://github.com/MisterTaki/vue-table-with-tree-grid
+<!-- 
+  import Vue from 'vue'
+  import ZkTable from 'vue-table-with-tree-grid'
+
+  Vue.use(ZkTable)
+
+
+  // 手动注册
+  import Vue from 'vue'
+  import ZkTable from 'vue-table-with-tree-grid'
+
+  Vue.component(ZkTable.name, ZkTable)
+
+
+  我们选择的方式是：
+  在main.js文件中：
+
+  import TreeTable from "vue-table-with-tree-grid"
+  Vue.component("tree-table", TreeTable)
+ -->
+
+
+> 插件的使用：
+- data: 用于匹配数据源
+- columns: 用于匹配列的配置项
+- selection-type: 
+      用于设置表格每行是否有多选框
+
+- expand-type：
+      用于设置每行是否可以被展开
+
+- show-index
+      是否显示索引行
+
+- index-text
+      索引行的表头
+
+- show-row-hover
+      移入是否高亮
+<!-- 
+  <tree-table
+    :data="catagoryList"
+    :columns="columnData"
+    :selection-type="false"
+    :expand-type="false"
+    :show-index="true"
+    index-text="#"
+    border
+    :show-row-hover="false"
+  >
+    <template slot="isOk" scope="scope">
+      <i v-if="!scope.row.cat_delated" class="el-icon-success" style="color: lightgreen"></i>
+      <i v-else class="el-icon-error" style="color:red"></i>
+    </template>
+  </tree-table>
+
+  columnData:[
+    {
+      prop: "cat_name",
+      label: "分类名称",
+      minWidth: 100,
+    },
+    {
+      prop: "cat_delated",      它是一个boolean值 false 是对号
+      label: "是否有效",
+      minWidth: 100,
+
+      // 如果它的值为type 代表我想将这列渲染成自定义的模板列
+      type:"template",
+      // 自定义模板列需要使用哪个作用域插槽呢？ 也就是插槽的名字
+      template: "isOk"
+    },
+    {
+      prop: "roleDesc",
+      label: "排序",
+      minWidth: 100,
+    }
+  ],
+ -->
+
+
+> 商品分类数据的分页功能
+- 首先我们要引入分页器 我们找到完整功能的代码部分
+<!-- 
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    :current-page="queryInfo.pagenum"
+    :page-sizes="[5, 10, 15, 20]"
+    :page-size="queryInfo.pageSize"
+    layout="total, sizes, prev, pager, next, jumper"
+    :total="total">
+  </el-pagination>
+
+
+  @size-change 用户选择一页显示多少条数据的回调 先给它绑定事件处理函数
+    我们能在这个事件处理函数身上拿到最新的 pagesize 我们需要将这个值交给data中的分页信息对象
+
+  @current-change 用户选择第几页的回调
+    我们能在这个事件处理函数身上拿到最新的 pagenum 我们要将这个值教给data中的分页信息对象
+
+  queryInfo: {
+    type: 3,
+    pagenum: 1,
+    pagesize: 5
+  },
+  total: 0,
+
+
+  // 监听pagesize改变的事件
+  handleSizeChange(newSize) {
+    this.queryInfo.pagesize = newSize
+    // pagesize改变了就要重新请求数据
+    this.getCategoryList()
+  },
+
+  // 监听pagenum改变的事件
+  handleCurrentChange(newPage) {
+    this.queryInfo.pagenum = newPage
+    this.getCategoryList()
+  },
+ -->
+
+
+> 添加分类的操作
+- 点击 添加分类 按钮 会弹出 对话框 分类名称 和 父级分类
+- 我们需要在 这个对话框中 使用表单
+<!-- 
+  分类名称： 
+  父级分类：    这个可以不填 不填的话 默认将输入的分类名称添加为1级分类
+
+  比如我们输入了 aaa 又在下面选中了大家电 说明我们想将aaa添加到大家电的子分类
+ -->
+
+- 请求路径：categories
+- 请求方法：post
+- 请求参数
+    cat_pid   分类父 ID   
+        不能为空，如果要添加1级分类，则父分类Id应该设置为  `0`
+        如果是父级那id就是0
+        如果不是那就是选中谁 就以选中的id当做父级id
+
+    cat_name   分类名称
+        不能为空
+
+    cat_level   分类层级
+        不能为空，`0`表示一级分类；`1`表示二级分类；`2`表示三级分类
+
+<!-- 
+  {
+    "data": {
+      "cat_id": 62,
+      "cat_name": "相框",
+      "cat_pid": "1",
+      "cat_level": "1"
+    },
+    "meta": {
+      "msg": "创建成功",
+      "status": 201
+    }
+  }
+ -->
+
+- 关于用户输入的信息 我们还是选择使用form表单组件
+- 组件我们将form绑定data配置项中的一个收集对象，将里面每一个form-item对应的input等表单项 绑定到收集对象中的一个属性身上
+- 注意 这里的属性名最好设置为请求参数需要的字段名
+<!-- 
+  // data配置项
+  // 添加分类表单的数据对象
+
+  这里因为我们一会发起请求的时候 里面需要3个参数，注意参数的类型 都是number
+  addCateForm: {
+    cat_name: "",
+    // 父级分类的id
+    cat_pid: 0,
+
+    // 分类的等级 默认要添加的是1级分类
+    cat_level: 0
+  },
+
+  // 添加分类表单的验证规则对象
+  addCateFormRules: {
+    cat_name: [
+      {required: true, message: "请输入分类名", trigger: "blur"},
+    ]
+  },
+
+
+
+  <el-form 
+    :model="addCateForm"          绑定一个收集对象
+    :rules="addCateFormRules"     验证规则对象
+    ref="addCateFormRef"          一会要通过它验证我们的输入结果
+    class="demo-ruleForm"
+    label-width="100px"
+  >
+    // prop 是指向的验证规则对象中的哪个
+    <el-form-item label="分类名称: " prop="cat_name">
+
+      // v-model 绑定我们收集对象中的一个属性 该属性最好是请求参数字段名
+      <el-input v-model="addCateForm.cat_name"></el-input>
+    </el-form-item>
+
+    <el-form-item label="父级分类: ">
+      
+    </el-form-item>
+  </el-form>
+ -->
+
+
+> 加载父级分类
+- 当我们点击 添加分类 按钮之后 在弹出的对话框中 我们要请求数据 渲染父级分类 用于展示
+- 我们的项目中只有3级，所以只显示前2级就可以 
+
+- 请求路径：categories
+- 请求方法：get
+- 请求参数
+    type: 我们指定为2
+    值：1，2，3 分别表示显示一层二层三层分类列表
+
+    pagenum   我们可以不传递 我们要获取所有的分类数据
+    pagesize  我们可以不传递 我们要获取所有的分类数据
+
+<!-- 
+  // 点击 添加分类按钮后 请求数据 展示所有父级分类
+  async getParentCateList() {
+    let {data: res} = await request({
+      url: "/categories",
+      params: {type: 2}
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "获取父级分类数据失败",
+        duration: 1000
+      })
+    }
+
+    // 我们将获取的数据保存在data身上
+    this.parentCateList = res.data
+  },
+ -->
+
+
+> 将请求回来的数据 渲染成 级联选择器
+- 这里我们会使用 element 中的 Cascader 组件
+- 当一个数据集合有清晰的层级结构时，可以通过级联选择器逐级查看并选择
+- 它提供了两种方式 触发菜单 一种是click 一种是hover
+<!-- 
+  <el-cascader
+    必须绑定一个数组 一个id值的数组
+    v-model="value" 
+
+    用来指定级联选择器的数据源
+    :options="parentCateList"    
+
+    级联选择器的配置选项
+    它可以配置展示不同的item项 当我们选中一个的时候会有选中的值 选中的是谁 展示的是谁 通过哪个属性展示父子之间的嵌套 都要通过props 预先进行配置
+    :props="{ expandTrigger: 'hover' }"   
+    @change="handleChange"
+
+    clearable             清空选项
+    change-on-select      选择父分类
+  >
+  </el-cascader>
+
+
+  :props="{
+    vaule:  指定 我们选择的项 指定 哪个属性值
+    label:  指定 我们看的是哪个属性值
+    children  指定 父子之间通过哪个属性来嵌套父子关系
+  }"
+
+
+
+  // 选中的父级分类的数组
+      selectedKeys: [],
+
+  // 指定级联选择器的配置对象
+  cascaderProps: {
+    expandTrigger: 'hover',
+    value: "cat_id",
+    label: "cat_name",
+    children: "children"
+  },
+
+  // 添加分类按钮后 为了展示下拉菜单里面是所有的父级分类情况 {   }
+  parentCateList: [],
+
+
+  <el-cascader
+    v-model="selectedKeys"
+    :options="parentCateList"
+    :props="cascaderProps"        配置项
+    @change="parentCateChanged"
+  >
+  </el-cascader>
+ -->
+
+- 级联选择器太高了 有些文本选不中
+<!-- 
+  去掉scoped
+  .el-cascader-menu {
+    height: 300px;
+  }
+
+  .el-cascader__dropdown {
+    top: 200px;
+  }
+ -->
+
+- 级联选择器中默认只允许选择最后的分类前面的是选不中的 那怎么才能选择父级分类呢？
+<!-- 
+  clearable
+  change-on-select
+ -->

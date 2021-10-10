@@ -73,6 +73,16 @@
 不过，在设置cssText值的时候，会有一个问题，每次设置的cssText的值，都会把原来的cssText的值销毁重新赋值，也就是把原来的清除掉。所以可以用累加的形式，
 
 ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
+<!-- 
+    let arr = ["red", "green", "blue", "orange"]
+    let divs = document.querySelectorAll("div")
+    Array.from(divs).forEach((item, index) => {
+      item.style.cssText += `background: ${arr[index]}; float: left`
+      if(index % 2 == 0) {
+        item.style.clear = "both"
+      }
+    })
+ -->
 
 
 

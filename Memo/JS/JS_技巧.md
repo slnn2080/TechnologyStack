@@ -1,4 +1,119 @@
 ### Js技巧
+### 递归函数的定义
+<!-- 
+  // 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
+    getLeafKeys(node, arr) {
+    // node用来判断是否是3级权限节点 是否为3级节点我们可以判断它是否包含children属性
+
+    // 如果该节点包含了children属性 证明它不是三级节点 如果没有children属性则证明它是三级节点
+    if(!node.children) {
+      return arr.push(node.id)
+    } else {
+      node.children.forEach(item => {
+        this.getLeafKeys(item, arr)
+      })
+    }
+  }
+ -->
+
+### 异步延迟函数
+- 要点
+- 就是在 async 函数里面做
+- 我们定义的延迟函数前加上 await】
+
+- 应用场景
+- 老师这里用的是异步延迟 在a b之间使用这个方法做这个事 只有到达时间我们才返回一个成功的状态
+<!--
+    function delay(interval = 0) {
+        return new Promise(resolve => {
+
+            let timer = setTimeout(_ => {
+                clearTimeout(timer);
+                resolve()
+            }, interval)
+        })
+    }
+-->
+<!--
+     async handleChange(e) {
+      let file = e.raw;
+      if (!file) return;
+
+      this.show = false
+      let loadingIntance = Loading.service({
+          text: "小主请您稍等片刻 奴家正在玩命处理当中",
+          background: "rgba(0,0,0,.5)"
+      })
+      
+      因为await本身也是异步的 如果他不返回成功状态下面的走不了 所以这里多等待了100ms 也就是说我们先让loading出来 100ms后解析数据 然后将数据展示在页面当中 然后关闭loading
+      await delay(100)
+     
+      let data = await readFile(file)
+
+      .......
+
+
+      为了防止页面解析太快 我们再等待100ms
+      await delay(100)
+      this.show = true
+      this.tableData = arr
+      loadingIntance.close()
+-->
+
+
+### 检查重复字符串
+<!-- 
+    let str = "ca"
+
+    function checkStr(str) {
+      let res = new Set(str)
+      if(str.length === res.size) {
+        return false
+      } else {
+        return true
+      }
+    }
+
+    console.log(checkStr(str))
+ -->
+
+<!-- 
+    let str = "abbbc"
+    let o = {}
+    for(let i=0; i<str.length; i++) {
+      if(str[i] in o) {
+        o[str[i]] += 1
+      } else {
+        o[str[i]] = 0
+      }
+    }
+    console.log(o)
+    let res = Object.values(o)
+    console.log(res);
+ -->
+
+<!-- 
+    let str = "abcc"
+
+    function checkStr(str) {
+      let flag = false
+      for(var i=0; i<str.length; i++) {
+        for(var j=i+1; j<str.length; j++) {
+          if(str[i] === str[j]) {
+            flag = true
+          } else {
+            flag = false
+          }
+        }
+      }
+
+      return flag
+    }
+    
+    let res = checkStr(str)
+    console.log(res);
+ -->
+
 
 ### 三元表达式的连续写法
 <!-- 

@@ -3178,7 +3178,7 @@ const { TextArea } = Input;
   - 1. 点击按钮, 提示第一个输入框中的值
   - 2. 当第二个输入框失去焦点时, 提示这个输入框的值
 
-> 字符串型的 ref 
+> 字符串型的 ref --- 从 this.refs身上获取
 - ref的值 input1 是字符串的类型 所以叫做字符串型 ref
 <!-- 
   <input ref='input1'>
@@ -3248,7 +3248,7 @@ const { TextArea } = Input;
  -->
 
 
-> 回调形式的 ref
+> 回调形式的 ref --- c => this.refname = c   从 this 身上获取
 - 所谓的回调形式的ref 就是给 ref的值设置一个回调函数(箭头函数), jsx中要在结构中使用js 要用到{ }
 <!-- 
   ref = { (currentNode) => { this.inp1 = currentNode } }
@@ -3365,7 +3365,7 @@ const { TextArea } = Input;
 
 
 
-> React.createRef() 创建ref容器
+> React.createRef() 创建ref容器  --- this.refname.current.value
 - React.createRef() 调用后可以返回一个容器, 该容器可以存储被ref所标识的节点 
 - 最新的写法 也是目前react最为推荐的一种写法
 - 1. 我们在class类中, 使用赋值的形式 创建ref容器
@@ -3474,7 +3474,8 @@ const { TextArea } = Input;
   - 2. 非受控组件
 
 - 什么是非受控组件
-- 表单中所有输入类的DOM的值(text checkbox radio) 对于这些DOM节点中的值, 是通过现用现取的就是非受控组件
+- 表单中所有输入类的DOM的值(text checkbox radio) 对于这些DOM节点中的值
+- 是通过现用现取的就是非受控组件
 
 
 - 案例:
@@ -3630,6 +3631,18 @@ const { TextArea } = Input;
   而非受控组件里面有几个输入项就要写几个ref
 
   受控组件的优势就在于能够省略ref
+ -->
+
+<!-- 
+  handleSave = (type) => {
+    return (e) => {
+      this.setState({
+        [type]: e.target.value
+      })
+    }
+  }
+
+  <input type="text" name="username" onChange={this.handleSave("username")} />
  -->
 
 ----------------------------
@@ -4963,7 +4976,7 @@ const { TextArea } = Input;
 
     ReactDOM.render(
 
-      // 为什么app的外侧要包裹 <React.StrictMode> 它会检查App和App内的子组件写的是否合理
+      // 为什么app的外侧要包裹 <React.StrictMode> 它会检查App和App内的子组件写的是否合理 比如 react的ref字符串类型的方式不推荐使用 它也会提出警告
       <React.StrictMode>
         <App />
       </React.StrictMode>,
@@ -4997,6 +5010,11 @@ const { TextArea } = Input;
  -->
 
 - 2. 上面的完成后<App>组件就跑到了页面上, <App>组件的样式, 是在App.js文件中通过import 引入的css文件
+
+
+### 图片的引入方式
+- 一切皆模块
+- import logo from "./logo.svg"
 
 ----------------------------
 
@@ -5486,6 +5504,47 @@ const { TextArea } = Input;
     done: false
   }
   this.props.addTodo(todoObj)
+
+
+  // App组件
+  addTodo = (todoObj)=>{
+		//获取原todos
+		const {todos} = this.state
+
+		//追加一个todo
+		const newTodos = [todoObj,...todos]
+
+		//更新状态
+		this.setState({todos:newTodos})
+	}
+
+
+  <Header addTodo={this.addTodo}/>
+
+
+  // header组件
+  handleKeyUp = (event)=>{
+		//解构赋值获取keyCode,target
+		const {keyCode,target} = event
+
+		//判断是否是回车按键
+		if(keyCode !== 13) return
+
+		//添加的todo名字不能为空
+		if(target.value.trim() === ''){
+			alert('输入不能为空')
+			return
+		}
+
+		//准备好一个todo对象
+		const todoObj = {id:nanoid(),name:target.value,done:false}
+
+		//将todoObj传递给App
+		this.props.addTodo(todoObj)
+
+		//清空输入
+		target.value = ''
+	}
  -->
 
 - 接下来 我们能够接到子组件传递的数据了, 那么我们就可以在父组件中的处理函数中做对应的处理
@@ -7738,7 +7797,7 @@ const { TextArea } = Input;
 
 
 > props 还可以通过标签体将内容带过去
-- 其实标签体内容也是一个特殊的标签属    性 上面的标签体内容Home就算一个特殊的标签属性
+- 其实标签体内容也是一个特殊的标签属性 上面的标签体内容Home就算一个特殊的标签属性
 <!-- 
   <NavLink to='/home'>Home</NavLink>
 
