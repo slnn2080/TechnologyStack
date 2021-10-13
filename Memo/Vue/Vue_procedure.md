@@ -3884,3 +3884,184 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
 
     pagenum   我们可以不传递 我们要获取所有的分类数据
     pagesize  我们可以不传递 我们要获取所有的分类数据
+<!-- 
+  async getCateList() {
+    let {data: res} = await request({
+      url: "/categories",
+      method: "get"
+    })
+
+    if(res.meta.status !== 200) {
+        this.$message({
+        type: "error",
+        message: "添加分类失败",
+        duration: 1000
+      })
+      return
+    }
+
+    this.cateList = res.data
+  }
+ -->
+
+
+> 渲染 动态参数 和 静态属性 的tab页签
+- 类似 tab选项卡 的效果 我们会使用到 Tabs 标签页组件
+- 用来实现不同页签之间的切换
+<!-- 
+  基本结构：
+
+  <el-tabs v-model="activeName" @tab-click="handleClick">
+    <el-tab-pane label="用户管理" name="first">
+      用户管理
+    </el-tab-pane>
+  </el-tabs>
+
+  el-tabs 身上的 v-model 会将 el-tab-pane 的 name 属性的值 绑定到 activeName身上
+
+  @tab-click 无论我们点击了哪个 tab 都会触发这个函数
+ -->
+
+
+- 然后我们在动态参数 和 静态属性的内容区里 添加 添加参数 和 添加属性的按钮
+- 并控制它们的禁用
+- 当我们没有选择商品分类的时候 这两个按钮都会处于禁用的状态
+- 当我们选择了商品分类的时候 这两个按钮就会处于启用的状态
+
+- 其实我们可以通过级联选择器 绑定的id数组 做关联 如果这个数组的length等于3 证明我们选中了三级分类 应该将这两个按钮分别的启用 否则就禁用
+
+- 我们可以定义一个计算属性 根据数组的长度返回一个布尔值 控制禁用和启用
+
+<!-- 
+  <el-tabs class="tab-area" v-model="activeName" @tab-click="handleTabClick">
+    <el-tab-pane label="动态参数" name="one">
+      <el-button type="primary" size="mini" :disabled="isBtnDisabled">添加参数</el-button>
+    </el-tab-pane>
+
+    <el-tab-pane label="静态属性" name="two">
+      <el-button type="primary" size="mini" :disabled="isBtnDisabled">添加属性</el-button>
+    </el-tab-pane> 
+  </el-tabs>
+
+  computed: {
+    // 如果按钮需要被禁用就返回true
+    isBtnDisabled() {
+      return this.selectedKeys.length !== 3 ? true : false
+    }
+  },
+ -->
+
+
+> 渲染 tab内容区的数据
+- 我们要根据 商品分类 在 tabs 的内容区 渲染 动态参数 或者 静态属性的数据 
+
+- 请求路径：categories/:id/attributes
+- 请求方法：get
+- 请求参数
+    :id  不能为空`携带在url中
+    sel  [only,many] 字符串类型
+         不能为空,通过 only 或 many 来获取分类静态参数还是动态参数
+         如果我们要获取 动态参数 的数据 就要将 sel 指定为 many
+
+<!-- 
+  响应数据：
+
+  "data": [
+    {
+      "attr_id": 1,             分类参数 ID
+      "attr_name": "cpu",       分类参数名称
+      "cat_id": 22,             分类参数所属分类
+      "attr_sel": "only",       only:输入框(唯一) 
+                                many:后台下拉列表/前台单选框 
+
+      "attr_write": "manual",   manual:手工录入 list:从列表选择
+      "attr_vals": "ffff"
+                                如果 attr_write:list,那么有值，该值以逗号分隔
+    }
+  ],
+  "meta": {
+    "msg": "获取成功",
+    "status": 200
+  }
+ -->
+
+- 由于我们需要在url中拼接 三级分类的id 老师这里使用了计算属性 它的值需要从数组中取最后一项
+<!-- 
+  cateId() {
+    if(this.selectedKeys.length == 3) {
+      return this.selectedKeys[2]
+    }
+    return null
+  },
+ -->
+
+- 由于我们还需要指定sel参数 它的值为字符串类型 [only,many] 
+- 如果我们要获取 动态参数 的数据 就要将 sel 指定为 many
+- 如果我们要获取 静态属性 的数据 就要将 sel 指定为 only
+
+- 当我们点击 动态参数按钮的时候 它的值是one 我们可以把 one 改成 many
+- 当我们点击 静态属性按钮的时候 它的值是two 我们可以把 two 改成 only
+- 如果我们激活的是 动态参数 面板 那么我们直接可以从 el-tabs v-model 的activeName 身上取出对应的值
+<!-- 
+  <el-tab-pane label="动态参数" name="many">
+  <el-tab-pane label="静态属性" name="only">
+ -->
+
+
+- 那我们在哪发起请求呢？
+- 1. 我们要在级联选择器 发生变化的时候 请求回来数据
+  - 根据我们选择的分类id 和 所处的面板 请求对应的数据
+- 因为我们已经将所处的面板信息双向绑定在 activeName 身上了
+
+- 2. 我们还要在 tab 来回切换的时候 请求对应的数据
+- 所以我们要将请求数据的逻辑封装成一个函数 方便我们在多种情况下调用
+<!-- 
+  // 级联选择框 选中后的处理函数
+    async handleChange() {
+
+    // 证明选择的不是3级分类 我们要return出去 和 清空数组 效果就是点击了也没反应
+    if(this.selectedKeys.length !== 3) {
+      this.selectedKeys = []
+      return
+    }
+
+    // 如果没有return出去 那么代表我们选择了三级分类 那么我们就应该将它下面所有的参数项获取下来
+    let {data: res} = await request({
+      url: `categories/${this.cateId}/attributes`,
+      method: "get",
+      params: {sel: this.activeName}
+    })
+
+    if(res.meta.status !== 200) {
+        this.$message({
+        type: "error",
+        message: "获取分类信息失败",
+        duration: 1000
+      })
+      return
+    }
+
+    console.log(res)
+
+    // 我们获取到的数据都是这个res.data 但是我们 动态参数要渲染一个表，静态属性也要渲染一个表 我们请求回来的数据应该保存到哪里呢？ 所以我们要进行判断
+    
+    if(this.activeName === "many") {
+      this.manyTableData = res.data
+    } else {
+      this.onlyTableData = res.data
+    }
+
+
+
+
+
+    请求数据的格式：
+    attr_id: 3077
+    attr_name: "版式"
+    attr_sel: "many"
+    attr_vals: "49吋4K超薄曲面 人工智能,55吋4K观影曲面 30核HDR,55吋4K超薄曲面 人工智能,65吋4K超薄曲面 人工智能"
+    attr_write: "list"
+    cat_id: 6
+    delete_time: null
+  },
+ -->
