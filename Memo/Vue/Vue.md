@@ -13665,7 +13665,6 @@ $ git remote add origin git@github.com:FBing/java-code-generator
         func.apply(this, args)
       }, delay)
     }
-
   },
  -->
 
@@ -15289,6 +15288,66 @@ footer    footer    footer
 
 
 > 一些公共样式可以写在App的样式里面 这样其它组件都可以直接使用
+
+
+
+> Vue中的防抖 与 节流
+- 我先说下 项目中遇到了什么 导致我需要去研究 防抖和节流的功能
+- 背景：
+- 我在项目中点击按钮后 随着多次点击 会触发多次事件
+- b组件 用了 btn - @click - $bus.$emit("submit")
+- a组件 用了 created - &bus.&on("submit")
+
+- 防抖：
+- 利用了 setTimeout 原理就是当我点击按钮后 会开启定时器 当我多次点击按钮后 只会关闭之前的定时器后重新计时，而它的效果就是 点击后多少秒触发事件
+
+- 节流：
+- 在规定的时间段内只会触发一次 不管点多少次
+
+- 开始我在b组件中 创建了 防抖和节流函数 发现 点击 return 的 function 并没有办法触发
+- 随后我去a组件中 给
+
+<!-- 
+  methods中定义 函数
+
+  防抖函数
+  debounce(fn, delay) {
+    let timer = null
+
+    return (...args) => {
+      if(timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        fn.apply(this, args)
+      }, delay)
+    }
+  }
+
+
+  节流函数
+  throttle(fn, interval) {
+    let last = 0
+    return (...args) => {
+      let now = +new Date()
+      if((now - last) > interval) {
+        last = now
+        fn.apply(this, args)
+      }
+    }
+  }
+ -->
+
+- 使用方式：
+- 1. 使用防抖函数将 逻辑函数(目标函数)包裹在里面
+- 2. 将这个函数交给了一个变量
+- 3. 在需要调用防抖函数的位置 调用防抖函数
+<!-- 
+  created() {
+    let debounceSubmit = this.debounce(this.onceFeatureSubmit, 500)
+    this.$nuxt.$on("submit", () => {
+      debounceSubmit()
+    })
+  }
+ -->
 
 
 

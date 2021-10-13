@@ -3652,3 +3652,235 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
   clearable
   change-on-select
  -->
+
+
+- 我们上面完成了级联选择器的功能部分 当我们添加完 分类名称后 如果不选择 父级分类
+- 那么我们添加的数据就是一级分类 数据类型应该是这样
+<!-- 
+  addCateForm: {
+      cat_name: "",
+      cat_pid: 0,   // 父级分类的id
+      cat_level: 0  // 分类的等级 默认要添加的是1级分类
+    },
+
+  比如我们分类名称输入的是 aaa
+  cat_name:   就是aaa
+  cat_pid:    因为我们没有选择父级分类它的对应id应该是0
+  cat_level:  它的默认值也是0
+
+
+  如果我们给aaa指定了父级分类【大家电】 那么aaa的pid就应该是【大家电】的id
+  而我们的aaa也应该是2级分类归属于大家电
+ -->
+
+- 也就是说只要级联选择器发生了变化 我们就应该监听它的变化 只要它发生变化 那么我们马上就将 下面的表单对象的值做更新
+<!-- 
+  addCateForm: {
+    cat_name: "",
+    cat_pid: 0,
+    cat_level: 0
+  },
+
+  <el-cascader
+    v-model="selectedKeys"
+    :options="parentCateList"
+    :props="cascaderProps"
+    @change="parentCateChanged"     我们要在这个处理函数中写逻辑
+    clearable
+    change-on-select
+  >
+ -->
+
+- 我change事件对应的处理函数中 我们要做如下的判断
+- selectedKeys 是一个数组 用来保存 我们选择父级分类的id
+- 只要级联选择器发生了变化 那么 selectedKeys 数组也必然会发生变化
+<!-- 
+  // 级联选择器 选项发生变化触发这个函数
+    parentCateChanged() {
+
+    // 如果 selectedKeys.length > 0 证明选中了父级分类 反之 则代表它是1级分类 那我们添加的这个分类的父分类的id就应该是最后一项吧
+    if(this.selectedKeys.length > 0)
+
+    比如
+    一级分类 --- 大家电 --- id --- 1
+                      --- 冰箱 --- id --- 3
+    
+        假如我们选择了父级分类 大家电 [1] 那么aaa的父级分类就是数组的最后一项 1
+
+        假如我们选择了父级分类 冰箱 [1, 3] 那么aaa的父级分类就是数组的最后一项 3 而1是冰箱的父级分类id
+  },
+ -->
+
+- 根据级联选择器的选择内容 更新对应的表单数据
+<!-- 
+  // 级联选择器 选项发生变化触发这个函数
+    parentCateChanged() {
+
+      // selectedKeys是父级分类id的数据 也就是说当我们选择了父级分类 这个数组里面就会有id数据
+      
+      如果 selectedKeys.length > 0 证明选中了父级分类 反之 则代表它是1级分类
+      // 那我们添加的这个分类的父分类的id就应该是最后一项吧
+
+      if(this.selectedKeys.length > 0) {
+
+        // 最会这个数组的最后一项怎么选中呢？ 父级分类的id
+        this.addCateForm.cat_pid = this.selectedKeys[this.selectedKeys.length - 1]
+
+        // 如果1级分类level就是0 如果是二级分类level就是1 如果是三级分类level就是2 level的值就是length
+        this.addCateForm.cat_level = this.selectedKeys.length
+
+        这里的return有什么作用么
+        return
+
+      } else {
+        this.addCateForm.cat_pid = 0
+        this.addCateForm.cat_level = 0
+      }
+    },
+ -->
+
+
+> 关闭对话框后清空数据
+- 我们要监听对话框的close事件
+<!-- 
+  // 监听对话框的关闭事件 重置表单数据
+  addCateDialogClosed() {
+    // 清空表单中的数据
+    this.$refs.addCateFormRef.resetFields()
+    // 清空级联选择器 绑定的数组重置为空数组
+    this.selectedKeys = []
+
+    // 把它俩也重置为0
+    this.addCateForm.cat_pid = 0
+    this.addCateForm.cat_level = 0
+  },
+ -->
+
+
+> 完成具体的添加分类的操作
+- 1. 在点击 确定安妮 的时候 我们要对表单进行预验证
+- 2. 当预验证通过之后 我们就要调用接口发起请求 从而添加新的分类
+
+- 请求路径：categories
+- 请求方法：post
+- 请求参数
+
+    cat_pid： 分类父 ID
+        不能为空，如果要添加1级分类，则父分类Id应该设置为  `0`
+
+    cat_name： 分类名称
+        不能为空
+
+    cat_level： 分类层级
+        不能为空，`0`表示一级分类；`1`表示二级分类；`2`表示三级分类
+
+<!-- 
+  "data": {
+    "cat_id": 62,
+    "cat_name": "相框",
+    "cat_pid": "1",
+    "cat_level": "1"
+  },
+    "meta": {
+    "msg": "创建成功",
+    "status": 201
+  }
+ -->
+
+<!-- 
+  addCate() {
+    this.$refs.addCateFormRef.validate( async valid => {
+      if(!valid) return
+      let {data: res} = await request({
+        url: "/categories",
+        method: "post",
+        data: this.addCateForm
+      })
+    })
+
+    if(res.meta.status !== 201) {
+      this.$message({
+        type: "error",
+        message: "添加分类失败",
+        duration: 1000
+      })
+      return
+    }
+
+    this.$message({
+      type: "success",
+      message: "添加分类成功",
+      duration: 1000
+    })
+    this.getParentCateList()
+    this.addCateDialogVisible = false
+  },
+ -->
+
+-----------------
+
+### 参数管理
+- 参数管理概述：
+- 商品参数用于显示商品的固定的特征信息 可以通过电商平台商品详情页直观的看到
+- 我们的项目中分为 动态参数 和 静态属性 
+- 动态参数：
+- 用户在浏览商品的时候 可以给商品添加不同的属性 比如商品的颜色 商品的版本 这些可以供用户动态来选择的参数 叫做动态参数
+- 就是我们在淘宝买东西 选规格的功能 
+
+- 静态属性：
+- 商品固定的参数 比如 商品信息 机身宽度等等
+
+- 也就是说 我们在参数管理中应该维护动态的参数 和 静态的属性
+
+- 在我们的系统中 
+<!-- 
+  选择商品分类 -- 下拉框 --     只允许给3级分类添加动态参数 和 静态属性
+
+  动态参数tab     静态属性tab
+
+  ---- 表格 ------
+
+  呈现上面选择的内容  同时我们可以在后台修改 删除 动态参数 和 静态属性  
+ -->
+
+- 级联选择器的知识点更新
+- 1. 如果选择任意项
+- 2. 怎么让它选中3级分类
+<!-- 
+  <el-cascader
+    size="small"
+    v-model="selectedKeys"      这里是问题2的关键点
+    :options="cateList"
+    :props="cateProps"          这里解决1的问题
+    @change="handleChange"      这里解决2的问题
+    clearable
+  >
+  </el-cascader>
+
+  cateProps: {
+    expandTrigger: 'hover',
+    checkStrictly: false,       这个属性能解决1的问题
+    value: "cat_id",
+    label: "cat_name",
+    children: "children"
+  }
+
+
+  handleChange() {
+    级联选择框的值双向绑定了 selectedKeys 这个数组
+    也就是说 我们内部可以做判断 如果用户选择了3级分类 数组的长度应该等于3
+    如果不等于3就清空数组就可以了 因为是双向绑定的
+  }
+ -->
+
+> 请求数据 展示 选择商品分类 列表
+- 首先 分了展示 选择商品分类 的下拉列表 我们要将所有分类的情况全部的获取回来 用做展示
+
+- 请求路径：categories
+- 请求方法：get
+- 请求参数
+    type: 我们指定为2
+    值：1，2，3 分别表示显示一层二层三层分类列表
+
+    pagenum   我们可以不传递 我们要获取所有的分类数据
+    pagesize  我们可以不传递 我们要获取所有的分类数据

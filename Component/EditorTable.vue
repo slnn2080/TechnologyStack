@@ -1,10 +1,11 @@
 <template>
   <el-table
-    :data="tableData"
+    :data="editorTableData"
     class="table-wrap"
     row-key="username"
     header-row-class-name="thead-light"
     @selection-change="handleSelectionChange"
+    @cell-dblclick="tabClick"
   >
     <el-table-column v-if="hasCheck" type="selection" min-width="50">
     </el-table-column>
@@ -14,10 +15,14 @@
       v-bind="item"
     >
       <template v-if="item.type == 'link'" scope="scope">
-        <nuxt-link :to="linkTo">{{ info(scope.row, item.prop) }}</nuxt-link>
+        <nuxt-link :to="linkTo">{{scope.row[item.prop]}}</nuxt-link>
+      </template>
+      <template v-else-if="item.type == 'editor'" scope="scope">
+        <el-input v-if="scope.row.show" v-model="scope.row[item.prop]" @blur="blurInput(scope.row, item.prop, $event)"></el-input>
+        <span v-else>{{scope.row[item.prop]}}</span>
       </template>
       <template v-else scope="scope">
-        {{ info(scope.row, item.prop) }}
+        {{scope.row[item.prop]}}
       </template>
     </el-table-column>
   </el-table>
@@ -31,7 +36,7 @@ Vue.use(Table);
 Vue.use(TableColumn);
 
 export default {
-  name: "InfoTable",
+  name: "EditorTable",
   props: {
     tableData: {
       type: Array,
@@ -54,7 +59,17 @@ export default {
     return {
       linkTo: "",
       tableSelectData: [],
+      tableList: [],
+      editorTableData: []
     };
+  },
+  methods: {
+    tabClick(row, column, el, e) {
+      this.$set(row, "show", true)
+    },
+    blurInput(row) {
+      this.$set(row, "show", false)
+    }
   },
   computed: {
     info() {
@@ -63,26 +78,21 @@ export default {
       };
     },
   },
+  created() {
+    this.editorTableData = this.tableData
+    this.editorTableData.forEach((item, index) => {
+      this.$set(item, "show", false)
+    })
+  }
 };
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .table-wrap {
   margin-top: 24px;
 }
 
-@media print {
-  .el-table {
-    .el-table__body {
-      width: 100% !important;
-    }
-    th {
-      display: table-cell !important;
-    }
-    .cell {
-      width: 100% !important;
-      background-color: red !important;
-    }
-  }
+.input_item {
+  border: none;
 }
 </style>

@@ -167,29 +167,48 @@ let e = 100, h = [], g = 'abc';
     let [a,b,c] = [1,2,3]
 <!-- 
     很简单 就是一一对应 右边的给左边
+    按照对应位置 对变量赋值
+    这种写法属于“模式匹配”，只要等号两边的模式相同，左边的变量就会被赋予对应的值。
  -->
 
-const F4 = ['小沈阳', '刘能', '赵四', '宋小宝'];
-↓
-想把数组中的一个元素, 赋值给一个变量
-↓
-使用let, 用数组的形式声明4个变量 然后 = 目标数组
-let [xiao, liu, zhao, song] = F4;
-console.log(xiao, liu, zhao, song);
+<!-- 
+    const F4 = ['小沈阳', '刘能', '赵四', '宋小宝'];
+    ↓
+    想把数组中的一个元素, 赋值给一个变量
+    ↓
+    使用let, 用数组的形式声明4个变量 然后 = 目标数组
+    let [xiao, liu, zhao, song] = F4;
+    console.log(xiao, liu, zhao, song);
+ -->
 
+- 嵌套数组的结构：
+- let [foo, [[bar], baz]] = [1, [[2], 3]];
 
-> 数组的单独解构
+- 解构数组中指定的元素
 - 使用,号占位
+- let [ , , third] = ["foo", "bar", "baz"];
 
-    let arr = [10, 20, 30];
-    let [a, b, c] = arr;
-    console.log(a,b,c);         // 10, 20, 30
+- 解构一个元素，剩余的还是数组：
+- let [head, ...tail] = [1, 2, 3, 4];
 
-    let [,b]        // 20
-    let [,,c]       // 30
+- 解构set结构的数据
+- let [x, y, z] = new Set(['a', 'b', 'c']);
+
+
+> 解构的时候允许指定默认值
+- 注意该方式，能设置默认值的元素必须是undefined 默认值才会生效
+- 如果数组的成员是null 那默认值就不会生效，因为null不严格等于undefined
+- let [foo = true] = [];
+- let [x, y = 'b'] = ['a']; // x='a', y='b'
+- let [x, y = 'b'] = ['a', undefined]; // x='a', y='b'
+
 
 
 > 对象的解构, JSON的解构
+- 对象的解构与数组有一个重要的不同。
+- 数组的元素是按次序排列的，变量的取值由它的位置决定；而对象的属性没有次序，变量必须与属性同名，才能取到正确的值。
+- 
+- 如果解构失败，变量的值等于undefined。
 
     let {a,c,d} = {a:12, c:5, d:6};
 
@@ -202,6 +221,10 @@ console.log(xiao, liu, zhao, song);
     }
     ↓
     let {name, age, xiaopin} = ZHAO;
+
+
+> 解构对象时的重命名
+- let {data: res} = await...
 
 
 > 成分复杂的数组解构
@@ -239,6 +262,12 @@ console.log(xiao, liu, zhao, song);
     console.log(sayName);
     sayName();
  -->
+
+
+> 对象解构时的默认值
+- 与数组一样 对象中的属性名是undefined的时候 我们才可以给这个属性赋默认值
+- var {x = 3} = {};
+- var {x: y = 3} = {};
 
 
 > 字符串的解构
@@ -299,31 +328,102 @@ console.log(xiao, liu, zhao, song);
     我们还可以给形参中的name和age赋初始值
  -->
 
+-------------------------------
+
+### ES6中对字符串的扩展
+- 字符串也可以使用 for...of 来进行遍历
 
 
-> 部分解构的冲突问题:  别名
-- 部分解构可能会出现命名冲突的问题
-- 为了解决这个问题 可以给 解构的变量名添加别名
-- 语法:
-- let {属性名:别名} = obj;
-- console.log(别名)
+> 新增的方法：
+> 字符串.includes("字符串", [从哪个位置开始查找])
+- 返回布尔值，表示是否找到了参数字符串
 
-<!-- 
-    let obj = {
-        name: 'sam',
-        age: 11
-    }
+> 字符串.startsWith("字符串", [从哪个位置开始查找])
+- 返回布尔值，看看参数字符串是否在原字符串的头部
 
-    let name = 'andy'
+> 字符串.endsWith("字符串", [从哪个位置开始查找])
+- 返回布尔值，看看参数字符串是否在原字符串的尾部
 
-    let {name} = obj;       // 报错 命名冲突了
+> 字符串.repeat(num)
+- 该方法会返回一个新的字符串 num表示重复几次 如果是小数会向下取整
 
-    // 解决方案
-    let {name:myName} = obj
+> 字符串.padStart(num:指定长度, "用什么字符来补位")
+> 字符串.padEnd(num:指定长度, "用什么字符来补位")
+- 如果原字符串的长度 等于或大于最大长度 则字符串补全不生效，返回原字符串
+- 'x'.padStart(5, 'ab')
 
-    console.log(myName);   // 打印别名
-    取obj.name属性赋值给myName
- -->
+- 如果省略第二个参数 默认使用空格补全长度
+
+- 应用场景：
+- 为数值补全指定位数
+- '1'.padStart(10, '0') // "0000000001"
+
+- 提示字符串格式。
+- '12'.padStart(10, 'YYYY-MM-DD')
+
+
+> 字符串.trimStart()
+> 字符串.trimEnd()
+- 他们的使用方式和.trim()一样
+- trimStart() 用于消除字符串的头部空格
+- trimEnd() 用于消除尾部的空格。
+- 它们返回的都是新的字符串 不会修改原始的字符串
+
+
+> 字符串.matchAll()
+- 返回一个正则表达式在当前字符串的所有匹配
+- 相当于 /g
+- 返回一个新的字符串
+
+
+> 字符串.replaceAll()
+- 替换所有匹配
+- 相当于 /g
+- 返回一个新的字符串
+
+- 参数：
+- 参数1: 正则
+- 参数2: 表示替换的文本 可以用特殊符号
+
+  $&：匹配的字符串。
+  $`：匹配结果前面的文本。
+  $'：匹配结果后面的文本。
+  $n：匹配成功的第n组内容，n是从1开始的自然数。这个参数生效的前提是，第一个参数必须是正则表达式。
+  $$：指代美元符号$。
+
+<!--
+  // $& 表示匹配的字符串，即`b`本身
+  // 所以返回结果与原字符串一致
+  'abbc'.replaceAll('b', '$&')    // 'abbc'
+  
+  // $` 表示匹配结果之前的字符串
+  // 对于第一个`b`，$` 指代`a`
+  // 对于第二个`b`，$` 指代`ab`
+  'abbc'.replaceAll('b', '$`')
+  // 'aaabc'
+  
+  // $' 表示匹配结果之后的字符串
+  // 对于第一个`b`，$' 指代`bc`
+  // 对于第二个`b`，$' 指代`c`
+  'abbc'.replaceAll('b', `$'`)
+  // 'abccc'
+  
+  // $1 表示正则表达式的第一个组匹配，指代`ab`
+  // $2 表示正则表达式的第二个组匹配，指代`bc`
+  'abbc'.replaceAll(/(ab)(bc)/g, '$2$1')
+  // 'bcab'
+  
+  // $$ 指代 $
+  'abc'.replaceAll('b', '$$')
+  // 'a$c'
+-->
+
+-------------------------------
+
+### Math 对象的扩展
+> Math.trunc(4.1)
+- 去除一个数的小数部分，返回整数部分。
+- 对于非数值，Math.trunc内部使用Number方法将其先转为数值。
 
 -------------------------------
 
@@ -1194,7 +1294,6 @@ const SCHOOL = {                const SCHOOL = {
     setTimeout(() => {}, 100)
  -->
 
-
 -------------------------------
 
 ### ES6中 函数 形参的初始值
@@ -1246,8 +1345,6 @@ const SCHOOL = {                const SCHOOL = {
         port:3306
     });
  -->
-
-- 
 
 -------------------------------
 
@@ -1305,6 +1402,40 @@ const SCHOOL = {                const SCHOOL = {
 
 -------------------------------
 
+### 函数的尾调用
+- 某个函数的最后一步是调用另一个函数 就叫做函数的尾调用
+- function f(x) { return g(x) }
+
+- 尾调用：
+- 之所以与其他调用不同 就在于它的特殊的调用位置
+- 函数调用会在内存形成一个 调用记录 又叫做调用帧 保存调用位置和内部变量等信息
+- 如果在函数A的内部调用函数B 那么A的调用帧上方 还会形成一个B的调用帧 等到B运行结束 将结果返回到A
+- B的调用帧才会消失，如果函数B的内部还调用函数C 那么就还又一个C的调用帧，以此类推 所有的调用帧 就形成一个 调用栈
+
+- 尾调用由于是函数的最后一步操作，所以不需要保留外层函数的调用帧 取代外层函数的调用帧就可以了
+
+<!--
+  function f() {
+    let m = 1;
+    let n = 2;
+    return g(m + n);
+  }
+  f();
+  
+  // 等同于
+  function f() {
+    return g(3);
+  }
+  f();
+  
+  // 等同于
+  g(3);
+-->
+
+-------------------------------
+
+### 数组
+
 ### 扩展运算符 ...
 - 展开数组
 - 相当于把数组里面的元素拿出来直接放那(去掉[])
@@ -1338,7 +1469,286 @@ const SCHOOL = {                const SCHOOL = {
 
 > 还能展开字符串
 
+
+> 扩展运算符还可以配合表达式
+- 使用圆括号将表达式包裹起来 ...()
+<!--
+    const arr = [
+        ...(x > 0 ? ['a'] : []),
+        'b',
+    ]
+-->
+
+
+> 注意：
+- 1 只有函数调用时才可以把 扩展运算符放在圆括号中
+
+
+> 应用：
+
+> 复制数组：
+- 在es5中 我们是通过这种方式 克隆数组
+- const a1 = [1, 2];
+  const a2 = a1.concat();
+
+- es6中
+- const a1 = [1, 2];
+  const a2 = [...a1];
+
+
+> 合并数组：
+- [...arr1, ...arr2, ...arr3]
+
+
+> 将字符串转为数组
+- [...'hello']
+
+> 将伪数组转为真正的数组
+- let nodeList = document.querySelectorAll('div');
+  let array = [...nodeList];
+
+
+> 数组中新增的方法
+
+> Array.from()
+- 1 将类数组对象
+- 2 将可遍历的对象 包括set map
+- 3 将字符串转换为真正的数组
+- 
+- 把以上的形式转为真正的数组
+- 如果参数是一个真正的数组 则会返回一个一模一样的新数组
+
+
+<!--
+    类数组对象的定义：
+        1 对象内部的属性名为 索引值
+        2 对象内部有length属性
+
+    let arrayLike = {
+        '0': 'a',
+        '1': 'b',
+        '2': 'c',
+        length: 3
+    };
+    
+    // es5中将伪数组转换为真的数组
+    let arr = [].slice.call(arrayLike)
+-->
+
+- Array.from(伪数组, callback)
+- callback的用法和其他数组的回调一样 用来对每个元素进行处理，将处理后的值放入返回的数组里面
+- Array.from(arrayLike, x => x * x);
+  // 等同于
+  Array.from(arrayLike).map(x => x * x);
+
+
+
+> Array.of()
+- 将一组值 转换为数组
+- Array.of(3, 11, 8)
+
+
+> 数组.copyWithin(target, [start], [end])
+- 它会改变当前数组
+- 它会将指定位置的元素复制到其他位置(会覆盖原有成员) 然后返回当前数组
+<!--
+    let arr = [0, 1, 2, 3, 4, 5]
+    arr.copyWithin(0, 1, 3)
+    console.log(arr)
+
+
+    要点：
+    数组的长度不会变 
+    start是开始的位置 包括开始
+    end是结束的位置 不包括结束
+    target 它会提取start-end的数据放到0的位置 会覆盖
+-->
+
+
+> 数组.find()
+> 数组.findIndex()
+- 用于找出第一个符合条件的数组成员 参数是 callback
+- 所有数组成员依次执行该回调函数，直到找出第一个返回值为true的成员，
+- 然后返回该成员。如果没有符合条件的成员，则返回undefined。
+
+- 根据回调中的return true 来找到该成员 找不到就是undefind
+- 它找到的是 真的元素
+- 找不到的是 undefined
+
+- 他们还可以指定第二个参数 this
+
+
+> 数组.fill(给定值, [start], [end])
+- 使用给定值，填充一个数组。
+- fill方法用于空数组的初始化非常方便。数组中已有的元素，会被全部抹去。
+
+
+> 数组.entries()
+> 数组.keys()
+> 数组.values()
+- 该方法用于遍历数组，它们都返回一个遍历器对象 可以用 for...of循环来进行遍历
+- keys()是对键名的遍历
+- values()是对键值的遍历
+- entries()是对键值对的遍历
+
+<!--
+    let arr = ["name", "gender", "address"]
+    let res = arr.entries()
+    for(let i of res) {
+        console.log(i)
+    }
+
+    首先 res 是一个遍历器对话 输出它的话看不到任何结果 它需要使用 for...of 来遍历
+    keys 我们遍历的结果会是 0 1 2
+    values 我们遍历的结果会是 name gender address
+    entries 我们遍历的结果会是 [0, 'name']
+-->
+
+- 如果不使用for...of循环，可以手动调用遍历器对象的next方法，进行遍历。
+<!--
+    let letter = ['a', 'b', 'c'];
+    let entries = letter.entries();
+    console.log(entries.next().value);    // [0, 'a']
+    console.log(entries.next().value);    // [1, 'b']
+    console.log(entries.next().value);    // [2, 'c']
+-->
+
+
+> 数组.includes()
+- 方法返回一个布尔值，表示某个数组是否包含给定的值，与字符串的includes方法类似。
+<!--
+    没有该方法之前，我们通常使用数组的indexOf方法，检查是否包含某个值。
+    indexOf方法有两个缺点，一是不够语义化，它的含义是找到参数值的第一个出现位置，所以要去比较是否不等于-1，表达起来不够直观。二是，它内部使用严格相等运算符（===）进行判断，这会导致对NaN的误判。
+    if (arr.indexOf(el) !== -1) {
+      // ...
+    }
+-->
+
+> 注意：
+<!--
+    另外，Map 和 Set 数据结构有一个has方法，需要注意与includes区分。
+    Map 结构的has方法，是用来查找键名的，
+    比如Map.prototype.has(key)、WeakMap.prototype.has(key)
+
+    Set 结构的has方法，是用来查找值的，
+    比如Set.prototype.has(value)、WeakSet.prototype.has(value)。
+-->
+
+
+> 数组.flat(num)
+> 数组.flatMap()
+- 转化为1维数组
+- 它返回的是一个新数组 对原数组没有影响
+- flat()方法默认拉平一层数组，如果想拉平两层传入参数2
+- 不管多少层都转换为一维数组 可以传入 Infinity
+- 如果原数组有空位，flat()方法会跳过空位。
+<!--
+    let arr = [1,2,3,4,[6,7,8]]
+    let res = arr.flat()
+    console.log(res)
+-->
+
+- flatMap()只能展开一层数组。
+- 它需要传入一个回调函数 相当于内部执行了 map() 方法
+
+
+> 注意：
+- ES5中对于数组的空位
+- 空位数组： [, , ,]
+- 空位不是undefined，一个空位的值是undefined
+- ES5中对空位的处理已经很不一致了 大多数情况下会忽略空位 或者跳过空位
+<!--
+    forEach(), filter(), reduce(), every() 和some()都会跳过空位。
+    map()会跳过空位，但会保留这个值
+    join()和toString()会将空位视为undefined，而undefined和null会被处理成空字符串。
+-->
+
+- ES6中明确将空位转为undefined 也就是说 es6的语法不会忽略空位
+<!--
+    Array.from(['a',,'b'])
+    // [ "a", undefined, "b" ]
+-->
+
 -------------------------------
+
+### 对象
+
+> 对象的方法
+> 
+> Object.keys(目标对象)
+- 将目标对象中的key遍历取出放到一个数组中 需要用变量接收
+
+> Object.values()
+- 将目标对象中的value遍历取出放到一个数组中 需要用变量接收
+
+> Object.entries()
+- 将目标对象中的 kv组合 放到一个数组中 最终是一个二维数组
+- [["name", "sam"], ["age", "18"]]
+
+
+> Object.fromEntries()
+- 该方法是 Object.entries() 逆操作 用于将一个键值对数组转为对象
+- Object.fromEntries([
+      ['foo', 'bar'],
+      ['baz', 42]
+  ])
+  // { foo: "bar", baz: 42 }
+- 该方法的主要目的，是将键值对的数据结构还原为对象，因此特别适合将 Map 结构转为对象。
+
+
+> Object.getOwnPropertyDescriptor(目标对象, "属性名")
+- 展示给定对象 给定属性的状态
+<!--
+    {
+       value: 123,
+       writable: true,
+       enumerable: true,        可枚举性
+       configurable: true
+    }
+-->
+
+
+> Object.is()
+- 用来判断 a b 两个值是否一致
+- Object.is(+0, -0)
+
+
+> Object.assign(target, 要复制的对象)
+- 该方法用于对象的合并 将源对象的所有可枚举属性 复制到目标对象中
+- 参数：
+- 参数1: 目标对象
+- 参数2: 2及其以后都是要复制的对象 或者 叫做源对象
+
+- 注意：
+- 如果目标对象与源对象有同名属性 或多个源对象有同名属性 则后面的属性会覆盖前面的属性
+- 如果只有一个参数 会直接返回该参数
+- 如果该参数不是对象 则会先转成对象 然后返回 undefined 和 null违法转成对象
+
+- assign()方法 他是浅拷贝 而不是深拷贝 也就是说 如果源对象的某个属性值是对象 那么目标对象拷贝得到的是这个对象的引用
+- assign()方法 他可以用来处理数组，
+
+- 应用技巧：
+- 为对象添加属性：
+- Object.assign(this, {x, y});
+
+- 为对象添加方法：
+- Object.assign(SomeClass.prototype, {
+      someMethod(arg1, arg2) {
+         ···
+      },
+      anotherMethod() {
+         ···
+      }
+  });
+
+- 克隆对象
+- function clone(origin) {
+      return Object.assign({}, origin);
+  }
+- 如果对象是一层 那就是 全新的对象 通过新对象修改属性也不会影响到原对象的值
+- 如果对象是深层 那引用的就是地址值 修改新对象的同时 原对象的属性也会跟着变化
+
+------------------------------
 
 ### ES6 中的Set
 - es6提供了新的数据结果set(集合), 它的类型是object但类似于数组, 但成员的值都是唯一的(有去重的效果)

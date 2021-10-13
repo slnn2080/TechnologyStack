@@ -8,10 +8,10 @@
       :style-wrap-vue-table="styleWrapVueTable"
       :disable-cells="disableCells"
       :disable-sort-thead="disableSortThead"
-      :parent-scroll-element="parentScrollElement"
+      :loading="loading"
       :select-position="selectPosition"
     >
-      <div slot="header">Specific Header</div>
+      <div slot="header">{{ title }}</div>
       <div slot="loader">Loader</div>
     </vue-table>
   </div>
@@ -20,24 +20,17 @@
 <script>
 export default {
   name: "ExcelTable",
+  props: {
+    title: {
+      type: String,
+      default: "",
+    },
+  },
   data() {
     return {
       customOptions: {
         tbodyIndex: false,
         sortHeader: false,
-        trad: {
-          lang: "fr",
-          en: {
-            select: {
-              placeholder: "Search by typing",
-            },
-          },
-          fr: {
-            select: {
-              placeholder: "Taper pour chercher",
-            },
-          },
-        },
         newData: {
           type: "input",
           value: "",
@@ -61,28 +54,26 @@ export default {
 
       disableCells: ["a"],
       loading: false,
-      parentScrollElement: {
-        attribute: "html",
-        positionTop: 0,
-      },
+      // parentScrollElement: {
+      //   attribute: "html",
+      //   positionTop: 0,
+      // },
       selectPosition: {
         top: 0,
         left: 0,
       },
       disableSortThead: ["a"],
-      styleWrapVueTable: {
-        // border: "1px solid black",
-      },
+      styleWrapVueTable: {},
       headers: [
         {
           headerName: "日付",
           headerKey: "date",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -91,11 +82,11 @@ export default {
           headerName: "支部",
           headerKey: "local",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -104,11 +95,11 @@ export default {
           headerName: "コード",
           headerKey: "code",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -117,11 +108,11 @@ export default {
           headerName: "摘要",
           headerKey: "abstract",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -130,11 +121,11 @@ export default {
           headerName: "相手科目",
           headerKey: "aite",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -143,11 +134,11 @@ export default {
           headerName: "借方科目",
           headerKey: "karikata",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -156,11 +147,11 @@ export default {
           headerName: "借方金額",
           headerKey: "karikataokane",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -169,11 +160,11 @@ export default {
           headerName: "貸方科目",
           headerKey: "kashikata",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -182,11 +173,11 @@ export default {
           headerName: "貸方金額",
           headerKey: "kashikataokane",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -195,11 +186,11 @@ export default {
           headerName: "入金事由",
           headerKey: "nyuukin",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -208,11 +199,11 @@ export default {
           headerName: "備考",
           headerKey: "bikou",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -221,11 +212,11 @@ export default {
           headerName: "台帳転記",
           headerKey: "daicyou",
           style: {
-            width: "88.5px",
-            minWidth: "88.5px",
+            width: "8.33%",
+            minWidth: "8.33%",
             color: "#8898AA",
             backgroundColor: "#F6F9FC",
-            fontSize: "12px",
+            fontSize: "10.4px",
             fontWeight: "600",
             borderWidth: "1px 0px",
           },
@@ -492,6 +483,7 @@ export default {
       this.headers[colIndex].style.color = "#e40000";
     },
     changeColorTbody(event, header, rowIndex, colIndex) {
+      console.log(event, header, rowIndex, colIndex);
       this.products[rowIndex][header].style = {};
       this.products[rowIndex][header].style.color = "#e40000";
     },
@@ -507,8 +499,8 @@ export default {
 
 <style scoped>
 .container {
-  padding: 24px;
-  margin: 24px 0px;
+  padding: 0px 0 1500px 0;
+  margin-top: 24px;
 }
 
 ::-moz-selection {
@@ -522,5 +514,23 @@ export default {
 
 /deep/ .vue-spreadsheet .td span {
   font-size: 12px;
+}
+/deep/ .vue-spreadsheet .vue_table {
+  position: relative;
+  width: 100%;
+}
+
+/deep/ .vue-spreadsheet .th {
+  width: 8.33%;
+  min-width: 8.33%;
+  color: #8898aa;
+  background-color: #f6f9fc;
+  font-size: 10px;
+  font-weight: 600;
+  border-width: 1px 0px;
+}
+
+/deep/ .vue-spreadsheet .td {
+  width: 8.33%;
 }
 </style>

@@ -2,7 +2,7 @@
   <div class="search-wrap">
     <el-form ref="searchFormRef" :model="searchForm">
       <el-row :gutter="24">
-        <el-col :span="8" v-for="(item, index) of searchData" :key="index">
+        <el-col :span="searchColumn" v-for="(item, index) of searchData" :key="index">
           <div>
             <el-form-item>
               <div>{{ item.title }}：</div>
@@ -41,19 +41,34 @@
           </div>
         </el-col>
       </el-row>
-      <el-row type="flex" justify="center" class="search-wrap">
-        <el-form-item>
-          <el-button
-            type="primary"
-            plain
-            icon="el-icon-arrow-down"
-            @click="test"
+      <el-row>
+        <el-col :span="24" v-if="btn_type_read">
+          <div class="search-wrap">
+            <el-button type="primary" plain icon="el-icon-arrow-down" size="small"
             >さらに読み込み</el-button
-          >
-          <el-button type="primary" plain icon="el-icon-arrow-up"
+            >
+            <el-button type="primary" plain icon="el-icon-arrow-up" size="small"
             >閉じる</el-button
-          >
-        </el-form-item>
+            >
+          </div>
+        </el-col>
+        <el-col :span="24" v-else-if="btn_type_search">
+          <div class="search-wrap">
+            <el-button type="primary" size="small"
+            >検索</el-button
+            >
+          </div>
+        </el-col>
+        <el-col :span="24" v-else-if="btn_type_reset">
+          <div class="search-wrap">
+            <el-button type="danger" size="small"
+            >リセット</el-button
+            >
+            <el-button type="primary" size="small"
+            >検索</el-button
+            >
+          </div>
+        </el-col>
       </el-row>
     </el-form>
   </div>
@@ -71,6 +86,7 @@ import {
   Col,
   Select,
   Option,
+  DatePicker,
 } from "element-ui";
 
 Vue.use(Form);
@@ -81,101 +97,40 @@ Vue.use(Select);
 Vue.use(Option);
 Vue.use(Row);
 Vue.use(Col);
+Vue.use(DatePicker);
 export default {
   name: "Search",
+  props: {
+    btn_type_read: {
+      type: Boolean,
+      default:false
+    },
+    btn_type_search: {
+      type: Boolean,
+      default:false
+    },
+    btn_type_reset: {
+      type: Boolean,
+      default:false
+    },
+    searchColumn: {
+      type: Number,
+      default: 8
+    },
+    hide_search_btn: {
+      type: Boolean,
+      default: false
+    },
+    searchData: {
+      type: Array,
+      default() {
+        return [];
+      },
+    },
+  },
   data() {
     return {
       searchForm: {},
-      searchData: [
-        {
-          title: "会員名漢字",
-          type: "input",
-          flag: "1",
-          prop: "usernameKanji",
-        },
-        {
-          title: "会員名かな",
-          type: "input",
-          flag: "2",
-          prop: "usernameKana",
-        },
-        {
-          title: "登録番号",
-          type: "input",
-          flag: "3",
-          prop: "registerNo",
-        },
-        {
-          title: "支部コード",
-          type: "input",
-          flag: "4",
-          prop: "shibuCode",
-        },
-        {
-          title: "電話番号",
-          type: "input",
-          flag: "5",
-          prop: "telNo",
-        },
-        {
-          title: "FAX",
-          type: "input",
-          flag: "6",
-          prop: "fax",
-        },
-        {
-          title: "メールアドレス",
-          type: "input",
-          flag: "7",
-          prop: "mail",
-        },
-        {
-          title: "日付",
-          type: "date",
-          flag: "8",
-          prop: "date",
-        },
-        {
-          title: "会員種別（１）",
-          type: "select",
-          flag: "9",
-          prop: "category1",
-          option: [
-            {
-              title: "全会員",
-              value: "1",
-            },
-            {
-              title: "開業（個人）",
-              value: "2",
-            },
-            {
-              title: "開業（法人）",
-              value: "3",
-            },
-            {
-              title: "非開業（勤務）",
-              value: "4",
-            },
-            {
-              title: "非開業（その他）",
-              value: "5",
-            },
-            {
-              title: "退会",
-              value: "6",
-            },
-            {
-              title: "死亡退会",
-              value: "7",
-            },
-            {
-              title: "登録抹消",
-              value: "8",
-            },
-          ],
-        },
-      ],
     };
   },
   methods: {
@@ -190,8 +145,8 @@ export default {
 .search-wrap {
   padding: 10px 24px;
   margin: 24px 0px;
+  display: flex;
+  justify-content: center;
 }
-search-wrap {
-  margin-top: 24px;
-}
+
 </style>

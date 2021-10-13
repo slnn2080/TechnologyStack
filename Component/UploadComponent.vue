@@ -7,6 +7,7 @@
         type="success"
         class="upload-btn"
         @click="fileSelect"
+        size="small"
         >ファイルを選択</el-button
       >
     </div>
@@ -18,7 +19,6 @@
       :limit="1"
       :accept="uploadAccept"
       :http-request="uploadFile"
-      :before-upload="beforeUpload"
       :show-file-list="false"
       :on-change="handleChange"
     >
@@ -26,7 +26,6 @@
       <div class="el-upload__text">
         こちらにファイルをドラックするか、ファイルを選択ボタンからインポートしてください。
       </div>
-      <div class="el-upload__tip" slot="tip"></div>
     </el-upload>
   </Card>
 </template>
@@ -83,7 +82,6 @@ export default {
       let workSheet = workBook.Sheets[workBook.SheetNames[0]];
       data = xlsx.utils.sheet_to_json(workSheet);
 
-      console.log(data);
       let arr = [];
       data.forEach((item) => {
         let o = {};
@@ -106,30 +104,6 @@ export default {
     },
     async uploadFile() {
       if (this.tableData.length <= 0) return alert("请您选选择文件哦");
-
-      let complate = () => {
-        alert("数据上传完毕");
-      };
-
-      let n = 0;
-      let send = async () => {
-        if (n > this.tabelData.length - 1) {
-          return;
-        }
-        let body = this.tabaleData[n];
-        let res = await this.$axios({
-          url,
-          method: "post",
-          data: body,
-        });
-
-        if (res.code === 0) {
-          console.log(res);
-          n++;
-        }
-        send();
-      };
-      send();
     },
 
     fileSelect(e) {
@@ -141,13 +115,13 @@ export default {
 </script>
 
 <style scoped>
-.el-uoload .upload-wrap {
+.el-upload .upload-wrap {
   position: relative;
 }
 
 .upload-wrap {
-  padding: 10px 24px;
-  margin: 24px 0px;
+  margin: 24px 24px;
+  height: 320px;
 }
 
 .upload-header-wrap {
@@ -158,7 +132,7 @@ export default {
 
 .upload-con {
   text-align: center;
-  padding: 24px;
+  padding: 15px 0px;
 }
 
 .upload-wrap /deep/ .el-upload-dragger {

@@ -2,6 +2,95 @@
 
 ------------------
 
+### 打印功能
+打印页面可以调用 window.print() 方法 但是该方法会打印页面上的全部内容
+
+方式1: 利用 标记 打印 标记开始 ～ 标记结束 的内容
+1. 在html结构中使用 注释标签 将需要打印的内容 包裹起来
+  <!--printstart-->
+  <!--printend-->
+
+2. 获取页面的全部内容 let allContent = document.body.innerHTML
+
+3. 提取我们想打印的指定内容 分别对 allContent 使用字符串 substr 和 substring 方法
+   要点：
+   substr：是从标记位开始截取页面整体内容
+   substring：是对截取内容的进一步截取，截取到标记位结束 因为是substring所以并不包含该标记
+
+4. 将截取的内容赋值给body
+5. window.print()
+
+6. 打印完之后要将原来页面内容还原 并重新加载页面
+<h1>我是打印的测试页面</h1>
+<h3>副标题内容</h3> <br>
+
+<button>print</button>
+
+<!--printstart-->
+<div class="content-wrap">
+    <h3>员工的详细信息</h3>
+    <div>
+        <p>
+            床前明月光，
+            疑似地上霜。
+            举头望明月，
+            低头思故乡。
+        </p>
+    </div>
+</div>
+<!--printend-->
+
+<h3>我是结尾内容</h3>
+
+let btn = document.querySelector('button')
+btn.addEventListener("click", startPrint)
+function startPrint() {
+  let allContent = document.body.innerHTML
+  let printStart = "<!--printstart-->"
+  let printEnd = "<!--printend-->"
+  let printContent = ""
+  printContent = allContent.substr(allContent.indexOf(printStart)+printStart.length)
+  printContent = printContent.substring(0, printContent.indexOf(printEnd))
+  document.body.innerHTML = printContent
+  window.print()
+
+  window.document.body.innerHTML=allContent;
+  window.location.reload();
+}
+
+
+方式2: 利用 媒体查询
+1. 在不想打印的内容上 添加 .noprint 的类
+.noprint {display: none;}
+
+2. 新建媒体查询功能
+@media print {
+  .noprint{
+     display: none;
+   }
+}
+
+分页打印
+使用 window.print() 打印时，如果内容超出会自动分页。
+但是我们如果需要自定义分页范围，如碰到表格分页打印，可以通过进行如下设置：
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="page-break-after:always" >
+</table>
+
+
+Vue里打印使用插件的方式
+npm install vue-print-nb --save
+
+import Vue from "vue"
+import Print from "vue-print-nb"
+
+然后给要打印的区域 设置id包裹div
+<div id="print-area">
+
+然后在打印标签上填写 v-print="'#print-area'"
+
+
+
+
 ### 下载功能
 - 下载功能：
 - 如果我们直接通过a标签来指定链接的方式 那么它会直接跳转到该链接
@@ -447,12 +536,12 @@
 <!--
 // 拿到数据的逻辑回调 我们可以在 created 生命周期里面调用
 async queryData() {
-this.loading = true 
-let options = {
-limit: this.pageSize
-page: this.page
-search: this.search
-}
+    this.loading = true 
+    let options = {
+        limit: this.pageSize
+        page: this.page
+        search: this.search
+    }
 let result = await queryList(options)
 if(result.code === 0) {
 this.tableData = result.data
@@ -1902,6 +1991,10 @@ export default {
 
 - 也就是说我们上传文件后 就能从该input身上的到files
 
+-------------------------
+
+### 
+
 
 
 
@@ -1976,6 +2069,7 @@ export default {
 - 
 
 
+### ES6 
 
 
 

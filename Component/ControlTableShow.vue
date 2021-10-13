@@ -1,18 +1,20 @@
 <template>
   <div class="control-table">
-    <div slot="header" class="header-wrap">
-      <span class="title">履歴</span>
+    <div class="header-wrap">
+      <h3 class="mb-0">{{ title }}</h3>
       <el-button
+        class="btn"
         ref="btn"
-        type="danger"
+        type="primary"
         @click="tableHide"
+        size="small"
         :icon="isShow ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+        plain
       >
         <span>{{ tipCon }}</span>
       </el-button>
     </div>
-
-    <transition name="tableshow">
+    <transition name="table-show">
       <div v-show="isShow">
         <slot>デフォルト</slot>
       </div>
@@ -23,6 +25,12 @@
 <script>
 export default {
   name: "ControlTableShow",
+  props: {
+    title: {
+      type: String,
+      default: "",
+    },
+  },
   data() {
     return {
       isShow: true,
@@ -43,14 +51,15 @@ export default {
 
 <style scoped>
 .control-table {
-  padding: 24px;
+  margin: 48px 0px;
 }
 
 .header-wrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 24px;
+  padding: 0px 24px;
 }
 
 .header-wrap .title {
@@ -58,13 +67,17 @@ export default {
   font-weight: 600;
 }
 
-.tableshow-enter-active,
-.tableshow-leave-active {
+.btn {
+  width: 95px;
+}
+
+.table-show-enter-active,
+.table-show-leave-active {
   transition: opacity 0.3s;
 }
 
-.tableshow-enter,
-.tableshow-leave-to {
+.table-show-enter,
+.table-show-leave-to {
   opacity: 0;
 }
 </style>
