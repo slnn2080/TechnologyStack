@@ -1,4 +1,11 @@
 ### https://www.cnblogs.com/haiyan123/p/9765447.html
+- 1. 关闭数据库
+- 2. sudo /usr/local/mysql/bin/mysqld_safe --skip-grant-tables
+- 3. chinaliulin
+- 4. 新打开一个终端
+- 5. mysql -u root
+- 6. use mysql
+- 7. UPDATE mysql.user SET authentication_string=PASSWORD('你的密码') WHERE User='root';
 
 
 ### 项目概述
@@ -4064,4 +4071,1629 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
     cat_id: 6
     delete_time: null
   },
+ -->
+
+
+> 添加动态参数 和 静态属性的对话框
+- 因为 点击 添加动态参数 弹出的对话框 和 添加静态属性的对话框 是一个样 且都在一个页面中 我们尽可能的不要用两个对话框组件做
+
+- 所以 我们这里共用一个 对话框
+<!-- 
+  <el-dialog
+      :title="titleText"
+      :visible.sync="addDialogVisible"
+      width="50%"
+      @close="addDiglogClosed"
+    >
+
+      <el-form 
+        :model="addForm" 
+        :rules="addFormRules" 
+        ref="addFormRef" 
+        label-width="100px" 
+      >
+        <el-form-item :label="titleText" prop="attr_name">
+          <el-input v-model="addForm.attr_name"></el-input>
+
+
+  要点：
+  - 1. 标题部分使用了 计算属性 根据当前页tab-content的处于哪项 我们的标题就是哪项
+
+  titleText() {
+    return this.activeName == "many" ? "动态参数" : "静态属性"
+  },
+
+
+  - 2. 当关闭对话框 重置表单里面的信息 包括验证信息效果
+  监听对话框的关闭事件，然后在回调中 通过表单的ref调用方法
+
+  addDiglogClosed() {
+    // 当关闭对话框后应该清除 验证的效果 
+    this.$refs.addFormRef.resetFields()
+  }, 
+
+
+  - 3. 输入框前面的文本也可以动态绑定 且 prop和input的v-model都要绑定发请求的api文档中的字段
+ -->
+
+
+> 点击确认按钮 发起添加动态参数 或 静态属性的请求
+- 请求路径：categories/:id/attributes
+- 请求方法：post
+- 请求参数
+
+  - :id：
+  - 不能为空`携带在url中`   当前我们选择的是哪个3级的分类
+
+  - attr_name：
+  - 不能为空
+
+  - attr_sel：[only,many]
+  - 不能为空
+
+  - attr_vals： 可选参数
+  - 如果是 many 就需要填写值的选项，以逗号分隔
+
+<!-- 
+  "data": {
+    "attr_id": 44,
+    "attr_name": "测试参数",
+    "cat_id": "1",
+    "attr_sel": "many",
+    "attr_write": "list",
+    "attr_vals": "a,b,c"
+  },
+  "meta": {
+    "msg": "创建成功",
+    "status": 201
+  }
+ -->
+
+- 这里我才发现个问题 添加动态参数 和 静态属性 我们使用了同一个对话框来处理逻辑
+- 那就有一个问题，我们添加的数据 都保存在了form表单中的一个属性里(attr_name) 那我们在发起请求的时候到底是添加属性的逻辑 还是 添加参数的逻辑呢？
+<!-- 
+  开始的时候我会想 要不要 再进行判断 如果是xxx将数据存在a里 如果是yyy就将数据存在b里 那可以我们还需要一个type的自定义属性之类的
+ -->
+
+- 但是这节中就给了我很好的回答：
+- 1. 添加动态参数 和 静态属性 都使用了 attr_name 这个字段 不同的是 当发起请求时，多了一个提交参数 用于后台辨识 我们发起的是什么请求
+
+- 2. 而我们表单所需要的参数 attr_sel 就是标识我们在添加什么 这个值绑定的是当前页面所展开的tab项
+<!-- 
+  addParams() {
+    this.$refs.addFormRef.validate(async valid => {
+
+      // !valid 是验证失败
+      if(!valid) return
+
+      let {data: res} = await request({
+        url: `categories/${this.cateId}/attributes`,
+        method: "post",
+        data: {
+          attr_name: this.addForm.attr_name,
+          attr_sel: this.activeName
+        }
+      })
+
+      if(res.meta.status !== 201) {
+        this.$message({
+          type: "error",
+          message: "获取参数失败",
+          duration: 1000
+        })
+        return
+      }
+
+      this.$message({
+        type: "success",
+        message: "获取参数成功",
+        duration: 1000
+      })
+      this.addDialogVisible = false
+      this.getTabData()
+    })
+  },
+ -->
+
+
+> 点击 表格中的 修改按钮
+- 供用户修改当前行的参数 或者 属性
+- 当我们点击修改按钮后 应该传入该行的id 根据id展示数据的原有信息 绑定到对话框的表单中
+
+- 请求路径：categories/:id/attributes/:attrId
+- 请求方法：get
+- 请求参数
+
+  - :id
+  - 不能为空`携带在url中`  分类的id
+
+  - :attrId
+  - 不能为空`携带在url中`  参数的id
+
+  - attr_sel:
+  - [only,many] 
+
+  - attr_vals
+  - 如果是 many 就需要填写值的选项，以逗号分隔 
+
+<!-- 
+  "data": {
+      "attr_id": 1,
+      "attr_name": "cpu",
+      "cat_id": 22,
+      "attr_sel": "only",
+      "attr_write": "manual",
+      "attr_vals": "ffff"
+  },
+  "meta": {
+      "msg": "获取成功",
+      "status": 200
+  }
+ -->
+
+- :attrId 可以通过 下面的方式传递过来
+- scope.row.attr_id
+
+- :id 我们是根据计算属性 计算我们点击级联选择器后 分组数组的最后一项的值
+
+- 下面当我们点击编辑按钮后的回调 在展示对话框的时候我们做了根据id发起get请求 将请求回来的数据 添加到表单中的逻辑
+<!-- 
+  async showEidtDialog(attrId) {  
+    let {data: res} = await request({
+      url: `categories/${this.cateId}/attributes/${attrId}`,
+      method: "get",
+      params: {
+        attr_sel: this.activeName
+      }
+    })
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: " 查询参数失败",
+        duration: 1000
+      })
+      return
+    }
+
+    
+    this.editForm = res.data
+    console.log(this.editForm)
+    this.editDialogVisible = true
+  },
+
+
+  要点：
+  虽然我们展示的对话框中 只有一个 input 用于展示名字
+  但是我们请求回来的数据 是一个大数据 input 只用上了 数据中的一条 
+
+  但是我们还是将请求回来的数据 保存在了 editForm 这个对象中
+
+  数据：
+  attr_id: (...)
+  attr_name: (...)
+  attr_sel: (...)
+  attr_vals: (...)
+  attr_write: (...)
+  cat_id: (...)
+ -->
+
+
+- 接下来点击 确定 的时候 完成修改的操作
+- 点击确定先是预校验 通过后发起请求
+
+- 请求路径：categories/:id/attributes/:attrId
+- 请求方法：put
+- 请求参数
+  - :id： 分类 ID
+  - 不能为空`携带在url中`
+  
+  - :attrId： 属性 ID
+  - 不能为空`携带在url中`
+  
+  - attr_name
+  - 新属性的名字 不能为空，携带在`请求体`中
+  
+  - attr_sel
+  - 属性的类型[many或only] 不能为空，携带在`请求体`中
+
+  - attr_vals
+  - 参数的属性值 可选参数，携带在`请求体`中
+<!-- 
+  "data": {
+      "attr_id": 9,
+      "attr_name": "测试更新",
+      "cat_id": "43",
+      "attr_sel": "only",
+      "attr_write": "manual",
+      "attr_vals": "abc"
+  },
+  "meta": {
+      "msg": "更新成功",
+      "status": 200
+  }
+ -->
+
+<!-- 
+  // 点击添加参数的对话框的确定按钮 添加参数
+  addParams() {
+    this.$refs.addFormRef.validate(async valid => {
+
+      // !valid 是验证失败
+      if(!valid) return
+
+      let {data: res} = await request({
+        url: `categories/${this.cateId}/attributes`,
+        method: "post",
+        data: {
+          attr_name: this.addForm.attr_name,
+          attr_sel: this.activeName
+        }
+      })
+
+      if(res.meta.status !== 201) {
+        this.$message({
+          type: "error",
+          message: "获取参数失败",
+          duration: 1000
+        })
+        return
+      }
+
+      this.$message({
+        type: "success",
+        message: "获取参数成功",
+        duration: 1000
+      })
+      this.addDialogVisible = false
+      this.getTabData()
+    })
+  },
+ -->
+
+
+- 点击 删除 按钮 删除该行的数据
+
+- 请求路径： categories/:id/attributes/:attrid
+- 请求方法：delete
+- 请求参数
+
+  - :id
+  - 分类 ID 不能为空`携带在url中`
+
+  - :attrid
+  - 参数 ID 不能为空`携带在url中`
+
+<!-- 
+  "data": null,
+  "meta": {
+      "msg": "删除成功",
+      "status": 200
+  }
+  -->
+
+<!-- 
+  // 点击删除按钮 根据id 删除数据
+    async removeParams(attrId) {
+    let res = await this.$confirm("此操作将永久删除该参数, 是否继续？", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }).catch(err => err)
+
+    // 证明用户取消了操作
+    if(res !== "confirm") {
+      this.$message.info("已取消删除")
+      return
+    }
+
+    let {data: ret} = await request({
+      url: `categories/${this.cateId}/attributes/${attrId}`,
+      method: "delete"
+    })
+    console.log(ret)
+
+    if(ret.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "删除失败",
+        duration: 1000
+      })
+      return
+    }
+
+    this.$message.success("删除用户成功")
+    this.getTabData()
+  },
+ -->
+
+
+- 上面我们已经完成了 两个tab切换区域 点击对应的tab按钮 会在table中展示对应的数据，下面我们要完成 点击表格中的每一行 可以展开该行，并在展开行中将该行的所有可选项 
+
+- 同时可以点击后面的添加按钮 新增对应的可以项的功能
+- 我们先看看每行的可选项 对应着数据中的什么字段
+<!-- 
+  上面我们在级联选择器中 选中了3级分类后 会展示该分类的数据
+  我们在选中3级分类的时候 请求了数据 并数据保存在了？？？
+
+  attr_id: (...)
+  attr_name: (...)
+  attr_sel: (...)
+  attr_vals: (...)    该行下的所有可选项都在这个属性中保存
+  attr_write: (...)
+  cat_id: (...)
+
+  attr_vals: 
+  "49吋4K超薄曲面 人工智能,55吋4K观影曲面 30核HDR,55吋4K超薄曲面 人工智能,65吋4K超薄曲面 人工智能"
+
+
+  它们以空格来分割
+  我们将这些字符串渲染成一个个的tag标签 分割的结果会是一个数组 最终我们将数组for循环然后渲染出一个个的tag标签了
+ -->
+
+- 思路：
+- 我们将服务器返回的结果 的每一项进行for循环 每循环一次都会拿到一个参数项
+- 我们将参数项身上的 attr_vals 的值由字符串分割成一个数组 重新给 attr_vals赋值
+
+<!-- 
+  在点击 级联选择器后 选中3级分类的时候 会发起数据请求 我们在这个函数中做下面的操作
+
+  
+  // 再将数据交给 tab区对应的表格数据变量之前 我们加工下数据 将 attr_vals 的值 由字符串加工成一个数组
+  res.data.forEach(item => {
+    if(item.attr_vals) {
+      item.attr_vals = item.attr_vals.split(",")
+    }
+  })
+
+  console.log(res.data)
+
+  if(this.activeName === "many") {
+    this.manyTableData = res.data
+    
+  } else {
+    this.onlyTableData = res.data
+  }
+ -->
+
+
+- 然后我们在表格的展开行中 for 循环这个数组
+<!-- 
+  <el-table-column type="expand">
+
+
+    在这里使用作用域插槽的形式接收下这行的数据
+    <template scope="scope">
+      <el-tag 
+        v-for="(item, index) of scope.row.attr_vals" 
+        :key="index"
+        class="tag-content"
+        closable
+      >
+        {{item}}
+      </el-tag>
+    </template>
+  </el-table-column>
+ -->
+
+
+> bug
+- 当我们添加一个动态参数的时候 里面肯定是空的 但是展开这个 参数 会发现里面有一个空白的 tag 为啥？
+<!-- 
+  默认情况下 请求回来的数据 里面是有可选项的 它可以渲染出很多的tag标签
+
+  但是 颜色 是我们新添加的 它的 attr_vals 是一个空的字符串
+  如果是空字符串 用split进行分割 结果是[""] 也就是数组中有一项 所以就渲染出一个空白的el-tag标签
+
+  我们在上面加工请求回来的数据的时候 要进行判断
+
+
+  res.data.forEach(item => {
+    item.attr_vals = item.attr_vals
+      ? item.attr_vals.split("")
+      : []
+  })
+ -->
+
+
+> 添加按钮 和 输入文本框之间的切换显示
+- 我们还要在展开行里做 添加 tag 和 删除 tag 的功能
+- 点击 new Tag 标签后 变成了 文本框 当文本框失去焦点的时候 文本框就会被隐藏取而代之的就是变成了 Tag 标签
+
+- 这里的逻辑是通过 v-if 和 v-else 实现的 
+- 这里我们使用 Tag组件中的 动态编辑标签 效果
+<!-- 
+  // 输入框
+  <el-input
+    class="input-new-tag"
+    v-if="inputVisible"       控制显示：这里有v-if指令
+    v-model="inputValue"      input的值双向绑定到了 这个属性的身上
+    ref="saveTagInput"
+    size="small"
+    @keyup.enter.native="handleInputConfirm"
+    @blur="handleInputConfirm"
+  >
+  </el-input>
+
+  // 添加 按钮
+  <el-button 
+    v-else                  控制显示：这里是v-else
+    class="button-new-tag" 
+    size="small" 
+    @click="showInput"
+  >
+    + New Tag
+  </el-button>
+ -->
+
+
+- 要点1：
+- 我们在 el-table-column 里面 使用了 作用域插槽 这样就能得到 tableData 方便我们使用v-for遍历生成结构
+
+- 要点2：
+- 在使用element ui组件添加样式的时候
+- 1. 我们先看看直接添加样式可以不可以
+- 2. /deep/ 包裹容器样式 目标组件上的样式
+<!-- 
+  /deep/ .input-new-tag .el-input__inner {
+    width: 120px;
+    margin-left: 10px;
+    vertical-align: bottom;
+  }
+ -->
+
+
+<!-- 
+  <el-table-column type="expand">
+    <template scope="scope">
+      
+      循环渲染tag标签
+      <el-tag 
+        v-for="(item, index) of scope.row.attr_vals" 
+        :key="index"
+        class="tag-content"
+        closable
+      >
+        {{item}}
+      </el-tag>
+
+      输入文本框
+      <el-input
+        class="input-new-tag"
+        v-if="inputVisible"
+        v-model="inputValue"
+        ref="saveTagInput"
+        size="small"
+        @keyup.enter.native="handleInputConfirm"
+        @blur="handleInputConfirm"
+      >
+      </el-input>
+
+      添加新tag按钮
+      <el-button 
+        v-else
+        class="button-new-tag" 
+        size="small" 
+        @click="showInput"
+      >
+          + New Tag
+        </el-button>
+    </template>
+  </el-table-column>
+ -->
+
+- 解决两个问题：
+- 1. 我们在一行里面 点击 new tag 标签 每一行的tag都会变成input
+- 2. input 自己占了一行 同时我们在一个输入框中输入数据 每行的文本框中还有联动的效果
+<!-- 
+  因为 我们所有的 input 都绑定的同一个 属性
+  v-if="inputVisible"
+  v-model="inputValue"
+
+  所有的input 绑定的 inputVisible
+  所有的v-model 绑定的 inputVale
+ -->
+
+- 所有的input都绑定了同一个属性，那么我们可以给每一行数据单数的添加一个属性是一个布尔值 控制它们显示和隐藏 自己的行通过布尔值控制自己的显示和隐藏
+
+- 同时我们输入的value值只保存在自己行内的数据里面 和其它的数据不冲突
+- 也就是说 我们要为每一行数据都提供一个 inputVisible 和 inputVale
+
+- 思路：
+- 我们在点击级联选择器 获取表格数据的回调中 处理下请求回来的数据 在当中添加我们需要的属性
+
+<!-- 
+  res.data.forEach(item => {
+    if(item.attr_vals) {
+      item.attr_vals = item.attr_vals.split(",")
+    }
+    
+    // 用上面的 没有考虑当新增的时候 attr_vals 将是空
+    item.attr_vals = item.attr_vals ? item.attr_vals.split(",") : []
+
+    // 为每一条记录添加一个布尔值 控制展开行的input的显示和隐藏
+    item.inputVisible = false
+    // 每一条记录 展开行中input的自己的v-model
+    item.inputValue = ""
+  })
+
+
+  <el-input
+    class="input-new-tag"
+
+    v-if="scope.row.inputVisible" 
+    v-model="scope.row.inputValue"
+
+    ref="saveTagInput"
+    size="small"
+    @keyup.enter.native="handleInputConfirm"
+    @blur="handleInputConfirm"
+  >
+  </el-input>
+
+    <el-button 
+    v-else
+    class="button-new-tag" 
+    size="small" 
+    @click="showInput(scope.row)"     这里把该行的数据传递过去
+  >
+      + New Tag
+  </el-button>
+
+
+  // 展开行内 当点击 添加tag 按钮会的回调
+  showInput(row) {
+    // 当点击 添加tag 按钮后展示 input 框
+    row.inputVisible = true
+  },
+
+
+  有一个问题：
+  我们将v-model 双向绑定到 scope.row 中之后 怎么获取呢？
+  用的时候 再将 scope.row 传递到需要用它的地方么
+ -->
+
+
+> 让input自动获取焦点：
+- this.$nextTick(() => {})
+- 当页面上元素被重新渲染之后才会执行回调中的代码
+- 比如我们想让文本框获取焦点必须在文本框被重新渲染之后才能执行获取焦点的逻辑
+
+- 如果不放在nextTick中 当我们点击 new tag 按钮后虽然我们把变量置为true了 但是页面上那个元素还没有被渲染出来 这时候如果我们直接通过$refs获取元素是没有的 再focus 肯定会报错 那我们就等待一个时机 当页面元素重新被渲染之后 肯定会执行nextTick
+<!-- 
+  showInput() {
+    this.inputVisible = true;
+    this.$nextTick(_ => {
+      this.$refs.saveTagInput.$refs.input.focus();
+    });
+  },
+ -->
+
+
+> 实现按钮与文本框的切换显示
+- 当我们点击按钮的时候会展示文本框 当文本框失去焦点的时候展示按钮
+- 当文本框失去焦点 或者 按下回车的时候 都会触发一个 handleInputConfirm 回调
+- 我们把该行的数据传递过去 在回调中 取得该行数据中用于控制文本框显示和隐藏的布尔值就可以了
+
+- 优化：
+- 当我们在文本框中输入的内容不合法 应该将内容清空
+- 也就是说在隐藏前还要进行判断
+
+<!-- 
+  handleInputConfirm(row) {
+
+    // 当文本框输入不合法的时候 我们将文本框的内容重置为0 去除空格后看看length
+    if(row.inputValue.trim().length === 0) {
+      row.inputValue = ""
+      // 同时隐藏文本框 最后return出去 因为length为0 那不需要做后续的处理了
+      row.inputVisible = false
+      return
+    }
+
+    // 如果没有return 则说明输入了内容 可以接下来做后续的处理
+    
+  },
+ -->
+
+
+> 参数项的添加操作
+- 我们要在每行的展开行里面添加固定的可选值 也就是添加参数
+- 比如我们在颜色下面添加具体的参数 白色
+- 当键入回车 或者 文本框失去焦点的时候就会触发 handleInputConfirm 回调
+
+- 如果在回调中没有return出去说明我们输入了合法的值 我们就可以拿到这个值
+- 我们拿到的这个值就是 scope.row.inputValue
+<!-- 
+  为了将文本框都绑定该行数据中的一个变量(如果绑定同一个变量 那么input就会产生联动效果)
+
+  如果我们加工了下请求回来的数据，然后在每一条数据中添加了 inputValue 这个变量用户保存自己的input的 v-model
+
+  那么我们想要拿到用户输入的值 就是通过scope.row拿到了这个 inputValue
+ -->
+
+- 因为展开行的标签都是通过 attr_vals 这个数组遍历生成的 tag 标签
+- 所以我们拿到用户输入的值 直接push到 attr_vals 这个数组中就可以了
+
+- 但是以上只是在前端页面中将用户输入的值 保存到了 attr_vals 数组中 创建了 新的tag标签 但是并没有把对应的数据上传到服务器 刷新页面的就没有了 因为没有对刚才的操作存储到数据库中
+
+- 所以在push完毕后 我们还要发起网络请求 将这次操作保存在服务器中
+
+- 请求路径：categories/:id/attributes/:attrId
+- 请求方法：put
+- 请求参数
+
+    - :id
+    - 分类 ID  不能为空`携带在url中`
+
+    - :attrId
+    - 属性 ID  不能为空`携带在url中`
+
+    - attr_name
+    - 新属性的名字  不能为空，携带在`请求体`中
+
+    - attr_sel
+    - 属性的类型[many或only]  不能为空，携带在`请求体`中
+
+    - attr_vals
+    - 参数的属性值  可选参数，携带在`请求体`中
+
+- id我们可以从计算属性中获取
+- attrid我们可以通过row.id拿到
+
+<!-- 
+  "data": {
+    "attr_id": 9,
+    "attr_name": "测试更新",
+    "cat_id": "43",
+    "attr_sel": "only",
+    "attr_write": "manual",
+    "attr_vals": "abc"
+  },
+  "meta": {
+      "msg": "更新成功",
+      "status": 200
+  }
+ -->
+
+**注意：**
+- attr_vals 服务器里面存储的是字符串 但我们客户端将这个值修改成了数组 所以我们在处理这个数组的时候 我们要使用, 拼接成一个字符串
+
+- 也就是说 服务器那边保存的是什么类型 我们传递过去就要使用什么类型
+
+<!-- 
+  async handleInputConfirm(row) {
+    // 当文本框输入不合法的时候 我们将文本框的内容重置为0 去除空格后看看length
+    if(row.inputValue.trim().length === 0) {
+      row.inputValue = ""
+      // 同时隐藏文本框 最后return出去 因为length为0 那不需要做后续的处理了
+      row.inputVisible = false
+      return
+    }
+
+    // 如果没有return 则说明输入了内容 接下来我们就可以拿到用户输入的值 然后然后push到 attr_vals 这个数组中 因为tag标签就是通过这个数组创建出来的
+    row.attr_vals.push(row.inputValue.trim())
+
+    // push完后将 row.inputValue 重置为空
+    // row.inputValue = ""
+
+    // 隐藏这个文本输入框
+    row.inputVisible = false
+
+    // 上面我们只是完成了页面效果 接下来我们还要将这个操作保存到数据库中
+    let {data: res} = await request({
+      url: `categories/${this.cateId}/attributes/${row.attr_id}`,
+      method: "put",
+      data: {
+
+        因为是给一个项下面添加具体的参数 attr_name 是给哪项 attr_sel 是给静态还是动态添加 attr_vals 才是具体的值
+        attr_name: row.attr_name,   
+        attr_sel: row.attr_sel,
+        attr_vals: row.attr_vals.join(",")
+      }
+    })
+    
+    if(res.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "添加参数失败",
+        duration: 1000
+      })
+      return
+    }
+
+    this.$message({
+      type: "success",
+      message: "添加参数成功",
+      duration: 1000
+    })
+  },
+ -->
+
+
+> 删除展开行中的参数项的操作
+- 当我们点击 tag 标签上的 x 号的时候 肯定会触发 tag 标签的 close 事件
+- 我们可以给 tag 标签绑定 close 事件 我们要删除哪个呢？ 所以再把对应的索引传递过去
+
+- 同时我们还需要这行的数据，因为我们要从这行数据中的attr_vals里面去删
+<!-- 
+  <el-tag 
+    v-for="(item, index) of scope.row.attr_vals" 
+    :key="index"
+    class="tag-content"
+    closable
+    @close="handClosed(scope.row, index)"    这里
+  >
+
+  handClosed(row, index) {
+    row.attr_vals.splice(index, 1)
+    
+    // 上面只是完成了前端页面上的删除效果 我们还要同步到后台程序
+    this.saveAttrVals(row)
+  },
+
+  
+
+// 将对 attr_vals 的操作 保存到服务器 封装的一个函数
+async saveAttrVals(row) {
+  // 上面我们只是完成了页面效果 接下来我们还要将这个操作保存到数据库中
+  let {data: res} = await request({
+    url: `categories/${this.cateId}/attributes/${row.attr_id}`,
+    method: "put",
+    data: {
+      attr_name: row.attr_name,
+      attr_sel: row.attr_sel,
+      attr_vals: row.attr_vals.join(",")
+    }
+  })
+
+  if(res.meta.status !== 200) {
+    this.$message({
+      type: "error",
+      message: "修改参数失败",
+      duration: 1000
+    })
+    return
+  }
+
+  this.$message({
+    type: "success",
+    message: "修改参数成功",
+    duration: 1000
+  })
+},
+-->
+
+
+> bug： 级联选择器只能选中3级分类 当我们选中的是二级的时候
+- 级联选择器是清空的状态
+- 添加参数的按钮也是禁用的状态 但是 下方的数据表格却没有被清空 如果这时候我们操作表格 因为表格中的操作都需要3级分类 我们都已经将级联选择器清空了 所以这时候操作就会出现种种问题
+
+- 所以当我们清空级联选择器的时候 我们也要将下方的表格清空
+- 思路：
+- 当我们的级联选择器发生变化 就会触发它的change事件 我们找到它的change事件
+<!-- 
+  <el-cascader
+    size="small"
+    v-model="selectedKeys"
+    :options="cateList"
+    :props="cateProps"
+    @change="handleChange"    只要它发生变化就会进入回调
+    clearable
+  >
+  </el-cascader>
+
+
+  handleChange() {
+    // 回调中我们请求数据 我们需要在getTabData函数中做处理
+    this.getTabData()   
+  },
+
+
+  async getTabData() {
+    // 证明选择的不是3级分类 我们要return出去 和 清空数组 效果就是点击了也没反应
+    if(this.selectedKeys.length !== 3) {
+
+      // 这里我们将 选择的id数组 做了清空
+      this.selectedKeys = []
+
+      // 我们还要将 动态参数 和 静态属性的数据 也清空 
+      this.manyTableData = []
+      this.onlyTableData = []
+      return
+    }
+
+  逻辑就是 我们选择 三级分类的时候 才将请求数据放入渲染列表的tableData中 不然就应该是空
+ -->
+
+
+> input 回车事件 和 blur事件 会同时触发
+- 这几个环节中 我们做了 点击tag按钮 会变成 input的逻辑
+- 当input失去焦点 和 按下回车的时候 都会触发对应的函数
+- 但是当我们按下回车的时候 函数会被触发两次 因为按下回车的同时文本框也失去了焦点
+- 解决方式：
+- 1. @keyup.enter.native="$event.target.blur"
+- 将回车事件指向当前元素失去焦点事件
+<!-- 
+  @keyup.enter.native="handleInputConfirm(scope.row)"
+  @blur="handleInputConfirm(scope.row)"   报错
+
+  @keyup.enter="(event)=>event.target.blur()"
+ -->
+
+- 2. 我们在kepup的逻辑中解绑失去焦点事件 在focus事件中绑定失去焦点事件
+- https://blog.csdn.net/qq_40179700/article/details/119576459?utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link
+
+<!-- 
+  <el-input
+		v-model="inputVal"
+		placeholder="请输入内容"
+		@focus="focusFun"
+		@blur="triggerBlur&&blurFun()"        
+		@keyup.native.enter="keyupFun"
+	/>
+
+  data() {
+    return {
+      inputVal: '',
+      oldInputValue: '',
+      triggerBlur: false
+    };
+  },
+
+  methods: {
+		focusFun(){
+			console.log('聚焦')
+			this.triggerBlur = true
+		},
+      
+		blurFun(){
+			console.log('失焦')
+			this.inputVal = this.oldInputVal
+		},
+      
+		keyupFun() {
+			console.log('回车');
+			this.oldInputVal = this.inputVal
+		}
+	},
+ -->
+
+-----------------
+
+### 商品列表
+- 前面做了一些准备工作 接下来我们从请求商品列表数据 渲染列表 开始
+- 这里商品列表有分页的功能
+
+- 请求路径：goods
+- 请求方法：get
+- 请求参数
+    - query  查询参数  可以为空
+        查询关键字 它需要和页面上的文本输入框做绑定
+
+    - pagenum  当前页码  不能为空
+        请求第几页的数据
+
+    - pagesize  每页显示条数  不能为空
+        每页显示的条数
+
+
+- 响应数据 解析：
+- total  
+    总共商品条数
+
+- pagenum
+    当前商品页数 
+
+- goods_id
+    商品 ID
+
+- goods_name
+    商品名称
+
+- goods_price
+    价格
+
+- goods_number
+    数量
+
+- goods_weight
+    重量  不能为空
+
+- goods_state
+    商品状态   商品状态 0: 未通过 1: 审核中 2: 已审核
+
+- add_tim
+    添加时间
+
+- upd_time
+    更新时间
+
+- hot_mumber
+    热销品数量
+
+- is_promote
+    是否是热销品 
+
+<!-- 
+  "data": {
+    "total": 50,
+    "pagenum": "1",
+    "goods": [
+      {
+        "goods_id": 144,
+        "goods_name": "asfdsd",
+        "goods_price": 1,
+        "goods_number": 1,
+        "goods_weight": 1,
+        "goods_state": null,
+        "add_time": 1512954923,
+        "upd_time": 1512954923,
+        "hot_mumber": 0,
+        "is_promote": false
+      }
+  ]
+},
+"meta": {
+  "msg": "获取成功",
+  "status": 200
+}
+ -->
+
+
+> 分页步骤
+- 1. 在data配置项中定义 发起请求时需要的参数 要关注api文档我们需要提交什么参数
+<!-- 
+  data() {
+    return {
+      queryInfo: {
+        query: "",
+        pagenum: 1,     默认获取第一页的数据
+        pagesize: 5
+      },
+      goodsList: [],    获取回来的数据放这里
+      total: 0,         保存服务器返回的总记录数
+    }
+  },
+ -->
+
+- 2. 在created函数中发起获取数据的请求 并将结果保存到data配置项中
+- 保存的数据有 数据 和 总记录数
+<!-- 
+  // 根据分页获取对应的商品的列表
+    async getGoodsList() {
+      let {data: res} = await request({
+        url: "/goods",
+        method: "get",
+        params: this.queryInfo,
+      })
+
+      if(res.meta.status !== 200) {
+        this.$message({
+          type: "error",
+          message: "获取商品列表失败",
+          duration: 1000
+        })
+        return
+      }
+
+      this.$message({
+        type: "success",
+        message: "获取商品列表成功",
+        duration: 1000
+      })
+
+      console.log(res.data);
+      {total: 926, pagenum: '1', goods: Array(5)}
+
+      this.goodsList = res.data.goods
+      this.total = res.data.total
+    }
+  }
+ -->
+
+- 下面我们要将获取到数据渲染到页面上 这部分和前面没有什么不一样的地方
+
+
+> 自定义格式化时间全局过滤器
+- 我们后台返回的时间是毫秒数 1514345477 我们要将它格式化下
+- 我们可以在 main.js 文件中注册一个全局过滤器
+
+- 要点：
+- 这里面我们使用了字符串的方法 .padStart 指定了只对不足两位的情况下 使用什么来补位
+
+- 因为是字符串的方法所以用了 + '' 进行了强制类型的转换
+<!-- 
+  // main.js中
+
+  Vue.filter("dataFormat", function(originValue) {
+    const date = new Date(originValue)
+    let y = date.getFullYear()
+    let m = (date.getMonth() + 1 + "").padStart(2, '0')
+    let d = (date.getDate() + "").padStart(2, '0')
+
+    let hh = (date.getHours() + "").padStart(2, '0')
+    let mm = (date.getMinutes() + "").padStart(2, '0')
+    let ss = (date.getSeconds() + "").padStart(2, '0')
+
+    return `${y}-${m}-${d} ${hh}:${mm}:${ss}`
+  })
+ -->
+
+
+> 表格的结构问题
+- 要点：
+- 自定义列的问题
+<!-- 
+  <el-table
+    :data="goodsList"
+    border
+    stripe
+  >
+
+    // 索引列
+    <el-table-column type="index" label="#" align="center"></el-table-column>
+
+    // 当我们数据内容区 有自定义的列的时候 可以采取这样的方式
+    <el-table-column
+      v-for="item of goodsTableColumn"
+      :key="item.goods_id"
+      v-bind="item"
+    >
+
+      // 在数据渲染区里面使用 n个类型的作用域插槽
+      <template scope="scope" v-if="item.type == 'date'">
+        {{scope.row.add_time | dataFormat}}
+      </template>
+
+
+      // 内容可以使用这种模式填充 {{scope.row[item.prop]}}
+      <template scope="scope" v-else>
+        {{scope.row[item.prop]}}
+      </template>
+    </el-table-column>
+
+
+    <el-table-column label="操作" width="100px">
+      <template scope="scope">
+        <el-button type="primary" icon="el-icon-edit" size="small" circle></el-button>
+        <el-button type="danger" icon="el-icon-delete" size="small" circle></el-button>
+      </template>
+    </el-table-column>
+
+  </el-table>
+ -->
+
+
+> 分页功能
+- 我们要使用 Pagination 组件
+<!-- 
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+
+    // 修改成 data 中的对应的数据 当前页
+    :current-page="queryInfo.pagenum"
+
+    // 可以选择每页显示多少条数据
+    :page-sizes="[5, 15, 30, 50]"
+
+    // 绑定哪个值
+    :page-size="queryInfo.pagesize"
+    layout="total, sizes, prev, pager, next, jumper"
+    :total="total">
+  </el-pagination>
+
+
+  handleSizeChange(newSize) {
+    this.queryInfo.pagesize = newSize
+    this.getGoodsList()
+  },
+
+  handleCurrentChange(newPage) {
+    this.queryInfo.pagenum = newPage
+    this.getGoodsList()
+  },
+ -->
+
+- 还可以给分页器添加背景色 在组件中使用 background 属性
+
+
+> 搜索与清空的功能
+- 我们输入关键字就可以将符合关键字的数据找到
+- 当我们清空文本框的时候就会回到数据最全的样子
+
+- 这里是通过后台来处理逻辑 并不是之前我们前端过滤数据的方式来处理逻辑 我们根据query属性的值 后台做了模糊查询的处理 返回对应的数据 我们只管显示就行
+- 这里就利用了 query 属性 我们要将文本框的值和query进行绑定
+<!-- 
+  queryInfo: {
+    query: "",
+    pagenum: 1,
+    pagesize: 5
+  },
+
+  <el-input 
+    placeholder="请输入内容" 
+    v-model="queryInfo.query"
+  >
+  <el-button slot="append" icon="el-icon-search"></el-button>
+ -->
+
+- 接下来我们点击搜索按钮就应该调用获取数据列表的函数
+<!-- 
+  <el-input 
+    placeholder="请输入内容" 
+    v-model="queryInfo.query"     1 这里绑定了 请求参数中的 query字段
+
+    clearable                  3 清空文本框的按钮
+    @clear="getGoodsList"      4 清空文本框后的回调 重新获取数据
+  >
+
+  <el-button 
+    slot="append" 
+    icon="el-icon-search"
+    @click="getGoodsList"         2 这里调用获取数据的函数
+  ></el-button>
+ -->
+
+
+> 根据id删除商品数据
+- 点击删除按钮之后 会有一个 confirm 提示框 会有是否删除的提示
+
+- 请求路径：goods/:id
+- 请求方法：delete
+- 请求参数
+  | id     | 商品 ID  | 不能为空`携带在url中` |
+
+<!-- 
+   "data": null,
+    "meta": {
+      "msg": "删除成功",
+      "status": 200
+    }
+ -->
+
+<!-- 
+  async removeById(id) {
+    let res = await this.$confirm("此操作将永久删除该参数, 是否继续？", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+
+      // 捕获用户的取消行为 将它return出去
+    }).catch(err => err)
+
+    // 证明用户取消了操作
+    if(res !== "confirm") {
+      this.$message.info("已取消删除")
+      return
+    }
+
+    let {data: ret} = await request({
+      url: `goods/${id}`,
+      method: "delete"
+    })
+
+    if(ret.meta.status !== 200) {
+      this.$message({
+        type: "error",
+        message: "删除失败",
+        duration: 1000
+      })
+      return
+    }
+
+    this.$message.success("删除商品成功")
+    this.getGoodsList()
+  },
+ -->
+
+
+> 通过编程式导航 跳转到 商品添加页面
+- 点击添加商品的按钮 跳转到 添加商品的页面
+- 配置路由
+<!-- 
+  开始的时候还在想要不要用children属性 突然又想起 使用children属性 goods里面应该要有router-view 所以还是应该同级 新开号
+  {
+    path:"/goods",
+    component: List,
+  },
+  {
+    path:"/goods/add",
+    component: AddGoodPage
+  }
+ -->
+
+- 当点击按钮的时候 跳转页面
+<!-- 
+  <el-button type="primary" @click="goAddPage">添加商品</el-button>
+
+  goAddPage() {
+    this.$router.push("/goods/add")
+  },
+ -->
+
+- 绘制添加页面的基本结构
+- 这里我们使用了 新的组件 步骤条 
+<!-- 
+  <el-steps 
+    :space="200" 
+    :active="activeIndex"      控制激活项的索引 第一项索引为0
+    finish-status="success"
+    align-center    居中对齐
+  >
+    <el-step title="基本信息"></el-step>
+    <el-step title="商品参数"></el-step>
+    <el-step title="商品属性"></el-step>
+    <el-step title="商品图片"></el-step>
+    <el-step title="商品内容"></el-step>
+    <el-step title="完成"></el-step>
+  </el-steps>
+
+  其中的 el-step 就是每一步
+ -->
+
+
+> 商品添加渲染 tab栏区域
+- 有点像 菜单栏 还有点像选项卡 但是是竖着排列的
+<!-- 
+  <el-tabs :tab-position="'left'" style="height: 200px;">
+    <el-tab-pane label="基本信息">基本信息</el-tab-pane>
+    <el-tab-pane label="商品参数">商品参数</el-tab-pane>
+    <el-tab-pane label="商品属性">商品属性</el-tab-pane>
+    <el-tab-pane label="商品图片">商品图片</el-tab-pane>
+    <el-tab-pane label="商品内容">商品内容</el-tab-pane>
+  </el-tabs>
+
+  而 <el-tab-pane> 之间就可以放别的结构 </el-tab-pane>
+ -->
+
+
+> 步骤条和tab栏的联动效果
+- 如果我们点击了 tab栏中的基本信息 那么步骤条的基本信息项就会被激活
+- tabs 身上会有 v-model 会绑定一个 变量
+- 每次我们点击选项卡的时候 都会将 el-tab-pane 身上的name属性 绑定到变量身上
+
+<!-- 
+  <el-tabs 
+    :tab-position="'left'" 
+    style="height: 200px;"
+    v-model="activeIndex"
+  >
+    <el-tab-pane label="基本信息" name="0">基本信息</el-tab-pane>
+    <el-tab-pane label="商品参数" name="1">商品参数</el-tab-pane>
+    <el-tab-pane label="商品属性" name="2">商品属性</el-tab-pane>
+    <el-tab-pane label="商品图片" name="3">商品图片</el-tab-pane>
+    <el-tab-pane label="商品内容" name="4">商品内容</el-tab-pane>
+  </el-tabs>
+ -->
+
+- 而我们的步骤条的激活 是绑定的 <el-steps :active="activeIndex" >
+- 它绑定的是每一个 <el-step> 的索引值 默认第一个el-step的索引是0
+
+- 那我们将 tabs选项卡 和 steps 绑定一个变量是不是就实现了联动的效果
+- 但是 el-steps 要求绑定的是一个数字 而 el-tab-pane 的name是字符串
+- 所以我们还要进行 类型的转换
+<!-- 
+  <el-steps 
+    :space="200" 
+
+    :active="activeIndex / 1" 
+
+    finish-status="success"
+    align-center
+  >
+ -->
+
+
+> 基本信息 区域
+- 我们做了一个侧边栏的tab栏 其中的每一项维护着这个商品的部分数据 只有把这5项合起来才是一个商品的完整的信息数据
+
+- 所以我们应该在这5个面板的外侧使用form表单包裹里面
+
+- 注意：
+- el-tab-pane 只能作为 el-tabs 的子节点 假如我们将 el-form 直接包裹el-tab-pane会有问题
+<!-- 
+  <el-form>
+    <el-tabs>
+      <el-tab-pane label="基本信息" name="0">
+      
+        这里放每一个表单项
+        <el-form-item label="商品名称" prop="goods_name">
+          <el-input v-model="addForm.goods_name"></el-input>
+        </el-form-item>
+      
+      </el-tab-pane>
+    </el-tabs>
+  <el-form>
+ -->
+
+> <el-form label-position="top">
+- 这个属性控制 label 在input的左侧还是上方
+
+> el-input type="number"></el-input>
+- 因为商品的价格是数字，所以我们可以规定输入框的类型
+
+
+> 获取数据的时机
+- 1. created
+- 2. 某个事件的回调中
+
+- 基本信息区域里面最后一项是级联选择器 我们将请求回来的数据 渲染出级联选择器
+- 同时也是一样只允许选中3级分类 1 2分类是不能选择的
+<!-- 
+  <el-cascader
+    size="small"
+    v-model="addForm.goods_cat"
+    :options="cateList"
+    :props="cateProps"
+    @change="handleChange"
+    clearable
+  >
+  </el-cascader>
+
+  cateProps: {
+    expandTrigger: 'hover',
+    // 看到的是哪个属性
+    label: "cat_name",
+    // 选中的是哪个属性
+    value: "cat_id",
+    children: "children",
+    checkStrictly: false,
+  },
+
+
+  addForm: {
+    goods_name:"",
+    goods_price:0,
+    goods_weight:0,
+    goods_number: 0,
+
+    // 商品所属的分类数组，但是提交的时候要转成逗号分隔的字符串 级联选择器的id值会保存在这里
+    goods_cat: []
+  },
+ -->
+
+- 要点：
+- 1. 级联选择器 绑定的值 是我们要发起请求时的一个字段 我们绑定的是 addForm.goods_cat 其中goods_cat就是一个必选项
+<!-- 
+  goods_cat 
+    我们保存的是 级联选择器 选择3级分类id的数组 但是发起请求时 后台要求这项应该是一个以逗号分隔的字符串 所以在发起请求前我们还需要进一步的处理
+ -->
+
+- 2. 级联选择器 要使用 :options="cateList" 绑定数据源
+- 3. 级联选择器 要使用 :props="cateProps" 指定配置对象
+- 4. 配置对象
+<!-- 
+  cateProps: {
+    expandTrigger: 'hover',
+    // 看到的是哪个属性
+    label: "cat_name",
+    // 选中的是哪个属性
+    value: "cat_id",
+    children: "children",
+    checkStrictly: false,
+  },
+ -->
+
+
+- 接下来我们控制一下级联选择器的范围 也就是说只能选择3级分类
+- 我们级联选择器的选中项会直接双向绑定到addForm.goods_cat身上 我们可以对这个数据做下判断 看看这个数组的length 是不是等于3
+
+- 如果等于3就允许它选中 如果不等于3就清空这个数组就可以了
+<!-- 
+  handleChange() {
+    if(this.addForm.goods_cat.length != 3) {
+      // 进入到这里代理你没有选中3级分类 我们直接清空该数组
+      this.addForm.goods_cat = []
+    } 
+  },
+ -->
+
+
+> 阻止左侧tabs标签页的切换
+- 一共有5个tabs选项卡 只有完成某个条件才可以点击别的 tabs选项卡 我们这里是 在基本信息 这个tabs标签中 如果不选择 商品分类 是不允许 点击其它的tabs选项卡的
+
+- 思路：
+- 我们监听 tabs 选项卡的切换事件 在事件回调中 判断当前是否处于 基本信息的页签 同时 判断选中的商品分类是否为3级商品分类(判断id数组的length是否为3) 如果length不为3 我们阻止它发生切换
+
+- 如果监听 tabs标签页的行为？
+- el-tags 身上的属性 before-leave	
+- 切换标签之前的钩子，若return回 false (或者返回 Promise 且被 reject)，则阻止切换
+<!-- 
+  Function(activeName, oldActiveName)
+
+  activeName: 即将进入的标签页的名称
+  oldActiveName: 即将离开的标签页的名称
+
+  即将进入的标签页的名称 1
+  即将离开的标签页的名称 0
+
+  是下面的name属性
+  <el-tab-pane label="基本信息" name="0">
+
+  在函数中 return false 则阻止切换
+ -->
+
+- 我们不是永远的阻止而是根据条件来阻止标签页的切换
+- 如果当前我们处于第一个面板 且 级联选择器的id数组长度不为3的时候 我们要组件切换
+
+<!-- 
+  <el-tabs 
+    :tab-position="'left'" 
+    v-model="activeIndex"
+    :before-leave="beforeTabLeave"    -- 这里
+  >
+
+
+  beforeTabLeave(to, from) {
+    // console.log("即将进入的标签页的名称", to)
+    // console.log("即将离开的标签页的名称", from)
+
+    if(from == "0" && this.addForm.goods_cat.length != 3) {
+      this.$message.error("请先选择商品分类")
+      return false 
+    }
+  },
+ -->
+
+
+> 在 tabs - 商品参数(也就是动态参数) 面板中 获取参数
+- 我们在这个面板中 请求动态参数数据 渲染数据 因为我们打开的就是商品参数面板 所以 对应的就是 动态参数
+
+- 请求路径：categories/:id/attributes
+- 请求方法：get
+- 请求参数
+
+  :id  不能为空`携带在url中
+  sel  [only,many] 字符串类型
+      不能为空,通过 only 或 many 来获取分类静态参数还是动态参数
+      如果我们要获取 动态参数 的数据 就要将 sel 指定为 many
+
+- 那我们在什么时候发起请求呢？
+- 当我们点击 商品参数tabs按钮的时候发起请求
+
+- 那tabs标签页的点击事件怎么绑定呢？
+- tab-click
+- 该属性对应的回调会在tab被选中的时候会被触发
+
+<!-- 
+  <el-tabs 
+    :tab-position="'left'" 
+    v-model="activeIndex"
+    :before-leave="beforeTabLeave"
+    @tab-click="tabClick"   -- 这里
+  >
+
+  tabClick() {
+    // 由于我们v-model绑定的是 activeIndex 所以通过它我们能知道点击的是谁
+    console.log(this.activeIndex)  0 1 2 3 4
+  },
+ -->
+
+- 这样我们就能在点击tab页签的时候打印出对应的tab页面的name属性 如果我们
+activeIndex是1的话 证明我们进入了 商品参数 面板
+
+- 进入该面板后我们就应该发起数据请求
+<!-- 
+  // tabs各标签页按钮被点击的时候会触发
+  async tabClick() {
+    // console.log(this.activeIndex)
+    // 证明我们访问的商品参数的面板
+    if(this.activeIndex == "1") {
+      let {data: res} = await request({
+        url: `categories/${this.catId}/attributes`,
+        method: "get",
+        params: {sel: "many"}
+      })
+
+      if(res.meta.stauts !== 200) {
+        this.$message.error("请求商品参数失败")
+        return
+      }
+
+      this.manyTableData = res.data
+    }
+  },
+ -->
+
+
+- 这节里面我们将上面获取到的数据渲染成复选框组 就是可以打对号的checkbox
+- 这里我们用到了 checkbox组件中的 复选框组
+- 适用于多个勾选框绑定到同一个数组的情景
+
+- 这里我们要根据请求回来的数据中的 attr.vals 来渲染数据
+- 但是我们的 attr.vals 是一个字符串 
+- 我们在获取到数据的时候 将attr.vals加工成数组
+<!-- 
+  res.data.forEach(item => {
+    // 我们要做判断 如果是空字符串那么我们就返回空数组
+    item.attr_vals = item.attr_vals.length == 0 ? [] : item.attr_vals.split(",")
+  })
+  this.manyTableData = res.data
+ -->
+
+
+- 我们请求回来的数组对象 有几个对象我们就渲染几个 form-item 
+- 同时 form-item label值为请求数据中的attr_name字段
+
+- el-checkbox-group 的 v-model 绑定 attr_vals 字段
+- 该字段中有什么 对应的checkbox 就会被打上勾
+- 其中label用于展示给我们看的文字
+
+<!-- 
+  <el-checkbox-group v-model="checkList">
+    <el-checkbox label="复选框 A"></el-checkbox>
+    <el-checkbox label="复选框 B"></el-checkbox>
+    <el-checkbox label="复选框 C"></el-checkbox>
+    <el-checkbox label="禁用" disabled></el-checkbox>
+    <el-checkbox label="选中且禁用" disabled></el-checkbox>
+  </el-checkbox-group>
+
+  label属性： 请求数据中的 attr_name
+  el-checkbox-group中的v-model 要绑定一个数组 我们绑定到 attr_vals身上
+  数组里面有的 就会被选中
+ -->
+
+<!-- 
+  <el-form-item 
+    v-for="item of manyTableData" 
+    :label="item.attr_name" 
+    :key="item.attr_id"
+  >
+
+    <el-checkbox-group v-model="item.attr_vals">
+      <el-checkbox 
+        v-for="(i, k) of item.attr_vals" 
+        :keys="k" 
+        :label="i"
+        border
+      >
+      </el-checkbox>
+    </el-checkbox-group>
+
+  </el-form-item>
+ -->
+
+- 只要我们在checkbox中 去掉勾一项 那么我们对应的 attr_vals 中也会少一项
+
+
+> 在 tabs - 商品属性(也就是静态属性) 面板中 获取参数
+- 我们在这个部分 请求数据 并渲染对应的结构
+
+- 请求路径：categories/:id/attributes
+- 请求方法：get
+- 请求参数
+    :id  不能为空`携带在url中
+    sel  [only,many] 字符串类型
+         不能为空,通过 only 或 many 来获取分类静态参数还是动态参数
+         如果我们要获取 动态参数 的数据 就要将 sel 指定为 many
+
+- 我们也是在 tab-click 的回调中处理逻辑
+- 要点 通过 v-for 循环 生成一个个的form-item
+<!-- 
+  if(this.activeIndex == "2") {
+    let {data: res} = await request({
+      url: `categories/${this.catId}/attributes`,
+      method: "get",
+      params: {sel: "only"}
+    })
+
+    if(res.meta.status !== 200) {
+      this.$message.error("请求商品参数失败")
+      return
+    }
+    
+    this.onlyTableData = res.data
+    console.log(this.onlyTableData)
+  }
+
+
+  <el-tab-pane label="商品属性" name="2">
+    <el-form-item 
+      v-for="item of this.onlyTableData" 
+      :key="item.attr_id" 
+      :label="item.attr_name"
+    >
+      <el-input v-model="item.attr_vals"></el-input>
+    </el-form-item>
+  </el-tab-pane>
  -->

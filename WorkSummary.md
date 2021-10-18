@@ -2,6 +2,210 @@
 
 ------------------
 
+### 上拉加载更多
+- 一次性请求所有数据，先加载8个，触底的时候再加载8个
+
+- 1 首先再 created() 里面请求数据 调用函数 请求商品列表
+- created() {
+  - 这部可能是需要这个keyword请求数据
+  - this.keyword = this.$route.query.keyword || ""
+  - this.getGoodListFn()
+- }
+
+
+- 2 this.getGoodListFn 是一次性请求商品列表数据的请求
+- getGoodsListFn() {
+    - GoodsSearchApi({
+       - did: this.did
+       - type: this.type
+       - min: this.min
+       - max: this.max
+       - keyword: this.keyword
+    - }).then(res => {
+        - if(res.code == 0) {
+            - 将data保存在了goosList中
+            - this.goosList = res.data
+        - }
+    - })
+- }
+
+
+- 3 在html结构的最后 我们可以做提示部分 提示 已经到底了
+<div class="loading">
+    <span>{{ 某条件成立的时候 ? "正在加载中" : "已经到底了"}}</span>
+</div>
+
+样式：
+.loading {
+    display: flex;
+    align-items: center;
+    padding-bottom: 20px;
+    justify-content: center
+
+    .iconfont { margin-right: 100px; animation: loading 1s infi}
+}
+
+@keyframes loading {
+    from {transform: rotate(0)
+    to {transform: rotate(360deg)
+}
+
+
+- 4 某条件 也就是加载状态
+- data() {return { loading: true }}
+- 这样我们就可以分局 loading 是true 还是false 来决定 3 中显示什么
+
+
+- 5 我们在 mounted() 中 监听页面的滚动 beforeDestroyed() 取消监听
+- 
+- 思路：
+- document 和 window窗口的关系 文档要比窗口(视口)要长 也就是当文档滚动出去高度 + 窗口的高度 等于 文档的高度的时候 说明已经到底了
+    st: 滚动出去的高度
+    wh: 窗口的高度
+    doch: 文档的高度
+
+- mounted() {
+    - window.addEventListener("scroll", this.scrollFn)
+- }
+
+- methods: {
+    - scrollFn() {
+        - 获取窗口高度 winHeight 滚动出去的长度st 文档的长度docHeight 窗口的高度是不变的 st docHeight 是实时变化的 因为一遍加载文档的长度就会加长 所以窗口的高度是写死的 其它两个是会变化的
+      
+        let winHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+        
+        let st = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+        
+        let docHeight = document.documentElement.scrollHeight || document.body.scrollHeight
+
+        触底判断
+        if(winHeight + st >= docHeight) {
+           触底了 加载后续的内容
+        - }
+    - }
+- }
+
+- beforeDestoryed() {
+    - window.removeEventListener("scroll", this.scrollFn)
+- }
+
+
+- 6 我们在步骤2中请求了数据 我们还需要判断请求回来的数据 里有多少项
+- getGoodsListFn() {
+    
+    // 当我们点击别的按钮可能会设计到请求数据这时候要把它们重置为最原始的状态 也就是当我们需要再次的调用getGoodsListFn的时候
+    this.loading = true
+    obj = {}
+    objKey = 0
+
+    - GoodsSearchApi({
+        - did: this.did
+        - type: this.type
+        - min: this.min
+        - max: this.max
+        - keyword: this.keyword
+    - }).then(res => {
+        - if(res.code == 0) {
+            - 当获取数据成功的时候
+            - 判断数组有多少项 // 假设每8项为一次加载的内容（8项一份）
+            - if(res.data.length > 8) {
+                - 切割数组
+                - 切割数组的逻辑在注释里
+            - } else {
+                - 小于8项 数组不需要拆分 直接赋值 直接显示
+                - this.goodsList = res.data
+                - loading显示已经到底了
+                - this.loading = false
+            - }
+      - }
+    - })
+- }
+
+<!--
+    切割数组的逻辑
+    我们最终想要这样的结构的对象 0为key也就是索引 每8项为一组
+    let obj = {
+        0: arr[0-7]
+        1: arr[8-15]
+    }
+
+    基于这种思想：
+    我们在export default 上方定义
+    
+    // 用来存放数组的
+    let obj = {}
+
+    // 用来存放数组的对象的key
+    let objKey = 0
+
+    接 步骤6 分割数组的部分
+    
+    遍历请求回来的数组数组，每8项为一份 30 / 8 = 3.75 我们要向上取整
+    for(let i=0; i<Math.ceil(res.data.length / 8); i++) {
+        /*
+            我们要往对象里面 把数组切割的0-7项放入一个对象中 下方是目标
+            obj[i] = res.dada.slice(0, 7)
+            obj[i] = res.dada.slice(8, 15)
+            obj[i] = res.dada.slice(16, 23)
+
+            ---- 规律 8*(i+1) - 1 但是slice方法 不包括最后的索引 所以不用-1
+
+            obj[i] = res.dada.slice(8*0, 8*(i+1))
+            obj[i] = res.dada.slice(8*1, 8*(i+1))
+            obj[i] = res.dada.slice(8*2, 8*(i+1))
+        */
+
+        obj[i] = res.data.slice(8*i, 8*(i+1))
+    }
+    我们先给 goodsList 8项
+    this.goodsList = obj[objKey]
+    console.log(obj)
+    这样的话 我们就将数据数组 分割成了一个对象， 也就是obj的样式 我们的数据都存在这个对象里面
+-->
+
+
+- 7 在滚动函数 scrollFn 中
+- mounted() {
+     window.addEventListener("scroll", this.scrollFn)
+- }
+
+- methods: {
+    scrollFn() {
+      let winHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+
+      let st = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+
+      let docHeight = document.documentElement.scrollHeight || document.body.scrollHeight
+        
+
+      我们也要对objKey来进行判断 不能一直加 它会随着每次触底去累加 如果objKey大于等于obj这个对象中的属性的个数 现在obj的属性就是0123 如果到4了就没东西对应了 这时候就应该停止滚动了
+      if(objKey >= Object.keys(obj).length - 1) {
+         this.loading = false   // 显示已经到底了
+         return
+      }
+
+      触底判断
+      if(winHeight + st >= docHeight) {
+      触底了 加载后续的内容 也就是原本数组有8项 现在我们要往里面再继续追加8项 我们往当前这个数组(goodsList)里面 那追加哪8项呢？ 我们在外面定义了objKey = 0 让它为1不就可以了么
+     
+     objKey++
+    
+     这里注意我们 obj[objKey]也是一个数组 我们不能直接push进去所以要这样
+     // this.goodsList.push(obj[objKey])
+     this.goodsList = this.goodsList.concat(obj[objKey])
+     // 或者这样行么 this.goodsList.push(...obj[objKey]) 我们这样的追加其实是合并一个新的数组
+      
+          - }
+      - }
+  
+- }
+
+- beforeDestoryed() {
+    - window.removeEventListener("scroll", this.scrollFn)
+- }
+
+------------------
+
 ### 打印功能
 打印页面可以调用 window.print() 方法 但是该方法会打印页面上的全部内容
 
