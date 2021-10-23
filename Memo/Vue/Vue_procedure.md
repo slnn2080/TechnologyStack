@@ -710,6 +710,7 @@ https://www.cnblogs.com/gaodi2345/p/13864532.html
   {
     "semi": false           // 格式化代码的时候就不会加分号了
     "singleQuote": true     // 设置成单引号
+    "printWidth": 200       // 每行超过多个字符就会换行 我们可以设置长一些
   }
  -->
 
@@ -5697,3 +5698,1573 @@ activeIndex是1的话 证明我们进入了 商品参数 面板
     </el-form-item>
   </el-tab-pane>
  -->
+
+
+> tabs - 商品图片 - 图片上传功能
+- 这里我们要使用upload上传组件
+- 这里我们使用图片列表缩略图
+
+- 请求路径：upload
+- 请求方法：post
+- 请求参数
+    - file
+
+<!-- 
+  "data": {
+      "tmp_path": "tmp_uploads/ccfc5179a914e94506bcbb7377e8985f.png",
+      "url": "http://127.0.0.1:8888tmp_uploads/ccfc5179a914e94506bcbb7377e8985f.png"
+  },
+  "meta": {
+      "msg": "上传成功",
+      "status": 200
+  }
+ -->
+
+
+<!-- 
+  <el-upload
+    class="upload-demo"
+    action="https://jsonplaceholder.typicode.com/posts/"
+    :on-preview="handlePreview"
+    :on-remove="handleRemove"
+    :file-list="fileList"
+    list-type="picture">
+    <el-button size="small" type="primary">点击上传</el-button>
+    <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+  </el-upload>
+
+
+  action: 
+      上传图片时候 后台的地址 api接口
+      但是 这里不能直接填写接口 /upload
+      如果添加了 /upload 就代表我们连接的是 前端项目当前地址的/upload接口
+      http://localhost:8080/goods/add/upload
+
+      所以我们要写完整的路径 
+      http://127.0.0.1:8888/api/private/v1/upload
+
+
+  on-preview:
+      是用来看预览图片的 当我们点击在上传图片列表中的文件的时候会弹出一个大的图片预览
+
+  handleRemove
+      我们点击在上传图片列表中的x号的时候触发的回调
+
+  file-list
+      用来指定文件列表的 我们可以直接选择 不用这个
+
+  list-type
+      通过它我们可以指定当前预览组件的呈现方式 比如有缩略图 还是 文字
+ --> 
+
+
+> 手动为upload组件 绑定 headers 请求头
+- 上面由于我们upload组件上使用action属性 指定了后台的接口 所以我们点击上传 选择图片后 会有上传图片的列表和成功的符号 有这些并不一定是成功了
+
+- 我们需要观察 network - 选择文件 - preview - 我们能看到后台的msg 比如我们的项目里 会显示无效的 token status 400
+
+- 这就说明这张图片并没有真正的上传到服务器
+- 我们在开始做项目的时候就说过 除了登录接口之外 其它的接口都是有权限的 都需要在调用接口的时候提供一个token的值
+
+- 之前我们在使用axios的拦截器 为每一个请求都挂载了一个 Authorization 字段 该字段的值是token 也就是我们每次使用axios发请求的时候 都会携带一个token 
+
+- 那为什么还提示 无效的token呢 因为upload组件在发送ajax请求的时候 并没有使用到我们的axios 而是用组件内部的ajax发送的 它里面的ajax是没有携带token的
+
+
+> headers属性： 设置上传的请求头 参数是对象
+<!-- 
+  <el-upload
+    :headers="headerObj"
+  >
+
+  headerObj: {
+    Authorization: window.sessionStorage.getItem("token")
+  },
+ -->
+
+
+> 这节我们处理下图片上传成功之后的操作
+- 监听upload组件的 on-success事件
+- 上面完成了上传成功但是上传成功并不代表我们的逻辑已经结束了 只能说图片在服务器上有保存了 我们还需要将上传图片的信息 展示在 前端的表单中
+
+- 请求路径：goods
+- 请求方法：post
+- 请求参数
+
+- goods_name        
+    商品名称  | 不能为空 |
+
+- goods_cat
+    以为','分割的分类列表   | 不能为空 |
+
+- goods_price
+    价格    | 不能为空 |
+
+- goods_number
+    数量    | 不能为空 |
+
+- goods_weight
+    重量    | 不能为空 |
+
+- goods_introduce
+    介绍    | 可以为空 |
+
+- pics
+    上传的图片临时路径（对象）    | 可以为空 |
+
+- attrs
+    商品的参数（数组），包含 `动态参数` 和 `静态属性` | 可以为空
+  
+- 我们在添加商品对应的api中 需要提交如上的参数项 其中的pics就是图片相关的
+
+- pics是一个数组，当中每一个对象都是一个上传成功的图片 当中的pic属性就指向了服务器返回图片的临时路径
+<!-- 
+  "goods_name":"test_goods_name2",
+  "goods_cat": "1,2,3",
+  "goods_price":20,
+  "goods_number":30,
+  "goods_weight":40,
+  "goods_introduce":"abc",
+  "pics":[
+    {"pic":"/tmp_uploads/30f08d52c551ecb447277eae232304b8"}
+  ],
+
+  "attrs":[
+    {
+      "attr_id":15,
+      "attr_value":"ddd"
+    },
+    {
+      "attr_id":15,
+      "attr_value":"eee"
+    }
+    ]
+
+
+  刚刚上传成功后服务器返回的数据中 data对象的两个值
+  // 这个属性就是服务器保存图片的 临时存放路径
+  tmp_path: "tmp_uploads/fc61fa7972a2d7f9ec2eecc6d29dc310.png"
+
+  url: "http://127.0.0.1:8888/tmp_uploads/fc61fa7972a2d7f9ec2eecc6d29dc310.png"
+ -->
+
+- 接下来 我们要将 服务器返回的tmp_path这个属性 以对象的形式添加到pics这个数组中，因为我们提交表单的时候要将数据组织成服务器想要的样子
+
+- 所以我们要监听上传成功的回调 拿到服务器返回的数据保存到数组中就可以了
+- 1. 在data配置项中的 关于添加商品的表单对象中 addForm 添加一个后端需要的图片的字段
+<!-- 
+  addForm: {
+    goods_name:"",
+    goods_price:0,
+    goods_weight:0,
+    goods_number: 0,
+    goods_cat: []
+
+    图片的数组 只要上传成功后 我们就往数组中添加一张图片
+    pics: []
+  },
+ -->
+
+- 2. 在on-success回调中拼接一个图片信息对象
+- 在这个回调中我们能接收到3个参数
+    - res
+    - 服务器返回的对象信息
+
+    - file
+    - 文件信息
+
+    - filelist
+    - 文件列表
+<!-- 
+  // upload组件上传图片成功后的回调
+  handleSuccess(res, file, filelist) {
+    // 拼接一个图片信息对象
+    const picInfo = {
+      pic: res.data.tmp_path
+    }
+
+    // 将图片信息对象 push到pics数组中
+    this.addForm.pics.push(picInfo)
+    console.log("上传成功后 图片数组的信息", this.addForm.pics)
+  },
+ -->
+
+
+> 这节里面我们进行 图片的移除的操作
+- 上面当我们添加了一张图片后就会往addForm的pics数组中添加一个图片信息对象
+- 那么当我们想移除图片的时候也是在 pics中 将这张图片信息对象移除掉
+
+- 只要我们进行了移除操作 就会触发 upload 组件的 on-remove 事件
+- 这个事件是文件列表移除文件时的钩子
+
+- on-remove
+- 在这个回调中我们能接收到两个参数
+    - file
+    - 移除图片的信息
+
+    - filelist
+    - 文件列表
+
+- 思路：
+- 从一个数组中删除一个对象：
+- 我们先要知道 条件： 也就是拿着条件去删除数组中的数据
+- 我们拿到条件得到要删除信息 在数组中的索引
+- 根据索引删除指定对象
+<!-- 
+  handleRemove(file) {
+    // file 将要被移除的图片信息 我们要根据图片的临时路径 从pics中查到对应那一项的索引值 然后根据索引值删除它
+    const filePath = file.response.data.tmp_path
+
+    let index = this.addForm.pics.findIndex((item) => {
+      return item.pic = filePath
+    })
+
+    this.addForm.pics.splice(index, 1)
+
+    console.log(this.addForm)
+  },
+ -->
+
+
+> 实现图片的预览效果
+- 在我们点击图片上传完的列表的时候 会出现对话框 同时将图片的信息展示出来
+- 点击关闭的时候将这个预览窗口移除掉
+
+- 这个预览窗口就是一个dialog对话框 只不过没有加确定和取消的按钮
+
+- 1. 我们要为upload组件绑定一个预览的事件 
+- on-preview
+- 点击文件列表中已上传的文件时的钩子 function中能收到 file 参数 将要预览的这张图片的信息 
+
+- 服务器返回的结果中 有两个属性 tmp_path 是临时存放的路径 url
+- 我们在预览图片的时候 使用的是url这个路径 因为这个是一个完整的路径
+
+- 所以我们要先获取这个url的地址 保存到data中 供我们的对话框使用
+<!-- 
+  data:
+    preview: ""     我们使用这个变量保存 上传图片的url
+
+  当我们出发预览事件的时候 给它赋值
+  handlePreview(file) {
+    this.preview = file.response.data.url
+  },
+ -->
+
+
+- 2. 绘制对话框
+- 当我们触发预览事件的时候 打开这个对话框
+<!-- 
+  <el-dialog
+    title="图片预览"
+    :visible.sync="previewVisible"
+    width="50%"
+  >
+    <img :src="preview" class="previewImg">
+  </el-dialog>
+
+  handlePreview(file) {
+    this.preview = file.response.data.url
+    this.previewVisible = true
+  },
+ -->
+
+
+> 这节里面我们使用 vue 的富文本编辑器
+- 安装
+- npm i vue-quill-editor
+- https://github.com/surmon-china/vue-quill-editor
+
+- 注册：
+- 全局注册 也可以 注册成某个页面的私有组件
+- 我们在main.js文件中做处理
+<!-- 
+  // 全局 -- 推荐
+  import Vue from 'vue'
+  import VueQuillEditor from 'vue-quill-editor'
+
+  import 'quill/dist/quill.core.css' // import styles
+  import 'quill/dist/quill.snow.css' // for snow theme
+  import 'quill/dist/quill.bubble.css' // for bubble theme
+
+  Vue.use(VueQuillEditor, /* { default global options } */)
+
+
+
+  // 私有
+  import 'quill/dist/quill.core.css'
+  import 'quill/dist/quill.snow.css'
+  import 'quill/dist/quill.bubble.css'
+
+  import { quillEditor } from 'vue-quill-editor'
+
+  export default {
+    components: {
+      quillEditor
+    }
+  }
+ -->
+
+
+- SSR SPA
+- SSR是服务端渲染的方式 也就是nuxt环境下使用的方式
+- SPA是客户端渲染的方式 我们项目里使用这种方式
+
+
+- 使用方式：
+- 最简单的方式就是 直接使用 组件标签 简单使用的话 要使用v-model绑定一个变量身上
+  <el-tab-pane label="商品内容" name="4">
+    <quill-editor v-model="addForm.goods_introduce">
+    </quill-editor>
+  </el-tab-pane>
+
+- 修改编辑器的高度 可以使用f12去找类名 直接覆盖操作
+<!-- 
+  /deep/ .ql-editor {
+    min-height: 300px;
+  }
+ -->
+  
+
+- 这里文本也要绑定到 表单数据 中
+<!-- 
+  <quill-editor
+    ref="myQuillEditor"
+    v-model="content"
+    :options="editorOption"
+    @blur="onEditorBlur($event)"
+    @focus="onEditorFocus($event)"
+    @ready="onEditorReady($event)"
+  />
+ -->
+
+- 这里做一个小总结 虽然我们整体是在一个表单中 开始我以为每一项都需要用 form-item 包裹起来 但是并不是 我们可以不使用form-item 自己在表单对象中添加数据即可
+<!-- 
+  addForm: {
+    goods_name:"",
+    goods_price:0,
+    goods_weight:0,
+    goods_number: 0,
+    goods_cat: [],
+    pics: [],
+
+
+    // 商品详情描述 富文本编辑器绑定的变量
+    goods_introduce: ""
+  }
+
+  我们保存在这个变量中的数据 是带标签的
+ -->
+
+
+> 添加商品
+- 当我们依次输入完 基本信息 商品参数 商品属性 商品图片 商品内容之后
+- 我们就应该添加商品了 在添加商品之前我们要最所有的信息进行预校验
+<!-- 
+  我们的项目中 有使用 form-item 包裹的 有的就没有 比如上传图片 和 添加具体内容的富文本编辑器就没有
+
+  我觉得吧需要进行验证的就使用form-item吧
+ -->
+
+- 我们在点击 添加商品 按钮的时候 要拿到表单的引用进行表单的预验证
+- 如果预校验通过后 我们就需要发起请求了 在发起请求前我们需要对数据进行一层处理
+
+
+- 请求路径：goods
+- 请求方法：post
+- 请求参数
+
+- goods_name        
+    商品名称  | 不能为空 |
+
+- goods_cat
+    以为','分割的分类列表   | 不能为空 |
+
+- goods_price
+    价格    | 不能为空 |
+
+- goods_number
+    数量    | 不能为空 |
+
+- goods_weight
+    重量    | 不能为空 |
+
+- goods_introduce
+    介绍    | 可以为空 |
+
+- pics
+    上传的图片临时路径（对象）    | 可以为空 |
+
+- attrs
+    商品的参数（数组），包含 `动态参数` 和 `静态属性` | 可以为空
+  
+- 我们在添加商品对应的api中 需要提交如上的参数项 其中的pics就是图片相关的
+
+- pics是一个数组，当中每一个对象都是一个上传成功的图片 当中的pic属性就指向了服务器返回图片的临时路径
+
+
+- 我们在发送请求的时候需要携带很多的参数项，其中 goods_cat 和 attrs 比较特殊
+
+- goods_cat：
+- 以, 分割的商品id的列表 它是一个字符串 里面是 1 2 3级的商品分类的id
+- 但是我们项目里为了配合elementui的使用我们将它设置成了数组
+- 在发起请求之前要将数据改造成字符串
+<!-- 
+  this.addForm.goods_cat = this.addForm.goods_cat.join(",")
+
+  这里写逻辑上没有问题 但是会报错 原因：
+  我们的级联选择器 双向绑定了 addForm.goods_cat
+
+  级联选择器规定了 只允许v-model双向绑定 数组否则就会报错
+  也就是说 当我们将这个 addForm.goods_cat 转成字符串后 就会报错
+ -->
+
+> 数据深浅拷贝引发的问题
+- 我们会将表单数据项整理成一个对象的形式，里面使用各种属性来存储各个表单项 当我们的表单项是一个对象或者数组的时候 就会引发一个问题
+<!-- 
+  userInfo = {
+    name: "sam",
+    age: 18,
+    hobby: ["篮球", "足球"]
+  }
+ -->
+
+- 当这个对象中的hobby被多个地方使用的时候 就会起冲突因为一个地方修改了hobby另一个地方就会发生联动效果
+
+- 比如我们项目就会遇到 goods_cat 以数组的形式关联了 级联选择器 但是我们发送请求的时候需要将数组改成字符串 而级联选择器又规定它必须是数组 就产生了冲突
+
+- 解决方式：
+- 我们可以对 整个addForm对象 再原封不动的copy一份 也就是新的一份 做一层深拷贝 这样和原对象之前是互不相干的
+
+- 这样级联选择器绑定的是源对象 我们进行join拼接的是新对象 这样就不会产生分歧了
+
+- 这里我们使用 一个包工具
+
+
+> lodash
+- 里面封装了很多对数组 和 对象操作的实用的方法
+- 它有一个 cloneDeep(obj) 方法 会将对象形成一个原封不动的新对象
+- https://www.lodashjs.com/
+- npm i --save lodash
+
+- import _ from "lodash"
+
+> _.cloneDeep() 深拷贝一个对象
+> _.merge() 合并两个对象
+- eg: let ret = _.merge(res.data, this.options)
+
+<!-- 
+  let form = _.cloneDeep(this.addForm)
+  这样 form 和 addForm 是两个完全不相干的对象
+
+  我们的addForm供项目中使用，而我们发送请求前的数组整理可以使用form就可以了
+
+  let form = _.cloneDeep(this.addForm)
+  form.goods_cat = form.goods_cat.join(",")
+  console.log(form)
+
+  goods_cat: "1,3,6"
+  goods_introduce: "<p>123</p>"
+  goods_name: "nuannuan"
+  goods_number: 0
+  goods_price: 0
+  goods_weight: 0
+ -->
+
+
+> 整理发送请求参数 attrs
+- 它是商品的参数 是数组的形式 里面整合了 动态参数 和 静态属性
+- 也就是说 我们tabs标签页中的 商品参数 和 商品属性都要存储在attrs中
+<!-- 
+  attrs中每一个数据都是一个对象 每一个对象中包含了attr_id和attr_value
+  id是参数或者属性的id value就是参数或属性的value
+
+  "attrs":[
+    {
+      "attr_id":15,
+      "attr_value":"ddd"
+    },
+    {
+      "attr_id":15,
+      "attr_value":"eee"
+    }
+  ]
+ -->
+
+- 既然必传项有attrs 那么我们就要在addForm里面添加这个attrs
+<!-- 
+  addForm: {
+    goods_name:"",
+    goods_price:0,
+    goods_weight:0,
+    goods_number: 0,
+    goods_cat: [],
+    pics: [],
+    goods_introduce: "",
+
+    attrs: []
+  },
+ -->
+
+- 然后我们就要整理 manyTableData 和 onlyTableData 因为我们在跳转tabs标签页的时候将动态参数 和 静态属性的数据 都保存到了这两个变量中
+
+- 我们要循环这两个数组 并且把循环的每一项重新做下处理 把处理之后的结果push到attrs中 最终attrs中每一项都是一个对象并包含了id和value
+<!-- 
+  {
+    "attr_id":15,
+    "attr_value":"eee"
+  }
+ -->
+
+**思考:**
+- 也就是说以后我们没有必要一次性的都在form对象中定义好后台需要的字段 我们也可以先保存到别的变量中 将这些数据处理好后 在form对象中新建一个后台需要的字段信息，将我们处理好的数据 放入这个新的变量中
+
+<!-- 
+  add() {
+    this.$refs.addFormRef.validate(valid => {
+      if(!valid) {
+        this.$message.error("请填写必要的表单项目")
+        return
+      }
+
+      // 如果没有问题我们就开心添加的逻辑
+
+      // 处理数据成服务器符合服务器要求的格式 比如这里我们要将goods_cat改成字符串格式
+
+      // this.addForm.goods_cat = this.addForm.goods_cat.join(",") 因为浅拷贝的原因关联了发起请求要求 和 级联选择器 会产生冲突所以在发起请求之前我们先对addForm进行一下深拷贝 形成一个全新的对象
+      let form = _.cloneDeep(this.addForm)
+      form.goods_cat = form.goods_cat.join(",")
+
+
+
+      // 我们遍历manyonlyTableData这两个数组，并做处理 将处理好的结果push到attrs数组中
+      this.manyTableData.forEach(item => {
+        const newInfo = {
+          attr_id: item.attr_id,
+          attr_value: item.attr_vals.join(",")
+        }
+        this.addForm.attrs.push(newInfo)
+      })
+      
+      this.onlyTableData.forEach(item => {
+        const newInfo = {
+          attr_id: item.attr_id,
+
+          // 静态属性的value值本来就一个字符串
+          attr_value: item.attr_vals
+        }
+        this.addForm.attrs.push(newInfo)
+      })
+
+      // 因为两个对象没有关联 但是我们在最后提交的时候 提交的是form所以我们要把整理好的数据给form份
+      form.attrs = this.addForm.attrs
+      console.log(form)
+    })
+  },
+ -->
+
+> 完成添加商品的操作
+<!-- 
+  // 发起请求添加商品 商品的名称必须是唯一的 两个商品名称如果一样就会报错
+  let {data: res} = await request({
+    url: "/goods",
+    method: "post",
+    data: form
+  })
+
+  if(res.meta.status !== 201) {
+    this.$message.error("添加商品失败")
+    return
+  }
+
+  this.$message.success("添加商品成功")
+
+  // 添加商品成功后跳转到商品列表页面
+  this.$router.push("/goods")
+ -->
+
+-----------------
+
+### 订单管理
+- 布置完大概的布局后 我们就要请求数据 开始渲染表格
+
+- 请求路径：orders
+- 请求方法：get
+- 请求参数
+
+- query   
+    查询参数    可以为空
+
+- pagenum   
+    当前页码    不能为空
+
+- pagesize    
+    每页显示条数    不能为空
+
+- user_id   
+    用户 ID   可以为空
+
+- pay_status
+    支付状态    可以为空
+
+- is_send   
+    是否发货    可以为空
+
+- order_fapiao_title  
+    ['个人','公司'] 可以为空
+
+- order_fapiao_company
+    公司名称    可以为空
+
+- order_fapiao_content
+    发票内容    可以为空
+
+- consignee_addr
+    发货地址    可以为空
+
+<!-- 
+  "data": {
+    "total": 1,
+    "pagenum": "1",
+    "goods": [
+      {
+        "order_id": 47,
+        "user_id": 133,
+        "order_number": "itcast-59e7502d7993d",
+        "order_price": 322,
+        "order_pay": "1",
+        "is_send": "是",
+        "trade_no": "",
+        "order_fapiao_title": "个人",
+        "order_fapiao_company": "",
+        "order_fapiao_content": "办公用品",
+        "consignee_addr": "a:7:{s:6:\"cgn_id\";i:1;s:7:\"user_id\";i:133;s:8:\"cgn_name\";s:9:\"王二柱\";s:11:\"cgn_address\";s:51:\"北京市海淀区苏州街长远天地大厦305室\";s:7:\"cgn_tel\";s:11:\"13566771298\";s:8:\"cgn_code\";s:6:\"306810\";s:11:\"delete_time\";N;}",
+        "pay_status": "1",
+        "create_time": 1508331565,
+        "update_time": 1508331565
+      }
+    ]
+  },
+  "meta": {
+    "msg": "获取成功",
+    "status": 200
+  }
+ -->
+
+- 数据获取
+<!-- 
+  queryInfo: {
+    query: "",
+    pagenum: 1,
+    pagesize: 5
+  },
+  orderData: [],
+  total: 0
+
+
+  async getOrderList() {
+    let {data: res} = await request({
+      url: "/orders",
+      method: "get",
+      params: this.queryInfo
+    })
+    if(res.meta.status !== 200) {
+      this.$message.error("请求订单数据失败")
+      return
+    }
+    this.orderData = res.data.goods
+    this.total = res.data.total
+  }
+ -->
+
+
+> 渲染成表格
+<!-- 
+  <el-table
+    :data="orderList"
+    border
+    stripe
+    class="order-table"
+  >
+    <el-table-column type="index" label="#" align="center"></el-table-column>
+
+    <el-table-column
+      v-for="(item, index) of tableColumns" 
+      :key="index" 
+      v-bind="item"
+    >
+      <template scope="scope" v-if="item.type == 'date'">
+        {{scope.row[item.prop] | dataFormat}}
+      </template>
+
+      <template v-else-if="item.type == 'pay'" scope="scope">
+        <el-tag 
+          type="danger" 
+          v-if="scope.row[item.prop] == '0'"
+        >
+        未付款
+        </el-tag>
+        <el-tag type="success" v-else>已付款</el-tag>
+      </template>
+
+      <template v-else scope="scope">
+        {{scope.row[item.prop]}}
+      </template>
+    </el-table-column>
+
+    <el-table-column label="操作" width="150">
+      <template scope="scope">
+        <el-button type="primary" icon="el-icon-edit" circle size="mini"></el-button>
+        <el-button type="success" icon="el-icon-location" circle size="mini"></el-button>
+      </template>
+    </el-table-column>
+
+  </el-table>
+ -->
+
+> 分页功能
+- 就不贴码了一样一样的
+
+
+> 省市联动
+- 要点：
+- 我们引入的数据 比如这个项目里我们引入了省市相关的信息 我们使用的是
+- import cityData from ''
+- 形式 然后我们可以直接将 cityData 放到data配置项中供别的地方使用
+
+- 关闭对话框的事件在 el-dialog 身上 @close
+
+- 重置表单中的数据是在关闭对话框之后发生的
+- this.$refs.addresFormRef.resetFields()
+
+
+> 物流进度的查询
+- 当我们点击按钮的时候 应该弹出一个对话框
+- 同时在展示对话框的期间 要获取物流的数据
+
++ 请求路径：/kuaidi/:id
++ 请求方法：get
+
++ 供测试的物流单号：1106975712662 这个就是id
+
++ 响应数据：
+<!-- 
+  "data": [
+      {
+        "time": "2018-05-10 09:39:00",
+        "ftime": "2018-05-10 09:39:00",
+        "context": "已签收,感谢使用顺丰,期待再次为您服务",
+        "location": ""
+      },
+      {
+        "time": "2018-05-10 08:23:00",
+        "ftime": "2018-05-10 08:23:00",
+        "context": "[北京市]北京海淀育新小区营业点派件员 顺丰速运 95338正在为您派件",
+        "location": ""
+      },
+      {
+        "time": "2018-05-10 07:32:00",
+        "ftime": "2018-05-10 07:32:00",
+        "context": "快件到达 [北京海淀育新小区营业点]",
+        "location": ""
+      },
+      {
+        "time": "2018-05-10 02:03:00",
+        "ftime": "2018-05-10 02:03:00",
+        "context": "快件在[北京顺义集散中心]已装车,准备发往 [北京海淀育新小区营业点]",
+        "location": ""
+      },
+      {
+        "time": "2018-05-09 23:05:00",
+        "ftime": "2018-05-09 23:05:00",
+        "context": "快件到达 [北京顺义集散中心]",
+        "location": ""
+      },
+      {
+        "time": "2018-05-09 21:21:00",
+        "ftime": "2018-05-09 21:21:00",
+        "context": "快件在[北京宝胜营业点]已装车,准备发往 [北京顺义集散中心]",
+        "location": ""
+      },
+      {
+        "time": "2018-05-09 13:07:00",
+        "ftime": "2018-05-09 13:07:00",
+        "context": "顺丰速运 已收取快件",
+        "location": ""
+      },
+      {
+        "time": "2018-05-09 12:25:03",
+        "ftime": "2018-05-09 12:25:03",
+        "context": "卖家发货",
+        "location": ""
+      },
+      {
+        "time": "2018-05-09 12:22:24",
+        "ftime": "2018-05-09 12:22:24",
+        "context": "您的订单将由HLA（北京海淀区清河中街店）门店安排发货。",
+        "location": ""
+      },
+      {
+        "time": "2018-05-08 21:36:04",
+        "ftime": "2018-05-08 21:36:04",
+        "context": "商品已经下单",
+        "location": ""
+      }
+    ],
+    "meta": { "status": 200, "message": "获取物流信息成功！" }
+  }
+ -->
+
+- 在成功获取 物流数据 后我们将这些物流数据以时间轴的形式 渲染到页面上
+- 这里我们会用到 Timeline 时间线 组件
+
+
+> Timeline 时间线 组件
+- 这个组件是在2.6.0以上的版本才会有提供
+- el-timeline 将所有的 el-timeline-item 包裹起来了
+<!-- 
+  <el-timeline :reverse="reverse">
+
+    <el-timeline-item
+      v-for="(activity, index) in activities"
+      :key="index"
+      :timestamp="activity.timestamp"   这个是内容下的时间
+    >
+
+      {{activity.content}}    这个是主要展示内容
+    </el-timeline-item>
+
+  </el-timeline>
+
+
+  // 项目中的代码 可以参照
+  <el-timeline>
+    <el-timeline-item
+      v-for="(item, index) in progressData"
+      :key="index"
+      :timestamp="item.time">
+      {{item.context}}
+    </el-timeline-item>
+  </el-timeline>
+ -->
+
+-----------------
+
+### 数据报表
+- 这个环节中 我们会使用 echarts
+- npm i echarts
+
+> 使用方式:
+- 1. 某个组件中：
+- import * as echarts from "echarts"
+
+- 2. 为echarts准备一个具备大小的DOM节点
+- 3. 在mounted中
+<!-- 
+  mounted() {
+    let myChart = echarts.init(document.getElementById("main"))
+
+    let option = {
+      title: {
+        text: 'ECharts 入门示例'
+      },
+      tooltip: {},
+      legend: {
+        data: ['销量']
+      },
+      xAxis: {
+        data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+      },
+      yAxis: {},
+      series: [
+        {
+          name: '销量',
+          type: 'bar',
+          data: [5, 20, 36, 10, 10, 20]
+        }
+      ]
+    };
+
+    myChart.setOption(option);
+  },
+
+
+
+  methods: {
+    chartInit() {
+        ...
+    }
+  },
+  mounted() {
+    this.chartInit()
+  },
+ -->
+
+- 获取报表的数据 并将数据替换到图形中
+- 请求路径：reports/type/1
+- 请求方法：get
+
+- 响应数据
+- 需要合并的选项
+
+<!-- 
+  options: {
+    title: {
+      text: '用户来源'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#E9EEF3'
+        }
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: [
+      {
+        boundaryGap: false
+      }
+    ],
+    yAxis: [
+      {
+        type: 'value'
+      }
+    ]
+  }
+ -->
+
+
+- 下面是将请求回来的数据直接给 setOptions 了
+<!-- 
+  methods: {
+    async chartInit() {
+      let myChart = echarts.init(document.getElementById("main"))
+
+      let {data: res} = await request({
+        url: "reports/type/1",
+        method: "get"
+      })
+
+      if(res.meta.status !== 200) {
+        this.$message.error("获取图表数据失败")
+      }
+
+      // 这里我们使用了 lodash 将两个对象进行了合并 将合并结果给了 echarts
+      let ret = _.merge(res.data, this.options)
+      myChart.setOption(ret);
+    },
+  },
+  mounted() {
+    this.chartInit()
+  },
+ -->
+
+-----------------
+
+### 项目的优化
+> 项目优化策略
+- 生成打包报告
+    根据报告我们能发现一些问题 解决问题
+    1. 比如 在产品发布也就是bulid的时候 是不允许代码中有console这样的代码的
+    也就是说我们希望在开发阶段可以使用 在生成阶段不可以使用
+
+    2. 警告的处理
+
+- 开启第三库的CDN加载
+- elementui组件按需加载
+- 路由的懒加载
+- 首页内容定制
+
+
+> 在整个项目的顶部 添加 加载进度条的效果
+- 这里我们借助 nprogress 包
+- npm i nprogress --save
+
+- 这里我们在network里面处理的逻辑 利用了 axios 封装时候的请求 和 响应拦截
+
+- 导入 这个包 全局会多出 NProgress 全局对象
+- import NProgress from "nprogress"
+- import "nprogress/nprogress.css"
+
+
+- NProgress.start()
+- 展示进度条
+
+- NProgress.done()
+- 隐藏进度条
+
+- 那什么时候调用 start() 什么时候又调用 done() ?
+- 我们在封装ajax的时候 发送请求 就会调用 请求拦截 在响应完毕 就会调用 响应拦截
+- 所以我们可以在这里面做逻辑
+- 如果我们触发了 interceptors.request.use() 请求拦截 证明我们发起了请求 我们希望展示进度条
+
+- 如果我们触发了 响应拦截 证明成功了 随之立即隐藏进度条
+<!-- 
+  import axios from 'axios'
+
+// 导入包对应的js 和 css
+import NProgress from "nprogress"
+import "nprogress/nprogress.css"
+
+export function request(config) {
+  const instance = axios.create({
+    baseURL: "http://127.0.0.1:8888/api/private/v1"
+  })
+
+  instance.interceptors.request.use(config => {
+
+    NProgress.start()
+
+    // 为请求头对象 添加 token 验证的 authorization 字段
+    config.headers.Authorization = window.sessionStorage.getItem("token")
+    return config
+  }, err => {
+    console.log(err)
+  })
+
+
+  instance.interceptors.response.use((config) => {
+    NProgress.done()
+    return config
+  })
+
+  return instance(config)
+}
+ -->
+
+
+> babel-plugin-transform-remove-console
+- 开发环境的时候可以使用console 但是生产环境中不能有console
+- 我们可以借助这个babel插件来解决这个问题
+
+- https://www.npmjs.com/package/babel-plugin-transform-remove-console
+
+- 1.
+- npm install babel-plugin-transform-remove-console --save-dev
+
+- 2.
+- 我们在 babel.config.js文件中
+- 这个文件是全局的也就是不管开发还是发布阶段都会生效
+<!-- 
+  module.exports = {
+  presets: [
+    '@vue/cli-plugin-babel/preset',
+    ["@babel/preset-env", { "modules": false }]
+  ],
+  "plugins": [
+    [
+      "component",
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "theme-chalk"
+      }
+    ],
+    "transform-remove-console"    // 添加这个
+  ]
+}
+ -->
+
+> process.env.NODE_ENV === "production / development"
+- 获取脚手架的编译模式 用于判断当前是开发模式还是生产模式
+
+- 怎么配置才能在开发的时候不删除console 而在生产的时候删除console呢？
+<!-- 
+  // babel.config.js 文件中
+
+  在module之前定义一个数组 这个数组中装一些项目发布阶段用到的特定的插件 默认空
+  const prodPlugins = []
+
+  接下来我们判断当前是发布阶段还是开发阶段
+  在开发模式的时候 脚手架会在最开始的时候执行 --mode development
+  在生成模式的时候 脚手架会在最开始的时候执行 --mode production
+
+  也就是说 
+  开发阶段的时候 mode的值 是 development
+  生成阶段的时候 mode的值 是 production
+
+  只要我们能获取到mode的值 就能判断了
+
+
+  这样就处于产品的发布模式
+  if(process.env.NODE_ENV === "production") {
+    prodPlugins.push(""transform-remove-console"") 
+  }
+
+  module.exports = {
+  presets: [
+    '@vue/cli-plugin-babel/preset',
+    ["@babel/preset-env", { "modules": false }]
+  ],
+  "plugins": [
+    [
+      "component",
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "theme-chalk"
+      }
+    ],
+
+    // 发布产品时候的插件数组
+    ...prodPlugins    // 添加这个 只用展开运算符
+  ]
+}
+ -->
+
+
+> 生成打包报告
+- 打包时，为了直观地发现项目中存在的问题，可以在打包时生成报告 生成报告的方式有两种
+
+- 1. 通过命令行参数的形式生成报告
+- 通过 vue-cli 的命令选项可以生成打包报告
+- --report 选项可以生成 report.html 以帮助分析包内容
+
+- vue-cli-service build --report
+
+
+- 2. 通过可视化的ui面板直接查看报告
+- vue ui
+- 在可视化的ui面板中 通过控制台 和 分析面板 可以方便地看到项目中所存在的问题
+- 点击 build面板 -- 运行 -- 在ui界面的 控制台 和 分析 面板中可以查看报告
+
+- 在 分析面板 中会以饼状图的模式 把体积较大的文件罗列出来了
+<!-- 
+  应该是内圈弧度大的就是大的吧
+ -->
+
+
+- 在 仪表盘 面板中我们能看到 资源(就是当前项目的大小) 依赖项就是内部含有的依赖项
+<!-- 
+  我们的项目中
+  资源 ：  也就是总项目是 2.4mb
+  依懒项：  就占了2.2 mb
+ -->
+
+- 优化依赖项的大小 是我们的目标
+
+
+- 在 仪表盘 面板中 还有 速度统计 
+- 优化项目的打开速度也是我们的目标
+
+
+- 在 仪表盘 面板中 还有资源和依赖项的列表
+<!-- 
+  在我们的项目中 在 资源列表中 后面有一个三角形的感叹号 代表这个文件的体积太大了
+
+  js/chunk-vendors.010b3e6a.js
+  1.9MB     大小
+  2.24s
+  39.15s
+  9.84s
+
+  我们能看到 这个js文件由1.9mb 如果有一个js文件这么大 它的请求速度会非常的慢
+ -->
+- 如何把这个js文件优化的更小一些也是我们的目标
+
+
+- 在 依赖项 列表中 vue把体积从大到小依次排列
+- 如何优化这些文件的体积也是我们的目标
+
+
+> 通过 vue.config.js 修改 webpack 的默认配置
+- 通过 vue-cli3 工具生成的项目 默认隐藏了所有webpack的配置项 目的是为了屏蔽项目的配置过程 让程序员把工作重心 放到具体功能和业务逻辑的实现上
+
+- 如果程序员有修改 webpack 默认配置的需求 可以在项目根目录中 按需创建 vue.config.js 这个配置文件 从而对项目的打包发布过程做自定义的配置
+
+- 具体配置参考 https://cli.vuejs.org/zh/config/#vue-config-js
+
+<!-- 
+  vue.config.js 基本格式
+
+  module.exports = {
+    // 选项
+  }
+ -->
+
+
+> 为开发模式 与 发布模式 指定不同的打包入口
+- 默认情况下 vue项目的开发模式 与 发布模式 共用同一个打包的入口文件 (src/main.js) 为了将项目的开发过程与发布过程分离 我们可以为两种模式 各自指定打包的入口文件
+
+- 开发模式的入口文件为 src/main-dev.js
+- 发布模式的入口文件为 src/main-prod.js
+
+
+- 怎么修改打包的入口呢？
+
+
+> configureWebpack 和 chainWebpack
+- webpack的属性
+- 在vue.config.js导出的配置对象中， 新增configureWebpack 或 chainWebpack节点 来自定义webpack的打包配置
+
+- 在这里 这两个节点的作用都是一样的都能通过他们修改入口
+- 唯一的区别就是他们修改 webpack 配置的方式不同
+
+- chainWebpack
+- 通过 链式编程 的形式 来修改默认的webpack配置
+
+- configureWebpack
+- 通过操作对象的形式 来修改默认的webpack配置
+
+- 他们之间的使用差异 可参考如下网址:
+- https://cli.vuejs.org/ah/guide/webpack.html#webpack-%E7%9B%B8%E5%85%B3
+
+
+
+> 通过 chainWebpack 自定义打包入口
+- 代码示例
+- 下面的代码都是要写到 vue.config.js 文件里面的
+<!-- 
+  module.exports = {
+    // config是webpack默认的配置对象 通过调用config.when函数判断当前是什么开发模式
+
+    // config.entry 获取默认的打包入口 -- 清空 -- 新加
+
+    chainWebpack: config => {
+      config.when(process.env.NODE_ENV === "production", config => {
+        config.entry("app").clear().add('./src/main-prod.js')
+      })
+
+      config.when(process.env.NODE_ENV === "development", config => {
+        config.entry("app").clear().add('./src/main-dev.js')
+      })
+    }
+  }
+ -->
+
+
+> 具体流程
+- 1. 删除 原先的main.js文件
+- 2. 新增 main-dev.js 和 main-prod.js 文件
+<!-- 
+  这三个文件的内容一模一样
+ -->
+
+- 3. 进入 vue.config.js 
+<!-- 
+  复制上面的代码
+ -->
+
+
+> 项目优化策略 通过 externals 加载外部CDN资源
+- 从而让我们打包后的体积更小一些
+
+- 默认情况下 通过 import语法导入的第三方依赖包 最终会被打包合并到同一个文件中 从而导致打包成功后 单文件体积过大的问题
+
+- 也就是上面我们有一个1.9mb的js文件 它就是我们项目中所用到的依赖包都合并到了这一个文件中比如 elementui echarts等
+
+- 为了解决上面的问题 可以通过webpack的externals节点 来配置并加载外部的CDN资源 凡事声明在externals中的第三方依赖包都不会被打包
+<!-- 
+  原理：
+  默认我们使用import导入的依赖包都会合并到一个js文件中
+  如果我们把各个依赖包声明到 externals节点 中
+
+  webpack在打包的时候会先检查程序员有没有在 externals中声明依赖包 如果有就不会把对应的依赖包打包到js文件中 而是用到的依赖包时候去window全局对象身上找对应的对象使用
+
+  也就是它不会将 "vue-router" 包合并到js文件中 而是去全局找"VueRouter"这个对象使用
+
+  为了在全局中能找到这些对象 我们会把这些依赖包 引入到index.html文件中
+ -->
+
+> 1. 具体配置代码：
+- 只有在发布模式才有必要去配置 externals 所以我们添加到 vue.config.js 的发布模式中
+<!-- 
+  键值对的形式 前面是包名  后面是我们自己起的名字
+  config.set('externals', {
+    vue: 'Vue', 'vue-router': 'VueRouter',
+    axios: 'axios',
+    lodash: '_',
+    echarts: 'echarts',
+    nprogress: 'NProgress', 'vue-quill-editor': 'VueQuillEditor'
+  })
+ -->
+
+<!-- 
+  module.exports = {
+    chainWebpack: config => {
+
+      // 发布模式
+      config.when(process.env.NODE_ENV === "production", config => {
+        config.entry("app").clear().add('./src/main-prod.js')
+
+        // 我们添加到这里
+        config.set('externals', {
+          vue: 'Vue', 'vue-router': 'VueRouter',
+          axios: 'axios',
+          lodash: '_',
+          echarts: 'echarts',
+          nprogress: 'NProgress', 'vue-quill-editor': 'VueQuillEditor'
+        })
+
+
+      // 开发模式
+      config.when(process.env.NODE_ENV === "development", config => {
+        config.entry("app").clear().add('./src/main-dev.js')
+      })
+    }
+  }
+ -->
+
+
+> 2. 在 public/index.html 文件的头部 添加如下的CDN资源引用
+- 我们在下载的插件的时候 会对应导入对应的样式表 比如
+<!-- 
+   import VueQuillEditor from "vue-quill-editor"
+   import "quill/dist/quill.core.css"
+ -->
+- 像这些css样式表最终也会打包进js文件里面去会导致打包的体积很大 
+
+- 我们先把这些main.js中的样式表都删除掉
+- 虽然 mian.js 中没有样式了 但是我们可以把样式引入index.html文件中
+
+<!-- 
+  <!-- nprogress 的样式表文件 --> 
+  <link rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+  <!-- 富文本编辑器 的样式表文件 -->
+  <link rel="stylesheet" href="https://cdn.staticfile.org/quill/1.3.4/quill.core.min.css" />
+  <link rel="stylesheet" href="https://cdn.staticfile.org/quill/1.3.4/quill.snow.min.css" />
+  <link rel="stylesheet" href="https://cdn.staticfile.org/quill/1.3.4/quill.bubble.min.css" />
+ -->
+
+
+> 3. 需要在index.html文件的头部 添加如下的CDN资源引用
+<!-- 
+  <script src="https://cdn.staticfile.org/vue/2.5.22/vue.min.js"></script>
+  <script src="https://cdn.staticfile.org/vue-router/3.0.1/vue-router.min.js"></script>
+  <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+  <script src="https://cdn.staticfile.org/lodash.js/4.17.11/lodash.min.js"></script>
+  <script src="https://cdn.staticfile.org/echarts/4.1.0/echarts.min.js"></script>
+  <script src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js"></script>
+  <!-- 富文本编辑器的 js 文件 -->
+  <script src="https://cdn.staticfile.org/quill/1.3.4/quill.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-quill-editor@3.0.4/dist/vue-quill-editor.js"></script>
+ -->
+
+
+> 通过CDN形式优化element ui的打包
+- 我们将element ui也配成外部的cdn资源
+
+- 虽然在开发阶段，我们启用了 element-ui 组件的按需加载，尽可能的减少了打包的体积，但是那些被按需加载的组件，还是占用了较大的文件体积。此时，我们可以将element-ui 中的组件，也通过 CDN 的形式来加载，这样能够进一步减小打包后的文件体积。
+
+- 具体操作流程如下：
+① 在 main-prod.js 中，注释掉 element-ui 按需加载的代码
+- 也就是 import "./plugins/element.js"
+- 也就是 我们前面按需加载的组件 不需要导入了 直接去网上cdn找
+
+② 在 index.html 的头部区域中，通过 CDN 加载 element-ui 的 js 和 css 样式
+<!-- 
+  <!-- element-ui 的样式表文件 --> 
+  <link rel="stylesheet" href="https://cdn.staticfile.org/element-ui/2.8.2/themechalk/index.css" />
+
+  <!-- element-ui 的 js 文件 -->
+  <script src="https://cdn.staticfile.org/element-ui/2.8.2/index.js"></script>
+ -->
+
+
+
+> 首页内容的定制 在不同的打包环境下展示不同的标题
+- 不同的打包环境下 首页内容可能会有所不同 我们可以通过插件的方式进行定制 
+- 比如说我们在 html文件 中的title标签里面写上 <title>电商系统</title>
+
+- 那么不管是开发阶段还是发布阶段看到的效果都是 电商系统 
+- 但是我们希望的是 开发阶段的时候是 发布上线的时候是另一套名字
+- dev - 电商系统
+- 电商系统  -- 直接展示
+
+- 也就是说开发环境 和 发布环境下 我们看到的是不一样的标题
+<!-- 
+  chainWebpack: config => {
+
+    // 生产模式
+    config.when(process.env.NODE_ENV === 'production', config => {
+      config.plugin('html').tap(args => {
+        args[0].isProd = true
+        return args
+      })
+    })
+
+    // 开发模式
+    config.when(process.env.NODE_ENV === 'development', config => {
+      config.plugin('html').tap(args => {
+        args[0].isProd = false
+        return args
+      })
+    })
+  }
+
+  我们通过 config.plugin 函数找到 插件 html
+  通过 tag 修改插件中固定的配置项
+  我们给 args 追加了一个自定义属性 isProd 
+  如果是发布模式 就是 true
+  如果是开发模式 就是 false
+ -->
+
+
+- 接下来
+- 我们在html页面中 可以根据 isProd 的值 来决定如何渲染页面结构
+<!-- 
+  <!– 按需渲染页面的标题 -->
+  <title>
+    <%= htmlWebpackPlugin.options.isProd ? '' : 'dev - ' %>
+    电商后台管理系统
+  </title>
+
+  <!– 按需加载外部的 CDN 资源 -->
+  <% if(htmlWebpackPlugin.options.isProd) { %>
+
+      <!—通过 externals 加载的外部 CDN 资源-->
+      这里也可以根据 isProd 的值 来决定是否渲染我们CDN引入的链接
+
+  <% } %>
+ -->
+
+
+> 路由的懒加载
+- 当打包构建项目时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样就更加高效了。
+
+- 具体步骤：
+- 1. 安装 @babel/plugin-syntax-dynamic-import 包。
+<!-- 
+  npm install --save-dev @babel/plugin-syntax-dynamic-import
+ -->
+
+- 2. 在 babel.config.js 配置文件中声明该插件。
+<!-- 
+  module.exports = {
+  presets: [
+    '@vue/cli-plugin-babel/preset',
+    ["@babel/preset-env", { "modules": false }]
+  ],
+
+  // 安装babel插件
+  "plugins": [
+    [
+      "component",
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "theme-chalk"
+      }
+    ],
+    ...prodPlugins,
+
+    加在这里
+    @babel/plugin-syntax-dynamic-import
+  ]
+}
+ -->
+
+- 3. 将路由改为按需加载的形式，示例代码如下：
+<!-- 
+  Foo Bar Baz是路由组件
+
+  /* webpackChunkName: "group-foo" */ 是分组
+  
+  同一个分组的js文件 会打包在一个js文件中 也就是说 我们在请求Bar的时候 顺带会将Foo组件一同请求回来
+
+  const Foo = () => import(/* webpackChunkName: "group-foo" */ './Foo.vue')
+  const Bar = () => import(/* webpackChunkName: "group-foo" */ './Bar.vue')
+  const Baz = () => import(/* webpackChunkName: "group-boo" */ './Baz.vue')
+ -->
+
+- 参考链接
+- https://router.vuejs.org/zh/guide/advanced/lazy-loading.html
+
+- 我们可以按照功能 将路由组件进行分组打包
+
+
+
+> 项目上线
+- 1. 通过 node 创建 web 服务器。
+- 就是通过创建node服务器 来查看我们vue项目打包后 dist 的效果
+<!-- 
+  创建 node 项目，并安装 express，通过 express 快速创建 web 服务器，将 vue 打包生成的 dist 文件夹，托管为静态资源即可，关键代码如下：
+
+  const express = require('express')
+
+  // 创建 web 服务器
+  const app = express()
+
+  // 托管静态资源
+  app.use(express.static('./dist'))
+
+  // 启动 web 服务器
+  app.listen(80, () => {
+    console.log('web server running at http://127.0.0.1')
+  })
+ -->
+
+- 2. 开启 gzip 配置。 (文件网路传送压缩)
+- 使用 gzip 可以减小文件体积，使文件在网络中传输速度更快。 可以加快首屏页面的打开速度
+<!-- 
+  默认的情况下 服务器没有开启 gzip 压缩
+  我们可以查看network 里面可以看到我们传输文件的体积
+
+  当开启 gzip 后 
+  我们能看到 某一个js的文件实际大小是 73kb 但是我们网络传输的时候只有23kb
+
+  因为在传输的过程中文件被压缩了
+ -->
+
+- 可以通过服务器端使用 Express 做 gzip 压缩。其配置如下：
+- 我们在上面的服务器端的项目里 做下面的操作
+
+- 具体步骤：
+- 1. npm install compression -S
+- 2. const compression = require('compression');
+
+- 3. app.use(compression());
+- 注意 一定要把这一行代码写在 app.use(express.static('./dist')) 的前面
+
+
+- 3. 配置 https 服务。(让传输过程特别安全)
+- 配置这个部分的操作在真是开发中并不是由前端人员做的 而是后端开发人员
+- 像java或者php它们在部署的时候会开启 https
+
+> 为什么要启用 HTTPS 服务？
+- 传统的 HTTP 协议传输的数据都是明文，不安全
+- 采用 HTTPS 协议对传输的数据进行了加密处理，可以防止数据被中间人窃取，使用更安全
+
+> 配置 HTTPS 服务
+- 申请 SSL 证书（https://freessl.org）
+- 进入 https://freessl.cn/ 官网，输入要申请的域名并选择品牌。
+- 输入自己的邮箱并选择相关选项。
+- 验证 DNS（在域名管理后台添加 TXT 记录）。
+<!-- 
+  需要登录到自己的服务器上去验证
+ -->
+
+- 验证通过之后，下载 SSL 证书（ full_chain.pem 公钥；private.key 私钥）
+
+- 在后台项目中导入证书
+<!-- 
+  const https = require('https');
+  const fs = require('fs');
+
+  const options = {
+    cert: fs.readFileSync('./full_chain.pem'),
+    key: fs.readFileSync('./private.key')
+  }
+
+  https.createServer(options, app).listen(443);
+  
+  这里我们不使用app.listen 监听端口 而是将express创建的app传入 https的第二个参数里面 然后监听443端口
+ -->
+- 默认情况下 http运行在80端口 https运行在443端口
+
+
+- 4. 使用 pm2 管理应用。
+- 我们正常是开启服务器程序 但是假如我们把服务器程序的终端停止后 那么服务器程序也会随着停止
+- 有的时候我们不可能开着一堆的终端 我们希望关闭掉终端后 项目还是可以正常运行的
+- 这个时候我们就需要用 pm2
+
+- 全局安装 pm2：npm i pm2 -g
+
+- 启动项目：pm2 start 入口文件 --name 自定义名称
+- 查看运行项目：pm2 ls
+- 重启项目：pm2 restart 自定义名称
+- 停止项目：pm2 stop 自定义名称   也可以指定表格中的id
+- 删除项目：pm2 delete 自定义名称

@@ -728,11 +728,13 @@ https://vuejs.org/js/vue.min.js
 - 函数式 自定义指令 中的参数
 - big(参数1, 参数2) { }
 
-- 参数1：element 当前v-big所在的真实DOM  <span></span>
+- 参数1：element 当前v-big所在的真实DOM  <span></span> 也就是Dom节点
+
 - 参数2：
   binding： v-big 所绑定的标签对象 内部有很多的属性
+
   binding.value：
-            v-big 所使用的data中的变量 number 所对应的 值
+           v-big 所绑定的data中的变量对应的值 可以通过binding.value拿到
   <!-- 
     binding.value == v-big='number'中的number == 50
 
@@ -969,6 +971,14 @@ directives: {
 **注意：**
 - 1. 不要使用v-model绑定props属性 因为props属性是只读的
 - 2. vue只能浅层次的监视属性改变没有 不能深度监视 当props是一个对象的时候 我们只用v-model绑定props对象里面的一个值 vue是发现不了 但日后可能会出现种种的问题
+<!--
+  在中川的项目就会发生这样的现象
+  中川的目标是在外壳组件中请求数据 将数据通过prop的方式传递到子组件中
+  在子组件中 使用 数据判断 或 双向绑定 或 将最后的form拿去当发送请求的对象 
+
+  事实上也不建议这样做 但是中川做的就没问题么？
+  v-model="form[n.props]"
+-->
 
 --------------------------
 
@@ -1314,6 +1324,10 @@ directives: {
         }
       }
     });
+
+
+    style
+    active: { background: red }
  -->
 
 --------------------------
@@ -3795,6 +3809,26 @@ filters: {
 - 下面处于组件销毁的阶段, 该阶段没有数据绑定 没有交互了
 <!-- 
   服务器端渲染期间不会被调用
+
+  created() {
+     this.count()
+   },
+
+   methods: {
+     count() {
+       this.timer = setInterval(() => {
+         this.num++
+         console.log(this.num)
+       }, 1000)
+     }
+   },
+
+   beforeDestroy() {
+     clearInterval(this.timer)
+   },
+   destroyed() {
+     console.log("我被销毁了")
+   },
  -->
 
 
@@ -7685,6 +7719,10 @@ allowed in .vue files - render functions are required elsewhere
 - 对象写法 给该组件传递的是死数据 写死的
 - 该对象中的所有 key value都会传递给 xxx 组件
 - 以props形式传递过去的 那么该组件就会以props来接收
+
+- 1. 路由配置文件中使用 props 配置项传递
+- 2. 目标组件就要使用 props:["变量"] 来接收
+- 没有接收的话 在this.$attrs 身上 如果有接收的话 就会在this身上
 <!-- 
   {
     name: 'xinxi',
@@ -7707,6 +7745,7 @@ allowed in .vue files - render functions are required elsewhere
 
   接收a属性 注意这里写字符串要不去data里面找变量了
  -->
+
 
 > 2. props的布尔值写法
 - 若布尔值为真 就会把该路由组件收到的所有params参数 以props的形式传给xxx组件
@@ -7837,6 +7876,11 @@ allowed in .vue files - render functions are required elsewhere
 - 1. 地址干净 美观
 - 2. 兼容性和hash模式相比略差
 - 3. 应用部署上线时候需要后端人员支持，解决刷新页面服务器端404的问题
+
+- 路由配置文件中使用 props 传递数据
+- 1. 数据是死的
+- 2. 目标组件要使用props来声明接收
+- 3. 没有接收的数据 在 $attrs 身上
 
 --------------------------
 
@@ -7997,13 +8041,26 @@ allowed in .vue files - render functions are required elsewhere
 
 - 路由能接收两种参数
 
+
 > 传递 query 参数
-> /user?id='666&title=你好呀'
+> /user?id=666&title=你好呀
 - 我们可以在路径中使用?的形式带着参数过去
 <!-- 
   // 向detail组件传递参数
-  <router-link to='/home/message/detail?id='666&title=你好呀''>
+  <router-link to='/home/message/detail?id=666&title=你好呀'>
  -->
+
+- 接收参数：
+- 我们可以通过 this.$route.query 接收到 它是一个对象
+<!-- 
+  this.$route.query = {
+    id: "666",
+    title: "你好呀"
+  }
+
+  this.$route.query.name
+ -->
+
 
 > 跳转路由 并 携带query参数的 to的字符串的写法
 > <router-link :to='`/home/message/detail?id=${item.id}&title=${item.title}`'>
@@ -8058,6 +8115,7 @@ allowed in .vue files - render functions are required elsewhere
  -->
 
 - 3. 该组件在获取数据的时候 从 $route.params 身上获取 id 和 data数据
+- params: {id: "8"}
 
 
 > 对象的写法
@@ -8211,6 +8269,8 @@ allowed in .vue files - render functions are required elsewhere
  -->
 
 - 那怎么才能保存之前我们浏览的状态呢？
+
+
 > <keep-alive> 
 - 是vue内置的一个组件, 可以使被包含的组件保留状态, 或避免重新渲染和重新创建
 - 放在里面的组件会被缓存
@@ -8336,6 +8396,7 @@ allowed in .vue files - render functions are required elsewhere
 
 
 > 第三种解决方案
+- 该方式只能在 router-view 被 keep-alive 包裹起来之后使用
 - 使用 activated() { ... }
 - 当该组件处于活跃状态的时候, 修改路径
 
@@ -8913,7 +8974,7 @@ Vcomponent                   Mutations   ← →   Devtools
 - npm i vuex --save
 
 
-> 2. 引入并注册
+> 2. 引入并注册 (我们在store文件中配置)
 - 在入口文件里面 (因为里面有Vue)
 - 当我们use(Vuex)后 我们就可以在new Vue的时候传递进去 store配置项了
 - 同时vm vc身上都能看到$store对象
@@ -9030,10 +9091,28 @@ Vcomponent                   Mutations   ← →   Devtools
 - 1. 下载vuex插件
 - 2. 创建store文件夹, 创建index.js文件
 - 3. 在index.js文件中 引入vue vuex 安装插件(Vue.use())
+<!-- 
+  import Vue from "vue"
+  import Vuex from "vuex"
+
+  Vue.use(Vuex)
+ -->
+
 - 4. 创建store对象 const store = new Vue.store({})
+<!-- 
+  const store = new Vuex.Store({
+    actions,
+    mutations,
+    state
+  })
+ -->
+
 - 5. 导出store对象
 - 6. 将store对象在main.js文件中引入 并 挂载在vue实例中
+
 - 7. 回到store中 创建 state对象 在里面放上共有变量
+
+- 8. html结构中 通过 $store 对象来获取属性
 <!-- 
   // App.vue
   <template>
@@ -9188,7 +9267,7 @@ Vue Components                        Mutations         Devtools
 
 --------------------------
 
-### Vuex的基本使用
+### Vuex的基本使用  匹配处理函数
 - 我们将一个数据放入到Vuex中
 
 > 将数据配置到Vuex中
@@ -9419,6 +9498,9 @@ Vue Components                        Mutations         Devtools
   计算属性名(变量名): 'vux中想要使用的数据',
 })  
 
+- 注意：
+- 这里不能因为我们想起的名字和state中的数据名一致 就使用es6的简写模式
+
 - 计算属性名(变量名)就是我们要在模板中使用的变量 用来读取state中的数据
 
 - 要点：
@@ -9443,6 +9525,13 @@ Vue Components                        Mutations         Devtools
 > mapState(['定义映射vuex数据的变量', 'vuex中的数据'])
 - 也是使用...放在computed中
 - 也是可以拿当中的变量 在模板中使用 本质也是计算属性
+- 试验结果
+- state定义的是num 组件里我也想起名叫做num
+<!-- 
+  computed: {
+    ...mapState(["num"])
+  }
+ -->
 
 
 > ...mapGetters({} || [])
@@ -9479,6 +9568,8 @@ Vue Components                        Mutations         Devtools
 > ...mapMutations({组件中的方法: 'mutations中对应的方法'})
 - 我们是在 methods 中使用该方法
 - 我们也要在 mapMutations 前面使用...
+
+- 相当于我们在mapMutations中 找模板中的方法和mutations中的方式 做一一对应
 <!-- 
   methods: {
     add() {
@@ -9609,12 +9700,34 @@ Vue Components                        Mutations         Devtools
 - 要是使用两个参数那么每一个具体的配置项中必须包含 namespaced: true
 - 然后mapState才会认识第一个参数
 <!-- 
-  ...mapState('a', ['sum', 'name'])
-  - 意思就是我们从配置1中读取state中对应的数据
+  computed: 
+
+    ...mapState('a', ['sum', 'name'])
+    - 意思就是我们从配置1中读取state中对应的数据
  --> 
 
+
+> mapMutations('具体配置', [] || {})
+- 当我们进行模块化编码的时候 我们有两套配置
+- 那么我们在进行 dispatch 和 commit 的时候就要让vuex知道我们是往哪个配置中对应的函数中分发和处理 还是一一对应的关系 所以我们也要先指定具体的配置
+<!-- 
+  methods: {
+    // handelInc() {
+    //   this.$store.dispatch("inc", this.target)
+    // }
+
+    这样写就是直接发送到mutations里面
+    ...mapMutations("a", {handelInc: "inc"}),
+    ...mapMutations("b", {handelDec: "dec"})
+  },
+ -->
+
+
+> 思考：
 > 读取 state 中的数据等
 - 如果没有使用mapState系列的时候 我们怎么在模板中调用
+
+
 > $store.state.a.sum
 - 其中a是modules中的一个配置
 - 因为我们要告诉vue我们要找哪一个配置项中的属性 或 方法
@@ -9655,6 +9768,187 @@ Vue Components                        Mutations         Devtools
 - 所以我们要在使用modules后 从中取到getters中的数据的时候要这么写 
 > this.$store.getters[’a/sum‘]
 - 读取getters中的属性的时候 从a配置中读
+
+
+
+> 总结Vuex的使用方式：
+
+- 基本使用：
+- actions mutations state
+- 我们将数据保存在state中 模板通过$store对象来调用
+
+- 如果不设计异步操作的时候 我们可以在组件中直接commit到mutations里面
+
+- 整个vuex的应用逻辑就是在找函数的一一对应 组件找actions中的函数 actions找mutations中的函数 函数名都是一一对应的
+
+- actions中的函数参数 context 和 value
+- mutations中的函数参数 state 和 value
+
+- 使用map系列
+- state getters 都是在computed中使用
+- 在使用之前要先引入
+
+- actions mutations都要在methods中使用
+- 在使用之前除了引入外还要使用...
+
+- 我们使用map系列就是可以直接获取值 和直接分发和提交到actions和mutations中
+
+- 比如模板中定义了一个inc方法 我们使用mapActions的时候 直接点击就可以 内部自动完成dispatch的操作
+
+- modules系列
+- 我们在逻辑多的时候 可以分功能来设置actions等配置
+
+- 那就说明store中有a b两套配置
+- 注意： module中的名字好像必须另外其 不能使用es6语法都定义成incModule
+<!-- 
+  const modules = {
+    a: incModule,
+    b: decModule
+  }
+ -->
+
+- 使用modules后 html结构中怎么读取
+- 计算属性中 ...mapState(["a", "b"]) 
+- html结构中通过a.num 的方式读取
+
+- 或者
+- ...mapState("a", ["num"])也是可以的吧
+
+
+- actions 和 mutations 也一样 
+- methods中
+<!-- 
+  ...mapMutations("a", {handelInc: "inc"}),
+  ...mapMutations("b", {handelDec: "dec"})
+ -->
+
+
+- 这个部分自己试验后的完整代码
+<!-- 
+  // index js 文件
+  import Vue from "vue"
+  import Vuex from "vuex"
+
+  Vue.use(Vuex)
+
+  // const state = {
+  //   num: 0
+  // }
+
+  // 单独
+  /* const actions = {
+    inc(context, value) {
+      let {commit} = context
+      commit("inc", value)
+    }
+  }
+
+  const mutations = {
+    inc(state, value) {
+      state.num += value
+    }
+  } */
+
+  const incModule = {
+    namespaced: true,
+    state: {
+      num: 0,
+    },
+    actions: {
+      inc(context, value) {
+        let {commit} = context
+        commit("inc", value)
+      }
+    },
+    mutations: {
+      inc(state, value) {
+        state.num += value
+      }
+    }
+  }
+
+  const decModule = {
+    namespaced: true,
+    state: {
+      num: 100
+    },
+    actions: {
+      dec(context, value) {
+        let {commit} = context
+        commit("dec", value)
+      }
+    },
+    mutations: {
+      dec(state, value) {
+        state.num -= value
+      }
+    }
+  }
+
+
+  const modules = {
+    a: incModule,
+    b: decModule
+  }
+
+  const store = new Vuex.Store({
+    // state,
+    modules
+  })
+
+  export default store
+
+
+  // app文件
+  <template>
+    <div id='app'>
+      <span>{{a.num}}</span> --- 
+      <span>{{b.num}}</span>
+      <button @click="handelInc(target)">add</button>
+      <button @click="handelDec(target)">jian</button>
+    </div>
+  </template>
+
+  <script>
+  import {mapState} from "vuex"
+  import {mapMutations} from "vuex"
+
+  export default {
+    name: 'App',
+    data() {
+      return {
+        target: 10,
+      }
+    },
+    created() {
+      console.log("我是App组件")
+    },
+    methods: {
+      // handelInc() {
+      //   this.$store.dispatch("inc", this.target)
+      // }
+
+      ...mapMutations("a", {handelInc: "inc"}),
+      ...mapMutations("b", {handelDec: "dec"})
+    },
+    computed: {
+      // ...mapState(["num"])
+      ...mapState(["a", "b"])
+    },
+
+
+  }
+  </script>
+
+  <style>
+    #app {
+      width:400px;
+      height:400px;
+      background-color: deepskyblue;
+      padding: 20px;
+    }
+  </style>
+ -->
 
 --------------------------
 
@@ -15283,6 +15577,10 @@ footer    footer    footer
 
 
 ### 技巧
+
+> style中 导入样式
+- @import "../../"
+
 
 > element ui中 给组件加样式的方式
 - 1. 可能需要less
