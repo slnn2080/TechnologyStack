@@ -2,6 +2,530 @@
 
 ------------------
 
+### input + select + button 点击按钮添加页面结构
+- 场景：
+- [ 日本语 ]  [ 下拉框 ]  删除按钮
+- [ 添加语言 ]
+
+- 页面上有如上的结构 点击添加语言按钮会 会生成如上的结构
+- 中川的项目中：
+- 用户列表页面 点击 确认 会进入到用户详情
+- 用户详情页面
+  - 展示页面
+  - 修改页面
+
+- 展示页面中 信息为只读 为普通文本
+  - 要点
+  - 比如将服务器返回的数据类型修改为 字符串 否则会展示 Object object || ["信息"] 等源码
+  
+- 修改页面中 信息为修改 为input等
+  - 要点
+  - 比如将数组和对象类型 整理成字符串 因为 input 需要使用 v-model 来绑定
+
+
+- 思路
+- 先创建数据结构，根据数据结构 使用v-for来动态生成 html 结构，所以这时我们在添加的逻辑中往数据结构中push一个对象就 页面就会自动渲染一个对应的结构
+- 同时我们在这个环节里 将请求回来的数据对应的项目值如果是数组 或 对象 要整理成字符串 用于 展示页面里 数据的展示
+
+
+> 展示页面的逻辑
+<!--
+    // ret为展示页面外壳组件请求回来的数据
+    let ret = res.data.data.attributes;
+    for (let key in ret) {
+        
+      // 判断 ret对象中的指定属性类型 是否为数组 如果是 转换为 字符串 用于页面展示
+      if (key == "license" && Array.isArray(ret[key])) {
+        ret[key] = ret[key].join(",");
+      }
+
+      if (key == "skill" && Array.isArray(ret[key])) {
+        ret[key] = ret[key].join(",");
+      }
+
+      if (
+        key == "language" &&
+        Object.prototype.toString.call(ret[key]) == "[object Object]"
+      ) {
+        if (
+          Array.isArray(ret[key].language) &&
+          Array.isArray(ret[key].level)
+        ) {
+          ret[key].language = ret[key].language.join(",");
+          ret[key].level = ret[key].level.join(",");
+        }
+      }
+    }
+-->
+
+- 到这展示工作整理完毕 我们1中对数据的处理
+- 1 为了整理出 info 对象 我们要通过他来生成 语言 - 水平 - 删除 这样的结构
+- 2 为了页面能够正常的展示 我们将数组转为字符串 将对象里面的数据 也转为字符串
+
+
+
+> 修改页面的逻辑
+- 1 在修改页面的外壳组件中 我们对请求回来的数据 进行处理
+  - 组织 info数据结构 用于使用info数组 动态创建 html 结构
+<!--
+    // 项目里我根据请求回来的数据 整理成了一个我需要的数组对象
+        
+        项目中的结构是：
+        language: { language: ["中国语", "日本语"], level: ["一般", "一般"]}
+
+        通过加工 我整理成了：
+        info: [{language: "中国语", level: "一般"}, {language: "日本语", level: "一般"}]
+    
+
+    // 我们要将info组织成这样的数组对象
+    info = [
+        {},
+        {},
+    ]
+
+
+    // 修改页面外壳组件请求回来的数据
+    let ret = res.data.data.attributes;
+
+    // 我们组织它是
+    let info = [];
+
+    // 判断 指定属性 是否为数组 因为展示页面的input v-model 要绑定的类型是字符串
+    for (let key in ret) {
+      if (key == "license" && Array.isArray(ret[key])) {
+        ret[key] = ret[key].join(",");
+      }
+
+      if (key == "skill" && Array.isArray(ret[key])) {
+        ret[key] = ret[key].join(",");
+      }
+        
+      // 判断 指定属性 是否为对象 同时如果内部属性为数组的时候 我们组织成一个info对象
+      if (
+        key == "language" &&
+        Object.prototype.toString.call(ret[key]) == "[object Object]"
+      ) {
+        if (
+          Array.isArray(ret[key].language) &&
+          Array.isArray(ret[key].level)
+        ) {
+          ret[key].language.forEach((item, index) => {
+            let obj = {
+              language: item,
+              level: ret[key].level[index],
+            };
+            info.push(obj);
+          });
+
+        // 如果内部属性不为数组 我们要将它们转为数组 然后在组织 info对象
+        } else {
+          ret[key].language = ret[key].language.split(",");
+          ret[key].level = ret[key].level.split(",");
+          ret[key].language.forEach((item, index) => {
+            let obj = {
+              language: item,
+              level: ret[key].level[index],
+            };
+            info.push(obj);
+          });
+        }
+      }
+-->
+
+
+- 2 组织完info对象了 同时也将修改页面 input v-model 的数据修改为了字符串 接下来我们就要通过 info 来遍历生成 input + select + button 的页面结构了
+<!--
+    // 这里的options是用来 遍历生成 option 的
+    {
+      name: "語学",
+      options: [
+        {
+          label: "ネイティブ",
+          value: "ネイティブ",
+        },
+        {
+          label: "日常会話",
+          value: "日常会話",
+        },
+        {
+          label: "読み",
+          value: "読み",
+        },
+      ],
+      props: "language",
+      type: "language-group",
+      is_readonly: false,
+    },
+
+
+    <template v-else-if="n.type == 'language-group'">
+    <div v-if="!n.is_readonly">
+
+    // 整个 [ 日本语 ]  [ 下拉框 ]  删除按钮 结构 我们使用v-for在这个结构的包裹容器里使用 
+    <div
+      class="row align-items-center language-group-row"
+      v-for="(item, index) in info"
+      :key="index"
+    >
+      
+      // input 里面使用了 v-model 绑定了info中一个对象中的一个language属性
+      <div class="col-lg-3">
+        <el-input
+          :readonly="n.is_readonly"
+          :type="n.type"
+          v-model="item.language"
+          @change="inputChange"
+        />
+      </div>
+
+      // select 里面使用了 v-model 绑定了info中一个对象中的一个level属性
+      <div class="col-lg-2">
+        <el-select
+          @change="selectChange"
+          :readonly="n.is_readonly"
+          :type="n.type"
+          v-model="item.level"
+        >
+            
+          // 这里根据另一个对象中的options属性生成的option选项
+          <el-option
+            v-for="i in n.options"
+            :key="i.id"
+            :value="i.value"
+            :label="i.label"
+          ></el-option>
+        </el-select>
+
+
+      </div>
+      <div class="col-1">
+        <el-button
+          type="danger"
+          @click="deleteItem(index)"
+          >削除</el-button
+        >
+      </div>
+    </div>
+    <div
+      class="row align-items-center language-group-row"
+    >
+      <el-button
+        type="warning"
+        class="add-btn"
+        @click="addItem"
+        >言語追加</el-button
+      >
+    </div>
+    </div>
+-->
+
+
+- 3 添加语言 按钮的逻辑
+- 添加按钮点击后创建一个 info数组里的一个对象 push到info数组里面
+<!--
+    addItem() {
+      let obj = {
+        id: Date.now(),
+        language: "",
+        level: "",
+      };
+      this.info.push(obj);
+    },
+-->
+
+- 4 删除按钮 的逻辑
+- 点击删除按钮的时候传入index值 根据index值来删除 info数组中的 index项
+<!--
+    deleteItem(index) {
+      this.info.splice(index, 1);
+      this.formDataUpdate();
+    },
+-->
+
+- 5 修改 form 数据
+- 因为整个修改页面的数据都绑定在form对象里面 但是我们添加的input 和 select并没有绑定name属性
+<!--
+    因为后端就一个language语言的字段 而我们将它拆解成了两个item项
+    language对应的input
+    level对应的select
+    
+    所以后端只需要一个字段的情况下 怎么在两个结构中使用同一个name
+    是不是也可以 都绑定 language 而input v-model language.language 
+    select v-model language.level??
+
+    可以试试
+-->
+- 也就是说 我们的这两个结构并没有在form表单里面 既然没有在form表单里面 那么我们就要在发起请求之前
+- 修改下发起请求是 所需的form数据 将 我们的input的值 和 select的值 整理好格式 放入form数据中
+<!--
+    form所需格式
+    language: {
+        language: ["日本语", "中国语"],
+        level: ["母语", "一般"]
+    }
+
+
+    info: [
+        {
+            language: "德语",
+            level: "一般"
+        }
+    ]
+
+    也就是说 我们要拿出info里面每一个对象 将language push到 form的里面 将level push到form里面
+-->
+
+- 所以我创建了一个函数 专门用来修改form
+- 我们遍历info数组 拿到每一个对象 将其中的所有language取出 和 level取出 添加到对应的数组中 通过修改form数据language对象里面的两个属性值
+<!--
+    formDataUpdate() {
+      let languageArr = [];
+      let levelArr = [];
+      this.info.forEach((item) => {
+        languageArr.push(item.language);
+        levelArr.push(item.level);
+      });
+      this.form.language.language = languageArr;
+      this.form.language.level = levelArr;
+    },
+-->
+
+- 这里 input 输入完后 我们需要修改form数据
+- select 选择后 也要修改form数据
+- delete 删除后 也要修改form数据
+- 因为我们input select都是v-model绑定的info数组对象中的数据 也就是说 info对象中的数据本身就是最新的
+- 所以我们的核心就是将info遍历取出数据 填入form里面
+<!--
+    inputChange() {
+      this.formDataUpdate();
+    },
+    selectChange() {
+      this.formDataUpdate();
+    },
+    deleteItem(index) {
+      this.info.splice(index, 1);
+      this.formDataUpdate();
+    },
+-->
+
+- 最后 使用 form 数据 发起请求就可以了
+
+
+
+
+
+### element ui中单元格的合并
+- 首先 我们要在el-table标签中添加 :span-method="handleMergedCell" 方法
+- 然后 在对应的处理函数中做逻辑 该回调的参数是一个对象 里面有4个参数
+- function ( { row, column, rowIndex, columnIndex } )
+- row:
+- 当前行的对象
+
+- column:
+- 当前列的对象
+
+- rowIndex
+- 当前行号 从0开始
+
+- columnIndex
+- 当前列好 从0开始 但是表头行好像不算
+
+- 该函数需要返回一个数组 其中 第一个元素代表 rowspan(合并几行), colspan(合并几列)
+- 比如:
+- if(rowIndex % 2 == 0)  偶数行
+- if(columnIndex == 0)  第一列
+
+- return [1, 2]   合并一行 占两列  reutrn [0, 0] 合并0行 占0列
+
+
+### 合并表头行
+- 貌似官方提到的合并行的列子不包含表头行
+- 在element中如果想合并表头行可以需要用到 el-table 身上的 :header-cell-style 回调
+- 该回调中也会接收到一个参数对象 {row, column, rowIndex, columnIndex} 
+- 该回调需要返回一个样式
+- return {dispaly: "none"}
+
+- table自带合并属性 rowSpan 和 colSpan 这个是原生就带的
+
+- 思路：
+- 获取所有的表头单元格 针对性的对需要合并的单元格进行操作
+- 比如：
+- 我们想要合并的是 第2列 和 第3列 那么我们就先要获取到所有的表头 然后将第二列的colSpan设置为2 第三列表头的display设置为display: none
+<!--
+    methods: {
+        setColSpan() {
+            获取表头的所有单元格
+            let x = document.getElementByClassName("el-table__header")[0].rows[0].cells
+
+            将第二列表头单元格的colSpan设为2
+            x[1].colSpan = 2
+            x[2].style.display = "none"
+        }
+    }
+
+    mounted() {
+        注意一定要保证dom渲染完成后在进行合并操作 否则会找不到元素
+        this.$nextTick(function () { this.setColSpan() }) 
+    }
+
+
+
+    我在项目中的做法: 对偶数列进行 colSpan 操作 然后对它的下一列进行 display none 操作
+    setHeaderCellMerged() {
+      let target = document.querySelectorAll(".total-table .el-table__header")[0].rows[0].cells
+      for(let i=0; i<target.length; i++) {
+        if(i % 2 == 0) {
+          target[i].colSpan = 2
+          target[i].children[0].style.cssText = "justify-content: center;"
+          target[i + 1].style.cssText = "display: none;"
+        }
+      }
+    }
+
+    mounted() {
+        this.$nextTick(function () { this.setHeaderCellMerged() }) 
+    }
+-->
+
+- 实操中的总结点
+- 1 我是封装了一个 table 组件 这个组件在很多地方都会被调用 如果我在这个封装的组件里面进行操作 那么其他组件都会在挂载的时候执行这个函数 不好
+- 2 所以 我在 table 组件里面在挂载的时候 emit 事件 在销毁的时候解绑事件
+- 3 在父组件中 使用@来绑定自定义事件
+<!--
+  table组件什么逻辑都没有做 就是在页面挂载的时候 发射了一个 事件名
+  mounted() {
+    this.$emit("setHeaderCellMerged")
+  },
+  beforeDestroy() {
+    this.$off("setHeaderCellMerged")
+  },
+
+
+  父组件在调用table组件的时候 先在table组件上绑定自定义事件 然后在回调中写逻辑 然后在组件挂载的时候处理逻辑
+  methods: {
+    setHeaderCellMerged() {
+      let target = document.querySelectorAll(".total-table .el-table__header")[0].rows[0].cells
+      for(let i=0; i<target.length; i++) {
+        if(i % 2 == 0) {
+          target[i].colSpan = 2
+          target[i].children[0].style.cssText = "justify-content: center;"
+          target[i + 1].style.cssText = "display: none;"
+        }
+      }
+    }
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.setHeaderCellMerged()
+    })
+  }
+-->
+
+
+
+### 给table组件中的单元格 统一上样式
+- el-table 中 使用 :cell-style="{textAlign: 'center'}"
+
+
+### Vue中 deep 的使用方式
+- 一般在使用scoped后 父组件的样式将不会渗透到子组件中 而我们调用的element组件就相当于在父组件中使用子组件
+- 这时候我们想改变element组件的部分样式时 就要在class类名前加上 /deep/ 或者 >>> 或者 ::v-deep
+- .(外层class) >>> .(内层class)
+
+- vue在解析样式的时候会在类名的后面加上[vasdf2323]之类的属性 当我们使用 deep 后该属性就会加在外层class上 获取我们修改的样式就会生效
+- .(外层class) .(内层class)[data-v-asfda123]
+- .(外层class) >>> .(内层class)   ---   .(外层class)[data-v-asfda123]  .(内层class)
+
+<!--
+    .table-wrap /deep/ .el-table__header-wrapper .cell {
+      padding-left: 0;
+    }
+-->
+
+
+
+### element ui 多列表头设计
+1. html结构部分：
+    实现多级表头的设计主要方式是在el-table-column中再次嵌套el-table-column来实现的
+2. 数据结构
+
+- 表格的源数据
+- 案例中是将最下级表头对应的数据都使用prop绑定了tableData中的一个对象
+- 因为tableData中每一个对象代表一行数据
+
+- 而我做的案例中 因为每列的数据是重名的 所以才用了下面的数据结构 是想让对应的部分只读chiba 或者 funahashi 里面的数据
+<!--
+tableData: [
+    {
+      year: "2000",
+      chiba: { no: "1", amound: "98,000" },
+      funahashi: { no: "2", amound: "84,000" }
+    }
+]
+-->
+
+
+- 列的数据源
+- 单级别表头的数据源里面使用prop来定义
+- 多级别表头的数据源 prop 使用 chiba.no 的方式来定义 chiba是表格data中目标对象，no是表格data中目标对象中的指定属性
+<!--
+    tableColumns: [
+        { prop: "year", label: "年度", minWidth: 100 },
+        {
+          label: "千葉",
+          children: [
+            { prop: "chiba.no", label: "名", minWidth: 60 },
+            { prop: "chiba.amound", label: "金額", minWidth: 100 },
+          ]
+        },
+    ]
+-->
+
+
+- html 结构部分 和 方法区
+<!--
+    <el-table
+      :data="tableData"
+      border
+      style="width: 100%">
+        
+      // 单层表头
+      <el-table-column v-for="(item, index) of tableColumns" :key="index" v-bind="item">
+        
+        // 多级表头
+        <el-table-column v-if="item.children" v-for="(i, k) of item.children" :key="k" v-bind="i">
+          <template scope="scope">
+            {{showInfo(scope.row, i)}}
+          </template>
+
+        </el-table-column>
+        
+        // 这里是正常单层表头的内容区 
+        <template v-else-if="item.type == 'link'" scope="scope">
+          <nuxt-link :to="linkTo">{{ scope.row[item.prop] }}</nuxt-link>
+        </template>
+
+        <template v-else scope="scope">
+          {{ scope.row[item.prop]}}
+        </template>
+
+      </el-table-column>
+
+    </el-table>
+
+
+    showInfo(row, i) {
+      let address = i.prop.split(".")[0]
+      let attr = i.prop.split(".")[1]
+      return row[address][attr]
+    }
+-->
+
+
+
+
+
+
 ### 上拉加载更多
 - 一次性请求所有数据，先加载8个，触底的时候再加载8个
 
@@ -204,6 +728,90 @@
     - window.removeEventListener("scroll", this.scrollFn)
 - }
 
+
+> 项目中的代码
+<!--
+    data() {
+    return {
+      // 这个模拟请求回来的数据
+      requestData: [
+        {
+          27个data
+        }
+      ],
+
+      // 这个是要传递给组件的表格数据
+      tableData2: [],
+      
+      // 这个是控制 是否加载中 的变量 和 切换请求数组的对象
+      loadingInfo: {
+        loading: true,
+        
+        这里需要key索引和对象搭配使用通过索引取对象中的数据数组
+        obj: {},
+        objKey: 0
+      }
+    }
+  },
+    
+  在结构挂载的时候 绑定滚动事件
+  mounted() {
+    window.addEventListener("scroll", this.scrollFn)
+  },
+
+  在这个周期中发送请求 将请求回来的数据进行切割 分批次放到obj中 初始化的时候放5个
+  created() {
+    this.handleTableData()
+  },
+
+  在这个周期中销毁滚动的监视
+  beforeDestroy() {
+    window.removeEventListener("scroll", this.scrollFn)
+  },
+
+
+  methods: {
+    
+    滚动函数
+    scrollFn() {
+      let windowH = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+      let st = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+      let docH = document.documentElement.scrollHeight || document.body.scrollHeight
+        
+      判断key值如果key值大于obj内部属性的个数 那么就return
+      if(this.loadingInfo.objKey >= Object.keys(this.loadingInfo.obj).length - 1) {
+        this.loadingInfo.loading = false
+        return
+      }
+        
+      触底的判断 在其中让key值自增 然后往里面push接下来的5条
+      if(windowH + st >= docH) {
+        this.loadingInfo.objKey++
+        this.tableData2 = this.tableData2.concat(this.loadingInfo.obj[this.loadingInfo.objKey])
+      }
+    },
+
+    handleTableData() {
+      this.loadingInfo.loading = true
+      this.loadingInfo.obj = {}
+      this.loadingInfo.objKey = 0
+        
+      切割数组的逻辑
+      if(this.requestData.length > 5) {
+        for(let i=0; i<Math.ceil(this.requestData.length / 5); i++) {
+          this.loadingInfo.obj[i] = this.requestData.slice(5*i, 5*(i+1))
+        }
+      } else {
+        this.tableData2 = this.requestData
+        this.loadingInfo.loading = false
+      }
+    
+      初始化让数据里面先有5条
+      this.tableData2 = this.loadingInfo.obj[this.loadingInfo.objKey]
+      console.log("tableData2", this.tableData2)
+    },
+-->
+
 ------------------
 
 ### 打印功能
@@ -291,6 +899,7 @@ import Print from "vue-print-nb"
 <div id="print-area">
 
 然后在打印标签上填写 v-print="'#print-area'"
+<el-button v-print="'#print-area'">ラベル印刷</el-button>
 
 
 

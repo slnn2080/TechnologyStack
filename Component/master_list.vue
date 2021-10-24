@@ -17,33 +17,72 @@
           <template slot="header">
             <div class="job-header">
               <h3 class="mb-0">{{ page_name }}</h3>
-              <el-button
-                v-if="!hide_create"
-                type="primary"
-                class="btn btn-primary"
-                @click="createInfo"
-                >新規</el-button
-              >
+              <div>
+                <el-button
+                  v-if="!hide_create"
+                  type="primary"
+                  class="btn btn-primary"
+                  @click="createInfo"
+                  >新規</el-button
+                >
+                <el-button
+                  v-if="is_show_feature"
+                  type="danger"
+                  class="btn btn-primary"
+                  @click="$nuxt.$emit('update-feature')"
+                  >注目キャストを取得</el-button
+                >
+                <el-button
+                  v-if="is_show_submit"
+                  type="primary"
+                  class="btn btn-primary"
+                  @click="handleSubmitEmit"
+                  >更新</el-button
+                >
+              </div>
             </div>
           </template>
           <div>
+            <template v-if="!hide_filter_feature">
+              <select v-model="filterInfo" class="filter_feature">
+                <option value="0">全カテゴリ</option>
+                <option v-for="item in fsData" :key="item.id" :value="item.id">
+                  {{ item.attributes.category }}
+                </option>
+              </select>
+            </template>
             <el-table
-              :data="getPageData()"
-              :default-sort="{ prop: 'id', order: 'descending' }"
+              :data="getPageDataWithFilter()"
+              :default-sort="
+                default_sort
+                  ? default_sort
+                  : { prop: 'id', order: 'descending' }
+              "
               row-key="id"
               header-row-class-name="thead-light"
               @selection-change="selectionChange"
             >
               <el-table-column
                 v-for="column in head"
+                v-if="!column.is_hidden"
                 :key="column.label"
                 v-bind="column"
+                :prop="column.prop"
               >
                 <template v-if="column.type == 'image'" scope="scope">
                   <img
                     style="width: 150px; height: 100px"
                     :src="$castvox.ref_obj(scope.row, column.prop)"
                   />
+                </template>
+                <template v-else-if="column.type == 'check'" scope="scope">
+                  <input
+                    type="checkbox"
+                    :id="`selected_id_${scope.row.id}`"
+                    v-model="scope.row[column.prop]"
+                  />
+                </template>
+                <template v-else-if="column.type == 'hidden'" scope="scope">
                 </template>
                 <template v-else-if="column.type == 'select'" scope="scope">
                   <badge
@@ -55,6 +94,16 @@
                       column.options[$castvox.ref_obj(scope.row, column.prop)]
                         .text
                     }}
+                  </badge>
+                </template>
+                <template
+                  v-else-if="column.type == 'select_category'"
+                  scope="scope"
+                >
+                  <badge
+                    v-if="get_select_category(scope.row, column.prop)"
+                    :type="get_select_category(scope.row, column.prop).type"
+                    >{{ get_select_category(scope.row, column.prop).text }}
                   </badge>
                 </template>
                 <template v-else-if="column.type == 'link'" scope="scope">
@@ -83,27 +132,103 @@
                     $castvox.get_date($castvox.ref_obj(scope.row, column.prop))
                   }}
                 </template>
+                <template v-else-if="column.type == 'query'" scope="scope">
+                  {{ queryShowData($castvox.ref_obj(scope.row, column.prop)) }}
+                </template>
+                <template
+                  v-else-if="column.type == 'contractor_attr'"
+                  scope="scope"
+                >
+                  {{ contractorAttr($castvox.ref_obj(scope.row, column.prop)) }}
+                </template>
+                <template v-else-if="column.type == 'contractor'" scope="scope">
+                  {{
+                    contractorName(
+                      scope.row.attributes,
+                      $castvox.ref_obj(scope.row, column.prop)
+                    )
+                  }}
+                </template>
+                <template v-else-if="column.type == 'plan'" scope="scope">
+                  {{ $castvox.ref_obj(scope.row, column.prop).meta.name[0] }}
+                </template>
+                <template
+                  v-else-if="column.type == 'works_status'"
+                  scope="scope"
+                >
+                  <badge
+                    :type="
+                      column.options[$castvox.ref_obj(scope.row, column.prop)]
+                        .type
+                    "
+                    >{{
+                      statusShowData($castvox.ref_obj(scope.row, column.prop))
+                    }}
+                  </badge>
+                </template>
                 <template v-else scope="scope">
                   {{ $castvox.ref_obj(scope.row, column.prop) }}
                 </template>
               </el-table-column>
               <el-table-column min-width="130px" label="操作">
                 <template slot-scope="scope">
-                  <el-button
-                    type="success"
-                    class="btn btn-success"
-                    size="small"
-                    @click="selectRecord(scope)"
-                    >確認</el-button
+                  <div class="d-flex">
+                    <el-button
+                      v-if="is_show_change"
+                      type="success"
+                      class="btn btn-success"
+                      size="small"
+                      @click="$nuxt.$emit('change-item', scope.row)"
+                      >変更</el-button
+                    >
+                    <el-button
+                      v-if="!hide_edit"
+                      type="success"
+                      class="btn btn-success"
+                      size="small"
+                      @click.prevent="selectRecord(scope)"
+                      >確認</el-button
+                    >
+                    <el-button
+                      v-if="!hide_delete"
+                      type="danger"
+                      class="btn btn-danger"
+                      size="small"
+                      @click.prevent="deleteInfo(scope)"
+                      >削除</el-button
+                    >
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                v-if="is_show_prio"
+                min-width="64px"
+                label="優先度"
+              >
+                <template slot-scope="scope">
+                  <div
+                    class="
+                      d-flex
+                      flex-column
+                      justify-content-center
+                      btn_container
+                    "
                   >
-                  <el-button
-                    v-if="!hide_delete"
-                    type="danger"
-                    class="btn btn-danger"
-                    size="small"
-                    @click="deleteInfo(scope)"
-                    >削除</el-button
-                  >
+                    <el-button
+                      type="warning"
+                      class="m-1 btn btn-danger"
+                      size="small"
+                      @click="$nuxt.$emit('priority', scope.row, true)"
+                      >Up
+                    </el-button>
+                    <el-button
+                      type="warning"
+                      class="m-1 btn btn-danger"
+                      size="small"
+                      @click="$nuxt.$emit('priority', scope.row, false)"
+                      >Down</el-button
+                    >
+                  </div>
                 </template>
               </el-table-column>
             </el-table>
@@ -143,6 +268,7 @@
         :showClose="true"
         :type="notice"
         size="sm"
+        @close="handleClosed"
       >
         <h6 slot="header" class="modal-title">削除確認</h6>
         <div>削除してもよろしいでしょうか？</div>
@@ -152,14 +278,14 @@
               type="cancel"
               class="btn btn-warning"
               :disabled="false"
-              @click="onCancel"
+              @click.prevent="onCancel"
               >キャンセル</base-button
             >
             <base-button
               type="danger"
               class="btn btn-danger"
               :disabled="false"
-              @click="onDelete"
+              @click.prevent="onDelete"
               >削除</base-button
             >
           </div>
@@ -172,7 +298,15 @@
 <script>
 import Vue from "vue";
 
-import { Table, TableColumn, Select, Option, Input, Button } from "element-ui";
+import {
+  Table,
+  Checkbox,
+  TableColumn,
+  Select,
+  Option,
+  Input,
+  Button,
+} from "element-ui";
 import RouteBreadCrumb from "@/components/argon-core/Breadcrumb/RouteBreadcrumb";
 import {
   BasePagination,
@@ -189,6 +323,10 @@ export default {
   mixins: [clientPaginationMixin],
   layout: "DashboardLayout",
   props: {
+    enterDetailPage: {
+      type: Boolean,
+      default: false,
+    },
     page_name: {
       type: String,
       default: "",
@@ -217,14 +355,62 @@ export default {
       type: Boolean,
       default: false,
     },
+    hide_edit: {
+      type: Boolean,
+      default: false,
+    },
     hide_delete: {
       type: Boolean,
       default: false,
+    },
+    is_show_prio: {
+      type: Boolean,
+      default: false,
+    },
+    is_show_change: {
+      type: Boolean,
+      default: false,
+    },
+
+    is_show_feature: {
+      type: Boolean,
+      default: false,
+    },
+    is_show_submit: {
+      type: Boolean,
+      default: false,
+    },
+    is_hook_select: {
+      type: Boolean,
+      default: false,
+    },
+    is_hook_delete: {
+      type: Boolean,
+      default: false,
+    },
+    default_sort: {
+      type: Object,
+      default: null,
+    },
+    select_category: {
+      type: Array,
+      default: null,
+    },
+    hide_filter_feature: {
+      type: Boolean,
+      default: true,
+    },
+    fsData: {
+      type: Array,
+      default() {
+        return [];
+      },
     },
   },
   components: {
     BasePagination,
     Card,
+    Checkbox,
     Modal,
     BaseButton,
     RouteBreadCrumb,
@@ -243,11 +429,84 @@ export default {
       tableData: [],
       selectedRows: [],
       pagination: { perPage: 10, currentPage: 1 },
+      filterInfo: "0",
+      filterData: [],
     };
   },
+  computed: {
+    contractorAttr() {
+      return (value) => {
+        if (value == 1) {
+          return "クライアント";
+        } else if (value == 2) {
+          return "キャスト";
+        } else if (value == 3) {
+          return "クライアント＋キャスト";
+        } else {
+          return "";
+        }
+      };
+    },
+    contractorName() {
+      return (row, prop) => {
+        return `${row["last_name"]} ${prop}`;
+      };
+    },
+
+    queryShowData() {
+      return (value) => {
+        if (value == 0) {
+          return "クライアント契約について";
+        } else if (value == 1) {
+          return "キャスト情報登録について";
+        } else if (value == 2) {
+          return "その他のお問い合わせ";
+        }
+      };
+    },
+    statusShowData() {
+      return (value) => {
+        if (value == "0") {
+          return "不明";
+        } else if (value == "1") {
+          return "確定";
+        } else if (value == "2") {
+          return "提案";
+        } else if (value == "3") {
+          return "その他";
+        }
+      };
+    },
+  },
   methods: {
+    handleSubmitEmit() {
+      this.$nuxt.$emit("submit");
+    },
+    handleClosed() {
+      this.confirmBox.is_show = false;
+    },
+    getPageDataWithFilter() {
+      let n = this.filterInfo;
+      let filter = this.data.filter((data) => {
+        if (n == "0") {
+          return this.data;
+        } else {
+          return data.attributes["category_id"] == n;
+        }
+      });
+      //ページングが無効に
+      if (filter.length != 0) {
+        return filter.slice(
+          (this.pagination.currentPage - 1) * this.pagination.perPage,
+          (this.pagination.currentPage - 1) * this.pagination.perPage +
+            this.pagination.perPage
+        );
+      } else {
+        return filter;
+      }
+    },
+
     getPageData() {
-      // console.log(this.data);
       if (this.data.length == 0) {
         return this.data;
       } else {
@@ -263,10 +522,23 @@ export default {
     },
 
     selectRecord(arg) {
-      if (this.edit_to) {
-        this.$router.push(`${this.edit_to}/${arg.row.id}`);
+      if (!this.is_hook_select) {
+        if (this.edit_to) {
+          this.$router.push(`${this.edit_to}/${arg.row.id}`);
+        } else {
+          if (
+            this.enterDetailPage &&
+            this.$route.query &&
+            this.$route.query.top_ids
+          ) {
+            this.$router.push(`casts/detail/${arg.row.id}`);
+          } else {
+            this.$router.push(`${this.$route.fullPath}/detail/${arg.row.id}`);
+          }
+        }
       } else {
-        this.$router.push(`${this.$route.fullPath}/detail/${arg.row.id}`);
+        //
+        this.$nuxt.$emit("select_item", arg);
       }
     },
 
@@ -283,24 +555,42 @@ export default {
       this.confirmBox.id = scope.row.id;
     },
     async onDelete() {
-      try {
-        await this.$axios.$delete(
-          `${url}/${this.api_name}/${this.confirmBox.id}`
-        );
-        this.confirmBox.is_show = false;
-        this.$router.go({ path: this.$router.currentRoute.path, force: true });
-      } catch (e) {
-        console.log(e);
+      if (!this.is_hook_delete) {
+        try {
+          await this.$axios.$delete(
+            `${url}/${this.api_name}/${this.confirmBox.id}`
+          );
+          this.confirmBox.is_show = false;
+          this.$router.go({
+            path: this.$router.currentRoute.path,
+            force: true,
+          });
+        } catch (e) {
+          console.log(e);
+        }
       }
+      this.$nuxt.$emit("delete_item", this.confirmBox.id);
+      this.confirmBox.is_show = false;
     },
 
     onCancel() {
       this.confirmBox.is_show = false;
     },
+    get_select_category(row, prop) {
+      if (this.select_category) {
+        let f = this.select_category.filter((e) => {
+          return e.id == this.$castvox.ref_obj(row, prop);
+        });
+        return f[0];
+      }
+    },
   },
 };
 </script>
 <style scoped>
+.filter_feature {
+  margin: 0px 0px 24px 24px;
+}
 img {
   object-fit: contain;
 }
@@ -312,5 +602,8 @@ img {
   display: flex;
   justify-content: space-between;
   padding-right: 36px;
+}
+.btn_container {
+  height: 100px;
 }
 </style>

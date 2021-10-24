@@ -15,6 +15,15 @@
               <div class="card">
                 <div class="card-header">
                   <h3 class="mb-0">{{ page_name }}</h3>
+                  <div>
+                    <el-button
+                      v-for="n in head_button"
+                      :type="n.type"
+                      class="btn btn-primary"
+                      @click="$nuxt.$emit(n.emit)"
+                      >{{ n.title }}</el-button
+                    >
+                  </div>
                 </div>
                 <div class="card-body">
                   <div>
@@ -105,8 +114,7 @@
                           />
                           <strong>パスワードルール</strong>
                           <div class="text-danger">
-                            <span>・8文字以上 64文字を最大長とすると</span
-                            ><br />
+                            <span>・8文字以上 64文字を最大長とする</span><br />
                             <span
                               >・英数記号はそれぞれ１文字以上使用すること</span
                             ><br />
@@ -126,6 +134,7 @@
                               class="text-nowrap mr-4 my-2"
                             >
                               <h5>{{ p.title }}</h5>
+
                               <base-input
                                 v-if="!n.is_readonly"
                                 :readonly="n.is_readonly"
@@ -161,7 +170,17 @@
                         <template v-else-if="n.type == 'title_only'">
                         </template>
                         <template v-else-if="n.type == 'download'">
-                          <a :href="form[n.options]">{{ form[n.props] }}</a>
+                          <a :href="form[n.options]">{{ form[n.props] }}</a
+                          >&emsp;
+                          <a
+                            v-show="n.sub_type == 'btn'"
+                            class="download_btn"
+                            :href="form[n.options]"
+                            download="detail_file.jpg"
+                            type="info"
+                            size="mini"
+                            >Download</a
+                          >
                         </template>
                         <template v-else-if="n.type == 'upload'">
                           <input
@@ -173,6 +192,11 @@
                         </template>
                         <template v-else-if="n.type == 'link'">
                           <a :href="form[n.props]">{{ form[n.props] }}</a>
+                        </template>
+                        <template v-else-if="n.type == 'account_link'">
+                          <nuxt-link :to="`/account/detail/${form[n.props]}`">{{
+                            form[n.props]
+                          }}</nuxt-link>
                         </template>
                         <template v-else-if="n.type == 'email'">
                           <base-input
@@ -238,6 +262,7 @@
                         </template>
                         <template v-else-if="n.type == 'relation_select'">
                           <select
+                            v-if="!n.is_readonly"
                             :readonly="n.is_readonly"
                             :name="`register_${n.props}`"
                             :type="n.type"
@@ -251,29 +276,59 @@
                               {{ ct.attributes[n.options.index] }}
                             </option>
                           </select>
+                          <strong v-else>
+                            <template v-if="options[n.options.key]">
+                              {{
+                                options[n.options.key][0].attributes[
+                                  n.options.index
+                                ]
+                              }}
+                            </template>
+                          </strong>
                         </template>
-                        <select
-                          v-else-if="n.type == 'select' && !n.is_readonly"
-                          :readonly="n.is_readonly"
-                          :name="`register_${n.props}`"
-                          :type="n.type"
-                          :title="test"
-                          v-model="form[n.props]"
+                        <template
+                          v-else-if="n.type == 'publish' && !n.is_readonly"
                         >
-                          <option
-                            v-for="(ct, idx) in n.options"
-                            :key="idx"
-                            :value="idx"
+                          <select
+                            :readonly="n.is_readonly"
+                            :name="`register_${n.props}`"
+                            v-model="form[n.props]"
                           >
-                            {{ ct.text }}
-                          </option>
-                        </select>
-                        <badge
-                          v-else-if="n.type == 'select' && n.is_readonly"
-                          :type="n.options[form[n.props]].type"
-                        >
-                          {{ n.options[form[n.props]].text }}
-                        </badge>
+                            <option
+                              v-for="(ct, idx) in n.options"
+                              :key="idx"
+                              :value="ct.value"
+                            >
+                              {{ ct.text }}
+                            </option>
+                          </select>
+                        </template>
+                        <template v-else-if="n.type == 'select'">
+                          <select
+                            v-if="!n.is_readonly"
+                            :readonly="n.is_readonly"
+                            :name="`register_${n.props}`"
+                            :type="n.type"
+                            :title="test"
+                            v-model="form[n.props]"
+                          >
+                            <option
+                              v-for="(ct, idx) in n.options"
+                              :key="idx"
+                              :value="idx"
+                            >
+                              {{ ct.text }}
+                            </option>
+                          </select>
+                          <template v-else-if="n.options[form[n.props]]">
+                            <badge :type="n.options[form[n.props]].type">
+                              {{ n.options[form[n.props]].text }}
+                            </badge>
+                          </template>
+                          <template v-else>
+                            <badge type="info"> 不明 </badge>
+                          </template>
+                        </template>
                         <base-input
                           v-else-if="n.type == 'multiline'"
                           :readonly="n.is_readonly"
@@ -285,12 +340,89 @@
                             v-if="!n.is_readonly"
                             :name="`register_${n.props}`"
                             :readonly="n.is_readonly"
-                            cols="200"
-                            rows="30"
+                            class="text-area"
+                            rows="10"
                             v-model="form[n.props]"
                           ></textarea>
                           <p v-else>{{ form[n.props] }}</p>
                         </base-input>
+                        <template v-else-if="n.type == 'language_text'">
+                          <base-input
+                            v-if="!n.is_readonly"
+                            :readonly="n.is_readonly"
+                            :name="`register_${n.props}`"
+                            :type="n.type"
+                            v-model="form[n.props].language"
+                          />
+                          <strong v-else>{{
+                            languageInfo(form[n.props].language)
+                          }}</strong>
+                        </template>
+                        <template v-else-if="n.type == 'level_text'">
+                          <base-input
+                            v-if="!n.is_readonly"
+                            :readonly="n.is_readonly"
+                            :name="`register_${n.props}`"
+                            :type="n.type"
+                            v-model="form[n.props].level"
+                          />
+                          <strong v-else>{{
+                            languageInfo(form[n.props].level)
+                          }}</strong>
+                        </template>
+                        <template v-else-if="n.type == 'language-group'">
+                          <div v-if="!n.is_readonly">
+                            <div
+                              class="row align-items-center language-group-row"
+                              v-for="(item, index) in info"
+                              :key="index"
+                            >
+                              <div class="col-lg-3">
+                                <el-input
+                                  :readonly="n.is_readonly"
+                                  :type="n.type"
+                                  v-model="item.language"
+                                  @change="inputChange"
+                                />
+                              </div>
+                              <div class="col-lg-2">
+                                <el-select
+                                  @change="selectChange"
+                                  :readonly="n.is_readonly"
+                                  :type="n.type"
+                                  v-model="item.level"
+                                >
+                                  <el-option
+                                    v-for="i in n.options"
+                                    :key="i.id"
+                                    :value="i.value"
+                                    :label="i.label"
+                                  ></el-option>
+                                </el-select>
+                              </div>
+                              <div class="col-1">
+                                <el-button
+                                  type="danger"
+                                  @click="deleteItem(index)"
+                                  >削除</el-button
+                                >
+                              </div>
+                            </div>
+                            <div
+                              class="row align-items-center language-group-row"
+                            >
+                              <el-button
+                                type="warning"
+                                class="add-btn"
+                                @click="addItem"
+                                >言語追加</el-button
+                              >
+                            </div>
+                          </div>
+                          <strong v-else>{{
+                            languageInfo(form[n.props].level)
+                          }}</strong>
+                        </template>
                         <template v-else>
                           <base-input
                             v-if="!n.is_readonly"
@@ -307,21 +439,35 @@
                 </div>
               </div>
               <template v-if="hide_btnArea">
-                <base-button
-                  type="secondary"
-                  class="btn btn-warning"
-                  @click="onCanceled"
-                >
-                  戻る
-                </base-button>
-                <base-button
-                  type="success"
-                  class="btn btn-primary"
-                  native-type="submit"
-                >
-                  <span v-if="!is_new()">更新</span>
-                  <span v-else>登録</span>
-                </base-button>
+                <div class="footer-btn-group">
+                  <div>
+                    <base-button
+                      type="secondary"
+                      class="btn btn-warning"
+                      @click="onCanceled"
+                    >
+                      戻る
+                    </base-button>
+                    <base-button
+                      type="success"
+                      class="btn btn-primary"
+                      native-type="submit"
+                      v-if="!edit_btn"
+                      v-show="updateBtn"
+                    >
+                      <span v-if="!is_new()">更新</span>
+                      <span v-else>登録</span>
+                    </base-button>
+                  </div>
+                  <base-button
+                    v-if="edit_btn"
+                    type="success"
+                    class="btn btn-primary editBtn"
+                    @click="userEdit"
+                  >
+                    編集する
+                  </base-button>
+                </div>
               </template>
             </form>
           </div>
@@ -350,6 +496,16 @@ export default {
     [Input.name]: Input,
   },
   props: {
+    info: {
+      type: Array,
+      default() {
+        return [];
+      },
+    },
+    updateBtn: {
+      type: Boolean,
+      default: true,
+    },
     page_name: {
       type: String,
       default: "",
@@ -357,6 +513,10 @@ export default {
     api_name: {
       type: String,
       default: "",
+    },
+    head_button: {
+      type: Array,
+      default: null,
     },
     head: {
       type: Array,
@@ -386,6 +546,14 @@ export default {
       type: String,
       default: "/",
     },
+    edit_btn: {
+      type: Boolean,
+      default: false,
+    },
+    controlShow: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: function () {
     return {
@@ -403,7 +571,18 @@ export default {
       this.form[props[0].props] = e;
     });
   },
+
   computed: {
+    languageInfo() {
+      return (attr) => {
+        if (Array.isArray(attr)) {
+          return attr.join(",");
+        }
+        if (typeof attr == "string") {
+          return attr;
+        }
+      };
+    },
     time() {
       let time = new Date();
       let year = time.getFullYear();
@@ -420,8 +599,51 @@ export default {
       sec = sec < 10 ? "0" + sec : sec;
       return `${year}${month}${day}${hours}${min}${sec}`;
     },
+    updateAndcreate() {
+      if (
+        this.$route.query &&
+        this.$route.query.edit_id &&
+        this.$route.params &&
+        this.$route.params.id
+      ) {
+        return false;
+      } else {
+        return true;
+      }
+    },
   },
   methods: {
+    formDataUpdate() {
+      let languageArr = [];
+      let levelArr = [];
+      this.info.forEach((item) => {
+        languageArr.push(item.language);
+        levelArr.push(item.level);
+      });
+      this.form.language.language = languageArr;
+      this.form.language.level = levelArr;
+    },
+    inputChange() {
+      this.formDataUpdate();
+    },
+    selectChange() {
+      this.formDataUpdate();
+    },
+    deleteItem(index) {
+      this.info.splice(index, 1);
+      this.formDataUpdate();
+    },
+    addItem() {
+      let obj = {
+        id: Date.now(),
+        language: "",
+        level: "",
+      };
+      this.info.push(obj);
+    },
+    userEdit() {
+      this.$emit("editPush", this.id);
+    },
     async handleFileChange(e) {
       try {
         if (e.target.files) {
@@ -432,7 +654,7 @@ export default {
           let res = await this.$axios.$post(`${url}/import/list`, formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-          console.log(res);
+          //          console.log(res);
         }
       } catch (err) {
         console.log(err);
@@ -442,14 +664,10 @@ export default {
       let is_new = this.is_new();
       let ret = true;
       if (n.is_hidden_new) {
-        console.log("hidden new");
         ret = !is_new;
       } else if (n.is_hidden_edit) {
-        console.log("hidden edit");
         ret = is_new;
       }
-      console.log(n, ret, is_new);
-
       return ret;
     },
     async onSubmit() {
@@ -506,9 +724,11 @@ export default {
     },
     is_new() {
       if (this.$route.params && this.$route.params.id) {
+        if (this.controlShow) {
+          return this.updateAndcreate;
+        }
         return false;
       }
-
       return true;
     },
 
@@ -529,7 +749,7 @@ export default {
             },
           })
           .then((res) => {
-            console.log(res);
+            //            console.log(res);
             this.form.img_path = res.url;
             this.$nuxt.$emit("file_register", {
               props: "img_path",
@@ -564,7 +784,7 @@ export default {
 <style scoped>
 .card-wrapper {
   position: relative;
-  top: 100px;
+  top: 0px;
 }
 select {
   margin-left: 16px;
@@ -572,9 +792,46 @@ select {
 .input_style {
   width: 100%;
 }
-.btn-group {
-}
 .img_fit {
   object-fit: cover;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  padding-right: 36px;
+}
+
+.footer-btn-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.editBtn {
+  background-color: #1681b0;
+  border: none;
+}
+
+.text-area {
+  width: 100%;
+}
+
+.download_btn {
+  padding: 8px 16px;
+  background: #e7a23b;
+  color: #fff;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.download_btn:hover {
+  background-color: #d98e1f;
+}
+
+.language-group-row {
+  margin-top: 16px;
+}
+
+.add-btn {
+  margin-left: 15px;
 }
 </style>
