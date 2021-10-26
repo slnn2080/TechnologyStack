@@ -3408,6 +3408,8 @@
 ### 初始化React脚手架
 - 我们使用vue 和 react创建的页面叫做 SPA应用, 所以就一个index.html文件
 
+> create-react-app 项目名
+
 - 使用创建react应用:
 - create-react-app 
 <!-- 
