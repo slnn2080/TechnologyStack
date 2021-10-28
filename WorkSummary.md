@@ -2,6 +2,114 @@
 
 ------------------
 
+### 链判断运算符
+> ?.
+- 以往我们要读取对象内容的属性的时候 往往需要判断一下 属性的上层是否存在
+- 比如：message.body.user.firstName
+
+- 错误的写法：
+- let name = message.body.user.firstName || "default"
+- 有哪个用哪个
+
+- 正确的写法：
+- let name = (
+    message && message.body && message.body.user && message.body.user.firstName
+  ) || "default"
+- 我们要层层的判断一下属性的上层有没有值 但是我们需要的属性在第4层 所以要判断4次 每一层是否有值
+
+> ?.
+- es6中引入了 ?. 运算符 在链式调用的时候判断 左侧的对象是否为null或者undefined
+- 如果是 null 或者 undefined 那么就返回undefined
+- 如果不是 就执行
+
+<！--
+  a?.b
+  // 等同于
+  a == null ? undefined : a.b
+  
+  a?.[x]
+  // 等同于
+  a == null ? undefined : a[x]
+  
+  a?.b()
+  // 等同于
+  a == null ? undefined : a.b()
+  
+  a?.()
+  // 等同于
+  a == null ? undefined : a()
+-->
+
+> ??
+- 当运算符的左侧为null或者是undefined的时候 给予默认值
+- const animationDuration = response.settings?.animationDuration ?? 300;
+- 
+------------------
+
+### element ui Select组件传递参数
+- 这里稍微的做一下总结
+- 
+- react中 事件的回调传递参数的时候可以
+- 情况1:
+<!--
+  // 我们将return的函数返回 所以react在帮我们调用的时候 调用的是return的函数 所以return的函数中有e
+  而我们传递的参数可以在回调中的外层接收到
+
+  onClick={this.changeEvent(val1, val2)}
+  changeEvent = (val1, val2) => {
+    return (e) => { ... }
+  }
+
+
+  // 不用函数的柯里化的方式
+  onClick={(e) => { this.changeEvent(val1, val2)} }
+-->
+
+- 而select的change回调中就可以使用这种方式
+
+
+- 在computed计算属性中 也可以传递参数
+<!--
+  computed: {
+    total() {
+      return (我们可以在这里接收到参数) => {
+
+      }
+    }
+  }
+-->
+
+
+
+
+### 如何在Vue中使用mock
+- npm i mockjs
+- import
+- 定义规则 
+- 如果不使用拦截的话可以不传递第一个url参数 然后使用变量接收
+-
+
+<!--
+  import Mock from "mockjs";
+  Mock.mock("http://localhost:3200/data", {
+    "list|5-10": [
+      {
+        flag: "@id",
+        "title|+1": ["基本情報", "登録情報", "事務所等情報", "連絡先", "資格情報", "政治連盟", "その他", "口座情報", "交通費", "自宅"],
+        "options|3-5": [
+          {
+            "subTitle|+1": ["登録番号", "氏名", "フリガナ", "生年月日", "性別", "支部", "種別", "変更年月日", "入会年月日", "登録年月日"],
+            type: "input",
+            prop: /[\u0041-\u005a]{5}/,
+          }
+        ],
+      }
+    ]
+  })
+-->
+
+------------------
+
 ### input + select + button 点击按钮添加页面结构
 - 场景：
 - [ 日本语 ]  [ 下拉框 ]  删除按钮
@@ -315,6 +423,154 @@
 
 
 ### element ui中单元格的合并
+> 原生方式合并 表头区域 和 表体区域 单元格的方式
+- 该方式我觉得原生的table也可以适用
+- 思路
+- 每一个td身上都会有rowSpan 和 colSpan 我们通过js控制它们的数值就可以达到合并行 或者 合并列的需求
+
+- 注意：
+- 如果是合并列 必须将当前列的下一列的对应td 设置为 display: none
+- 如果是行合并 必须将当前行的下一行的对应td 设置为 display: none
+
+- vue中 我们可能会遇到获取不到节点的情况 比如获取到的是一个htmlconlection 从中取不到值
+- 这时候我们就需要适用 this.$nextTick 周期函数 在下一轮渲染后执行逻辑
+
+- element table组件的html结构解析
+- element table组件里面 表头分为一个表格 表体分为一个表格
+
+
+> 首先 我们要给 <el-table class="table-wrap"> 上上类名 通过类名选择具体的表格
+> 表头区域
+- 通过类名为 .el-table__header-wrapper 的 div 包裹了整个表头区域的表格
+- 大致的结构
+  - div.el-table__header-wrapper
+    - table.el-table__header
+      - thead
+        - tr
+          - th
+
+- document.querySelectorAll(".table-wrap .el-table__header")[0]
+- 我们可以通过这个类名获取到 头部区域 的表格 因为使用的是All方法所以要[0]
+
+- (".table-wrap .el-table__header")[0].rows
+- 我们可以通过这样写 选择到表头区域的所有行
+<!--
+比如 表头行的格式为
+  1:   木 更 津
+  2:   名  金额
+  那么
+  rows[0] 就是 1 那行
+  rows[1] 就是 2 那行
+-->
+
+- 同时 每一个th 和 td身上都有rowSpan 和 colSpan属性
+<!--
+  年度    这行的 colspan=1 rowspan=2   代表 列不合并保持1列的状态 但是行合并2行
+  木更津  这行的 colspan=2 rowspan=1    代表 列合并2行 行保持1行的状态
+
+  名和金额  都是 colspan=1 rowspan=1
+  **注意：**
+  我们看到的是 rowspan 和 colspan 但是在js中书写的时候 要写 colSpan 和 rowSpan
+-->
+
+- (".table-wrap .el-table__header")[0].rows[0].cells
+- 我们这样写能获取到 rows[0] 这行里的所有 th 节点
+
+> 合并思路
+- 横向合并列 的思路是 让其中的一个单元格的colSpan属性为2，它的下一格(横向第二列)的display为none
+- target[i].colSpan = 2
+- target[i + 1].style.cssText = "display: none;"
+
+
+> 表体区域
+- 表体区域也是一个表格
+- 大致的结构如下：
+  - div.el-table__body-wrapper
+    - table.el-table__body
+      - tbody
+        - tr.el-table__row
+          - td.el-tabel__cell
+            - div.cell
+        
+- document.querySelectorAll(".table-wrap .el-table__body")[0].rows
+- 可以获取到表体区域所有行的信息
+<!--
+总结：
+   我们能看到的是 每一个td身上都有rowspan 和 colspan 属性 都为1
+   单元格1  单元格2
+   我尝试了一下 列合并 让单元格1的colspan为2 那么单元格2的display必须为none 才能生效
+
+   单元格1
+   单元格2
+   我尝试了一下 行合并 让单元格1的rowspan为2 那么下一行对应位置的单元格2的display必须为none 才能生效
+-->
+
+> 代码部分：
+<!--
+    // methods
+    merageCell() {
+      // 获取表体部分的所有行信息
+      let allRows = document.querySelectorAll(".table-wrap .el-table__body")[0].rows
+
+      // 拿到最后两行的信息
+      let reciprocalTwo = allRows[allRows.length - 2]
+      let reciprocalOne = allRows[allRows.length - 1]
+      
+      // 在结构重新渲染后执行内部逻辑
+      this.$nextTick(() => {
+        
+        // 将节点转换为数组
+        let oneCells = Array.from(reciprocalOne.cells)
+        let twoCells = Array.from(reciprocalTwo.cells)
+
+        // twoCells里面的每一项就是item(td) 只要我们有index 那么另一个数据中的index项我们也可以拿到 相当于oneCells[index] == item
+        twoCells.forEach((td, index) => {
+        
+          // 因为td里面还有一个div.cell里面才是具体内容 这里我们判断下
+          if(td.children[0].innerHTML == oneCells[index].children[0].innerHTML) {
+            td.rowSpan = 2
+            oneCells[index].style.display = "none"
+          }
+        })
+      })
+    }
+
+  
+    // mounted
+    mounted() {
+      this.merageCell()
+    },
+-->
+
+
+> element ui中提供的方法 :span-method
+- 1 span-method 的回调是自己调用 实际大概在 mounted生命周期之后
+- 2 这个回调中的数据范围是除了表头行之外的范围
+
+> 参数：
+- 回调中接收到的参数
+- row
+- 每一个row是一个对象, 是tabledata中每一行的记录
+- 在回调中直接打印row的时候 每一个单元格的row都会打印一遍
+- { kita: {no:, amount: }, moku: {}, nedo: {}, year: 27 }
+
+- column
+- 每一个column是一个对象, 是每一列的信息
+- 在回调中直接打印column的时候 每一个单元格的column都会打印一遍 它有很多的属性
+
+- align
+- colSpan
+- rowSpan
+- label: 是这一列的表头栏显示的名称: 年度
+- property: 是 prop 也就是根据这个属性 可以去tabledata中找对应的数据用来显示
+
+> 返回值
+- 这个方法的返回值
+- [2, 1]   代表合并2行 列不合并
+- [0, 0]   代表该行不显示
+
+
+
 - 首先 我们要在el-table标签中添加 :span-method="handleMergedCell" 方法
 - 然后 在对应的处理函数中做逻辑 该回调的参数是一个对象 里面有4个参数
 - function ( { row, column, rowIndex, columnIndex } )
@@ -1312,7 +1568,7 @@ import Print from "vue-print-nb"
       // 完成后处理的事情
       let complate = () => {
         // 成功之后 提示下上传功能 message type showClose
-        alert("数据上传完毕");
+        alert("数据上传完毕");l
         // 上传完数据后表格隐藏 跳转等逻辑也可以在这里面处理
       };
 

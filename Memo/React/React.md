@@ -337,7 +337,7 @@
 
 ----------------------------
 
-### jsx的语法规则
+### jsx
 - 全称 Javascript XML 是react定义的一种类似于 XML 的js扩展语法 js + xml
 - 本质是 React.createElement(component, props, ...children)方法的语法糖
 
@@ -365,13 +365,18 @@
 
 
 > JSX的语法规则
-- 1. 定义虚拟DOM时, 不要写引号
+- 1. 定义虚拟DOM时, 不要写引号 结构使用小括号包裹
 - 2. 标签里面混着js的表达式 我们要使用{ }
 <!-- 
   这里要注意表达式和语句的区别, 标签里面使用表达式的时候用{ } 语句不行 
 -->
 
 - 3. 样式的类名指定不要用class 而是要用className
+- react元素的属性名使用驼峰命名法
+<!-- 
+  label标签的for属性 -- 需要替换 -- htmlFor
+ -->
+
 - 4. 内联样式要用style={{key:value}}的形式去写, 属性名使用驼峰
 - 添加内联样式的时候 一层{ } 是写表达式 再一层{{ }}是style要求的对象形式 
 - 属性名： 驼峰， 属性值： "字符串"
@@ -515,7 +520,63 @@
 
 ----------------------------
 
+### jsx的条件渲染
+- 场景
+- 我们请求数据的时候 会有一段的时间 在这段时间里为了正在用户体验我们可以定义加载动画效果 当请求数据回来后 结束loading动画 展示数据
+
+> 方式
+- 条件 ? () : ()
+<!-- 
+  const loadingData = () => {
+    if(isLoading) {
+      return (<div>数据加载中, 请稍后...</div>)
+    }
+
+    return (<div>数据加载完成后, 此处显示加载后的数据</div>)
+  }
+
+  const VDOM = (
+    <div>
+      { this.loadingData() }
+    </div>
+  )
+
+  ---- 方式2
+
+  const loadingData = () => {
+    return loading ? (<div>数据加载中, 请稍后...</div>) : (<div>数据加载完成后, 此处显示加载后的数据</div>)
+  }
+
+  ---- 方式3 下面的方式适合 要么展示要么隐藏的情况
+
+  return isLoading && (<div>数据加载中, 请稍后...</div>)
+  - 它只能达到一种效果 当isLoading为true的时候展示数据加载中 但是没有办法在isLoading为false的时候展示另一种样式
+ -->
+
+----------------------------
+
+### jsx的列表渲染
+- 如果我们要渲染一组数据 应该使用数组的map()方法
+- 遍历谁把key加给谁
+<!-- 
+  <ul>
+    {
+      songs.map((item, index) => {
+        return <li key={index}>{item.name}</li>
+      })
+    }
+  </ul>
+ -->
+
+----------------------------
+
 ### 模块与组件, 模块化与组件化的理解
+- 组件是react的一等公民 使用react就是在用组件
+- 组件标识页面中的部分功能 组合多个组件实现完整的页面功能
+
+- 特点
+- 可复用 独立 可组合 跟拼乐高似的
+
 - 1. 模块
 - 理解: 向外提供特定功能的js程序, 一般就是一个js文件
 <!-- 
@@ -541,10 +602,18 @@
 - 我们下面介绍两种组件的创建方式
 
 ### 函数式组件
-- 使用函数的方式(函数名首字母大写)创建组件
+- 约定1：
+- 使用函数的方式(函数名首字母大写)创建组件 函数名就是组件标签名
 <!-- 
   函数会被React调用 所以函数内部必须使用return 将虚拟DOM暴露出去 
 -->
+
+- 约定2：
+- 函数组件必须有返回值 表示该组件的结构
+
+- 约定3：
+- 如果我们返回的是null 表示不渲染任何内容
+
 
 - 1. 创建函数组件
 - 2. 使用ReactDOM.render渲染到页面上
@@ -553,10 +622,19 @@
   // 创建函数组件
   function Demo() {
     return <h2>我是用函数定义的组件(适用于简单的组件的定义)</h2>
+
+    或者
+
+    return null
   }
 
   // 将组件渲染到页面
   ReactDOM.render(<Demo />, app)
+
+
+  ---- 箭头函数的形式
+
+  const Hello = () => <h2>我是用函数定义的组件</h2>
  -->
 
 
@@ -586,7 +664,11 @@
 - 顾名思义 通过创建类的方式创建一个组件
 - 使用类创建一个组件必须
 - 1. 使用 extends继承 React.Component
-- 2. 内部必须写render 且有返回值
+<!-- 
+  类组件应该继承 React.Component 父类 从而可以使用父类中提供的方法或属性
+ -->
+
+- 2. 内部必须写render 且有返回值 同时类名也要以大写字母开头
 <!-- 
   注意 react要求 我们在使用类式组件的时候, 我们创建的类必须继承react的内置类 React.Component
   class Demo extends React.Component {
@@ -713,12 +795,19 @@
     组件的状态里面存放着数据 数据的改变就会驱动页面的展示
  -->
 
+- 状态就是数据 是组件内部私有数据 只能在组件内部使用
+- state的值是一个对象 表示一个组件中可以有多个数据 放在同一对象中统一管理
+
+
 > 为什么 函数组件 适合简单组件
 - 上面说了 简单组件和复杂组件的区别是有没有状态, 状态只能在实例对象中, 谈到实例对象只有class的方式才能创建实例对象, 所以拥有state的只能是复杂组件类型(class)
 <!-- 
   新版的函数组件可以通过hooks来使用 组件实例的三大核心属性
  -->
 
+
+> state = {} 组件内部定义状态
+> this.setState({ ... }) 修改状态的方法
 
 > 总结:
 - 组件中render方法中的this为组件实例对象
@@ -729,9 +818,35 @@
 - 状态数据 不能直接修改或更新
   - 必须借助 setState
 
+
+> setState
+- 状态是可以改变的 通过 setState 来修改状态中的值
+- this.setState({要修改的数据})
+- 先对state中的数据进行操作的时候 要先获取原数据
+<!--
+    this.setState({ count: this.state.count + 1})
+    获取原来的值 + 1
+-->
+
+- 那如果 state 中有两条数据 我修改的时候要将两条数据都放进 setState 里面么？
+- react内部会进行处理 它只会修改你放进来的数据 没有放进来的不会对其进行处理
+<!--
+    state = { name: "sam", age: 18 }
+
+    在我只想修改name的时候 用把age放进来么？
+    this.setState({ name: "erin", age: ?? })
+-->
+
+- setState的作用：
+- 1 修改 state 2 更新界面 当状态改变的时候 react会更新界面
+
+
+> react的编程思想：
+- 数据驱动视图，数据先发生改变 驱动着页面发生更新
+
 ----------------------------
 
-### 案例
+### 事件处理
 - 需求 点击框体改变文字 
 - <h3>今天天气很炎热</h3> 中的炎热会发生改变   炎热 --- 凉爽
 
@@ -795,9 +910,16 @@
 
 - 接下来我们想下怎么给标题添加点击事件, 然后我们对state中的isHot进行取反
 
+
 > react中的事件绑定
+- react事件绑定语法与DOM事件语法相似
+
+- 语法：
+- on + 事件名(驼峰) = {this.事件处理函数}
 - 我们推荐直接在标签内部绑定事件
-- 注意要点
+
+
+> 注意要点
 - 1. 事件名必须是驼峰写法(因为react内部对事件名进行了格式上的重写)
 - 2. 回调的事件写在类中
 - 3. 事件回调必须加上{ } 而且回调的事件名前面要加上this, 并且事件回调不要加小括号
@@ -822,10 +944,21 @@
 
   为什么要加上this?
     <h3 onClick={changeWeather}>
-      假如我们不加this会报changeWeather未定义的错误, 因为我们将这个方法放入了类中, chanteWeather只有通过Weather的实例对象才能调用 所以我们要在函数的前面加上this = > this.changeWeather
+      假如我们不加this会报changeWeather未定义的错误, 因为我们将这个方法放入了类中, changeWeather只有通过Weather的实例对象才能调用 所以我们要在函数的前面加上this = > this.changeWeather
  -->
 
-> <h3 onClick={this.changeWeather}> 产生的this的问题
+- 4. 函数组件中绑定事件的方式
+- 不用加this
+<!-- 
+  return (<button onClick={handleClick}>)
+ -->  
+
+> <h3 onClick={this.changeWeather}> 类中定义的函数产生的this的问题
+- 我们定义函数有多种方式 比如
+- changeWeather() { ... }
+- changeWeather = () => { ... }
+
+- 两种定义函数的方式有什么样的区别么？ this
 <!-- 
   changeWeather() {
     
@@ -869,6 +1002,16 @@
 
       这样我们实例对象自身就多了一个方法(不是再在类的原型对象上找changeWeather方法了 而是自身就有一个changeWeather方法)
   }
+ -->
+
+
+> 事件对象
+- 通过事件回调的参数获取到事件对象
+- 这个事件对象叫做 合成事件对象
+
+- 合成事件 兼容所有浏览器 无需担心跨浏览器兼容性的问题
+<!-- 
+  handleClick = (e) => { e.preventDefault() }
  -->
 
 
@@ -1109,6 +1252,16 @@
 
 > 总结
 - 以后我们使用类创建一个组件的时候, 组件中的所有自定义方法 都写成赋值的形式(函数表达式) 使用箭头函数
+
+----------------------------
+
+### 有状态组件 和 无状态组件
+- 函数组件又叫做无状态组件 类组件又叫做有状态组件
+- 状态 state 即数据
+- 函数组件没有自己的状态 只负责数据展示(静)
+- 类组件有自己的状态 负责更新ui 让页面 动 起来
+
+- 数据 驱动 页面的更新
 
 ----------------------------
 
@@ -1692,6 +1845,7 @@
 ----------------------------
 
 ### 组件的三大核心属性 refs 与 事件处理
+- ref一般是给组件和dom节点打标记的
 
 - 案例
 - 需求: 自定义组件
@@ -2076,11 +2230,79 @@
   典型的vue中的v-model
  -->
 
-- 案例
-- 我们将输入框的值放在state里面, 然后展示的时候从state中取出来做展示
-<!-- 
+> 受控组件
+- html中的表单元素是可以输入的 也就是有自己的可变状态
+- 而 raect中可变状态通常保存在state中 并且只能通过 setState 方法来修改
+- 这样就有有思想上的冲突 html表单元素有自己的状态 而react又希望将数据的状态放在state中
 
- -->
+- 解决冲突的方式
+- react将state与表单元素值绑定到一起 由 state 的值来控制表单元素的值
+
+
+> 有点像实现v-model的感觉
+- 1 动态绑定 input 的 value 为 state 中的对应数据 -- 控制表单的来源
+- 2 然后给 input 绑定 input /  change 事件 -- 控制表单元素值的变化
+- 
+- <input type="text" value={this.state.text} />
+- onChange={e => { this.setState({ text: e.target.value })}}
+
+
+> 富文本框(textarea) react实现v-model的逻辑 受控组件
+    
+    state = {
+        text: ""
+    }
+
+    handleContent = (e) => {
+        this.setState({text: e.target.value})
+    }
+    <textarea value={this.state.text} onChange={ this.handleContent }>
+
+
+> 下拉框(select)
+ 
+    state = { city: "bj" }
+    <select value={this.state.city}>
+        <option value="sh"> 上海
+        <option value="bj"> 北京 
+
+    handleContent = (e) => {
+        this.setState({text: e.target.value})
+    }
+    onChange={ this.handleContent }
+
+
+> 复选框
+- 因为复选框是可以选中和不选中 它操作的不是value 而是 checked
+    
+    state = { isCheck: false }
+    <input type="checkbox" checked={ this.state.isCheck }>
+
+    handleContent = (e) => {
+        this.setState({isCheck: e.target.value})
+    }
+    onChange={ this.handleContent }
+
+
+> 多表单元素优化步骤：
+- 1 给表单元素添加 name 属性 名称与 state 相同
+- 2 根据表单元素类型获取对应值
+
+- 这里是通过 target.type 和 target.name 的方式 拿到节点的种类 和 name属性
+
+<!--
+  <input 
+    type="text"
+    name="text"
+    value={this.state.text}
+    onChange={this.handleForm}
+  />
+
+  const value = target.type === "checkbox" ? target.checked : target.value
+  const name = target.name
+  this.setState({[name]: value})
+-->
+
 
 
 > 完整代码
@@ -2164,6 +2386,184 @@
 
   <input type="text" name="username" onChange={this.handleSave("username")} />
  -->
+
+----------------------------
+
+### 评论区的练习
+- 评论人 评论内容 发表评论 展示信息
+- 我分成了两个组件 评论人 评论内容 发表评论 和 展示信息
+
+- 我将数据放在了app组件里面
+- 功能组件收集收据 使用 app通过prop传过来的函数 将数据返送回去
+- app组件将收到的数据 prop传给展示组件
+
+> 要点
+- 通过三元表达式来决定渲染哪个结构
+- 条件? (结构1) : (结构2)
+
+<!-- 
+  // 功能组件
+  handleContent = () => {
+    let {inp, area} = this
+    if(inp.value.trim() === "" || area.value.trim() === "") return alert("请输入评论人 或 评论内容") 
+
+    let msgObj = {
+      auth: inp.value,
+      content: area.value
+    }
+
+    this.props.saveData(msgObj)
+  }
+  
+  render() {
+    return (
+      <div className="feature-wrapper">
+        <div className="feature-commentator">
+          <input ref={c => this.inp = c} type="text" name="commentator" placeholder="请输入评论人"/>
+        </div>
+        <div className="feature-comment">
+          <input ref={c => this.area = c} type="textarea" name="comment" placeholder="请输入评论内容"/>
+        </div>
+        <div>
+          <button onClick={this.handleContent}>发表评论</button>
+        </div>
+      </div>
+    )
+  }
+
+
+
+  // app组件
+  state = {
+    msg: []
+  }
+
+  saveData = (obj) => {
+    let {msg} = this.state
+    this.setState({
+      msg: [obj, ...msg]
+    })
+  }
+
+  render() {
+    return (
+      <div className="app-wrap">
+        <Feature saveData={this.saveData}/>
+        <Comment msg={this.state.msg}/>
+      </div>
+    )
+  }
+
+
+  // 展示组件
+  state = {
+    hasContent: false
+  }
+
+  render() {
+    console.log(this)
+    return (
+      <div className="comment-wrapper">
+        <span className="title">评论区</span>
+        <div className="comment-area">
+          {
+            this.props.msg.length === 0 
+              ? (<div>暂无评论</div>)
+              : (
+                <ul>
+                  {
+                    this.props.msg.map((item, index) => {
+                      return (
+                        <li key={index}>
+                          <div>{item.auth}</div>
+                          <span>{item.content}</span>
+                        </li>
+                      )
+                    })
+                  }
+                </ul>
+              )
+          }
+        </div>
+      </div>
+    )
+  }
+ -->
+
+
+> 代码优化
+- 因为上面的js逻辑都放在了 html结构里面 就显得很多清晰
+- 我们可以把复杂的逻辑放在 方法里 然后在 html结构中 调用方法就可以了
+- 注意：
+- 这里我们一定要加上小括号 因为我们渲染的是返回值
+<!-- 
+  <div className="comment-area">
+    {
+      this.renderList()
+    }
+  </div>
+
+  renderList = () => {
+    return this.props.msg.length === 0 
+      ? (<div>暂无评论</div>)
+      : (
+        <ul>
+          {
+            this.props.msg.map((item, index) => {
+              return (
+                <li key={index}>
+                  <div>{item.auth}</div>
+                  <span>{item.content}</span>
+                </li>
+              )
+            })
+          }
+        </ul>
+      )
+
+    
+    ----
+
+    if(this.props.msg.length === 0) {
+      return (
+        <div>暂无评论</div>
+      )
+    } 
+
+    return (
+      <ul>
+        {
+          this.props.msg.map((item, index) => {
+            return (
+              <li key={index}>
+                <div>{item.auth}</div>
+                <span>{item.content}</span>
+              </li>
+            )
+          })
+        }
+      </ul>
+    )
+  }
+ -->
+
+
+> 三元表达式的连续写法
+<!-- 
+  {
+    isFirst
+      ? <h3>欢迎使用, 输入关键字, 随后点击搜索</h3>
+      : isLoading
+        ? <h3>Loading...</h3>
+        : err 
+          ? <h3>{err}</h3>
+          : users.map...
+  }
+ -->
+
+
+> 清空文本框
+- 如果我们是用受控组件 关联着state我们将state对应的值置空
 
 ----------------------------
 
@@ -3592,6 +3992,18 @@
 
 - 2. 上面的完成后<App>组件就跑到了页面上, <App>组件的样式, 是在App.js文件中通过import 引入的css文件
 
+----------------------------
+
+### npx知识扩展
+- 在没有npx的时候 我们想要使用react脚手架 需要先全局安装脚手架 然后通过create-react-app命令来创建项目
+
+- 但是这个全局的包如果长时间不用放在那边是没有任何意义的 所以有了npx命令
+- 有了npx 无需安装脚手架包 就可以直接使用这个包提供的命令
+
+> npx create-react-app 项目名 -- 推荐
+- 也可以使用 npm init react-app 项目名初始化项目 但是不推荐
+
+----------------------------
 
 ### 图片的引入方式
 - 一切皆模块

@@ -1,4 +1,34 @@
 ### Js技巧
+
+### 获取页面高度 宽度的API
+- document.documentElement.clientWidth
+- 获得的是屏幕可视区域的宽高，不包括滚动条与工具条
+
+- document.body.clientWidth
+- 获得的也是可视区域的宽度
+<!-- 
+    document.body.clientHeight 获得的是body内容的高度
+    如果内容只有200px，那么这个高度也是200px
+ -->
+
+- window.innerWidth
+- 获得的是可视区域的宽高，但是window.innerWidth宽度包含了纵向滚动条的宽度
+- (IE8以及低版本浏览器不支持)
+<!-- 
+    window.innerWidth - document.documentElement.clientWidth
+    获取垂直滚动条宽度
+ -->
+
+- window.outerWidth
+- 获得的是加上工具条与滚动条窗口的宽度与高度
+
+
+
+
+
+
+
+
 ### 递归函数的定义
 <!-- 
   // 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
