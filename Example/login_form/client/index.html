@@ -82,10 +82,21 @@
     <span>提示信息</span>
   </div>
 
+  <hr>
+
+  <div class="ajax-wrapper">
+    <button class="btn">发送测试请求</button>
+  </div>
+  <div class="ajax-content">
+    <span></span>
+  </div>
+
   <script src="js/axios.min.js"></script>
   <script>
     let form = $("#login_form")
     let btn = $(".btn")
+    let ajaxTip = $(".ajax-content span")
+    let ajaxBtn = $(".ajax-wrapper .btn")
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -110,6 +121,39 @@
       console.log(res)
       window.location.href = res.data.link
     })
+    
+
+    // 试验下 ajax 的使用
+    ajaxBtn.addEventListener("click", function() {
+      const ajax = new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open("get", "http://127.0.0.1:3200/")
+
+        // 这里如果不设置 json 那么我们收到的 xhr.response 就是一个json格式的对象 要parse
+        xhr.responseType = "json"
+
+        xhr.send()
+
+        // 这里还可以使用 onload
+        xhr.onreadystatechange = function() {
+          if(xhr.readyState == 4) {
+            if(xhr.status >= 200 && xhr.status < 300) {
+              resolve(xhr.response)
+            } else {
+              reject(xhr.status)
+            }
+          }
+        }
+      })
+
+      ajax.then((res) => {
+        console.log(res)
+        ajaxTip.innerHTML = res.data.msg
+      }, (err) => {
+        console.log(err)
+        ajaxTip.innerHTML = err
+      })
+    })
   
 
     function request(config) {
@@ -119,6 +163,8 @@
 
       return intance(config)
     }
+
+    
 
     function $(el) {
       return document.querySelector(el)
