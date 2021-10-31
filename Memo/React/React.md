@@ -1265,6 +1265,11 @@
 
 ----------------------------
 
+### 组件的通信介绍
+- 默认情况下 组件是独立且封闭的单元 默认情况下 只能使用组件自己的数据 在组件化过程中 我们将一个完整的功能拆分成多个组件 以便更好的完整成个应用的功能
+- 而在这个过程中 多个组件之间不可避免的要共享某些数据，为了实现这些功能 就需要打破组件的独立封闭性 让其与外界沟通 这个过程就是组件通讯
+
+
 ### 组件的三大核心属性 props
 - 我们借助一个案例了解下 props
 
@@ -1354,6 +1359,161 @@
 <!-- 
   jax中的{...p} 和 原生 {...p} 是不一样的
  -->
+
+
+>  props
+- 组件是封闭的 要接收外部数据 就应该通过props实现
+- props：
+- 接收传递给组件的数据
+
+- 传递数据的方式：
+- 在组件标签内部 添加 标签属性
+
+- 接收数据的方式：
+- 函数组件： 通过参数 props 接收数据 (props)
+- 类式组件： 通过 this.props 来接收数据 (this.props)
+
+
+> props的特点
+- 1 可以给组件传递任意类型的数据 数据 对象 函数 布尔 还能传递一个标签
+<!--
+    <Hello tag={<p>我是一个p标签</p>}>
+
+    hello组件内部
+    return (
+        {props.tag}
+    )
+-->
+
+- 2 props 是只读的对象 只能读取属性的值 无法修改对象
+- 3 如果使用的是类组件 如果写了 constructor 而是还传递了 props 那么就应该将props传递给 super 否则无法在构造函数constructor中获取到props
+
+
+> 组件通讯的三种方式
+- 1 父组件 - 子组件
+- 2 子组件 - 父组件
+- 3 兄弟组件
+
+
+> 父组件传递数据给子组件
+- 1 父组件提供要传递的state数据
+- 2 给子组件标签添加标签属性 值为state中的数据
+- 3 子组件通过props接收到父组件中传递的数据
+<!--
+    <Child name={this.state.name}>
+-->
+    
+
+> 子组件传递数据给父组件
+- 思路
+- 利用回调函数 父组件提供回调 子组件调用 将要传递的数据作为回调函数的参数
+- 弹幕：
+- 有人说setState是异步 是不是异步不管 他说可以在后面加一个回调函数进行同步更新
+
+- 小例子
+- 我们将接收到的参数 在页面上展示
+- 以往我们都是直接那 this.props.name 在 html 结构中展示
+- 但是 我们也可以 将拿到的数据 保存在state中 然后将state中数据展示到页面上
+<!--
+    state = { parentMsg: "" }
+    getChildMsg = (data) => { this.setState({parentMsg: data })}
+
+    render() { return ( <div>{this.state.parentMsg }</div>) }
+-->
+
+
+> 兄弟组件
+- 思路
+- 将共享状态提升到最近的公共父组件中 由公共父组件管理这个状态
+- 也就是把数据放在 A B 组件的 亲爸爸 身上
+
+- 公共父组件的指责
+- 1 提供共享状态
+- 2 提供操作共享状态的方法
+  - 因为状态是组件内部的私有数据 所以父组件还要提供操作状态的方法
+
+<!--
+    <Child name={this.state.name}>
+-->
+
+> props深入： children 属性
+- children属性： 表示组件标签的子节点 当组件标签有子节点的时候 props就会有该属性
+- 也就是说 我们通过标签体传递过去的 数据 就会在该组件的props.children身上
+<!--
+    <Hello>我是子节点</Hello>
+    props.children = 我是子节点
+-->
+
+- children属性与普通的props一样 值可以是任意值(文本 React元素 组件 甚至是函数 数组)
+<!--
+    <Hello>文本节点</Hello>
+
+    <Hello>
+        <p>jsx作为子节点</p>
+    </Hello>
+
+    <Hello>
+        <Test />  这是一个组件
+    </Hello>
+
+    <Hello>
+        {
+            () => console.log("这是一个函数子节点")
+         }
+    </Hello>
+    然后我们可以通过 props.children() 调用
+-->
+
+> 这不是插槽么？
+- 调用 Hello 组件的人 可以通过标签体 传递数据 然后Hello组件接收到后 可以渲染不同的内容
+
+
+
+> props深入： 校验
+- 对于组件来说 props 是外来的 我们无法保证组件使用者传入什么格式的数据
+- 如果我们传入的数据格式不对 就会导致组件内部报错 关键问题 组件的使用者不知道明确的错误原因
+
+- props校验：允许在创建组件的时候 就指定props的类型 格式等
+<!--
+    static propTypes = {
+        colors: PropTypes.array
+    }
+-->
+
+- npm i prop-types
+- import PropTypes from "prop-types"
+
+
+> 常见的约束规则
+- 1 常见类型: 
+  - array bool func number object string  这里也是 PropTypes.后面应该接的
+
+- 2 element 我们还可以指定该prop属性为 React元素
+- propAttr: PropTypes.element
+
+- 3 必填写项 isRequired
+- colors: PropTypes.array.isRequired
+
+- 4 shape({ })  指定特定的结构 
+- 用来约束属性是一个对象时候 对其内部属性进行约束
+- shape函数的参数是一个对象
+- propAttr: PropTypes.shape({
+  - color: Protypes.string.isRequired
+- })
+
+- 文档在官方网站里
+- https://reactjs.org/docs/typechecking-with-proptypes.html
+
+
+> props深入： 默认值
+- 场景
+- 分页组件 -- 每页显示条数
+- 我们在使用分页组件的时候 会需要很多的属性 比如当前页 每页显示多少条 total等
+- 这个每页显示多少条就可以使用默认值 因为每页显示多少条可以设置为固定的
+
+<!--
+    static defaultProps = { pageSize: 10 }
+-->
 
 
 
@@ -2218,11 +2378,11 @@
 ### 受控组件
 - 非受控组件:
 - 表单中所有输入类的DOM的值(text checkbox radio) 对于这些DOM节点中的值, 是通过现用现取的就是非受控组件
-
 - 说白了类似 通过点击按钮从该input中获取到值进行操作的就是非受控组件
 
 - 受控组件:
 - 表单中所有输入类的DOM 随着我们的输入 就能把value维护到state里面去 等需要用的时候直接从state里面取出来 这就是受控组件
+
 
 - 总结:
 - 就是获取值采用的事件不一样, onClick就是非受控, onChange就是受控(因为我们会把value存放到state中)
@@ -2430,7 +2590,6 @@
       </div>
     )
   }
-
 
 
   // app组件
@@ -3543,6 +3702,411 @@
 - 3. componentWillUpdate
 <!-- 
   现在使用会出现警告, 下一个大版本需要加上前缀, UNSAFE_ 才能使用, 以后可能会被彻底废弃, 不建议使用
+ -->
+
+----------------------------
+
+### 另一个老师对生命周期的总结
+> 组件的生命周期
+- 组件的生命周期： 组件从被创建到挂载到页面中运行 再到组件不用时的卸载的过程
+- 生命周期的每个阶段总是伴随着一些方法的调用 这些方法就是生命周期的钩子函数 
+- 钩子函数的作用： 为开发人员在不同阶段操作组件提供了时机
+
+
+> 生命周期的三个阶段
+- 创建时 更新时 卸载时
+- render贯穿创建 和 更新
+
+    constructor        
+                         newprops  setState  forceUpdate
+
+    -------------      render      ------------
+
+    -------------   更新dom和refs   ------------
+    
+    componentDidMount        componentDidUpdate      componentWillUnmount
+
+
+> 创建时(挂载阶段)
+- 执行时机
+- 组件创建时(页面加载时) 也就是一进页面
+- constructor - render - componentDidMount
+
+- constructor
+- 创建组件 最先执行 
+- 作用
+- 初始化state 和 为事件处理程序绑定this
+ 
+- render
+- 每次组件渲染都会被触发
+- 作用
+- 渲染ui 不要在render中调用setState 栈溢出
+
+- componentDidMount
+- 组件挂载 完成dom渲染 后
+- 作用
+- 发送网络请求 DOM操作
+
+
+> 更新时(更新阶段)
+- 有三种情况会导致页面的更新
+- 1 newprops 当一个页面接收到新属性的时候 会触发更新 重新渲染
+<!-- 
+  - 当父组件更新的时候 因为我们把最新的state会传递给子组件 所以子组件也会更新
+ -->
+
+- 2 调用setState的时候 会重新渲染
+
+- 3 调用forceUpdate的时候 会重新渲染 只要调用它不管状态有没有更新都会重新渲染的
+<!-- 
+  handleClick = () => {
+    this.forceUpdate()
+  }
+ -->
+
+
+> 更新阶段 钩子函数的执行顺序
+- render -- componentDidUpdate
+
+- render
+- 每次组件渲染都会触发
+- 作用
+- 渲染ui
+
+- componentDidUpdate
+- 组件更新 完成dom渲染 后 被触发
+- 作用
+- 1 发送网络请求
+- 2 dom操作 
+- 注意: 如果在这个函数中进行setState操作 必须放在一个if条件中
+<!--
+    componentDidUpdate(prevProps) {
+        这里可以获取渲染后的最新dom
+
+        网络请求
+        如果要调用setState更新状态 必须放在一个if条件中 不然会栈溢出 死循环
+        在这里我们一般判断一下更新前后的props是否相同 来决定是否调用setState更新组件
+        当前的props 可以通过this.props获取到
+        如果上一次的props 和 这一次的props不同 我再调用setState来更新状态
+        if(prevProps.count !== this.props.count) { 
+            this.setState 
+
+            发送网络请求也写在if判断里面
+            既然要发送请求就是为了拿数据 拿数据就会有渲染数据的逻辑 这里也会有setState的操作
+        }
+    }
+ -->
+
+
+> 卸载时(卸载阶段)
+- 执行时机： 组件从页面中消失的时候就会触发对应的钩子
+
+- componentWillUmmount
+- 作用：
+- 执行清理工作 比如 清理定时器等
+
+<!-- 
+  // 没什么关联的功能 就是想记录下 三元表达式 的结构渲染
+  return (
+    <div>
+      {
+        this.state.count > 3 
+          ? (<p>豆豆被打死了</p>)
+          : (<Count count={this.state.count}>)
+      }
+    </div>
+  )
+
+  componentDidMount() {
+    this.id = setInterval()
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.id)
+  }
+ -->
+
+ > 不常用的生命周期函数
+ - 在旧版的生命周期中 有即将要废弃的生命周期函数
+ - 1. componentWillMount
+ - 2. componentWillReceiveProps
+ - 3. componentWillUpdate
+
+
+ - 在新版的生命周期中 
+ - 1. getDerivedStateFromProps
+ - 2. getSnapshotBeforeUpdate
+ - 3. shouldComponentUpdate
+ - 虽然是官方出来的新的钩子 但是使用场景特别的少 还可以使用其它的场景代替这两个钩子 所以不太使用
+
+----------------------------
+
+### render-props 和 高阶组件(HOC)  组件的复用
+
+> react组件复用概述
+- 思考：
+- 如果两个组件中的部分功能相似 或 相同 该如何处理
+- 一个A页面中 随着鼠标的移动 页面上会打印 鼠标的坐标
+- 一个B页面中 随着鼠标的移动 小猫图片会跟着鼠标一起走
+
+- 这两个页面中有共通的部分 我们复用的时候 需要复用什么呢？复用鼠标的坐标，鼠标的坐标在react中的体现就是一个状态 而且这个状态还会发生变化 还有操作状态的方法
+- 1 复用状态 
+- 2 复用操作state的方法
+
+- 那在react中怎么进行组件逻辑的复用呢？
+- 我们可以通过 render props 和 高阶组件的模式
+- 注意
+- 这两种方式不是新的api 而是利用react自身特点的编码技巧 演化而成的固定模式(写法)
+<!-- 
+  本来是没有这种方式的但是前人发现这种写法很好用 所以总结出来的
+ -->
+
+- 那怎么写代码是 render props模式和高阶组件的模式呢？
+
+
+> render props 模式
+- 思路：
+- 将要复用的state和操作state的方法封装到一个组件中 
+- 假设 我们封装好了一个组件 <Mouse /> 这里面有鼠标的状态 和 操作鼠标的方法
+
+- 我们要在B页面中使用A页面关于鼠标状态(位置信息)和操作state的方式，然后我们将A页面中的关于鼠标的逻辑封装成了一个组件
+<!-- 
+  原生js中 想要达到复用是不是也是将相同的逻辑封装函数 然后在别的页面调用
+
+  现在我们把相同的state和操作state的方法封装成了组件 但是怎么在另一个页面使用呢？ 直接引入？？ 又不是页面结构
+ -->
+- 但是又会产生新的问题 怎么复用呢？我们先思考两个问题
+
+> 1. 如何拿到该组件中复用的state
+> 传递函数prop 通过形参接收 组件内部的state
+<!-- 
+  状态是存在组件内部的 那么我们要使用这个 <Mouse /> 内部的状态 怎么办？
+  也就是在外部拿到内部的state
+ -->
+
+ - 思路：
+ - 在使用组件的时候 添加一个值为函数的prop 通过函数参数 来获取(需要组件内部实现)
+ <!-- 
+  也就是父组件传递函数通过形参接收子组件的state
+  -->
+
+
+> 2. 如何渲染任意的ui结构？
+> 传递函数prop 通过该函数的返回值 来决定要渲染的ui结构
+- 我们拿到核心功能后 怎么使用核心功能来渲染不同的ui结构呢？
+- 使用该函数的返回值 作为要渲染的ui内容(需要组件内部实现)
+<!-- 
+  A组件中的ui结构是 文本信息： 当前鼠标坐标为：x y
+  B组件中的ui结构是 小猫图片
+
+  怎么渲染指定的ui呢？
+
+  <Mouse render={(mouse) => {}}>
+  我们向 Mouse组件传递一个 函数prop
+
+  我们可以通过 
+  mouse形参 接收到state
+  
+  通过
+  这个函数prop返回值来作为要渲染的内容
+
+  类似这样
+
+  <Mouse render={ (mouse) => (
+    <p>鼠标当前位置: {mouse.x}, {mouse.y}
+  ) }>
+
+  我们假如要渲染文本 我们就在return中写上p标签里面写上文本
+  我们假如要渲染图片 我们就在return中写上图片
+ -->
+
+> 呃 react中插槽的综合应用么？
+
+- 接下来我们看看代码部分
+> 实现步骤
+- 1. 创建Mouse组件 在组件中提供复用的状态逻辑代码(1状态 2操作状态的方法)
+<!-- 
+  import React, {Component} from "react"
+  export default class Mouse extends Component {
+
+    // 鼠标的位置的状态信息
+    state = {
+      x: 0,
+      y: 0,
+    }
+
+    // 操作状态的方法 当鼠标移动的时候 状态会更新
+    // 监听鼠标移动事件
+    componentDidMount() {
+      window.addEventListener("mousemove", this.handleMouseMove)
+    }
+
+    handleMouseMove = (e) => {
+      this.setState({
+        x: e.clientX,
+        y: e.clientY
+      })
+    }
+
+    render() {
+      // 不渲染任何内容
+      return null
+    }
+  }
+ -->
+
+
+- 2. 将要复用的状态作为 props.render(state)方法的参数 暴露到组件外部
+- 在Mouse组件内部 render函数里面 return 后面的位置 调用 父组件传递进来的 prop函数
+- 要点
+  - 1. 我们可以将Mouse组件中的state通过父组件传递进来的 prop函数 通过实参 将state暴露出去
+  - 2. 写在render的后面 就可以让父组件决定 Mouse 组件来渲染什么样的ui结构
+  - 3. 使用 props.render()的返回值作为要渲染的内容
+  - 要渲染什么内容由父组件的prop函数的返回值决定
+<!-- 
+  class Mouse extends Component {
+    // ... 省略state和操作state的方法
+
+    render() {
+      return this.props.render(this.state)
+    }
+  }
+ -->
+
+<!-- 
+  // app组件 在html结构中的render函数 的返回值 决定 Mouse组件渲染什么ui结构
+
+  import React, {Component} from "react"
+  import Mouse from "./components/Mouse"
+  import "./App.less"
+  export default class App extends Component {
+    
+    // 这部分逻辑是为了获取 img的高度和宽度
+    state = {
+      imgW: 0,
+      imgH: 0
+    }
+
+    componentDidMount() {
+      let {img} = this
+      this.setState({
+        imgW: img.clientWidth,
+        imgH: img.clientHeight
+      })
+    }
+
+    render() {
+      return (
+        <div className="app-wrap">
+
+          {/* 文本展示 */}
+          <Mouse render={mouse => {
+            return (
+              <p>
+                鼠标位置: {mouse.x} - {mouse.y}
+              </p>
+            )
+          }}/>
+
+
+          {/* 猫捉老鼠 */}
+          <Mouse render={mouse => {
+            return (
+              <img src={cat} alt="cat" style={{
+                position: "absolute",
+                top: mouse.y - this.state.imgH / 2,
+                left: mouse.x  - this.state.imgW / 2
+              }} />
+            )
+          }}/>
+        </div>
+      )
+    }
+  }
+ -->
+
+
+- 上面我们通过父组件向子组件传递函数 通过形参接收数据 通过返回值确定ui结构的方式来实现的
+
+- 但是 并不是该模式叫render props 就必须使用名为render的prop 实际上可以使用任意的prop
+
+- 上面是把prop是一个函数 并且告诉组件要渲染什么内容的技术 叫做 render porps模式
+
+
+> children 代替 render 属性 --- 推荐
+<!-- 
+  <Mouse>
+    {
+      ({x, y} => <p>鼠标的位置是: {x} - {y} </p> )
+    }
+  </Mouse>
+
+  // Mouse组件内部：
+  this.props.children(this.state)
+ -->
+
+> 代码部分：
+<!-- 
+  // Mouse组件
+
+  render() {
+    // 不渲染任何内容
+    // return null
+
+    return (
+      <div>
+        <h3>我是mouse组件</h3>
+        <div>
+          {this.props.children(this.state)}
+        </div>
+      </div>
+    )
+  }
+
+
+
+  // App组件
+  return (
+    <div className="app-wrap">
+      {/* 文本展示 */}
+      <Mouse>
+        {
+          ({x, y}) => {
+            return (
+              <p>
+                鼠标坐标为: {x} - {y}
+              </p>
+            )
+          }
+        }
+      </Mouse>
+    </div>
+  )
+ -->
+
+- 这里我们在联想一下 context 中用法 这里其实也是使用的render props模式 并且使用的是children的模式
+<!-- 
+  <Consumer>
+    {
+      data => <span>data表示接收到的数据</span>
+    }
+  </Consumer>
+ -->
+
+
+> render props 模式的 优化
+- 1. 给 render props 模式添加 props 校验
+<!-- 
+  Mouse.propTypes = {
+    children: PropTypes.func.isRequired
+  }
+ -->
+
+- 2. 应该在组件卸载的时候 接触 mousemove 事件绑定
+<!-- 
+  componentWillUnmount() {
+    window.removeEventListener("mousemove", this.handleMouseMove)
+  }
  -->
 
 ----------------------------
@@ -10115,9 +10679,16 @@ params > search > state
 
   Context就适合于 A 和 C D 之间的通信
   A 和 B 之间也可以 但是有更简单的方式 props
+
+  或者
+
+  - 思考
+  - App组件要传递数据给Child组件 该如何处理 这种情况我们需要层层传递
+    App - Node - SubNode - Child
  -->
 
 - 组件的实例对象身上有 props / refs / state 这3个对象我们都使用过， 组件身上还有一个对象就是 context
+
 
 > context的使用方式：
 
@@ -10247,6 +10818,86 @@ params > search > state
 > 总结：
 - 只要是想用context传递数据 那么一定要引入 context对象的Provider
 - 至于需不需要使用Consumer 那要看是不是有函数式的组件
+
+
+### 另一个老师的讲解
+> 通信方式： Context
+- 思考
+- App组件要传递数据给Child组件 该如何处理 这种情况我们需要层层传递
+<!--
+    App - Node - SubNode - Child
+-->
+
+- 更好的姿势就是使用Context 它的作用就是 跨组件传递数据(比如： 主题 语言等数据)
+- 有了Context我们就可以从App组件直接传递给Child组件
+
+- 这两个组件都是用在了 html结构中 provider包裹最外层的div consumer调用在想用数据的位置
+
+> 使用步骤
+- 1 调用 React.createContext() 创建 Provider(提供数据) 和 Consumer(消费数据) 两个组件
+  - const { Provider, Consumer } = React.createContext()
+  - 这两个组件一个是提供数据的(数据的发出方) 一个是使用数据的(数据的接收方)
+
+- 2 使用 Provider 组件作为父节点 
+- 一般情况下 我们会使用 Provider 包裹整个 app html部分
+<!--
+    render() {
+        return (
+            <Provider value={data}>
+                <div className="app">
+                    <Node />
+                </div>
+            </Provider>
+        )
+    }  
+-->
+
+- 3 在 Provider 组件标签中通过 value="数据" 
+- <Provider value={data}> 必须是value provider是提供数据 就是通过value标签属性来传递
+
+- 4 调用 Consumer 组件接收数据
+- 在 Consumer 组件中 通过回调函数的参数 就能得到数据
+<!--
+    下面返回了 jsx 结构 
+    <Consumer>
+        { data => <span> data参数表示接收到的数据-- {data} } </span>
+    </Consumer>
+-->
+
+> 完整代码
+<!--
+    class App extends Component {
+        render() {
+            return (
+                <Provider value={data}>
+                    <div className="app">
+                        <Child />
+                    </div>
+                </Provider>
+            )
+        }
+    }
+    
+    class Child extends Component {
+        render() {
+            return (
+                <div className="child">
+                    <Consumer>
+                        {
+                            data => {
+                                return (
+                                    <span>{data}</span>
+                                )
+                            }
+                        }
+                    </Consumer>
+                </div>
+            )
+        }
+    }
+    
+    export default App
+-->
 
 ----------------------------
 
