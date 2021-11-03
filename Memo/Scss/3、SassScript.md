@@ -1,147 +1,3 @@
-### Scss(Sass)
-- 预处理器的代码并不能被浏览器直接解析 所以必须要将它们编译成css代码
-- 现有的框架已经提供了css预处理选项 编译相关配置会自动帮我们生成 
-- 所以只有在练习的情况下才有必要安装该环境
-
-
-### 安装
-- 1. 不依赖编辑器
-- 全局安装scss预处理器 使用终端命令实现编译
-
-- Node环境下的 node-sass模块
-<!-- 
-  它是一个直接可执行文件
- -->
-
-- Node环境下的 dart-sass模块
-<!-- 
-  dart-sass 需要我们自己手动配置一些东西
-  dart的性能最好 编译最快
- -->
-
-- Ruby环境下的 sass模块
-- Dart环境下的 sass模块
-<!-- 
-  Dart语言 爬虫语言？ flutter必学的语言
- -->
-
-- 这里的推荐顺序针对的是 练习 场景 而开发环境下推荐使用的是dart-sass
-
-
-- 2. 依赖编辑器
-- 用插件的意思：
-
-- ide代表: webstorm 前提是安装上述 1 中的命令行编译工具 配置自动命令 另安装一个代码提示插件scss
-
-- 编辑器代表: vscode 安装Easy Sass 和 Sass 两个插件
-- 注意大小写
-
-
-> css预处理器出现的原因
-- 1. 无法嵌套书写导致代码繁重 逻辑混乱
-- 2. 没有变量和样式复用机制 属性值只能以字面量的形式重复输出
-
-
-> 出名的预处理器
-- 1. scss/sass
--  官方语言为ruby
-
-- 2. less
-
-- 3. stylus
-- 官方语言为node 人气较前两者偏低
-
-
-> scss 和 sass之间的关系
-- sass有两套语法
-- 1. 第一种或最  新的语法被称为scss 它是css语言的扩展 这意味着每个有效的css样式表都是具有相同含义的有效的scss文件 下文描述的sass工鞥增强了此语法 使用此语法的文件扩展名为 .scss
-
-- 2. 第二种或更旧的语法被称为sass 提供了一种更为简洁的css编写方式 它使用缩进而不是方括号来表示选择器的嵌套 并使用换行符而不是分号来分隔属性 使用此语法的文件扩展名为 .sass
-
-- 任何一种格式可以直接 导入 @import 到另一种格式中使用 或者通过 sass-convert 命令行工具转换成另一种格式
-
--------------------
-
-### node环境下的安装
-
-> node-sass 安装
-- npm i -g node-sass
-- node-sass -v
-<!-- 
-  安装的时候可能会出现版本上的错误
-  我使用的是node17 sass不知道 应该是最新吧
- -->
-
-
-> 编译文件
-- 单文件编译
-  - node-sass 原有的scss文件 生成的css文件
-  - node-sass 原有的scss文件 -o 生成目录
-<!-- 
-  node-sass a.scss b.css
-  nod-sass a.scss -o css_file
- -->
-
-
-- 多文件编译
-  - node-sass 原有的scss文件目录 -o 生成的css文件目录
-<!-- 
-  node-sass c -o d
- -->
-
-
-- 文件监听模式
-- 当文件改变的时候 自动编译
-- 在 单 和 多 的基础上添加 -w 命令行参数即可
- - node-sass -w 原有的scss文件 -o 生成目录
- - node-sass -w 原有的scss文件目录 -o 生成的css文件目录
-
-
-
-> dart-sass 安装
-- npm i -g sass
-- 该模块为第三方库 所以可以考虑使用 npm i sass -D(-D == --save-dev)
-
-
-> dart-sass 使用
-- 需要手动的调用dart语言的api 来去执行一些命令
-<!-- 
-  let sass = require("sass")
-  sass.render({file: scss_filename}, function(err, res) { ... })
-
-  // or
-
-  let res = sass.renderSync({file: scss_filename})
-
-  默认情况下 renderSync的速度是render的两倍以上 这是由于异步回调所带来的开销导致的
- -->
-
--------------------
-
-### Vscode
-- 点击插件右下角的设置图标后点击扩展设置 最后点击在 settings.json 中编辑 开始设置关于easy sass的配置
-
-- 会自动生成下方图片内的配置
-<!-- 
-  "easysass.formats": [
-    {
-      "format": "expanded",
-      "extension": ".css"
-    },
-
-    // 下面的可以注释掉
-    {
-      "format": "compressed",
-      "extension": ".min.css"
-    },
-  ],
-
-  // 可以将编译后的文件输出到指定的目录 比如下面这样的当前目录 默认就是当前目录
-  "easysass.targetDir": "./css/"
- -->
-
--------------------
-
 # SassScript
 
 ~~~
@@ -154,87 +10,143 @@
 
 ## 一、注释
 
-- 1. Sass 支持标准的 CSS 
-  - 多行注释 `/* */`，
-      会被完整输出到编译后的 CSS 文件中
-      
-  - 单行注释 `//`，不会。
+1. Sass 支持标准的 CSS 多行注释 `/* */`，以及单行注释 `//`，前者会被完整输出到编译后的 CSS 文件中，而后者则不会。
+
+2. 将 `!` 作为多行注释的第一个字符表示在压缩输出模式下保留这条注释并输出到 CSS 文件中，通常用于添加版权信息。
+
+3. 插值语句 (interpolation) 也可写进多行注释中输出变量值
+
+例如：
+
+~~~scss
+/* 
+	hello
+	world!
+*/
+
+// compile scss files to css
+// it's ready to do it.
+$pink: #f3e1e1;
+html{
+    background-color: $pink;
+}
+
+$author: 'gdream@126.com';
+/*!
+	Author: #{$author}.
+*/
+~~~
+
+开发模式编译后:
+
+~~~css
+/* 
+	hello
+	world!
+*/
+html{
+    background-color: #f3e1e1;
+}
+/*!
+	Author: 'gdream@126.com'.
+*/
+~~~
+
+压缩输出模式编译后：
+
+~~~css
+html{
+    background-color: #f3e1e1;
+}
+/*!
+	Author: 'gdream@126.com'.
+*/
+~~~
 
 
-- 2. 将 `!` 作为多行注释的第一个字符表示在压缩输出模式下保留这条注释并输出到 CSS 文件中，通常用于添加版权信息。
-
-- 3. 插值语句 (interpolation) 也可写进多行注释中输出变量值
-
--------------------
-
-## 变量
-
-> 变量定义
-- 变量以美元符号开头，赋值方法与 CSS 属性的写法一样
-
-<!-- 
-  $width: 1600px;
-  $pen-size: 3em;
- -->
 
 
-> 变量使用
-- 直接使用变量的名称即可调用变量
-<!-- 
-  #app {
+
+
+
+------
+
+## 二、变量
+
+### 1.定义
+
+变量以美元符号开头，赋值方法与 CSS 属性的写法一样
+
+~~~scss
+$width: 1600px;
+$pen-size: 3em;
+~~~
+
+### 2.使用
+
+直接使用变量的名称即可调用变量
+
+~~~scss
+#app {
     height: $width;
     font-size: $pen-size;
-  }
- -->
+}
+~~~
 
--------------------
+### 3.作用域
 
-### 作用域
-- 变量支持块级作用域，嵌套规则内定义的变量只能在嵌套规则内使用（局部变量）
-- 不在嵌套规则内定义的变量则可在任何地方使用（全局变量）。
-- 将局部变量转换为全局变量可以添加 `!global` 声明
+变量支持块级作用域，嵌套规则内定义的变量只能在嵌套规则内使用（局部变量），不在嵌套规则内定义的变量则可在任何地方使用（全局变量）。将局部变量转换为全局变量可以添加 `!global` 声明
 
-- 也就是说 我们可以在 选择器的{ } 内部定义变量 但是它只能在{ }内部来使用
-- 如果在外部声明的变量 则是全局变量可以在任意地方使用
+~~~scss
+#foo {
+  $width: 5em !global;
+  width: $width;
+}
 
-<!-- 
+#bar {
+  width: $width;
+}
+~~~
 
-  $color: #212121     // 全局变量
+编译后：
 
-  #foo {
-    $width: 5em !global;    // 局部变量 但是加上了 global 则为全局
-    width: $width;
-  }
+~~~css
+#foo {
+  width: 5em;
+}
 
-  #foo {
-    width: 5em;
-  }
- -->
+#bar {
+  width: 5em;
+}
+~~~
 
--------------------
 
-## 数据类型
-- SassScript 支持 7 种主要的数据类型：
+
+
+
+
+
+------
+
+## 三、数据类型
+
+SassScript 支持 7 种主要的数据类型：
 
 - 数字，`1, 2, 13, 10px`
-
 - 字符串，有引号字符串与无引号字符串，`"foo", 'bar', baz`
-
 - 颜色，`blue, #04a3f9, rgba(255,0,0,0.5)`
-
 - 布尔型，`true, false`
-
 - 空值，`null`
-
 - 数组 (list)，用空格或逗号作分隔符，`1.5em 1em 0 2em, Helvetica, Arial, sans-serif`
-
 - maps, 相当于 JavaScript 的 object，`(key1: value1, key2: value2)`
 
-- SassScript 也支持其他 CSS 属性值，比如 Unicode 字符集，或 `!important` 声明。然而Sass 不会特殊对待这些属性值，一律视为无引号字符串。
+SassScript 也支持其他 CSS 属性值，比如 Unicode 字符集，或 `!important` 声明。然而Sass 不会特殊对待这些属性值，一律视为无引号字符串。
 
-- 判断数据类型的方式：`type-of($value)`
 
--------------------
+
+判断数据类型的方式：`type-of($value)`
+
+
 
 ### 1.字符串 (Strings)
 
