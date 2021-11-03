@@ -1,6 +1,15 @@
 ### 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
 
 
+### 问题集锦
+- failed to push some refs to 'git@github.com:xxx/xxx.git'错误提示；
+
+- github中的README.md文件不在本地代码目录中；
+
+- 解决的办法：
+- git pull --rebase origin master
+
+
 ### 命令
 - wq                退出
 - git ls-files -s   看看暂存区里面的文件
