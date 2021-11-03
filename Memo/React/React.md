@@ -442,6 +442,35 @@
   )
  -->
 
+> jsx语法的转化过程
+- jsx仅仅是 createElement 方法的语法糖
+- jsx语法被 babel插件便以为 createElement方法 最后会再次的被转化为react元素
+
+- jsx - createElement - react元素
+<!-- 
+  const el = (
+    <h1 className="test"> hello </h1>
+  )
+
+  ↓
+
+  const el = React.createelement(
+    "h1",
+    {className: "test"},
+    "hello"
+  )
+  
+  ↓
+
+  const el = {
+    type: "h1",
+    props: {
+      className: "test",
+      children: "hello"
+    }
+  }
+ -->
+
 ----------------------------
 
 ### React的小练习
@@ -843,6 +872,17 @@
 
 > react的编程思想：
 - 数据驱动视图，数据先发生改变 驱动着页面发生更新
+
+
+> 组件更新机制
+- setState的两个作用
+- 1. 修改state
+- 2. 更新组件
+
+- 过程：
+- 父组件重新渲染的时候 也会重新渲染子组件 但只会渲染当前组件子树(当前组件及其所有子组件)
+
+- 也就是说当我们更新一个组件的时候 它所包含的所有子组件也会更新 后代组件也会更新
 
 ----------------------------
 
@@ -4111,6 +4151,635 @@
 
 ----------------------------
 
+### 高阶组件 实现状态逻辑复用
+- 目的：
+- 实现状态逻辑复用，采用 包装(装饰)模式 比如说：手机壳 
+- 手机：为了获取保护功能
+- 手机壳：提供保护功能
+- 包装之后 手机就具备了原来手机所不具备的功能
+
+- 高阶组件就相当于手机壳 通过包装组件 增强组件功能 
+
+- 思路分析：
+- 高阶组件(HOC hgiher-order component)是一个函数 接收要包装的组件 返回增强后的组件 
+<!-- 
+  const EnhanceComponent = withHoc(WrappedComponent)
+
+  withHoc() 就是一个高阶组件 实参为要被包装的组件(这个组件需要扩展功能)
+  手机壳(手机)
+ -->
+
+- 高阶组件的内部创建一个类组件 在这个类组件中提供复用的状态逻辑 通过prop将复用的状态传递给被包装组件 WrappedComponent
+
+<!-- 
+  // 这个组件 只是为了提供可复用的逻辑代码 自身不渲染ui结构
+  // 负责渲染 ui结构的还是 WrappedComponent 组件
+
+  const EnhanceComponent = withHoc(WrappedComponent)
+
+  class Mouse extends React.Component {
+    render() {
+
+      // 这样 WrappedComponent 就能拿到 x y 的坐标了
+      return <WrappedComponent {...this.state}>
+    }
+  }
+ -->
+
+
+> 使用步骤
+- 1. 创建一个函数， 名称约定以with开头
+<!-- 
+  该函数就是一个壳，用来返回内部类组件的
+
+  假如我们起名为widthXxx 那么该函数内部就创建一个Xxx的类组件
+ -->
+
+- 2. 指定函数参数，参数应该以大写字母开头(作为要渲染的组件)
+<!-- 
+  这个参数是要被渲染出来的 组件就要以大写字母开头
+ -->
+
+- 3. 在函数内部创建一个类组件，提供复用的状态逻辑代码 并返回
+- 这步是在组件的上面创建的一个函数 比如我们要在app组件中 渲染一个状态可复用的ui结构组件
+
+- 那么我们就将高阶组件和app写在一个文件里
+<!-- 
+  function withMouse(WrappedComponent) {
+
+    class Mouse extends Component {
+      ....
+    }
+
+    return Mouse
+  }
+ -->
+
+- 4. 在该组件中，渲染参数组件 同时将状态通过prop传递给参数组件
+<!-- 
+  Mouse组件中 render方法里
+  return <WrappedCompent {...this.state}>
+ -->
+
+- 5. 调用该高阶组件 传入要增强的组件(要使用复用逻辑带ui结构的组件) 通过返回值拿到增强后的组件 并将其渲染到页面中
+<!-- 
+  // App组件内部的逻辑
+  import React, {Component} from "react"
+
+  // 引入要渲染的ui组件
+  import MouseUI from "./components/MouseUI"
+
+  import "./App.less"
+
+  // 创建高阶组件
+  // 参数为 ui组件 我们要在这个函数内部的类组件 将状态和状态的方法 通过props传递到ui组件中
+  function withMouse(WrappedComponent) {
+
+    // 这个组件中提供要复用的逻辑
+    class Mouse extends Component {
+      
+      // 这个组件中提供状态 和 提供修改状态的逻辑
+      state = {
+        x: 0,
+        y: 0
+      }
+
+      handleMouseMove = (e) => {
+        this.setState({
+          x: e.clientX,
+          y: e.clientY
+        })
+      }
+
+      // 控制鼠标状态的逻辑
+      componentDidMount() {
+        window.addEventListener("mousemove", this.handleMouseMove)
+      }
+
+      componentWillUnmount() {
+        window.removeEventListener("mousemove", this.handleMouseMove)
+      }
+
+
+      // ui结构是通过传递进来的参数决定的
+      render() {
+        return (
+          <WrappedComponent {...this.state}></WrappedComponent>
+        )
+      }
+    }
+
+    return Mouse
+  }
+
+
+  // 获取增强后的组件
+  // 将ui组件当做实参传递进去 得到一个新的组件 也就是加工后的组件
+  let MousePosition = withMouse(MouseUI)
+
+  // 将加工后的组件渲染出来
+  export default class App extends Component {
+    render() {
+      return (
+        <div className="app-wrap">
+          <MousePosition />
+        </div>
+      )
+    }
+  }
+
+
+
+
+  // ui结构组件 
+  也就是我们将这个组件作为实参传递进去它就会接收到 上面传递进来的props
+
+  import React, {Component} from "react"
+  export default class Position extends Component {
+
+    render() {
+      return (
+        <div>
+          鼠标当前位置: x: ${this.props.x}, y: ${this.props.y}
+        </div>
+      )
+    }
+  }
+
+
+  // 猫捉老鼠的组件  函数组件
+  import img from ""
+  const Cat = props => (
+    <img src={img} alt="" style={{
+      position: "absolute",
+      top: this.props.y,
+      left: this.props.x,
+    }}>
+  )
+
+  这个组件自身是没有状态和操作状态的逻辑的 鼠标的逻辑代码封装在高阶组件里面了
+ -->
+
+> 设置displayName
+- 使用高阶组件存在的问题：
+- 得到的两个组件名称是相同的
+<!-- 
+  假如我们多次通过高阶组件来返回新组件的话 它们的名字都会是同一个
+  因为高阶组件函数的返回值 是同一个 需要参数不一样
+  
+  上面的高阶组件函数 内部都是一个 class Mouse 。。。 组件
+  多次调用后 所有使用高阶组件的地方 在开发者工具中看的话 都会是
+  <Mouse />
+  <Mouse />
+ -->
+
+- 因为默认情况下 react是根据 组件名称作为 displayName 的
+- 解决方式：
+- 为高阶组件 设置 displayName 便于调试时区分不同的组件
+
+> displayName的作用：
+- 用于设置调试信息(React Developer Tools信息)
+
+ 
+> 设置方式
+- 在高阶组件函数 return前设置
+<!-- 
+  Mouse.displayName = `withMouse${getDisplayName(WrappedComponent)}`
+
+  function getDisplayName(WrappedComponent) {
+    return WrappedComponent.displayName || WrappedComponent.name || "Component"
+  }
+ -->
+
+<!-- 
+  // App组件
+  // 创建高阶组件
+  function withMouse(WrappedComponent) {
+
+    class Mouse extends Component {
+      state = { x: 0, y: 0 }
+
+      handleMouseMove = (e) => {
+        this.setState({
+          x: e.clientX,
+          y: e.clientY
+        })
+      }
+
+      componentDidMount() {
+        window.addEventListener("mousemove", this.handleMouseMove)
+      }
+
+      componentWillUnmount() {
+        window.removeEventListener("mousemove", this.handleMouseMove)
+      }
+
+      render() {
+        return (
+          <WrappedComponent {...this.state}></WrappedComponent>
+        )
+      }
+    }
+
+    // 设置displayName 注意 WithMouse 是大写 因为它要作为组件的名称在开发者工具中呈现
+    Mouse.displayName = `WithMouse${getDisplayName(WrappedComponent)}`
+    return Mouse
+  }
+
+  // 预定义的函数
+  function getDisplayName(WrappedComponent) {
+    return WrappedComponent.displayName || WrappedComponent.name || "Component"
+  }
+
+  // 获取增强后的组件
+  let MousePosition = withMouse(MouseUI)
+
+  export default class App extends Component {
+    render() {
+      return (
+        <div className="app-wrap">
+          <MousePosition />
+        </div>
+      )
+    }
+  }
+ -->
+
+
+> 高阶组件 向高阶组件(我们封装后的组件 MousePosition)传递props
+- 问题：props丢失
+- 我们向 MousePosition 高阶组件 传递了 props
+- MousePosition其实是 withMouse 的返回值 它的返回值是 Mouse
+- MousePosition -- withMouse -- Mouse
+
+- 也就是说我们给 Mouse 传递了 a="1" 的props
+- 但是 Mouse 并没有再将 prop 传递给 它的WrappedComponent组件
+
+<!-- 
+  let MousePosition = withMouse(MouseUI)
+
+  export default class App extends Component {
+    render() {
+      return (
+        <div className="app-wrap">
+          <MousePosition a="1"/>
+        </div>
+      )
+    }
+  }
+ -->
+
+- 那我们要想向高阶组件传递 prop 的时候怎么办？
+- 解决方式：
+- 渲染 WrappedComponent 时 将state 和 this.props 一起传递给组件
+<!-- 
+  <WrappedComponent {...this.state} {...this.props}>
+
+
+  function withMouse(WrappedComponent) {
+
+    class Mouse extends Component {
+      state = { x: 0, y: 0 }
+
+      handleMouseMove = (e) => {
+        this.setState({
+          x: e.clientX,
+          y: e.clientY
+        })
+      }
+
+      componentDidMount() {
+        window.addEventListener("mousemove", this.handleMouseMove)
+      }
+
+      componentWillUnmount() {
+        window.removeEventListener("mousemove", this.handleMouseMove)
+      }
+
+      render() {
+        return (
+          <WrappedComponent {...this.state} {...this.props}>
+        )
+      }
+    }
+ -->
+
+**在使用高阶组件的时候**
+- 不仅仅要传递 state 再传递个 props
+
+----------------------------
+
+### setState() 说明
+
+> setState更新数据的时候是异步的
+- setState这个方法本身是同步的方法 只要我们调用立马在主线程上执行
+- 但是setState引起react的后续的更新动作是异步的更新
+<!-- 
+  this.state = {count: 1}
+  
+  this.setState({
+    count: this.state.count + 1
+  })
+  // 如果在setState方法之后立即调用了console 我们发现是修改之前的值
+  console.log(this.state.count)   // 1
+ -->
+
+- 说明这个方法是调用了 但是状态并没有立即改变 更新数据是异步的
+
+- 所以 我们需要注意的是 后面的setState 不要依赖于前面的setState
+<!-- 
+  handleClick = () => {
+
+    // 这里我们连续的调用两次 setState 会怎么样
+    this.setState({
+      count: this.state.count + 1
+    })
+
+    this.setState({
+      count: this.state.count + 1
+    })
+  }
+
+  虽然我们调用了两次 但结果是2 也就是说 state中的count 值只加了一次
+
+  第一次调用的时候 setState肯定是会更新为2的但是它的更新时异步的
+  紧接着我们再次的调用 第二次setState中的count值也是1 
+  也就是第二次中setState 还是 1+1
+
+  虽然我们调用了2次 但是后面的setState并没有依赖于第1次的结果 也就是说并不是 拿到第一次setState的结果2 再进行+1的
+ -->
+
+- 我们是可以调用多次的 setState 但是只会触发一次render 也就是只会触发一次重新渲染
+
+- 因为要考虑到性能 如果我们调用了一次setState就render一次 再调一次 再render一次 性能上会不好 所以 实际上它会将多次调用的setState最终合并 将最终的结果一次性的调用render方法 将最终的结果渲染到页面中
+
+
+> setState((state, props) => { ... })   推荐语法
+- 上面说了 如果调用了两次setState后面的是无法基于第一次setState的结果去做一些操作的
+
+- 回调中的return里 原先的state对象 return { }
+- 参数：
+- state: 表示最新的state 总为最新的state 依赖于上次的state的结果
+- props: 标表示最新的props
+<!-- 
+  这个方法跟普通的方式没有什么区别也是异步更新数据 但是
+
+  state总是为最新的state 也就是说 假如我们调用两次setState后 第二次setState中的state参数是最新的数据 也就是基于第一次setState的结果
+ -->
+
+<!-- 
+  this.setState((state, props) => {
+    return {
+      count: state.count + 1    // 2
+    }
+  })
+
+  this.setState((state, props) => {
+    return {
+      count: state.count + 1    // 3
+    }
+  })
+ -->
+
+
+> setState的第二个参数
+- 上面我们将setState方法的第一个参数由普通对象 改写为回调的形式
+- 这里我们再说说第二个参数
+
+- 场景
+- 在状态更新(页面dom完成重新渲染)后立即执行某个操作 像不像this.$nextTick
+<!-- 
+  状态更新后 并且页面重新渲染后 立即执行
+  比如我们要想操作dom的话 在回调中写逻辑
+ -->
+
+- 语法：
+- this.setState(
+  (state, props) => { return {} },
+  () => {  console.log(这个回调会在状态更新后立即执行) }
+)
+
+<!-- 
+  // 当状态更新后 操作dom 比如更新页面的标题
+  this.setState(
+    (state, props) => {},
+    () => {
+      document.title = "更新state后的标题:" + this.state.count
+    }
+  )
+ -->
+
+----------------------------
+
+### 组件的性能优化
+> 1. 减轻state
+- 只存储跟组件渲染相关的数据(比如 count 列表数据 loading)
+- 注意
+- 不用做渲染的数据 不要放在state中 比如定时器的id等
+
+- 对于这种需要在多个方法中用到的数据 应该放在this中
+- 因为state中的数据越多 react在渲染的时候性能就会越低
+
+
+> 2. 避免不必要的重新渲染
+- 组件的更新机制 父组件更新会引起子组件也被更新 这种思路很清晰
+- 但是这种方式也会造成一个问题 就是如果子组件没有任何变化时 也会重新渲染
+
+- 解决方式：
+- 使用钩子函数 shouldComponentUpdate(nextProps, nextState)
+- 组件是否应该重新渲染
+- 参数：
+- nextProps nextState 表示最新的(更新后)props 和 state
+- 这个钩子函数中 this.state this.props是更新之前的状态
+
+- 作用
+- 通过这个钩子函数的返回值决定该组件是否重新渲染 返回true重新渲染 false表示不重新渲染 false后render不会执行
+
+- 钩子函数触发时机
+- 更新阶段的钩子函数 组件重新渲染前执行 shouldComponentUpdate - render
+
+<!--  
+  class Hello extends Component {
+
+    shouldComponentUpdate(nextProps, nextState) {
+
+      // 根据条件 决定是否重新渲染组件
+
+      // 在这个钩子函数中 通过this.state 和 this.props获得的是更新之前的state和props
+
+      // 我们可以根据nextState 和 this.state 来决定是否更新组件
+
+      return false
+    }
+
+    render() {}
+  }
+ -->
+
+
+> 避免不必要的重新渲染的案例 -- 随机数
+- 我们创建一个点击按钮生成1-3随机数的功能
+- 同时 我们思考一下 如果这一次随机数是2 上次的也是2 那页面还用更新么？ 没有必要吧
+<!-- 
+  export default class App extends Component {
+
+    state = {
+      num: 0
+    }
+
+    randomNum = () => {
+      let rnum = Math.floor(Math.random() * 3)
+      this.setState(() => {
+        return {
+          num: rnum
+        }
+      })
+    }
+
+    // 因为两次生成的随机数可能相同 如果相同 此时没有必要重新渲染
+    shouldComponentUpdate(nextProps, nextState) {
+
+      console.log("最新state 或者说 更新后：", nextState, "更新前的state:", this.state)
+
+      // 判断两次的state是否相同 如果相同 没有必要更新
+      if(nextState.num === this.state.num) {
+        return false
+      } 
+      return true
+
+      // 优化
+      if(nextState.num !== this.state.num) {
+        return true
+      } 
+      return false
+
+      // 优化
+      我们看看下面的条件是否成立 如果成立就会是true 如果不成立就会是false
+      反向思维方式 要理解这个地方先看看上面的逻辑 一步一步的优化到这里
+      return nextState.num !== this.state.num
+    }
+
+    render() {
+      console.log("render")
+      return (
+        <div className="app-wrap">
+          <h3>随机数：{this.state.num}</h3>
+          <button onClick={this.randomNum}>重新生成</button>
+        </div>
+      )
+    }
+  }
+ -->
+
+
+> 当状态不在组件自身的时候
+- 上面的案例中是通过 shouldComponenUpdate 生命周期中的state来阻止了不必要的页面更新 接下来我们看看 怎么通过 props 来实现
+
+- 我们在子组件中 添加 shouldComponentUpdate 
+<!-- 
+  class ChildrenComponent extends Component {
+
+    // 如果前后两次的props不相同 我们就让组件更新
+    shouldComponentUpdate(nextProps) {
+      return nextProps.num !== this.props.num
+    }
+  }
+ -->
+
+- 总结：
+- 如果状态是自己的 那我们就使用 state 来做判断
+- 如果状态不是自己的 那我们就使用 props 来做判断
+
+
+### 纯组件 React.PureComponent
+- 上面我们为了避免渲染不必要的更新使用了 shouldComponentUpdate 钩子
+- 我们还可以在创建类组件的时候 继承 React.PureComponent 实现同样的逻辑
+
+- class App extends React.PureComponent { ... }
+
+- React.Component 和 React.PureComponent 的区别就是React.PureComponent 中以浅层对比 prop 和state 的方式来实现了该函数。
+
+- 纯组件内部的对比是 shallow compare (浅层对比)
+
+
+> 值类型：
+- 比较两个值是否相同(直接赋值即可 没有坑)
+<!-- 
+  let num = 0
+  let newNum = num
+
+  newNum = 2
+  console.log(num === newNum)    // false
+ -->
+
+- 如果state中有一个变量也是值类型的 那么我们可以给state中的变量直接赋值是没有坑的 比如
+<!-- 
+  state = { num: 0}
+  setState({
+    num: Math.floor(Math.random() * 3)
+  })
+
+  PureComponent 内部对比
+  最新的state.num == 上一次的state.num  // false 重新渲染组件
+ -->
+
+
+> 引用类型:
+- 对于 引用类型 来说 只比较对象的引用(地址)是否相同
+<!-- 
+  const obj = {num: 0}
+  const newObj = obj
+  newObj.num = 2
+  console.log(newObj === obj)  // true
+ -->
+
+- 解析
+- 我们使用的是引用类型的数据 当我们把引用类型赋值个一个新的变量的时候 实际上obj和newObj都会指向同一个对象
+
+- 不管是通过哪个变量修改了这个对象的值 改的都是同一个对象 最终我们在进行比较的时候 obj 和 newObj 还是相同的
+
+- 但是这种方式用在了react的state里的时候 就会出问题
+
+<!-- 
+  // 错误的写法
+  state = {
+    obj: {num:0}
+  }
+
+  handleClick = () => {
+
+    // 如果我们通过这样的形式直接修改了 state 中的数据
+    const newObj = this.state.obj
+    newObj.num = Math.floor(Math.random() * 3)
+
+    // 然后将newObj赋值给了obj 其实这里他们两个是同一个对象
+    this.setState(() => {
+      return {
+        obj: newObj
+      }
+    })
+  }
+  
+  // 将来 PureComponent 内部比较的时候 拿着最新的和上一次的比较的时候
+  // 因为是浅比较
+  最新的state.obj === 上一次的state.obj   // true
+ -->
+
+- 上面就是浅对比对引用类型的影响
+- 所以 在state 或 props 中属性值为 引用类型的时候 应该创建新数据 不要直接修改原数据
+<!-- 
+  // 正确的做法 创建新数据
+  const newObj = {...this.state.obj, num: 2}
+  setState({obj: newObj})
+
+  // 数组 不要使用push等直接影响原数组的方法 要使用concat slice等返回新新数组的方法
+  this.setState({
+    list: [...this.state.list, {新数据}]
+  })
+ -->
+
+----------------------------
+
 ### DOM的diffing算法
 - React最大的优势就是 它不是每一次都将页面上的真实DOM做出修改 每一个真实的DOM都是对应一个虚拟DOM的
 
@@ -6808,11 +7477,17 @@
 - 我们使用Vue和React写的网页都是SPA页面, 都是单页面
 - 以前我们多页面应用, 会发现一个场景有10个按钮, 那就有对应的10个html文件, 而且在页面切换的过程中, 会整体的刷新页面
 
+
 > SPA的理解
 - 单页Web应用（single page web application，SPA）
 - 整个应用只有一个完整的页面。
 - 点击页面中的链接不会刷新页面，只会做页面的局部更新。
 - 数据都需要通过ajax请求获取, 并在前端异步展现
+
+- spa页面它的用户体验会更好 对服务器的压力更新 比如多应用的程序中 页面中可能会有相同的部分 在多应用的程序中就会被加载两次 如果是单应用的程序只需要加载一次就可以了 
+
+- 为了有效的使用单个页面管理原来多页面的功能 前端路由就应运而生
+- 前端路由的功能 就是让用户从一个视图(页面)导航到另一个视图(页面)
 
 
 > react路由做了什么?
@@ -6831,8 +7506,10 @@
 > 路由的理解
 - 一个路由就是一个映射关系(key:value)
 - key为路径, value是组件
+- 前端路由是一套映射规则 在React中 是url路径 与 组件的对应关系
 <!-- 
   根据key 找value
+  使用react路由简单来说 就是配置路径 和 组件 (配对)
  -->
 
 
@@ -6864,7 +7541,6 @@
 
 > 不使用vue 和 react 实现不刷新页面 跳转页面
 - 1. 下载history.js文件
-
 - 2. 创建 history 对象
 
 
@@ -7015,8 +7691,9 @@
   import {BrowserRouter, Link} from 'react-router-dom'
  -->
 
+> 路由的三个核心组件 <Router> <Route> <Link>
 
-> 路由器: <Router> / <BrowserRouter> / <HashRouter>
+> 路由器: <Router>(<BrowserRouter> / <HashRouter>)
 - 用来管理 路由链接
 - 我们的路由链接都应该在<Router>的内部, 路由链接都交给路由器来管理
 
@@ -7029,29 +7706,52 @@
 - 使用 <BrowserRouter> 的时候 路径中 没有#
 - 使用 <HashRouter> 的时候 路径中 会有#
 
+**同时要使用选择的路由器 将整个应用包裹起来**
+- 也就是使用 路由器 包裹整个应用 我们才能使用路由功能
+<!-- 
+  <BrowserRouter>
+    <div className="App">
+      // 省略页面内容
+    </div>
+  </BrowserRouter>
+ -->
+
+- 还可以这样
+- 我们在index.js入口文件, 将整个<App>组件使用<BrowserRouter>包裹起来
+<!-- 
+  import {BrowserRouter, Link} from 'react-router-dom'
+
+  <BrowserRouter> 
+    <App /> 
+  </BrowserRouter>
+
+
+  还可以这样
+  import {BrowserRouter as Router, Route, Link} from "react-router-dom"
+
+  引入 BrowserRouter 的时候 起一个别名 Router
+ -->
+
+
+> 路由链接: <Link to> (router-link / <a>)
+- 上面我们用<BrowserRouter>包裹了整个应用 然后在内部 我们使用<Link>组件来达到a标签的效果
+
 - 我们在index.js入口文件, 将整个<App>组件使用<BrowserRouter>包裹起来
 <!-- 
   <BrowserRouter> <App /> </BrowserRouter>
  -->
 
-
-
-> 路由链接: <Link>
-- 外侧要包裹路由器标签 <BrowserRouter>
-
-- 我们在index.js入口文件, 将整个<App>组件使用<BrowserRouter>包裹起来
-<!-- 
-  <BrowserRouter> <App /> </BrowserRouter>
- -->
-
-- 单独使用的时候 也要用<BrowserRouter>包裹起来
+- 单独使用的时候 也要用<BrowserRouter>包裹起来 我们可以使用它包裹app组件的div
 <!-- 
   <BrowserRouter> <Link /> </BrowserRouter>
  -->
 
 - 和原生HTML <a> 标签一样的功能, <Link>来实现组件之间的切换
-- 标签内部属性:
+
+> 标签内部属性 to :
 - <Link to='/路径'>, 将URI修改为对应组件的路径，请求该资源, 和href一样的功能
+
+> 标签内部属性 children :
 - <Link children='Home'>, 可以指定标签体内容
 <!-- 
   <BrowserRouter>
@@ -7061,21 +7761,11 @@
  -->
 
 
-
-> 注册路由: <Route>
-- 外侧要包裹路由器标签 <BrowserRouter>
-- 我们在index.js入口文件, 将整个<App>组件使用<BrowserRouter>包裹起来
-<!-- 
-  <BrowserRouter> <App /> </BrowserRouter>
- -->
-
-- 单独使用的时候 也要用<BrowserRouter>包裹起来
-
-- 从react-router-dom 引入 
-- import {Route} from 'react-router-dom'
-
+> 注册路由: <Route path component> (router-view / 路由的出口)
+- 不要忘记外侧要包裹路由器标签 <BrowserRouter>
 - 用来配置 路径 和 组件之间的映射管理, 也叫做注册路由
-- 点击<Link>后会查看路径上的变化, 然后切换到与路径匹配的组件
+
+- 点击<Link>后会查看路径上的变化, 然后我们要实现切换到与路径匹配的组件 这里就需要通过<Route>组件来实现 它也决定我们的页面在哪个位置显示
 
 - 标签属性
 - <Route path='/home' component={引入的组件}>
@@ -7127,6 +7817,11 @@
 
 - <App>的最外侧包裹一个<BrowserRouter>或<HashRouter>
 
+> 常用组件的说明
+- <BrowserRouter> 应该包裹整个应用 一个React应用只需要使用一次
+- <Link> 最终会被编译成a标签 to会成为href to的值就是pathname(location.pathname)
+- <Route>指定路由展示组件的相关信息 它写在哪里渲染出来的组件就展示在哪里
+
 
 > 扩展
 - www.baidu.com/#
@@ -7141,6 +7836,88 @@
 
 - hash值的特点就是
 - #后面的东西都不会作为资源发送给服务器, #后面的东西都属于前台资源不会带给服务器
+
+----------------------------
+
+### 路由的执行过程
+- 1. 点击 link 修改了浏览器地址栏中的url
+- 2. react路由监听到地址栏 url 的变化
+- 3. react路由内部遍历所有 Route 组件 使用路由规则(path)与pathname进行匹配
+<!-- 
+  拿着Route path属性对应的值 去和 地址栏中pathname进行比较
+ -->
+- 4. 当路由规则path能够匹配地址栏中的pathname的时候 就展示该Route组件的内容
+
+----------------------------
+
+### 默认路由
+- 问题：
+- 现在的路由都是点击导航菜单后展示 如何在进入页面的时候就展示组件呢
+- 默认路由
+- 表示进入页面时候就会匹配的理由
+- 默认路由path为 /
+<!-- 
+  <Route path="/" component={home} />
+ -->
+
+----------------------------
+
+### 匹配模式
+
+> 模糊匹配
+- 问题
+- 当link组件的to属性值为 "/login" 时 为什么默认路由也被匹配成功? 
+<!-- 
+  <Link to="/login">登录页面</Link>
+  <Route path="/" component={Home} />    它也会被匹配
+
+  当我们点击 登录页面 按钮的时候 正常来讲页面就应该只显示login页面的内容
+  因为路径应该是 /login 所以只展示匹配的对应的组件内容
+
+  但是我们发现页面上不仅有 login 的内容 还有默认路由的内容 也就是说 它还匹配上了 /
+ -->
+
+- 因为默认情况下 react的路由是模糊匹配的
+- 模糊匹配的规则
+- 只要pathname以path开头就会匹配成功
+<!-- 
+  pathname 就是 Link to属性的值
+  也就是说 只要to属性的值/login 是以path开头的/ 就会匹配成功
+
+  因为拿着 Route 中的属性path的值 去匹配 Link的to属性的值
+  基准就是 path的值 开头 就会匹配成功
+
+  我们的例子里 Route - path 的值为 /
+  然后就去看 Link - to 的值为 /login 是以/开头 所以匹配成功
+ -->
+
+- 再看些例子
+- 默认路由会被所有的路径匹配上 因为都是以/开头的
+<!-- 
+    path 代表Route组件的path属性
+    pathname 代表Link组件的to属性 也就是location.pathname
+
+
+    path        能匹配的pathname
+
+    /           所有的pathname
+
+    /first      /first 或 /first/a 或 first/a/b
+ -->
+
+
+> 精准匹配
+- 上面说了默认路由会匹配所有的路径 但有些情况我们不希望这种现象发生怎么处理
+- 比如 我们点击首页的时候 希望展示的是默认路由
+- 但是 点击登录页面的时候 就不希望默认路由的信息出现了 只显示登录的内容
+
+- 我们给Route组件添加 exact 属性 就可以让其变为 精确匹配模式
+
+> <Route exact path="/" component={...}>
+- 只有当path和pathname完全匹配的时候 才会展示该路由
+
+**推荐**
+- 给默认路由添加 exact 属性
 
 ----------------------------
 
@@ -7524,7 +8301,9 @@
 - 上面的情况就是模糊匹配
 
 > 模糊匹配
-- 以path='home'为准, to='/home/a/b', to可以给多但是不能少顺序不能串, react会将to中的home a b都拿出来 和 path中的home进行匹配, 第一位一样就返回给你组件
+- 以Route的属性path='home'为准, 去匹配Link组件的属性to='/home/a/b', to可以给多但是不能少顺序不能串, 
+
+- react会将to中的home a b都拿出来 和 path中的home进行匹配, 第一位一样就返回给你组件
 <!-- 
   我们通过 按钮 修改的路径
   /home/a/b
@@ -11050,7 +11829,7 @@ export default class Parent extends PureComponent { }
 <!-- 
   该方法区别于以前固定的调用组件的模式，我调用哪个只能展示哪个组件
  -->
-アルジェと 5rju3dbn 　5rzu3dbn
+
 - 我们使用
   this.props.render(数据，用到再写)
 在子组件占一个组件的显示位置
@@ -11411,6 +12190,11 @@ export default class Parent extends PureComponent { }
     addPostcssPlugins([require('postcss-px2rem')({remUnit:375/10})])
   );
  -->
+
+----------------------------
+
+### 好客租房 案例
+
 
 ----------------------------
 
