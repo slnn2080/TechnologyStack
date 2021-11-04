@@ -1233,6 +1233,20 @@ directives: {
     })
  -->
 
+> 技巧
+- 我们使用在标签属性中使用 v-bind 绑定一个对象的时候 相当于将一些属性添加到了 标签属性中
+<!-- 
+  <a
+    v-bind="
+      item.blank
+        ? { target: '_blank', rel: 'noopener noreferrer' }
+        : false
+    "
+  >
+
+  相当于在 a标签中 添加了 target 和 rel 属性
+ -->
+
 
 > v-bind 动态绑定 class属性   -- 字符串写法
 > <h2 class='title' :class='mood'></h2>

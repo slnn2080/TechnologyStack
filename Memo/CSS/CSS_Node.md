@@ -1092,3 +1092,57 @@ background-image:radial-gradient(100px 100px at 0 0, red, yellow)
     <input type="radio" name='sex'>
     <span></span>
 </label>
+
+
+
+### 公司的内部总结
+
+> <picture> > <source media srcset>
+- 根据屏幕匹配的不同尺寸显示不同图片，如果没有匹配到或浏览器不支持 picture 属性则使用 img 元素：
+- picture 元素允许我们在不同的设备上显示不同的图片，一般用于响应式。
+
+- <picture> 元素零或多个 <source> 元素和一个 <img> 元素，
+- 每个 <source> 元素匹配不同的设备并引用不同的图像源，如果没有匹配的，就选择 <img> 元素的 src 属性中的 url。
+
+<!-- 
+    <picture>
+        <source media="(min-width: 650px)" srcset="demo1.jpg">
+        <source media="(min-width: 465px)" srcset="demo2.jpg">
+        <img src="img_girl.jpg">
+    </picture>
+ -->
+
+
+
+>  <figure>
+- 使用 <figure> 元素标记文档中的一个图像：
+- 标签规定独立的流内容（图像、图表、照片、代码等等）
+- 元素的内容应该与主内容相关，同时元素的位置相对于主内容是独立的。如果被删除，则不应对文档流产生影响。
+- <figcaption> 元素被用来为 <figure> 元素定义标题。
+
+> 格式
+- <figure>
+    <figcaption>figure元素标题</figcaption>
+    内容
+  </figure>
+
+- <figure>
+    内容
+    <figcaption>figure元素标题</figcaption>
+  </figure>
+
+
+<!-- 
+    <figure class="calc-pic">
+        <figcaption>＜ ご利用期間 ＞</figcaption>
+        <img
+            src="/assets/img/area/event/common/ico_01_03.svg"
+            alt="新車：ご利用期間"
+            width="100"
+            height="102"
+            loading="lazy">
+        <p class="calc-caption">
+            <strong>3年/5年/7年</strong><br class="u-show--pc">から選択
+        </p>
+    </figure>
+-->
