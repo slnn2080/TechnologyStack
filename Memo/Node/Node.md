@@ -3650,6 +3650,7 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
 - 比如将一张图片展示在页面中, 因为我输入一个网址, 网址中有<img>, 它的src也会向服务器发起请求
 
 - 一个项目里面应该有一个 静态资源文件夹 public
+- 这样前端的项目就可以访问到 服务器端静态资源文件夹里面的文件
 
 > app.use(express.static('public'))
 - 它是一个中间件 专门指定静态资源文件夹 需要传入一个路径 或者 指定文件夹
@@ -3683,6 +3684,19 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
 <!-- 
     <img src="../public/img/1.jpg" alt="">
  -->
+
+- 还有一种说法 在我们设置/static后 前端通过/static路径访问到服务器端静态资源文件夹里面的数据
+<!-- 
+  我们可以 npm i bootstrap
+  然后将 node_modules / bootstrap 设置为静态资源文件夹
+  这样前端就能访问到这个文件夹中的文件
+
+  app.use(express.static("/lib/bootstrap", "node_modules/bootstrap/dist"))
+
+
+  前端可以通过 /lib/bootstrap 这个路径 访问到 node_modules/bootstrap/dist 这个路径里面的资源
+ -->
+
 
 > 代码部分
 - 注意, html页面中的src路径 也要写 根 / 从根开始写, 或者直接写请求头的第二个部分

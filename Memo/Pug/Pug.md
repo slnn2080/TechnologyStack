@@ -1,28 +1,99 @@
 ### Pug模版
+- npm i pug
+
+- pug文件默认路径就是 views的文件夹里面 
+-  app.set("views", "./views")
 
 
-我是来日本之后才开始使用git的 经验上不是那么多 上一个公司 也就是使用一些add commit push stash所以在git的方面可能会问
+> app.use()
+- 该项目文件夹里面的部分文件 变成静态的文件 提供给服务器 这样在客户端直接就可以访问到静态资源文件夹里面的文件
+<!-- 
+  我们可以 npm i bootstrap
+  然后将 node_modules / bootstrap 设置为静态资源文件夹
+  这样前端就能访问到这个文件夹中的文件
 
-私が来日以降にgitに触ってました、経験上にはそんなに多くないです
-前の会社でsourceTreeで簡単な操作ができてましたが、複雑な状況があまり会ったことがないかな
-今回のプロジェクトの中で多分わからないところが多いですが、その時に助けていただけませんでしょうか
-
-在这个项目里 我们使用的不是cli构建的项目是么 还有gulp 还有html部分我还看到了pug scss
-这些我都不太熟悉 所以在看项目中的文件的时候 有一些蒙圈
-
-このプロジェクトはcliで項目を構築しませんでしたよね
-プロジェクトの中で、カルプ　パグ　サスなどを見て、これらはちょっとわからないですが
-今後の作業が影響がありますでしょうか
-あるいは、作業する前にカルプ　パグ　サスなどを知る必要がありますでしょうか
+  app.use(express.static("/lib/bootstrap", "node_modules/bootstrap/dist"))
 
 
-あとは日本語の問題で多分修正指示についてチェックすることが多いと思います
+  前端可以通过 /lib/bootstrap 这个路径 访问到 node_modules/bootstrap/dist 这个路径里面的资源
+ -->
+
+<!-- 
+  | - views
+    - index.pug
+
+  // 将模板引擎设置为 pug
+  app.set("view engine", "pug")
+
+  // 设置模板存放目录为 views文件夹
+  app.set('views', path.join(__dirname, 'views'));
+  app.set("views", "./views")
+
+  // 设置服务器端的静态资源文件夹 让前端通过 /lib/bootstrap 路径访问到bootstrap
+  app.use("/lib/bootstrap", express.static("node_modules/bootstrap/dist"))
+
+  app.get("/", (req, res) => {
+    res.render("index")
+  })
+ -->
 
 
-图片中的2倍图的问题 怎么使用　
-这样的话 移动端 flex scss 多倍图 pug的相关知识还要过一遍 还有figma的使用方式 animatejs
+> pug语法
+- pug的语法是靠缩进 指定标签
+<!-- 
+  html
+    head
+      title Home
 
-先看 flex 和 scss 吧
-移动端 和 h5 的知识也要看下
+      // 这里通过 /lib/bootstrap 路径 引入服务器端的文件
+      link(rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css")
+      script(src="/lib/bootstrap/js/bootstrap.js")
 
-开始的时候整理代码的逻辑也是需要花时间的
+      style
+
+  body
+    div
+      h3
+ -->
+
+- 标签属性 写在括号里面
+<!-- 
+  div(class="box")
+ -->
+
+- 标签内容 直接写在标签的后面
+<!-- 
+  h3 内容
+ -->
+
+> include
+- 载入字符 css中的所有内容都会以字符的形式 加载到pug里面
+- 在pug中加入自己的css文件 使用 include 关键字
+<!-- 
+  style
+    include style.css
+
+  scrip
+    include script.js
+ -->
+
+
+> pug如何使用后台传递过来的数据
+<!-- 
+  const data = {
+    name: "sam"
+  }
+  res.render("index", data)
+
+
+  pug模板中使用 #{name}
+ -->  
+
+
+ > pug里面后台传递到前端的数据 我们还可以保存在js中的变量里面
+ > script.
+- 加上.后我们可以取到后台传递过来的name的值
+ <!-- 
+  script.
+    const name = #{name}
+  --> 
