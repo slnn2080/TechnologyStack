@@ -1153,6 +1153,7 @@ git push origin master
     Receiving objects: 100% (40/40), done.
     Resolving deltas: 100% (14/14), done.
  -->
+
 - 当你的小伙伴从远程库clone时，默认情况下，你的小伙伴只能看到本地的master分支。不信可以用git branch命令看看：
 <!-- 
     $ git branch
@@ -1169,6 +1170,7 @@ git push origin master
     [dev 7a5e5dd] add env
     1 file changed, 1 insertion(+)
     create mode 100644 env.txt
+
     $ git push origin dev
     Counting objects: 3, done.
     Delta compression using up to 4 threads.
@@ -1192,6 +1194,8 @@ git push origin master
     [dev 7bd91f1] add new env
     1 file changed, 1 insertion(+)
     create mode 100644 env.txt
+
+
     $ git push origin dev
     To github.com:michaelliao/learngit.git
     ! [rejected]        dev -> dev (non-fast-forward)
@@ -1230,16 +1234,25 @@ git push origin master
 
 - 这回git pull成功，但是合并有冲突，需要手动解决，解决的方法和分支管理中的解决冲突完全一样。解决后，提交，再push：
 
+
+> pull数据时候的流程
 - 总结：
 <!-- 
     因此，多人协作的工作模式通常是这样：
     首先，可以试图用git push origin <branch-name>推送自己的修改；
+
     如果推送失败，则因为远程分支比你的本地更新，需要先用git pull试图合并；
     如果合并有冲突，则解决冲突，并在本地提交；
+
     没有冲突或者解决掉冲突后，再用git push origin <branch-name>推送就能成功！
-    如果git pull提示no tracking information，则说明本地分支和远程分支的链接关系没有创建，用命令git branch --set-upstream-to <branch-name> origin/<branch-name>。
+
+    如果git pull提示no tracking information，
+    则说明本地分支和远程分支的链接关系没有创建，
+    
+    用命令git branch --set-upstream-to <branch-name> origin/<branch-name>。
     这就是多人协作的工作模式，一旦熟悉了，就非常简单。
  -->
+
 
 - 查看远程库信息，使用git remote -v；
 - 本地新建的分支如果不推送到远程，对其他人就是不可见的；
@@ -1252,7 +1265,6 @@ git push origin master
 - 1. 先将远程仓库的项目 clone下来
 - 2. 创建自己的dev分支 git checkout -b dev origin/dev
 - 3. 如果push的时候有冲突 先拉取最新的文件 然后再push
-
 
 ---------------------------
 
@@ -1372,6 +1384,7 @@ git push origin master
     Falling back to patching base and 3-way merge...
     Auto-merging hello.py
  -->
+
 - 输出了一大堆操作，到底是啥效果？再用git log看看：
 <!-- 
     git log --graph --pretty=oneline --abbrev-commit

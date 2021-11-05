@@ -5,7 +5,7 @@
 ### express 相关
 
 - pug文件默认路径就是 views的文件夹里面 
--  app.set("views", "./views")
+- app.set("views", "./views")
 
 
 > app.use()
