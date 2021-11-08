@@ -32,7 +32,6 @@
 
 ### 问题集锦
 - failed to push some refs to 'git@github.com:xxx/xxx.git'错误提示；
-
 - github中的README.md文件不在本地代码目录中；
 
 - 解决的办法：
@@ -225,10 +224,12 @@ Your public key has been saved in sam.pub.
     我们在工作区中生成文件 修改文件都是在这里做的 这也就沙箱环境 这个环境下
     删改都可以
  -->
+
 > 暂存区
 <!-- 
     暂时放在这里 新增一个文件 删除一个文件 统一一次修改提交
  -->
+
 > 版本库
 - 版本库又名仓库，英文名repository，你可以简单理解成一个目录，这个目录里面的所有文件都可以被Git管理起来，每个文件的修改、删除，Git都能跟踪，以便任何时刻都可以追踪历史，或者在将来某个时刻可以“还原”。
 <!-- 
@@ -261,6 +262,7 @@ git push -u origin master
 git push origin master
 - 第一次推送master分支时，加上了 –u参数
 - Git会将本地的master分支内容推送的远程新的master分支，还会把2个master分支关联起来，在以后的推送或者拉取时就可以简化操作
+
 ---------------------------
 
 ### 设置签名
@@ -357,6 +359,8 @@ git push origin master
 > git commit -m '对提交的文件进行这次提交的描述'
 - 从暂存区提交到本地库
 - 提交更改，实际上就是把暂存区的所有内容提交到当前分支。
+
+
 > 提交到指定分支上
 > git commit -m '描述' 分支名
 - 将文件提交到本地版本库
@@ -406,6 +410,7 @@ git push origin master
 > git status
 - 可以让我们时刻掌握仓库当前的状态
 
+
 > git diff fliename
 <!-- 
     比如你休假两周从国外回来，第一天上班时，已经记不清上次怎么修改的readme.txt，所以，需要用git diff这个命令看看：
@@ -453,8 +458,11 @@ git push origin master
     这是第一次提交
  -->
 
+
 > git log
 - 显示从最近到最远的提交日志
+
+
 > git log --pretty=oneline
 - 一个版本使用一行显示 来显示所有的版本列表
 <!-- 
@@ -463,6 +471,8 @@ git push origin master
     e475afc93c209a690c39c13a46716e8fa000c366 add distributed
     eaadf4e385e865d25c48e7ca9c8395c3f7dfaef0 wrote a readme file
  -->
+
+
 > git log --oneline
 - 哈希值只显示一部分的版本列表
 - 只显示当前指针后面的信息 指针前面的信息不会显示哈
@@ -470,6 +480,8 @@ git push origin master
     0779099 (HEAD -> master) 这是第二次提交
     a2844d7 这是第一次提交
  -->
+
+
 > git reflog
 - 便于观察我们移动到其它版本需要几步 HEAD指针需要移动的步数
 - 当前指针前后的版本都会被展示
@@ -571,13 +583,16 @@ git push origin master
 > git reset --hard HEAD
 - 回到最新的版本位置
 
+
 > git reset --hard HEAD^
 - 回退一次版本
 - git reset --hard HEAD^^^ 回退三次
 
+
 > git reset --hard HEAD~指定步数
 - 回退一次版本
 - git reset --hard HEAD~3 回退三次
+
 
 ### git reset 后面接的参数 --hard / --soft / mixed 对比
 > git reset --hard
@@ -591,6 +606,8 @@ git push origin master
                             使用sort本地库回退了一个版本
                             因为和暂存区的版本不一致了 所以内容也不一致
  -->
+
+
 > git reset --mixed
 - 在本地库移动HEAD指针 也会重置暂存区
 <!-- 
@@ -600,7 +617,6 @@ git push origin master
                             使用mixed本地库和暂存区回退了一个版本
                             工作区的内容没变 会显示工作区内容需要git add
  -->
----------------------------
 
 ---------------------------
 
@@ -769,6 +785,8 @@ git push origin master
 > git push -u origin master
 - 把本地库的内容推送到远程，用git push命令，实际上是把当前分支master推送到远程。
 - 由于远程库是空的，我们第一次推送master分支时，加上了-u参数，Git不但会把本地的master分支内容推送的远程新的master分支，还会把本地的master分支和远程的master分支关联起来，在以后的推送或者拉取时就可以简化命令。
+
+
 > SSH警告
 - 当你第一次使用Git的clone或者push命令连接GitHub时，会得到一个警告：
 <!-- 
@@ -779,10 +797,15 @@ git push origin master
     Git会输出一个警告，告诉你已经把GitHub的Key添加到本机的一个信任列表里了：
  -->
 
+
 > 删除远程库
 - 如果添加的时候地址写错了，或者就是想删除远程库，可以用git remote rm <name>命令。使用前，建议先用git remote -v查看远程库信息：
+
+
 > git remote rm <name>
 - 删除远程库
+
+
 > git remote -v
 - 查看远程库信息
 - 然后，根据名字删除，比如删除origin：
@@ -850,15 +873,20 @@ git push origin master
     合并完成后，就可以放心地删除dev分支了：
  -->
 
+
 > git branch -d dev
 - 合并完成后，就可以放心地删除dev分支了：
 
 - 我们注意到切换分支使用git checkout <branch>，而前面讲过的撤销修改则是git checkout -- <file>，同一个命令，有两种作用，确实有点令人迷惑。
 
+
 > git switch 分支名
 - 最新版本的Git提供了新的git switch命令来切换分支：
+
+
 > git switch -c dev
 - 创建并切换到新的dev分支
+
 ---------------------------
 
 ### 解决冲突
@@ -957,6 +985,7 @@ git push origin master
     git checkout master
     git checkout -b issue-101
  -->
+
 - 现在修复bug，需要把“Git is free software ...”改为“Git is a free software ...”，然后提交：
 <!-- 
     git add readme.txt 
@@ -977,9 +1006,13 @@ git push origin master
     stash@{0}: WIP on dev: f52c633 add merge
  -->
 - 工作现场还在，Git把stash内容存在某个地方了，但是需要恢复一下，有两个办法：
+
+
 > git stash apply
 - 恢复刚才使用 git stash 保存起来的工作
 - 但是恢复后，stash内容并不删除，你需要用git stash drop来删除；
+
+
 > git stash pop
 - 恢复的同时把stash内容也删了：
 
@@ -1044,12 +1077,14 @@ git push origin master
 - 一切顺利的话，feature分支和bug分支是类似的，合并，然后删除。
 
 - 但是！　就在此时，接到上级命令，因经费不足，新功能必须取消！　虽然白干了，但是这个包含机密资料的分支还是必须就地销毁：
+
 > git branch -d feature-vulcan
 <!-- 
     $ git branch -d feature-vulcan
     error: The branch 'feature-vulcan' is not fully merged.
     If you are sure you want to delete it, run 'git branch -D feature-vulcan'.
  -->
+
 - 销毁失败。Git友情提醒，feature-vulcan分支还没有被合并，如果删除，将丢失掉修改，如果要强行删除，需要使用大写的-D参数。。
 
 - 现在我们强行删除：
@@ -1133,6 +1168,7 @@ git push origin master
 > git merge 指定分支的名字
 - 我们所处master 指定将哪一个分支的修改合并过来
 
+
 ### git在合并的时候会产生冲突
 - 比如我们现在电脑上有两条分支 这两条分支都可以同时推进
 <!-- 
@@ -1174,6 +1210,7 @@ git push origin master
 > 推送分支
 - 推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
 
+
 > git push origin master
 - 如果要推送其他分支，比如dev，就改成： git push origin dev
 - 但是，并不是一定要把本地分支往远程推送，那么，哪些分支需要推送，哪些不需要呢？
@@ -1183,7 +1220,6 @@ git push origin master
 - feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
 
 - 总之，就是在Git中，分支完全可以在本地自己藏着玩，是否推送，视你的心情而定！
-
 
 
 > 抓取分支
@@ -1264,6 +1300,7 @@ git push origin master
 
 
 - git pull也失败了，原因是没有指定本地dev分支与远程origin/dev分支的链接，根据提示，设置dev和origin/dev的链接：
+> git branch --set-upstream-to=origin/dev dev
 <!-- 
     $ git branch --set-upstream-to=origin/dev dev
     Branch 'dev' set up to track remote branch 'dev' from 'origin'.
