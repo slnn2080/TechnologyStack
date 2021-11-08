@@ -1,6 +1,35 @@
 ### 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
 
 
+
+### Git的使用技巧
+> 创建request的方式
+- 1. 前端页面 命令行到commit - 然后vscode里面只用git工具提交 - 去github主页 - pullrequest - 前面选择到哪个分支 后面选择自己的分支 然后写什么已经截图了 
+<!-- 
+  https://kinto-dev.atlassian.net/browse/PLB-696
+  附上发给你指示的网址
+ -->
+
+
+> 当主分支有新的东西需要下载 或者说 我们的现有分支因为没有对应的东西报错的时候
+- 我们可以先在主分支上 pull 最新的数据
+- 然后在我们自己的分支上合并主分支的数据就好了
+
+
+> 在push操作的时候
+- git push origin feature/plan_b/PLB-696-s-roomy
+- 我们要push到自己的远程分支上 没有的话就会创建吧 自信点是会创建
+
+
+> 在下拉操作的时候
+- git pull --rebase origin master
+
+
+> 在执行了  git fetch 之后
+- 我们还要执行 git merge origin/分支名
+
+
+
 ### 问题集锦
 - failed to push some refs to 'git@github.com:xxx/xxx.git'错误提示；
 
@@ -714,6 +743,22 @@ git push origin master
 
 > git checkout -- test.txt
 - git checkout其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。
+
+---------------------------
+
+### git restore
+- git restore命令是撤销的意思，也就是把文件从缓存区撤销，回到未被追踪的状态。
+- 该命令有两种常用的用法。
+- 1. git restore <file>
+- git restore <file>会撤销文件的修改，撤销到最近一次执行git add的内容。
+
+- 2. git restore --staged <file>
+- 会把文件从暂存区移除，文件的修改不会受影响。
+
+- 注意：
+- 在git中有工作区、暂存区、仓库区（本地代码区）三部分，要注意git restore命令在工作区是不会其作用的，也就是一个文件在工作区，使用git restore是不起作用的。
+- 也就是说 如果文件没有add 这个命令会报错
+
 ---------------------------
 
 ### 远程仓库相关
