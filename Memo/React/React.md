@@ -11283,9 +11283,15 @@ params > search > state
  -->  
 
 
-> React.useState(我们想在状态中存的数据的值)
-- State Hook
-- 使用这个方法可以让函数式组件也能拥有state
+> React.useState(参数1, 参数2)
+- 该方法用于给函数式组件添加state状态
+- 该方法会返回一个数组，数组中第一个元素时state 第一个元素时操作state的方法
+
+- 所以该方法的返回值一般使用 解构赋值 的方式来操作
+<!-- 
+  const [count, setCount] = React.useState(state的初始值)
+ -->
+ 
 - 使用方式：
 - 1. React.useState()的参数里要放 我们想存在state中的数据
 - 2. 这个方法会返回一个数组，里面保存着初始化的数据 和 修改数据的方法
@@ -11293,29 +11299,78 @@ params > search > state
   - 参数2： 修改数据的方法
 <!-- 
   const [name, setName] = React.useState('sam')
-
   我们在state中存放了sam， 在接收返回值的时候定义了变量 和 修改sam数据的方法
  -->
 
-- 参数2：
+- 注意：
+- 修改state的方法 并不是一个回调 而是直接可以调用的一个函数 我们通过将要修改的结构通过实参的形式传递进去
+<!-- 
+  // 直接传递进去state的最新的结果 这个内置函数就会将state修改为erin
+  setName("erin")
+
+  // 还可以利用 解构出来的第一个元素也就是state的值
+  const [count, setCount] = React.useState()
+  setName(count + 1)
+ -->
+
+
+> 关于参数2的解析：
 - 修改数据的方法有两种方式
 - 方式1：
-- setName(参数)
+- setName(新数据)
 - 参数直接是新的数据
 <!-- 
+  // 该函数为 react html 中点击按钮后的回调
   function changeName() {
+
+    // 下面的setName 和 setAge为修改解构出来修改状态的方法
     setName('tom')
     setAge(age+1)
   }
  -->
 
 - 方式2：
-- setName(参数)
-- 参数一个函数 函数的参数是保存在state中的数据，函数需要返回一个新的数据, 内部用其覆盖原来的状态值
+- setName(回调)
+- 参数是一个回调 回调的参数是保存在state中的数据，函数需要返回一个新的数据, 内部用其覆盖原来的状态值
 <!-- 
   function changeName() {
     setAge(age => age+1)
   }
+ -->
+
+<!-- 
+  function Demo() {
+
+    a是一个数组 里面只包含了两个元素 第一个元素时状态 第二个就是更新状态的方法 它是一个内置的函数 可以更新第一个元素 也就是状态
+    const a = React.useState(state的初始值)
+
+    这里我们使用结构赋值
+    const [count, setCount] = React.useState(0)
+    
+    // setCount的第一种方式
+    function add() {
+      setCount(count + 1)
+    }
+
+    // setCount的第二种方式
+    function add() {
+      setCount((value) => {return newValue})
+      setCount(value => newValue)
+    }
+
+    return (
+      <div> 
+        <h2>当前求和为:{count}</h2>
+        <button onClick={add}>点击+1</button>
+      </div>
+    )
+  }
+ -->
+ 
+- 但是我们时候statehook 每次都会有这样的代码出现 尤其是在函数组件中要设置的state多了的情况下
+<!-- 
+  const [name, setName] = React.useState("tom")
+  const [count, setCount] = React.useState(0)
  -->
 
 ------
