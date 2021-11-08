@@ -714,6 +714,22 @@ git push origin master
 
 > git checkout -- test.txt
 - git checkout其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。
+
+---------------------------
+
+### git restore
+- git restore命令是撤销的意思，也就是把文件从缓存区撤销，回到未被追踪的状态。
+- 该命令有两种常用的用法。
+- 1. git restore <file>
+- git restore <file>会撤销文件的修改，撤销到最近一次执行git add的内容。
+
+- 2. git restore --staged <file>
+- 会把文件从暂存区移除，文件的修改不会受影响。
+
+- 注意：
+- 在git中有工作区、暂存区、仓库区（本地代码区）三部分，要注意git restore命令在工作区是不会其作用的，也就是一个文件在工作区，使用git restore是不起作用的。
+- 也就是说 如果文件没有add 这个命令会报错
+
 ---------------------------
 
 ### 远程仓库相关
