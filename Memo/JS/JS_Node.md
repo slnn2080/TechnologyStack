@@ -3294,30 +3294,24 @@ function Father(uname, age) {
 function Son(uname, age, score) {
 <!-- 
     现在我想让子构造函数使用父构造函数中的属性, 但是现在父 子构造函数并没有相连的关系 
--->
 
-<!-- 而且父 子构造函数中的this指向也不一样 -->
+    而且父 子构造函数中的this指向也不一样 
+    父构造函数 指向 父构造函数的对象实例
+    子构造函数 指向 子构造函数的对象实例 那子构造函数怎么才能拿父构造函数中的属性呢? 
 
-<!-- 父构造函数 指向 父构造函数的对象实例 -->
+    我们在这里把父构造函数调用过来 借用父构造函数
 
-<!-- 子构造函数 指向 子构造函数的对象实例 -->
-
-<!-- 那子构造函数怎么才能拿父构造函数中的属性呢? -->
-
-<!-- 我们在这里把父构造函数调用过来 借用父构造函数 -->
-    
-<!-- 
     我们把父构造函数当做一个普通的函数来调用 但是注意在父构造函数里面的this是父构造函数的实例对象, 子构造函数是指向子构造函数中的实例对象
 
     父构造函数里面的uname是在父构造函数身上的, 那么子构造函数想要使用父构造函数中的属性, 一定要把父构造函数的this改成子构造函数, 然后我就可以使用这个属性了
- -->
-    
-    \\ 调用了父构造函数 并且把父构造函数中的this改成了子构造函数
-    \\ 现在就指向了自构造函数的实例对象
-    Father.call(this, uname, age);
 
-    \\ 还可以创建自己的属性
+    现在就指向了自构造函数的实例对象
+
+    还可以创建自己的属性
+-->
+    Father.call(this, uname, age);
     this.score = score;
+
 }
 
 let son = new Son('刘德华', 18, 100);
@@ -3338,13 +3332,16 @@ Father.prototype.money = function() {
     console.log(10000);
 };
 
-<!-- 怎么样继承方法呢? -->
-<!-- Son.prototype = Father.prototype -->
+- 怎么样继承方法呢?
+- 方式1： 这样可以么？
+- Son.prototype = Father.prototype
 <!-- 
     这么做是不行的, 这样直接赋值会有问题, 如果修改了子原型对象, 父原型对象也会同样被修改
  -->
 
-> 这么做:
+
+- 这样做呢？ 可以
+> Son.prototype = new Father();
 <!-- 
     new Father() 相当于实例化了父构造函数
 
@@ -3358,7 +3355,7 @@ Father.prototype.money = function() {
 
     而son原型对象 也可以通过Father实例对象访问到 Father原型对象里面的方法
  -->
-> Son.prototype = new Father();
+
 
                 Father.prototype
 Father构造函数      ----- >        Father原型对象
@@ -3375,6 +3372,7 @@ Father构造函数      ----- >        Father原型对象
                                 ↖
                Son.prototype
 Son构造函数      ----- >        Son原型对象
+
 
 > 总结下:
 \\ 定义父构造函数
@@ -3397,24 +3395,25 @@ Father.prototype.sing = function() {
 
     Son.prototype = Father的实例对象  指向  Father的原型对象
 -->
-Son.prototype = new Father();
+    Son.prototype = new Father();
 
-function Son() {
+    function Son() {
 
-};
-let son = new Son();
-son.sing();
+    };
+    let son = new Son();
+    son.sing();
 
 > 但是这么做同时会产生一个问题
-Son.prototype = new Father();
+    Son.prototype = new Father();
 
-相当于:
+    相当于:
 
-Son.prototype = {};
+    Son.prototype = {};
 
 - 这样就会把Son.prototype里面的东西覆盖掉, 所以Son.prototype里面就没有constructor了
-
-console.log(Son.prototype.constructor)  //Father
+<!-- 
+    console.log(Son.prototype.constructor)  //Father
+ -->
 
 - 这就是问题 按道理Son.prototype.constructor应该指向Son才对 因为是一个覆盖操作
 > 如果利用对象的形式修改了原型对象, 别忘了利用constructor指回原来的构造函数
@@ -3468,6 +3467,13 @@ console.log(Son.prototype.constructor)  //Father
 - 3 执行构造函数里面的代码, 给这个空对象添加属性 和 方法
 - 4 返回这个对象
 <!-- new的最后会返回这个对象, 所以就不需要return了 -->
+
+-----------------------------
+
+### 原型链的总结
+- 首先我们要明确
+- 函数（Function）才有prototype属性，对象（除Object）拥有__proto__。
+- https://www.cnblogs.com/libin-1/p/5820550.html?ivk_sa=1024320u
 
 -----------------------------
 
@@ -5064,6 +5070,8 @@ https://c.runoob.com/front-end/854
 - 拆成数组
 - 可以将一个字符串拆分为一个数组
 - 方法可以传递一个正则表达式作为参数，这样方法将会根据正则表达式去拆分字符串
+
+- 如果不传递参数 代表将整个字符串转为数组
 
     var str = "1a3f4g5h6h7j7"
     var result = str.split(g);
