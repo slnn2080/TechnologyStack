@@ -38,6 +38,99 @@
 - git pull --rebase origin master
 
 
+- 场景：
+- 在pull的时候出现下面注释中的提示
+
+- 解决办法：
+- git config pull.ff false
+- git config --global pull.rebase false
+<!-- 
+    hint: Pulling without specifying how to reconcile divergent branches is
+    hint: discouraged. You can squelch this message by running one of the following
+    hint: commands sometime before your next pull:
+    hint: 
+    hint:   git config pull.rebase false  # merge (the default strategy)
+    hint:   git config pull.rebase true   # rebase
+    hint:   git config pull.ff only       # fast-forward only
+    hint: 
+    hint: You can replace "git config" with "git config --global" to set a default
+    hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+    hint: or --ff-only on the command line to override the configured default per
+    hint: invocation.
+
+
+    warning 不建议在没有为偏离分支指定合并策略时执行pull操作 您可以在执行以下次pull操作之前执行下面一条命令来抑制本消息
+    git config pull.rebase false    合并 默认策略
+    git config pull.rebase true     变基
+    git config pull.ff only         仅快进
+ -->
+
+- 我们在上述的警告文案描述中可以发现两个重要的Git配置信息pull.rebase和pull.ff。
+
+> pull.ff 
+- 当把pull.ff设置为false时，这个变量告诉Git在这种情况下，如果执行不带选项的git pull命令时先尝试快进合并，如果不行再进行正常合并生成一个新的提交。
+    pull.ff false
+
+- 当把pull.ff设置为only时，只允许快进合并(相当于执行命令git pull --ff-only)，如果执行不带选项的git pull命令时，如果不能进行快进合并则终止当前操作。
+    pull.ff only
+
+- 如果将pull.ff设置为only，而执行不带选项的git pull命令被终止，其实可以使用带参数的git pull --no-ff或者git pull --rebase命令来执行pull操作。
+
+
+> pull.rebase
+- 当pull.rebase为true时，运行不带选项的命令git pull相当于执行git pull --rebase。
+- 当pull.rebase为false时，运行不带选项的命令git pull不会被改变含义，即不会变基。如果想变基，需要在执行命令时显式地加上选项--rebase，即git pull --rebase。
+
+- https://blog.csdn.net/wq6ylg08/article/details/114106272
+
+<!-- 
+    2.2 理解git pull命令的原理及其各选项的含义
+    2.2.1 git pull命令的原理
+    git fetch会查询git remote中所有的远程仓库所包含分支的最新提交，并将其记录到.git/FETCH_HEAD文件中。
+
+    .git/FETCH_HEAD是一个版本链接，指向着目前已经从远程仓库取下来的所有分支的最新提交。
+
+    git pull命令等价于：先执行git fetch，再执行git merge FETCH_HEAD将远程仓库对应分支的最新提交合并到当前本地分支中。
+
+    2.2.2 git pull命令中各选项的含义
+    其中git pull有这几项常见的选项搭配：
+
+    不带任何选项的git pull命令：先尝试快进合并，如果不行再进行正常合并生成一个新的提交。
+    git pull --ff-only命令：只尝试快进合并，如果不行则终止当前合并操作。
+    git pull --no-ff命令：禁止快进合并，即不管能不能快进合并，最后都会进行正常合并生成一个新的提交。
+    git pull --rebase命令：先尝试快进合并，如果不行再进行变基合并。
+    2.3 理解git pull命令出现问题的原因
+    现在，看完上述的问题的文案描述、git pull命令的原理及其各选项的含义后，现在我们清楚为什么git pull命令出现该警告文案的原因了：
+    
+    执行不带任何选项的git pull命令时，会产生三种歧义： git pull --ff-only、git pull --no-ff、git pull --rebase，而这三种pull方式的合并策略差异很大，即对整个分布式项目的版本管理有很大的影响作用。
+
+    而我们执行不带任何选项的git pull命令时，Git就不知道我们到底想用哪种合并策略来执行git pull，因此Git会给出上述的警告文案，建议我们通过git config命令指定不带选项的git pull命令应该按照这三种合并策略的哪种来执行。
+
+    首先理解什么是偏离分支：
+    当本地的分支落后于远程分支时，本地分支又自行修改项目文件生成了新的提交，这时本地分支再执行git pull命令就不能快进合并，并且还容易发生冲突。这时的本地分支便称为偏离分支，因为这时的本地分支的最新提交跟远程分支的最新提交不同，产生了偏离。
+
+    接着理解什么是合并策略：
+    合并策略便是 
+        git merge --ff-only、
+        git merge --no-ff、
+        git merge --rebase
+    这三种常见的合并策略，分别代表着快进合并、非快进普通合并、变基合并。
+
+
+    而我们执行不带任何选项的git pull命令时，Git就不知道我们到底想用哪种合并策略来执行git pull，因此Git会给出上述的警告文案，建议我们通过git config命令应该按照这三种合并策略的哪种来执行。
+
+    通过上述的文章讲解，现在我们理解了为什么理解git pull命令出现问题的原因，因此只要我们在Git中配置选项pull.rebase或pull.ff的参数即可。配置后，即便我们再执行不带任何选项的git pull命令，也不会再出现上述的警告文案啦。
+
+
+    如何配置选项pull.rebase或pull.ff的参数
+    博主已经在本文的《2.1 理解问题的文案描述》章节中将选项pull.rebase和pull.ff的参数的所有情况进行了一一介绍，因此具体怎么配置按照你使用Git的个人喜好即可。
+
+    例如博主喜欢在git pull时只接受快进合并和变基合并，那么博主可以执行git config pull.ff only，保证每次执行不带选项的git pull时要么快进合并成功，要么快进合并失败。如果快进合并失败，博主再显式执行git pull --rebase进行变基合并即可。
+ -->
+
+
+
+
 ### 命令
 - wq                退出
 - git ls-files -s   看看暂存区里面的文件

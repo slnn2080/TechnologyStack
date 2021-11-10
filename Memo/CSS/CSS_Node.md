@@ -1097,6 +1097,8 @@ background-image:radial-gradient(100px 100px at 0 0, red, yellow)
 
 ### 公司的内部总结
 
+### 标签
+
 > <picture> > <source media srcset>
 - 根据屏幕匹配的不同尺寸显示不同图片，如果没有匹配到或浏览器不支持 picture 属性则使用 img 元素：
 - picture 元素允许我们在不同的设备上显示不同的图片，一般用于响应式。
@@ -1111,7 +1113,6 @@ background-image:radial-gradient(100px 100px at 0 0, red, yellow)
         <img src="img_girl.jpg">
     </picture>
  -->
-
 
 
 >  <figure>
@@ -1146,3 +1147,15 @@ background-image:radial-gradient(100px 100px at 0 0, red, yellow)
         </p>
     </figure>
 -->
+
+
+### CSS属性
+> -webkit-font-smoothing: antialiased;  /*chrome、safari*/
+> -moz-osx-font-smoothing: grayscale;   /*firefox*/
+- 这个属性可以使页面上的字体抗锯齿,使用后字体看起来会更清晰舒服。
+<!-- 
+    它有三个属性： 
+    none                    对低像素的文本比较好 
+    subpixel-antialiased    默认值 
+    antialiased             抗锯齿很好 
+ -->

