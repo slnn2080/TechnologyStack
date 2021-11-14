@@ -1171,7 +1171,19 @@ git push origin master
 
 - 但是！　就在此时，接到上级命令，因经费不足，新功能必须取消！　虽然白干了，但是这个包含机密资料的分支还是必须就地销毁：
 
+
+> git branch -a
+- 查看所有分支
+- 带有 remotes/origin的是远程分支
+
+
+> git branch -r
+- 查看远程分支
+
+
 > git branch -d feature-vulcan
+> git branch -D feature-vulcan
+- 删除分支
 <!-- 
     $ git branch -d feature-vulcan
     error: The branch 'feature-vulcan' is not fully merged.
@@ -1186,6 +1198,17 @@ git push origin master
  -->
 
 - 如果要丢弃一个没有被合并过的分支，可以通过git branch -D <name>强行删除。
+
+
+> 删除远程分支
+> git push origin --delete branchname
+<!-- 
+    - git branch -r -d origin/branchname
+    - 这句是删除本地与远程的关联
+
+    git push origin --delete branchname
+    - 这句是删除远程的分支
+ -->
 
 ---------------------------
 

@@ -1,3 +1,14 @@
+### 带学的知识点：
+> addRoutes 的使用
+- https://www.cnblogs.com/zhuhuoxingguang/p/11759001.html
+- https://www.jianshu.com/p/27e304884459
+
+
+> v-bind 的知识点
+- https://juejin.cn/post/6844904101298323470
+
+
+
 ### Vue
 - vue分为插件和核心库, 核心库比较小, 在这做项目的时候再根据需求下载对应的插件
 - 作用: 动态构建用户界面
