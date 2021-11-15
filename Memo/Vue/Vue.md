@@ -2941,7 +2941,7 @@ directives: {
 
 
 > react vue中的key有什么用？
-- 1. 虚拟dom中的key的作用
+- 虚拟dom中的key的作用
   key是虚拟dom对象的标识 当数据发生变化的时候 vue会根据 新数据 生成 新虚拟dom
   随后vue进行 新虚拟dom 与 旧虚拟dom的差异比较 比较规则如下
 
@@ -3736,9 +3736,8 @@ filters: {
   .任意名字-enter-active { }
  -->
 
-  <transition :appear='true'> 
+  <transition :appear='true'>
   一上来先自动播放次动画
-
 
 
 > 总结：
@@ -4077,7 +4076,7 @@ filters: {
 - 应用场景：
 - 当改变数据后 要基于更新后的新DOM
 - 当改变数据后 要基于更新后的新DOM
-- 当改变数据后 要基于更新后的新DOM进行某些操作的时候 要在nextTick所指定的回调函数中执行
+- 当改变数据后 要基于更新后的新DOM 进行某些操作的时候 要在nextTick所指定的回调函数中执行
 
 - 作用：
 - 在下一次DOM更新结束后执行其指定的回调
@@ -4582,7 +4581,6 @@ filters: {
 
     —— 暴露的方式3
     extend default {直接暴露组件的配置对象}     // 默认暴露
-
   </script>
 
 
@@ -4746,6 +4744,10 @@ filters: {
 > 对于生命周期函数来说
   没有上面的说法 混合文件中的 和 组件中的都会调用
 
+
+> 使用场景
+- 当组件的配置项中有重复的内容的时候 就可以使用混合 还可以将混合注册为全局混合
+
 <!-- 
   比如 两个组件都有 这样的一个地方 那么我就可以将这个部分抽离成一个js文件
   methods: {
@@ -4753,9 +4755,13 @@ filters: {
       console.log(this.name)
     }
   }
+-->
 
 
-  // mixin.js
+> 使用方式
+- 1. 在 根目录 中创建 mixins 文件夹 里面创建js文件
+- 暴露一个对象 对象中是vue的一个个配置项 methods data ...
+<!-- 
   export const hunhe = {
     methods: {
       showName() {
@@ -4765,7 +4771,7 @@ filters: {
   }
  -->
 
-- 上面把共通代码抽离成了一个js文件 接下来我们就在要使用的组件内部引入他们
+- 2. 上面把共通代码抽离成了一个js文件 接下来我们就在要使用的组件内部引入他们
 - 然后使用 混合配置项
 
 > mixins: []
@@ -4788,6 +4794,10 @@ filters: {
   Vue.mixin(hunhe)
   Vue.mixin(hunhe2)
  -->
+
+> 总结：
+- 1. 混合中的this是该组件的对象
+- 2. 混合中的所有数据都会被放在vm身上 所以正常使用数据 和 调用方法就可以
 
 --------------------------
 
@@ -5368,16 +5378,44 @@ filters: {
   }
  -->
 - 当 type 为 Array Object 的时候 default必须是一个函数且返回值就是默认值
+<!-- 
+  props: {
+    person: {
+      type: Array,
+
+      default: () => []
+
+      default() {
+        return []
+      }
+    }
+  }
+ -->
+
+- 数组的默认值
+<!-- 
+  default: () => []
+ -->
+
+- 对象的默认值
+<!-- 
+  default: () => ({})
+ -->
+
+- 函数的默认值
+<!-- 
+  default: () => {}
+ -->
 
 
 > 限制属性：
 - type:     接收数据的数据类型 / 父组件传递进来的数据类型
 
 - default:  
-            当模板中没有使用接收的数据时, 默认显示的数据注意type是什么类型, defaule就得写什么类型的值, 
+    当模板中没有使用接收的数据时, 默认显示的数据注意type是什么类型, defaule就得写什么类型的值, 
 
 - required:true
-            当为true时, 父组件必须传递这个属性
+    当为true时, 父组件必须传递这个属性
 
 
 > 自定义props的规则
@@ -5430,6 +5468,14 @@ filters: {
  -->
 
 
+> props中 函数的默认值
+- 函数的默认值可以通过 this.default.methods 来获取
+<!-- 
+  default: (event) => {
+    this.default.methods.sayHi();
+  }
+ -->
+
 > props数据类型的验证都支持哪些数据类型呢?
   - String
   - Number
@@ -5464,6 +5510,8 @@ filters: {
  -->
 
 - 5. props的优先级高 它会覆盖掉data computed里面的同名数据
+
+### 书签
 
 --------------------------
 

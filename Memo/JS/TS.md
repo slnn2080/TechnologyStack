@@ -19,6 +19,9 @@
   同目录下会出现js文件
  -->
 
+> tsc -v
+- 查看版本
+
 ------------------
 
 ### TS的编译选项
@@ -36,7 +39,7 @@
 > 编译 / 监听 所有文件
 - 1. 先在项目中创建 tsconfig.json 文件
 <!-- 
-  ts编译的配置文件 里面留个 { ... } 啥也不行都行 但是编译文件必须要有这个 tsconfig.json
+  ts编译的配置文件 里面留个 { ... } 啥也不写都行 但是编译文件必须要有这个 tsconfig.json
  -->
 
 - 2. 执行命令
@@ -46,10 +49,19 @@
   该项目下的所有ts文件都会被监听或者编译
  -->
 
+
+- 2. 自动编译的方式2
+- 在vscode上点击 -- 终端 -- 点击运行任务 -- 选择typescript -- 监视
+
 ------------------
 
 > tsconfig.json 配置
 - 这是ts编译器的配置文件, ts编译器可以根据它的信息来对代码进行编译
+
+> tsc --init
+- 该配置文件还可以通过 tsc --init 来生成
+- 该命令创建的配置文件 会有各种被注释掉的配置信息
+
 
 - ** 表示任意目录
 - *  表示任意文件
@@ -592,7 +604,8 @@ module.exports = {
 
 - 1. ts可以给形参定义类型
 - 2. ts会限制实参的个数, 如果形参是2个, 实参也必须是两个
-- 3. (形参):类型  -- > 给函数的返回值定义类型
+- 3. (形参):类型
+- 4. (形参):给函数的返回值定义类型
 
   function sum(a:number, b:number): number {
     return a + b;
@@ -608,13 +621,17 @@ module.exports = {
   number        1, 33             任意数字
   string        'hi', "hi",       任意字符串
   boolean       true、false       布尔值true或false
-  字面量        其本身             限制变量的值就是该字面量的值
-  any           *                 任意类型
-  unknown       *                 类型安全的any
-  void          空值（undefined） 没有值（或undefined）
-  never         没有值            不能是任何值
+  字面量         其本身             限制变量的值就是该字面量的值
+
   object        {name:'孙悟空'}   任意的JS对象
   array         [1,2,3]           任意JS数组
+
+  any           *                 任意类型
+  unknown       *                 类型安全的any
+
+  void          空值（undefined）  没有值（或undefined）
+  never         没有值            不能是任何值
+
   tuple         [4,5]             元素，TS新增类型，固定长度数组
   enum          enum{A, B}        枚举，TS中新增类型
 
@@ -624,7 +641,6 @@ module.exports = {
 - let 变量:10
 <!-- 
   变量的初始值是10 类型是number 固定了 已经指定了下面就不能修改了
-  
   整的有点想常量似的赋值一次不能修改了 一般不用这中方式
  -->
 
@@ -837,31 +853,44 @@ let b: { name:string, age?: number }
 - 我们要声明数组的时候, 都是声明我们要什么样的数组
 
 > 方式一:  类型[]
-- let a: string[]
+- let a: string[];
 - 希望我们的a是一个数组, 数组里面存放的都是字符串
+- 先定义再赋值 和 初始化
 <!-- 
+  - 1. 
+  let a: string[];
   a = ['a', 'b'];
+
+  - 2. 
+  let a: string[] = ["sam", "erin", "nn"]
  -->
+
 - let b: number[];
+- b = [1, 2, 3]
+- let b:number[] = [1, 2, 3]
 - b是一个装数字的数组
 
 
 > 方式二: Aarray<类型>
-- let c = Array<number>
-- 跟上面的意思一样
+- let arr: Array<number>;
+- arr = [1, 2, 3]
+
+- let arr: Array<number> = [1, 2, 3]
+- 跟上面的意思一样 这种写法是泛型的写法
 <!-- 
   再举一个不推荐的用法
-  let c = Array<any>
+  let c: Array<any> = [3, 4, "sam"]
  -->
 
 ------------------
 
-> 变量类型: tuple
-- 元组, 就是固定长度的数组
-- 当我们数组里面的值是固定的时候, 使用元组比较好一些
+> 变量类型: tuple 元组
+- 元组, 属于数组的一种 就是固定长度的数组
+- 元组类型可以指定数组当中 值的类型
+<!-- 当我们数组里面的值是固定的时候, 使用元组比较好一些 -->
 
-- let h = [string, string]
-- 表示h是一个数组, 数组里面有两个值 且 类型都是string
+- let arr: [string, number, boolean] = ["sam", 123, true]
+- 后面传入的值必须和元组中指定的类型和数量一致 不能多也不能少 且 类型必须一样
 <!-- 
   let h = [string, string]
   h = ['abc', 'cbv']          // ok
@@ -873,6 +902,62 @@ let b: { name:string, age?: number }
 
 > 变量类型: enum
 - 枚举 把所有可能的情况全部的列出来
+- 场景：
+- 比如我们有这样一个 pay_status 变量
+<!-- 
+  pay_status: 0未支付 1支付 2交易成功
+
+  刚开始的时候我们知道 012代表什么 当以后我们再来看代码的时候我们会发现我们不知道012代表什么意思了
+
+  这时候我们就可以使用枚举
+ -->
+
+- 枚举类的作用就是将我们变量对应的常量 加了一个标识符 或者说将我们变量对应的值加上了描述
+- 当我们在使用该值的时候可以通过 枚举类.描述符 的形式 清晰的拿到对应的值
+- 这样即使我们给谁都可以清晰的知道该变量的值对应着什么意思
+
+<!-- 
+  enum Pay {
+    non_payment: 0,
+    pay: 1,
+    pay_done: 2,
+  }
+
+  当我们在其它地方使用上面的 status 的时候可以
+  Pay.non_payment
+  Pay.pay
+  Pay.pay_done
+
+
+  意义在于
+  以前的话 我们直接看到的是 pay_status： 0
+  这样不能清晰的知道 0 代表着什么意思
+
+  但是现在通过枚举类我们可以这样写 pay_status: Pay.non_payment
+ -->
+
+> 使用方式
+- 1. 定义枚举类
+- enum 枚举名 {
+  标识符[=整型常数]
+  ...
+}
+<!-- 
+  定义一个Flag枚举
+  enum Flag {
+    success = 1,
+    error = -1
+  }
+ -->
+
+- 2. 将定义的变量的类型指定为枚举类
+<!-- 
+  let f: Flag = Flag.success
+  console.log(f)  // 1
+ -->
+
+
+> 场景2
 <!-- 
   人有性别比如男 女 
   let i: {name: string, gender: string}
@@ -916,7 +1001,7 @@ let b: { name:string, age?: number }
     Female = 1
   }
 
-- 在定义变量类型的时候 类型为 枚举类
+- 在定义变量类型的时候 将性别的变量类型指定为枚举类
   let i: { name: string, gender: Gender}
 
 - 设置性别
@@ -955,6 +1040,35 @@ let b: { name:string, age?: number }
     name: 'sam',
     age: 18
   }
+ -->
+
+**注意**
+- 当我们定义 枚举类 的时候 没有给枚举类赋值 那么对应的就是索引值
+<!-- 
+  enum Color {
+    red,      0
+    blue,     1
+    orange    2
+  }
+
+  let c: Color = Color.blue
+  console.log(c)   // 1
+
+
+  情况2
+  enum Color {
+    red,
+    blue=5,
+    orange
+  }
+
+  let c: Color = Color.orange
+  console.log(c)   // 6
+
+  Color.red     为0
+  Color.blue    为5
+  Color.orange  为6     它会延续上一个的数字
+
  -->
 
 

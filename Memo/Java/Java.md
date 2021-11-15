@@ -2194,8 +2194,135 @@
 - 2. if else if 只要有一个逻辑匹配上了 就会跳出整个结构
 - 3. 
 - 如果多个条件表达式之间没有交集的关系时 哪个判断和执行语句声明在上面还是下面 无所谓
+
 - 如果多个条件表达式之间有交集的关系时 需要根据实际情况考虑清楚应该将哪个结构声明在上面
+
 - 如果多个条件表达式之间有包含的关系时 通常情况下 需要将范围小的声明在范围大的上面 否则范围小的就没有机会执行了
+
+
+> 练习2
+- 编写程序: 由键盘输入三个正数分别存入变量num1 num2 num3中 并对它们进行排序(使用if else) 并且从小到大输出
+<!-- 
+  import java.util.Scanner; 
+  class Demo {
+    public static void main(String[] args) {
+
+      Scanner scan = new Scanner(System.in);
+      System.out.println("请输入第一个整数: ");
+      int num1 = scan.nextInt();
+      System.out.println("请输入第二个整数: ");
+      int num2 = scan.nextInt();
+      System.out.println("请输入第三个整数: ");
+      int num3 = scan.nextInt();
+
+      if(num1 > num2) {
+
+        // 比较num3是否比大的还要大
+        if(num3 > num1) {
+          System.out.println(num2 + " > " + num1 + " > " + num3);
+
+          // 比较num3是否比小的还要小
+        } else if (num3 < num2) {
+          System.out.println(num3 + " > " + num2 + " > " + num1);
+
+          // 剩下的情况就是在中间了
+        } else {
+          System.out.println(num2 + " > " + num3 + " > " + num1);
+        }
+
+        // 现在就是num2大的情况 我们再拿num3来进行比较
+      } else {
+        if(num3 > num2) {
+          System.out.println(num1 + " > " + num2 + " > " + num3);
+        } else if(num3 < num1) {
+          System.out.println(num3 + " > " + num1 + " > " + num2);
+        } else {
+          System.out.println(num1 + " > " + num3 + " > " + num2);
+        }
+      }
+    }
+  }
+ -->
+
+**注意：**
+- else也有就近原则 当配对关系不明确的时候 else就会和最近的if进行配对
+<!-- 
+  if(x > 2) 
+    if(y > 2)   下面的 else 会和这个if配对
+      System.out.println()  
+
+  else {
+    这个else和谁配对? 最外围的if没有 { }
+  }
+ -->
+
+
+> 练习3
+- 我家狗狗5岁了 5岁的狗相当于人类多大呢？
+- 狗的前两年 每一年相当于人类的10.5岁 之后每增加一年就增加4岁
+- 那么5岁的狗相当于人类多少年龄呢？
+
+- 应该是 10.5 + 10.5 + 4 + 4 + 4 = 33岁
+
+- 编写一个程序 获取用户输入的狗的年龄 通过程序显示其相当于人类的年龄
+- 如果用户输入负数 请显一个提示信息
+<!-- 
+  import java.util.Scanner; 
+  class Demo {
+    public static void main(String[] args) {
+
+      Scanner scan = new Scanner(System.in);
+      int age = scan.nextInt();
+
+      if(age < 0) {
+        System.out.println("请输入正确的年龄");
+      } else {
+        if(age > 0 && age <= 2) {
+          System.out.println("狗狗的年龄为: " + age * 10.5 + "岁");
+        } else {
+          System.out.println("狗狗的年龄为: " + (2*10.5 + (age - 2) * 4) + "岁");
+        }
+      }
+    }
+}
+ -->
+
+
+> 练习4
+- 假设你想开发一个玩彩票的游戏 程序随机地产生一个两位数的彩票 提示用户输入一个两位数 然后按照下面的规则判定用户是否能赢
+
+- 1. 如果用户输入的数匹配彩票的实际顺序 奖金10000
+- 2. 如果用户输入的所有数字匹配彩票的所有数字 但顺序不一致 奖金3000
+- 3. 如果用户输入一个数字仅满足顺序情况下匹配彩票的一个数字 奖金1000
+- 4. 如果用户输入一个数字仅满足非顺序情况下匹配彩票的一个数字 奖金500
+- 5. 如果用户输入的数字没有匹配任何一个数字 则彩票作废
+
+
+> 随机数 Math.random()
+- 它会获得一个double型的数据
+- 该方法会返回 >= 0.0 <=1.0 之间的数
+<!-- 
+  如果 Math.random() * 100 那就变成 [0.0 - 100.0)
+ -->
+
+- 上面的题里要求的是2位数 所以我们不能乘以100 我们乘以90 再加上10
+<!-- 
+  Math.random()*90  [0.0, 90.0)
+
+  然后+10 就会变成[10.0, 100.0)
+ -->
+
+- (int)(Math.random() * 90 + 10)
+
+> 公式：
+- [a, b]: (int)(Math.random() * (b - a + 1) + a)
+
+<!-- 
+  public static void main(String[] args) {
+    int value = (int)(Math.random() * 90 + 10);
+    System.out.println(value);
+  }
+ -->
 
 ---------------------------- 
 
