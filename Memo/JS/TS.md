@@ -1120,7 +1120,7 @@ let b: { name:string, age?: number }
  -->
 
 
-> 类型的别名
+> 类型的别名 type
 - 有一种情况 我们定义了一个类型, 这个类型比较繁琐, 然后还需要在别的地方用
 - 我们就可以给这个类型起个别名( 有点像 less中的变量 啊)
 
@@ -1844,36 +1844,123 @@ let b: { name:string, age?: number }
 ------------------
 
 ### 接口
+> 作用：
+- 用来定义 类 的结构 该类中应该包含哪些属性和方法
+
+- 接口的作用 在面向对象的变成中 接口是一种规范的定义
+- 它定义了行为和动作的规范 在程序设计里面 接口起来一种限制和规范的作用
+
+- 接口定义了某一批 类 所需要遵守的规范 接口不关心这些 类 的内部数据 也不关心这些类里面方法的实现细节 它值规定了这批类里必须提供某些方法
+
+- 提供这些方法的类就可以满足实际需要
+- ts中的接口类似于java 同时还增加了更灵活的接口类型 包括属性 函数 可索引和类等
+
+
+- 我们在上面学习了抽象类 抽象类中定义了一个标准 继承抽象类的子类必须要实现它或者重写抽象类中的方法
+- 但是抽象类只针对 类 
+- 接口相比抽象类更加的强大一些 它可以对属性 函数 以及类等 对它们的行为进行一些规范的限制
+
+- 接口就是定义标准
 <!-- 
-  在说接口之前我们想回顾一个 假如我们描述对象的类型应该怎么写?
-  下面的对象的类型就是用来描述 一个对象中可以包含哪些属性
-  type myType = {
-    name: string,
-    age: number,
-    [propname:string]:any   // 任意属性 建议不写
-  }
+  在现实生活中 我们链接机箱 和 显示器的线的一端就是接口 接口头的地方里面有各种类型的针 我们要想要使用这根线和机箱相连接 就必须是机箱 和 接口头的针对的上 才能插入进去
 
-  上面定义完对象的类型后 我们就可以创建对象了
-  const obj = {
-    name:'sam',
-    age: 18
-  }
-
-  上面myType的作用就是对 对象的类型做了一个限制
+  比如宽度是多少 里面的针是对少
  -->
 
-- 接口是用来定义一个类的结构, 用来定义一个类中应该包含哪些属性和方法, 同时接口也可以当做类型声明去使用(接口和上面的type声明非常的类似)
-- 所以接口完全可以当做type类型去使用
 <!-- 
-  接口的作用类似于抽象类，不同点在于接口中的所有方法和属性都是没有实值的，换句话说接口中的所有方法都是抽象方法。
+  接口的作用类似于抽象类，不同点在于接口中的所有方法和属性都是没有实值的，
+  换句话说接口中的所有方法都是抽象方法。
   
-  接口主要负责定义一个类的结构，接口可以去限制一个对象的接口，对象只有包含接口中定义的所有属性和方法时才能匹配接口。
+  接口主要负责定义一个类的结构，
+  接口可以去限制一个对象的接口，对象只有包含接口中定义的所有属性和方法时才能匹配接口。
   
   同时，可以让一个类去实现接口，实现接口时类中要保护接口中的所有属性。
 -->
 
 
-> type 和 interface 的区别
+> 属性接口
+- 下面是对 普通对象 和 函数形参对象中的属性做详解的
+- 回顾一下 我们给函数参数定义规范的时候怎么操作的
+<!-- 
+  // 定义方法
+    - 我们要求参数必须是一个对象 然后里面必须有 label 属性
+  function print(labelInfo: {label: string}):void {
+    console.log("print", labelInfo)
+  }
+
+  let lableInfo = {
+    name: "sam",      只有name的时候会报错
+    label: "info"     添加上label就通过
+                      但是有一个疑问不是说参数个数要一致么 我上面对象里面就定义了一个label 但是我传递的时候多了一个name 为什么也可以
+
+                      可能是参数整体是一个对象我传递了 但是内部属性的条数没要求吧
+  }
+  print(lableInfo)
+ -->
+
+- 接下来我们再看看接口是怎么定义的 看看对批量方法传入参数进行约束
+
+> interface 关键字
+- 通过这个关键字来定义接口
+- 定义方式：
+<!-- 
+  // 注意内部语句结尾要以分号结束 然后实测 逗号 也行
+  interface 接口名 {
+    属性名: 类型(string);
+  }
+ -->
+
+- 实现方式:
+<!-- 
+  利用接口对 对象进行约束
+  const obj: 接口名 = {
+    name: "sam"
+  }
+ -->
+
+<!--  
+  // 注意内部语句结尾要以分好结束
+  interface FullName {
+    // 对属性的约束
+    firstName: string;
+    secondName: string;
+  }
+
+  // 参数必须传入对象 对象中必须有firstName 和 secondName
+  function printName(name:FullName):void {
+    console.log(name.firstName + name.secondName)
+  }
+
+
+  // 要点看这里
+  printName({firstName: "张", secondName: "三"})
+ -->
+
+\\ 要点： 
+- 1. 如果我们直接在实参中传入对象 { } 那么该对象中的属性个数 类型必须和我们接口中定义的一致
+<!-- 
+  // 下面的就是接口里面的属性的个数 和 类型 与我们传入的对象中的属性个数和类型一致
+  interface FullName {
+    firstName: string;
+    secondName: string;
+  }
+  printName({firstName: "张", secondName: "三"})
+
+  比如 当我们多传递一个参数的时候就会报错
+  printName({firstName: "张", secondName: "三", age: 18})  报错
+ -->
+
+- 2. 但是我们在调用函数的上一行 先定义一个对象 然后把这个对象变量传递到实参中的时候 该对象中只要有接口中约定的属性就可以 以及多了其它的属性也不会报错
+<!-- 
+  let obj = {
+    firstName: "张", 
+    secondName: "三", 
+    age: 18
+  }
+  printName(obj)  这样就不会报错
+ -->
+
+**type 和 interface 的区别**
 - 上面说了接口也可以当做类型声明去使用, 但是两者还是有区别的
 - type 只能声明一次, 再次声明会报错
 - interface 同名的接口可以声明多次, 接口中的规则按同名内容相加处理
@@ -1908,24 +1995,128 @@ let b: { name:string, age?: number }
     age: 18
   }
   创建obj并使用myInterface的接口类型, obj中属性名必须和接口中定义的一样不能多也不能少
+
+  这里不要和上面给函数形参 匹配接口 弄混了 还是不一样的
  -->  
 
-> 类中的接口
+
+> 接口可选属性
+- 在定义属性的时候后面加上? 就是可选属性 该属性在使用的时候可传可不传
+<!-- 
+  interface FullName {
+    firstName?: string,
+    secondName: string
+  }
+
+  printName({secondName: "三"})  不传递 firstName 也不会报错
+ -->
+
+
+> 使用接口 封装ajax案例
+<!-- 
+  interface config {
+    type: string,
+    url: string,
+    data?: string,
+    dataType: string
+  }
+
+  function ajax(config:config) {
+    let xhr = new XMLHttpRequest()
+    xhr.open(config.type, config.url, true)
+    xhr.send(config.data)
+    xhr.onreadystatechange = function() {
+      if(xhr.readyState == 4 && xhr.status == 200) {
+        console.log("成功")
+      }
+    }
+  }
+ -->
+
+
+> 数组的接口(可索引接口) [index: number]:string
+- 索引值为number类型 索引对应的元素类型为string
+- 不太常用
+
+- emmm 索引值本来不就是number类型么
+
+<!-- 
+  正常我们定义数组的时候 它的元素是任意的类型
+  let arr = [1, 2, "sam"]
+
+  前面我们讲了给数组进行类型的约束 定义一个纯数字的数组
+  let arr:number[] = [1, 2, 3]
+  let arr:Array<string> = ["sam", "erin", "nn"]
+ -->
+
+- 接下来我们定义一个对数组进行约束的接口
+<!-- 
+  interface userArr {
+    // 索引的类型必须是number 对应的value必须是string类型
+    [index: number]:string    // 还可以写any
+  }
+
+  let arr:userArr = ["sam"]
+  let arr:userArr = [123]     // 报错
+ -->
+
+
+> 对对象的约束(可索引接口)
+- 用的特别少
+<!-- 
+  interface userObj {
+    // 对象也是有索引值的 像map么
+    [index: string]:string
+  }
+
+  let obj:userObj = {
+    name: "sam"
+  }
+ -->
+
+
+> 函数类型接口
+- 对方法传入的参数 和 返回值进行约束 函数类型接口中 直接写
+- (参数:类型):返回值类型
+- 就可以
+<!-- 
+  // 加密的函数类型接口
+  interface encrypt {
+
+    // 这里面约束函数 不需要写function 直接写参数体() 下面就是对参数的类型 和返回值的类型做了约束
+    (key: string, value: string):string
+  }
+
+
+  // 如果我们给key指定number类型就会报错 因为形参的数据类型 和 返回值 被 encrypt接口约束了
+  let md5:encrypt = function(key:string, value:string):string {
+    return key + value
+  }
+
+  let res = md5("name", "张三")
+  console.log(res)
+ -->
+
+
+> 类中的接口 -- 对类的约束 和 抽象类有些相似
 - interface可以在定义类的时候限制我们类的结构(这一点接口有点像抽象类)
 - 接口就是规定类的结构
 - 接口中的所有属性不能有实际的值
 - 接口只定义对象的结构, 而不考虑实际值
   - 在接口中所有的方法都是抽象方法
+
+> 定义类的接口
 <!-- 
-  interface myInterface {
-    name: string,     // 定义一个name没有赋值
-    
-    sayHello():void;  // 定义一个方法没有方法体
+  interface Animal {
+    // 该类中必须有name 且name为string类型
+    name: string;
+
+    // 该类中必须有eat方法  不用有方法体
+    eat(str:string):void;
   }
  -->
 
-
-> 接口的实现 implements
+> 实现类接口 implements
 - 继承一个类 我们使用 extends
 - 实现一个接口 我们使用 implements
 
@@ -1933,14 +2124,12 @@ let b: { name:string, age?: number }
 <!-- 
   interface myInterface {
     name: string;
-
-    sayHello():void;
+    eat(str:string):void;
   }
-
 
   // 用 Cat 这个类 去实现 myInterface 这个接口
   class Cat implements myInterface {
-    为了满足 myInterface 接口的要求 我们的类中也必须有 name 和 sayHello
+    为了满足 myInterface 接口的要求 我们的类中也必须有 name 和 eat
 
     // 1. 定义name属性
     name: string;
@@ -1951,7 +2140,7 @@ let b: { name:string, age?: number }
     }
 
     // 3. 实现接口的方法
-    sayHello() {
+    eat() {
       console.log('大家好')
     }
   }
@@ -2148,9 +2337,50 @@ let b: { name:string, age?: number }
   }
  -->
 
+
+> 接口扩展
+- 接口可以接口接口
+- 下面我们使用Person接口继承了Animal接口
+- 然后我们创建了Web类 这个类实现了Person接口
+- 那Web类就要满足 重写 eat 和 work 方法
+<!-- 
+  interface Animal {
+    eat():void;
+  }
+
+  // 人也属于动物 这时候我们就可以让Person的接口继承Animal 也叫扩展接口
+  interface Person extends Animal {
+    work():void
+  }
+
+  class Web implements Person {
+    eat() {
+      console.log("eat")
+    }
+
+    work() {
+      console.log("work")
+    }
+  }
+ -->
+
+> 一个类既可以继承父类同时还可以继承接口
+> class Web extends Progammer implements Person {}
+<!-- 
+  Progammer 是一个class 类
+  Person    是一个接口
+ -->
+
 ------------------
 
 ### 泛型
+- 软件工程中 我们不仅要创建一致的定义良好的api 同时也要考虑可重用性
+- 组件不仅能够支持当前的数据类型 同时也能支持未来的数据类型 这在创建大型系统时为你提供了十分灵活的功能
+
+- 在像c和java这样的语言中 可以使用泛型来创建可重用的组件 一个组件可以支持多种类型的数据 这样用户就可以 以做自己的数据类型来使用组件
+
+- 通俗的理解
+- 泛型就是解决类 接口 方法的复用性 以及对不特定数据类型的支持
 <!-- 
   比如我们创建一个函数 我们不知道参数的类型是什么 可能是任意类型, 那返回值也就不确定了
   function fn(a:any): any {
@@ -2170,20 +2400,68 @@ let b: { name:string, age?: number }
  -->
 
 
-> 定义泛型
-- 指定一个泛型T(名字任意) 有点像变量
+> 解析
+- ts中我们定义一个方法 形参string 返回值string
+<!-- 
+  function getData(value:string):string {
+    return value
+  }
+ -->
+
+- 这样我们就发现一个问题 这个方法不灵活 它只能够返回string类型的值 没办法复用到别的地方
+- 那有什么办法让这个函数能够返回多种类型呢？ 
+<!-- 
+  使用 any 类型可以么？
+  function getData(value:any):any {
+    return value
+  }
+  
+  这样虽然可以传入和返回任意类型 但是跟原生js有区别么？ 但使用any相当于放弃了类型检查
+ -->
+
+- 上面的any相当于放弃了类型检查 可能我们传入的数据 和 返回的数据不一样
+- 有些时候我们希望我们传入什么类型的数据 就返回什么类型的数据
+- 比如传入 number 必须返回 number 类型 为了解决这个问题 我们就出来了 泛型 的概念
+
+> 泛型
+- 可以支持不特定的数据类型 同时传入的参数和返回的参数一致
+- 也属于任意类型 但是会要求传入和返回的结果一致
+
+- 简单的说
+- 我们可以自定自定义一个类型 将参数指定为该自定义类型 返回值也指定为该自定义类型 那么就实现了参数和返回值的类型是一致的
+
+- 好像就是参数和返回值的类型用了同一个变量的感觉啊
+
+
+> 定义泛型 <T(名字任意)>
+- 指定一个泛型T(名字任意) 相当于我们自定义了一个类型(有点像变量)
+- 自定义类型的操作 在函数名的后面使用 <任意名>
 
     function fn<T>(a:T):T {
       return a
     }
 
-- T是什么类型不知道, 只有在调用的时候才可以确定 好处是我们不用any 不用any就代表我们不用跳过类型检查了
+- 上面就是我们自定义了一个类型T 让形参的类型指定为T 让函数返回值的类型指定为T
+
+> T是什么类型不知道, 只有在调用的时候才可以确定 
+<!-- 
+  好处是我们不用any 不用any就代表我们不用跳过类型检查了 
+-->
+
 - 这样我们从函数定义上看就能知道第一个参数和函数的返回值是相同的
 <!-- 不用指出具体类型, 也能看出返回值和参数的类型相同 -->
 
+<!-- 
+  function getData<T>(value:T):T {
+    return value
+  }
+
+  T是什么类型会在调用方法的时候确定
+ -->
+
 
 > 泛型的调用
-- 1. 直接调用具有泛型的函数
+> 1. 直接调用具有泛型的函数
 - 不指定泛型 TS可以自动对类型进行推断
 <!-- 
   // 这样就知道T的类型是number 相当于在传参的时候把number赋值给了T
@@ -2191,23 +2469,278 @@ let b: { name:string, age?: number }
     - 也就是说明我们这次调用的时候, 参数 和 返回值都是number
  -->
 
-- 2. 指定泛型T的类型
+> 2. 指定泛型T的类型   在函数名的后面指定
 - 手动的指定T的类型是string
 <!--  
   fn<string>('sam')
  -->
-
 - 上面的好处就是我们拿到的变量的类型是明确的 结构会变得更加清晰
 
 
 > 泛型可以指定多个
-
   function fn<T, K>(a:T, b:K):T {
     return a;
   }
 
   fn<number, string>(123, 'sam')    // 手动指定两个形参的类型
   fn(123, 'sam')                    // 自动推断两个形参的类型
+
+
+> 泛型类 在类名后面指定泛型  class Min<T> { }
+- 比如有个最小堆算法 需要同时支持返回数字和字符串两种类型 通过类的泛型来实现
+<!-- 
+  // 一个求最小数的类
+  传入几个数 在其中找到最小的数
+  class MinClass {
+
+    // 如果只写 list:number[] 会报错 还得付个默认值咋的
+    list:number[] = []
+
+    add(num:number) {
+      this.list.push(num)
+    }
+
+    min():number {
+      // 这里去找list中最小的数
+      let target = this.list[0]
+      this.list.forEach(item => {
+        if(target > item) {
+          // 如果我们的目标值大于元素 我们要找最小值 所以就把 这两个值中的最小值给target
+          target = item
+        }
+      })
+      return target
+    }
+  }
+
+  let m = new MinClass()
+  m.add(2)
+  m.add(22)
+  m.add(12)
+  m.add(88)
+
+  let res = m.min()
+  console.log(res)
+ -->
+
+- 上面的方法只满足了数字类型 因为我们上面这种方式定义 只能传入number类型
+- 但是我们要求的是传入数字返回数字类型 传入字符串返回字符串类型
+- 这就是我们要使用泛型来解决的问题
+
+- 我们设计的这个class 不仅能支持当前的数据类型 但是还要支持其它的类型
+
+
+> 类的泛型的指定 let p = new Demo<指定上面定义的泛型的类型>()
+- 泛型的确定是调用函数的时候决定
+- 类的泛型的确定 在new的时候指定
+<!-- 
+
+// 传入几个数 在其中找到最小的数
+class MinClass<T> {
+
+  // 如果只写 list:number[] 会报错 还得付个默认值咋的
+  list:T[] = []
+
+  add(value:T):void {
+    this.list.push(value)
+  }
+
+  min():T {
+    // 这里去找list中最小的数
+    let target = this.list[0]
+    this.list.forEach(item => {
+      if(target > item) {
+        // 如果我们的目标值大于元素 我们要找最小值 所以就把 这两个值中的最小值给target
+        target = item
+      }
+    })
+    return target
+  }
+}
+
+
+// 实例化类 同时指定 上面定义的泛型的类型为string
+let m = new MinClass<string>()
+m.add("f")
+m.add("b")
+m.add("c")
+m.add("d")
+
+let res = m.min()
+console.log(res)
+-->
+
+- 用泛型来写的好处就是 我们扩展性和复用性更强了 不单单的只能完成数字比较的逻辑 还扩展了字符串的比较逻辑
+
+- 因为我们在调用的时候指定了泛型 还同时带有类型校验的功能 如果我们使用了any就代表我们关闭了类型的校验
+
+
+> 泛型接口
+- 我们先看看 函数接口是怎么定义的
+<!-- 
+  // 定义一个函数的接口 
+  interface Config {
+    (value1: string, value2: string): string
+  }
+
+  // 定义一个方法来实现接口
+  let setData:Config = function (value1:string, value2:string):string {
+    return value1 + value2
+  }
+
+  setData("name", "张三")
+ -->
+
+- 现在我想让上面的接口不仅能返回string类型 还可以返回 number类型 这种情况我们就可以结合泛型来实现
+
+- 我们希望类型不是指定的 而是在调用方法的时候动态传入决定的
+
+
+> 泛型函数型接口的定义
+- 1. 在方法体的最前面自定义<T>
+<!-- 
+  interface Config {
+    <T>(value1:T):T
+  }
+ -->
+
+- 2. 在调用函数的时候 确定泛型的类型 这步相当于赋值
+- 注意：
+- 这种函数写法的泛型是在function的后面指定的
+<!-- 
+  let getData:Config = function<T> (value1):T {
+    return value1
+  }
+
+  // 调用方法的时候决定泛型的类型 这步相当于给泛型来赋值
+  getData<string>("张三")
+ -->
+
+- 之前的函数泛型是这样写的
+<!-- 
+  function add<T> (value:T):T
+ -->
+
+
+> 定义泛型接口的方式2
+- <T> 放到了接口名的后面
+- 在给函数应用接口的同时指定泛型的类型
+<!-- 
+  // 定义函数的泛型接口
+  interface Config<T> {     // 改造的地方看这里
+    (value:T):T
+  }
+
+  // 定义一个函数 该函数应用了泛型T
+  function getData<T>(value:T):T {
+    return value
+  }
+
+  // 定义一个函数指定了泛型接口 同时指定了泛型的类型 同时将上面定义好的函数给了myGetData
+
+  let myGetData:Config<string> = getData
+  myGetData("sam")
+
+
+  上面相当于
+  function demo() {
+    console.log("demo")
+  }
+  let demo2 = demo
+  demo2()
+ -->
+
+
+> 把类当做参数的(泛型类)
+- 定义一个类
+- 把类作为参数来约束数据传入的类型
+<!-- 
+  /**
+ * 
+ * 定义一个user类 
+ *    - 这个类的作用就是映射数据库的字段
+ * 
+ * 然后定义一个 MysqlDb的类 
+ *    - 这个类的作用就是操作数据库
+ * 
+ * 然后把user类作为参数传入MysqlDb这个类中
+ * 
+ * let user = new User({
+ *    username: "张三"
+ *    password: 123
+ * })
+ * 
+ * let Db = new MysqlDb()
+ * Db.add(user)
+ */
+
+// 这里给它们再指定一个undefined 因为ts校验害怕你不给username赋值
+// 这里用于对字段进行约束
+class User {
+  username: string | undefined
+  password: string | undefined
+}
+
+class MysqlDb {
+
+  // 这个方法是用于往数据库添加数据的方法 它需要返回增加失败或者增加成功
+  add(user:User):boolean {
+    return true
+  }
+
+  // 我们调用add方法的时候往数据库中添加数据 所以add就要接收参数 这里我们传入了一个user类 因为user类中已经对内部的参数进行了校验
+
+  // 所以我们可以把user类传入 add(user:User):boolean {...}
+  add(user:User):boolean {
+    return true
+  }
+}
+
+
+// 因为每一个实例身上都会有username 和 password 这里来进行赋值
+let user = new User()
+user.username = "张三"
+user.password = "123"
+
+let Db = new MysqlDb()
+Db.add(user)            // 这里传入了Uesr的实例
+ -->
+
+- 上面的案例属于一种综合应用
+- 我们创建了一个类 用于做类型的检验 然后将这个类当做参数传入方法中
+- 方法中形参的写法 形参:User类
+
+
+- 上面还有一些问题 我们上面定义的 User类是用于对存入数据库的字段进行校验的
+- 假如有用户表 那我们就要创建一个 User类
+- 假如有作者表 那我们就要创建一个 Articlecate类 
+- 同时我们还需要对操作数据的类也进行重复的封装 因为一个表要对应一个类
+- 那我们是不是可以将 操作数据库的类 封装成一个泛型类 这样它能接受各种类型的值
+
+- 这样就造成了不易复用 或者出现了重复的代码
+- 这时候我们就可以利用 泛型 因为泛型可以帮助我们避免重复的代码
+
+- 我们可以把上面操作数据库的类 定义成泛型类
+<!-- 
+  class MysqlDb<T> {
+    add(user:T):boolean {
+      return true
+    }
+  }
+
+  // 定义一个User类和数据库进行映射
+  class User {
+    username: string | undefined
+  }
+
+  // 添加数据
+  let u = new User()
+  u.username = "sam"
+
+  // 将数据添加到数据库中 并使用泛型类
+  let Db = new MysqlDb<User>()
+  db.add(u)
+ -->
 
 
 > <T extends Inter> 这种写法是 泛型T必须是 Inter 的实现类或者是子类
@@ -2244,3 +2777,71 @@ let b: { name:string, age?: number }
 > 总结:
 - 泛型就是在类型不明确的时候 整一个变量 用这个变量表示类型
 - 泛型和接口属于锦上添花的东西
+
+
+-----------------
+
+###　使用TS封装一个 mysql mongodb 的操作数据库的库
+- 要求：
+- 1. mysql mongodb功能呢一样 都有add update delete get方法
+
+- 注意：
+- 约束统一的规范 以及代码中用
+
+- 解决方案
+- 需要约束规范所以要定义接口 需要代码复用所以用到泛型
+  - 1. 接口
+      - 在面向对象的变成中 接口是一种规范的定义 它定义了行为和动作的规范
+
+  - 2. 泛型
+      - 通俗理解 泛型就是解决类 接口 方法的复用
+
+<!-- 
+  // 定义一个操作数据库的接口 同时添加数据的时候 我们要在add方法中传入数据 但是什么类型不知道 所以我们要把这个接口定义为泛型接口
+  interface DBI<T> {
+    add(info:T):boolean;
+    update(info:T, id:number):boolean;
+    delete(id:number):boolean;
+    get(id:number):any[];
+  }
+
+  // 分别定义mongodb mysql的类
+
+  // 定义一个操作mysql的类
+  // 注意当我们要实现一个泛型接口的时候 这个类也必须是一个泛型类
+  class MysqlDb<T> implements DBI<T> {
+    add(info:T):boolean {
+      console.log(info)
+      return true
+    }
+    update(info:T, id:number):boolean {
+      return true
+    }
+    delete(id:number):boolean {
+      return true
+    }
+    get(id:number):any[] {
+      return []
+    }
+  }
+
+  // 给mysql的表增加数据 操作用户表
+  // 1 定义一个User类和数据表做映射
+  class User {
+    username: string | undefined;   // 防止编辑器报错再给一个undefined
+  }
+
+  // 给用户表增加数据
+  let u = new User()
+  u.username = "sam"
+
+  // 调用MysqlDB给它的表里面增加数据 使用User类做为参数对我们传入的参数进行验证
+  let oMysql = new MysqlDb<User>() 
+  oMysql.add(u)
+
+ -->
+
+
+### 大地的视频 从17集开始没看 讲的是模块的概念
+- https://www.bilibili.com/video/BV1yt411e7xV?p=17&spm_id_from=pageDriver
+- 还有4集 模块 命令空间 装饰器 方法装饰器等
