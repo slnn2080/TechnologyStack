@@ -2485,12 +2485,16 @@ arr.forEach(function(){});
 
 
 > 实例成员: 就是构造函数内部通过this添加的成员
-<!-- 构造函数中的name age sing就是实例成员 他们都是通过this来添加的 -->
+<!-- 
+    构造函数中的name age sing就是实例成员 他们都是通过this来添加的 
+-->
+
 - 实例成员只能通过实例化对象来访问
 <!-- 
     name age sing 只能通过实例化的 ldh 来访问
     console.log(ldh.name)
  -->
+
 - 不能通过构造函数来访问
 <!-- 
     console.log(Star.name)     // undefined
@@ -2501,7 +2505,6 @@ arr.forEach(function(){});
 > 静态成员: 在构造函数本身上添加的成员
 - 在构造函数里面添加成员
 - 构造函数必须要调用后才能访问
-
 <!-- 
     Star.sex = '男';        我在构造函数Star身上直接添加了一个成员
     这个sex就是一个静态成员, 它不是通过this添加的 而是直接在构造函数本身上添加的
@@ -2523,6 +2526,41 @@ arr.forEach(function(){});
 
 - 不能通过实例对象来访问
 <!-- console.log(ldh.sex)   // undefined -->
+
+
+> 在构造函数中 给实例对象添加 固定死的数据
+- es5
+<!-- 
+    function Father() {
+        this.name = "张三"
+    }
+ -->
+
+- es6
+<!-- 
+    class Father {
+        name = "张三"
+    }
+ -->
+
+- 如果需要通过 实例对象的实参传递数据的话
+- es5
+<!-- 
+    function Father(name, age) {
+        this.name = name
+        this.age = age
+    }
+ -->
+
+- es6
+<!-- 
+    class Father {
+        constructor(name) {
+            this.name = name
+            this.age = age
+        }
+    }
+ -->
 
 -----------------------------------
 
@@ -3317,6 +3355,19 @@ function Son(uname, age, score) {
 let son = new Son('刘德华', 18, 100);
 console.log(son);
 
+**Father.call(this, uname, age);**
+- 这种方式只能继承 实例 身上的属性和方法
+<!-- 
+    this.name = name
+    this.age = age
+    this.run = function 
+
+    这些都是往实例身上添加的属性和方法 使用 .call(this) 的形式
+    继承的都是this. 的属性和方法
+ -->
+
+- 要想继承原型链上的属性和方法需要下面的知识
+
 
 ### 借用原型对象 继承 父类型的方法
 - 一些共有的属性 我们写在构造函数里面, 但是共有的方法 我们要写在原型对象上比较合适
@@ -3405,21 +3456,21 @@ Father.prototype.sing = function() {
 
 > 但是这么做同时会产生一个问题
     Son.prototype = new Father();
-
-    相当于:
-
+<!-- 
+    上面这样做相当于:
     Son.prototype = {};
 
-- 这样就会把Son.prototype里面的东西覆盖掉, 所以Son.prototype里面就没有constructor了
-<!-- 
+    这样就会把Son.prototype里面的东西覆盖掉, 所以Son.prototype里面就没有constructor了
     console.log(Son.prototype.constructor)  //Father
+
+    这就是问题 按道理Son.prototype.constructor应该指向Son才对 因为是一个覆盖操作
  -->
+    
+- 如果利用对象的形式修改了原型对象, 别忘了利用constructor指回原来的构造函数
 
-- 这就是问题 按道理Son.prototype.constructor应该指向Son才对 因为是一个覆盖操作
-> 如果利用对象的形式修改了原型对象, 别忘了利用constructor指回原来的构造函数
-
-> 还要这样操作
+> 解决方案
 - Son.prototype.constructor = Son
+
 
 > 整理:
 <!-- 
@@ -5793,6 +5844,15 @@ console.log(obj.data('属性名'));
 - 参数:
     第一个：要获取样式的元素
     第二个：可以传递一个伪元素 一般不用 一般传null
+    - 比如我们可以获取 before after 的属性值
+    <!-- 
+        let div = document.querySelector(".test")
+        let target = getComputedStyle(div, "after")
+        console.log(target.getPropertyValue("top"))
+
+        getPropertyValue方法用于获取css中给定属性的属性值
+     -->
+     
     getComputedStyle(获取样式的元素, null)
 
 - 该方法会返回一个对象，对象中封装了当前元素对应的样式

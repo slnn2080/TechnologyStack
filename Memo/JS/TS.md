@@ -667,13 +667,13 @@ module.exports = {
 <!-- 
   使用ts的时候, 不建议使用any类型, 那不跟js一样了
 
-
   let d:any;    变量d可以是任意类型
   d=10;
   d='hello'
   d=true
  -->
 
+> 隐式any
 - 声明变量如果不指定类型, 则TS解析器会自动判断变量的类型为any (隐式的any)
 <!-- 
   let d;    隐式any
@@ -690,6 +690,17 @@ module.exports = {
   s = d;            // 这时 我们将any类型的值 赋值给 s(string) 不会报错
 
   我们使用TS的时候就是为了检测变量的类型, 当使用了any类型后 会导致和使用js一样的隐患
+ -->
+
+
+> any的应用场景
+- 比如我们要获取html结构中的div节点
+<!-- 
+  在页面有效果 但是ts会报错 这时候我们就可以给div指定一个any类型
+  let div = document.querySelector("div")
+  div.style.color = "red"
+
+  let div: any = document.querySelector("div")
  -->
 
 ------------------
@@ -749,12 +760,42 @@ module.exports = {
 
 ------------------
 
+> 变量类型: undefined
+- 很多情况下 我们定义变量 没有赋值的时候 它就是undefined 但是这样在ts中会报错 这时我们可以这么写
+
+- 赋值了就是number 没有赋值就是undefined
+<!-- 
+  let num: number | undefined;
+ -->
+
+
+> 变量类型: null
+<!-- 
+  let num: null;
+  该变量不能赋其它的值了
+
+  一个元素可能是number类型 可能是undefined 可能是null
+  let num: number | null | undefined;
+ -->
+
+
 > 变量类型: void
 - 用来表示空值, 以函数为例 就表示没有返回值 
-<!-- 某种程度来说undefined也是返回值 -->
+- 一般用于定义方式的时候 该方法没有返回值的时候应用
+<!-- 
+  某种程度来说undefined也是返回值 
+  function run():void {
+    console.log("test")
+  }
+
+  当一个方法没有返回值的时候 我们可以给这个方法定义为 void 型
+-->
+
 
 > 变量类型: never
 - 和void有点像, 表示没有值 以函数为例 表示永远不会返回结果 连空(undefined null)也没有
+
+- 它包含(undefined null)
 
 <!-- 
   前面我们可以直接给函数的返回值设置类型
@@ -828,7 +869,10 @@ let b: { name:string, age?: number }
 - [propName: string]  表示任意属性名
 - : any               表示任意类型
 <!-- 
-  let c: {name: string, [propName: string]: any}
+  let c: {
+    name: string, 
+    [propName: string]: any
+  }
 
   要求 我的对象里必须有一个name属性, 其它的属性我不管
  -->
@@ -881,6 +925,10 @@ let b: { name:string, age?: number }
   再举一个不推荐的用法
   let c: Array<any> = [3, 4, "sam"]
  -->
+
+
+- 想随意些的时候可以这样
+- let arr: any[] = [1, "a"]
 
 ------------------
 
@@ -1085,6 +1133,131 @@ let b: { name:string, age?: number }
 
 ------------------
 
+### Ts中定义函数的方式
+- 1. 函数要给返回值定类型
+<!-- 
+  function fn():string {}
+  let fn = function():string {}
+ -->
+
+- 2. 函数要给参数定义类型
+<!-- 
+  function fn(a:number, b:string):string { }
+  let fn = function(a:number, b:string):string { }
+ -->
+
+- 3. 如果方法没有返回值 只用 void
+<!-- 
+  function fn():void { }
+ -->
+
+- 4. 可选参数
+- es5里面方法的实参和形参可以不一样 但是ts中必须一样 如果不一样就需要配置可选参数
+- 比如我们函数定义了两个形参 当调用函数的时候 我们传递一个实参也可以
+- 但是ts中就不行 我们定义了几个形参那我们必须要传递几个实参
+<!-- 
+  function fn(name:string, age:number):string {
+    if(age) { return `${name} -- ${age}` }
+    else { return name }
+  }
+
+  fn("sam")   // es5没有问题 但是 ts会报错
+ -->  
+
+
+> 可以参数 可选形参后面?: (age?:类型)
+- 那TS中怎么处理？ 函数中哪些参数是可选得
+- 就是不传递对应的实参也不会报错？
+
+- 可选参数配置后 该参数可传可不传
+<!-- 
+  function fn(name:string, age?:number):string { }
+ -->
+
+**注意：**
+- 可选参数必须配置到参数的最后面
+<!-- 
+  function fn(name?:string, age?:number):void { } 
+  - name的部分是错的
+ -->
+
+
+> 默认参数
+- es5中没有办法设置默认参数的 但是es6和ts中是可以配置默认参数的
+<!-- 
+  function fn(name:string = "sam", age:number = 20) { }
+ -->
+
+
+> 剩余参数 ...args
+- 接收实参传递过来的值
+- ...args的类型是一个数组 args既然是数组 那就可以使用数组的所有方法
+- 同时 我们需要注意的是
+- args的类型是数组 但是不代表我们在传递实参的时候 需要传递一个数组进去
+- 我们传递 1，2，3 ...args 会将我们传递的实参 收集到一个数组里面
+<!-- 
+  function fn(num1:number, num1:number, num1:number):number {
+    return a + b + c
+  }
+  fn(1,3,4)
+
+  function fn(...args:number[]):number {
+
+    console.log(typeof args)  // Array
+
+    let res = args.reduce((pre, item) => {
+      return pre + item
+    }, 0)
+
+    return res
+  }
+
+  console.log(fn(1,2,3))
+ -->
+
+
+> 函数的重载
+- js是没有重载的
+
+- java中方法的重载 重载指的是两个或者两个以上同名函数 但它们的参数不一样 这时会出现函数重载的情况
+<!-- 
+  // java中类似重载的写法
+  function fn(config:any):any { 。。。 }
+  function fn(config:any, value:any):any { 。。。 }
+ -->
+
+- ts中也出现了函数的重载 通过为同一个函数提供多个函数类型定义来实现多种功能的目的
+<!-- 
+  ts为了兼容es5以及es6 所以重载的写法和java中有区别
+  es5中如果定义了重名的函数 下面的函数会将上面的函数替换掉
+ -->
+
+-  Ts的重载
+- 1. 定义形参的类型 前两个函数没有方法体
+- 2. 在第三个函数中书写方法体 并在方法体内可以对 1 中的定义形参类型函数中的形参做判断
+- 3. 我们在第三个函数中 return 的是第三个函数的形参
+- 4. 那是不是说 第三个函数的形参类型必须是any
+<!-- 
+  function fn(name:string):string;    1
+  function fn(age:number):number;     2
+  function fn(str:any):any {          3   形参和返回值都是any
+
+    // 我们可以在第三个函数中 对 形参进行类型的判断 从而判断走个哪个函数中的形参
+    // 注意 该函数的返回值都是第三个函数中的 形参str
+    if(typeof str == "string") {
+      return "我叫" + str
+    } else {
+      return str + 10
+    }
+  }
+ -->
+
+------------------
+
+### 
+
+------------------
+
 ### 面向对象
 - 任何操作都是通过对象去操作, 在写程序的过程当中所有的操作都是通过对象进行的
 
@@ -1131,8 +1304,129 @@ let b: { name:string, age?: number }
 
       - static readonly
         - 关键字还可以连用 只读的静态属性 static 放在前面
-
   }
+
+
+> ts中定义类的方式(es6)
+<!-- 
+  class Person {
+
+    // 定义 死数据 实例属性
+    name:string = "张三"    前面省略了 public 关键字
+        - 死数据我们可以通过实例对象访问到 p.name 打印结果会是 “张三”
+        - 死数据的定义 也相当于我们在实例对象身上定义了一个name属性
+
+        - 所以我们还可以这样 将实例化时传递进来的参数 赋值给这个 name属性
+
+
+    // 定义 实例属性 name  
+    - 注意 ts中必须要先定义变量才能在下面constructor中赋值
+    name:string;
+
+    // constructor 会在实例化的时候自动调用
+    constructor(n) {
+      this.name = n
+    }
+
+
+    // 定义实例方法
+    run():void {
+      console.log(this.name)
+    }
+
+    getName():string {
+      return this.name
+    }
+
+    // 这里的形参name是在调用setName的时候传递进去的参数
+    该函数用来修改name 所以没有返回值 使用的是void型
+    setName(name:string):void {
+      this.name = name
+    }
+  }
+
+
+
+  // 实例化
+  let p = new Person("张三")
+  p.run()
+ -->
+
+
+> ts中如何实现继承
+- extends super
+<!-- 
+  class Person {
+    name:string
+    constructor(name:string) {
+      this.name = name
+    }
+
+    run():void {
+      console.log(this.name + "在运动")
+      console.log("-----")
+    }
+  }
+
+
+
+  class P extends Person {
+
+    // 子类 在扩展自己的属性的时候 要先定义 定义后才能在constructor中进行赋值
+    age:number;
+
+    // 当子类想要有自己的属性的时候要使用 constructor
+    constructor(name:string, age:number) {
+      super(name)
+      this.name = name
+      this.age = age
+    }
+
+    // 子类自己的额方法
+    say():void {
+      console.log(this.name + " " + this.age)
+    }
+  }
+
+  let p = new P("erin", 18)
+  p.say()
+ -->
+
+
+
+> 总结：
+- 1. 实例属性 和 方法 在class中 直接定义 就可以在该实例中访问到
+<!-- 
+  定义实例属性 和 方法有两种情况
+
+  - 1. 情况1 定义为死数据
+  class Fn {
+    name = "张三"
+  }
+
+  - 2. 情况2 通过实例对象的实参传递 那类中就需要定义constructor来接收
+  class Fn {
+    constructor(name, age) {
+      this.name = name
+    }
+  }
+ -->
+
+- 2. 定义静态属性 和 方法 需要在属性和方法的前面使用static关键字
+
+- 3. ts中要想在constructor中赋值 实例属性 必须要先定义
+<!-- 
+  name: string;   要先定义
+  定义后 this.name = name  后面的name是传递进来的参数 前面的this.name是上面定义的实例属性
+
+  constructor(name, age) {
+    this.name = name
+  }
+ -->
+
+- 4. 当子类中的方法和父类中的方法同名的时候 会覆盖掉父类中的方法
+
+------
 
 <!-- 
   class Person {
@@ -1350,24 +1644,182 @@ let b: { name:string, age?: number }
  -->
 
 
+> 类中的修饰符
+- ts中在定义属性的时候给我们提供了三种修饰符
+- public
+- protected
+- private
+
+> public 公有
+- 在类里面 子类 类外面都可以访问
+<!-- 
+  我们上面在Person类中定义了name属性
+  name:string
+
+  该name属性可以在 类中访问 this.name
+  该name属性可以在 子类中访问 子类extends父类后就可以利用name属性
+  - eg
+    constructor(name) {
+      super(name)
+    }
+
+  该name属性可以在 在类外部可以访问该属性
+  class Person { ... }
+  let p = new Person("sam")
+  p.name    // 类外部访问属性
+ -->
+
+> protected 保护
+- 在类里面 和 子类里面可以访问 在类外面不可以访问
+
+> private 私有
+- 在类里面可以访问 在子类和类外面都不可以访问
+
+> 注意：
+- 属性如果不加修饰符默认就是公有 public
+
+
+> 静态方法 静态属性
+- 静态方法和属性需要通过类名来读取和调用
+
+- 静态方法的模拟场景 我们都用过jq 比如$.get这样方法就是静态方法
+- 通过$类来直接调用的
+<!-- 
+  // 下面模拟下 jq封装方法的 情景
+
+  // 创建一个获取元素节点 和 修改元素样式的类 该类实例化后 实例对象都能访问css方法
+  function Base(el) {
+      this.el = document.querySelector(el)
+      this.css = function(attr, value) {
+          this.el.style[attr] = value
+      }
+  }
+
+
+  // 我们对 实例对象 进行一层封装 $就是实例化后的对象 它可以.
+  相当于 new Person("sam").say()
+
+  function $(el) {
+      return new Base(el)
+  }
+  $(".test").css("backgroundColor", "red")
+ -->
+
+- ts中定义静态方法
+**注意**
+- 静态方法中没办法访问类中的属性(实例对象身上的属性 因为实例属性会在实例对象身上)
+- 静态方法可以访问静态属性
+- 静态方法中可以通过this和类名访问到静态属性
+<!-- 
+  class $ {
+
+    static age:number = 12
+
+    name:string
+    constructor(name:string) {
+      this.name = name
+    }
+
+    // 实例方法
+    run():void {
+      console.log(`${this.name}在跑`)
+    }
+
+    // 定义静态方法
+    static print():void {
+      console.log("我是静态方法")
+
+      // 静态方法中不能访问实例对象或者说类中的属性
+      console.log(this.name)    // x
+      console.log(name)         // x
+
+      // 静态方法中可以访问静态属性
+      console.log(this.age)
+      console.log($.age)
+    }
+  }
+
+  new $("sam").run()
+
+  // 静态方法 通过类名来调用
+  $.print()
+ -->
+
+
+> 多态
+- 父类定义一个方法不去实现 让继承它的子类去实现 每一个子类有不同的表现
+- 多态属于继承 也是一种继承的表现形式
+
+- 其实多态就是子类重写父类中的方法
+<!-- 
+  class Animal {
+    name:string
+    constructor(name) {
+      this.name = name
+    }
+
+    // 父类中定义这个方法不去实现让子类去实现 每一个子类有不同的表现
+    eat() {
+      console.log("吃的方法")
+    }
+  }
+
+  class Dog extends Animal {
+    constructor(name:string) {
+      super(name)
+    }
+
+    eat() {
+      return this.name + "吃狗粮"
+    }
+  }
+
+
+
+  class Cat extends Animal {
+    constructor(name:string) {
+      super(name)
+    }
+
+    eat() {
+      return this.name + "吃喵粮"
+    }
+  }
+
+  总结下
+  父类animal定义了eat方法但是没有实现 dog和cat继承了父类 实现了不同的eat形式
+ -->
+
+
 > 抽象类 abstract
 - 我们会把相同部分的属性和方法 抽取出来做成一个基类 父类 超类
 - 这个类是专门用来继承的, 我们不希望通过这个基类去创建对象 这时候我们可以使用 abstract 关键字
-<!-- 禁止一个类创建对象 -->
+<!-- 禁止该类创建实例化对象 -->
 
+- 注意：
 - 抽象类是专门用来被其他类所继承的类，它只能被其他类所继承不能用来创建实例
+<!-- 
+  // 定义抽象类
+  abstract class Animal { }
+ -->
+
+- 抽象方法只是定义这个方法的结构 不定义这个方法的具体实现, 具体的实现由子类来决定
+
+**注意：**
 - 抽象类中可以添加抽象方法
 - 抽象方法使用 abstract 开头 没有方法体
 - 抽象方法只能定义在抽象类中, 子类必须对抽象方法进行重写
 <!-- 
-  我们在父类中定义的方法是固定的 子类继承的时候都会有这个同一个方法, 需要重写因为不能满足每一个类的需求
-
-  抽象方法只是定义这个方法的结构 不定义这个方法的具体实现, 具体的实现由子类来决定
+  正常父类定义的方法 子类在继承的时候 可以不重写父类的该方法
+  但是抽象方法 要求子类必须重写
  -->
 
 
+> 具体实现
+- 抽象类 与 抽象方法前面都需要添加 abstract 关键字
+- 抽象方法不必有方法体
+- 抽象方法必须在抽象类中
 <!-- 
-
   // 使用abstract定义抽象类
   abstract class Animal {
 
@@ -1378,6 +1830,14 @@ let b: { name:string, age?: number }
 
     // 定义个抽象方法, 子类必须对这个抽象方法重写, 并且抽象方法只能在抽象类中
     abstract sayHello():void;   没有返回值的类型
+  }
+
+
+  // 子类必须重写抽象方法
+  class Cat extends Animal {
+    sayHello() {
+      console.log(this.name)
+    }
   }
  -->
 

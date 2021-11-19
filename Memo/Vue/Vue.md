@@ -5511,8 +5511,6 @@ filters: {
 
 - 5. props的优先级高 它会覆盖掉data computed里面的同名数据
 
-### 书签
-
 --------------------------
 
 ### 组件之间的传递 子 传 父
@@ -5529,7 +5527,7 @@ filters: {
   // 父组件
   <App>
     <MyHeader> </MyHeader>
-    <MyList :receive='receive'> </MyList>
+    <MyList :receive='receive'></MyList>
   </App>
 
 
@@ -5581,6 +5579,7 @@ filters: {
   </App>
  -->
 
+
 **给子组件绑定事件的另一种方式：**
 - 该灵活性比较强 比如我可以等ajax请求回来后再去给子组件绑定事件
 <!-- 
@@ -5616,8 +5615,6 @@ filters: {
 
 **注意问题**
 - 1. 我们接收子组件通过自定义事件传递过来的数据的时候 要将数据保存在data中 然后我们才能在模板中使用
-
-- 2. 
   
 
 
@@ -6167,6 +6164,8 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 - 方式1：
 - 在 beforeCreate() 生命周期函数中 定义事件总线
 - 理由： 因为这个生命周期中 模板还没有解析，数据 和 结构还没挂载到页面上 我们提前准备好 事件总线
+
+- 在 BeforeCreate 的时候在Vue的原型对象上添加 this
 <!-- 
   new Vue({
     name: 'App',
@@ -6264,7 +6263,9 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 
 
 > 2. 数据接收方：引入 pubsub
+
 > 3. 数据接收方：订阅消息 --  pubsub.subscribe('消息名', (消息名, data) => { })
+
 > 4. 数据发送方：发布消息 --  pubsub.publish('消息名', data)
 - 在数据接收方 和 数据发送方 中引入 pubsub 引入后它是一个对象 身上有很多的方法
 - 数据接收方的 订阅消息方法是写在 mounted() 中的
@@ -6444,10 +6445,10 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 > <slot name='demo'>
 - 给组件内部的插槽起名字 便于内容对准位置
 
-
 > <component> 
   <template v-slot:slotname> 往插槽中放的内容 </template> 
   </component>
+- 将子组件写成双标签的形式 标签体放插槽结构
 - 父组件需要在组件的标签体内 使用<template>标签将要放在插槽中的内容包裹起来 并且 在<template #name>写上插槽的名字
 <!-- 
   <cpn>
@@ -6553,7 +6554,7 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 - 但是又有新的问题 由于作用域的关系 父组件不能使用子组件的数据那怎么办？
 
 
-> 1.
+> 1. 子组件通过 props 传递数据给 父组件
 - 插槽给我们提供了便捷的方式 将子组件中的数据传递给调用插槽的人
 - 就如同传递props一样 将数据传递给其它组件 将数据传递给了插槽的使用者
 > <slot :数据=‘data中的数据’>
@@ -6563,9 +6564,21 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
  -->
 
 
-> 2. 插槽的调用者要使用 <template scope='变量'> 对 要传递插槽的东西进行包裹 
+> 2. 插槽的调用者要使用 <template scope='变量'> 对 要传递插槽的东西进行包裹 注意该变量是一个对象 我们传递过来的数据 是对象中的一个属性
 - 在调用组件的时候要是想使用组件内通过slot传递过来的数据 那么最外围必须要用 <template scope='变量'> 进行包裹 通过这个标签的变量我们来接收slot数据
 
+- 注意：
+- 子组件通过作用域插槽传递过来的数据 我们在父组件中定义的时候 这个变量名可以随便起 它是一个对象 我们要得数据是对象中的一个属性
+<!-- 
+  <Son>
+    <template scope="data">
+      父组件决定结构
+    </template>
+  </Son>
+ -->
+
+
+> 3. 父组件在 <template> 中拿到变量对象 data 通过data.子组件传递过来的数据 的方式使用数据
 - 这个变量是一个对象 里面的有一个属性 该属性就是 slot传递过来的数据
 <!-- 
   // 插槽的调用者
@@ -6587,6 +6600,25 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 > 插槽的作用
 - 让父组件可以向子组件指定的位置插入html结构 也是一种组件间通信的方式 适用于 父组件 --- 子组件
 
+
+
+> 具名插槽 和 作用域插槽 不能一起使用么？
+- 可以但是 父组件要使用这种方式确定指定插槽和绑定数据 
+- <template v-slot:子组件的插槽名="子组件中传递过来的变量对象">
+<!-- 
+  子组件
+  <div class="center">
+    <slot name="center" :age="age"></slot>
+  </div>
+
+
+  父组件
+  <Child>
+    <template v-slot:center="data">
+      <span>{{data.age}}</span>
+    </template>
+  </Child>
+ -->
 
 --------------------------
 
@@ -7068,7 +7100,15 @@ allowed in .vue files - render functions are required elsewhere
   <h2 class='box'>hello</h2>
  -->
 
-- 在以前的学习中我们知道 页面中的 <div id="#app"></div> 部分会被 <template>中内容替换掉, 如果我们使用render函数, <div id="#app"></div> 部分会被render函数创建的标签替换掉
+- 在以前的学习中我们知道 页面中的 
+
+  <div id="#app"></div> 
+  部分会被 
+
+  <template>
+  中内容替换掉, 
+
+- 如果我们使用render函数, <div id="#app"></div> 部分会被render函数创建的标签替换掉
 
 - 也就是说如果我们写了这样的代码最终index.html中
   <div id="#app"></div> 会被替换为 <h2 class='box'>hello</h2>
@@ -7127,7 +7167,6 @@ allowed in .vue files - render functions are required elsewhere
 
 ### 修改脚手架的默认配置
 - vue脚手架隐藏了所有webpack的相关配置 若想查看具体的webpack配置 需要执行
-
 
 > vue inspect > output.js
 - 该命令会把所有的webpack代码整理成一个js文件供我们查看 仅是查看不是修改
@@ -7765,7 +7804,7 @@ allowed in .vue files - render functions are required elsewhere
 ### 路由的基本使用
 > 1. 安装 npm i vue-router
 
-> 2. 引入安装好的VueRouter 并注册该插件 Vue.use(插件)
+> 2. 入口文件引入VueRouter 并注册该插件 Vue.use(插件)
 - 因为路由是一个插件库 所以我们要使用Vue.use()来注册一下插件
 - 我们在入口文件中操作 因为入口文件里面 引入了vue
 <!-- 
@@ -7776,9 +7815,12 @@ allowed in .vue files - render functions are required elsewhere
   Vue.use(VueRouter)
  -->
 
-> 3. 创建路由器 配置路由规则 并导出 该router
+> 3. router文件夹下 创建路由器 配置路由规则 并导出 该router
 - 我们创建一个router文件夹 里面写index.js文件 用来配置路由
 - 在index.js文件中引入我们下载的vue-router并通过它创建路由器
+
+- 注意：
+- 入口js文件 和 路由配置文件都要导入 VueRouter
 <!-- 
   import VueRouter from 'vue-router'
 
@@ -7830,6 +7872,10 @@ allowed in .vue files - render functions are required elsewhere
     router
   })
  -->
+
+
+> 5. 展示路由 和 路由跳转
+- 要使用 <router-view> <router-link>
 
 --------------------------
 
@@ -7963,11 +8009,10 @@ allowed in .vue files - render functions are required elsewhere
  -->
 
 
-> props
+> 路由文件中的props
 - 下面的写法三选1
 - 对象 是路由配置文件传递的死数据传递到props中
 - 布尔值 是把params参数传递到props中
-- 
 
 
 > 1. props的对象写法
@@ -8005,6 +8050,11 @@ allowed in .vue files - render functions are required elsewhere
 > 2. props的布尔值写法
 - 若布尔值为真 就会把该路由组件收到的所有params参数 以props的形式传给xxx组件
 - 该组件就可以去props中接收 别人使用params形式传递的数据
+- 使用该方式接收到的数据都会在vm身上
+
+- 使用方式:
+- 1. 该组件的路由配置文件中的 path/:id/:gender 定义接收数据的变量
+- 2. 在该组件中使用props注册该变量
 <!-- 
   {
     name: 'xinxi',
@@ -8041,6 +8091,16 @@ allowed in .vue files - render functions are required elsewhere
   // xxx组件
   props: ['id', 'title']
  -->
+
+
+> 总结：
+- 通过配置 路由文件中的 路由组件对象的规则 可以将通过路由传递到该组件的数据 放在vm身上
+
+- 1. 对象的写法是写死的数据
+- 2. params 是需要先在path中定义接收变量 然后props写成布尔形式
+- 3. query 形式的参数 需要通过props函数形式的方式指定 该props函数可以接收到$route参数 通过它可以拿到query 和 params形式的参数 在props函数中我们要return一个数据对象
+
+- 不管哪种方式 都需要在对应组件中使用 props 配置项来接收
 
 --------------------------
 
@@ -9230,44 +9290,18 @@ Vcomponent                   Mutations   ← →   Devtools
 
 
 > 2. 引入并注册 (我们在store文件中配置)
-- 在入口文件里面 (因为里面有Vue)
-- 当我们use(Vuex)后 我们就可以在new Vue的时候传递进去 store配置项了
+- 当我们Vue.use(Vuex)后 全局就多了一个 $store对象 可以通过该对象拿到 Vuex中的数据
+
+- 同时我们就可以在new Vue的时候的配置对象中将store挂载在上面
 - 同时vm vc身上都能看到$store对象
 <!-- 
+  相当于进行了下面的操作: 
   只有在Vue中挂载后 它才会给Vue的原型添加 $store
   其它组件才可以通过 $store 来拿到我们创建的vuex 这样多个组件才能去仓库中取东西 Vue.prototype.$store = store
  -->
-
 <!-- 
-  import 'Vuex' from 'vuex'
-  import store from 'store'   // 这里引入3中创建的store对象
-  Vue.use(Vuex)
-
-  new Vue({
-    el: '#app',
-
-    // 当我们注册了store后就可以传递store对象了
-    store
-  })
- -->
-
-
-> 3. 创建store内部逻辑 并导出
-> const store = new Vuex.Store({})
-- 我们在new Vue的时候传递进去了store配置项 但是是个空的里面没有任何逻辑吧
-- 最起码store要管理 actions mutations state吧
-- 我们在 src 下创建 index.js文件
-<!-- 
-  - src
-    - store
-      - index.js
- -->
-
-- 我们还需要在这个文件中创建 store对象， 它是通过new Vuex.Store()得到的
-- store中一共有5个配置对象 我们简单的先写了3个
-> 注意：我们在index.js文件中 引入Vue 和 Vuex
-<!-- 
-  // 该文件用于创建Vuex中最为核心的store
+  // store文件夹中的 index.js 文件
+  该文件用于创建Vuex中最为核心的store
   import Vuex from 'vuex'
   import Vue from 'vue'
 
@@ -9293,6 +9327,11 @@ Vcomponent                   Mutations   ← →   Devtools
 
   export default store
  -->
+
+
+> 3. 创建store内部逻辑 并导出
+> const store = new Vuex.Store({})
+> export default store
 
 **注意：**
 - 如果我们像下方这样写的话 会报错 说不能在Vue.use(Vuex)之前创建store实例对象 说不能在注册vuex之前创建store实例
@@ -9353,7 +9392,7 @@ Vcomponent                   Mutations   ← →   Devtools
   Vue.use(Vuex)
  -->
 
-- 4. 创建store对象 const store = new Vue.store({})
+- 4. 创建store对象 const store = new Vue.Store({})
 <!-- 
   const store = new Vuex.Store({
     actions,
@@ -9617,6 +9656,9 @@ Vue Components                        Mutations         Devtools
   - 1. state： 我们数据存放的地方
   - 2. value： 组件传递过来的数据
 
+- 注意：
+- 可以在mutations 里面定义大写常量级别的函数名 在actions里面commit到这个函数名上
+
 - 也就是说actions没起什么作用直接把要做的事情传递到了mutations里面 然后mutations才是真正工作的人 所以它能拿到state中的数据
 
 <!-- 
@@ -9749,14 +9791,14 @@ Vue Components                        Mutations         Devtools
 
 > 方式一： 对象写法
 > mapState({
-  计算属性名(变量名): 'vux中想要使用的数据',
-  计算属性名(变量名): 'vux中想要使用的数据',
+  vm变量名: 'vux中想要使用的数据',
+  vm变量名: 'vux中想要使用的数据',
 })  
 
 - 注意：
-- 这里不能因为我们想起的名字和state中的数据名一致 就使用es6的简写模式
-
-- 计算属性名(变量名)就是我们要在模板中使用的变量 用来读取state中的数据
+- 1. 这里不能因为我们想起的名字和state中的数据名一致 就使用es6的简写模式
+- 2. vm变量名就是我们要在模板中使用的变量 它用来映射state中的数据
+- 3. kv v的部分属于state中定义的数据 一定要加上""
 
 - 要点：
 - mapState()本身就是一个对象 放在计算属性中的时候 要使用...来解构
@@ -9776,6 +9818,9 @@ Vue Components                        Mutations         Devtools
 > 方式二： 数组写法
 - 从上面的例子我们能看见我们写了school: 'school', subject: 'subject',
 - 在使用mapState()传递参数的时候 我们还可以传递一个数组进去
+
+- 特点：
+- 1. 当我们想定义的变量名 和 vuex 中的变量名一致的时候我们可以用这种方式
 
 > mapState(['定义映射vuex数据的变量', 'vuex中的数据'])
 - 也是使用...放在computed中
@@ -9822,7 +9867,7 @@ Vue Components                        Mutations         Devtools
 > 方式2： 数组写法
 > ...mapMutations({组件中的方法: 'mutations中对应的方法'})
 - 我们是在 methods 中使用该方法
-- 我们也要在 mapMutations 前面使用...
+- 我们也要在 mapMutations 前面使用 ...
 
 - 相当于我们在mapMutations中 找模板中的方法和mutations中的方式 做一一对应
 <!-- 
@@ -9883,7 +9928,7 @@ Vue Components                        Mutations         Devtools
 
 - 上面完全形成了两套配置 也就是说写求和相关的程序员动第一套配置 写人员管理的程员动第二套配置
 
-- 那 new Vuex_.Store({ ... }) 怎么写呢？
+- 那 new Vuex.Store({ ... }) 怎么写呢？
 - 我们使用 modules 模块配置项
 
 > 配置项： modules 
