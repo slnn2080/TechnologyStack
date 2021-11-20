@@ -1,5 +1,59 @@
 ### Js技巧
 
+### DOM classList属性:
+- 该属性用于在元素中添加，移除及切换 CSS 类。
+- ie10以上才支持 使用于移动端
+> 只读：
+> 元素对象.classList
+- 返回的是列表 伪数组的形式 可以通过索引号来获取
+
+> 添加：
+> 元素对象.classList.add('类名')
+- 在元素中添加一个或多个类名。如果指定的类名已存在，则不会添加
+
+> 删除：
+> 元素对象.classList.remove('类名')
+- 移除元素中一个或多个类名。注意： 移除不存在的类名，不会报错。
+- 可以删除指定类名
+
+> 切换：
+> 元素对象.classList.toggle("类名", [true|false])
+- 在元素中切换类名。
+- 参数：
+    - 1. 要在元素中移除的类名，并返回 false。如果该类名不存在则会在元素中添加类名，并返回 true。
+    - 2. true | false 可选参数，是否强制添加或移除类，不管该类名是否存在。
+
+> 判断：
+> 元素对象.classList.contains()
+判断是否有这个类
+
+
+### 获取复数节点
+- 通过一些方法获取到复数节点 都是伪数组 这时候我们想使用一些数组才能应用的方法的时候
+- 就需要给它转成真正的数组
+
+- ...运算符应该也好用但是实测失败了 等找找原因后再继续补充
+<!-- 
+    let lis = document.getElementsByTagName("li")
+    Array.from(lis).forEach(el => {
+        console.log(el.innerHTML)
+    });
+ -->
+
+
+
+### 判断是否是数组还是对象
+> Object.prototype.toString.call(目标对象)
+<!-- 
+    let objRes = Object.prototype.toString.call(obj)
+    console.log(objRes)     // "[object Object]"
+
+    let arrRes = Object.prototype.toString.call(arr)
+    console.log(arrRes)     // "[object Array]"
+ -->
+
+ 
+
 ### 获取页面高度 宽度的API
 - document.documentElement.clientWidth
 - 获得的是屏幕可视区域的宽高，不包括滚动条与工具条

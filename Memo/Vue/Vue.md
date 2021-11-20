@@ -1652,6 +1652,39 @@ directives: {
  -->
 
 
+> Object.defineProperties(目标对象, {配置对象})
+- 参数2：
+  - 配置对象
+<!-- 
+  {
+    propname1: {
+      get() {},
+      set() {}
+    },
+    propname2: {
+      get() {},
+      set() {}
+    }
+  }
+ -->
+
+- 例子：
+<!-- 
+  Object.defineProperties(obj, {
+    sex: {
+      get() {
+        return num
+      }
+    },
+    gender: { 
+      get() {
+        return "男"
+      }
+    }
+  })
+ -->
+
+
 > 数据代理
 - 通过一个对象 代理对另一个对象中属性的操作 （读写）就叫做数据代理
 - 案例：
@@ -1675,6 +1708,41 @@ directives: {
       obj.x = value
     }
   })
+ -->
+
+
+> 案例
+- 自己实现了 修改数组 然后自动更新页面的样式的逻辑
+
+- 思路：
+- 1. classList 数组为class样式数组
+- 2. 创建了一个obj是代理对象，页面上的样式是根据代理对象中的list样式数组渲染的
+- 3. 而obj代理对象中的list是从classList上获取的值
+- 4. 当我们修改了代理对象中list的值后 就会更新页面上的样式
+<!-- 
+  let classList = ["a", "b", "c"]
+  let target = $("ul li")[0]
+  
+  let obj = {}
+  Object.defineProperties(obj, {
+      list: {
+          get() {
+              return classList
+          },
+          set(v) {
+              classList = v
+              target.className = obj.list.join(" ")
+          }
+      }
+  })
+
+  target.className = obj.list.join(" ")
+  obj.list = [...target.classList, "d"]
+  obj.list = [...target.classList, "e"]
+
+  function $(el) {
+      return document.querySelectorAll(el)
+  }
  -->
 
 ------
