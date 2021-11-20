@@ -1,5 +1,34 @@
 ### 零散小方法
 
+> 全屏 和 退出全屏
+> documentElement.requestFullscreen()
+> document.exitFullscreen();
+- 全屏和退出全屏的方法不在一个元素上哦
+
+<!-- 
+    fullScreen() {
+        this.isFullscreen = true
+        if(this.isFullscreen) {
+            // 打开全屏
+            let documentElement = document.documentElement
+            if(documentElement.requestFullscreen) {
+                documentElement.requestFullscreen()
+            } else if (documentElement.mozRequestFullScreen) {
+                documentElement.mozRequestFullScreen()
+            } else if(documentElement.webkitRequestFullScreen) {
+                documentElement.webkitRequestFullScreen()
+            }
+        }
+    }
+
+    exitFullScreen() {
+        this.isFullscreen = false
+        if(document.exitFullscreen) {
+            document.exitFullscreen()
+        }
+    }
+ -->
+
 > delete 对象
 - 删除对象中的属性
 <!-- 
@@ -10,6 +39,13 @@
 > 数字对象.toFixed(2)
 - 保留几位小数
 - 会四舍五入
+
+- 该方法会将结果转为字符串型 但是不会影响原数据
+<!-- 
+    let num = 1.123
+    let res = num.toFixed(2)
+    console.log(typeof num.toFixed(2))      // string
+ -->
 
 
 > 元素对象.setCapture()
@@ -67,31 +103,38 @@
 - 这个函数的返回值，是String类型的
 <!-- 
     用户输入的内容将会作为函数的返回值返回，可以定义一个变量来接受该内容
-
     var score = prompt("提示内容"); 
 -->
 
 
 > isNaN()
-- 这个方法用来判断非数字, 并且返回一个值, 如果是数字false, 不是数字true
+- 这个方法用来 判断非数字, 并且返回一个值, 
+- 如果是数字        false, 
+- 如果不是数字      true
+
+- 原理：
 - 它是判断一个值能否被 Number() 合法地转化成数字。
 - 如果能转化那就算做是数字, 所以isNaN()的结果会是 false
-<!-- 
-    1. 数字形式的字符串。
-    例如 "123"、"-3.14"，虽然是字符串型，但被 isNaN() 判为数字，返回 false。（"12,345,678"，"1.2.3" 这些返回 true）
+> 1. 数字形式的字符串。
+    例如 "123"、"-3.14"， 虽然是字符串型，
+    但被 isNaN() 判为数字， 返回 false。（"12,345,678"，"1.2.3" 这些返回 true）
 
-    2. 空值。
-    null、空字符串""、空数组[]，都可被Number()合法的转为0，于是被isNaN认为是数，返回false。（undefined、空对象{}、空函数等无法转数字，返回true）
+> 2. 空值。
+    null、 空字符串""、 空数组[]， 都可被Number()合法的转为0，
+    于是被isNaN认为是数，返回false。
+            
+    但是 （undefined、空对象{}、空函数等无法转数字，返回true） ！！！
 
-    3. 布尔值。
-    Number(true)=1, Number(false)=0，所以isNaN对布尔值也返回false。
+> 3. 布尔值。
+    Number(true)=1, 
+    Number(false)=0， 所以isNaN对布尔值也返回false。
 
-    4. 长度为 1 的数组。
-    结果取决于其中元素，即：isNaN([a])=isNaN(a)，可递归。例如isNaN([["1.5"]])=false。
+> 4. 长度为 1 的数组。
+    结果取决于其中元素，即：isNaN([a])=isNaN(a)，可递归。
+    例如isNaN([["1.5"]])=false。
 
-    5. 数字特殊形式
+> 5. 数字特殊形式
     例如"0xabc"、"2.5e+7"，这样的十六进制和科学计数法，即使是字符串也能转数字，所以也返回false。
- -->
 
 
 > Math.sqrt()
@@ -105,25 +148,30 @@
 > console.time("") 和 console.timeEnd("")
 - 开发代码的过程中，我们要考虑提升性能，也就是提升处理速度
 - console.time / timeEnd 用来测试花费的毫秒数，可以用来测试性能
-
 - 它需要一个字符串作为参数，这个字符串将会作为计时器的标识 或者理解为计时器的name
-
+<!-- 
     console.time("test");开始
     +
     程序
     +
     console.timeEnd("test");停止
-
+ -->
+    
 
 > for...in -- 枚举(遍历)对象中的属性
 - 语句：
 
-    for(var 变量 in 对象){
+    for(let 变量 in 对象) {
         
     }
+<!-- 
+    for(let key in obj) {
+        console.log(key)
+    }
+ -->
 
 - for...in语句 对象中有几个属性，循环体就会执行几次, 每次执行时，会将对象中的一个属性的名字赋值给变量
-
+<!-- 
     var obj = {
         name:"sunwukong",
         age:18,
@@ -133,13 +181,12 @@
 
     for(var n in obj){
         console.log(obj[n]);       
+        []的特点就是可以传变量，假如直接写obj.n的话，就是在obj中找叫n的属性 
     }
-<!-- 
-    []的特点就是可以传变量，假如直接写obj.n的话，就是在obj中找叫n的属性 
--->
+ -->
 
-- n         -->     属性名
-- obj[n]    -->     属性值
+- key         -- >     属性名
+- obj[key]    -- >     属性值
 
 
 
@@ -157,23 +204,43 @@
 
 > instanceof 运算符
 - 使用instanceof可以检查一个对象是否是一个类的实例
-- 比如我们可以利用instanceof来判断一个对象是不是数组
-<!-- console.log(arr instansof Array) -->
-
-    对象 instanceof 构造函数
-<!-- 检查这个对象是不是这个构造函数的实例, 是为true，否为false -->
-
-    console.log(per instanceof Person);
-
 <!-- 
-    所有的对象都是object的后代，所以任何对象和object做instanceof检查时都会返回true 
+    class Demo {
+        name = "sam"
+    }
+    let d = new Demo()
+    console.log(d instanceof Demo)      // true
+ -->
+
+
+- 比如我们可以利用instanceof来判断一个对象是不是数组
+<!-- 
+    console.log(arr instansof Array) 
+
+    function checkType(target) {
+        return target instanceof Array
+    }
+    let arr = []
+    let obj = {}
+    let res = checkType(obj)
+    console.log(res)            // false
 -->
+
+> 对象 instanceof 构造函数
+- 检查这个对象是不是这个构造函数的实例, 是为true，否为false 
+
+**注意：**
+- 所有的对象都是object的后代，所以任何对象和object做instanceof检查时都会返回true 
+<!-- 
+    console.log(per instanceof Person);
+-->
+
 
 > Array.isArray(arr)
 - 是返回true 不是false 这个方法会优先于instanceof
 - H5新增 ie9以上才支持
 
-
+-------------------------
 
 ### JS
 - 一种运行在客户端的脚本语言(script是脚本意思)
@@ -192,8 +259,10 @@
 
 ### 浏览器执行JS简介
 - 浏览器分为两个部分, 渲染引擎 和 JS引擎
+
 > 渲染引擎:
 - 用来解析HTML CSS 俗称内核, 比如chrome浏览器的blink 老版本的webkit
+
 
 > JS引擎: 
 - 也成为JS解释器, 用来读取网页中的js代码, 对其处理后运行, 比如chrome浏览器的v8
@@ -209,12 +278,10 @@
 - 计算机是不能直接理解任何除机器语言以外的语言, 所以必须要把程序员所写的程序语言翻译成机器语言才能执行程序, 程序语言翻译成机器语言的工具, 被称为翻译器
 
 - 编程语言 -> 翻译器 -> 机器语言(二进制)
-
 - 翻译器翻译的方式有两种: 一种是编译(java), 另外一种是解释(js), 两种方式之间的区别在于翻译的时间点不同
 
 - 编译器在代码执行之前进行编译, 生成中间代码文件
 - 解释器是在运行时进行及时解释, 并立即执行(当编译器以解释方式运行的时候, 也称之为解释器)
-
 <!-- 
     编译语言: 先把所有的菜做好, 才能上桌吃饭
     解释语言: 好比吃火锅, 边吃边涮, 同时进行
@@ -248,7 +315,6 @@
 
 > 返回值:
 - 表达式最终都会有一个结果, 返回给我们, 我们称为返回值
-
 <!-- 
     等式的右边表达式计算完毕把返回值给左边
  -->
@@ -256,7 +322,7 @@
 -------------------------
 
 ### JS的组成
-- ES基本
+- ES5
 - DOM
 - BOM
 
@@ -379,7 +445,6 @@
 - Number.MIN_VALUE      5e-324
 <!-- 
     Number.MAX_VALUE 数字的最大值是 而Number.MAX_VALUE是保存这个值的常量
-
     Number.MIN_VALUE 大于0的最小值
  -->
 
@@ -420,6 +485,7 @@
     var str = "hello";
     str = "还可以修改已赋值的字面量";
 
+
 > 字符串转义符
 - 类似HTML中的特殊符号, 字符串中也有特殊字符, 我们称之为转义符
 - 在字符串中我们可以使用\作为转义字符，当表示一些特殊符号时可以用\进行转义
@@ -433,9 +499,10 @@
 
 <!-- 
     字符串转移字符, 都是用 \ 开头 但是这些转义字符写到引号里面
+    console.log("今天天气\n真不错！！！")
  -->
 
-> 字符串的长度 length
+> str.length 字符串的长度 
 - 字符串是由若干字符组成的, 这些字符的数量就是字符串的长度, 通过字符串的属性length可以获取整个字符串的长度
 
 
@@ -490,11 +557,20 @@
 
     console.log(typeof a);
 
-    检查字符串时，  会返回string
-    检查数字时，    会返回number
-    检查布尔时，    会返回boolean
-    检查null时，    会返回object
-    检查undefined， 会返回undefined
+- 检查字符串时      
+            会返回string
+
+- 检查数字时        
+            会返回number
+
+- 检查布尔时        
+            会返回boolean
+
+- 检查null时        
+            会返回object
+
+- 检查undefined     
+            会返回undefined
 
 -------------------------
 
@@ -510,44 +586,51 @@
 - 指将一个数据类型强制转换为其他的数据类型
 - 类型转换主要指，将其他的数据类型，转换为 String Number Boolean
 
+- 比如：
 - 使用表单, prompt获取过来的数据默认是字符串类型的, 此时就不能直接简单的进行加法运算, 需要转换变量的数据类型
 
 - 经常转换的3种类型
-- 转换为字符串型
-- 转换为数字型
-- 转换为布尔型
 
+- 转换为 字符串型
+- 转换为 数字型
+- 转换为 布尔型
+
+-------------------------
 
 ### 转换为 String：
-        
 > 方式一：toString()
 - 调用被转换数据类型的toString()方法，该方法不会改变原变量的类型, 它会将转换的结果返回
 <!-- 
     注意：
     null和undefined这两个值没有toString()方法，如果调用他们的方法，会报错
+
+    let num = 123
+    let res = num.toString()
+    console.log(res, typeof res)        // string
 -->
 
 - 方法:
-- 调用变量a的toString()，就是a.toString()
+- 调用 变量a的toString()，就是a.toString()
 
     var a = 123;
 
-    \\将原先为Number类型的变量a 转换为String类型
+- 1. 将原先为Number类型的变量a 转换为String类型
     a.toString();
 
-    \\因为不会影响原变量，它会将转换的结果返回，所以类型还是number，值是123
+- 2. 因为不会影响原变量，它会将转换的结果返回，所以类型还是number，值是123
     console.log(typeof a);      
 
-    \\数据类型转换为String的结果赋值给b
+- 3. 数据类型转换为String的结果赋值给b
     var b = a.toString();
     a = a.toString();           //不想另定义一个新的变量b 就想改a
 
     console.log(typeof b);      
     
-<!-- 
-    使用toString()对 数字 进行转换时, 可以在()中传递一个整数作为参数
-    它它将会把数字转换为指定的进制, 如果不指定则默认转换为10进制
 
+> 扩展
+- 使用toString()对 数字 进行转换时, 可以在()中传递一个整数作为参数
+- 它将会把数字转换为指定的进制, 如果不指定则默认转换为10进制
+<!-- 
     var a = 255;
     a = a.toString(2);
 
@@ -569,15 +652,20 @@
 
     let arr = [1, 2, 3]
     let result = String(arr);   // 1,2,3
-<!--    
-    String() 能转换一维数组 不能转换对象
- -->
+
+**注意：**
+- String() 能转换一维数组 不能转换对象
 
 
 > 方法三：隐式转换 b = b + ""
 - 利用任何值和字符串做加法运算时，都会先把该值转换为字符串，然后再进行运算的原理
 
     b = b + "";
+<!-- 
+    let arr = [1, 3, 4]
+    let res = arr + ""
+    console.log(res)
+ -->
 
 ------------------------------
 

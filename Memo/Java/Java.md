@@ -66,7 +66,7 @@
  -->
 
 - 6. 输出语句
-- System.out.println("")
+>    System.out.println("")
 - 该语法会在语句输出后 换行  先输出后换行
 <!-- 
   System.out.println()    // 里面什么也不写的话 就是代表换行
@@ -2325,6 +2325,216 @@
  -->
 
 ---------------------------- 
+
+### 分支语句2 switch case 结构
+> 结构
+- 1. break 关键字不是必须写的 为可选 根据实际情况
+<!-- 
+  一旦执行到此关键字就跳出当前结构
+ -->
+
+- 2. switch后的 (表达式) 不是条件表达式
+<!-- 
+  条件表达式代表它是布尔类型的 switch后面的表达式不是条件表达式
+  这个表达式的类型只能是如下6中数据类型之一
+
+   - 1. byte
+   - 2. short
+   - 3. char
+   - 4. int
+   - 5. 枚举类型    (jdk5.0新增)
+   - 6. String类型 (jdk7.0新增)
+ -->
+
+- switch后面的表达式的值会依次跟case后面的值进行==匹配
+<!-- 
+  switch(表达式) {    // 该表达式不是条件表达式
+
+    case 常量1:       // 只能声明常量 不能声明范围 num > 10 这样不行
+      语句；
+      break;
+
+    case 常量2:
+      语句；
+      break;
+
+      ...
+
+    // 类似 else 上面的都没有匹配上的话 我们会执行default
+    default:
+      语句；
+      break；
+  }
+ -->
+
+- 3. default关键字的位置不是固定的 它可以放到任意位置
+- 就是说default后面最好也有break 如果default的位置在其他位置的情况下
+<!-- 
+  int num = 3
+
+  default: 
+    System.out.println("zero");
+  case 1:
+    System.out.println("zero");
+    break;
+
+  进入执行程序后还是先看case有没有匹配上的 没有的话走default
+  但是default后面没有break 所以还会执行 case1后面的语句 case后面的语句有break 停止
+ -->
+
+> 要点：
+- 1. 和 if else 不一样的地方是 一旦if else匹配上其中的一个都 就会跳出整个结构
+- 2. switch case 当没有break的时候 一旦匹配上条件后并不会跳出 而是会接着执行其它case结构中的执行语句 直到遇到break关键字 或者 到程序结束为止
+
+- 3. 当多个case后的执行语句一样的时候我们可以考虑合并操作
+<!-- 
+  case 0:
+  case 1:
+  case 2:
+  case 3:
+    System.out.println("不及格");
+    break;
+ -->
+
+**注意：**
+- 一旦匹配上其中的一个条件后 会不进行判断就执行下面的语句
+
+<!-- 
+  class Demo {
+    public static void main(String[] args) {
+      
+      switch后面的表达式对数据类型有要求 
+      1. 不能放浮点型
+      2. 不能放布尔型
+      int num = 0;    
+
+      switch(num) {
+        case 0:
+          System.out.println("zero");
+        case 1:
+          System.out.println("one");
+        default:
+          System.out.println("default");
+      }
+    }
+  }
+
+  要想执行多选一的话 我们要加上break关键字
+ -->
+
+
+> 练习：
+- 1. 使用 switch 把小写类型的 char型转为大写 只转换 a b c d e 其他的输出 other
+- 提示： 
+  String word = scan.next();
+  char c = word.charAt(0);
+  switch(c) { ... }
+
+- 2. 对学生成绩大于60分的 输出合格 低于60分的输出 不合格
+<!-- 
+  class Demo {
+    public static void main(String[] args) {
+      int score = 78;
+      switch(score/10) {        // 让情况减少  
+        我们还可以除以60 结果为0就是不及格 为1就是及格
+
+        case 0:
+          System.out.println("不及格");
+          break;
+        case 1:
+          System.out.println("不及格");
+          break;
+      }
+    }
+  }
+ -->
+
+- 3. 编写程序 从键盘上输入2019年的 month 和 day 要求通过程序输出输入的日期为2019年的第几天
+- 思路：
+  比如 2月 15日 那就1月的31 + 15呗
+<!-- 
+  import java.util.Scanner;
+  class Demo {
+    public static void main(String[] args) {
+      Scanner scan = new Scanner(System.in);
+      System.out.println("请输入2019年的月份: ");
+      int month = scan.nextInt();
+
+      System.out.println("请输入该月的某一天: ");
+      int day = scan.nextInt();
+
+      // 定义一个变量 保存总天数
+      int num = 0;
+      switch(month) {
+
+        // 我们倒着写 从12月份开始写 然后不写break 然后程序就会执行下面的逻辑 把 = 改成 +=
+        case 3:
+          num += 28;
+        case 2:
+          num += 31;
+        case 1:
+          num += day;
+      }
+    }
+  }
+-->
+
+
+> 总结
+- 1. 凡是可以使用switch case的结构都可以转换为if-else 反之不成立
+<!-- 
+  因为switch的表达式有要求
+ -->
+
+- 2. 当我们写分支结构时 既可以用if else又可以用switch case 优先使用switch case情况过多除外
+<!-- 
+  switch的实行效率稍高
+ -->
+
+----------------------------
+
+### 循环结构 和 for循环的理解
+- 在某些条件满足的情况下 反复执行特定代码的功能
+
+- 循环语句分类
+- for
+- while
+- do while
+
+> 循环语句的四个组成部分
+- 1. 初始化部分
+- 2. 循环条件部分
+- 3. 循环体部分
+- 4. 迭代部分
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
