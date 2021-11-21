@@ -88,7 +88,7 @@
 > IIFE 模式增强: 引入依赖
 - 这就是现代模块实现的基石
 - 需求:
-- 我们再 html 页面中调用函数的同时, 修改 body 的背景颜色, 这种模式就叫做引入依赖
+- 我们在 html 页面中调用函数的同时, 修改 body 的背景颜色, 这种模式就叫做引入依赖
 
 - 什么意思, 就是在这个模块中 按照需求 我们引入了另一个模块, 这样关系就明确了
 <!--
@@ -282,7 +282,7 @@
   module.exports = {
     msg:'module1',
     foo() {
-    console.log(this.msg)
+      console.log(this.msg)
     }
   }
 -->
@@ -536,21 +536,21 @@
 > 定义暴露模块
 - 定义没有依赖的模块
   define(function() {
-  return 模块(往外暴露一些 api 之类)
+    return 模块(往外暴露一些 api 之类)
   })
 
 - 定义有依赖的模块
 - 这种模式叫做声明式依赖注入
   \\ 形参是和前面对应的模块 module1 module2 就可以在函数内部通过形参使用这两个模块
   define(['module1', 'module2'], function(m1, m2) {
-  return 模块
+    return 模块
   })
 
 
 > 引入模块
 - 通常放在主模块 比如 app.js
   require(['module1', 'module2'], function(m1, m2) {
-  使用 m1 / m2
+    使用 m1 / m2
   })
 
 ---
@@ -572,11 +572,13 @@
       }
 
       // 给window添加一个属性, 这个属性的值是一个对象 这个对象里面放了一个方法就是getName 这个getName就是我们要暴露出去的方法
-      window.dataService = {getName};
+      window.dataService = {
+        getName: getName
+      };
     })(window)
   -->
 
-  module2:
+    module2:
 
   - 接下来我们定义一个依赖于 module1 的 module2 模块
   <!--
