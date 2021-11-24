@@ -34,6 +34,7 @@
 
 > 防抖的基本概念
 - setTimeout
+- 那防抖的主要效果就是延迟一秒后执行 但是在这段期间 点击多少次都会等1秒后执行一次
 <!-- 
     就像情侣去酒店的自动关闭的大门, 第一批情侣靠近门边, 门感应到有人, 打开门, 并且开始5秒的倒计时, 再5秒内有第二批情侣靠近门边, 门感应到人, 打开门, 重新5秒倒计时 
 -->
@@ -230,28 +231,60 @@
     // btn.addEventListener('click', payMoney);
     btn.addEventListener('click', debounce(payMoney, 2000));
 
-    // 核心函数
-    function payMoney() {
+    // 事件绑定的位置可以传递参数
+    btn.addEventListener('click', debounce(payMoney, 2000, 参数));
+
+    // 原本要执行的逻辑函数
+    function payMoney(args) {
         console.log('我买完了');
         console.log(this);
+
+        // 参数最终会以数组的形式被接收
+        console.log(参数: args);
     }
 
     // 防抖函数
-    function debounce(func, delay) {
+    function debounce(func, delay, ...args) {
         let timer;
+
         return function() {
-            let that = this;
-            let args = arguments;
+            let that = this;   // 下面改成箭头函数了 这里可以省略
 
-            这加
+            不确定需要补需要这个
+            if(timer) {
+                clearTimeout(timer);
+            }
 
-            clearTimeout(timer);
-            timer = setTimeout(function(){
+            timer = setTimeout(() => {      // 这里改成箭头函数了
                 func.apply(that, args)
             },delay);
         }
     }
  -->
+
+
+> 再次整理
+<!-- 
+    let btn = $("button")[0]
+    btn.addEventListener("click", debounce(action, 1000, "sam"))
+
+    function action(args) {
+        console.log("this", this)
+        console.log("args", args)
+    }
+
+    function debounce(fn, delay, ...args) {
+        let timer = null
+
+        return function() {
+            clearTimeout(timer)
+            timer = setTimeout(() => {
+                fn.apply(this, args)
+            }, delay)
+        }
+    }
+ -->
+
 
 ### 防抖的总结要点
 > this的执行问题
@@ -276,7 +309,7 @@
 ### 节流
 - 简单的理解下什么是节流
 <!-- 
-    比如海里的鲸鱼, 每隔一段时候就必须露出水面来换气, 但是鲸鱼不嫩肝移植露出水面 其中的一个原因就是要保持水分滋润皮肤 
+    比如海里的鲸鱼, 每隔一段时候就必须露出水面来换气, 但是鲸鱼不断的露出水面 其中的一个原因就是要保持水分滋润皮肤 
 
     鲸鱼露出水面换气的过程就是节流
 
@@ -284,6 +317,7 @@
 
     下一次换气以后也同样会等足时间再露出水面
  -->
+
 - 比如我们需要统计用户滚动屏幕的行为来做出相应的网页反应, 我们就需要进行节流
 <!-- 
     因为用户不断的进行滚动, 就会不断的产生请求 相应也会不断增加, 容易导致网络的阻塞 那么我们就可以在触发事件的时候就马上执行任务, 然后设定时间间隔限制, 在这段时间内不管用户如何进行滚动都忽视操作 在事件到了以后如果监测到用户有滚动行为, 再次执行任务, 并且设置间隔时间
@@ -293,6 +327,7 @@
 - 首先触发事件, 执行任务, 并且设置时间间隔 
     如果时间间隔内有触发行为就取消任务
     如果时间间隔后有触发行为就再次执行任务和设置时间间隔
+
 
 > 需求:
 - 假设我们要监听用户改变页面尺寸的事件, 并且在改变尺寸的时候有响应的背景颜色的变化效果
@@ -364,6 +399,9 @@
     window.addEventListener('resize', throttle(coloring, 2000));
 
 > 整理:
+- 要点:
+- 1. return 内层函数判断 timer是否有值 有值的话就**return**
+- 2. 在调用完逻辑函数的之后 要将 timer = null 重置为空
 <!-- 
     function coloring() {
         let r = Math.floor(Math.random()*255);

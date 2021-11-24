@@ -3,6 +3,17 @@
 
 
 ### Git的使用技巧
+> 别人发给我的pullrequest
+- 检查代码可以在页面上操作
+- 如果有图片的话 需要将这个文件pull到本地查看
+
+- 查看如果没问题的话 需要点 同意
+
+
+> sourceTree解决冲突
+- 可以在sourceTree里面选中有冲突的文件 然后右键 点击冲突解决 然后选择以谁的冲突为准
+
+
 > 创建request的方式
 - 1. 前端页面 命令行到commit - 然后vscode里面只用git工具提交 - 去github主页 - pullrequest - 前面选择到哪个分支 后面选择自己的分支 然后写什么已经截图了 
 <!-- 
@@ -28,6 +39,25 @@
 > 在执行了  git fetch 之后
 - 我们还要执行 git merge origin/分支名
 
+
+> you need to resolve your current index first 解决办法
+- 从一个分支A切换到另一个分支B后，对切换后的B分支进行pull操作，因为pull操作实际上包含了fetch+merge操作，在执行 merge操作时，由于很长时间没有对B分支执行过pull/merge操作，本地的B分支库与remote中的B分支库中的差异很大（且这些差异是其他 同事开发的文件），merge时产生冲突，使得B分支的状态为merging，其实是指merge失败，还停留在merge状态，也不能执行pull操 作。
+
+- 这时没有解决冲突，而是从B分支上执行checkout/switchto操作，试图再切换其他分支时 就会报上述的错误
+
+- 解决方式:
+- 网上的答案： 
+- 1. 解决conflicts后再次执行merge；
+- 2. 回退到merge前
+
+- 既然merge冲突是其他同事的文件，我不需要去resolve conflicts，那就退回merge前吧，单纯的改我的文件再push吧，执行以下代码：
+- git reset --merge  
+
+<!-- 
+    还是报错
+    not uptodate. Cannot merge.
+    Could not reset index file to revision 'HEAD'.
+ -->
 
 
 ### 问题集锦

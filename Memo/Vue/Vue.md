@@ -3522,6 +3522,32 @@ filters: {
 
 - 如果不传入要格式化的时间的话 会以当前时间做格式化
 
+> Moment.js
+- 时间格式化库的使用方式
+
+- 1. 获取当前系统的时间
+<!-- 
+  moment().format('YYYY-MM-DD HH:mm:ss')
+ -->
+
+- 2. 指定时间格式化
+<!-- 
+  moment('1992-02-22 10:10:10').format('YYYY-MM-DD HH:mm:ss')
+
+  或者
+
+  let date = moment('1992-02-22 10:10:10')
+  date.format('YYYY-MM-DD HH:mm:ss')
+ -->
+
+- 3. 查看10天之后是什么日期
+<!-- 
+  let date = moment('1992-02-22 10:10:10')
+
+  // 看看10天之后
+  date.add(10, 'days').format('YYYY-MM-DD HH:mm:ss')
+ -->
+
 --------------------------
 
 ### 数组中哪些方法是响应式的

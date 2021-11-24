@@ -1,4 +1,242 @@
-### for循环的练习
+### 日期格式化 例子:
+- 2019年 5月 1日 星期三
+> 方法一: 使用swithc case语句 判断传入的数字 改为汉字
+<!-- 
+  let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+        let week = date.getDay();
+
+        switch(week){
+            case 0:
+                week = '日';
+                break;
+            case 1:
+                week = '一';
+                break;
+            case 2:
+                week = '二';
+                break;
+            case 3:
+                week = '三';
+                break;
+            case 4:
+                week = '四';
+                break;
+            case 5:
+                week = '五';
+                break;
+            case 6:
+                week = '六';
+                break;
+        }
+
+        let time = `${year}年${month}月${day}日 星期${week}`;
+        console.log(time);
+ -->
+
+> 方法二: 利用了数组, 注意周日一定要放在前面 它的数字为0, 把得到的week当做index
+<!-- 
+  let arr = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  let time = `${year}年${month}月${day}日 ${arr[week]}`;
+  console.log(time);
+ -->
+
+
+### 时分秒的格式化
+<!-- 
+  function getTime(){
+    let time = new Date();
+    let h = time.getHours();
+    h = h<10 ?'0'+h :h;
+    let m = time.getMinutes();
+    m = m<10 ?'0'+m :m;
+    let s = time.getSeconds();
+    s = s<10 ?'0'+s :s;
+
+    return `${h}:${m}:${s}`;
+  };
+
+  let timer = getTime();
+  console.log(timer);
+ -->
+
+
+### 获取距离1970-1-1起 至今的毫秒数 --- 时间戳
+- 毫秒数永远不会重复的
+
+> getTime()         
+> valueOf()
+<!-- 
+  let date = new Date();
+      
+  console.log(date.getTime());
+  console.log(date.valueOf());
+ -->
+
+> +new Date()   也可以获得总的毫秒数  最常用的写法
+<!-- 
+  let date = +new Date();
+  console.log(date);
+ -->
+
+> Date.now()    也可以获得总的毫秒数 不考虑兼容性的话可以这么写
+<!-- 
+  console.log(Date.now())
+ -->
+
+
+### 倒计时案例
+- 思路:
+    输入的时间 - 现在的时间 = 剩余的时间, 即倒计时
+    但是不能拿着时分秒相减, 会是负数 我们可以拿时间戳来计算
+
+    用户输入的总毫秒数 - 现在时间的总毫秒数 = 剩余时间的总毫秒数
+    然后把剩余的毫秒数转为天时分秒
+
+    输入时间: 因为活动从什么时间开始是用户决定的 活动开始的时间
+
+<!-- 
+    // 形参time 是用户输入的时间, 也是预计活动开始的时间
+        function countTime(time){
+
+        // 返回的是当前时间总的毫秒数
+        let nowTime = +new Date();
+
+        // 用户输入时间总的毫秒数
+        let inputTime = +new Date(time);
+
+        // 剩余时间总得毫秒数
+        // let times = inputTime - nowTime;
+        // 剩余时间总得毫秒数 转为 秒数 拿着秒数计算更精确些
+        let times = (inputTime - nowTime) / 1000;
+
+        /* 
+            d = parseInt(总毫秒数 / 60 / 60 / 24);
+            h = parseInt(总毫秒数 / 60 / 60 % 24);
+            m = parseInt(总毫秒数 / 60 % 60);
+            s = parseInt(总毫秒数 % 60);
+        */
+
+        let d = parseInt(times / 60 / 60 / 24);
+        d = d<10 ?'0'+d :d;
+        let h = parseInt(times / 60 / 60 % 24);
+        h = h<10 ?'0'+h :h;
+        let m = parseInt(times / 60 % 60);
+        m = m<10 ?'0'+m :m;
+        let s = parseInt(times % 60);
+        s = s<10 ?'0'+s :s;
+
+        return `${d}天${h}时${m}分${s}秒`;
+    }
+    let result = countTime('2021-4-22 12:00:00');
+    console.log(result);
+ -->
+
+
+> 案例: 电话号码的模糊处理
+> 字符串.repeat(整数)
+- 将一个字符串复制几次
+<!-- 
+  console.log('abc'.repeat(2));   abcabc
+ -->
+<!-- 
+  思路:
+  将电话号码使用slice提取 提取留下几个字符, 使用*来拼接
+  let num = 18698712060
+
+  function handleP(num, len=3) {
+
+    // 提取到18698712  剩下的使用 *** 代替(拼接)
+    return String(num).slice(0, len*-1)+'*'.repeat(len)
+  }
+
+  let res = handleP(num, 3)
+  console.log(res);
+ -->
+
+
+### for循环打印星星
+
+> 追加字符串的方式
+let str = '';
+for(var i=1; i<=5; i++){
+    str = str + '☆'
+    // console.log(str);
+}
+// console.log(str);
+<!-- 
+// 放到里面打印的结果
+☆
+☆☆
+☆☆☆
+☆☆☆☆
+☆☆☆☆☆
+
+// 放在外面打印的结果
+☆☆☆☆☆
+ -->
+
+> 5行5列的星星
+- 利用双重for循环
+- 思路: 里层循环负责一行打印5个星星, 外层循环负责打印 5 行
+<!-- 
+    let str = '';
+    for(let i=1; i<=5; i++){    // 外层循环负责打印5行
+      for(let j=1; j<=5; j++){  // 内层循环负责一行打印5个星星
+        str = str + '☆'
+      }
+      // 如果一行打印完毕5个星星 就要另起一行
+      str = str + '\n';
+    }
+    console.log(str);
+ -->
+
+> 打印倒三角形
+- 思路:
+1, 一共有10行, 但是每行的星星个数不一样, 因此需要用到双重for循环
+2, 外成的for循环 控制行数, 循环10次可以打印10行
+3, 内层的for循环 控制每行的星星的个数 但是每行的星星的个数是不一样的
+
+- 算法:
+> 让里层循环的j 等于 行号   j=i
+- 里面循环:  j=i; j<=10; j++;
+- 内层循环是从i开始的(j=i)
+- 1行: 首先外层循环的i等于1, 然后里层循环就要走全部的, 这是 j=i 也就是 j=1, j<=10那就是说能打印10个星星, 里层的10个星星打印结束后 开是走第二轮 i++
+- 2行: 外层的i等于2, 然后里层的走全部, j=2, j<=10, 也就是能打印9个星星
+- 3行: 外层的i等于3, 然后里层的走全部, j=3, j<=10, 也就是能打印8个星星
+<!-- 
+    let str = '';
+    for(let i=1; i<=10; i++){    // 外层循环负责行数
+      for(let j=i; j<=10; j++){  // 里层循环打印的个数不一样, j=i
+        str = str + '☆'
+      }
+      str = str + '\n';
+    }
+    console.log(str);
+ -->
+
+> 打印9 9乘法表
+- 思路:
+1, 外层的for 控制行数 打印9行
+2, 内层的for 控制每行的公式
+
+- 算法
+> 每一行的公式的个数 正好和行数一致, j<=i
+- 1行 1个, 2行 2个, 3行 3个 ...
+<!-- 
+    let str = '';
+    for(let i=1; i<=9; i++){    // 外层循环负责行数
+      for(let j=1; j<=i; j++){  // 里层循环打印的个数 j<=i
+        str = str + `${j} x ${i} = ${j*i}\t`
+      }
+      str = str + '\n';
+    }
+    console.log(str);
+
+ -->
+
 
 > 求1 - 100 之间所有整数的累加和
 

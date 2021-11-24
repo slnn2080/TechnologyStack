@@ -1,5 +1,588 @@
 ### Js技巧
 
+### 自动"观察"元素是否进入视口  IntersectionObserver API
+> IntersectionObserver(callback, [option])
+- 根据元素的可见性的变化, 就会调用观察器的回调函数, 回调函数会触发两次, 一次是目标刚刚进入视口, 另一次是完全离开视口
+
+> callback中的参数
+- entries:  是一个数组, 里面的元素为被观察的对象
+- callback回调中 还有一个 entry对象, 在回调中使用可以得到被观察元素的信息
+<!-- 
+    entry.isIntersecting:
+        如果是true，则表示元素从视区外进入视区内。
+
+    entry.target:   被观察的目标元素，是一个 DOM 节点对象
+
+    entry.rootBounds:
+        根元素的矩形区域的信息，getBoundingClientRect()方法的返回值，
+        如果没有根元素（即直接相对于视口滚动），则返回null
+
+    entry.boundingClientRect:
+        目标元素的矩形区域的信息
+
+    entry.intersectionRect:
+        目标元素与视口（或根元素）的交叉区域的信息
+
+    entry.intersectionRatio: 0 到 1 的数值
+        相交区域占目标元素区域的百分比
+        也就是 intersectionRect 的面积除以 boundingClientRect 的面积得到的值。
+
+    entry.time:     可见性发生变化的时间，是一个高精度时间戳，单位为毫秒
+ -->
+
+> option参数 intersection(function(){}, {option})
+- threshold: 属性决定了什么时候触发回调函数, 它是一个数组, 默认值为0
+目标元素与视口交叉面积大于多少时, 触发回调
+<!-- 
+    {
+        threshold: [0, 0.25, 0.5, 0.75, 1]
+    }
+
+    默认值为0, 当为1时, 元素完全显示后触发回调函数
+ -->
+- root: 一个可以滚动的元素，我们叫它根元素，
+<!-- 
+    它有很多后代元素，想要做的就是判断它的某个后代元素是否滚动进了自己的可视区域范围。这个 root 参数就是用来指定根元素的，默认值是 null。
+
+    如果它的值是 null，根元素就不是个真正意义上的元素了，而是这个浏览器窗口了，可以理解成 window，但 window 也不是元素（甚至不是节点）。这时当前窗口里的所有元素，都可以理解成是 null 根元素的后代元素，都是可以被观察的。
+ -->
+- rootMagin: root如果代表视口那么进去视口则进入的观察范围, rootMagin用来扩展, 或缩小观察范围, 正值为扩大, 负值为缩小
+
+- 减小根元素下方的观察范围, rootMagin:'0 0 -10% 0' 能变相的提高显示基线
+<!-- 
+    这个 API 的主要用途之一就是用来实现延迟加载，那么真正的延迟加载会等 img 标签或者其它类型的目标区块进入视口才执行加载动作吗？显然，那就太迟了。我们通常都会提前几百像素预先加载，rootMargin 就是用来干这个的。
+ -->
+
+
+
+> observer 实例的方法:
+- let observer = new IntersectionObserver();
+- observer这个实例对象的方法
+> observer.observe()
+- 观察某个目标元素，一个观察者实例可以观察任意多个目标元素。
+
+> observer.unobserve()
+- 取消对某个目标元素的观察，延迟加载通常都是一次性的，observe 的回调里应该直接调用 unobserve() 那个元素
+<!-- 
+    let observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+            if(entry.isIntersecting){
+                 entry.target.classList.add('active');
+
+                 // 延迟加载通常都是一次性的
+                 observer.unobserve(entry.target);
+            }
+        })
+    })
+ -->
+> observer.disconnect()
+- 取消观察所有已观察的目标元素
+
+> observer.takeRecords()
+
+
+<!-- 
+    // 基本用法解析:
+    let observer = new IntersectionObserver(function(entries){
+
+        entries.forEach(function(entry){
+            if(entry.isIntersecting){
+                entry.target.classList.add('active');
+            }
+        })
+    }, {
+        threshold:[1]
+    });
+
+
+    document.querySelectorAll('.box').forEach(function(value){
+        observer.observe(value);
+    })
+
+    1, 首先创建实例对象, observer
+    2, 在回调函数中传递目标元素数组形参 entries
+    3, 在回调内部 遍历数组 并传入 entry形参
+    4, 判断 目标元素是否进入可视区域 如果进入 则添加什么效果
+    5, option传入对象 threshold 1
+ -->
+ 
+
+### 跟事件相关的
+
+### 过渡效果 / 动画效果 监听事件:
+> transitionend    /    animationend
+> 绑定方式:
+obj.addEventListener('transitionend', fn, false);
+function fn(){};
+
+> 注意事项:
+> 事件多次触发问题:
+- 当存在多个属性过渡变化时，结束时会多次触发transitionend事件。
+- 在transiton动画完成前设置display:none，事件不会触发。
+- 当transition完成前移除transition一些属性时，事件也不会触发
+- 元素从display:none到block，不会有过渡，导致无法触发transitionend事件
+<!-- 
+    .demo{
+        width:100px;
+        height: 100px;
+        background-color: #ddc;
+        transition: all 0.5s ease-out;
+    }
+    .w200{
+        width: 200px;
+        background-color: #fef;
+    }
+
+    var element = document.getElementById('demo')
+    element.addEventListener('transitionend', handle, false)
+    function handle(){
+        alert('transitionend事件触发')
+    }
+    function change() {
+        element.className = element.className === 'demo' ? 'demo w200': 'demo'
+    }
+ -->
+
+> 解决方式:
+- 元素从none到block，刚生成未能即时渲染，导致过渡失效。
+- 所以需要主动触发页面重绘，刷新DOM。
+- 页面重绘可以通过改变一些CSS属性来触发，例如：offsetTop、offsetLeft、offsetWidth、scrollTop等。
+
+- 1、通过定时器延迟渲染
+<!-- 
+    function change() {
+        element.className = element.className === 'demo' ? 'demo opt': 'demo'
+        if(element.className === 'demo'){
+                    element.style.opacity = null
+                button.innerHTML = '点击'
+        }else{
+            setTimeout(function(){
+                element.style.opacity = '1'
+                button.innerHTML = '重置'
+            },10)
+        }
+    }
+ -->
+- 2、强制获取当前内联样式
+<!-- 
+function change() {
+    element.className = element.className === 'demo' ? 'demo opt': 'demo'
+    if(element.className === 'demo'){
+                element.style.opacity = null
+            button.innerHTML = '点击'
+    }else{
+        // setTimeout(function(){
+        //     element.style.opacity = '1'
+        //     button.innerHTML = '重置'
+        // },10)
+        window.getComputedStyle(element, null).opacity
+        element.style.opacity = '1'
+        button.innerHTML = '重置'
+    }
+}
+ -->
+- 3、触发重绘刷新DOM
+<!-- 
+function change() {
+    element.className = element.className === 'demo' ? 'demo opt': 'demo'
+    if(element.className === 'demo'){
+                element.style.opacity = null
+            button.innerHTML = '点击'
+    }else{
+        // setTimeout(function(){
+        //     element.style.opacity = '1'
+        //     button.innerHTML = '重置'
+        // },10)
+        // window.getComputedStyle(element, null).opacity
+
+        // 这个很简单啊
+        element.clientWidth;
+        element.style.opacity = '1'
+        button.innerHTML = '重置'
+    }
+}
+ -->
+
+
+### 跟图片相关的
+
+### new Image()宿主对象
+> 生成图片的3中方式:
+<!-- 
+//HTML 方式一
+    function a() {
+        document.getElementById("d1").innerHTML = "<img src='http://baike.baidu.com/cms/rc/240x112dierzhou.jpg'>";
+    }
+    a();
+
+    //方法 方式二
+    function b() {
+        var d1 = document.getElementById("d1");
+        var img = document.createElement("img");
+        img.src = "http://baike.baidu.com/cms/rc/240x112dierzhou.jpg";
+        d1.appendChild(img);
+    }
+    b();
+
+    //对象  方式三
+    function c() {
+        var cc = new Image();
+        cc.src = "http://baike.baidu.com/cms/rc/240x112dierzhou.jpg";
+        document.getElementById("d1").appendChild(cc);
+    }
+    c();
+
+ -->
+
+> Image()对象
+- Image 对象是 JS 中的宿主(或内置)对象，它代表嵌入的图像。当我们创建一个 Image 对象时，就相当于给浏览器缓存了一张图片
+- Image 对象也常用来做预加载图片（也就是将图片预先加载到浏览器中，当浏览图片的时候就能享受到极快的加载速度）。
+- 在HTML页面中，<img> 标签每出现一次，也就创建了一个 Image 对象。
+
+- HTML代码的加载 和 图片的加载是同时的，虽然 图片已经进行过预加载，但是尽管这样 加载的速度 相比较 HTML 代码的加载速度 还是要慢一些的。
+- 就需要用 Image对象中的 onload事件来解决这个问题了。。
+
+> Image对象应用
+- 创建一个Image对象：
+<!-- var img =new Image();    -->
+
+- 定义Image对象的src: a.src=”xxx.gif”; 这样做就相当于给浏览器缓存了一张图片。
+
+> 图像对象：
+- 建立图像对象：图像对象名称=new Image([宽度],[高度])
+
+> 图像对象的属性： 
+- border  complete  height  hspace  lowsrc  name  src  vspace  width
+
+> 图像对象的事件：
+- onabort onerror onkeydown onkeypress onkeyup onload
+<!-- src 属性一定要写到 onload 的后面，否则程序在 IE 中会出错 -->
+
+> Image对象的complete 属性
+- 来检测图像是否加载完成
+<!-- 
+    每个Image对象都有一个complete属性，当图像处于装载过程中时，该属性值false
+
+    当发生了onload、onerror、onabort中任何一个事件后，则表示图像装载过程结束（不管成没成功），此时complete属性为true
+ -->
+
+<!-- 
+    img.complete ? oDiv.style.display = "none" : (oImg[0].onload = function() {oDiv.style.display = "none"})
+-->
+
+> image对象的src
+- 当我的src指向一个地址时 我会发送请求去拿它, 这是浏览器自己会做的
+- img.src = arr[i];
+
+
+
+
+### 删除 元素本体
+<div id="div-01">Here is div-01</div>
+<div id="div-02">Here is div-02</div>
+<div id="div-03">Here is div-03</div>
+
+var el = document.getElementById('div-02');
+el.remove();
+
+
+### try和catch的用法
+> 执行规则：
+- 首先执行try中的代码 如果抛出异常会由catch去捕获并执行
+- 如果没有发生异常 catch去捕获会被忽略掉 但是不管有没有异常最后都会执行。
+
+- try       语句使你能够测试代码块中的错误。
+- catch     语句允许你处理错误。
+- throw     语句允许你创建自定义错误。（抛出错误）
+- finally   使你能够执行代码，在 try 和 catch 之后，无论结果如何。
+
+<!-- 
+    try{
+        代码块；
+        代码  throw "字符"   //抛出错误
+    }catch(参数){             //抓住throw抛出的错误
+            //处理错误并执行
+    }finally{
+            //无论try catch结果如何还是继续执行
+    }
+ -->
+
+> 实例:
+<!-- 
+    <p>请输出一个 5 到 10 之间的数字:</p>
+    <input id="demo" type="text">
+    <button type="button" onclick="myFunction()">测试输入</button>
+    <p id="mess"></p>
+    
+    function myFunction(){
+        try{ 
+            var x=document.getElementById("demo").value;  // 取元素的值
+            
+            if(x=="")    throw "值为空";       //根据获取的值，抛出错误
+            if(isNaN(x)) throw "不是数字";
+            if(x>10)     throw "太大";
+            if(x<5)      throw "太小";
+        }
+        catch(err){
+            var y=document.getElementById("mess");     //抓住上面throw抛出的错误，给p标签显示
+            y.innerHTML="错误：" + err + "。";
+        } finally {
+            document.getElementById("demo").value = "";
+        }
+}
+ -->
+
+
+
+### 伪协议 与 真协议
+- 真协议 用来再因特网上的计算机之间传输数据包, 如HTTP协议, FTP协议等
+- 为协议 是一种非标准化的协议, Javascript: 
+<!-- 
+    // 通过一个链接来调用Javascript函数 
+    <a href='javascript:popUp('http://www.example.com')'>Example</a>
+-->
+<!-- 在HTML文档里通过javascript: 调用js代码的做法非常不好 -->
+
+
+
+### 对象检测
+- 网站的访问者可能未启用js, 或者老旧浏览器不支持DOM的方法和属性, 所以要检测浏览器对js的支持程度
+
+- 把某个方法打包在一个if语句里, 就可以根据这条语句的条件表达式的求值结果是true 还是false来决定应该采取怎样的行动
+
+> 思路1: 如果支持某个方法
+- 测试条件 '如果你理解这个方法 ... '
+- 比如检测是否有getElementById()方法
+<!-- 
+    if(document.getElementById){
+        using getElementById()
+    }
+
+    检测用户所使用的浏览器是否支持这个方法, 使用对象检测时, 一定要删掉方法名后面的圆括号, 如果不删掉, 测试的将是方法的结果
+ -->
+
+> 思路2: 如果不支持某个方法
+- 把测试条件改为 '如果你不理解这个方法, 请离开'
+<!-- 
+    if(!method){
+        return false;
+    }
+
+    使用 return 语句来实现, 相当于中途退出函数, 所以让它的返回值为false比较贴切
+ -->
+
+
+### 性能考虑
+> 尽量少访问DOM 和 尽量减少标记(减少在HTML文档中写没有用的结构)
+- 只要是查询DOM中的某些元素, 浏览器都会搜索整个DOM树, 从中查找可能匹配的元素, 我们可以尽量应用变量, 把第一次搜索到的结果保存到变量里 重复使用
+<!-- 
+    if(document.getELementsByTagName('a').length > 0){
+        let links = document.getElementsByTagName('a');
+        for(let i = 0; i<links.length; i++){  }
+    }
+
+    这里使用了两次document.getElementsByTagName('a'), 浏览器就搜索了两次DOM树
+
+    ↓
+
+    let links = document.getELementsByTagName('a');
+    if(links.length>0){
+
+    }
+
+ -->
+
+
+
+### window.open(url, name, features)方法
+- 使用open()方法来创建新的浏览器窗口
+- 参数:
+- url:      新窗口的地址(如果省略将会是一个空白的页面)
+- name:     新窗口的名字, 通过这个name可以在代码里与新窗口进行通信
+- features: 新窗口的各种属性(新窗口的尺寸, 新窗口被弃用或禁用的各种浏览器功能(工具条, 菜单条, 初始显示位置等))
+<!-- 
+    function popUp(winURL){
+        window.open(winURL, 'popUp', 'width=320, height=480');
+    }
+    这个函数将打一个320 * 480的新窗口 名字为popUp
+ -->
+
+
+### 获取视口的尺寸
+
+不是根标签的可视区域 就是视口的大小 可以说是分辨率
+正常我们的可视区域是到padding 但是它就是视口大小 不受marginpadding的影响
+let w = document.documentElement.clientWidth;
+let h = document.documentElement.clientHeight; 
+
+这个规则跟普通的clientWidth一样，到padding 比如分辨率是1366 我加了margin50，下面拿到的就是1266 上面拿到的就是1366
+let w = document.documentElement.offsetWidth
+
+绝对位置：到body距离（html和body之间的margin要清除）
+    原生实现：while循环不断的去累加
+    body的offsetParent -- > null
+    body的offsetLeft -- > 0
+    body的offsetHeight -- > 0
+
+    缺点：
+    没有办法兼容border和margin
+    
+相对位置：到视口的距离
+    原生实现：绝对位置的实现上 减去 滚动条滚动的距离（滚动条滚动时元素滚动的距离）
+
+
+
+
+### DOM事件流
+- 事件流描述的是从页面中接收事件的顺序
+- 事件发生时会在元素节点之间按照特定的顺序传播, 这个传播过程就是DOM事件流
+
+- 例子: 我给div绑定了一个事件, 它的结构是这样
+
+    Document
+       ↓
+      html
+       ↓
+      body
+       ↓
+      div
+
+- 当我们发生click事件时
+- 它的顺序是
+- Document先接收到了点击的事件 它不会进行任何操作, 往下传播
+        ↓
+- Html接收到了点击事件, 一样不进行任何操作, 往下传播
+        ↓
+- Body接收到了点击事件, 一样不进行任何操作, 往下传播
+        ↓
+- Div, 这个阶段叫做 目标阶段  上述的阶段叫做捕获阶段
+
+- 然后还会从 目标阶段 从底层往顶层传播 叫做冒泡阶段
+
+
+> JS代码中只能执行捕获 或 冒泡其中的一个阶段
+
+> on...的事件 和 attachEvent 只能得到冒泡事件
+
+> 没有冒泡的事件, onblur onfocus onmouseenter onmouseleave
+
+### addEventListener(eventName, fn, boolean)
+- 如果第三个参数为 true  那么 在事件捕获阶段调用事件处理程序
+- 如果第三个参数为 false 那么 在事件冒泡阶段调用事件处理程序
+
+
+### 窗口加载事件
+> 窗口加载事件 DOMContentLoaded
+- document.addEventListener('DOMContentLoaded', function(){});
+- DOMContentLoaded 事件触发时, 仅当DOM加载完成, 不包括样式表, 图片, flash等
+<!-- 
+    如果页面的图片很多的话, 从用户访问到onload触发可能需要较长的时间,
+    交互效果就不能实现, 必然影响用户的体验, 此时用DOMContentLoaded事件比较合适
+ -->
+
+
+### 获取一个元素对象的绝对位置
+> 元素对象.getBoundingClientRect()
+
+会返回一个对象，width height 
+
+getBoundingClientRect：一个元素四个角！的相对位置
+getBoundingClientRect + 滚动条滚动时元素滚动的距离---> 绝对位置
+		
+代表元素border-box的尺寸
+height
+width
+
+元素左上角的相对位置
+left
+top
+
+元素右下角的相对位置
+right
+bottom
+
+
+### style.cssText
+- cssText代表样式字符串, 跟ele.style.name = value功能一样, 都是用来设置元素样式.
+
+> 区别
+- 功能是一样的, 只不过ele.style.cssText可以同时设置多个样式属性
+- 而ele.style.name=value只能同时设置一个样式属性
+
+<!-- 
+    ele.style.width = '10px'
+    ele.style.height = '10px'
+    
+    ele.style.cssText = 'width:10px; height:10px'
+ -->
+- 一种是多行单一设置，一种是单行多种设置。如果需要设置的样式属性有很多，那么代码自然就会很多，而且用js来覆写对象的样式是比较典型的一种销毁原样式并重建的过程，这种销毁和重建，都会增加浏览器的开销，在一定程度上回消耗浏览器性能。
+
+
+> 性能有优势
+- 但是在具体到业务上来说，同效果配合，不断变换样式属性达到效果目的，这时候，就会体现出来cssText的优势了。亲测在高端手机上没有多大差别，在稍微低端点的手机上，ele.style.cssText=value流畅度优于ele.style.name=value。
+
+> style.cssText比style.name的权重高
+不过，在设置cssText值的时候，会有一个问题，每次设置的cssText的值，都会把原来的cssText的值销毁重新赋值，也就是把原来的清除掉。所以可以用累加的形式，
+
+ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
+<!-- 
+    let arr = ["red", "green", "blue", "orange"]
+    let divs = document.querySelectorAll("div")
+    Array.from(divs).forEach((item, index) => {
+      item.style.cssText += `background: ${arr[index]}; float: left`
+      if(index % 2 == 0) {
+        item.style.clear = "both"
+      }
+    })
+ -->
+
+
+
+### 重新加载页面触发的事件
+> pageshow事件
+
+> pageshow onload事件的区别
+- 下面三种情况都会刷新页面, 都会触发load事件
+- a标签的超链接, 点完后会跳转页面
+- f5刷新
+- 前进后退按钮
+
+- 但是火狐中, 有个特点 有个"往返缓存", 这个缓存中不仅保存着页面数据, 还保存了dom和js的状态, 实际上是将整个页面都保存在内存里, 所以此时后退按钮不能刷新页面
+
+- 此时可以使用pageshow事件来触发, 这个事件再页面显示时触发, 无论页面是否来自缓存, 在重新加载页面中, pageshow会在load事件触发后触发, 根据事件对象中的persisted来判断是否是缓存中的页面触发的pageshow事件
+<!-- 这个事件给window添加 -->
+
+- e.persisted
+- 这个页面是否来自于缓存, 如果是true 不是false
+
+> 总结:
+- 我们绑定load事件是为了进行页面加载后的相关处理函数, 但是在火狐中 它会把页面缓存到内存中, 这时候我们后退页面并不会刷新内部的数据, 换句话说 假如我们重新计算刷新后的页面数据, 火狐里就不好用了
+
+
+### document.writeln()
+- 使用这个方法写完的东西自动换行
+
+
+### 清空数组的技巧
+- 1. 赋空值     相当于将数组引向一个空对象
+<!-- 
+  let hd = [1,2,3]
+  hd = []
+ -->
+
+- 2. 修改长度   修改原数组 彻底清除数组的好方式
+<!-- 
+  let hd = [1,2,3]
+  hd.length = 0
+ -->
+
+- 3. 使用splice()
+<!-- 
+  let hd = [1,2,3]
+  hd.splice(0)
+ -->
+ 
+
 ### DOM classList属性:
 - 该属性用于在元素中添加，移除及切换 CSS 类。
 - ie10以上才支持 使用于移动端

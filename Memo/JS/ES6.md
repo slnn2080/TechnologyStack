@@ -1541,6 +1541,18 @@ const SCHOOL = {                const SCHOOL = {
   // 等同于
   Array.from(arrayLike).map(x => x * x);
 
+> 应用场景:
+- 以使用这个语法将元素节点 变成数组
+<!-- 
+  let divs = document.querySelectorAll('div')
+
+  Array.from(div).map(item => {
+    console.log(item)
+  })
+
+  [...divs].map
+ -->
+
 
 
 > Array.of()
@@ -1576,6 +1588,32 @@ const SCHOOL = {                const SCHOOL = {
 - 找不到的是 undefined
 
 - 他们还可以指定第二个参数 this
+<!-- 
+    - 数组中有几个元素就会调用几次回调, 内部如果返回true 就会把元素返回出来
+    - 也是禁止贪婪原则, 找到一个就完事了
+    - 找到的话就返回该值, 如果没找到就返回undefined
+
+    let arr = [1,2,3,4,5]
+    let res = arr.find(item => {
+        return true                 // 1 禁止贪婪原则
+        return item === 2           // 查找2
+    })
+ -->
+
+
+> find()方法适合查找引用类型
+<!-- 
+  let lesson = [{name: 'js'}, {name: 'css'}]
+
+  // 不能这样 即使长的一样也不行, 因为在查找引用类型的值的时候 我们查找的是内存地址
+  lesson.includes({name: 'css'})    
+
+
+  这种情况下 我们可以使用find()
+  let res = lessons.find(function(item) {
+    return item.name === 'css'        // 将{name: 'css'}这个对象找出来了
+  })
+ -->
 
 
 > 数组.fill(给定值, [start], [end])
@@ -1634,6 +1672,43 @@ const SCHOOL = {                const SCHOOL = {
     比如Set.prototype.has(value)、WeakSet.prototype.has(value)。
 -->
 
+> 扩展:
+- 数组中查找元素   
+
+> indexOf()
+- 我们写的参数是严格匹配, 查找到返回的是元素第一个出现的索引 否则为-1
+<!-- 
+  let arr = [1,2,3,4,5]
+  if(arr.indexOf(1) != -1) {
+    console.log('找到了');
+  }
+ -->
+
+> includes()
+- 这个方法也是查找数组中的元素, 但返回的是boolean
+<!-- 
+  let arr = [1,2,3,4,5]
+  if(arr.includes(1)) {
+    console.log('找到了');
+  }
+ -->
+
+
+> includes查找的原理
+<!-- 
+  let arr = [1,2,3,4,5]
+    
+  function includes(arr, find) {
+    for(let value of arr) {
+      if(value === find) {
+        return true
+      } else {
+        return false
+      }
+    }
+  }
+ -->
+
 
 > 数组.flat(num)
 > 数组.flatMap()
@@ -1680,6 +1755,15 @@ const SCHOOL = {                const SCHOOL = {
 
 > Object.values()
 - 将目标对象中的value遍历取出放到一个数组中 需要用变量接收
+<!-- 
+    let obj = {
+        name:'sam',
+        age:19
+    }
+
+    let res = Object.values(obj)
+    console.log(res)        //  ["sam", 19]
+ -->
 
 > Object.entries()
 - 将目标对象中的 kv组合 放到一个数组中 最终是一个二维数组
@@ -1747,6 +1831,18 @@ const SCHOOL = {                const SCHOOL = {
   }
 - 如果对象是一层 那就是 全新的对象 通过新对象修改属性也不会影响到原对象的值
 - 如果对象是深层 那引用的就是地址值 修改新对象的同时 原对象的属性也会跟着变化
+
+
+> Object.freeze(变量)
+- 锁住变量不让其修改
+- 在const定义的对象中, 对象的属性是可以被修改的 如果 我们连对象的属性也不想让其被修改 那我们就可以使用这个方法
+<!-- 
+  const HOST = {
+      port: 80
+    }
+
+  Object.freeze(HOST)
+ -->
 
 ------------------------------
 
