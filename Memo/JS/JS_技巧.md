@@ -1,5 +1,21 @@
 ### Js技巧
 
+### 滚动到底部
+- 当一个盒子内部的内容增加的时候 并且超过该盒子的高度的时候 我们希望它自动滚动到底部
+
+    element.scrollTo({
+        top: 100,
+        left: 100,
+        behavior: 'smooth'
+    });
+<!-- 
+    let box = ...
+    box.scrollTo({
+        top: box.scrollHeight,
+        behavior: "smooth"
+    })
+ -->
+
 ### 过渡效果 / 动画效果 监听事件:
 > transitionend    /    animationend
 > 绑定方式:
