@@ -1,6 +1,883 @@
+### 番外篇
+
+### WebSocket
+- WebSocket 是一种网络通信协议，很多高级功能都需要它。
+<!-- 
+    初次接触 WebSocket 的人，都会问同样的问题：我们已经有了 HTTP 协议，为什么还需要另一个协议？它能带来什么好处？
+
+    因为 HTTP 协议有一个缺陷：通信只能由客户端发起。
+    举例来说，我们想了解今天的天气，只能是客户端向服务器发出请求，服务器返回查询结果。
+
+    HTTP 协议做不到服务器主动向客户端推送信息。
+
+    HTTP 协议的这种单向请求的特点，注定了如果服务器有连续的状态变化，客户端要获知就非常麻烦。
+
+    我们只能使用“轮询”：每隔一段时候，就发出一个询问，了解服务器有没有新的信息。最典型的场景就是聊天室。
+
+    轮询的效率低，非常浪费资源（因为必须不停连接，或者 HTTP 连接始终打开）。因此，工程师们一直在思考，有没有更好的方法。WebSocket 就是这样发明的。
+ -->
+
+> websocket的特点
+- 服务器可以主动向客户端推送信息，客户端也可以主动向服务器发送信息，是真正的双向平等对话，
+
+- 1. 属于服务器推送技术的一种
+<!-- 
+    HTTP 协议有点像发电子邮件，发出后必须等待对方回信；
+    WebSocket 则是像打电话，
+    
+    服务器端和客户端可以同时向对方发送数据，它们之间存着一条持续打开的数据通道。
+ -->
+
+- 2. 与 HTTP 协议有着良好的兼容性。默认端口也是80和443，并且握手阶段采用 HTTP 协议，因此握手时不容易屏蔽，能通过各种 HTTP 代理服务器。
+
+- 3. 数据格式比较轻量，性能开销小，通信高效。
+- 4. 可以发送文本，也可以发送二进制数据。
+- 5. 没有同源限制，客户端可以与任意服务器通信，完全可以取代 Ajax。
+
+- 6. 协议标识符是ws（如果加密，则为wss，对应 HTTPS 协议），服务器网址就是 URL。
+<!-- 
+    ws://example.com:80/some/path
+ -->
+
+
+> WebSocket 握手请求头 和 响应头 解析
+- 浏览器发出的 WebSocket 握手请求类似于下面的样子：
+<!-- 
+    GET / HTTP/1.1
+
+    // Connection字段表示浏览器通知服务器，如果可以的话，就升级到 WebSocket 协议
+    Connection: Upgrade
+
+    // Upgrade字段表示将通信协议从HTTP/1.1转向该字段指定的协议
+    Upgrade: websocket
+    Host: example.com
+    Origin: null
+
+    // Sec-WebSocket-Key则是用于握手协议的密钥，是 Base64 编码的16字节随机字符串。
+    Sec-WebSocket-Key: sN9cRrP/n9NdMgdcy2VJFQ==
+    Sec-WebSocket-Version: 13
+ -->
+
+- 服务器的 WebSocket 回应如下。
+<!-- 
+    HTTP/1.1 101 Switching Protocols
+
+    // Connection字段通知浏览器，需要改变协议。
+    Connection: Upgrade
+    Upgrade: websocket
+
+    // Sec-WebSocket-Accept字段是服务器在浏览器提供的
+    Sec-WebSocket-Accept: fFBooB7FAkLlXgRSz0BT3v4hq5s=
+    Sec-WebSocket-Origin: null
+
+    // Sec-WebSocket-Location字段表示进行通信的 WebSocket 网址。
+    Sec-WebSocket-Location: ws://example.com/
+ -->
+
+- Sec-WebSocket-Accept字段是服务器在浏览器提供的Sec-WebSocket-Key字符串后面，添加 RFC6456 标准规定的
+“258EAFA5-E914-47DA-95CA-C5AB0DC85B11”字符串，然后再取 SHA-1 的哈希值。浏览器将对这个值进行验证，以证明确实是目标服务器回应了 WebSocket 请求。Sec-WebSocket-Location字段表示进行通信的 WebSocket 网址。
+
+- 完成握手以后，WebSocket 协议就在 TCP 协议之上，开始传送数据。
+
+
+> 客户端 API 
+- 浏览器对 WebSocket 协议的处理，无非就是三件事。
+- 1. 建立连接和断开连接
+- 2. 发送数据和接收数据
+- 3. 处理错误
+
+
+> 当创建ws实例对象后 客户端就会与服务器进行连接
+> let ws = new WebSocket("服务器地址")
+**注意:**
+- 服务器地址的协议必须由 http - ws 该为ws
+<!-- 
+    let serverURL = "ws://localhost:8800/"  // ws
+    let ws = new WebSocket(serverURL)
+ -->
+
+
+> 实例对象身上的属性
+> ws.readyState
+- 返回实例对象的当前状态，共有四种
+- 1. CONNECTING：   值为0，表示正在连接。
+- 2. OPEN：         值为1，表示连接成功，可以通信了。
+- 3. CLOSING：      值为2，表示连接正在关闭。
+- 4. CLOSED：       值为3，表示连接已经关闭，或者打开连接失败。
+<!-- 
+    console.log(ws.readyState)   // 0
+ -->
+
+
+> ws.onopen
+- 用于指定连接成功后的回调函数
+<!-- 
+    如果要指定多个回调函数，可以使用addEventListener方法。
+    ws.onopen = function(e) {
+        if(e) console.log("open", e)
+        let data = {msg: "我是数据呀"}
+        ws.send(data)
+    }
+ -->
+
+
+> ws.onclose
+- 用于指定连接关闭后的回调函数。
+<!-- 
+    ws.onclose = function(e) {
+        if(e) console.log("close", e)
+    }
+ -->
+
+
+> ws.onmessage
+- 用于指定 收到服务器数据 后的回调函数。
+<!-- 
+    注意，服务器数据可能是文本，也可能是二进制数据（blob对象或Arraybuffer对象）。
+    ws.onmessage = function(event){
+        if(typeOf event.data === String) {
+            console.log("Received data string");
+        }
+
+        if(event.data instanceof ArrayBuffer){
+            var buffer = event.data;
+            console.log("Received arraybuffer");
+        }
+    }
+
+    ws.onmessage = function(e) {
+        if(e) console.log("message", e)
+        console.log("onmessage, 这里能收到来自服务器的数据")
+    }
+ -->
+
+
+> ws.onerror
+- 用于指定报错时的回调函数。
+
+
+> ws.send()
+- 实例对象的send()方法用于向服务器发送数据。
+<!-- 
+    // 发送文本的例子。
+    ws.send('your message');
+
+
+    // 发送 Blob 对象的例子。
+    var file = document
+    .querySelector('input[type="file"]')
+    .files[0];
+
+    ws.send(file);
+
+
+    // 发送 ArrayBuffer 对象的例子。
+    var img = canvas_context.getImageData(0, 0, 400, 320);
+    var binary = new Uint8Array(img.data.length);
+    for (var i = 0; i < img.data.length; i++) {
+        binary[i] = img.data[i];
+    }
+    ws.send(binary.buffer);
+ -->
+
+
+> 实例对象的属性
+> ws.binaryType
+- 显式指定收到的二进制数据类型。
+<!-- 
+    // 收到的是 blob 数据
+    ws.binaryType = "blob";
+    ws.onmessage = function(e) {
+        console.log(e.data.size);
+    };
+
+    // 收到的是 ArrayBuffer 数据
+    ws.binaryType = "arraybuffer";
+    ws.onmessage = function(e) {
+        console.log(e.data.byteLength);
+    };
+ -->
+
+
+> ws.bufferedAmount
+- 表示还有多少字节的二进制数据没有发送出去。它可以用来判断发送是否结束。
+<!-- 
+    var data = new ArrayBuffer(10000000);
+    socket.send(data);
+
+    if (socket.bufferedAmount === 0) {
+        // 发送完毕
+    } else {
+        // 发送还没结束
+    }
+ -->
+
+
+> 服务器端API
+- 当在客户端执行new Websocket("ws://XXX.com/")的时候
+- 客户端就会发起请求报文进行握手申请
+- 报文中有个很重要的key就是Sec-WebSocket-Key，服务端获取到key
+<!-- 
+    Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+
+    Sec-WebSocket-Key: p3KxwbgQggxIHKFDOuIP1Q==
+    Sec-WebSocket-Version: 13
+ -->
+
+- 然后将这个key与字符串258EAFA5-E914-47DA-95CA-C5AB0DC85B11相连
+
+- 对新的字符串通过sha1安全散列算法计算出结果后，再进行base64编码，并且将结果放在请求头的"Sec-WebSocket-Accept"中写出即可完成握手。然后即可进行数据传输
+
+- 网址
+- https://www.cnblogs.com/axes/p/4514199.html
+
+- 晚上看看视频吧
+
+
+
+
+
+### postMessage
+- postMessage是html5引入的API,
+- postMessage()方法允许来自不同源的脚本采用异步方式进行有效的通信,
+
+- 可以实现跨文本文档,
+- 多窗口,
+- 跨域消息传递
+- 多用于窗口间数据通信,
+
+- 这也使它成为跨域通信的一种有效的解决方案.
+
+> 发送数据
+> otherWindow.postMessage(message, targetOrigin, [transfer]);
+- 解析：
+- otherWindow
+- 向该窗口发送数据
+- otherWindow是窗口的一个引用,
+<!-- 
+    - 比如iframe的contentWindow属性,
+    - 执行window.open返回的窗口对象,
+    - 或者是命名过的或数值索引的window.frames.
+ -->
+
+- message
+- 数据
+
+- targetOrigin
+- 通过窗口的origin属性来指定哪些窗口能接收到消息事件
+- 指定后只有对应origin下的窗口才可以接收到消息,设置为通配符"*"表示可以发送到任何窗口,
+<!-- 
+    如果想要发送到与当前窗口同源的窗口,可设置为"/"
+ -->
+
+- transfer
+- 是一串和message同时传递的**Transferable**对象,这些对象的所有权将被转移给消息的接收方,而发送一方将不再保有所有权.
+
+
+> 接收数据
+- 接收方 给 window 绑定 "message" 事件 事件的回调中的 event 身上有我们想要得数据
+<!-- 
+    window.addEventListener("message", fn, false) ;
+
+    function fn(event) {
+        var origin= event.origin;
+        console.log(event);
+    }
+ -->
+
+> event.data
+- 指的是从其他窗口发送过来的消息对象
+
+> event.type
+- 指的是发送消息的类型;
+
+> event.source
+- 指的是发送消息的窗口对象;
+
+> origin
+- 指的是发送消息的窗口的源
+
+
+> 应用场景
+- 我们都知道JSONP可以实现解决GET请求的跨域问题,但是不能解决POST请求的跨域问题.而postMessage都可以
+
+- 要点：
+- 1. document.getElementById("otherPage").contentWindow
+- 获取iframe的窗口对象
+
+- 1. 父窗体创建跨域iframe并发送信息
+<!-- 
+    <script type="text/JavaScript">    
+        function sendPost() { 
+                      
+            // 获取id为otherPage的iframe窗口对象       
+            var iframeWin = document.getElementById("otherPage").contentWindow;       
+
+            // 向该窗口发送消息       
+            iframeWin.postMessage(document.getElementById("message").value, 'http://moweide.gitcafe.io');}   
+
+            // 监听跨域请求的返回   
+            window.addEventListener("message", function(event) {       
+                console.log(event, event.data);
+            }, false);
+    </script>
+ -->
+
+
+### formData对象
+> new FormData(form)
+- 原生当中根据form自动收集表单数据到 formData 对象中
+<!-- 
+    let formData = new FormData(document.querySelector("form"))
+ -->
+
+- 参数：
+    - DOM表单元素
+    - 构造函数会自动处理表单的键值对
+
+    - 空
+    - 那就创建一个空的表单对象 需要我们自己往里面添加值
+
+
+> 实例方法
+> formData.get(key)
+- 获取指定键名对应的键值，参数为键名。如果有多个同名的键值对，则返回第一个键值对的键值。
+
+> formData.getAll(key)
+- 返回一个数组，表示指定键名对应的所有键值。
+- 如果有多个同名的键值对，数组会包含所有的键值。
+
+> formData.set(key, value)
+- 设置指定键名的键值, 没有就添加 已有就更新
+- 如果第二个参数是文件，还可以使用第三个参数，表示文件名。
+
+> formData.delete(key)
+- 删除一个键值对，参数为键名。
+
+> formData.append(key, value)
+- 添加一个键值对。如果键名重复，则会生成两个相同键名的键值对。
+- 如果第二个参数是文件，还可以使用第三个参数，表示文件名。
+<!-- 
+    formData.append('userpic[]', myFileInput.files[0], 'user1.jpg');
+ -->
+
+> formData.has(key)
+- 返回一个布尔值，表示是否具有该键名的键值对。
+
+> formData.keys()
+- 返回一个遍历器对象
+- 用于for...of循环遍历所有的键名。
+
+> formData.values()
+- 返回一个遍历器对象
+- 用于for...of循环遍历所有的键值。
+
+> formData.entries()
+- 返回一个遍历器对象
+- 用于for...of循环遍历所有的键值对。
+<!-- 
+    如果直接用for...of循环遍历 FormData 实例，默认就会调用这个方法。
+ -->
+
+> 属性
+> enctype
+- 表单能够用四种编码，向服务器发送数据。编码格式由表单的enctype属性决定。
+
+> GET
+- 如果表单使用GET方法发送数据，enctype属性无效。
+- 因为:
+- ?foo=bar&baz=The%20first%20line.%0AThe%20second%20line.
+<!-- 
+    <form
+        action="register.php"
+        method="get"
+        onsubmit="AJAXSubmit(this); return false;"
+    >
+    </form>
+ -->
+
+
+> POST
+- application/x-www-form-urlencoded
+- 如果表单用POST方法发送数据，并省略enctype属性，那么数据以application/x-www-form-urlencoded格式发送（因为这是默认值）。
+
+<!-- 
+    Content-Type: application/x-www-form-urlencoded
+    foo=bar&baz=The+first+line.%0D%0AThe+second+line.%0D%0A
+ -->
+
+- text/plain
+- 如果表单使用POST方法发送数据，enctype属性为text/plain，那么数据将以纯文本格式发送。
+<!-- 
+    Content-Type: text/plain
+
+    foo=bar
+    baz=The first line.
+    The second line.
+ -->
+
+- multipart/form-data
+- 如果表单使用POST方法，enctype属性为multipart/form-data，那么数据将以混合的格式发送。
+<!-- 
+    Content-Type: multipart/form-data; boundary=---------------------------314911788813839
+
+    -----------------------------314911788813839
+    Content-Disposition: form-data; name="foo"
+
+    bar
+    -----------------------------314911788813839
+    Content-Disposition: form-data; name="baz"
+
+    The first line.
+    The second line.
+
+    -----------------------------314911788813839--
+ -->
+
+
+> 文件上传
+- 用户上传文件，也是通过表单。具体来说，就是通过文件输入框选择本地文件，提交表单的时候，浏览器就会把这个文件发送到服务器。
+<!-- 
+    <input type="file" id="file" name="myFile">
+ -->
+
+- 要点:
+- 1. 将 form 的 method 设置为 post
+- 2. enctype 设置为 multipart/form-data
+<!-- 
+    enctype属性决定了 HTTP 头信息的Content-Type字段的值，
+    默认情况下这个字段的值是application/x-www-form-urlencoded，
+    但是文件上传的时候要改成multipart/form-data。
+ -->
+
+- 3. 新建一个 FormData 实例对象 把选中的文件添加到这个对象上面。
+<!-- 
+    var formData = new FormData();
+
+    for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+
+    // 只上传图片文件
+    if (!file.type.match('image.*')) {
+        continue;
+    }
+
+    formData.append('photos[]', file, file.name);
+    }
+ -->
+
+- 4. 最后，使用 Ajax 向服务器上传文件。
+<!-- 
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'handler.php', true);
+
+    xhr.onload = function () {
+    if (xhr.status !== 200) {
+        console.log('An error occurred!');
+    }
+    };
+
+    xhr.send(formData)
+
+
+    除了发送 FormData 实例，也可以直接 AJAX 发送文件。
+    var file = document.getElementById('test-input').files[0];
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('POST', 'myserver/uploads');
+    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.send(file);
+ -->
+
+
+-----------------
+
+### image对象
+- Image 对象代表嵌入的图像
+- <img> 标签每出现一次，一个 Image 对象就会被创建。
+
+- 创建一个Image对象：var a=new Image();    定义Image对象的src: a.src=”xxx.gif”;    这样做就相当于给浏览器缓存了一张图片。
+
+**注意:**
+- 需要注意的是：src 属性一定要写到 onload 的后面，否则程序在 IE 中会出错。
+
+
+> 属性
+- complete: 返回一个布尔值
+- 可以通过Image对象的complete 属性来检测图像是否加载完成
+<!-- 
+    每个Image对象都有一个complete属性，当图像处于装载过程中时，
+
+    该属性值false,
+
+    当发生了onload、onerror、onabort中任何一个事件后，则表示图像装载过程结束（不管成没成功），此时complete属性为true）
+ -->
+
+> 事件
+- onabort
+- 当用户放弃图像的装载时调用
+
+- onload
+- 当图像装载完毕时调用
+
+- onerror
+- 在装载图像的过程中发生错误时调用
+
+<!-- 
+    var img = new Image();    
+    img.src = oImg[0].src = this.src.replace(/small/,"big");    
+    oDiv.style.display = "block";    
+    img.complete ? oDiv.style.display = "none" : (oImg[0].onload = function() {oDiv.style.display = "none"})  
+ -->
+
+----------------
+
+### IntersectionObserver API
+- 自动"观察"元素是否进入视口  
+- 网页开发时，常常需要了解某个元素是否进入了“视口”（viewport），即用户能不能看到它。
+
+- 传统的实现方法是，监听到scroll事件后，调用目标元素（绿色方块）的getBoundingClientRect()方法，得到它对应于视口左上角的坐标，再判断是否在视口之内。这种方法的缺点是，由于scroll事件密集发生，计算量很大，容易造成性能问题。
+
+- IntersectionObserver API 的用法，简单来说就是两行。
+<!-- 
+    var observer = new IntersectionObserver(callback, options);
+    observer.observe(target);
+ -->
+
+
+> new IntersectionObserver(callback, [option])
+- IntersectionObserver是浏览器原生提供的构造函数
+- 根据元素的可见性的变化, 就会调用观察器的回调函数, 回调函数会触发两次, 一次是目标刚刚进入视口, 另一次是完全离开视口
+
+- 要点:
+- 1. 通过它创建的构造函数 需要创建变量来接收实例
+- 2. 调用实例对象.observe() 方法 指定要观察的DOM节点
+<!-- 
+    let observer = new IntersectionObserver(callback, options);
+    
+    // 开始观察
+    observer.observe(document.getElementById('example'));
+
+    // 停止观察
+    observer.unobserve(element);
+
+    // 关闭观察器
+    observer.disconnect();
+ -->
+
+
+> 实例对象身上的方法
+> observer.observe(document.getElementById('example'))
+- 开始观察
+- observe()的参数是一个 DOM 节点对象。如果要观察多个节点，就要多次调用这个方法。
+<!-- 
+    observer.observe(elementA);
+    observer.observe(elementB);
+ -->
+
+> observer.unobserve(element);
+- 停止观察
+- 取消对某个目标元素的观察，延迟加载通常都是一次性的，observe 的回调里应该直接调用 unobserve() 那个元素
+<!-- 
+    let observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+            if(entry.isIntersecting){
+                 entry.target.classList.add('active');
+
+                 // 延迟加载通常都是一次性的
+                 observer.unobserve(entry.target);
+            }
+        })
+    })
+ -->
+
+> observer.disconnect();
+- 关闭观察器
+
+**注意:**
+- IntersectionObserver API 是异步的，不随着目标元素的滚动同步触发。规格写明，IntersectionObserver的实现，应该采用requestIdleCallback()，即只有线程空闲下来，才会执行观察器。这意味着，这个观察器的优先级非常低，只在其他任务执行完，浏览器有了空闲才会执行。
+
+
+
+> new IntersectionObserver(callback, [option])
+- 该方法接受两个参数：回调函数callback和配置对象options。
+- 当 目标元素的可见性变化时，就会调用观察器的回调函数callback。
+<!-- 
+    callback会触发两次。一次是目标元素刚刚进入视口（开始可见），另一次是完全离开视口（开始不可见）
+ -->
+
+> callback中的参数
+- 参数1. entries:  
+        是一个数组, 里面的元素为被观察的对象
+<!-- 
+    如果同时有两个被观察的对象的可见性发生变化，entries数组就会有两个成员。
+ -->
+
+ >      > entry对象
+        - 该对象是 需要通过 遍历 entries 数组 然后在回调中指定entry 才能使用
+        <!-- 
+            let observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    console.log(entry)
+                })
+            }, {})
+         -->
+
+        每一个对象身上还有 entry对象 用于提供目标元素的信息(在回调中使用可以得到被观察元素的信息) 
+        一共有6个属性
+<!-- 
+    {
+        time: 3893.92,
+        rootBounds: ClientRect {
+            bottom: 920,
+            height: 1024,
+            left: 0,
+            right: 1024,
+            top: 0,
+            width: 920
+        },
+        boundingClientRect: ClientRect {
+            // ...
+        },
+        intersectionRect: ClientRect {
+            // ...
+        },
+        intersectionRatio: 0.54,
+        target: element
+    }
+
+    // 属性解析:
+    entry.target:   
+        被观察的目标元素，是一个 DOM 节点对象
+
+    entry.rootBounds:
+        容器元素的矩形区域的信息
+        getBoundingClientRect()方法的返回值，
+        如果没有根元素（即直接相对于视口滚动），则返回null
+
+    entry.boundingClientRect:
+        目标元素的矩形区域的信息
+
+    entry.intersectionRect:
+        目标元素与视口（或容器元素）的交叉区域的信息
+
+    entry.isIntersecting:
+        如果是true， 则表示元素从视区外进入视区内。
+
+    entry.intersectionRatio: 0 到 1 的数值
+        目标元素的可见比例
+        即intersectionRect占boundingClientRect的比例， 完全可见时为1， 完全不可见时小于等于0
+
+    entry.time:     
+        可见性发生变化的时间，是一个高精度时间戳，单位为毫秒
+ -->
+
+
+- 参数2. 创建的实例对象 observer
+<!-- 
+    var observer = new IntersectionObserver(
+        (entries, observer) => {
+            console.log(entries);
+        }
+    );
+ -->
+
+**要点:**
+- 1. 在合适的位置上操作元素的话 需要用到 entry.target 属性 它是一个DOM节点
+
+- 2. 这个回调内部逻辑一上来就会执行一次，然后目标元素再次进入视口和离开视口的时候都会再触发一次
+
+- 所以 内部使用 entry.isIntersecting 来进行判断下比较好 当元素进入视口后 执行什么逻辑
+<!-- 
+    let observer = new IntersectionObserver((entries, observer) => {
+        console.log("我进来了")
+        entries.forEach((entry) => {
+            if(entry.isIntersecting) {
+                entry.target.style.background = "pink"
+            } else {
+                entry.target.style.background = ""
+            }
+        })
+    }, {threshold: [0.25]})
+
+    observer.observe($(".box")[0])
+ -->
+
+
+> option参数 intersection(function(){}, {option})
+> option配置对象中的属性
+
+> threshold: 
+- 决定了什么时候触发回调函数, 即元素进入视口（或者容器元素）多少比例时，执行回调函数。
+- 它是一个数组, 默认值为0 (目标元素与视口交叉面积大于多少时, 触发回调)
+
+- 要点: 元素的比例
+- 目标元素在容器中显示了多少? 在指定值的时候分别触发
+<!-- 
+    它是一个数组，每个成员都是一个门槛值，默认为[0]，即交叉比例（intersectionRatio）达到0时触发回调函数。
+ -->
+<!-- 
+    {
+        threshold: [0, 0.25, 0.5, 0.75, 1]
+    }
+
+    默认值为0, 当为1时, 元素完全显示后触发回调函数
+
+    如果threshold属性是0.5， 当元素进入视口50%时，触发回调函数。
+    如果值为[0.3, 0.6]， 则当元素进入30％和60％是触发回调函数。
+
+    用户可以自定义这个数组。
+    比如，上例的[0, 0.25, 0.5, 0.75, 1]就表示当目标元素 0%、25%、50%、75%、100% 
+    可见时，会触发回调函数。
+ -->
+
+
+> root: 
+- IntersectionObserver不仅可以观察元素相对于视口的可见性，还可以观察元素相对于其所在容器的可见性。容器内滚动也会影响目标元素的可见性
+
+- root属性指定目标元素所在的容器节点。
+<!-- 
+    它有很多后代元素，想要做的就是判断它的某个后代元素是否滚动进了自己的可视区域范围。这个 root 参数就是用来指定根元素的，默认值是 null。
+
+    如果它的值是 null，根元素就不是个真正意义上的元素了，而是这个浏览器窗口了，可以理解成 window，但 window 也不是元素（甚至不是节点）。这时当前窗口里的所有元素，都可以理解成是 null 根元素的后代元素，都是可以被观察的。
+ -->
+
+<!-- 
+    var opts = {
+        root: document.querySelector('.container'),
+        rootMargin: '0px 0px -200px 0px'
+    };
+
+    var observer = new IntersectionObserver(
+        callback,
+        opts
+    );
+
+    表示容器的下边缘向上收缩200像素，导致页面向下滚动时，目标元素的顶部进入可视区域200像素以后，才会触发回调函数。
+
+    这样设置以后，不管是窗口滚动或者容器内滚动，只要目标元素可见性变化，都会触发观察器
+ -->
+
+> rootMagin: 
+- root如果代表视口那么进去视口则进入的观察范围, rootMagin用来扩展, 或缩小观察范围, 正值为扩大, 负值为缩小
+
+- 它的写法类似于 CSS 的margin属性，比如0px 0px 0px 0px，依次表示 top、right、bottom 和 left 四个方向的值。
+
+- 减小根元素下方的观察范围, rootMagin:'0 0 -10% 0' 能变相的提高显示基线
+<!-- 
+    这个 API 的主要用途之一就是用来实现延迟加载，那么真正的延迟加载会等 img 标签或者其它类型的目标区块进入视口才执行加载动作吗？显然，那就太迟了。我们通常都会提前几百像素预先加载，rootMargin 就是用来干这个的。
+ -->
+
+> 基本用法解析
+<!-- 
+    let observer = new IntersectionObserver(function(entries){
+
+        entries.forEach(function(entry){
+            if(entry.isIntersecting){
+                entry.target.classList.add('active');
+            }
+        })
+    }, {
+        threshold:[1]
+    });
+
+
+    document.querySelectorAll('.box').forEach(function(value){
+        observer.observe(value);
+    })
+
+    1, 首先创建实例对象, observer
+    2, 在回调函数中传递目标元素数组形参 entries
+    3, 在回调内部 遍历数组 并传入 entry形参
+    4, 判断 目标元素是否进入可视区域 如果进入 则添加什么效果
+    5, option传入对象 threshold 1
+ -->
+
+
+> 图片的懒加载
+- 我们希望某些静态资源（比如图片），只有用户向下滚动，它们进入视口时才加载，这样可以节省带宽，提高网页性能。这就叫做“惰性加载”。
+
+- 1. 图像的 HTML 代码可以写成下面这样。
+<!-- 
+    <img src="placeholder.png" data-src="img-1.jpg">
+    <img src="placeholder.png" data-src="img-2.jpg">
+    <img src="placeholder.png" data-src="img-3.jpg">
+
+    图像默认显示一个占位符， data-src属性是惰性加载的真正图像。
+ -->
+
+ - 2. 只有图像开始可见时，才会加载真正的图像文件。
+ <!-- 
+    function query(selector) {
+        return Array.from(document.querySelectorAll(selector));
+    }
+
+    var observer = new IntersectionObserver(
+        function(entries) {
+            entries.forEach(function(entry) {
+                entry.target.src = entry.target.dataset.src;
+                observer.unobserve(entry.target);
+            });
+        }
+    );
+
+    query('.lazy-loaded').forEach(function (item) {
+        observer.observe(item);
+    });
+  -->
+
+
+> 下拉加载更多
+- 随着网页滚动到底部，不断加载新的内容到页面，它的实现也很简单。
+<!-- 
+    var intersectionObserver = new IntersectionObserver(
+        function (entries) {
+            // 如果不可见，就返回
+            if (entries[0].intersectionRatio <= 0) return;
+            loadItems(10);
+            console.log('Loaded new items');
+        }
+    );
+
+    // 开始观察
+    intersectionObserver.observe(
+        document.querySelector('.scrollerFooter')
+    );
+
+    无限滚动时，最好像上例那样，页面底部有一个页尾栏（又称sentinels，上例是.scrollerFooter）。一旦页尾栏可见，就表示用户到达了页面底部，从而加载新的条目放在页尾栏前面。否则就需要每一次页面加入新内容时，都调用observe()方法，对新增内容的底部建立观察。
+ -->
+
+
+> 视频自动播放
+- 下面是一个视频元素，希望它完全进入视口的时候自动播放，离开视口的时候自动暂停。
+<!-- 
+    <video src="foo.mp4" controls=""></video>
+ -->
+
+<!-- 
+let video = document.querySelector('video');
+let isPaused = false;
+
+let observer = new IntersectionObserver((entries, observer) => {
+  entries.forEach(entry => {
+    if (entry.intersectionRatio != 1  && !video.paused) {
+      video.pause();
+      isPaused = true;
+    } else if (isPaused) {
+      video.play();
+      isPaused=false;
+    }
+  });
+}, {threshold: 1});
+
+observer.observe(video);
+
+上面代码中，IntersectionObserver()的第二个参数是配置对象，它的threshold属性等于1，即目标元素完全可见时触发回调函数。
+-->
+
+
+
 ### 零散小方法
-
-
 
 > 判断是否是数组还是对象
 > Object.prototype.toString.call(目标对象)

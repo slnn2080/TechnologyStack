@@ -1329,7 +1329,7 @@
 
 - 组件中有一个属性 叫做 props
 
-> 往 props 中传递值
+> 父组件通过 props 在标签属性 中传递值
 - 我们在组件标签里面 像写id='xxx'的形式 往props中传递值
 <!-- 
   <Person name='sam' age='18' sex='男'/>
@@ -1337,7 +1337,7 @@
   react在newPerson实例的时候就会将 name='sam'做为一组kv值, 放在props中 
  -->
 
-> 调用 props 中的属性
+> 子组件中调用 props 中的属性
 - 我们通过this.props.xxx的形式调用
 <!-- 
   render() {
@@ -1513,15 +1513,15 @@
 - 对于组件来说 props 是外来的 我们无法保证组件使用者传入什么格式的数据
 - 如果我们传入的数据格式不对 就会导致组件内部报错 关键问题 组件的使用者不知道明确的错误原因
 
+- npm i prop-types
+- import PropTypes from "prop-types"
+
 - props校验：允许在创建组件的时候 就指定props的类型 格式等
 <!--
     static propTypes = {
         colors: PropTypes.array
     }
 -->
-
-- npm i prop-types
-- import PropTypes from "prop-types"
 
 
 > 常见的约束规则
@@ -1794,6 +1794,8 @@
 
 ### props的简写方式
 > props是只读的
+- 如果props是一个对象 它的内部属性 我们修改的时候它不会报错
+- 但是简单的数据类型 或者 直接改变对象的地址值 那就会报错
 <!-- 
   <Person name='sam' age={19} sex='男' />
 

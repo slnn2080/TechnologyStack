@@ -1,126 +1,16 @@
 ### Js技巧
 
-### 自动"观察"元素是否进入视口  IntersectionObserver API
-> IntersectionObserver(callback, [option])
-- 根据元素的可见性的变化, 就会调用观察器的回调函数, 回调函数会触发两次, 一次是目标刚刚进入视口, 另一次是完全离开视口
-
-> callback中的参数
-- entries:  是一个数组, 里面的元素为被观察的对象
-- callback回调中 还有一个 entry对象, 在回调中使用可以得到被观察元素的信息
-<!-- 
-    entry.isIntersecting:
-        如果是true，则表示元素从视区外进入视区内。
-
-    entry.target:   被观察的目标元素，是一个 DOM 节点对象
-
-    entry.rootBounds:
-        根元素的矩形区域的信息，getBoundingClientRect()方法的返回值，
-        如果没有根元素（即直接相对于视口滚动），则返回null
-
-    entry.boundingClientRect:
-        目标元素的矩形区域的信息
-
-    entry.intersectionRect:
-        目标元素与视口（或根元素）的交叉区域的信息
-
-    entry.intersectionRatio: 0 到 1 的数值
-        相交区域占目标元素区域的百分比
-        也就是 intersectionRect 的面积除以 boundingClientRect 的面积得到的值。
-
-    entry.time:     可见性发生变化的时间，是一个高精度时间戳，单位为毫秒
- -->
-
-> option参数 intersection(function(){}, {option})
-- threshold: 属性决定了什么时候触发回调函数, 它是一个数组, 默认值为0
-目标元素与视口交叉面积大于多少时, 触发回调
-<!-- 
-    {
-        threshold: [0, 0.25, 0.5, 0.75, 1]
-    }
-
-    默认值为0, 当为1时, 元素完全显示后触发回调函数
- -->
-- root: 一个可以滚动的元素，我们叫它根元素，
-<!-- 
-    它有很多后代元素，想要做的就是判断它的某个后代元素是否滚动进了自己的可视区域范围。这个 root 参数就是用来指定根元素的，默认值是 null。
-
-    如果它的值是 null，根元素就不是个真正意义上的元素了，而是这个浏览器窗口了，可以理解成 window，但 window 也不是元素（甚至不是节点）。这时当前窗口里的所有元素，都可以理解成是 null 根元素的后代元素，都是可以被观察的。
- -->
-- rootMagin: root如果代表视口那么进去视口则进入的观察范围, rootMagin用来扩展, 或缩小观察范围, 正值为扩大, 负值为缩小
-
-- 减小根元素下方的观察范围, rootMagin:'0 0 -10% 0' 能变相的提高显示基线
-<!-- 
-    这个 API 的主要用途之一就是用来实现延迟加载，那么真正的延迟加载会等 img 标签或者其它类型的目标区块进入视口才执行加载动作吗？显然，那就太迟了。我们通常都会提前几百像素预先加载，rootMargin 就是用来干这个的。
- -->
-
-
-
-> observer 实例的方法:
-- let observer = new IntersectionObserver();
-- observer这个实例对象的方法
-> observer.observe()
-- 观察某个目标元素，一个观察者实例可以观察任意多个目标元素。
-
-> observer.unobserve()
-- 取消对某个目标元素的观察，延迟加载通常都是一次性的，observe 的回调里应该直接调用 unobserve() 那个元素
-<!-- 
-    let observer = new IntersectionObserver(function(entries){
-        entries.forEach(function(entry){
-            if(entry.isIntersecting){
-                 entry.target.classList.add('active');
-
-                 // 延迟加载通常都是一次性的
-                 observer.unobserve(entry.target);
-            }
-        })
-    })
- -->
-> observer.disconnect()
-- 取消观察所有已观察的目标元素
-
-> observer.takeRecords()
-
-
-<!-- 
-    // 基本用法解析:
-    let observer = new IntersectionObserver(function(entries){
-
-        entries.forEach(function(entry){
-            if(entry.isIntersecting){
-                entry.target.classList.add('active');
-            }
-        })
-    }, {
-        threshold:[1]
-    });
-
-
-    document.querySelectorAll('.box').forEach(function(value){
-        observer.observe(value);
-    })
-
-    1, 首先创建实例对象, observer
-    2, 在回调函数中传递目标元素数组形参 entries
-    3, 在回调内部 遍历数组 并传入 entry形参
-    4, 判断 目标元素是否进入可视区域 如果进入 则添加什么效果
-    5, option传入对象 threshold 1
- -->
- 
-
-### 跟事件相关的
-
 ### 过渡效果 / 动画效果 监听事件:
 > transitionend    /    animationend
 > 绑定方式:
-obj.addEventListener('transitionend', fn, false);
+- obj.addEventListener('transitionend', fn, false);
 function fn(){};
 
-> 注意事项:
-> 事件多次触发问题:
-- 当存在多个属性过渡变化时，结束时会多次触发transitionend事件。
-- 在transiton动画完成前设置display:none，事件不会触发。
-- 当transition完成前移除transition一些属性时，事件也不会触发
-- 元素从display:none到block，不会有过渡，导致无法触发transitionend事件
+**注意事项: 事件多次触发问题:**
+- 1. 当存在多个属性过渡变化时，结束时会多次触发transitionend事件。
+- 2. 在transiton动画完成前设置display:none，事件不会触发。
+- 3. 当transition完成前移除transition一些属性时，事件也不会触发
+- 4. 元素从display:none到block，不会有过渡，导致无法触发transitionend事件
 <!-- 
     .demo{
         width:100px;
@@ -163,6 +53,7 @@ function fn(){};
         }
     }
  -->
+
 - 2、强制获取当前内联样式
 <!-- 
 function change() {
@@ -181,6 +72,7 @@ function change() {
     }
 }
  -->
+
 - 3、触发重绘刷新DOM
 <!-- 
 function change() {
@@ -203,19 +95,20 @@ function change() {
 }
  -->
 
-
-### 跟图片相关的
+----------------
 
 ### new Image()宿主对象
 > 生成图片的3中方式:
+- 1. 方式一: 将 img标签字符串 填入body中 innerHTML方式
 <!-- 
-//HTML 方式一
     function a() {
         document.getElementById("d1").innerHTML = "<img src='http://baike.baidu.com/cms/rc/240x112dierzhou.jpg'>";
     }
     a();
+ -->
 
-    //方法 方式二
+- 2. 方式二: 创建img标签 给src属性赋值 然后appenChild
+<!-- 
     function b() {
         var d1 = document.getElementById("d1");
         var img = document.createElement("img");
@@ -223,19 +116,22 @@ function change() {
         d1.appendChild(img);
     }
     b();
+ -->
 
-    //对象  方式三
+- 3. 方式三: 创建image对象
+<!-- 
     function c() {
         var cc = new Image();
         cc.src = "http://baike.baidu.com/cms/rc/240x112dierzhou.jpg";
         document.getElementById("d1").appendChild(cc);
     }
     c();
-
  -->
 
 > Image()对象
 - Image 对象是 JS 中的宿主(或内置)对象，它代表嵌入的图像。当我们创建一个 Image 对象时，就相当于给浏览器缓存了一张图片
+
+> 应用场景
 - Image 对象也常用来做预加载图片（也就是将图片预先加载到浏览器中，当浏览图片的时候就能享受到极快的加载速度）。
 - 在HTML页面中，<img> 标签每出现一次，也就创建了一个 Image 对象。
 
@@ -249,10 +145,19 @@ function change() {
 - 定义Image对象的src: a.src=”xxx.gif”; 这样做就相当于给浏览器缓存了一张图片。
 
 > 图像对象：
+- 语法: 
 - 建立图像对象：图像对象名称=new Image([宽度],[高度])
 
 > 图像对象的属性： 
-- border  complete  height  hspace  lowsrc  name  src  vspace  width
+- border  
+- complete  
+- height  
+- hspace  
+- lowsrc  
+- name  
+- src  
+- vspace  
+- width
 
 > 图像对象的事件：
 - onabort onerror onkeydown onkeypress onkeyup onload
@@ -274,10 +179,10 @@ function change() {
 - 当我的src指向一个地址时 我会发送请求去拿它, 这是浏览器自己会做的
 - img.src = arr[i];
 
-
-
+----------------
 
 ### 删除 元素本体
+
 <div id="div-01">Here is div-01</div>
 <div id="div-02">Here is div-02</div>
 <div id="div-03">Here is div-03</div>
@@ -285,6 +190,7 @@ function change() {
 var el = document.getElementById('div-02');
 el.remove();
 
+----------------
 
 ### try和catch的用法
 > 执行规则：
@@ -299,9 +205,12 @@ el.remove();
 <!-- 
     try{
         代码块；
-        代码  throw "字符"   //抛出错误
-    }catch(参数){             //抓住throw抛出的错误
+        throw "字符"   //抛出错误
+
+    //抓住throw抛出的错误
+    }catch(参数){      
             //处理错误并执行
+
     }finally{
             //无论try catch结果如何还是继续执行
     }
@@ -332,18 +241,22 @@ el.remove();
 }
  -->
 
-
+----------------
 
 ### 伪协议 与 真协议
-- 真协议 用来再因特网上的计算机之间传输数据包, 如HTTP协议, FTP协议等
-- 为协议 是一种非标准化的协议, Javascript: 
+- 真协议 
+    用来再因特网上的计算机之间传输数据包, 如HTTP协议, FTP协议等
+
+- 伪协议 
+    是一种非标准化的协议, Javascript: 
 <!-- 
     // 通过一个链接来调用Javascript函数 
     <a href='javascript:popUp('http://www.example.com')'>Example</a>
+
+    在HTML文档里通过javascript: 调用js代码的做法非常不好
 -->
-<!-- 在HTML文档里通过javascript: 调用js代码的做法非常不好 -->
 
-
+----------------
 
 ### 对象检测
 - 网站的访问者可能未启用js, 或者老旧浏览器不支持DOM的方法和属性, 所以要检测浏览器对js的支持程度
@@ -371,6 +284,7 @@ el.remove();
     使用 return 语句来实现, 相当于中途退出函数, 所以让它的返回值为false比较贴切
  -->
 
+----------------
 
 ### 性能考虑
 > 尽量少访问DOM 和 尽量减少标记(减少在HTML文档中写没有用的结构)
@@ -392,14 +306,17 @@ el.remove();
 
  -->
 
-
+----------------
 
 ### window.open(url, name, features)方法
 - 使用open()方法来创建新的浏览器窗口
 - 参数:
 - url:      新窗口的地址(如果省略将会是一个空白的页面)
-- name:     新窗口的名字, 通过这个name可以在代码里与新窗口进行通信
-- features: 新窗口的各种属性(新窗口的尺寸, 新窗口被弃用或禁用的各种浏览器功能(工具条, 菜单条, 初始显示位置等))
+- name:     
+    新窗口的名字, 通过这个name可以在代码里与新窗口进行通信
+
+- features: 
+    新窗口的各种属性(新窗口的尺寸, 新窗口被弃用或禁用的各种浏览器功能(工具条, 菜单条, 初始显示位置等))
 <!-- 
     function popUp(winURL){
         window.open(winURL, 'popUp', 'width=320, height=480');
@@ -407,18 +324,22 @@ el.remove();
     这个函数将打一个320 * 480的新窗口 名字为popUp
  -->
 
+----------------
 
 ### 获取视口的尺寸
+- 不是根标签的可视区域 就是视口的大小 可以说是分辨率
+- 正常我们的可视区域是到padding 但是它就是视口大小 不受marginpadding的影响
 
-不是根标签的可视区域 就是视口的大小 可以说是分辨率
-正常我们的可视区域是到padding 但是它就是视口大小 不受marginpadding的影响
 let w = document.documentElement.clientWidth;
 let h = document.documentElement.clientHeight; 
 
-这个规则跟普通的clientWidth一样，到padding 比如分辨率是1366 我加了margin50，下面拿到的就是1266 上面拿到的就是1366
+- 这个规则跟普通的clientWidth一样，到padding 比如分辨率是1366 我加了margin50，下面拿到的就是1266 上面拿到的就是1366
+
+
 let w = document.documentElement.offsetWidth
 
 绝对位置：到body距离（html和body之间的margin要清除）
+
     原生实现：while循环不断的去累加
     body的offsetParent -- > null
     body的offsetLeft -- > 0
@@ -430,8 +351,7 @@ let w = document.documentElement.offsetWidth
 相对位置：到视口的距离
     原生实现：绝对位置的实现上 减去 滚动条滚动的距离（滚动条滚动时元素滚动的距离）
 
-
-
+----------------
 
 ### DOM事件流
 - 事件流描述的是从页面中接收事件的顺序
@@ -466,44 +386,49 @@ let w = document.documentElement.offsetWidth
 
 > 没有冒泡的事件, onblur onfocus onmouseenter onmouseleave
 
+----------------
+
 ### addEventListener(eventName, fn, boolean)
 - 如果第三个参数为 true  那么 在事件捕获阶段调用事件处理程序
 - 如果第三个参数为 false 那么 在事件冒泡阶段调用事件处理程序
 
+----------------
 
 ### 窗口加载事件
-> 窗口加载事件 DOMContentLoaded
+> DOMContentLoaded
+
 - document.addEventListener('DOMContentLoaded', function(){});
+
 - DOMContentLoaded 事件触发时, 仅当DOM加载完成, 不包括样式表, 图片, flash等
 <!-- 
     如果页面的图片很多的话, 从用户访问到onload触发可能需要较长的时间,
     交互效果就不能实现, 必然影响用户的体验, 此时用DOMContentLoaded事件比较合适
  -->
 
+----------------
 
 ### 获取一个元素对象的绝对位置
 > 元素对象.getBoundingClientRect()
+- 该方法会返回一个对象，我们可以通过.的方式读取到内部的属性
+- 1. width & height
+    元素的高宽
 
-会返回一个对象，width height 
+- 2. x & y
+    元素左上角的坐标
 
-getBoundingClientRect：一个元素四个角！的相对位置
-getBoundingClientRect + 滚动条滚动时元素滚动的距离---> 绝对位置
-		
-代表元素border-box的尺寸
-height
-width
+- 3. top bottom left right
+- 上边距离顶部的距离
+- 下边距离顶部的距离
+- 左边距离左侧的距离
+- 右边距离左侧的距离
 
-元素左上角的相对位置
-left
-top
+> 技巧
+- getBoundingClientRect + 滚动条滚动时元素滚动的距离---> 绝对位置
 
-元素右下角的相对位置
-right
-bottom
-
+----------------
 
 ### style.cssText
-- cssText代表样式字符串, 跟ele.style.name = value功能一样, 都是用来设置元素样式.
+- cssText代表样式字符串, 跟ele.style.name = value功能一样, 都是用来设置元素的内联样式
 
 > 区别
 - 功能是一样的, 只不过ele.style.cssText可以同时设置多个样式属性
@@ -515,6 +440,7 @@ bottom
     
     ele.style.cssText = 'width:10px; height:10px'
  -->
+
 - 一种是多行单一设置，一种是单行多种设置。如果需要设置的样式属性有很多，那么代码自然就会很多，而且用js来覆写对象的样式是比较典型的一种销毁原样式并重建的过程，这种销毁和重建，都会增加浏览器的开销，在一定程度上回消耗浏览器性能。
 
 
@@ -536,7 +462,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     })
  -->
 
-
+----------------
 
 ### 重新加载页面触发的事件
 > pageshow事件
@@ -558,10 +484,12 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 > 总结:
 - 我们绑定load事件是为了进行页面加载后的相关处理函数, 但是在火狐中 它会把页面缓存到内存中, 这时候我们后退页面并不会刷新内部的数据, 换句话说 假如我们重新计算刷新后的页面数据, 火狐里就不好用了
 
+----------------
 
 ### document.writeln()
 - 使用这个方法写完的东西自动换行
 
+----------------
 
 ### 清空数组的技巧
 - 1. 赋空值     相当于将数组引向一个空对象
@@ -579,37 +507,12 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 - 3. 使用splice()
 <!-- 
   let hd = [1,2,3]
+
+  // 从0开始往后删除
   hd.splice(0)
  -->
  
-
-### DOM classList属性:
-- 该属性用于在元素中添加，移除及切换 CSS 类。
-- ie10以上才支持 使用于移动端
-> 只读：
-> 元素对象.classList
-- 返回的是列表 伪数组的形式 可以通过索引号来获取
-
-> 添加：
-> 元素对象.classList.add('类名')
-- 在元素中添加一个或多个类名。如果指定的类名已存在，则不会添加
-
-> 删除：
-> 元素对象.classList.remove('类名')
-- 移除元素中一个或多个类名。注意： 移除不存在的类名，不会报错。
-- 可以删除指定类名
-
-> 切换：
-> 元素对象.classList.toggle("类名", [true|false])
-- 在元素中切换类名。
-- 参数：
-    - 1. 要在元素中移除的类名，并返回 false。如果该类名不存在则会在元素中添加类名，并返回 true。
-    - 2. true | false 可选参数，是否强制添加或移除类，不管该类名是否存在。
-
-> 判断：
-> 元素对象.classList.contains()
-判断是否有这个类
-
+----------------
 
 ### 获取复数节点
 - 通过一些方法获取到复数节点 都是伪数组 这时候我们想使用一些数组才能应用的方法的时候
@@ -623,7 +526,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     });
  -->
 
-
+----------------
 
 ### 判断是否是数组还是对象
 > Object.prototype.toString.call(目标对象)
@@ -635,7 +538,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     console.log(arrRes)     // "[object Array]"
  -->
 
- 
+----------------
 
 ### 获取页面高度 宽度的API
 - document.documentElement.clientWidth
@@ -659,20 +562,16 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 - window.outerWidth
 - 获得的是加上工具条与滚动条窗口的宽度与高度
 
-
-
-
-
-
-
+----------------
 
 ### 递归函数的定义
+- 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
 <!-- 
-  // 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
     getLeafKeys(node, arr) {
     // node用来判断是否是3级权限节点 是否为3级节点我们可以判断它是否包含children属性
 
     // 如果该节点包含了children属性 证明它不是三级节点 如果没有children属性则证明它是三级节点
+
     if(!node.children) {
       return arr.push(node.id)
     } else {
@@ -683,10 +582,12 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
   }
  -->
 
+----------------
+
 ### 异步延迟函数
 - 要点
 - 就是在 async 函数里面做
-- 我们定义的延迟函数前加上 await】
+- 我们定义的延迟函数前加上 await
 
 - 应用场景
 - 老师这里用的是异步延迟 在a b之间使用这个方法做这个事 只有到达时间我们才返回一个成功的状态
@@ -727,6 +628,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
       loadingIntance.close()
 -->
 
+----------------
 
 ### 检查重复字符串
 <!-- 
@@ -781,8 +683,10 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     console.log(res);
  -->
 
+----------------
 
 ### 三元表达式的连续写法
+- react中的应用 可以根据变量的状态来决定到底显示哪个结构
 <!-- 
     isFirst ? <h3>欢迎使用, 输入关键字, 随后点击搜索</h3> :
     isLoading ? <h3>Loading...</h3> :
@@ -790,6 +694,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     users.map...
  -->
 
+----------------
 
 ### 解析url中的查询字符串
 <!-- 
@@ -804,8 +709,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     }
  -->
 
-
-
+----------------
 
 ### iframe 相关
 > 获取父网页中的iframe
@@ -822,8 +726,9 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     })
  -->
 
+----------------
 
-### postMessage 两个页面之间的通信
+### postMessage
 - 我在做项目中的场景是
 - 父页面有一个iframe标签 在处理iframe标签的时候 我遇到的几个问题
 
@@ -868,12 +773,13 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     window.parent.postMessage(data, 'https://127-:5000')
  -->
 
-
+----------------
 
 ### 再设置随机数范围的时候 random()*255 255就是范围
 
+----------------
 
-### 数组好字符串之间的灵活运用
+### 数组 和 字符串之间的灵活运用
 <!-- 
     let arr = [
       {id:1, name:'sam', age:9}
@@ -896,6 +802,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     }
  -->
 
+----------------
 
 ### 关于模块之间的数据传递
 - 我们有的时候需要将一个模块中的数据传递到另一个模块 可以通过回调函数的方式
@@ -932,10 +839,12 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     })
  -->
 
+----------------
 
 ### 有这个类的判断方式
--if(sHandler.indexOf('comment_up')>=0)
+- if(sHandler.indexOf('comment_up')>=0)
 
+----------------
 
 ### 移动端click延时的解决方案
 - 移动端 click 事件会有300ms的延时, 原因是移动端屏幕双击会缩放(double tap to zoom) 页面
@@ -995,7 +904,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 > 方法3
 - 为了解决方案2的弊端 我们可以使用插件 fastclick插件解决300ms延迟
 
-
+----------------
 
 ### 双击禁止选中文字
 > window.getSelection ?window.getSelection().removeAllRanges() :document.selection.empty();
@@ -1007,21 +916,24 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 - 用css解决
     user-select:none
 
+----------------
 
 ### 将文本框的文字处于选中状态
 > input.select();
 
+----------------
 
 ### 自动调用事件    没有on 事件名后加();
 > this.blur();
 > this.click()
 
+----------------
 
 ### 删除指定元素
 > 元素对象.remove()
 - 可以直接删除指定的元素
 
-
+----------------
 
 ### 防抖函数
 - 为了防止用户误操作, 或者多次提交表单, 多次付款操作, 我们要设置防抖
@@ -1092,7 +1004,7 @@ function throttle(func, delay) {
 }
  -->
 
-
+----------------
 
 ### 正则
 // 对目标文本后面的情况作为条件
@@ -1109,8 +1021,7 @@ function throttle(func, delay) {
 // 查找d 条件是d的前面不是abc
 > let reg4 = /(?<!abc)d/g
 
-
-
+----------------
 
 ### exec 和 match 的区别
 <!-- 
@@ -1146,24 +1057,16 @@ function throttle(func, delay) {
     // console.log(result)
  -->
 
-### 假如我们在回调函数中 onclick = debounce() 这种格式会自动调用
-- 解决办法如下
-- function debounce(func) {
-    return function() {
-        func();
-    }
-}
-
-
+----------------
 
 ### 判断一个对象是否有该属性 对象['属性名']
 
-
+----------------
 
 ### 在全局定义 定时器的变量名时 最好 let timer = null;
 - 如果是let timer 的话 值为undefined 可能会引起别的问题
 
-
+----------------
 
 ### 让页面滚动到指定位置
 > window.scroll(x, y);
@@ -1171,7 +1074,7 @@ function throttle(func, delay) {
 - 不用加单位 直接写数字即可
     window.scroll(0, 100)
 
-
+----------------
 
 ### 节流阀
 > 当一个动画结束后再执行下一个
@@ -1231,7 +1134,7 @@ function throttle(func, delay) {
     });
  -->
 
-
+----------------
 
 ### 克隆节点的优势
 - 动态生成节点, 目前用法: 克隆 轮播图的第一张图片的节点 让它实现无缝轮播
@@ -1278,7 +1181,7 @@ arrowR.addEventListener('click', function () {
     这种方法实现了两个功能一个是导航点不会多, 又是动态生成
 -->
 
-
+----------------
 
 ### 手动调用事件 元素对象.click()
 > 场景:
@@ -1290,7 +1193,7 @@ let timer = setInterval(function(){
     arrowR.click();
 }, 2000)
 
-
+----------------
 
 ### 缓动动画
 - 核心算法: 
@@ -1308,6 +1211,7 @@ let timer = setInterval(function(){
     obj.style.left = obj.offsetLeft + step + 'px';
  -->
 
+----------------
 
 ### window.pageYOffset 页面被卷进去的距离
 
@@ -1375,6 +1279,7 @@ let timer = setInterval(function(){
     var y = supportPageOffset ? window.pageYOffset : isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop;
 -->
 
+----------------
 
 ### 滚动条是谁的 body 还是 html
 > chrome 认为滚动条是body的
@@ -1387,11 +1292,12 @@ var st = document.documentElement.scrollTop;   //火狐等浏览器能获取到
 
 var st = document.body.scrollTop || document.documentElement.scrollTop;
 
+----------------
 
 ### 获取当前屏幕的宽度
 > window.innerWidth innerHeight当前屏幕的宽度 高度 (没有单位)
 
-
+----------------
 
 ### 在DOM中使用方法获取元素节点时 可能会获取到换行和空格
 > 元素对象.childNodes (标准, 一般不使用)
@@ -1409,14 +1315,19 @@ var st = document.body.scrollTop || document.documentElement.scrollTop;
     }
  -->
 
+----------------
+
 ### 跳转另一个页面
 - location = "https://www.baidu.com";
 - window.location.href="你所要跳转的页面";
 - window.open('你所要跳转的页面');
 
+----------------
+
 ### 禁用屏幕滚动条
 document.body.parentNode.style.overflowY = "hidden";
 
+----------------
 
 ### 时间毫秒数转换
 毫秒数 / 1000 转换为秒数后计算更精确些
@@ -1426,6 +1337,7 @@ h = parseInt(总毫秒数 / 60 / 60 % 24);
 m = parseInt(总毫秒数 / 60 % 60);
 s = parseInt(总毫秒数 % 60);
 
+----------------
 
 ### 全选选不选的两个思路
 > 方法一: 先定义一个变量 让全选的状态根据这个变量的状态来
@@ -1463,6 +1375,7 @@ s = parseInt(总毫秒数 % 60);
     }
  -->
 
+----------------
 
 ### 只要有布尔值的地方
 > 三步表达式:
@@ -1475,6 +1388,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
 检查obj中是否含有test2这个属性
 <!-- console.log('test' in obj) -->
 
+----------------
 
 ### 一个函数 两种情况都可以用的情况下 我们可以将 boolean值传递进去
 - 当 true 是一种效果
@@ -1487,7 +1401,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     } 
 -->
 
-
+----------------
 
 ### if判断
 - 背景: 
@@ -1518,6 +1432,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
         };
 }
  -->
+
 > 只改变符合 className 为 img-wrapper 的元素
 <!-- 
     if(divs[i].className === 'img-wrapper')
@@ -1525,18 +1440,20 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     if(divs[i].getAttribute('class') === 'img-wrapper')
  -->
 
+----------------
 
 ### 检查元素是否存在
 > 使用 nodeName 来检查一个元素是否存在, nodeName的值总是返回大写字母
 <!--
     if(eleObject.nodeName != 'IMG') { return false}
 -->
+
 > 使用nodeType 来检查一个元素是否存在 元素1 属性2 文本3
 <!-- 
     if(eleObject.nodeType == 3) { ... }
  -->
 
-
+----------------
 
 ### getAttribute, setAttribute 的应用
 - 获取 图片的 href 地址, 然后通过setAttribute 设置给图片
@@ -1546,6 +1463,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     showSite.setAttribute('src', source);
  -->
 
+----------------
 
 ### this当做参数来传递
 - 需求: 当我点击 超链接 时, 对应图片显示在 当前页面的指定位置上
@@ -1592,7 +1510,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
  -->
 > ↑ 总结: 事件回调函数中的this 就是每一个 <a> 标签对象, 可以把this当做实参传递进去
 
-
+----------------
 
 ### 巧用 apply()
 - 我们可以利用apply 借助于数学内置对象求最大值
@@ -1610,7 +1528,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     让它重新指回Math
  -->
 
-
+----------------
 
 ### 获取对象身上所有的属性名
 > Object.keys() 
@@ -1631,7 +1549,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     let arr = Object.keys(obj);   // [id, pname, price, num]
  -->
 
-
+----------------
 
 ### for...in 遍历对象中的属性 
 - 它适合变量对象, 遍历的是键名 通过对象[键名]的方式获取属性值
@@ -1646,6 +1564,8 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
         newArr.push(arr[item]);
     }
  -->
+
+----------------
 
 ### for...of --- 遍历属性值
 - 它适合遍历数组 es6的新语法, 遍历的直接是属性值
@@ -1728,9 +1648,9 @@ const banji = {
 for(let n of banji){
     console.log(n);
 }
-
  -->
 
+----------------
 
  ### for in 和 for of 的区别
 <!-- 
@@ -1743,11 +1663,7 @@ for(let n of banji){
         当中的 n 是属性名
  -->
 
-
-### 数组.forEach() ---- 遍历数组
-- arr.forEach(function(value, index, arr){});
-
-
+----------------
 
 ### 让系数在一个范围内 自增 自减
 效果: 当系数为0时, 自增到100, 当到100时开始自减
@@ -1776,7 +1692,7 @@ setInterval(function(){
     console.log(num);
  -->
 
-
+----------------
 
 ### 数组的用法
 > 把颜色保存在数组中, 利用下标赋值给对应的所有元素
@@ -1885,7 +1801,7 @@ setInterval(function(){
     },10);
  -->
 
-
+----------------
 
 ### 获取下标的四种方式
 \\ aBtn[i].index=i;
@@ -1903,7 +1819,7 @@ for(var i = 0;i<btns.length;i++){
 }
  -->
 
-
+----------------
 
 ### ||   &&  两种书写格式代表的含义
 > event = event || window.event
@@ -1912,7 +1828,7 @@ for(var i = 0;i<btns.length;i++){
 > event && event()
 - 找true, 如果有event 你就调用event()
 
-
+----------------
 
 ### 怎么看图片加载完成
 ### 图片加载情况 和 开机动画关联
@@ -1939,7 +1855,7 @@ for(let i=0; i<arr.length; i++){
 }
  -->
 
-
+----------------
 
 ### 在外部创建一个变量, 用来接收内部产生的结果
 ### 在外部创建一个变量, 用来默认一个结果, 在内部得到的结果来更新外部的变量
@@ -1972,12 +1888,12 @@ for(i=0; i<items.length; i++){
 }
 -->
 
-
+----------------
 
 ### 测试性能
 console.time("") 和 console.timeEnd("")
 
-
+----------------
 
 ### 判断滚动条是否到底
 > 当满足scrollHeight - scrollTop == clientHeight
@@ -1985,7 +1901,7 @@ console.time("") 和 console.timeEnd("")
 > 当满足scrollWidth - scrollLeft == clientWidth
 说明水平滚动条 滚动到底了
 
-
+----------------
 
 ### 本身取反的用法
 <!-- 
@@ -1997,7 +1913,7 @@ console.time("") 和 console.timeEnd("")
     items[i].checked = !items[i].checked; 
 -->
 
-
+----------------
 
 ### flag 和 switch配合使用
 > 场景1
@@ -2025,7 +1941,7 @@ console.time("") 和 console.timeEnd("")
     switch(dir){ }
 -->
 
-
+----------------
 
 ### data- 的用法
 > 在html标签结构中 设定标识, 配合Js应用
@@ -2048,7 +1964,7 @@ for(let i=0; i<lis.length; i++){
 }
  -->
 
-
+----------------
 
 ### 调整元素的高宽和视口一样
 <!-- 
@@ -2058,7 +1974,7 @@ for(let i=0; i<lis.length; i++){
 
  -->
 
-
+----------------
 
 ### 改变浏览器时, 重新获取元素的高宽
 > window.onresize = function(){};
@@ -2069,7 +1985,7 @@ for(let i=0; i<lis.length; i++){
     };
  -->
 
-
+----------------
 
 ### 时间的获取
 <!-- 
@@ -2087,7 +2003,7 @@ for(let i=0; i<lis.length; i++){
     h = h>12?h-12:h;
  -->
 
-
+----------------
 
 ### 获得页面中某个元素的左，上，右和下分别相对浏览器视窗的位置。 
 > getBoundingClientRect()
@@ -2104,8 +2020,7 @@ for(let i=0; i<lis.length; i++){
 	height:     元素自身的高
  -->
 
-
-
+----------------
 
 ### 数学公式
 
@@ -2121,7 +2036,7 @@ for(let i=0; i<lis.length; i++){
 
 > 角度值 = 弧度值*180/PI
 
-
+----------------
 
 ### 保存this的场景 应用
 回调函数中的回调函数, 两个回调函数中的this不一致
@@ -2137,7 +2052,7 @@ function fn1(){
     }
 } -->
 
-
+----------------
 
 ### 利用indexOf() 进行的去重
 <!-- 
@@ -2207,7 +2122,7 @@ function unique(arr){
 }
  -->
 
-
+----------------
 
 ### 利用match() 检查目标内是否有相关文本, 如果有的话进行什么样的操作
 <!-- 
@@ -2225,13 +2140,13 @@ function unique(arr){
     };
  -->
 
-
+----------------
 
 ### 读取 和 更改文本
 > 元素节点.innerHTML
 > 元素节点.firstChild.nodeValue
 
-
+----------------
 
 ### 滚轮事件在多次触发时 影响用户体验
 - 利用延迟定时器, 200ms后触发一个滚轮事件, 每次触发前清除上一次的定时器
@@ -2252,7 +2167,7 @@ function unique(arr){
 } 
  -->
 
-
+----------------
 
 ### 通过js创建标签
 > 利用for循环 创建标签
@@ -2287,8 +2202,7 @@ function unique(arr){
     }
  -->
 
-
-
+----------------
 
 ### 数组的基础
 
@@ -2324,6 +2238,7 @@ function unique(arr){
       }
     }
  -->
+ 
 
 ### 反转数组
 <!-- 
