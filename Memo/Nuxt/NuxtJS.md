@@ -1,6 +1,23 @@
+> 总结问题
+- 1. 后端使用什么语言为主 一般是使用nodejs 但是使用别的语言可以么
+<!-- 
+  我们的项目后台要使用什么？ 也就是我们后端服务是谁启动的
+  如果是阿帕奇 那就跟 nuxt就没有关系了 
+
+  php可以负责跟资料库的链接出api的这些事
+
+  这里的webserver是nodejs
+  淘宝的前端 用nodejs做网页的服务 
+  但是api是java来做的
+
+  在本机起了一个server run在了3000
+  
+ -->  
+
 ### CSR
 - 客户端渲染： 我们请求回来的数据是通过vue react art-template等模板框架注入生成的页面，这样的页面当爬虫在爬取内容的时候是爬取不到的
 
+---------------
 
 ### SSR
 - 流程：
@@ -8,14 +25,21 @@
 
 <!-- 
   我们可以查看 查看源代码 不是f12 body 中有没有数据结构就能看出来是否是CSR渲染 还是 SSR渲染
+
+  简单的理解 就是在服务端将vue渲染成 html 返回给浏览器
  -->
 
+---------------
 
 ### 区别
 - 客户端渲染可以减轻服务端的压力 达到前端后分离开发 但是对seo优化不是很好
 - 服务端渲染对seo优化很好 但是对服务器的要求会非常的高 不利于前后端的分离
 - 实际开发中会 CSR 和 SSR 搭配使用
 
+> 首屏的打开速度
+- 首屏的打开速度 会比 spa 要快
+
+---------------
 
 ### 服务器渲染 基本使用
 > 1. 初始化 项目文件夹
@@ -142,18 +166,53 @@
   新版本的 nuxt 不带server了
  -->
 
+> 安装问题
+- 1. 项目名称
+- 2. 项目描述
+- 3. 项目使用语言 
+  js
+  ts
 
-> 项目目录结构：
+- 4. 包管理工具
+- 5. ui库
+- 6. 服务器端渲染的框架 
+- 7. 交互工具
+- 8. 校验工具
+- 9. 测试框架
+- 10. 渲染模式 universal选这个
+
+---------------
+
+### 项目目录结构：
 - assets
+    资源性的文件夹
+    默认情况下 nuxt使用 vue-loader file-loader url-loader
+    这几个webpack加载器来处理文件的加载 
+    对不需要通过webpack处理的静态资源文件 可以放置在 static 文件夹中
+    （像 robots.txt 或 sitemap.xml 这种类型的文件就很适合放到 static 目录中。）
+
     放置webpack打包处理的资源文件 如scss css 图片 字体等
+    <!-- 
+      默认情况下, vue-loader自动使用 css-loader 和 Vue 模板编译器来编译处理 vue 文件中的样式和模板。
+
+      .png 并非 JavaScript 文件, 
+      因此 Nuxt.js 通过配置 Webpack 使用file-loader 和 url-loader 这两个加载器来处理此类引用。
+     -->
 
 - components
     vue里通用可复用的组件
     放在这里的组件并不支持 服务端的钩子
+    <!-- 
+      组件目录 components 用于组织应用的 Vue.js 组件。
+      Nuxt.js 不会扩展增强该目录下 Vue.js 组件，
+      即这些组件不会像页面组件那样有 asyncData 方法的特性。
+     -->
 
 - layouts
     用于展示布局 默认情况下 有default.vue布局 未来可以更换其他布局
     我们组件最终会在这个布局文件里面
+    layouts 用于定义 网页中主体部分 相当于我们如何给一个div 也就是vue挂载的区域进行布局
+
 
 - middleware
     用于存放中间件 所有的页面在运行前 可以运行这里的文件
@@ -183,10 +242,417 @@
 > npm run build打包项目
 > npm run start运行打包后的文件
 
---------------------
+---------------
+
+### nuxt.config.js 中的配置项
+- 1. build
+<!-- 
+  Nuxt.js 允许你在自动生成的 vendor.bundle.js 文件中添加一些模块，以减少应用 bundle 的体积。如果你的应用依赖第三方模块，这个配置项是十分实用的。
+ -->
+
+- 2. css
+<!-- 
+  该配置项用于定义应用的全局（所有页面均需引用的）样式文件、模块或第三方库。
+ -->
+
+- 3. env
+<!-- 
+  该配置项用于定义应用客户端和服务端的环境变量。
+ -->
+
+- 4. generate
+<!--
+  该配置项用于定义每个动态路由的参数，Nuxt.js 依据这些路由配置生成对应目录结构的静态文件。
+-->
+
+- 5. head
+<!-- 
+  该配置项用于配置应用默认的 meta 标签。
+ -->
+
+- 6. loading
+<!-- 
+  该配置项用于个性化定制 Nuxt.js 使用的加载组件。
+ -->
+
+- 7. plugins
+<!-- 
+  该配置项用于配置那些需要在 根vue.js应用 实例化之前需要运行的 Javascript 插件。
+ -->
+
+- 8. rootDir
+<!-- 
+  该配置项用于配置 Nuxt.js 应用的根目录。
+ -->
+
+- 9. router
+<!-- 
+  该配置项可用于覆盖 Nuxt.js 默认的 vue-router 配置。
+ -->
+
+- 10. server
+<!-- 
+  此选项允许您配置 Nuxt.js 应用程序的服务器实例变量。
+ -->
+
+---------------
+
+### 路由
+- Nuxt.js 依据 pages 目录结构自动生成 vue-router 模块的路由配置。
+- 所谓的路由就是 页面和页面之间的跳转 我们可以使用 点击a标签的方式 也可以使用编程式的方式
+<!--  
+  如果需要使用 a标签 建议使用 <nuxt-link> 
+ -->
+
+> 基础路由(静态路由)
+- 假如我们定义了 pages 目录结构为
+<!-- 
+  | - pages
+    | - user
+      - index.vue
+      - one.vue
+
+    - index.vue
+ -->
+
+- 那么nuxt会自动生成下面的路由规则
+<!-- 
+  routes: [
+
+    // pages根目录下的 index.vue 文件作为访问的根目录
+       路径为 /
+       组件就是文件名
+    {
+      name: 'index',
+      path: '/',
+      component: 'pages/index.vue'
+    },
+
+    // 如果有文件夹的话
+       路径为 文件夹的名字 /user
+       里面的 index.vue 就是 这个路径下的内容文件
+       里面的 别的vue文件 就是这个路径下的其它页面
+    {
+      name: 'user',
+      path: '/user',
+      component: 'pages/user/index.vue'
+    },
+
+    // 当pages下有文件夹的时候 文件夹下的文件的name值为
+    文件夹-具体文件
+    路径为 文件名/具体vue文件
+    {
+      name: 'user-one',
+      path: '/user/one',
+      component: 'pages/user/one.vue'
+    }
+  ]
+ -->
+
+**基础路由(静态路由)的总结**
+- 1. index.vue 为当前文件夹下的对应内容页面
+<!-- 
+  比如
+    | - pages
+      - index
+
+  那么我们访问 localhost:3000/ 的时候 访问的就是 index 页面
+ -->
+
+- 2. 当前目录下除了 index.vue 文件的其它文件 都是当前路径下的其它文件
+<!-- 
+  比如
+    | - pages
+      - index
+      - home
+
+  那么
+  那么 home.vue 文件对应的就是 localhost:3000/home
+ -->
+
+- 3. 组件的name属性
+- 当 pages 里面没有文件夹的时候 该vue组件对应的name值为 文件名
+- 当 pages 里面有对应的文件夹的时候 该vue组件对应的name值为
+    文件夹名/组件文件名
+
+
+
+> 动态路由
+- 在 Nuxt.js 里面定义带参数的动态路由，需要创建对应的以下划线作为前缀的 Vue 文件 或 目录。
+
+- 假如我们这么配置动态路由组件(也就是考虑到该组件需要接收参数的时候)
+<!-- 
+  | - pages
+    | - _slug
+      - comments.vue
+      - index.vue
+
+    | - users
+      - _id.vue
+      
+
+    - index.vue
+ -->
+
+- 那么nuxt会自动生成下面的路由规则
+<!-- 
+  routes: [
+    {
+      name: 'index',
+      path: '/',
+      component: 'pages/index.vue'
+    },
+
+    // 此处的要点:
+      - 1. 文件夹名下不带_
+      - 2. 文件夹名就是路径名 /users
+      - 3. 正常我们要访问该路径下的文件 对应的是 index.vue 文件
+           但是这里因为是动态路由 所以我们文件名要以 _ 作为前缀开头
+
+      - 4. _前缀开头的文件 文件的名字 就是parm格式的 接收参数所定义的变量
+
+      - 5. name属性 就是 文件夹名字-接收变量的名字
+    {
+      name: 'users-id',
+      path: '/users/:id?',
+      component: 'pages/users/_id.vue'
+    },
+        你会发现名称为 users-id 的路由路径带有 :id? 参数，
+        表示该路由是可选的。
+        如果你想将它设置为必选的路由，
+        需要在 users/_id 目录内创建一个 index.vue 文件。
+
+
+
+    // 这里应该是定义动态路由的另一种形式 文件夹中使用_
+        | - _slug
+          - comments.vue
+          - index.vue
+    {
+      name: 'slug',
+      path: '/:slug',
+      component: 'pages/_slug/index.vue'
+    },
+    {
+      name: 'slug-comments',
+      path: '/:slug/comments',
+      component: 'pages/_slug/comments.vue'
+    }
+  ]
+ -->
+
+
+> 嵌套路由
+
+> nuxt-child
+- 用于呈现子路由界面
+
+- 假如我们定义如下的 嵌套路由 文件夹的结构
+<!-- 
+  | - pages
+    | - users
+      - _id.vue
+      - index.vue
+
+    - users.vue
+ -->
+
+- nuxt会将嵌套的路由解析成如下的规则
+<!-- 
+  routes: [
+    {
+      path: '/users',
+      component: 'pages/users.vue',
+      children: [
+        {
+          path: '',
+          component: 'pages/users/index.vue',
+          name: 'users'
+        },
+        {
+          path: ':id',
+          component: 'pages/users/_id.vue',
+          name: 'users-id'
+        }
+      ]
+    }
+  ]
+ -->
+
+**嵌套路由的总结**
+- 根目录下都是一级路由
+- 当根目录下的文件夹名字 和 根目录下的文件 重名的时候
+<!-- 
+  | - pages
+
+    // 同名文件夹里面的文件 就是子组件
+    | - users
+      - _id.vue
+      - index.vue
+
+    // 他就是父组件
+    - users.vue
+ -->
+
+
+> 动态路由的扩展
+- Nuxt.js 可以让你在动态路由组件中定义参数校验方法。
+
+> validate({params}) {...}
+<!-- 
+  比如：
+  pages/users/_id.vue
+
+  export default {
+    validate({ params }) {
+      // 必须是number类型
+      return /^\d+$/.test(params.id)
+    }
+  }
+ -->
+
+- 如果校验方法返回的值不为 true或Promise中 resolve 解析为false或抛出 Error ， Nuxt.js 将自动加载显示 404 错误页面或 500 错误页面。
+
+---------------
+
+### 视图
+- 关于 default.vue 文件的作用
+- 整个外层是 html 文件
+- 内层是 layout
+<!-- 
+  这层里包括了 vue组件 + nuxt配置的中间件和head部分
+ -->
+
+- 再内层就是 pages 文件夹下的内容
+
+
+> 模板
+- src默认是应用的根目录
+<!-- 
+  nuxt脚手架创建的模板中并不包含src
+ -->
+
+- 模板值得是整个的网页(我们的layouts只是网页中的内容的主题部分)
+- 定制化默认得html模板 只需要在src文件夹 创建一个 app.html 的文件。
+<!-- 
+  或者直接在根目录下创建 app.html 文件
+ -->
+
+- 默认模板为：
+<!-- 
+  <!DOCTYPE html>
+  <html {{ HTML_ATTRS }}>
+    <head {{ HEAD_ATTRS }}>
+      {{ HEAD }}
+    </head>
+    <body {{ BODY_ATTRS }}>
+      {{ APP }}
+    </body>
+  </html>
+
+  这里的{{HEAD}}读取的是nuxt.config.js里的信息
+  {{APP}}就是我们写的pages文件夹下的主体页面了。
+  
+  需要注意的是HEAD和APP都需要大写。
+ -->
+
+- 设置了默认模板后要重启服务器
+
+
+
+> 布局
+> 默认布局
+- 可通过添加 layouts/default.vue 文件来扩展应用的默认布局。
+- 别忘了在布局文件中添加 <nuxt/> 组件用于显示页面的主体内容。
+<!-- 
+  <template>
+    <nuxt />
+  </template>
+ -->
+
+
+> 自定义布局 -- layout属性
+- layouts 目录中的每个文件 (顶级) 都将创建一个可通过页面组件中的 layout 属性访问的自定义布局。
+
+- 1. 在 layouts 文件夹下创建布局
+- 2. 在 pages 下的组件中 在配置项里面使用 layout配置项 指定 布局
+<!-- 
+  假设我们要创建一个 博客布局 并将其保存到layouts/blog.vue:
+
+  然后我们必须告诉页面 (即pages/posts.vue) 使用您的自定义布局：
+   export default {
+    layout: 'blog'
+  }
+ -->
+
+
+> 错误页面
+- 你可以通过编辑 layouts/error.vue 文件来定制化错误页面.
+- 虽然此文件放在 layouts 文件夹中, 但应该将它看作是一个 页面(page).
+
+- 这个布局文件不需要包含 <nuxt/> 标签。你可以把这个布局文件当成是显示应用错误（404，500 等）的组件。
+
+- 这就是一个独立的页面
+<!-- 
+  举一个个性化错误页面的例子 layouts/error.vue:
+
+  <template>
+    <div class="container">
+      <h1 v-if="error.statusCode === 404">页面不存在</h1>
+      <h1 v-else>应用发生错误异常</h1>
+      <nuxt-link to="/">首 页</nuxt-link>
+    </div>
+  </template>
+
+  <script>
+    export default {
+      props: ['error'],
+      layout: 'blog' // 你可以为错误页面指定自定义的布局
+    }
+  </script>
+ -->
+
+
+> 默认 Meta 标签
+- Nuxt.js 允许你在 nuxt.config.js 里定义应用所需的所有默认 meta 标签，在 head 字段里配置就可以了：
+
+- 一个使用自定义 viewport 和 谷歌字体 的配置示例：
+<!-- 
+  head: {
+    meta: [
+      { charset: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+    ],
+    link: [
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Roboto' }
+    ]
+  }
+ -->
+
+
+---------------
+
+### 组件中新增的配置项
+> head
+- 配置当前页面的 Meta 标签, 详情参考 页面头部配置 API。
+
+> layout
+- 指定当前页面使用的布局（layouts 根目录下的布局文件）。详情请参考 关于 布局 的文档。
+
+> loading
+- 	如果设置为false，则阻止页面自动调用this.$nuxt.$loading.finish()和this.$nuxt.$loading.start(),您可以手动控制它,请看例子,仅适用于在 nuxt.config.js 中设置loading的情况下。
+
+> transition
+- 指定页面切换的过渡动效, 详情请参考 页面过渡动效。
+
+> scrollToTop
+- 布尔值，默认: false。 用于判定渲染页面前是否需要将当前页面滚动至顶部。这个配置用于 嵌套路由的应用场景。
+
+---------------
 
 ### nuxt的生命周期
 - vue的生命周期跑在浏览器端，nuxt的生命周期跑在了服务端 和 客户端
+- 需要注意的是，在任何 Vue 组件的生命周期内， 只有 beforeCreate 和 created 这两个方法会在 客户端和服务端被调用。其他生命周期函数仅在客户端被调用。
 
 > 生命周期图：
 <!-- 
@@ -329,6 +795,7 @@ module.exports = {
   
   
   // 插件
+  Nuxt.js 允许您在运行 Vue.js 应用程序之前执行 js 插件。这在您需要使用自己的库或第三方模块时特别有用。
   plugins: [
   ],
   
@@ -553,16 +1020,56 @@ module.exports = {
 
 --------------------
 
+### 上下文对象
+-  服务器端所有的钩子都会参数 上下文对象 该对象中的属性 和 方法很多
+- 一般我们都是在形参中通过解构的方式 取出对应的对象 来使用
+
+> 解构出得 req res 对象
+- 在服务器端调用asyncData时，您可以访问用户请求的req和res对象。
+<!-- 
+  export default {
+    async asyncData({ req, res }) {
+      // 请检查您是否在服务器端
+      // 使用 req 和 res
+      if (process.server) {
+        return { host: req.headers.host }
+      }
+
+      return {}
+    }
+  }
+ -->
+
+
+> 解构出得 动态路由数据
+- 可以使用配置它的文件或文件夹的名称访问动态路径参数。所以，如果你定义一个名为_slug.vue的文件，您可以通过context.params.slug来访问它
+<!-- 
+  export default {
+    async asyncData({ params }) {
+      const slug = params.slug // When calling /abc the slug will be "abc"
+      return { slug }
+    }
+  }
+ -->
+
+--------------------
+
 ### nuxt约定式路由
 - nuxt的路由采用的是约定式方式：
 - 我们需要在项目的环境下配置相关的页面 按照一定的规则将页面设置在 pages 目录下面 路由是自动产生的
+
+> pages目录
+- nuxt会监听 pages 目录中的文件的更改 因此在添加新页面时无需重新启动应用程序
+
+- nuxt会一句 pages 目录中的所有 *.vue 文件生成应用的路由配置
+
 
 > 一级路由规则：
 - 直接配置在 pages 文件夹下 不用单独去配置路由 nuxt是约定式
 - 我们放在 pages 文件夹下的一级文件 都会被当做是路由所跳转的一级目标文件
 
 > 1. 在 pages 目录下创建好页面
-- 路由的页面都是放在 pages 下面
+- 路由的页面都是放在 pages 下面 nuxt 通过监听路径 会自动跳转到对应的页面上
 <!-- 
   | - pages
     - index.vue
@@ -573,7 +1080,9 @@ module.exports = {
 
 - 同时我们能在布局页面看到 (layouts/default.vue组件)
 > <nuxt /> nuxt中路由的展示区
+- 这部分也是要点 我们需要在 default.vue 组件中 设置 跳转页面的展示区 也就是 <nuxt />
 <!-- 
+  // ayouts/default.vue组件
   <template>
     <div>
       <nuxt />    默认会有一个展示区 相当于 router-view
@@ -584,6 +1093,7 @@ module.exports = {
 
 > 2. 在 layouts/default.vue 布局页面中 使用 <nuxt-link> 进行跳转
 - <nuxt-link>的使用方式和<router-link>一样
+- 还可以通过直接输入 地址来进行跳转
 <!-- 
   <template>
     <div>
@@ -1751,3 +2261,265 @@ module.exports = {
 
   }
  -->
+
+-----------------
+
+### Api
+> 上下文对象
+- context 变量的可用属性一览:
+- https://www.nuxtjs.cn/api/context
+
+
+> asyncData() {...}
+- 你可能想要在服务器端获取并渲染数据。Nuxt.js 添加了asyncData方法使得你能够在渲染组件之前异步获取数据。
+
+- asyncData方法会在组件（限于页面组件）每次加载之前被调用。它可以在服务端或路由更新之前被调用。在这个方法被调用的时候，第一个参数被设定为当前页面的上下文对象，你可以利用 asyncData方法来获取数据并返回给当前组件。
+<!-- 
+  由于asyncData方法是在组件 初始化 前被调用的，所以在方法内是没有办法通过 this 来引用组件的实例对象。
+ -->
+
+
+> fetch() {}
+- fetch 方法用于在渲染页面前填充应用的状态树（store）数据， 与 asyncData 方法类似，不同的是它不会设置组件的数据。
+- fetch 方法的第一个参数是页面组件的上下文对象 context，我们可以用 fetch 方法来获取数据填充应用的状态树。为了让获取过程可以异步，你需要返回一个 Promise，Nuxt.js 会等这个 promise 完成后再渲染组件。
+<!-- 
+
+ -->
+
+
+> head() {}
+- 使用 head 方法设置当前页面的头部标签。
+- 在 head 方法里可通过 this 关键字来获取组件的数据，你可以利用页面组件的数据来设置个性化的 meta 标签。
+<!-- 
+  export default {
+    data() {
+      return {
+        title: 'Hello World!'
+      }
+    },
+    head() {
+      return {
+        title: this.title,
+        meta: [
+          {
+            hid: 'description',
+            name: 'description',
+            content: 'My custom description'
+          }
+        ]
+      }
+    }
+  }
+ -->
+
+**注意:**
+为了避免子组件中的 meta 标签不能正确覆盖父组件中相同的标签而产生重复的现象，建议利用 hid 键为 meta 标签配一个唯一的标识编号。
+
+
+-----------------
+
+### nuxt中的常见问题
+- 在 nuxt.config.js 中配置你想引用的资源文件：
+<!-- 
+  module.exports = {
+    head: {
+      script: [
+        {
+          src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'
+        }
+      ],
+      link: [
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css?family=Roboto'
+        }
+      ]
+    }
+  }
+ -->
+
+> 局部配置
+- 可在 pages 目录内的 .vue 文件中引用外部资源，如下所示：
+<!-- 
+  export default {
+    head: {
+      script: [
+        {
+          src:
+            'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'
+        }
+      ],
+      link: [
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css?family=Roboto'
+        }
+      ]
+    }
+  }
+ -->
+
+
+### 预处理器
+- 记得安装这些预处理器对应的 npm 依赖包和 Webpack 加载器:
+- npm install --save-dev pug@2.0.3 pug-plain-loader coffeescript coffee-loader node-sass sass-loader
+
+- 得益于 vue-loader, 我们可以通过 lang 属性在组件中的<template>， <script> 或 <style> 上使用各种预处理器。
+
+- 举个例子，我们在 pages/index.vue 组件中使用 Pug， CoffeeScript 和 Sass：
+<!-- 
+  <template lang="pug">
+    h1.red Hello {{ name }}!
+  </template>
+
+  <script lang="coffee">
+    export default data: ->
+      { name: 'World' }
+  </script>
+
+  <style lang="sass">
+    .red
+      color: red
+  </style>
+ -->
+
+
+### JSX
+- Nuxt.js 使用 Vue.js 官方的 babel-preset-vue-app 做 babel 的默认配置。
+
+- 你可以在组件的 render 方法中直接使用 JSX 而不需要做额外的配置：
+<!-- 
+  <script>
+    export default {
+      data() {
+        return { name: 'World' }
+      },
+      render(h) {
+        return <h1 class="red">{this.name}</h1>
+      }
+    }
+  </script>
+ -->
+
+
+### Postcss 插件
+- 可在 nuxt.config.js 文件增加以下配置来添加 postcss 插件：
+<!-- 
+  export default {
+    build: {
+      postcss: {
+        // 添加插件名称作为键，参数作为值
+        // 使用npm或yarn安装它们
+        plugins: {
+          // 通过传递 false 来禁用插件
+          'postcss-url': false,
+          'postcss-nested': {},
+          'postcss-responsive-type': {},
+          'postcss-hexrgba': {}
+        },
+        preset: {
+          // 更改postcss-preset-env 设置
+          autoprefixer: {
+            grid: true
+          }
+        }
+      }
+    }
+  }
+ -->
+
+
+### 如何扩展 Webpack 的配置
+- 你可以通过 nuxt.config.js 文件中的 extend 配置项来扩展 Webpack 的配置：
+<!-- 
+  module.exports = {
+    build: {
+      extend(config, { isDev, isClient }) {
+        // ...
+      }
+    }
+  }
+ -->
+
+- { isDev, isClient } 可以判断是否是客户端
+
+
+### 如何添加 Webpack 插件？
+- 可以在 nuxt.config.js 中添加 Webpack 插件：
+<!-- 
+  const webpack = require('webpack')
+  module.exports = {
+    build: {
+      plugins: [
+        new webpack.ProvidePlugin({
+          $: 'jquery',
+          _: 'lodash'
+          // ...etc.
+        })
+      ]
+    }
+  }
+ -->
+
+
+### 如何更改应用的主机和端口配置？
+- 您可以通过不同方式配置主机和端口，如下列出从最高优先级到最低优先级。
+<!-- 
+  "scripts": {
+    "dev": "nuxt --hostname myhost --port 3333"
+  }
+ -->
+- 或者还可以像下面这样配置
+
+> 在 nuxt.config.js 中配置:
+- 在 nuxt.config.js 添加:
+<!-- 
+  export default {
+    server: {
+      port: 8000, // default: 3000
+      host: '0.0.0.0' // default: localhost
+    }
+    // other configs
+  }
+ -->
+
+
+### 如何发起跨域资源请求？
+> 用于 Nuxt.js 的 http-proxy 中间件解决方案
+- 1. npm i @nuxtjs/proxy -D
+- 2. 在 nuxt.config.js 配置文件中添加对应的模块，并设置代理
+<!-- 
+  modules: [
+    '@nuxtjs/axios',
+    '@nuxtjs/proxy'
+  ],
+  axios: {
+    proxy: true
+  },
+  proxy: {
+    '/api': {
+      target: 'http://example.com',
+      pathRewrite: {
+        '^/api' : '/'
+      }
+    }
+  }
+ -->
+
+
+
+### CSS 闪烁
+- 这是因为在开发模式下，为了通过 Webpack 实现热加载，CSS 代码是打包在 JavaScript 代码中，并动态打到页面中去，从而元素重绘引起了闪烁。
+
+- 不用担心，在生产模式下，CSS 代码会单独打包至独立的文件并置于 head 标签内，不会出现页面闪烁的现象。
+
+
+
+### 如何在组件中使用异步数据？
+- 如果组件不是和路由绑定的页面组件，原则上是不可以使用异步数据的。因为 Nuxt.js 仅仅扩展增强了页面组件的 data 方法，使得其可以支持异步数据处理。
+
+- 对于非页面组件，有两种方式可以实现数据的异步获取：
+
+- 在组件的 mounted 方法里面实现异步获取数据的逻辑，之后设置组件的数据，限制是：不支持服务端渲染。
+
+- 在页面组件的asyncData或fetch方法中进行 API 调用，并将数据作为props传递给子组件。服务器渲染工作正常。缺点：asyncData或页面提取可能不太可读，因为它正在加载其他组件的数据。总之，使用哪种方法取决于你的应用是否需要支持子组件的服务端渲染。

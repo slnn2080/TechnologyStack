@@ -3956,12 +3956,12 @@ filters: {
 
 
 - 销毁部分：
-- 当我们调用 vm.$destory() 的时候进入销毁流程 此时能访问到数据和事件 但是对数据的修改不再会触发更新了
+- 当我们调用 vm.$destroy() 的时候进入销毁流程 此时能访问到数据和事件 但是对数据的修改不再会触发更新了
 
 - 完全效果一个示例 清理它与其它组件的链接 解绑它的全部指令以及自定义事件的监听器 注意销毁后原生的dom事件还在
 - 当vm被销毁后 页面的数据还是有的 只是vm走了成果还在 只不过dom没人帮我们管理了
 <!-- 
-  this.$destory()
+  this.$destroy()
  -->
 
 
@@ -4044,7 +4044,7 @@ filters: {
       // 当vm.destroy() 方法被调用的时候 会入销毁流程 // 
                           ↓
 
-                    beforeDestory
+                    beforeDestroy
                     (生命周期函数)
 
         注意 在此阶段对数据的操作 页面都不会再更新了
@@ -4054,7 +4054,7 @@ filters: {
 
                           ↓
 
-                      destoryed
+                      destroyed
                      (生命周期函数)
 
  -->
@@ -4099,12 +4099,12 @@ filters: {
  -->
 
 
-> vm.$destory()
-> this.$destory()
+> vm.$destroy()
+> this.$destroy()
 - 自杀 销毁组件 开发的时候很少这么干 开发的时候都是他杀没的
 
 
-> beforeDestory（销毁前）
+> beforeDestroy（销毁前）
 - 在这里一般做一些收尾的工作 比如清除定时器
 - 下面处于组件销毁的阶段, 该阶段没有数据绑定 没有交互了
 <!-- 
@@ -4132,7 +4132,7 @@ filters: {
  -->
 
 
-> destoryed（销毁后）
+> destroyed（销毁后）
 - vue实例销毁后调用。调用后，Vue实例指示的所有东西都会被解绑定，所有的事件监听器会被移除，所有的子实例也会被销毁
 - 提示已删除
 <!-- 
@@ -4179,12 +4179,12 @@ filters: {
 > 总结
 - 常用的生命周期钩子
 - 1. mounted： 发送ajax请求 启动定时器 绑定自定义事件 订阅消息等初始化动作
-- 2. beforeDestory： 清楚定时器 解绑自定义事件 取消订阅消息等 收尾工作
+- 2. beforeDestroy： 清楚定时器 解绑自定义事件 取消订阅消息等 收尾工作
 
 - 关于销毁vue实例：
 - 1. 销毁后借助vue开发者工具看不懂任何信息
 - 2.  销毁后自定义事件会失效 但原生dom事件依然有效
-- 3. 一般不会在beforeDestory操作数据 因为几遍操作数据 也不会再触发更新流程了
+- 3. 一般不会在beforeDestroy操作数据 因为几遍操作数据 也不会再触发更新流程了
 
 --------------------------
 
@@ -6316,9 +6316,9 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 **注意：**
 > 解绑事件总线中的方法
 - 我们是通过this.$bus.$on的方式 监听事件总线上的事件 用于得到其它组件想要发送的数据
-- 但是我们要在 this.$bus.$on 的组件上(数据接收方的组件) 在该组件即将要销毁的时候 beforeDestory() 解绑事件
+- 但是我们要在 this.$bus.$on 的组件上(数据接收方的组件) 在该组件即将要销毁的时候 beforeDestroy() 解绑事件
 <!-- 
-  beforeDestory() {
+  beforeDestroy() {
     this.$bus.$off('sendName')
   }
  -->
@@ -6389,7 +6389,7 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 - 当数据接收方(订阅消息的组件)要销毁的时候 我们还是要取消订阅
 - 取消订阅的方式类似定时器 通过接收订阅消息时的id来取消 订阅 类型const timer = xxx
 <!-- 
-  beforeDestory() {
+  beforeDestroy() {
     pubsub.unsubscribe(this.pubId)
   }
  -->
@@ -6965,7 +6965,7 @@ allowed in .vue files - render functions are required elsewhere
   // rm是removies的缩写 它是要执行命令去删除原来打包过的dist文件夹, 意思是如果是第二次执行 npm run build的时候 它会将之前打包的dist文件夹删除一下, 然后再通过webpack配置一些东西
 
 
-  rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
+  rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectroy), err => {
   if (err) throw err
   // 上面的地方是删除dist文件夹 如果有异常抛出异常
 
