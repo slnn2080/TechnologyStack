@@ -117,12 +117,9 @@
 
 <!-- 
   还是 李现 和 鹿晗两个人的数据, react在拿到数据后并没有马上动真是的DOM, 它是把这两个人的数据对应成了2个虚拟DOM 随后将虚拟DOM映射到真实DOM上
-
   当多了一个数据肖战的时候, react还是根据3条数据生成3条虚拟DOM, 刚才的两条李现和鹿晗的虚拟DOM并没有被React丢弃 原来是2条虚拟DOM 现在是3条虚拟DOM 
 
   随后, React开始在内部进行虚拟DOM的比较, 如果相同的话 就不在生成真实的DOM, 将不同的映射到真实的DOM中, 相同的被复用 
-
-
   不同的虚拟DOM进行比较 不同部分再插入真实的DOM中
 -->
 
@@ -225,8 +222,6 @@
     ReactDOM.render(title, document.getElementById("root"))
   </script>
  -->
-
-
 
 ----------------------------
 
@@ -344,7 +339,6 @@
 > XML的简单用法
 <!-- 
   XML 早期用于存储和传输数据
-
   比如 我们存个学生, 我们就可以创建下面的样式, 用于传输
 
   // XML
@@ -374,7 +368,7 @@
 - 3. 样式的类名指定不要用class 而是要用className
 - react元素的属性名使用驼峰命名法
 <!-- 
-  label标签的for属性 -- 需要替换 -- htmlFor
+  label标签的for属性 -- 需要替换成 -- htmlFor
  -->
 
 - 4. 内联样式要用style={{key:value}}的形式去写, 属性名使用驼峰
@@ -440,6 +434,25 @@
       <input type='text' />
     </div>
   )
+
+
+  // 需求5： 根据变量渲染结构
+  - 这里利用了3元表达式 前后结构使用()进行包裹
+  render() {
+    return (
+      this.flag ? (
+        <div 
+          style={{width: "20px", height: "20px", background: "red"}}
+        >
+          <h3>我是App组件</h3>
+        </div>
+      ) : (
+        <div>
+          <h3>我是默认的</h3>
+        </div>
+      )
+    )
+  }
  -->
 
 > jsx语法的转化过程
@@ -561,6 +574,7 @@
       return (<div>数据加载中, 请稍后...</div>)
     }
 
+    // 一旦符合上面的条件 因为有return 下面的就不会执行了
     return (<div>数据加载完成后, 此处显示加载后的数据</div>)
   }
 
@@ -836,6 +850,9 @@
 
 
 > state = {} 组件内部定义状态
+- state的值并不一定要求是对象 而是因为会存放很多的数据 所以推荐是对象
+
+
 > this.setState({ ... }) 修改状态的方法
 
 > 总结:
@@ -843,13 +860,18 @@
 - 组件自定义的方法this为undefined 如何解决
   - 在构造器中强制绑定this 通过函数对象的bind()
   - 在构造器外使用赋值语句 + 箭头函数
+  <!-- 
+    handleClick = () => { }
+    相当于给实例身上添加放法 需要通过 this 来调用
+   -->
 
 - 状态数据 不能直接修改或更新
-  - 必须借助 setState
+  - 必须借助 setState 方法
 
 
 > setState
 - 状态是可以改变的 通过 setState 来修改状态中的值
+
 - this.setState({要修改的数据})
 - 先对state中的数据进行操作的时候 要先获取原数据
 <!--
@@ -872,6 +894,27 @@
 
 > react的编程思想：
 - 数据驱动视图，数据先发生改变 驱动着页面发生更新
+- 也就是说 假如有一些数据 我们不希望它是响应式的时候 就可以添加到 实例身上
+<!-- 
+  export default class App extends Component {
+    flag = true
+  }
+ -->
+
+- 假如我们希望这个数据是响应式的 那么我们就需要将这个数据放入到 state 中
+<!-- 
+  export default class App extends Component {
+    state = {
+      flag: true
+    }
+  }
+
+  在修改state中的数据的时候 我们可能会有如下的操作
+  this.setState({
+    flag: !flag     // 这个flag也是个变量 所以在之前我们要先有这个变量 
+                        let {flag} = this.state
+  })
+ -->
 
 
 > 组件更新机制
@@ -899,7 +942,9 @@
 <!-- 
   class Weather extends React.Component {
 
-    // 这里有一个问题, 构造器的参数写什么? 正常来说构造器的形参能接收到什么取决于在通过new创建实例对象的时候传递了什么样的实参, 但是这里是react帮助我们创建的new的实例 我们先传props 为什么后面会学到
+    // 这里有一个问题, 构造器的参数写什么? 
+    正常来说构造器的形参能接收到什么取决于在通过new创建实例对象的时候传递了什么样的实参, 
+    但是这里是react帮助我们创建的new的实例 我们先传props 为什么后面会学到
     constructor(props) {
       // 我们是子类 使用构造器的话 必须要带super
       super(props)
@@ -972,19 +1017,23 @@
 
   为什么不能加( )
       <h3 onClick={this.changeWeather()}>
-      上面的写法会直接被调用 React在渲染组件的时候, 发现我们是通过类的方式创建的组件, 所以React帮我们new了实例 调用了render 想拿到返回值就要执行
-      <h3 onClick={this.changeWeather()}>
+      上面的写法会直接被调用 React在渲染组件的时候, 
+      发现我们是通过类的方式创建的组件, 所以React帮我们new了实例 
+      调用了render 想拿到返回值就要执行<h3 onClick={this.changeWeather()}>
       里面的代码 onClick 接到的是 changeWeather的返回值
 
       onClick = changeWeather() 
-      终归是一个赋值语句 我们把事件回调的返回值赋值给了onClick 因为事件回调里面没有return 所以是undefined, 结果是第一次调用了但是之后就没有作用了, 不报错的原因是react内部做了处理
+      终归是一个赋值语句 我们把事件回调的返回值赋值给了onClick 因为事件回调里面没有return 所以是undefined, 结果是第一次调用了但是之后就没有作用了, 
+      不报错的原因是react内部做了处理
 
       而我们把()删掉就是 onClick = changeWeather 还是一个赋值语句 我们把这个函数作为onClick的回调
 
 
   为什么要加上this?
     <h3 onClick={changeWeather}>
-      假如我们不加this会报changeWeather未定义的错误, 因为我们将这个方法放入了类中, changeWeather只有通过Weather的实例对象才能调用 所以我们要在函数的前面加上this = > this.changeWeather
+      假如我们不加this会报changeWeather未定义的错误, 
+      因为我们将这个方法放入了类中, changeWeather只有通过Weather的实例对象才能调用 
+      所以我们要在函数的前面加上this = > this.changeWeather
  -->
 
 - 4. 函数组件中绑定事件的方式
@@ -993,26 +1042,29 @@
   return (<button onClick={handleClick}>)
  -->  
 
+
 > <h3 onClick={this.changeWeather}> 类中定义的函数产生的this的问题
 - 我们定义函数有多种方式 比如
 - changeWeather() { ... }
 - changeWeather = () => { ... }
 
-- 两种定义函数的方式有什么样的区别么？ this
+- 两种定义函数的方式有什么样的区别么？ this！！！
 <!-- 
   changeWeather() {
     
     console.log(this)
       // 这里的this是undefined
 
-    // 因为只有通过Weather实例对象调用的changeWeather 它内部的this才是实例对象否则就是undefined
+      // 因为只有通过Weather实例对象调用的changeWeather 它内部的this才是实例对象否则就是undefined
 
-        // render和constructor中的this都是实例对象为什么? 我们的changeWeather不是通过实例调用的
+      // render和constructor中的this都是实例对象为什么? 
+      我们的changeWeather不是通过实例调用的
 
-        // <h3 onClick={this.changeWeather}> 我们是通过this.changeWeather把方法交给了onClick 然而 点击的时候 是onClick直接调用changeWeather方法 而不是通过实例调用的 所以this的指向会是undefined(因为类中开启了严格模式)
+      // <h3 onClick={this.changeWeather}> 
+      我们是通过this.changeWeather把方法交给了onClick 然而 点击的时候 是onClick直接调用changeWeather方法 而不是通过实例调用的 所以this的指向会是undefined(因为类中开启了严格模式)
 
-        console.log(this.state)  // 报错 不能从undefined上读取state
-      }
+      console.log(this.state)  // 报错 不能从undefined上读取state
+  }
  -->
 
 > 解决方式
@@ -1027,6 +1079,7 @@
   this出现了问题, 原因上面我们分析了 是因为我们是将这个函数赋值给了onClick 当点击的时候 changeWeather函数属于直接调用, 那么函数中的this就是undefined
  -->
 
+
 - 解决方式
 - 我们在constructor中给changeWeather绑定this
 <!-- 
@@ -1034,6 +1087,7 @@
     super(props)
     this.state = {isHot:true}
     this.changeWeather = this.changeWeather.bind(this)
+
       // 解析:
       1. 记住类中的方法都是添加在类的原型对象上
       2. bind能做两件事情1给你生成一个新的函数 2帮助我们修改函数中的this 我们将构造器中this传递进去了, 构造器中的this就是实例对象
@@ -1065,7 +1119,9 @@
 <!-- 
   严重注意: 状态(state)不可直接更改
 
-  修改state中的值, 要通过setState()api去更改, setState在React.Component的原型对象上, 此操作是一个合并的东西 并不是覆盖(同名的复写, 不同名的留住)
+  修改state中的值, 要通过setState()api去更改, 
+  setState在React.Component的原型对象上, 
+  此操作是一个合并的操作 并不是覆盖(同名的复写, 不同名的留住)
 
   changeWeather() {
     const isHot = this.state.isHot
@@ -1138,7 +1194,7 @@
 
 
 > 总结:
-- 在严格模式中, 进制自定义的函数中的this指向window
+- 在严格模式中, 禁止自定义的函数中的this指向window
 - 1. 在构造器中初始化状态
 - 2. 在构造器中解决方法中的this的指向问题
 
@@ -1176,6 +1232,8 @@
  -->
 
 ----------------------------
+
+### 书签
 
 ### state的简写方式
 - 因为类方式创建的组件, 组件中的方法都是当事件回调来用 如果作为事件的回调用来的话, 类中的方式中的this的指向都是undefined 但是我们想解决这个问题 就又得在constructor中使用bind的方式将新函数赋值给实例对象中方法
