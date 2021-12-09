@@ -1,5 +1,27 @@
 ### Js技巧
 
+
+### 随机生成字符串
+<!-- 
+    let res = getRandomString(48)
+    console.log(res)
+    console.log(res.length)
+
+    let ret = Math.random().toString(36)
+    console.log(ret)
+
+    function getRandomString(n) {
+        let str = '';
+        while (str.length < n) {
+            str += Math.random().toString(36).substr(2);
+        }
+
+        return str.substr(str.length - n);
+    }
+ -->
+
+
+
 ### 滚动到底部
 - 当一个盒子内部的内容增加的时候 并且超过该盒子的高度的时候 我们希望它自动滚动到底部
 
