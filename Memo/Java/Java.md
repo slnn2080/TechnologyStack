@@ -1,3 +1,85 @@
+### java学习路线
+- java基础
+  - javaweb
+    - 常用框架技术
+      - 微服务开发
+        - 分布式高级
+          - 项目实战
+
+- 这个视频下方的链接里面 有完整的学习视频 
+- https://www.bilibili.com/video/BV1Rq4y1G7WL?from=search&seid=12422859657765526209&spm_id_from=333.337.0.0
+
+- 视频的学习路线
+- https://www.bilibili.com/read/cv5216534?spm_id_from=333.788.b_636f6d6d656e74.7
+
+
+
+- 1. java基础部分
+  - 宋红康视频
+  - mysql
+  - jdbc
+
+- 2. javaweb部分
+  - https://www.bilibili.com/video/BV1Y7411K7zz
+  - 在这个部分我们需要懂如下的核心
+  - servlet
+  - filter
+  - listener
+  - cookie&session原理
+  
+
+- 3. 常用框架
+  - maven   怎么把项目搭建 架构出来 1天
+
+  - spring5
+  - https://www.bilibili.com/video/BV1Vf4y127N5 5天
+
+  - springMVC 开发网页应用的
+  - https://www.bilibili.com/video/BV1Ry4y1574R 3天
+
+  - mybaits3  操作数据库的 4天 原理扩展等视频可以跳过
+  - mybaits plus
+
+  - ssm整合
+  - https://www.bilibili.com/video/BV17W411g7zP
+
+- 4. 微服务开发
+  - linux
+  - https://www.bilibili.com/video/BV11W411T7jR
+
+  - redis6最新版
+  - redis经典版
+  - springBoot2 原理先不用听 我们要用起来后才知道原理 场景整合先不用管
+  - https://www.bilibili.com/video/BV19K4y1L7MT
+  <!-- 
+    我们在学完常用创建之后做SSM整合项目的时候会很麻烦 要写一堆配置的东西
+    springBoot2 可以帮我们完成这些配置的自动化 它是对常用框架的总结
+
+    老师推荐好好听 花上10天的时间
+   -->
+
+  - springCould 只听入门
+  - 尚筹网
+
+- 5. 分布式高级(为了面试长见识)
+  - git gitee github
+  - zookeeper
+  - docker
+  - elasticSearch
+  - 谷粒学院
+
+- 6. 项目实战
+  - 谷粒商城 大型分布式电商项目 40天
+
+--- 上面是初学者25k应该掌握的东西 ---
+
+- 1. 大数据 运维 前端了解
+- 2. docker k8s云平台熟悉
+- 3. 各种技术深入理解
+- 4. 掌握多门语言更佳
+
+----------------------------
+
 ### java版的hello world
 - 1. 将 java 代码编写到扩展名为 .java 的文件中
 - 2. 通过 javac 命令对象该文件进行编译
@@ -4912,23 +4994,29 @@
   5. 内部类
  -->
 
+
 - 2. 面向对象的三大特征
 <!-- 
   封装 继承 多态 (抽象性)
  -->
+
 
 - 3. 其它关键字
 <!-- 
   this super static final abstract interfact package import
  -->
 
+
 **扩展**
-- 何谓 面向对象 的编程思想
+> 何谓 面向对象 的编程思想
 - 首先解释一下”思想“
 - 先问你个问题 你想做个怎样的人
 - 可能你会回答 我想做个好人 孝敬父母 尊重常备 关爱朋友
 - 你看 这就是思想 这是你做人的思想 或者说 是你做人的原则
 - 做人有做人的原则 编程也有编程的原则 这些编程的原则 就是 编程思想
+
+- 编程思想：
+- 包含: 类 对象 面向对象的三大特征
 
 
 > 理解面向过程 和 面向对象
@@ -4942,10 +5030,12 @@
 
 - 面向过程： 
     强调的是功能行为 以函数为最小单位 **考虑怎么做**
+    *强调的仅仅是功能*
 
 - 面向对象：
     将功能封装进对象
     强调具备了功能的对象 以类 或者 对象为最小单位 **考虑谁来做**
+    *强调的是功能的主体*
 
 - 面向对象更加强调运用人类在日常的思维逻辑中采用的思想方法与原则
 - 如抽象 分类 继承 聚合 多态等
@@ -4996,8 +5086,36 @@
  -->
 
 
+> 面向对象中的两个概念： - 类和对象
+- 类：
+- 抽象的 概念上的内容
+
+- 对象：
+- 实实在在存在的一个个体
+- 生活中的实实在在是一个摸得到的对象
+- 代码中的实实在在是内存中有这个东西 在内存中创建了一个对象 占据了内存中的一定空间
+
+- 两者关系：
+- 对象是类的实例 是由类new出来的
+
+
+- 对象是类的实例化 通过类来实例化对象 然后通过对象调用属性和方法
+<!-- 
+  js中对象其实就是new Object得到的
+ -->
+
+- 例子: 最好举我们开发中的场景
+
+
 > 现象对象的思想概述
 - 程序员从面向过程的执行者转化成了面向对象的指挥者
+
+
+> 面向对象思想的体现
+- 类 和 对象的创建和执行操作有哪三步
+- 1. 创建类
+- 2. 类的实例化
+- 3. 通过调用对象的属性和方法
 
 
 > 面向对象分析方法 分析问题的思路和步骤
@@ -5084,6 +5202,18 @@
 - String name;
 - String name = "sam";
 
+- 非static属性都是通过实例化这个类的实例对象身上的
+- 调用实例对象方法的对象 就是 name属性所在的对象 因为这些属性都是归具体的某一个对象所有的
+
+- 每造一个对象 这些属性都会独立的有一份 抛开对象谈属性现阶段试没有意义的
+- 因为这些属性都要归到某一个对象里面
+
+- 掉调用实例对象的方法 方法中的属性就是方法所在的对象中的属性
+<!-- 
+  比如我们是通过 c1 实例对象调用的 show方法 
+  show方法中的color属性就是c1实例对象中的
+ -->
+
 
 > 类中方法的定义: public 关键字 方法名() { ... }
 - 
@@ -5091,6 +5221,19 @@
     System.out.println("人可以睡觉");
   }
 
+**注意:**
+- 方法中不可以再定义方法 方法就是一个个独立的功能 彼此都不相关的
+- 但是可以调用方法
+<!-- 
+  // 方法中再次定义方法是不行的 这点跟js不一样
+  public void test() {
+    System.out.println("test");
+    
+    public void test2() {
+      System.out.println("test2");
+    }
+  }
+ -->
 
 > 创建类的对象 = 类的实例化 = 实例化类
 > Person p1 = new Person();
@@ -5152,6 +5295,31 @@
 
 ### 对象的内存解析
 - 这节里我们看看对象在内存中的结构是什么样的
+- 内存解析是在文件运行的时候才会涉及到的东西
+
+- 内存解析网址：
+- https://www.bilibili.com/video/BV1Kb411W75N?p=197&spm_id_from=pageDriver
+
+<!-- 
+  技巧：
+    - 在画内存结构图的时候 我们直接从 main方法里面开始看 看 new Student 部分
+
+    - 这样才能着手在堆空间中画图
+
+    - 1. 声明 栈 和 堆
+    - 2. 从new Student开始看 ...
+
+    - 3. 非static属性都是在堆空间中
+    (js中非static属性都是类的实例化对象的 所以在堆空间中)
+    (js中static属性是类自己的属性)
+ -->
+
+- 流程:
+- 编译完源代码以后 生成一个或多个字节码文件 我们使用jvm中的类的加载器和解释器对生成的字节码文件进行解释运行
+<!-- 
+  运行的时候意味着我们源代码中的变量 对象会被创建 在内存中运行
+  将字节码文件对应的类加载到内存中 涉及到内存解析
+ -->
 
 > 堆heap 
 - 此内存区域的唯一目的就是**存放对象实例** 几乎所有的对象实例都在这里分配内存
@@ -5175,6 +5343,21 @@
               方法区    虚拟机栈    本地方法栈
                                               →  垃圾收集器
               堆       程序计数器
+
+
+  局部变量存储在    - 栈结构中
+  new出来的结构在   - 堆空间中
+
+  实例对象的属性在  - 堆空间中
+
+  
+  static属性会在方法区 非static会在堆空间中
+  
+  方法区： 
+    - 方法区包括
+    - 类的加载信息 常量池 静态域
+
+  <<JVM规范>> 这是一本书 内部提到了内存结构 可以扩展看看
  -->
 
 
@@ -5218,6 +5401,16 @@
                           isMale;
  -->
 
+
+ **注意：**
+- 引用类型的变量 只可能存储两类值
+- 1. 空值
+- 2. 地址值(地址值中也包含变量的类型)
+<!-- 
+  比如 我们创建了一个存放引用类型的元素的数组
+  - 数组中每一个元素的位置 不是直接存放对 象 而是存放的地址值 该地址值指向堆空间中的一个对象的实体
+ -->
+
 ----------------------------
 
 ### 类中的属性
@@ -5228,7 +5421,7 @@
 
 
 > 成员变量 和 局部变量
-\\ 不同点:
+\\ 不同点1:
 - 主要是根据声明它们的位置不同才有这样的区分
 
 - 属性:
@@ -5265,7 +5458,8 @@
 - 3. 变量都有其对应的作用域
 
 
-> 属性 - 权限修饰符(也是局部变量和属性的不同点)
+\\ 不同点2：
+> 属性 - 权限修饰符
 - 对于属性来讲 可以在声明属性时 指明其权限 使用权限修饰符
 
 - 常用的权限修饰符
@@ -5296,7 +5490,11 @@
 - 还可以理解为局部变量的权限就被方法的权限代替了 因为方法是public那么该属性的权限也是public
 
 
+\\ 不同点3: 
 > 属性 - 默认初始化值(也是局部变量和属性的不同点)
+- 对于类中的属性来讲是有默认初始化值的
+- 对于属性来讲 它是可以直接使用的 即使没有赋值(因为有初始化值)
+
 - 类的属性 根据其类型 有默认初始化值的
 - 整型:   byte short int long  --  0
 - 浮点型: float double  --  0.0
@@ -5304,10 +5502,17 @@
 - 布尔型: false
 - 引用数据类型: 类 数组 接口 都是 null
 
-**局部变量没有初始化值**
-- 这样意味着 我们在调用局部变量之前 一定要显示赋值
 
-- 特别的
+**局部变量没有初始化值**
+- 这样意味着 我们在调用局部变量之前 一定要显式赋值
+<!-- 
+  下面有一个问题 就是因为 
+  局部变量没有初始化值在使用局部变量之前一定要先赋值
+  但是
+  属性就有默认得初始化值
+ -->
+
+\\ 特别的
 - 形参在调用时 赋值即可
 - 我们声明了形参但是调用方法的时候如果没有传递实参就会报错 也就是说java中定义的形参必须要传递实参么？
 
@@ -5319,6 +5524,24 @@
 - 局部变量:
        加载到栈空间
 
+
+**回顾变量分类**
+                ↗ 基本数据类型 : 数值型(byte short int long float..)
+                               字符型(char)
+                               布尔型(boolean)
+- 1. 按照数据类型 
+                ↘ 引用数据类型 : 类 接口 数组
+
+          
+- 2. 在类中声明的位置 
+                   ↗ 实例变量(不以static修饰)
+        ↗ *成员变量*  
+                   ↘ 类变量(以static修饰)
+所有变量
+                   ↗ 形参(方法 构造器中定义的变量)
+        ↘ *局部变量* →  方法局部变量(在方法内定义)
+                   ↘ 代码块局部变量(在代码块内定义)
+ 
 ----------------------------
 
 ### 类中的方法
@@ -5332,6 +5555,7 @@
 
 > 方法的作用
 - 用来描述类应该具有的功能
+- 方法就是功能 将功能封装到方法中
 
 
 > 方法的声明
@@ -5528,9 +5752,1003 @@
   一个类调用另一个类的时候吧 要不平时会报错呀
  -->
 
+> 解析上面的问题： 
+- 我们在创建数组的时候 int[] arr = new int[6]
+- 我们这样是创建了一个int型的动态的数组对象 这时候里面元素虽然没有值 但是有默认值
+- 我们可以之后再给动态数组中的元素进行赋值操作
+
+- 类的创建也是一样 都是引用类型的数据 
+- class Student {
+    int age;
+  }
+
+- 我们在类中定义了 非static属性 我们可以在实例化对象之后 通过实例对象给age进行赋值
+
+- 这时候跟动态数组一样 虽然我们age是没有值的但是它有默认值 int型的默认值为0
+- 所以可以直接计算 也有一个结果
+
 
 > 练习2:
 - 利用面向对象的编程方法 设计类Circle计算圆的面积
+<!-- 
+  public class Demo {
+    public static void main(String[] agrs) {
+
+      Circle c1 = new Circle();
+
+      c1.radius = 10.0;   // 可以先赋值
+
+      System.out.println(c1.area()); 
+          // 到这步的时候直接输出 会是 0.0
+          // 因为radius定义了 并没有赋值 默认值为0
+
+    }
+  }
+
+
+  class Circle {
+    // 属性  半径作为属性比较好 下面的方法中不要定义形参
+    double radius;
+
+    // 求圆的面积
+    public double area() {
+      return Math.PI * radius * radius;
+    }
+  }
+ -->
+
+
+> 练习3
+- 1. 编写程序 声明一个method方法 在方法中打印一个10 * 8的*矩形 在main方法中调用该方法
+
+- 2. 修改上一个程序 在method方法中 除打印一个10 * 8的*型矩形外 再计算该矩形的面积 并将其作为方法返回值 在main方法中调用该方法 接收返回的面积值并打印
+
+- 3. 修改上一个程序 在method方法提供m 和n两个参数 方法中打印一个m * n的 *型矩形 并计算该矩形的面积 将其作为方法返回值 在main方法中调用该方法 接收返回的面积值并打印
+
+<!-- 
+  // 1
+  public class Demo {
+    public static void main(String[] agrs) {
+      Demo d1 = new Demo();
+      d1.method();
+    }
+
+    
+    public void method() {
+      for(int i=0; i<10; i++) {
+        for(int j=0; j<8; j++) {
+          System.out.print("*");
+        }
+        System.out.println();
+      }
+    }
+  }
+ -->
+
+**要点:**
+- 在上面我们写类的时候 都是一个public类和一个对象类 然后我们在public类中通过创建对象类的实例的形式 调用对象类中的方法和属性
+<!-- 
+  // public类
+  public class Demo { ... }
+
+  // Test对象类
+  class Test { ... }
+
+  ------
+
+  public class Demo {
+    Test t1 = new Test();
+    ... 
+  }
+ -->
+
+- 在上面的例子1中 我们在public类中 定义了除了main方法外的 一个method方法
+- 但是在main方法中调用method方法的时候 我们在main方法中实例化了public类 创建了实例对象 通过实例对象调用的method方法
+<!-- 
+  public class Demo {
+    public static void main(String[] args) {
+
+      // 实例化 Demo public类对象
+      Demo d1 = new Demo();
+      d1.method();
+    }
+
+    // 在同一个public类中创建了另一个method方法
+    public void method() { ... }
+  }
+ -->
+
+
+- 2. 
+<!-- 
+  public class Demo {
+    public static void main(String[] agrs) {
+      Demo d1 = new Demo();
+      int res = d1.method();
+      System.out.println(res);
+    }
+
+    public int method() {
+      for(int i=0; i<10; i++) {
+        for(int j=0; j<8; j++) {
+          System.out.print("* ");
+        }
+        System.out.println();
+      }
+      return 10 * 8;
+    }
+  }
+ -->
+
+- 3. 要点是定义属性也好 还是形参也好 我们都要先确认类型
+<!-- 
+  public class Demo {
+    public static void main(String[] agrs) {
+      Demo d1 = new Demo();
+      int res = d1.method(8, 8);
+      System.out.println(res);
+    }
+
+    public int method(int m, int n) {
+      for(int i=0; i<m; i++) {
+        for(int j=0; j<n; j++) {
+          System.out.print("* ");
+        }
+        System.out.println();
+      }
+      return m * n;
+    }
+  }
+ -->
+
+
+> 练习4
+- 定义类Student 包含3个属性 学号number int； 年级state int； 成绩score int； 
+- 创建20个学生对象 学号1到20 年级和成绩都由随机数确定
+
+- 问题1 打印出3年级state值为3的学生信息
+- 问题2 使用冒泡排序按学生成绩排序 并遍历所有学生信息
+
+- 提示
+- 1. 生成随机数 math.random 返回值类型double
+- 2. 四舍五入取整 math.round(double d) 返回值类型为long
+<!-- 
+
+  // 卡壳的地方 
+  - 既然创建20个学生对象 那么肯定要用到循环 但是用js的想法 发现写不下去了
+
+  - for(int i=0; i<20; i++) {
+        Student 属性名没办法依次指定 = new Student();
+    }
+
+  - 解决方法
+  - 在java中 我们可以创建 动态对象数组
+  - 我们class Student这个类也是一个对象 因为数组的元素包括任何自定义类型 自然也包括我们自定义的class类
+
+  - 上面我们创建字符串类型的数组是这样 String[] str = new String[10]
+  - 现在我们创建 类对象(js中的class类在java中好像就是对象)
+
+  - Student[] studs = new Student[20]
+
+      // 这里我们先是创建了一个数组 是什么型的数组呢？
+      也就是说数组的元素是什么类型的呢？ 是Student类的一个个对象
+      数组本身是引用数据类型的 数据的元素既可以是基本数据类型 又可以是引用数据类型
+      这里元素是引用类型 只不过是我们自定义的Student类
+      我们的数组中每一项是一个Student类型的
+
+
+
+  - 然后我们依然往里输入值
+
+  public class Demo {
+  
+    public static void main(String[] args) {
+      // 声明一个 Student类型 的数组
+      Student[] studs = new Student[20];
+
+
+      for(int i=0; i<studs.length; i++) {
+        studs[i] = new Student();
+      }
+    }
+
+  }
+
+  class Student {
+    int number;
+    int state;
+    int score;
+  }
+ -->
+
+
+- 更新上面下一阶段的代码
+- 上面说了 我们可以创建动态数组 然后利用循环依次向数组中的元素中追加值
+
+- 然后我们想打印输出下 看看这个类对象数组中都有什么
+- 方式1:
+- 循环遍历加拼接: 
+- System.out.println(studs[i].number + ", " + studs[i].state + ", " + studs[i].score);
+
+- 方式2:
+- 既然数组中每一个元素都是一个类对象 那类中就能有自己的方法 studs[i] 就是每一个对象 那么studs[i]就能调用自己的方法
+- 在Student类中创建一个方法
+- public String info() {
+    return "学号: " + number + ", 班级: " + state + ", 成绩: " + score; 
+  }
+<!-- 
+  package src.com;
+
+  public class Demo {
+    
+    public static void main(String[] args) {
+      Student[] studs = new Student[20];
+
+      for(int i=0; i<studs.length; i++) {
+
+        studs[i] = new Student();
+
+        // 给stud对象的属性赋值
+        studs[i].number = i + 1;
+        // Math.random() * (6-1+1) + 1 是一个double类型的值 该值不能赋值给int
+        studs[i].state = (int)(Math.random() * (6-1+1) + 1);
+        studs[i].score = (int)(Math.random() * (100-0+1));
+      }
+
+      // 遍历学生数组
+      for(int i=0; i<studs.length; i++) {
+        // 这样会输出地址值
+        // System.out.println(studs[i]);
+        // System.out.println(studs[i].number + ", " + studs[i].state + ", " + studs[i].score);
+        System.out.println(studs[i].info());
+      }
+    }
+  }
+
+  class Student {
+    int number;
+    int state;
+    int score;
+
+    // 显示学生信息的方法
+    public String info() {
+      return "学号: " + number + ", 班级: " + state + ", 成绩: " + score; 
+    }
+  }
+ -->
+
+- 更新一下最新阶段的代码
+- 要点：
+- 在给对象做冒泡排序的时候 我们判断的是对象中的属性 但是交换的是对象本身
+- 在定义中转变量的时候 我们对象的类型就是new Student的类型
+<!-- 
+  package src.com;
+
+  public class Demo {
+    
+    public static void main(String[] args) {
+      Student[] studs = new Student[20];
+
+      for(int i=0; i<studs.length; i++) {
+        studs[i] = new Student();
+
+        studs[i].number = i + 1;
+        studs[i].state = (int)(Math.random() * (6-1+1) + 1);
+        studs[i].score = (int)(Math.random() * (100-0+1));
+      }
+
+      // 遍历学生数组
+      for(int i=0; i<studs.length; i++) {
+        if(studs[i].state == 3) {
+          System.out.println(studs[i].info());
+        }
+      }
+      System.out.println("**********************");
+
+      // 使用冒泡排序按学生成绩排序 并遍历出所有学生信息
+      for(int i=0; i<studs.length-1; i++) {
+        for(int j=0; j<studs.length - 1 - i; j++) {
+          if(studs[j].score > studs[j+1].score) {
+
+            // 我们交换的不是成绩 而是学生对象的顺序 
+            注意这里我们定义变量的类型 因为我们交换的是对象 
+            每一个对象都是new Student出来的 
+            所以每一个对象的类型都是Student
+
+            Student temp = studs[j];    // 注意
+
+            studs[j] = studs[j+1];
+            studs[j+1] = temp;
+          }
+        }
+      }
+
+      // 遍历查看下结果
+      for(int i=0; i<studs.length; i++) {
+        System.out.println(studs[i].info());
+      }
+    }
+  }
+
+  class Student {
+    int number;
+    int state;
+    int score;
+
+    // 显示学生信息的方法
+    public String info() {
+      return "学号: " + number + ", 班级: " + state + ", 成绩: " + score; 
+    }
+  }
+ -->
+
+> 对上优化
+- 上面我们对数组的遍历 冒泡排序 以及输出指定班级学生信息 都写在了main方法中并没有封装成一个个的方法
+
+- 接下来我们将操作数组的功能封装到一个个的方法中
+
+- 要点：
+- 我们在main方法中调用这个类的其它方法时 
+- 现阶段需要先根据当前类 先new一个对象 通过实例对象调用除了main方法以外的其它方法
+<!-- 
+  package src.com;
+
+  public class Demo {
+    
+    public static void main(String[] args) {
+      // 声明一个 Student类型 的数组
+      Student[] studs = new Student[20];
+
+      for(int i=0; i<studs.length; i++) {
+        studs[i] = new Student();
+
+        // 给stud对象的属性赋值
+        studs[i].number = i + 1;
+        // Math.random() * (6-1+1) + 1 是一个double类型的值 该值不能赋值给int
+        studs[i].state = (int)(Math.random() * (6-1+1) + 1);
+        studs[i].score = (int)(Math.random() * (100-0+1));
+      }
+
+      // 我们在main方法中调用这个类的其它方法时 现阶段需要先根据当前类 先new一个对象 通过实例对象调用除了main方法以外的其它方法
+      Demo d1 = new Demo();
+      d1.searchState(studs, 3);
+      System.out.println("****************");
+      d1.sort(studs);
+      d1.showInfo(studs);
+
+    }
+
+    // 遍历Student[]数组的方法
+    // 参数： 我们要遍历哪个对象数组
+    public void showInfo(Student[] studs) {
+      for(int i=0; i<studs.length; i++) {
+        System.out.println(studs[i].info());
+      }
+    }
+
+    /**
+    * @Description 查找Student数组中指定年级的学生
+    * @author Sam
+    * @param studs 要查找的数组
+    * @param state 指定的年级
+    */
+    public void searchState(Student[] studs, int state) {
+      for(int i=0; i<studs.length; i++) {
+        if(studs[i].state == state) {
+          System.out.println(studs[i].info());
+        }
+      }
+    }
+
+    /**
+    * @Description 给指定数组进行排序
+    * @param studs 给定数组
+    */
+    public void sort(Student[] studs) {
+      for(int i=0; i<studs.length-1; i++) {
+        for(int j=0; j<studs.length - 1 - i; j++) {
+          if(studs[j].score > studs[j+1].score) {
+            Student temp = studs[j];
+            studs[j] = studs[j+1];
+            studs[j+1] = temp;
+          }
+        }
+      }
+    }
+  }
+
+  class Student {
+    int number;
+    int state;
+    int score;
+
+    // 显示学生信息的方法
+    public String info() {
+      return "学号: " + number + ", 班级: " + state + ", 成绩: " + score; 
+    }
+  }
+ -->
+
+- 这样整个代码会看起来干净一些 因为main方法中调用的是一个个的功能
+
+
+
+> 练习5
+- 声明一个日期类型MyDate 有属性 年 月 日 创建2个日期对象 分别赋值为 你的出生日期 你对象的出生日期 并显示信息
+<!-- 
+  这个看看资料
+ -->
+
+
+> 练习6
+- 面向对象的方法 -- 自定义数组的工具类
+- 1. 创建一个 数组工具类的java文件
+<!-- 
+  package src.com;
+
+  /**
+  * 自定义数组的工具类
+  */
+  public class ArrayUtils {
+
+    // 最大值
+    public int getMax(int[] arr) {
+      return 0;
+    }
+
+
+    // 最小值
+    public int getMin(int[] arr) {
+      return 0;
+    }
+
+    // 总和
+    public int getSum(int[] arr) {
+      return 0;
+    }
+
+    // 平均值
+    public int getAvg(int[] arr) {
+      return 0;
+    }
+
+    // 反转数组
+    public void reverse(int[] arr) { }
+
+    // 复制数组 需要返回值 返回值为新的数组 方法返回值的类型 int[]
+    public int[] copy(int[] arr) {
+      return null;
+    }
+
+    // 数组排序
+    public void sort(int[] arr) { }
+
+    // 遍历数组
+    public void print(int[] arr) { }
+
+    // 查找指定元素
+    public int getIndex(int[] arr, int index) {
+      return 0;
+    }
+  }
+ -->
+
+- 2. 在测试类中实例化工具类对象 通过对象调用具体的方法
+
+**要点:**
+- 返回值为数组: return null;
+- 因为数组是引用类型 所以我们返回值可以设置为null
+
+- 方法的返回值为int[]数组
+- public int[] copy(int[] arr) { ... }
+
+----------------------------
+
+### 什么叫做万物皆对象
+- 1. 在java语言范畴中 我们都将功能和结构封装到具体的类当中 同过类去实例化对象 通过实例对象去调用功能
+
+- 2. 涉及到java语言与前端html 后端数据库交互时 前后端的结构在java层面交互时 都体现为类 和 对象
+<!-- 
+  java擅长做后台 后台需要跟前端进行交互 比如前端发情况 后台返数据
+  前端发送的请求 后台接收的时候 都会看做一个个类的对象
+
+  <></> 比如这一对标签 在java端进行调用的时候 就会体现为某一个类的对象
+
+  ------
+
+  java还会跟数据库进行交互 数据库中有一个个的表
+  表在数据库中也是一个个的数据库对象
+  这个表是如何跟java交互的呢？
+
+  java中比如有一个Costom类 数据库中有一个Costom表
+  java中就会用这个类去对应这个表
+
+  我们让表中的一条记录对应java类中的一个对象
+  表中纵向的一个结构对应java类中对象中的一个属性
+
+  ------
+ -->
+
+- 也就是说不管前端还是数据库跟java进行交互的时候 在java里都会体现成一个对象
+
+
+----------------------------
+
+### 匿名对象
+- 我们new类的时候没有创建变量来接收对象 也就是没有显示的赋给一个变量名 其为匿名对象
+<!-- 
+  Phone p = new Phone();
+      // 这就是有名的实例对象 名为p
+
+  new Phone();
+      // 这就是 匿名对象
+ -->
+
+> 匿名对象的特征
+- 只能调用一次(再想调用就是另外一个对象了)
+<!-- 
+  new Phone().price = 1999;
+  new Phone().showPrice();
+      // 这两个调用 调用的不是同一对象方法 因为每new一次就是造了一个对象
+ -->
+
+- 使用场景举例:
+- 当参数传递到形参中
+
+----------------------------
+
+### 面向对象 - 方法: 
+- 接下来我们再看看方法的相关知识点
+- 1. 方法的重载
+- 2. 可变形参的方法
+- 3. 方法参数的值传递机制 (重要)
+- 4. 递归方法 (理解)
+
+
+> 1. 方法的重载(overload)
+- 在java中同一个类中 允许存在一个以上的同名方法，这些方法之间的关系 我们称之为重载的关系
+- 要求它们的*参数个数*或者*参数类型*不同即可
+<!-- 
+  比如Arrays工具类中 有很多同名的方法 方法名相同 参数参数不同
+  binarySearch(参数种类1)
+  binarySearch(参数种类2)
+  binarySearch(参数种类3)
+ -->
+
+
+> 为什么要造这么多同名的方法?
+- 我们在起方法名的时候都要求见名知意，比如排序我们会起名字为sort
+- 但是我们可能对byte类型的数组排序 也可能对int类型的数组排序 对不同类型的数组排序就需要提供不同的方法 但是sort方法名更加的直观 那我们就起个一样的方法名
+- 但是参数列表不一样
+<!-- 
+  比如我们上面创建的数组的工具类 反转数组
+  public void reverse(int[] arr) { ... }
+  public void reverse(String[] arr) { ... }
+
+  上面的两个方法都是reverse但是参数列表不一样 它们之间就是方法的重载
+ -->
+
+- 那调用的时候 调用的是哪个？
+- 调用的时候取决于我们参数的类型 它就会调用对应的方法
+
+
+> 方法重载的特点
+- 与返回值类型无关
+- 只看参数列表 且参数列表必须不同(参数个数或参数类型)
+- 调用时 根据方法参数列表的不同来区别
+
+
+> 技巧: 两同一不同
+- 满足下面条件的就叫做方法的重载
+- 1. 同一个类 同一个方法名
+- 2. 参数列表不同
+    - 参数个数不同
+    - 参数类型不同
+<!-- 
+  // 参数个数不同
+  public void getSum(int[] i) { ... }
+  public void getSum(int[] i, int[] j) { ... }
+
+  // 参数类型不同
+  public void getSum(int[] i) { ... }
+  public void getSum(double[] i) { ... }
+
+  // 参数列表的顺序不同也算方法的重载
+  public void getSum(String[] i, int[] j) { ... }
+  public void getSum(int[] j, String[] i) { ... }
+ -->
+
+
+**注意:**
+- 形参名无所谓的 主要看的是参数列表的类型
+<!-- 
+  // 这样就不算重载 因为都是参数列表的两个参数的类型都一样 参数名其实无所谓
+  public void getSum(int[] i, int[] j) { ... }
+  public void getSum(int[] j, int[] i) { ... }
+ -->
+
+- 跟方法返回值的类型也没有关系
+<!-- 
+  // 虽然方法返回值的类型不一样 但是并不是方法的重载
+  public void getSum(int[] i, int[] j) { ... }
+  public int getSum(int[] i, int[] j) { ... }
+ -->
+
+- 跟方法的权限修饰符也没有关系
+<!-- 
+  public void getSum(int[] i, int[] j) { ... }
+  private void getSum(int[] i, int[] j) { ... }
+ -->
+
+- 总结:
+- 跟方法的权限修饰符 返回值类型 形参变量名 方法体都没有关系
+
+
+> 调用时候的注意点
+> 调用方法时传入参数的类型
+- 创建重载方法1 int int
+- 创建重载方法2 double double
+
+- 当我们调用的时候 传入的实参如果是int int 那么调用的肯定是 方法1
+- 当我们将方法1注释掉 会报错么？ 不会
+- 我们传递的实参int会自动提升到 double double 也就是会匹配到 方法2
+
+----------------------------
+
+### 2. 可变个数的形参:
+- javaSE5.0中提供了Varargs机制 允许直接定义能和多个实参相匹配的形参
+- 从而可以用一种更简单的方式 来传递个数可变的实参
+<!-- 
+  jdk5.0以前:
+  - 采用数组形参定义方法 传入多个同一类型变量
+  public static void test(int a, String[] books) { }
+
+  jdk5.0:
+  - 采用可变个数形参来定义方法 传入多个同一类型变量
+  public static void test(int a, String ... books) { }
+ -->
+
+
+> 可变个数形参的方法
+- 它是jdk5.0以后的新特性
+
+
+> 具体使用:
+> 可变个数形参格式
+- 数据类型... 形参变量名
+
+- 当调用可变个数形参的方法时 传入的参数个数可以是0个 1个 n个
+- 既然是可变个 那就说明我们在传递实参的时候可以是0个 1个 n个
+- 跟js中的...args差不多
+<!-- 
+  // 我们肯定见过这么写 String[] strs 一样的 
+  可变个数的形参String... strs
+
+  public void show(String... strs) {
+    System.out.println(3 + "String... strs");
+  }
+
+  调用:
+  d.show("hello", "world");
+ -->
+
+- 要求:
+- 我们传入的实参类型必须是 指定类型的
+<!-- 
+  (String... strs)  我们传递的参数类型必须都是String
+ -->
+
+- 特点:
+- 可变个数形参的方法与本类中方法名相同 形参不同的方法之间构成重载
+
+
+> 可变形参的2种写法(jdk5.0之前之后)
+- 下面的两种写法不构成重载 它们二者不能共存
+<!-- 
+  // 编译器认为下面的两种方法都是在定义可变个数的形参方法
+  public void show(String... strs) { }
+  public void show(String[] strs) { }
+ -->
+
+
+> 方法1 jdk5.0之前
+- 现在也可以使用 但是传入实参 和 方法内部使用数组中的参数的时候有一些麻烦
+- public void show(String[] strs) { }
+
+- 调用:
+- 我们在调用方法传入实参的时候 需要传入一个数组
+- test.show(new String[] {"hello", "world"})
+
+- 方法内使用形参:
+- 通过遍历的方式获取实参数组中的元素
+<!-- 
+  for(int i=0; i<strs.length; i++) { ... }
+ -->
+
+
+ > 方法2 jdk5.0之后
+ - 可变个数形参 String... strs
+ - public void show(String... strs) { }
+
+- 调用:
+- 跟js中的 ...args 一样 我们在传入实参的时候 直接写就可以
+- test.show("hello", "world")
+
+- 方法内使用形参:
+- 通过遍历的方式获取实参数组中的元素 (String... strs) 就相当于是一个数组
+
+
+> 可变个数形参 只能声明在末尾且只能写一个可变个数形参结构
+- 跟js的...args一样
+- public void show(int a, String... strs) { }
+  
+----------------------------
+
+### 3. 方法参数的值传递机制
+
+> 回顾: 关于变量的赋值
+- 对于基本数据类型来讲 int n = m 实际上就是将m存的数据给了n 
+- 这时候内存中 10 是有两份的
+<!-- 
+  // 基本数据类型的举例
+  public static void main(String[] args) {
+    
+    int m = 10;
+    int n = m;
+    System.out.println("m = " + m + ", n: " + n);
+
+    // 当我们把n改为20的时候 m是多少 因为是值传递 所以不会影响到 m
+    n = 20;
+    System.out.println("m = " + m + ", n: " + n);
+  }
+
+  栈: 因为是局部变量
+
+  ----------
+  n: 10  ->  n: 20
+  m: 10
+  ----------
+ -->
+
+
+- js中我们创建对象的方式:
+- 1. let obj = new Object();
+- 2. let obj = {name: "sam"}
+- 有上述的两种方式创建一个普通的对象
+
+- java中是面向对象的编程方式 在创建对象的时候就是创建一个类 添加属性 就是在类的内部添加成员属性 添加方法就是在类的内部添加成员方法
+- class Order { orderId: 1001 }
+- Order o = new Order();
+<!-- 
+  // 引用数据类型的举例
+  public class Demo {
+
+    public static void main(String[] args) {
+      
+      Order o1 = new Order();
+      o1.orderId = 1001;
+
+      // 引用数据类型的时候 我们传递的是地址值 这样 o1 o2 都指向了同一个对象实体
+      Order o2 = o1;
+      System.out.println("o1.orderId = " + o1.orderId + ", o2.orderId: " + o2.orderId);
+
+      // 因为指向了同一个对象实体 所以通过一个对象修改属性会影响到另一个对象
+      o2.orderId = 1002;
+      System.out.println("o1.orderId = " + o1.orderId + ", o2.orderId: " + o2.orderId);
+    }
+  }
+
+  // 创建一个对象(java中就是创建一个类)
+  class Order {
+    int orderId;
+  }
+ -->
+
+> 变量是基本数据类型:
+- 此时赋值的是变量所保存的数据值。
+
+> 变量是引用数据类型
+- 此时赋值的是变量所保存的数据的地址值。
+
+------
+
+> 方法形参的传递机制 -- 值传递
+- 其实和上面的规律是一样 我们从形参的角度看看怎么去理解
+
+> 形参
+- 方法定义时 声明的小括号内的参数
+
+> 实参
+- 方法调用时 实际传递给形参的数据
+
+
+> java的实参值如何传入方法呢？
+- java里方法的参数传递方式只有一种： *值传递*
+- 即将实际参数值的副本(复制品)传入方法内 而参数本身不受影响
+
+- 形参是基本数据类型:
+  实参传递给形参的就是 实参真实存储的数据值(copy)
+  *可能就会导致方法内有一份 方法外有一份 两份数据互不干扰 造成方法内爱怎么玩怎么玩不会对方法外的数据造成影响*
+<!-- 
+  这里我们说个例子
+  我们交换两个变量的位置的时候 会写这样的逻辑 
+
+      int temp = m;
+      m = n;
+      n = temp;
+
+  因为交换两个变量的位置在很多地方都会使用我们能不能将其封装成一个方法?
+  然后在合适的位置进行调用
+      public void swap(int m, int n) {
+        int temp = m;
+        m = n;
+        n = temp;
+      }
+
+  
+  结果发现不行 我们输出的结果还是未交换之前的
+  int m = 10;
+  int n = 20;
+  System.out.println("m: " + m + ", n: " + n);   // m:10 n: 20
+
+  // 调用了方法变量也没有交换
+  swap(m, n);
+  System.out.println("m: " + m + ", n: " + n);   // m:10 n: 20
+
+
+  // 原因:
+  - 当数据为普通数据类型的时候我们传递到形参中的仅是数据
+  - 我们调用swap方法交换的方法内部的两个形参局部变量的值
+
+
+  // 我们看看内存解析
+  - 1. 所有main方法中 定义了 int m = 10， int n = 20
+       那我们就在栈中创建两个变量
+
+  栈
+  ------
+  m:10  main方法中定义的
+  n:20  main方法中定义的
+
+  - 2. 调用 swap(m, n)
+  接下来我们调用了swap方法将上面m n的值copy给形参m n
+  因为形参也是局部变量所以还要在栈中再次创建 m n
+
+  m: 10 swap方法中形参m
+  n: 20 swap方法中形参n
+
+  temp  swap方法中的局部变量
+
+  也就是说我们调用swap后 是将swap方法里面的形参 m n 变量交换了位置
+
+
+  当swap方法执行完毕后 swap内部的形参会被销毁出栈 我们再打印m n的时候打印的是main方法放到栈中的m n
+-->
+
+- 形参是引用数据类型: 
+  将实参引用数据类型变量的 "地址值"传递给形参
+<!-- 
+  package src.com;
+  public class Demo {
+
+    public static void main(String[] args) {
+
+      // 3. 将Data类实例化对象
+      Data data = new Data();
+      data.m = 10;
+      data.n = 20;
+      System.out.println("data.m: " + data.m + ", data.n: " + data.n);
+      
+      // 4. 实例化Demo类调用swap方法
+      Demo d = new Demo();
+      d.swap(data);
+      System.out.println("data.m: " + data.m + ", data.n: " + data.n);
+    }
+
+    // 2. 交换两个变量值的方法 参数为Data类 类型
+    public void swap(Data data) {
+      int temp = data.m;
+      data.m = data.n;
+      data.n = temp;
+    }
+  }
+
+  // 1. 我们要创建一个对象
+  class Data {
+    int m;
+    int n;
+  }
+
+  因为基本数据类型的时候 我们传递到形参的值为copy的原始值
+  我们现在形参的位置是一个对象 它跟形参保存的都是地址值 都指向堆空间中的一个对象实体
+
+  栈                   堆
+  ------              ------
+  data: 0x7788 形参
+
+  data: 0x7788 main中new Data
+
+                      0x7788
+
+                      m: 0  - 10
+                      n: 0  - 20
+
+  然后我们调用 swap(data) 将data传递进去 data是引用数据类型
+  保存的是地址值 0x7788
+
+  现在通过地址值都指向堆空间中的数据m n 所以交换的也是堆空间中的m n
+ -->
+
+
+<!-- 
+  // 这是一个封装好的排序方法
+  public void sort(int[] arr) {
+    for(int i=0; i<arr.length-1; i++) {
+      for(int j=0; j<arr.length - 1 - i; j++) {
+        if(arr[j] > arr[j+1]) {
+          
+          // 我们把这个部分逻辑也封装成一个方法
+          int temp = arr[j];
+          arr[j] = arr[j+1];
+          arr[j+1] = temp
+
+          // 如果这么传递值的话 还是会跟上面的情况一样 
+          我们把arr[j], arr[j+1]对应的值copy给了形参 它们还是会在方法内部自己干自己的
+          swap(arr[j], arr[j+1])
+
+
+          // 正确的方法
+          swap(arr, j, j+1)
+        } 
+      }
+    }
+  } 
+
+  // 这里我们也是将 交换两个变量 的逻辑封装成了一个方法
+  在形参为基本数据类型的时候 我们使用swap方法未成功 那在这里可以么？
+
+
+  // 这样定义形参传递进来的值是基本数据类型 所以不行
+  public void swap(int i, int j) {
+    int temp = i;
+    i = j;
+    j = temp
+  }
+
+  // 我们把引用类型的数组传递进来 这里的int i j不是元素 而是索引位置
+  public void swap(int[] arr, int i, int j) {
+    int temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp
+  }
+  
+ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5759,6 +6977,10 @@ export CLASSPATH
 - 对于不同的平台 有不同的虚拟机
 - 只有某平台踢动了对应的java虚拟机 java程序才可以在此平台运行
 - java虚拟机机制屏蔽了底层运行平台的差别 实现了 一次编译 到处运行
+
+- 我们写的源代码进经过编译后形成字节码文件
+- 我们在画内存图的时候说变量放在栈还是堆 指的是运行的时候
+- 编译源代码后还是一个硬盘上的文件 在运行这个文件的时候 才会执行里面的代码创建类 属性 变量 对象等 这时候我们才会根据代码里面的内容 分配内存空间
 
 
 ### 人机交互方式

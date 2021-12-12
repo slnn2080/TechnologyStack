@@ -16064,6 +16064,17 @@ footer    footer    footer
 
 
 
+> template v-for key值的解决方法
+- 当需要遍历多个元素一个结构的时候 我们可以考虑使用 template 但是就会产生key值的问题
+- key值必须加在真实的结构上 所以会报错
+<dl class="m-txt__normal--bold p-campaign-winner--info-text">
+  <template v-for="(item, index) of campaignData">
+    <dt :key="'dt' + index">{{item.title}}</dt>
+    <dd :key="'dd' + index" v-html="item.content"></dd>
+  </template>
+</dl>
+
+
 
 ### webpack 和 模块化 相关
 --------------------------

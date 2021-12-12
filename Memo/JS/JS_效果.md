@@ -131,13 +131,16 @@ ul.addEventListener('touchend', function(e){
         <img src="./images/4.jpg" alt="">
         <!-- 图片里的遮罩层 >
         <div class="mask"></div>
+
         <!-- 这个显示的盒子也是img-box里面的, 让它绝对定位定到一个位置, 这样鼠标移入的时候显示 >
         <div class='show-box'>
+        
             <!-- 这里面放一张比左图还要大的图片 这里我缩放了120%;>
             <img src="./images/4.jpg" alt="">
         </div>
     </div>
  -->
+
 > js部分
 - 解析:
 - 整个案例可以分为3个功能模块

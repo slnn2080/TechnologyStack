@@ -1,5 +1,24 @@
 ### Js技巧
 
+### null和undefined 是否相等
+
+    console.log(null==undefined)
+    //true
+
+    console.log(null===undefined)
+    //false
+
+- 观察可以发现：null和undefined 两者相等，但是当两者做全等比较时，两者又不等。
+
+- 原因：
+- null： 
+- Null类型，代表“空值”，代表一个空对象指针，使用typeof运算得到 “object”，所以你可以认为它是一个特殊的对象值。
+
+- undefined： 
+- Undefined类型，当一个声明了一个变量未初始化时，得到的就是undefined。
+
+实际上，undefined值是派生自null值的，ECMAScript标准规定对二者进行相等性测试要返回true
+
 
 ### 随机生成字符串
 <!-- 
