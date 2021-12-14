@@ -7082,6 +7082,17 @@
 - 1. 私有化属性(上面的例子)
 - 2. 不对外暴露的私有的方法
 - 3. 单例模式 ...
+<!-- 
+  单例模式是指将构造器私有化 构造器是用来造对象的
+  如果将构造器私有化了就意味着外面就不能随意调用构造器了 
+
+  单例模式就是单独的一个实例
+ -->
+
+- 4. 如果不希望类在包外被调用 可以将类设置为缺省的
+<!-- 
+  只要是使用了4种权限修饰符的 都是封装性的体现
+ -->
 
 
 > 四种权限修饰的理解
@@ -7357,6 +7368,7 @@
 **注意**
 - 一旦我们显式的定义了类的构造器之后 系统就不在提供默认得空参构造器
 - 一个类中至少有一个构造器（不是默认的 就是我们显式定义的）
+- 构造器中没有返回值
 
 
 > 练习:
@@ -7594,7 +7606,7 @@
     this.name = name;
   }
  -->
- 
+
 - 2. this理解为当前对象 也可以理解为实例化后的对象
 <!-- 
   public void setName(String name) {
@@ -7624,7 +7636,816 @@
 **思考:**
 - 跟js差不太多
 
+
+> this 调用构造器  -- this(形参列表)
+- 要点:
+- 1. 我们在类的构造器中 可以显式的使用 'this(形参列表)' 方式 调用本类中指定的其他构造器
+<!-- 
+  情景:
+    - 很多情况下 我们在对类进行初始化的时候 我会执行一些默认得逻辑
+    - 比如属性的赋值 和 初始化节点等 这时候我们就会在构造器中执行很多的逻辑
+
+    - Java中一个类中可以声明多个构造器(构造器的重载主要以形参列表来区分)
+    - 所以当对象实例化 new Person(形参列表) 指定构造器的时候 都需要初始化一段逻辑
+
+    - 所以就会要求 类中的每一个构造器中都要有 初始化的逻辑 但相同的代码都写在多个构造器里面的话 会造成代码的冗余
+
+    - 解决方式1：
+        在类中定义方法 然后在构造器中调用方法
+
+    - 解决方式2
+        在类中调用写好逻辑的其它构造器
+
+  // 比如我们当前有一个Person类
+  class Person {
+
+    // 属性
+    private String name;
+    private int age;
+
+    // 空参构造器
+    public Person() {
+      String info = "Person在初始化时 需要考虑如下的 1 2 3 4 ... (共40行代码)";
+
+      System.out.println(info);
+    }
+    
+    public Person(int age) {
+
+      // 调用空参构造器
+      this();
+      this.age = age;
+    }
+
+    // 这是有参数的构造器
+    public Person(String name, int age) {
+
+      // 根据形参类型调用指定的构造器 调用上面的构造器
+      this(age);
+
+    }
+  }
+ -->
+
+- 2. 构造器中不能通过 this(形参列表) 调用自己(只能调用其它的构造器) 
+<!-- 
+  构造器调用的时候不管 内部连续调用了几个构造器 创建的对象只是一个
+  只是借用了其它构造器内部的逻辑而已
+ -->
+
+- 3. 如果一个类中有n个构造器 则最多有n - 1个构造器可以使用 this(形参列表)
+<!-- 
+           →
+      ↗         ↘
+    构造器1    构造器2      构造器3      构造器4
+      ↖         ↙
+           ←
+
+  构造器1 能调用 构造器2 但是构造器2 不能再调用构造器1 不能成为一个环
+  这样就是死循环
+
+  构造器1能调用构造器2 构造器2能调用构造器3 构造器3能够调用构造器4
+  但是 构造器4不能调用其它的任何的构造器 调用谁都是死循环
+
+  所以一个类中有n个构造器 则最多有n - 1个构造器可以使用 this(形参列表)
+ -->
+
+- 4. 规定: this(形参列表) 必须声明在当前构造器的首行
+<!-- 
+  类似supper的写法 先指明要调用哪个构造器 然后再写自己的逻辑 
+-->
+
+- 5. 构造器内部最多只能声明一个 this(形参列表) 这种方式 用于调用其它的构造器
+
+- 应用场景:
+- 当A构造器中已经有现成的逻辑的时候 就不要在B构造器中再次的书写 可以使用 this()的方式调用A构造器
+
+
+> 练习:
+- 记入要点:
+- 1. 
+<!-- 
+  // 当前属于 Girl 类中的方法 该方法需要传入 Boy类的对象
+  public void marry(Boy boy) {
+    System.out.println("我想嫁给" + boy.getName());
+
+    // 传入Boy类的实例对象后 调用Boy类的marry方法 传入girl对象
+    boy.marry(this)
+
+    - 这里我们传入 this this就是当前的对象 谁调用这个方法当前对象就是谁
+    - 既然boy.marry需要传入girl对象 我们就可以传入this
+  }
+ -->
+
+
+- 2. 比较两个对象的大小 会使用 compare方法
+- public int compare(Girl girl) { }
+
+- 注意:
+- 该方法的返回值是 int型
+- 如果返回值为正数 则代表 -- 当前对象大
+- 如果返回值为负数 则代表 -- 当前对象小
+- 如果返回值为0   则代表 -- 当前对象 和 形参对象 相等
+<!-- 
+  public int compare(Girl girl) {
+    if(this.age > girl.age) { 
+      return 1;
+    } else if(this.age < girl.age) {
+      return -1;
+    } else {
+      return 0;
+    }
+
+    // 简化
+    return this.age - girl.age; 
+        // 如果this.age大那么就是正数 否则就是负数 或 0
+  }
+ -->
+
 ----------------------------
+
+### 实验1： Account Customer
+- 写一个名为Account的类模拟账户
+- 该类的属性和方法如下图 
+- 该类包括的属性：
+- 账号id
+- 余额 balance
+- 年利率 annualInterestRate
+
+- 该类包含的方法
+- 访问器方法(get set)
+- 取款方法withdrawal()
+- 存款方法deposit()
+
+- 提示:
+- 在提款方法 withdrawal 中 需要判断余额是否能够满足提款数额的要求如果不能，应给出提示。
+<!-- 
+  ------------
+    Account
+  ------------
+  private int id
+  private double balance
+  private double annualInterestRate
+  ------------
+  public Account (int id, double bal ance, double  annualInterestRate )
+  ------------
+  public
+  String getFir stName()
+  public
+  String getLastName()
+  public
+  Account getAccount()
+  public void setAccount(Account account)
+  ------------
+ -->
+
+
+- 创建 Customer 类
+- 声明三个私有对象属性： firstName 、 lastName 和 account 。
+- 声明一个公有构造器，这个构造器带有两个代表对象属性的参数（ f 和 l
+- 声明两个公有存取器来访问该对象属性，方法 getFirstName 和 getLastName 返回相应的属性。
+- 声明 setAccount 方法来对 account 属性赋值。
+- 声明 getAccount 方法以获取 account 属性。
+<!-- 
+  ------------
+    Customer
+  ------------
+  private String firstName
+  private String lastName
+  private Account account
+  ------------
+  public Customer(String f,String l)
+  ------------
+  public int getId()
+  public double getBalance()
+  public double getAnnualInterestRate()
+  public void setId( int id)
+  public void setBalance(double balance)
+  public void setAnnualInterestRate(double annualInterestRate)
+  public voi
+  d with d raw (double amount) 取钱
+  public void deposit (double amount) 存钱
+  ------------
+ -->
+
+- 写一个测试程序。
+- 创建一个 Customer ，名字叫 Jane Smith, 他有一个账号为 1000 ，余额为 2000 元， 年利率为 1.23 的账户。
+
+- 对 Jane Smith 操作。
+- 存入
+- 100 元，再取出 960 元 。 再 取出 2000 元。
+- 打印出Jane Smith 的基本信息
+<!-- 
+  成功存入 ：100.0 
+  成功取出：960.0 
+  
+  余额不足，取款失败 
+    Customer [Smith, Jane] has a account: id is 1000, annualInterestRate is 1.23 ％％, balance is 1140.0
+ -->
+
+
+- 这两个类的关系
+- Customer类是人的信息 内部包含姓名和银行账户
+- Account类是账户的信息 内部包含余额 年利率 和 账户 以及操作账户的方法
+
+- Customer类是包含(该类里面有一个属性是Account类)Account类的
+
+<!-- 
+  // 测试类
+  public class CustomerTest {
+    public static void main(String[] args) {
+      // 初始化指定姓名的账户信息
+      Account account = new Account(1000, 2000, 0.0123);
+
+      // account还没有初始化 为null
+      Customer JS = new Customer("Jane", "Smith");
+
+
+      // 该方法让账户和客户一一对应 
+      说白了就是让它们两个有关系 JS客户有了账户了 
+      相当于银行创建了一个账户 然后给了JS一张卡 JS就可以操作这个账户 这
+      
+      个账户现在有两个指针 JS 和 account对象 都可以操作账户
+      JS.setAccount(account);
+
+
+      // getAccount返回这个账户 就说明拿到了 account对象 该对象中有对应的存钱取钱的方法
+      JS.getAccount().deposit(100);
+      JS.getAccount().withdraw(960);
+      JS.getAccount().withdraw(2000);
+    }
+  }
+
+
+  // Account 类
+  public class Account {
+    // 账号
+    private int id;
+    // 余额
+    private double balance;
+    // 年利率
+    private double annualInterestRate;
+
+
+    // 构造器 对账号 余额 年利率的初始化
+    public Account(int id, double balance, double annualInterestRate) {
+      this.id = id;
+      this.balance = balance;
+      this.annualInterestRate = annualInterestRate;
+    }
+
+    public int getId() {
+      return this.id;
+    }
+
+    public void setId(int id) {
+      this.id = id;
+    }
+
+    public double getBalance() {
+      return this.balance;
+    }
+
+    public void setId(double balance) {
+      this.balance = balance;
+    }
+
+    public double getAnnualInterestRate() {
+      return this.annualInterestRate;
+    }
+
+    public void setAnnualInterestRate(double annualInterestRate) {
+      this.annualInterestRate = annualInterestRate;
+    }
+
+    // 取钱
+    public void withdraw(double amount) {
+      if(this.balance < amount) {
+        System.out.println("余额不足 取款失败");
+        return;
+      }
+      // 走到下面的逻辑说明余额够了 那就进行取款的操作
+      balance -= amount;
+      System.out.println("成功取出: " + amount);
+    }
+
+    // 存钱
+    public void deposit(double amount) {
+      if(amount > 0) {
+        this.balance += amount;
+        System.out.println("成功存入: " + amount);
+      }
+    }
+  }
+
+
+  // Customer类
+  public class Customer {
+    
+    private String firstName;
+    private String lastName;
+
+    // 首次出现自定义类的变量 -- 变量可以是任何数据类型 也可以是一个Accout类的用户
+    private Account account;
+
+    // 构造器 对firstName lastName进行初始化
+    public Customer(String firstName, String lastName) {
+      this.firstName = firstName;
+      this.lastName = lastName;
+    }
+
+    public String getFirstName() {
+      return this.firstName;
+    }
+    public String getLastName() {
+      return this.lastName;
+    }
+    // 得到这个account对象 可以通过该对象调用account中的方法
+    public Account getAccount() {
+      return this.account;
+    }
+
+    // 通过该方法让account属性也指向 new Account 创建的对象
+    public void setAccount(Account account) {
+      this.account = account;
+    }
+  }
+
+
+ -->
+
+----------------------------
+
+### 实验2： Account Customer
+- 这个比上一个实验1 更加的难一些 除了上面的Account Customer之外还有一个银行的类 银行的类可以存多个客户 这就构成了一个由客户构成的数组
+
+<!-- 
+  ----------------
+    Account
+  ----------------
+  - balance: double
+  ----------------
+  +Account(init_balance: double)    -- 构造器
+  +getBalance(): double
+  +deposit(amt: double)
+  +withdraw(amt: double)
+  ----------------
+
+  在提款方法 withdraw中 需要判断用户余额是否能够满足提款数额的要求
+  如果不能应给出提示 deposit方法表示存款
+ -->
+
+<!-- 
+  ----------------
+    Customer
+  ----------------
+  -firstName: String
+  -lastName: String
+  -account: Account
+  ----------------
+  +ACustomer(f:String, l:String)    -- 构造器
+  +getFirstName(): String
+  +getLastName(): String
+  +getAccount(): Account
+  +setAccount(acct:Account)
+  ----------------
+ -->
+
+<!-- 
+  ----------------
+    Bank
+  ----------------
+  -customers: Customer[]
+  -numberOfCustomer:int
+  ----------------
+  +Bank()    -- 构造器
+  +addCustomer(f:String, l:String)
+  +getNumberOfCustomers(): int
+  +getCustomer(index:int):Customer
+  ----------------
+
+  addCustomer方法必须依照参数(姓 名) 构造一个新的Customer对象
+  然后把它放到customer数组中
+  还必须把numberOfCustomer属性的值加1
+
+  getNumberOfCustomers方法返回 numberofCustomers 属性值
+  getCustomer方法返回 numberofCustomers属性值
+  getCustomer方法返回与给出的index参数相关的客户
+ -->
+
+- 创建 bankTest 类 进行测试
+
+> Account类
+- 这个类为账户的类 提供了存钱 取钱 查看余额的方法 
+- 构造器初始化的余额
+
+
+> Customer类
+- 这个类为客户信息 姓名和关联哪个账户
+- 构造器初始化用户姓名 提供了获取该客户账户 和 设置该客户账户的方法
+
+
+> Bank类
+- 这个类为银行账户
+- 属性：
+- 有存放多个客户的数组 
+    private Customer[] customers;
+
+- 有实际客户数量
+    private int numberOfCustomers;
+<!-- 
+  注意
+  客户的个数和customers数组的长度不是一个东西 
+  比如我们有一个客户数组能存放10个客户 但是实际上里面存了2个客户 numberOfCustomers 就是这两个客户 所以这个部分不能用数组的长度来衡量
+ -->
+
+- 方法:
+- 添加客户
+<!-- 
+  public void addCustomer(String f, String l) {
+
+    // 创建客户对象
+    Customer cust = new Customer(f, l);
+
+    // 将客户对象加入到 customers 数组中
+    customers[numberOfCustomers] = cust;
+    numberOfCustomers++;
+    // customers[numberOfCustomers++] = cust; 还可以这样
+  }
+
+  我们第一次往customers数组里添加的时候 customers的下标应该为0
+  这里首次调用的时候我们应用到了numberOfCustomers变量
+  因为它的默认值为0 同时还可以刻画实际用户数量
+ -->
+
+- 获取指定用户的信息
+<!-- 
+  public Customer getCustomer(int index) {
+    // return customers[index];  这样的话不严谨 可能包异常
+
+    if(index >= 0 && index < numberOfCustomers) {
+      return customers[index];
+    } 
+    
+    return null;
+  } 
+-->
+
+- 代码部分:
+<!-- 
+
+  // BankTest类
+  public class BankTest {
+    public static void main(String[] args) {
+      // 首先造一个银行
+      Bank bank = new Bank();
+      // 添加用户 
+      bank.addCustomer("Jane", "Smith");
+      // 先得到刚才添加的用户对象调用setAccount方法 关联一个账户
+      bank.getCustomer(0).setAccount(new Account(2000));
+
+      // 取得第一个用户调用对应的方法
+      bank.getCustomer(0).getAccount().withdraw(500);
+      double balance = bank.getCustomer(0).getAccount().getBalance();
+      System.out.println("客户: " + bank.getCustomer(0).getFirstName() + bank.getCustomer(0).getLastName() + "的账户余额为: " + balance);
+    }
+  }
+
+
+  // Account类
+  public class Account {
+    // 余额
+    private double balance;
+
+    public Account(double init_balance) {
+      this.balance = init_balance;
+    }
+
+    public double getBalance() {
+      return balance;
+    }
+
+    // 存钱
+    public void deposit(double amt) {
+      if(amt > 0) {
+        balance += amt;
+        System.out.println("存入金额为: " + amt);
+      }
+    }
+
+    // 取钱
+    public void withdraw(double amt) {
+      if(balance < amt) {
+        System.out.println("余额不足");
+        return;
+      }
+      balance-=amt;
+      System.out.println("取出金额: " + amt);
+    }
+  }
+
+
+  // Customer类
+  public class Customer {
+    private String firstName;
+    private String lastName;
+    private Account account;
+
+    public Customer(String f, String l) {
+      this.firstName = f;
+      this.lastName = l;
+    }
+
+    public String getFirstName() {
+      return this.firstName;
+    }
+    public String getLastName() {
+      return this.lastName;
+    }
+    public Account getAccount() {
+      return this.account;
+    }
+    public void setAccount(Account acct) {
+      this.account = acct;
+    }
+  }
+
+
+  // Bank类
+  public class Bank {
+    
+    // 用来存放多个客户对象的数组
+    private Customer[] customers;
+
+    // 记录实际客户的个数
+    private int numberOfCustomers;
+
+    public Bank() {
+      // private Customer[] customers; 只是创建了装数组的变量 并没有实际new一个数组 这里我们new一个
+      this.customers = new Customer[10];
+    }
+
+    // 添加客户
+    public void addCustomer(String f, String l) {
+      // 创建客户对象
+      Customer cust = new Customer(f, l);
+
+      // 将客户对象加入到 customers 数组中
+      - customers第一次是数组为0的位置 这里我们应用到了numberOfCustomers变量 
+      - 首次调用的时候 它的默认值为0
+      customers[numberOfCustomers] = cust;
+      numberOfCustomers++;
+        // customers[numberOfCustomers++] = cust; 还可以这样
+    }
+
+    // 获取实际客户的数量
+    public int getNumberOfCustomers() {
+      return this.numberOfCustomers;
+    }
+
+    // 获取指定用户的信息
+    public Customer getCustomer(int index) {
+      // return customers[index];  这样的话不严谨
+
+      if(index >= 0 && index < numberOfCustomers) {
+        return customers[index];
+      } 
+      
+      return null;
+    }
+
+  }
+ -->
+
+----------------------------
+
+### 关键字 package import 的使用
+
+> package关键字的使用
+- package翻译过来就是 包
+- 1. 为了更好的实现项目中类的管理 提供了包的概念
+- 我们可以在项目中按照功能创建多个包 我们写的类就放在包下
+<!-- 
+  比如一个班级就相当于一个package
+ -->
+
+
+- 2. 使用package声明 类或接口 所属的包 声明在源文件的首行
+- package com.atguigu.exer
+
+- 3. 包 属于标识符 需遵循标识符的命名规则 规范 "见名知意"
+- 包名都是小写
+- 通过包名大概也能看出下面的内容是做什么的
+
+- 4. src.com 每.一次就代表一层文件目录
+
+- 补充:
+- 同一个包下 不能命名同名的接口 或者 类
+- 不同的包下可以命名同名的接口 或者 类
+<!-- 
+  不能定义同名文件
+ -->
+
+
+> JDK中主要的包介绍
+- 1. java.lang
+    - 包含一些java语言的核心类 如String Math Integer System 和 Thread 提供常用的功能
+
+- 2. java.net
+    - 包含执行与网络相关的操作的类和接口
+
+- 3. java.io
+    - 包含能提供多种输入 输出功能的类
+
+- 4. java.util
+    - 包含一些使用工具类 如定义系统特性 接口的集合框架类 使用与日期日历相关的函数
+
+- 5. java.text
+    - 包含了一些java格式化相关的类
+
+- 6. java.sql
+    - 包含了java进行JDBC数据库编程的相关类 接口
+
+- 7. java.awt
+    - 包含了构成抽象窗口工具集(abstract window toolkits)的多个类
+    - 这些类被用来构建和管理应用程序的图形用户界面 b/s c/s
+<!-- 
+  写客户端的api 现在java一般都是写后台了 这部分可以不看了
+ -->
+
+
+> import关键字的使用
+- import翻译过来的话为 导入
+
+- 作用:
+- 1. 在源文件中显式的使用 import 导入指定包下的类 或 接口
+- 2. 声明在包的声明和类的声明之间
+<!-- 
+  import java.util.Arrays
+  import src.com.Bank
+ -->
+
+- 3. 如果需要导入多个结构 顺序向下一次写出即可
+- 当我们使用了一个包下的多个类时 我们可以采用这样的书写方式 
+<!-- 
+  // 导入指定包下的所有结构
+  import src.com.*
+ -->
+
+- 4. 如果使用的类或接口是java.lang包下定义的 则可以省略import结构
+<!-- 
+  // 这里的 String[] 和 System 为什么就不用导包  
+  public static void main(String[] args) {
+    System.out.println()
+  }
+ -->
+
+- 5. 如果使用的类或接口是本包下定义的 可以省略import结构
+<!-- 
+  如果我们调用的是其它包下的 或者 lang包下定义的 则需要显式的使用import结构导入包
+ -->
+
+- 6. 如果在源文件中 使用了不同包下的同名的类 则必须至少有一个类需要以 全类名 的方式显示(包含包在内的完整的路径名)
+- 如： src.azz.Account acct = new Account();
+
+- 当我们想要使用的类处于不同包下且该类还同名的时候 我们就要使用包名指定该类了
+<!-- 
+  src.com
+    class Account { }
+
+  src.azz
+    class Account { }
+
+  
+  上面的同名Account类处于不同的包下 假如我们要在一个文件中同时使用Account类的话
+
+  1. 先导入其中的一个包下的类 import src.com.Account
+  2. 然后 当要想使用azz下的Account类的时候 使用包名指定类
+
+      src.azz.Account acct = new Account();
+    
+     没写包名的就会使用 import 导入的
+ -->
+
+- 7. 如果使用'xxx.*'的方式表明可以调用xxx包下的所有结构 但是如果使用的是xxx子包下的结构 则仍需要显示导入
+- * 不包括子包
+<!-- 
+    src.com
+      java文件1
+      java文件2
+
+      src.azz
+        java文件3
+
+  com下有一个子包azz 假如我们再java文件1中 想使用java文件3的话 仍需要使用import 显式导入
+ -->
+
+**注意:**
+- 上面说过当使用的是 java.lang 包下的结构的时候 我们不用使用import显示导入
+
+- 但是如果我们使用的是 java.lang.子包 的时候 仍需要显式导入
+
+- 总结:
+- 遇到子包的时候 就显式导入吧
+
+- 8. import static 导入指定类或接口中的静态结构(属性或者方法)
+<!-- 
+  比如我们可以这样 表示使用System下的静态结构
+  import static java.lang.System.*
+
+  这么写后就可以直接写
+  out.println()
+
+  import static java.lang.Math.*
+ -->
+
+**注意:**
+- import 的落脚点是一个类
+- import static 的落脚点必须是类中的一个结构
+<!-- 
+  import static java.lang.Math.*
+
+  不能是
+  import static java.lang.Math 落脚点不能试Math类 必须是里面的一个结构
+ -->
+
+----------------------------
+
+### MVC的设计模式
+<!-- 
+  我们创建一个工程的时候会有很多的类 这些类我们通过包的方式来进行管理 
+  对于管理的话 我们有一种设计模式
+ -->
+
+- mvc是常用的设计模式之一 将整个程序分为3个层次
+- 视图模型层 V
+- 控制器层 C
+- 数据模型层 M
+
+- 这种将程序输入输出 数据处理 以及数据的展示分离开来的设计模式
+- 使用程序结构变的灵活而且清晰 同时也描述了程序各个对象间的通信方式
+- 降低了程序的耦合性
+
+
+> 模型层 model 主要处理数据 - 数据保存
+- 数据对象封装 model.bean / domain
+- 数据库操作类 model.dao
+- 数据库      model.db
+
+
+> 视图层 view 显示数据 - 用户界面
+- 相关工具类  view.utils
+- 自定义view view.ui
+
+
+> 控制层 controller 处理业务逻辑
+- 应用界面相关      controller.activity
+- 存放fragment     controller.fragment
+- 显示列表的适配     controller.adapter
+- 服务相关的        controller.service
+- 抽取的基类        controller.base
+
+
+> 各个部分之间的通信
+- 1. view传送指令到controller
+- 2. controller完成业务逻辑后 要求 model 改变状态
+- 3. model将新的数据发送到view 用户得到反馈
+
+- 所有的通信都是单向的
+<!-- 
+                View
+
+            ↙         ↖
+
+    Controller    →     Model
+ -->
+
+
+> MVP模式
+- 模式将 Controller 改名为 Presenter，同时改变了通信方向。
+- 1. 各部分之间的通信，都是双向的。
+- 2. View 与 Model 不发生联系，都通过 Presenter 传递。
+- 3. View 非常薄，不部署任何业务逻辑，称为"被动视图"（Passive View），即没有任何主动性，而 Presenter非常厚，所有逻辑都部署在那里。
+<!-- 
+              View
+
+          ↗↙         
+
+    Presenter    → ←    Model
+ -->
+
+
+> MVVM
+- MVVM 模式将 Presenter 改名为 ViewModel，基本上与 MVP 模式完全一致。
+- 唯一的区别是，它采用双向绑定（data-binding）：View的变动，自动反映在 ViewModel，反之亦然
+<!-- 
+              View
+
+          ↗↙          
+
+       VM    → ←    Model
+ -->
+
 
 
 
