@@ -10284,7 +10284,6 @@ Vue Components                        Mutations         Devtools
 
 **注意：**
 - 我们在使用上面一系列的方法的时候 最主要的是要跟vuex中的函数对应上以vuex中的函数为主
-
 - 数组的写法多用在函数名一样的时候 函数名不一样的时候只能使用对象的写法
 
 
@@ -11593,6 +11592,7 @@ Vue Components                        Mutations         Devtools
 <!-- 
   封装 jsonp
   let count = 1;
+
   export default function originPJSONP(option) {
     // 1 从传入的option中提取url
     const url = option.url;
@@ -12282,48 +12282,48 @@ Vue Components                        Mutations         Devtools
 - 响应拦截中的参数是 res 拦截的是响应体(status data headers request等)
 <!-- 
   export function request(config) {
-  const instance = axios.create({
-    baseURL: 'http://123.207.32.32:8000',
-    timeout: 5000
-  })
+    const instance = axios.create({
+      baseURL: 'http://123.207.32.32:8000',
+      timeout: 5000
+    })
 
-  // 使用拦截器拦截实例, 请求拦截
-  instance.interceptors.request.use(config => {
+    // 使用拦截器拦截实例, 请求拦截
+    instance.interceptors.request.use(config => {
 
-    // 拦截的是axios发送请求的配置
-    console.log(config)
-    // 拦截到的config的return出去 要不内部的config外部拿不到
+      // 拦截的是axios发送请求的配置
+      console.log(config)
+      // 拦截到的config的return出去 要不内部的config外部拿不到
 
-    // 一般请求拦截会在这里处理什么逻辑
-    1. 比如config中的信息不符合服务器的要求 比如会config中的东西进行某种变化后再返回回去
+      // 一般请求拦截会在这里处理什么逻辑
+      1. 比如config中的信息不符合服务器的要求 比如会config中的东西进行某种变化后再返回回去
 
-    2. 比如每次发送网络请求时, 都希望在界面中显示一个请求的图标(请求时的加载动画), 每次在发送请求的时候将动画show出来, 然后响应数据的时候 再去响应拦截里面隐藏起来
+      2. 比如每次发送网络请求时, 都希望在界面中显示一个请求的图标(请求时的加载动画), 每次在发送请求的时候将动画show出来, 然后响应数据的时候 再去响应拦截里面隐藏起来
 
-    3. 某些网络请求(比如登录 token), 必须携带一些特殊的信息 
+      3. 某些网络请求(比如登录 token), 必须携带一些特殊的信息 
 
-    return config
+      return config
 
-  }, err => {
+    }, err => {
 
-    // 发送都没发送出去, 比如网络断掉了
-    console.log(err)
-  })
+      // 发送都没发送出去, 比如网络断掉了
+      console.log(err)
+    })
 
 
-  // 使用拦截器进行响应的拦截
-  instance.interceptors.response.use(res => {
-    console.log(res)
-    // res中里面有data, 我们真正有用的就是data 我们会从res中取出data
-    
-    // 在这里一样 我们做完处理完拦截响应的逻辑后 要将res.data返回出去 要不组件中得不到结果 返回data就可以
-    return res.data
+    // 使用拦截器进行响应的拦截
+    instance.interceptors.response.use(res => {
+      console.log(res)
+      // res中里面有data, 我们真正有用的就是data 我们会从res中取出data
+      
+      // 在这里一样 我们做完处理完拦截响应的逻辑后 要将res.data返回出去 要不组件中得不到结果 返回data就可以
+      return res.data
 
-  }, err => {
-    console.log(err)
-  })
+    }, err => {
+      console.log(err)
+    })
 
-  // 发送真正的网络请求
-  return instance(config)
+    // 发送真正的网络请求
+    return instance(config)
 }
  -->
 
