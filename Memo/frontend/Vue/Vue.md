@@ -16511,10 +16511,6 @@ footer    footer    footer
   Vue.use(Select)
  -->
 
-
-
-
-
 --------------------------
 
 ### Vue3 
@@ -16712,7 +16708,7 @@ footer    footer    footer
 
 ### 常用的 composition API  ---  ref函数
 - 之前我们在vue2中使用ref属性是为了获取当前的节点
-- 这里我们介绍一个 ref函数
+- 这里我们介绍一个 ref函数 与上述 ref节点的使用方式不同 是领一种作用
 
 - 在上一节里面我们在setup配置项中定义了 属性 但是在setup中定义的属性 当我们修改这些属性的时候 他们并不是响应式的
 <!-- 
@@ -16735,7 +16731,9 @@ footer    footer    footer
   },
  -->
 
-- 为了达到响应式的效果我们就要使用ref函数
+- 作用:
+- 将卸载setup函数中的数据实现响应式的效果 就要使用ref函数
+
 
 > ref的使用步骤
 > 1. 引入
@@ -16917,7 +16915,7 @@ footer    footer    footer
   })
  -->
 
-> 3. 将 test return 出去
+> 3. 在setup的最后 将 test return 出去
 - 也就是说 setup函数 先执行 我们定义了 test 一个响应式的refimpl 对象 然后将它return出去，这样模板中就可以使用test这个变量 利用ref标签属性 将元素节点挂载test变量身上
 
 --------------------------

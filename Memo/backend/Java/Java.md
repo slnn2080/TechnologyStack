@@ -8454,10 +8454,111 @@
 ----------------------------
 
 ### 项目2 客户信息管理软件
+- 模拟实现一个基于文本界面的 <客户信息管理软件>
+- 进一步掌握编程技巧 和 调试技巧 熟悉面向对象编程
+- 主要涉及以下知识点
+- 1. 类结构的使用 属性 方法以及构造器
+- 2. 对象的创建与使用
+- 3. 类的封装性
+- 4. 声明和使用数组
+- 5. 数组的插入 删除 和 替换
+- 6. 关键字的使用 this
 
+- 该软件由以下三个模块组成
+- 1. CustomerView
+- 2. CustomerList
+- 3. Customer
 
+- CustomerView为主模块 负责菜单的显示和处理用户操作
+- CustomerList为Customer对象的管理模块 内部用数组管理一组Customer对象 并提供相应添加 修改 删除 和 遍历方法 供CustomerView调用
+- Customer为实体对象 用来封装客户信息
 
+- 我们可以把 Customer类 放在 bean包下
+<!-- 
+  | - src
+    | - cmu
+      | - bean
+        - Customer类
 
+      | - service
+        - CustomerList类    controller层
+
+      | - ui
+        - CustomerView类    view层
+
+      | - util
+        - 老师提供的类
+
+  这里我们按照业务不一样 将不同的类放入不同的包下
+ -->
+
+> Customer类
+- 初始化客户的信息 内部根据属性分别提供了get set方法
+<!-- 
+  package src.cmu.bean;
+  public class Customer {
+    private String name;
+
+    // 性别的变量类型为什么用char
+    private char gender;
+    private int age;
+    private String phone;
+    private String email;
+
+    public String getName() {
+      return this.name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public char getGender() {
+      return this.gender;
+    }
+
+    public void setGender(char gender) {
+      this.gender = gender;
+    }
+
+    public int getAge() {
+      return this.age;
+    }
+
+    public void setAge(int age) {
+      this.age = age;
+    }
+
+    public String getPhone() {
+      return this.phone;
+    }
+
+    public void setPhone(String phone) {
+      this.phone = phone;
+    }
+
+    public String getEmail() {
+      return this.email;
+    }
+
+    public void setEmail(String email) {
+      this.email = email;
+    }
+
+    // 提供一个空参的构造器
+    public Customer() {}
+
+    // 提供一个给所有属性赋值的构造器
+    public Customer(String name, int age, char gender, String phone, String email) {
+      this.name = name;
+      this.age = age;
+      this.gender = gender;
+      this.phone = phone;
+      this.email = email;
+    }
+  }
+
+ -->
 
 
 
