@@ -1,5 +1,31 @@
 ### Js技巧
 
+### url参数提取
+<!-- 
+    let str = "?q=%E6%98%A5%E8%8A%82"
+    let str2 = "?q=春节"
+
+    const handleQuery = (url, obj={}) => {
+
+      let reg = /[%]/g
+      if(url.match(reg) != null ) {
+        url = decodeURI(url)
+      }
+      
+      url.substr(1).split("&").map(item => {
+        let arr = item.split("=")
+        obj[arr[0]] = arr[1]
+        return obj
+      })
+      
+      return obj
+    }
+    let res = handleQuery(str2)
+    console.log(res)
+ -->
+
+
+
 ### null和undefined 是否相等
 
     console.log(null==undefined)

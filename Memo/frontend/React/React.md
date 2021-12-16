@@ -5,7 +5,7 @@
 
 
 - 用于构建用户界面(视图)的js库
-- 用户界面对于前段来说 就是HTML页面 或者专业一些就是构建web应用的
+- 用户界面对于前端来说 就是HTML页面 或者专业一些就是构建web应用的
 <!-- 
   比如我们要在页面上展示一些学生的信息 如果利用js的话 我们大概可能分为3步
   1. 发送请求获取数据
@@ -46,11 +46,13 @@
 - 1. 采用组件化模式, 声明式编码, 提高开发效率及组件复用率
 <!-- 
   命令式: 
-  改变页面上一个盒子的样式 通过js或者jq拿到盒子 .style的方式修改样式, 这就是命令式的编码 少做任何一步都达不到目的
+  改变页面上一个盒子的样式 通过js或者jq拿到盒子 
+  .style的方式修改样式, 这就是命令式的编码 少做任何一步都达不到目的
 
   
   声明式:
-  通过一定的语法, 我们只是表达一下 你应该是蓝色的, react就帮助我们操作DOM 将盒子改成蓝色的
+  通过一定的语法, 我们只是表达一下 你应该是蓝色的, 
+  react就帮助我们操作DOM 将盒子改成蓝色的
 
   我们只需要描述 ui（HTML）看起来是什么样子的 就跟写html页面一样 
   react负责渲染ui 并在数据变化的时候更新ui
@@ -86,6 +88,14 @@
 - 原生js实现 将数据渲染到页面上
 - 这里我们使用了js操作了DOM元素, 向里面添加内容
 <!-- 
+  - 要点:
+  - 当我们要往页面上追加元素的时候
+  - 我们可以选择 innerHTML 和 appendChild 方法
+
+  - 两种方法的区别是
+  - innerHTML 我们往里面添加的应该是字符串
+  - appendChild 我们往里添加的是元素节点
+
   <body>
     <ul id="list"></ul>
 
@@ -116,10 +126,16 @@
 - 2. DOM Diffing算法, 最小化页面重绘。
 
 <!-- 
-  还是 李现 和 鹿晗两个人的数据, react在拿到数据后并没有马上动真是的DOM, 它是把这两个人的数据对应成了2个虚拟DOM 随后将虚拟DOM映射到真实DOM上
-  当多了一个数据肖战的时候, react还是根据3条数据生成3条虚拟DOM, 刚才的两条李现和鹿晗的虚拟DOM并没有被React丢弃 原来是2条虚拟DOM 现在是3条虚拟DOM 
+  还是 李现 和 鹿晗两个人的数据, 
+  react在拿到数据后并没有马上动真是的DOM, 
+  它是把这两个人的数据对应成了2个虚拟DOM 随后将虚拟DOM映射到真实DOM上
+  当多了一个数据肖战的时候, react还是根据3条数据生成3条虚拟DOM, 
+  刚才的两条李现和鹿晗的虚拟DOM并没有被React丢弃 
+  原来是2条虚拟DOM 现在是3条虚拟DOM 
 
-  随后, React开始在内部进行虚拟DOM的比较, 如果相同的话 就不在生成真实的DOM, 将不同的映射到真实的DOM中, 相同的被复用 
+  随后, React开始在内部进行虚拟DOM的比较, 
+  如果相同的话 就不在生成真实的DOM, 将不同的映射到真实的DOM中, 
+  相同的被复用 
   不同的虚拟DOM进行比较 不同部分再插入真实的DOM中
 -->
 
@@ -174,6 +190,8 @@
 - 此操作是替换 并不是追加
 - render() 会调用1+n次
 <!-- 
+  render() 初始化调用一次 每次页面更新的时候也会调用一次
+
   ReactDOM.render(VDOM, document.getElementById('app'))
  -->
 - 
@@ -235,7 +253,7 @@
   )
  -->
 
-> React.createElement('标签名', {标签属性kv, 可以是空}, '标签内容')
+> React.createElement('标签名', {标签属性kv可以是空}, '标签内容')
 - 创建虚拟DOM
 <!-- 
   const VDOM = React.createElement('h1', {id:'title'}, 'hello, React-js')
@@ -300,7 +318,6 @@
 <!-- 因为虚拟DOM是react内部在用, 无需真实DOM上那么多的属性 -->
 
 - 3. 虚拟DOM最终会被React转化为真实DOM, 从内存中呈现在页面上
-
 <!-- 
   <div id="app"></div>
   <div id="demo"></div>
@@ -362,7 +379,7 @@
 - 1. 定义虚拟DOM时, 不要写引号 结构使用小括号包裹
 - 2. 标签里面混着js的表达式 我们要使用{ }
 <!-- 
-  这里要注意表达式和语句的区别, 标签里面使用表达式的时候用{ } 语句不行 
+  这里要注意表达式和语句的区别, { }里面放的是js表达式 并不是语句
 -->
 
 - 3. 样式的类名指定不要用class 而是要用className
@@ -510,7 +527,7 @@
           {
             // 这里只能写表达式, 而不能写语句 我们在这里对list数组中的值进行加工 我们选择使用map方法
             list.map((item, index) => {
-              return <li key={item}>{item}</li>
+              return <li key={index}>{item}</li>
             })
           }
         </ul>
@@ -544,7 +561,7 @@
       3. switch() { }
  -->
 
-- 2. 在对节点或者数据进行遍历的时候我们要在DOM结构中使用KEY确保唯一值
+- 2. 在对节点或者数据进行遍历的时候我们要在DOM结构中*使用KEY确保唯一值*
 <!-- 
   list.map((item, index) => {
     return <li key={index}>{item}</li>
@@ -565,6 +582,10 @@
 ### jsx的条件渲染
 - 场景
 - 我们请求数据的时候 会有一段的时间 在这段时间里为了正在用户体验我们可以定义加载动画效果 当请求数据回来后 结束loading动画 展示数据
+
+> 技巧:
+- 我们都会在render函数中渲染结构 当结构比较复杂的时候
+- 我们也可以定义方法将结构封装到方法里面 然后在render中调用
 
 > 方式
 - 条件 ? () : ()
@@ -590,11 +611,45 @@
     return loading ? (<div>数据加载中, 请稍后...</div>) : (<div>数据加载完成后, 此处显示加载后的数据</div>)
   }
 
+
+  export default class App extends Component {
+  
+    isLoading = false
+    list = ['Angula', 'React', 'Vue']
+
+    loadingData = () => {
+      if(this.isLoading) {
+        return (
+          this.list.map((item,index) => {
+            return (
+              <li key={index}>{item}</li>
+            )
+          })
+        )
+      } else {
+        return (<div>数据正在加载中...</div>)
+      }
+    }
+
+    render() {
+      return (
+        <ul>
+          {
+            this.loadingData()
+          }
+        </ul>
+      )
+    }
+  }
+
   ---- 方式3 下面的方式适合 要么展示要么隐藏的情况
 
   return isLoading && (<div>数据加载中, 请稍后...</div>)
   - 它只能达到一种效果 当isLoading为true的时候展示数据加载中 但是没有办法在isLoading为false的时候展示另一种样式
  -->
+
+- 总结:
+- 在类的方法中 和 render 中要是想使用变量或者方法的话 都要通过this
 
 ----------------------------
 
@@ -676,7 +731,7 @@
 
 
   ---- 箭头函数的形式
-
+  - 返回一个结构 + 函数名大写 就是函数式组件
   const Hello = () => <h2>我是用函数定义的组件</h2>
  -->
 
@@ -684,7 +739,7 @@
 > 函数组件中的this
 - 正常我们直接 Demo() this 应该是window 但是输入结果却是undefined
 
-- 因为 我们的代码要经过 babel 的翻译(type="text/babel") babel在翻译完下面的东西后会开启严格模式 严格模式中禁止 自定义的函数中的this 指向window 所以是undefined
+- 因为 我们的代码要经过 babel 的翻译(type="text/babel") babel在翻译完下面的东西后会开启严格模式 严格模式中禁止 自定义的函数中的this 指向window 所以undefined
 
 
 > 执行了 ReactDOM.render(<Demo />, app)之后发生了什么?
@@ -711,9 +766,12 @@
   类组件应该继承 React.Component 父类 从而可以使用父类中提供的方法或属性
  -->
 
-- 2. 内部必须写render 且有返回值 同时类名也要以大写字母开头
+- 2. *内部必须写render* 且有返回值 同时类名也要以大写字母开头
 <!-- 
-  注意 react要求 我们在使用类式组件的时候, 我们创建的类必须继承react的内置类 React.Component
+  注意:
+  react要求 我们在使用类式组件的时候, 
+  我们创建的类必须继承react的内置类 React.Component
+
   class Demo extends React.Component {
       
     // 这个render 是用在Demo的原型对象上 供实例使用
@@ -730,6 +788,7 @@
   }
  -->
 
+- 类组件中的render中的*this为 组件实例对象*
 
 > 类组件的 ReactDOM.render(<Demo />, app) 做了什么
 - 1. react解析组件标签, 找到了Demo组件
@@ -739,7 +798,7 @@
 
 
 **复习 类 的相关知识**
-- 1. 类中的构造器不是必须写的 要对实例进行一些初始化的操作的时候才写
+- 1. 类中的*构造器*不是必须写的 要*对实例进行一些初始化的操作*的时候才写
 - 2. 如果a类继承了b类, 且a类中写了构造器, 那么a类构造器中的super是必须要调用的
 - 3. 类中的定义的方法 都是在原型对象上
 <!-- 
@@ -758,7 +817,7 @@
     speak() {
       console.log(`我叫${this.name}, 我的年龄是${this.age}`)
 
-      // 这里的this也是指向实例对象
+      // 这里的this也是指向 实例对象
     }
 
   }
@@ -796,11 +855,11 @@
     // 扩展学生自己的属性 且实例是小张 15 高一的顺序传递的 这边也要按照这个顺序接
     constructor(name, age, grade) {
 
-      // 注意:
+      - 注意:
       当我们定义了子类 且使用了extends继承了父类 那么子类中的constructor里必须使用super() 不然就会报错, super帮你调用父类中的构造器 super必须在最前面调用
 
       super(name, age)
-        把创建学生实例时传递的实参 name age 通过super(name, age)递到Person类里面去 
+        - 把创建学生实例时传递的实参 name age 通过super(name, age)递到Person类里面去 
 
       this.grade = grade
     }
@@ -825,11 +884,10 @@
  -->
 
 <!-- 
-  人的状态影响着行为:
-    比如考试考的不好 老师问什么 我会说状态不好
-
+ 
   组件的状态驱动页面
-    之前我们说过学了react就把数据交给react 它会拿着数据 生成虚拟DOM 进而生成真实DOM
+    之前我们说过学了react就把数据交给react 
+    它会拿着数据 生成虚拟DOM 进而生成真实DOM
             
              数据 -- 虚拟DOM -- 真实DOM
 
@@ -854,10 +912,13 @@
 
 
 > this.setState({ ... }) 修改状态的方法
+- react中修改状态的指定方法
+
 
 > 总结:
-- 组件中render方法中的this为组件实例对象
-- 组件自定义的方法this为undefined 如何解决
+- 1. 组件中render方法中的this为组件实例对象
+
+- 2. 组件自定义的方法this为undefined 如何解决
   - 在构造器中强制绑定this 通过函数对象的bind()
   - 在构造器外使用赋值语句 + 箭头函数
   <!-- 
@@ -865,27 +926,28 @@
     相当于给实例身上添加放法 需要通过 this 来调用
    -->
 
-- 状态数据 不能直接修改或更新
+- 3. 状态数据 不能直接修改或更新
   - 必须借助 setState 方法
 
 
-> setState
-- 状态是可以改变的 通过 setState 来修改状态中的值
+> setState方法
+- 状态是可以改变的 但是要通过 setState 来修改状态中的值
 
 - this.setState({要修改的数据})
 - 先对state中的数据进行操作的时候 要先获取原数据
 <!--
     this.setState({ count: this.state.count + 1})
-    获取原来的值 + 1
+    获取原来的值后(this.state.count原来的值) + 1
 -->
 
-- 那如果 state 中有两条数据 我修改的时候要将两条数据都放进 setState 里面么？
-- react内部会进行处理 它只会修改你放进来的数据 没有放进来的不会对其进行处理
+- 思考:
+- 那如果 state 中有两条数据 我修改的时候需要将两条数据都放进 setState 里面么？
+- 不需要react内部会进行处理 它只会修改你放进来的数据 没有放进来的不会对其进行处理
 <!--
     state = { name: "sam", age: 18 }
 
     在我只想修改name的时候 用把age放进来么？
-    this.setState({ name: "erin", age: ?? })
+    this.setState({ name: "erin", age: ?? })   // 不用
 -->
 
 - setState的作用：
@@ -894,14 +956,16 @@
 
 > react的编程思想：
 - 数据驱动视图，数据先发生改变 驱动着页面发生更新
-- 也就是说 假如有一些数据 我们不希望它是响应式的时候 就可以添加到 实例身上
+- 也就是说 *假如有一些数据 我们不希望它是响应式的时候 就可以添加到 实例身上*
 <!-- 
   export default class App extends Component {
-    flag = true
+
+    // 直接赋值的形式就是添加到组件实例的身上 通过this可以调用
+    flag = true 
   }
  -->
 
-- 假如我们希望这个数据是响应式的 那么我们就需要将这个数据放入到 state 中
+- *假如我们希望这个数据是响应式的* 那么我们就需要将这个数据放入到 state 中
 <!-- 
   export default class App extends Component {
     state = {
@@ -909,10 +973,10 @@
     }
   }
 
-  在修改state中的数据的时候 我们可能会有如下的操作
+  - 在修改state中的数据的时候 我们可能会有如下的操作
+  let {flag} = this.state
   this.setState({
     flag: !flag     // 这个flag也是个变量 所以在之前我们要先有这个变量 
-                        let {flag} = this.state
   })
  -->
 
@@ -923,7 +987,7 @@
 - 2. 更新组件
 
 - 过程：
-- 父组件重新渲染的时候 也会重新渲染子组件 但只会渲染当前组件子树(当前组件及其所有子组件)
+- 父组件重新渲染的时候 也会重新渲染子组件 但只会渲染当前组件子树(当前组件及其所有子组件, 这个分叉上所有相关的子组件)
 
 - 也就是说当我们更新一个组件的时候 它所包含的所有子组件也会更新 后代组件也会更新
 
@@ -1005,7 +1069,7 @@
 
 
 > 注意要点
-- 1. 事件名必须是驼峰写法(因为react内部对事件名进行了格式上的重写)
+- 1. *事件名必须是驼峰写法*(因为react内部对事件名进行了格式上的*重写*)
 - 2. 回调的事件写在类中
 - 3. 事件回调必须加上{ } 而且回调的事件名前面要加上this, 并且事件回调不要加小括号
 <!-- 
@@ -1015,7 +1079,7 @@
       onClick后面必须是一个函数, 因为我们写的不是原生, 想要提取变量要使用{ }
 
 
-  为什么不能加( )
+  为什么不能加()
       <h3 onClick={this.changeWeather()}>
       上面的写法会直接被调用 React在渲染组件的时候, 
       发现我们是通过类的方式创建的组件, 所以React帮我们new了实例 
@@ -1040,10 +1104,12 @@
 - 不用加this
 <!-- 
   return (<button onClick={handleClick}>)
+  - 因为在一个组件内部所以 变量可以直接使用吧
  -->  
 
 
 > <h3 onClick={this.changeWeather}> 类中定义的函数产生的this的问题
+
 - 我们定义函数有多种方式 比如
 - changeWeather() { ... }
 - changeWeather = () => { ... }
@@ -1055,13 +1121,16 @@
     console.log(this)
       // 这里的this是undefined
 
-      // 因为只有通过Weather实例对象调用的changeWeather 它内部的this才是实例对象否则就是undefined
+      - 因为只有通过Weather实例对象调用的changeWeather 
+      - react在解析组件的时候 会自己帮助我们new实例 也就是说react帮我们利用实例调用的 changeWeather 方法
+      - 它内部的this才是实例对象否则就是undefined
 
       // render和constructor中的this都是实例对象为什么? 
       我们的changeWeather不是通过实例调用的
 
       // <h3 onClick={this.changeWeather}> 
-      我们是通过this.changeWeather把方法交给了onClick 然而 点击的时候 是onClick直接调用changeWeather方法 而不是通过实例调用的 所以this的指向会是undefined(因为类中开启了严格模式)
+      我们是通过this.changeWeather把方法交给了onClick 然而 点击的时候 是onClick直接调用changeWeather方法 而不是通过实例调用的 
+      所以this的指向会是undefined(因为类中开启了严格模式)
 
       console.log(this.state)  // 报错 不能从undefined上读取state
   }
@@ -1073,7 +1142,7 @@
 - 但是也出现了一个问题, 就是我们在类中定义的方法中, 不能通过 this.state 获取到存放在state中的值, 显示是this是undefined
 <!-- 
   changeWeather() {
-    console.log(this.state)
+    console.log(this.state)  // undefined
   }
 
   this出现了问题, 原因上面我们分析了 是因为我们是将这个函数赋值给了onClick 当点击的时候 changeWeather函数属于直接调用, 那么函数中的this就是undefined
@@ -1109,7 +1178,7 @@
  -->
 
 
-> setState({})
+> setState({})方法
 - 通过react指定的API修改 或者理解成更新 state中的状态 并不是覆盖的操作
 - 比如我们state中有3个属性 我们一个方法中只写了一个属性的变化 它只会更新那个我们制定的
 <!-- 
@@ -1190,6 +1259,14 @@
   x()属于直接调用 
 
   既然是直接调用this也应该是window 为什么是undefined呢?  因为类中的方法都开启了 严格模式 所以类中的方法中的this指向了undefined
+
+
+  也就是说
+  speak() {} 
+      这种方式定义的方法是在原型对象身上 并不是在实例自身身上
+
+  speak = () => {}
+      这种方式定义的方法是在组件实例自身的身上
  -->
 
 
@@ -1197,9 +1274,12 @@
 - 在严格模式中, 禁止自定义的函数中的this指向window
 - 1. 在构造器中初始化状态
 - 2. 在构造器中解决方法中的this的指向问题
+    this.method = this.method.bind(this)
+    将构造器中的this给前面的方法生成一个新的函数
 
 - 3. render中做的最常见的事就是从状态里面读东西 然后去做展示
 - 4. 在changeWeather方法中 获取原来的值 在setState中做展示
+
 
 > 完整代码
 <!-- 
@@ -1233,8 +1313,6 @@
 
 ----------------------------
 
-### 书签
-
 ### state的简写方式
 - 因为类方式创建的组件, 组件中的方法都是当事件回调来用 如果作为事件的回调用来的话, 类中的方式中的this的指向都是undefined 但是我们想解决这个问题 就又得在constructor中使用bind的方式将新函数赋值给实例对象中方法
 <!-- 
@@ -1254,6 +1332,7 @@
   }
  -->
 
+- 所以
 - 当我们有一个属性 都是固定的 不需要通过创建实例对象后传递进来, 那么我们不需要在构造器中写
 <!-- 
   constructor(name, age) {
@@ -1263,9 +1342,22 @@
     // 这个就不需要通过new实例对象后 通过实参传递进来
     this.wheel = 4
   }
+
+  直接在类中
+  class Demo {
+    wheel = 4;
+
+    constructor(name, age) {
+      this.name = name
+      this.age = age
+
+      this.wheel = 4    // X 删除
+    }
+  }
+  
  -->
 
-- 类中可以直接写赋值语句, 该属性会在实例对象身上
+- *类中可以直接写赋值语句, 该属性会在实例对象身上*
 <!-- 
   class Car {
     constructor(name, price) {
@@ -1349,7 +1441,7 @@
  -->
 
 > 总结
-- 以后我们使用类创建一个组件的时候, 组件中的所有自定义方法 都写成赋值的形式(函数表达式) 使用箭头函数
+- 以后我们使用类创建一个组件的时候, 组件中的所有自定义方法 *都写成赋值的形式(函数表达式) 使用箭头函数*
 
 ----------------------------
 
@@ -1364,7 +1456,7 @@
 ----------------------------
 
 ### 组件的通信介绍
-- 默认情况下 组件是独立且封闭的单元 默认情况下 只能使用组件自己的数据 在组件化过程中 我们将一个完整的功能拆分成多个组件 以便更好的完整成个应用的功能
+- 默认情况下 组件是独立且封闭的单元 默认情况下 只能使用组件自己的数据 在组件化过程中 我们将一个完整的功能拆分成多个组件 以便更好的完成整个应用的功能
 - 而在这个过程中 多个组件之间不可避免的要共享某些数据，为了实现这些功能 就需要打破组件的独立封闭性 让其与外界沟通 这个过程就是组件通讯
 
 
@@ -1391,13 +1483,14 @@
 - 我们在组件标签里面 像写id='xxx'的形式 往props中传递值
 <!-- 
   <Person name='sam' age='18' sex='男'/>
-
-  react在newPerson实例的时候就会将 name='sam'做为一组kv值, 放在props中 
+  react在newPerson实例的时候就会将 name='sam'做为一组kv值, 放在子组件的props中 
  -->
 
-> 子组件中调用 props 中的属性
+> 子组件中调用 this.props 中的属性
 - 我们通过this.props.xxx的形式调用
 <!-- 
+  // 子组件
+
   render() {
     // 在return的外侧 来可以通过解构赋值的方式取变量
     const {name, age, sex} = this.props
@@ -1410,6 +1503,9 @@
       </ul>
     )
   }
+
+  子组件在render中打印： this 显示：
+  props: {name: 'sam', age: '18'}
  -->
 
 
@@ -1430,7 +1526,7 @@
 - 但需要注意的是:
 - 我们捞回来的数据 必须和 模板中使用的数据 变量名一致
 <!-- 
-  // 这个p 就是我们模拟从ajax请求回来的结果
+  // 这个 p 就是我们模拟从ajax请求回来的结果
   const p = { name: 'erin', age: 18, sex: '女' }
   ReactDOM.render(<Person {...p}/>, document.querySelector('#app'))
       // 这里我们使用...将对象p展开
@@ -1455,8 +1551,15 @@
 - ...p是不能展开对象的, 但是在react中可以使用...展开一个对象
 - 但仅适用于标签属性中的数据传递 也就是说...对象的形式 只能在标签内部用
 <!-- 
-  jax中的{...p} 和 原生 {...p} 是不一样的
+  jsx中的{...p} 和 原生 {...p} 是不一样的
  -->
+
+- 待留问题:
+- 数据在render函数中定义
+- 数据在类中定义也一样
+
+- 通过上述的方式传递过来的数据 子组件中是可以进行更改的
+- 而且子组件修改的数据并不会影响到父组件
 
 
 >  props
@@ -1473,7 +1576,7 @@
 
 
 > props的特点
-- 1 可以给组件传递任意类型的数据 数据 对象 函数 布尔 还能传递一个标签
+- 1 可以给组件传递*任意类型的数据 数据 对象 函数 布尔 还能传递一个标签*
 <!--
     <Hello tag={<p>我是一个p标签</p>}>
 
@@ -1481,9 +1584,33 @@
     return (
         {props.tag}
     )
+
+  ------
+
+  // App组件
+  render() {
+    return (
+      <div className="app-wrap">
+        <h3>App</h3>
+        <Home tag={<a href="www.baidu.com">link</a>} />
+      </div>
+    )
+  }
+
+  // Home组件
+  render() {
+    let {tag} = this.props
+    return (
+      <div className="home-wrap">
+        <ul>
+          <li>{tag}</li>
+        </ul>
+      </div>
+    )
+  }
 -->
 
-- 2 props 是只读的对象 只能读取属性的值 无法修改对象
+- 2 props 是只读的对象 只能读取属性的值 无法修改对象(但可以修改值啊)
 - 3 如果使用的是类组件 如果写了 constructor 而是还传递了 props 那么就应该将props传递给 super 否则无法在构造函数constructor中获取到props
 
 
@@ -1517,6 +1644,39 @@
     getChildMsg = (data) => { this.setState({parentMsg: data })}
 
     render() { return ( <div>{this.state.parentMsg }</div>) }
+
+    -------
+
+    // 父组件
+    export default class App extends Component {
+  
+      obj = {name: "erin", age: 18}
+
+      // 定义一个函数 通过props 传递过去
+      handleData = (data) => {
+        console.log(data)
+      }
+
+      render() {
+        return (
+          <div className="app-wrap">
+            <h3>App</h3>
+            <Home 
+              tag={<a href="www.baidu.com">link</a>} 
+              method={this.handleData}
+            />
+          </div>
+        )
+      }
+    }
+
+
+    // 子组件
+    - 还可以在render函数中调用
+    componentDidMount() {
+      this.props.method(this.data)
+    }
+
 -->
 
 
@@ -1525,46 +1685,82 @@
 - 将共享状态提升到最近的公共父组件中 由公共父组件管理这个状态
 - 也就是把数据放在 A B 组件的 亲爸爸 身上
 
-- 公共父组件的指责
+- 公共父组件的职责
 - 1 提供共享状态
 - 2 提供操作共享状态的方法
   - 因为状态是组件内部的私有数据 所以父组件还要提供操作状态的方法
 
-<!--
-    <Child name={this.state.name}>
--->
 
+> props的children属性可以完成插槽的概念
 > props深入： children 属性
-- children属性： 表示组件标签的子节点 当组件标签有子节点的时候 props就会有该属性
+- children属性： 表示组件标签的子节点 *当组件标签有子节点(标签体)的时候 props就会有该属性*
+<!-- 
+  <Home>我是内容</Home>
+
+  props:
+    children: "我是内容"      // props.children
+ -->
+
 - 也就是说 我们通过标签体传递过去的 数据 就会在该组件的props.children身上
 <!--
     <Hello>我是子节点</Hello>
     props.children = 我是子节点
 -->
 
-- children属性与普通的props一样 值可以是任意值(文本 React元素 组件 甚至是函数 数组)
+- *children属性*与普通的props一样 值可以是*任意值*(文本 React元素 *组件* 甚至是函数 数组)
+
+- 我们通过 this.props.children 来调用
 <!--
     <Hello>文本节点</Hello>
 
     <Hello>
-        <p>jsx作为子节点</p>
+      <p>jsx作为子节点</p>
     </Hello>
 
     <Hello>
-        <Test />  这是一个组件
+      <Test />  这是一个组件
     </Hello>
 
     <Hello>
+      {
+        () => console.log("这是一个函数子节点")
+        }
+    </Hello>
+
+    - 然后我们可以通过 props.children() 调用
+
+  -------
+
+  <Home>
+    <ul>
+      <li>a</li>
+      <li>b</li>
+      <li>c</li>
+      <li>d</li>
+    </ul>
+  </Home>
+
+  render() {
+    return (
+      <div className="home-wrap">
+        <h3>Home</h3>
         {
-            () => console.log("这是一个函数子节点")
-         }
-    </Hello>
-    然后我们可以通过 props.children() 调用
+          this.props.children
+        }
+      </div>
+    )
+  }
+
+  // 结果
+  Home
+  ・　a
+  ・　b
+  ・　c
+  ・　d
 -->
 
 > 这不是插槽么？
 - 调用 Hello 组件的人 可以通过标签体 传递数据 然后Hello组件接收到后 可以渲染不同的内容
-
 
 
 > props深入： 校验
@@ -1596,8 +1792,8 @@
 - 用来约束属性是一个对象时候 对其内部属性进行约束
 - shape函数的参数是一个对象
 - propAttr: PropTypes.shape({
-  - color: Protypes.string.isRequired
-- })
+    color: Protypes.string.isRequired
+  })
 
 - 文档在官方网站里
 - https://reactjs.org/docs/typechecking-with-proptypes.html
@@ -1616,14 +1812,14 @@
 
 
 **扩展运算符的回顾**
-> ...在es6中是用来展开数组的 链接数组 函数传参
+> ...在es6中是用来展开数组的 连接数组 函数传参
 <!-- 
   // 展开一个数组
   let arr = [1,2,3,4]
   console.log(...arr)     1 2 3 4
 
 
-  // 链接两个数组
+  // 连接两个数组
   let arr = [1,2,3]
   let arr2 = [4,5,6]
 
@@ -1655,7 +1851,7 @@
 <!-- 
   let person = {name: 'tom', age: 18}
   let person2 = {...person}
-    // 直接写 ...person 肯定不能展开一个对象 但是外面包裹一层{...person} 可以复制一个对象(深克隆)
+    // 直接写 ...person 肯定不能展开一个对象 但是外面包裹一层{...person} 可以复制一个对象
 
     如果对象中还有对象的话 我们克隆的是对内层对象的引用 就是浅拷贝 这是试验过后的结果
 
@@ -1681,7 +1877,7 @@
 <!-- 
   <Person name='sam' age='19' sex='男' />
   
-  有些情况下 我们需要对数据进行计算, 比如: 让展示的数据比真实数据>1
+  有些情况下 我们需要对数据进行计算, 比如: 让展示的数据比真实数据 - 1
 
   render() {
     const { name, sex, age } = this.props
@@ -1852,7 +2048,7 @@
 
 ### props的简写方式
 > props是只读的
-- 如果props是一个对象 它的内部属性 我们修改的时候它不会报错
+- *如果props是一个对象 它的内部属性 我们修改的时候它不会报错*
 - 但是简单的数据类型 或者 直接改变对象的地址值 那就会报错
 <!-- 
   <Person name='sam' age={19} sex='男' />
@@ -1878,7 +2074,10 @@
  -->
 
 
-> props的简写方式
+> props校验的简写方式
+- static propTypes = { k: PropTypes.string.isRequired }
+- static defaultProps = { sex: '男' }
+
 - 上面我们用class定义了组件, 但是对标签属性 和 类型 必须性的限制却写在了class的外面, 最好的方式是, 当我们把class折叠起来之后, 所有对标签属性的限制 也被折叠起来
 <!-- 
   从语法上来讲, 我们就是给Person类的自身添加了属性 我们使用 static 关键字
@@ -1965,7 +2164,7 @@
 
 > 总结
 - 1. 类中的构造器可以完全不写
-- 2. 在写constructor和super的时候 要传递props 不然 我们没有办法通过this.props获取到值(也就是希望不希望在构造器中通过实例(this)去访问props)
+- 2. 在写constructor和super的时候 都要传递props 不然 我们没有办法通过this.props获取到值(也就是希望不希望在构造器中通过实例(this)去访问props)
 
 <!-- 
   constructor(props) {
@@ -2002,21 +2201,27 @@
   我们在标签属性中传递的name='sam' age=18 还有默认的sex 都会被props接收到
  -->
 
+
+> 总结:
+- 通常在react中, 构造函数(constructor)仅用于以下两种情况
+- 1. 通过给this.state赋值对象来初始化内部的state
+- 2. 为事件处理函数绑定实例
+
 ----------------------------
 
 ### 函数式组件的使用props
 - 对于函数式组件, 因为它没有this(也就是实例对象)它没办法使用 state, refs, 但是它也可以使用props
 <!-- 
-  不是说没有实例那么实例的三大核心属性都用不了么? 那为什么函数式组件可以使用props呢?
+  不是说没有实例那么实例的三大核心属性都用不了么? 
+  那为什么函数式组件可以使用props呢?
 
   答:
   因为函数有一个特点 因为它可接收参数
  -->
 
-> 形参props
-- 在react中, 我们在组件标签内部写的所有属性, react都会帮你收集好放到形参props中是一个对象的形式
+> 函数组件的形参 props
+- 在react中, 我们在组件标签内部写的所有属性, react都会帮你收集好放到形参中，形参props是一个对象的形式
 <!-- 
-
   ReactDOM.render(<Person name='sam' age={18}/>, document.querySelector('#app'))
 
   function Person(props) {
@@ -2059,11 +2264,11 @@
 
 ### props的相关总结
 - props的作用通过标签属性从组件外向组件内传递变化的数据
+
 - 注意:
 - 组件内部不要修改props数据
 <!-- 
   state是自己家里面的事
-
   props是从外部往家里面带东西
  -->
 
@@ -2080,6 +2285,7 @@
  -->
 
 - 3. 对于类式组件来说, react帮我们将标签属性收集到了props里
+- 通过this.props获取 函数式组件的props是通过形参props调用
 
 - 4. props的限制, 并不是说一定要对props进行限制 但是对于标准一些来说还是需要进行一些限制
 **要是想使用props限制 要引入prop-types.js库 全局才会多出PropTypes对象**
@@ -2105,27 +2311,29 @@
 ----------------------------
 
 ### 组件的三大核心属性 refs 与 事件处理
-- ref一般是给组件和dom节点打标记的
+- ref一般是给组件和dom节点打标记的 相当于id
+- 给组件打ref属性 相当于拿到了该组件的实例对象 可以通过ref调用子组件中的props state等属性
+
+- 给dom元素打ref相当于拿到了dom元素的节点
 
 - 案例
 - 需求: 自定义组件
   - 1. 点击按钮, 提示第一个输入框中的值
   - 2. 当第二个输入框失去焦点时, 提示这个输入框的值
 
-> 字符串型的 ref --- 从 this.refs身上获取
+> 1. 字符串型的 ref --- 从 this.refs身上获取
 - ref的值 input1 是字符串的类型 所以叫做字符串型 ref
 <!-- 
   <input ref='input1'>
  -->
 
 - 作用: 
-- 组件内的标签可以定义ref属性来标识自己 然后被react收集到实例对象的refs属性中
+- 组件内的标签可以定义ref属性来标识自己 然后被react收集到实例对象的refs属性(refs是一个对象)中
 - 简单的说 用法类似 id
 <!-- 
   <input type="text" ref='inp1'/>
 
   当我们在标签内部写上ref的时候, react就会将ref这组kv 收集到 实例对象的refs属性中
-
   refs: {inp1: input}
 
   refs中的key:    是inp1
@@ -2134,7 +2342,7 @@
 
 
 - 注意:
-- 这里要注意的是 我们虽然是给虚拟DOM打上的ref标识, 但获取到的不是虚拟DOM, 而是该虚拟DOM转成真实DOM后的节点
+- 这里要注意的是 我们虽然是给虚拟DOM打上的ref标识, 但获取到的*不是虚拟DOM*, 而是该虚拟DOM转成*真实DOM后的节点*
 
 **字符串类型的ref已经不被react官方推荐使用了 以后可能会被废弃掉**
 - 因为string类型的refs存在一些问题
@@ -2182,11 +2390,15 @@
  -->
 
 
-> 回调形式的 ref --- c => this.refname = c   从 this 身上获取
+> 2. 回调形式的 ref -- c => this.refname = c  --  从 this 身上获取
 - 所谓的回调形式的ref 就是给 ref的值设置一个回调函数(箭头函数), jsx中要在结构中使用js 要用到{ }
 <!-- 
   ref = { (currentNode) => { this.inp1 = currentNode } }
  -->
+
+- ref属性要指定一个回调, 回调中的形参currentNode就是当前节点 
+- 我们将ref标识的节点放在了组件实例对象自身身上
+
 
 - 解析:
 <!-- 
@@ -2252,11 +2464,13 @@
     ReactDOM.render(<InputComponent />, document.querySelector('#app'))
  -->
 
+
 **回调ref中调用次数的问题**
 - 我们来看一个比较细节的地方 就是ref的回调 的调用次数
 <!-- 
   <input ref={ currentNode => this.inp1 = currentNode } type="text" />
  -->
+
 
 > 内联函数的ref 带来的可以忽略不计的问题
 - 上面的注释里就是内联的函数的形式
@@ -2276,16 +2490,24 @@
 
   我们点击更新按钮的时候, 状态一更改 就会驱动页面显示 怎么驱动页面显示 我们需要重新调用一次render 那就说明render又要执行一次 那么就说明ref回调也需要重新执行一次
 
-  这时react 会再次执行ref的回调, 这时这个回调就是第一次那个了 之前那个执行完了被释放了 没了 这是一个新的 第二次的时候react不知道之前做了什么接收到了什么, 为了保证这个函数被完美的清空所以调用了第一次传递了一个null 然后紧接着它调用第二次才把当前的DOM节点放了进来 是为了有一个清空的动作
+  这时react 会再次执行ref的回调, 这时这个回调就是第一次那个了 
+  之前那个执行完了被释放了 没了 这是一个新的 
+  第二次的时候react不知道之前做了什么接收到了什么, 
+  为了保证这个函数被完美的清空所以调用了第一次传递了一个null 
+  然后紧接着它调用第二次才把当前的DOM节点放了进来 是为了有一个清空的动作
  -->
 
 
 > 官方给出的解决办法
-- 通过将ref的回调函数定义成class的绑定函数的方式可以避免上述的问题, 但是大多情况下它是无关紧要的
+- 通过将ref的回调函数中调用我们在类中定义好的方法 该方法内部 做
+   c => this.name = c, 的逻辑
+  但是大多情况下它是无关紧要的
 <!-- 
-  说白了就是像vue一样 在标签里面定义方法, 然后在class里面 定义方法写逻辑
-
-  <input ref={this.saveInput} type="text" placeholder='点击按钮提示文字' />
+  说白了就是像vue一样 在标签里面定义方法, 然后在类里面 定义方法写逻辑
+  <input 
+    ref={this.saveInput} 
+    type="text" 
+    placeholder='点击按钮提示文字' />
 
   class InputComponent {
     saveInput = (c) => {
@@ -2294,44 +2516,46 @@
   }
  -->
 
-
-> 以后直接写成内联的没什么影响
-
+- 以后直接写成内联的没什么影响
 
 
-> React.createRef() 创建ref容器  --- this.refname.current.value
+> 3. React.createRef() 创建ref容器  --- this.refname.current.value
 - React.createRef() 调用后可以返回一个容器, 该容器可以存储被ref所标识的节点 
 - 最新的写法 也是目前react最为推荐的一种写法
-- 1. 我们在class类中, 使用赋值的形式 创建ref容器
+
+- 1. 我们在类中, 使用赋值的形式 创建ref容器
+
+    myRef = React.createRef()
+
 - 2. 然后在标签内部使用该容器 ref={this.myRef}
+
+    <input ref={this.myRef} type="text"/>
+
 <!-- 
   myRef = React.createRef()
-
   <input ref={this.myRef} type="text"/>
-
   当执行到 <input ref={this.myRef} type="text" /> 的时候 会把input所在的节点直接存储到这个myRef的容器里面
+ -->
+
+- 3. this.myRef.current 取到当前节点
+- 我们console myRef 容器 结果是一个对象 {current: input}
+- 要是获取保存在里面的节点 需要通过 myRef.current 来获取
+<!-- 
+  console.log(this.myRef.current)         获取input节点
+  console.log(this.myRef.current.value)   获取input节点的value
  -->
 
 **注意:**
 - 该容器是专人专用的 里面只能存储一个 后放进去的会覆盖前一个 要想有多个 就需要通过React.create() 创建多个ref容器
 
 
-> 取值
-- 从 myRef 中获取节点 
-- 我们输入 myRef 容器 结果是一个对象 {current: input}
-- 要是获取保存在里面的节点 需要通过key(current)来获取
-<!-- 
-  console.log(this.myRef.current)         获取input节点
-  console.log(this.myRef.current.value)   获取input节点的value
- -->
-
 > 完整代码
 <!-- 
   class Demo extends React.Component {
 
+    // 专人专用
     inputRef = React.createRef()
     inputRef2 = React.createRef()
-
 
     render() {
       return (
@@ -2362,11 +2586,32 @@
 ----------------------------
 
 ### react中的事件处理
-- 1. 通过onXxx属性指定事件处理函数(注意大小写)
+- 1. react中通过onXxx的形式指定事件处理函数(注意大小写)
   - 1.1 react使用的是自定义(合成)事件, 而不是使用的原生DOM事件
   - 1.2 react中的事件是通过事件委托方式处理的(委托给组件最外层的元素)
 
-- 2. 通过 event.target得到发生事件的DOM元素对象
+- 2. 通过 event.target 得到发生事件的DOM元素对象
+
+**注意：**
+- 我们绑定的事件其实都委托给了最外层的div
+<!-- 
+  <div className="app-wrap" onClick={this.handleClick}>
+    <button onClick={this.handleClick}>click</button>
+  </div>
+
+
+  num = 0
+  handleClick = () => {
+    console.log(this.num += 1)
+
+    // 扩展
+    如果我们在函数内部定义 let num = 0
+    每次console num++
+    我们每次得到的都是0 每点击一次 打印的就是一个0
+  }
+
+  现在div和button都绑定了相同的事件 事件内的逻辑或执行两次
+ -->
 
 <!-- 
   1.1 解释:
@@ -2398,6 +2643,18 @@
 
 > 总结:
 - 不要过渡的使用ref
+- react中会在事件回调中自动传入 event 事件对象 react会在事件回调中假如 事件对象
+- 假如我们在事件回调使用了高阶函数 也就是返回一个函数的形式的话 那么我们交给react的就是函数的返回值函数 react会往拿到手的函数的形参中加入 事件对象
+<!-- 
+  <div onClick={this.handleClick}>
+  handleClick= (e) => { }
+
+  handleClick= (参数) => {
+    return (e) => {
+      因为react拿到的是这个函数
+    }
+  }
+ -->
 
 ----------------------------
 
@@ -2443,6 +2700,8 @@
     handleSubmit = (e) => {
 
       e.preventDefault()
+
+      // 通过ref获取节点的value值
       let user = this.textRef.current.value
       let pwd = this.passwordRef.current.value
 
@@ -2616,7 +2875,7 @@
 
 
 > 总结:
-- 1. 我们要是在项目中使用state的话, 一定要先对state进行初始化
+- 1. 我们要是在项目中使用state的话, 一定要先*对state进行初始化*
 <!-- 
   // 初始化状态
   state = {
@@ -2635,7 +2894,11 @@
   受控组件的优势就在于能够省略ref
  -->
 
+
+- 技巧要点:
+- 我们创建了一个中间变量type 这个中间变量对应的是state中的key
 <!-- 
+  
   handleSave = (type) => {
     return (e) => {
       this.setState({
@@ -2654,7 +2917,7 @@
 - 我分成了两个组件 评论人 评论内容 发表评论 和 展示信息
 
 - 我将数据放在了app组件里面
-- 功能组件收集收据 使用 app通过prop传过来的函数 将数据返送回去
+- 功能组件收集数据 app通过prop传过来的函数 将数据返送回去
 - app组件将收到的数据 prop传给展示组件
 
 > 要点
@@ -2697,6 +2960,7 @@
     msg: []
   }
 
+  // 将收到的obj对象放入msg中 msg中原有的对象将会在obj的后面
   saveData = (obj) => {
     let {msg} = this.state
     this.setState({
@@ -2921,7 +3185,6 @@
   let res = sum(1, 2, 3)
   console.log(res)        // 6
 
-
   // 上面没有用到函数的柯里化
 
 
@@ -3083,7 +3346,7 @@
 - 然后开启定时器 改变state中的数据, 推动页面的更新
 
 - 但是我们的定时器写在哪里比较合适
-- 1. 首先不能直接写在类里
+- 1. 首先不能直接写在类里!!!
 <!-- 
   class Life {
 
@@ -3136,11 +3399,13 @@
 
     // 组件挂载完成
     componentDidMount() {
+
+      // 这里不能 let timer 因为其它的声明周期函数中拿不到
       this.timer = setInterval(() => {
+
+        // 下面这部分逻辑不能拿到定时器的外部
         let {opacity} = this.state
-
         opacity -= 0.1
-
         if(opacity<=0) {
           opacity = 1
         }
@@ -3150,7 +3415,7 @@
     }
 
     
-    // 组件将要被卸载之前
+    // 组件将要被卸载之前 这个钩子没有要被移除
     componentWillUnmount() {
       clearInterval(this.timer)
     }
@@ -3279,9 +3544,8 @@
 > this.forceUpdate()
 - 强制更新
 
-- 正常来说我们必须修改 state 中的数据 页面才会更新 会走上面的生命周期流程 但
+- 正常来说我们必须修改 state 中的数据 页面才会更新 会走上面的生命周期流程 但有些时候我们不改状态里面的数据, 也想更新页面 forceUpdate() 方法就是强制更新的方法
 
-- 有些时候我们不改状态里面的数据, 也想更新页面 forceUpdate() 方法就是强制更新的方法
 - 我们不对状态进行任何的修改 组件也能更新
 - 强制更新就是比正常更新少走了一个环节(阀门阶段没了)
 
@@ -3350,6 +3614,7 @@
 
       componentWillReceiveProps(props) 是可以接收到传递过来的参数的
       props: carName: '奥拓'
+
  -->
 
 
@@ -3359,6 +3624,10 @@
 
 - 坑点：
 - 我们在刷新页面 或者说第一次渲染页面的时候 这个钩子不会被调用
+<!-- 
+  源代码中父组件将数据通过props传递给了子组件 父组件初次渲染 连带子组件渲染
+  但是子组件初次渲染的时候 componentWillReceiveProps 被没用被调用
+ -->
 
 <!--  
   class A extends React.Component {
@@ -3472,13 +3741,13 @@
 
       旧的生命周期                  新的生命周期
 
-      constructor                   constructor
+      constructor                 constructor
 
-      componentWillMount(废弃)  getDerivedStateFromProps(新的)
+      componentWillMount(废弃)     getDerivedStateFromProps(新的)
 
-      render                        render
+      render                      render
 
-      componentDidMount             componentDidMount
+      componentDidMount           componentDidMount
 
  -->
 
@@ -3514,16 +3783,55 @@
 ----------------------------
 
 ### 新版的钩子 getDerivedStateFromProps
+- 这个钩子是任何组件在更新 挂载时都会被调用的组件
 
-> getDerivedStateFromProps
-- 从props中得到一个派生的状态(state)
+> static getDerivedStateFromProps(nextProps, prevState)
+- 从props中获取state
+
+- 作用:
+- 将传入的props映射到state上面。
+
 - 该回调函数接受两个参数 (props, state)
-- props: 我们在组件标签中 传递的kv
-- state: 我们在state中初始化的值
+- nextProps: 我们在组件标签中 传递的kv
+- prevState: 当前组件中state的初始化值
 
-- 该方法前 需要加 static 关键字
-- 该方法内部必须return null 或者 return 状态对象
-  - 状态对象也就是必须跟state中的东西一样
+- 特点：
+- 1. 这个函数会在render前被调用
+<!-- 
+  意味着即使子组件的props没有任何变化 而父组件state发生了变化 也会导致子组件重新render
+  这个生命周期依然会被调用 看似一个非常小的修改 缺可能导致很多隐含的问题
+ -->
+
+- 2. 这个生命周期函数是为了替代componentWillReceiveProps存在的，所以在你需要使用componentWillReceiveProps的时候，就可以考虑使用getDerivedStateFromProps来进行替代了。
+
+- 3. 这个钩子是static修饰的 意味着它不能通过this访问到类中的属性
+- 而是应该通过参数提供的nextProps以及prevState来进行判断，根据新传入的props来映射到state。
+
+- 4. 需要注意的是，如果props传入的内容不需要影响到你的state，那么就需要返回一个null，这个返回值是必须的，所以尽量将其写到函数的末尾。
+
+
+- 注意
+- 1. 使用这个钩子的时候 组件必须要有state
+- 2. 该方法前 需要加 static 关键字
+- 3. 该方法内部必须return null 或者 return 状态对象
+
+
+- 使用方法:
+- 我们从获取到的props中拿到父组件传递过来的数据 和 我们自己组件中的state(子组件)的数据进行对比 如果不一样 就更新state(拿着父组件传递进来的props存到自己组件的state中)
+<!-- 
+  static getDerivedStateFromProps(nextProps, prevState) {
+      const {type} = nextProps;
+      // 当传入的type发生变化的时候，更新state
+      if (type !== prevState.type) {
+
+          // 我们要return一个对象
+          return { type };
+      }
+      // 否则，对于state不进行任何操作
+      return null;
+  }
+ -->
+
 <!-- 
   state = { count: 0 }
   static getDerivedStateFromProps(props, state) {
@@ -3539,24 +3847,24 @@
   ReactDOM.render(<Count count='199' />, document.querySelector('#app'))
  -->
 
-- 这就是派生的props 我们把接收到的props return出去 是不是props就当状态用了 也就是我从props中得到了一个状态 不是我们自己写的状态 而是从props中得到的 这就是一个派生的状态
+- 我们把接收到的props return出去 return的是状态对象 相当于我们将父组件传入的props当状态用了 也就是我从props中得到了一个状态 不是我们自己写的状态 而是从props中得到的 这就是一个派生的状态
 
-- 该函数横跨挂载和更新两个阶段 一旦开启所有的事情都要听props的
+- 该函数横跨挂载和更新两个阶段 一旦开启该钩子所有的事情都要听props的
 <!-- 
   也就是像我们这么写
 
     static getDerivedStateFromProps(props) {
       return props
     }
-
-  那么就是说 我们的状态值在任何时候都取决于props 无论我们的初始化和修改都是不起作用的 完全听props的指挥
-
-  但是官方说 派生状态会导致代码冗余 并使组件难以维护
  -->
+
+- 那么就是说 我们的状态值在任何时候都取决于props 无论我们的初始化和修改都是不起作用的 完全听props的指挥 但是官方说 派生状态会导致代码冗余 并使组件难以维护
 
 
 > 总结:
 - 一旦我们返回了一个状态对象, 就会以这个对象为主, 页面上的相关状态以后永远也改不了了
+- https://www.jianshu.com/p/50fe3fb9f7c3
+
 
 - 应用场景
 - 即state的值在任何时候都取决于props
@@ -3569,7 +3877,6 @@
 - 官方推荐的应用场景:
 <!-- 
   在组件发生更改之前从DOM中捕获一些信息(例如 滚动位置) 
-  
   此生命周期的任何返回值将作为参数传递给componentDidUpdate()
 
   getSnapshotBeforeUpdate() {
@@ -3633,13 +3940,16 @@
 
   我们看下新的生命周期图中的render往下的部分
 
-  render是因为我要更新 调完render之后会调用getSnapshotBeforeUpdate 它是更新之前也就说内部还没有被放在页面上调用的getSnapshotBeforeUpdate
+  render是因为我要更新 调完render之后会调用getSnapshotBeforeUpdate 
+  它是更新之前也就说内部还没有被放在页面上调用的getSnapshotBeforeUpdate
 
   调用componentDidUpdate就代表 内容已经更新完了已经放到页面上了
 
 
   // 结合案例:
-  getSnapshotBeforeUpdate 和 componentDidUpdate 差了一条新闻 因为是这条新闻渲染前 和 渲染后, 所以我们可以在两个周期中分别获取到盒子的高度 算出差值 动态觉得内容区往上或者往下差多少 就能实现新的新闻不断的返回 还不影响我们看新闻
+  getSnapshotBeforeUpdate 和 componentDidUpdate 差了一条新闻 
+  因为是这条新闻渲染前 和 渲染后, 
+  所以我们可以在两个周期中分别获取到盒子的高度 算出差值 动态决定内容区往上或者往下差多少 就能实现新的新闻不断的返回 还不影响我们看新闻
  -->
 
 
@@ -3693,7 +4003,7 @@
       return this.refs.list.scrollHeight
     }
 
-    // 它能接收3个参数 preProps, preState, height
+    // componentDidUpdate它能接收3个参数 preProps, preState, height
     componentDidUpdate(preProps, preState, height) {
 
       // 如果调用componentDidUpdate代表组件已经更新完, 内容区的高度已经增加 所以我们要拿到现在的高度 然后 减去传递过来的高度
@@ -3808,8 +4118,11 @@
 
 ### 另一个老师对生命周期的总结
 > 组件的生命周期
-- 组件的生命周期： 组件从被创建到挂载到页面中运行 再到组件不用时的卸载的过程
+- 组件的生命周期： 
+    组件从被创建到挂载到页面中运行 再到组件不用时的卸载的过程
+
 - 生命周期的每个阶段总是伴随着一些方法的调用 这些方法就是生命周期的钩子函数 
+
 - 钩子函数的作用： 为开发人员在不同阶段操作组件提供了时机
 
 
@@ -3941,7 +4254,7 @@
 
 ----------------------------
 
-### render-props 和 高阶组件(HOC)  组件的复用
+### 组件的复用 -- render-props 和 高阶组件(HOC) 
 
 > react组件复用概述
 - 思考：
@@ -3949,22 +4262,45 @@
 - 一个A页面中 随着鼠标的移动 页面上会打印 鼠标的坐标
 - 一个B页面中 随着鼠标的移动 小猫图片会跟着鼠标一起走
 
-- 这两个页面中有共通的部分 我们复用的时候 需要复用什么呢？复用鼠标的坐标，鼠标的坐标在react中的体现就是一个状态 而且这个状态还会发生变化 还有操作状态的方法
-- 1 复用状态 
-- 2 复用操作state的方法
+- 这两个页面中有共通的部分 我们复用的时候 需要复用什么呢？
+- 复用鼠标的坐标
+- 鼠标的坐标在react中的体现就是一个状态 而且这个状态还会发生变化 还有操作状态的方法
+
+- 1. 复用状态 
+- 2. 复用操作state的方法
 
 - 那在react中怎么进行组件逻辑的复用呢？
 - 我们可以通过 render props 和 高阶组件的模式
+
 - 注意
 - 这两种方式不是新的api 而是利用react自身特点的编码技巧 演化而成的固定模式(写法)
 <!-- 
   本来是没有这种方式的但是前人发现这种写法很好用 所以总结出来的
  -->
 
-- 那怎么写代码是 render props模式和高阶组件的模式呢？
+- 那怎么写代码是 render props模式 和 高阶组件的模式呢？
 
 
-> render props 模式
+> render props 模式  循环一圈半
+- 要点：
+- 1. 子组件利用形参将子组件内部的数据传回去(父组件)
+- 2. 子组件利用返回值渲染结构
+- 3. 父组件拿到数据 创建返回值
+<!-- 
+      函数props
+
+          父组件
+  (利用形参 -- 创建返回值结构)   
+
+                      ↘ 2 利用形参 -- 创建返回值结构
+        传回数据 1 ↖
+                          ↘ 3 利用返回值渲染结构
+
+                      子组件
+              (利用形参传回数据 -- 利用返回值渲染结构)
+ -->
+
+
 - 思路：
 - 将要复用的state和操作state的方法封装到一个组件中 
 - 假设 我们封装好了一个组件 <Mouse /> 这里面有鼠标的状态 和 操作鼠标的方法
@@ -3975,7 +4311,9 @@
 
   现在我们把相同的state和操作state的方法封装成了组件 但是怎么在另一个页面使用呢？ 直接引入？？ 又不是页面结构
  -->
+
 - 但是又会产生新的问题 怎么复用呢？我们先思考两个问题
+
 
 > 1. 如何拿到该组件中复用的state
 > 传递函数prop 通过形参接收 组件内部的state
@@ -3995,6 +4333,7 @@
 > 传递函数prop 通过该函数的返回值 来决定要渲染的ui结构
 - 我们拿到核心功能后 怎么使用核心功能来渲染不同的ui结构呢？
 - 使用该函数的返回值 作为要渲染的ui内容(需要组件内部实现)
+
 <!-- 
   A组件中的ui结构是 文本信息： 当前鼠标坐标为：x y
   B组件中的ui结构是 小猫图片
@@ -4020,7 +4359,7 @@
   我们假如要渲染图片 我们就在return中写上图片
  -->
 
-> 呃 react中插槽的综合应用么？
+> 呃 react中插槽的综合应用么？ 相当于作用域插槽
 
 - 接下来我们看看代码部分
 > 实现步骤
@@ -4049,8 +4388,8 @@
     }
 
     render() {
-      // 不渲染任何内容
-      return null
+      // 复用组件的ui结构是看父组件函数的返回值
+      return this.props.render(this.state)
     }
   }
  -->
@@ -4137,6 +4476,7 @@
 <!-- 
   <Mouse>
     {
+      // 这个位置是函数的返回值 是一个结构 所以要加上括号
       ({x, y} => <p>鼠标的位置是: {x} - {y} </p> )
     }
   </Mouse>
@@ -4150,9 +4490,6 @@
   // Mouse组件
 
   render() {
-    // 不渲染任何内容
-    // return null
-
     return (
       <div>
         <h3>我是mouse组件</h3>
@@ -4214,37 +4551,63 @@
 ### 高阶组件 实现状态逻辑复用
 - 目的：
 - 实现状态逻辑复用，采用 包装(装饰)模式 比如说：手机壳 
+
 - 手机：为了获取保护功能
 - 手机壳：提供保护功能
 - 包装之后 手机就具备了原来手机所不具备的功能
 
 - 高阶组件就相当于手机壳 通过包装组件 增强组件功能 
 
-- 思路分析：
-- 高阶组件(HOC hgiher-order component)是一个函数 接收要包装的组件 返回增强后的组件 
-<!-- 
-  const EnhanceComponent = withHoc(WrappedComponent)
+> 思路分析：
+- 高阶组件(HOC hgiher-order component)是一个函数 它的返回值为增强功能后的全新组件
+- 高阶组件函数内部需要：
+    + 形参(UI组件) 
+    + 函数内部类(提供可复用的逻辑 比如鼠标位置 state数据)
+    + 在内部类中的render函数里面 调用 UI组件 并传入 state数据
 
-  withHoc() 就是一个高阶组件 实参为要被包装的组件(这个组件需要扩展功能)
-  手机壳(手机)
+<!-- 
+  EnhanceComponent为返回的增强功能后的组件
+  const EnhanceComponent = withHoc(WrappedComponent)
  -->
 
-- 高阶组件的内部创建一个类组件 在这个类组件中提供复用的状态逻辑 通过prop将复用的状态传递给被包装组件 WrappedComponent
+- 高阶组件的内部创建一个类组件 在这个类组件中提供复用的状态逻辑 通过prop将复用的状态传递给被UI组件 WrappedComponent
 
 <!-- 
-  // 这个组件 只是为了提供可复用的逻辑代码 自身不渲染ui结构
-  // 负责渲染 ui结构的还是 WrappedComponent 组件
-
   const EnhanceComponent = withHoc(WrappedComponent)
 
-  class Mouse extends React.Component {
-    render() {
+  function withHoc(WrappedComponent) {
 
-      // 这样 WrappedComponent 就能拿到 x y 的坐标了
-      return <WrappedComponent {...this.state}>
+    - 这个组件 只是为了提供可复用的逻辑代码 自身不渲染ui结构
+    - 负责渲染 ui结构的还是 WrappedComponent 组件
+    class Mouse extends React.Component {
+      render() {
+
+        // 这样 WrappedComponent 就能拿到 x y 的坐标了
+        return <WrappedComponent {...this.state}>
+      }
     }
   }
+
+  withHoc(UI组件 or html结构组件)
  -->
+
+
+> 总结下思路
+- 1. 高阶组件的使用是在 App组件(类外声明一个函数 跟app一个文件)
+    该函数接收一个 UI结构 的组件形参
+
+
+- 2. 函数内部要创建一个类  
+    该类的作用是提供复用的逻辑 比如鼠标位置 state数据
+    最后将创建的类return出去
+
+    在该类的渲染结构的 render函数中 调用 UI类(传入的形参组件) 并将state数据传入到UI组件中
+    UI组件内部利用数据（父组件state中的数据是实时更新的） 渲染UI结构
+
+  
+- 3. 在App类外 创建变量接收函数返回的增强功能后的组件
+    并在App组件的render函数中调用
+
 
 
 > 使用步骤
@@ -4574,7 +4937,7 @@
 - 因为要考虑到性能 如果我们调用了一次setState就render一次 再调一次 再render一次 性能上会不好 所以 实际上它会将多次调用的setState最终合并 将最终的结果一次性的调用render方法 将最终的结果渲染到页面中
 
 
-> setState((state, props) => { ... })   推荐语法
+> setState((state, props) => { return 状态对象 }, 状态更新后立即执行的回调)   推荐语法
 - 上面说了 如果调用了两次setState后面的是无法基于第一次setState的结果去做一些操作的
 
 - 回调中的return里 原先的state对象 return { }
@@ -5516,6 +5879,7 @@
 
 ----------------------------
 
+### 书签
 ### 案例: ToDoList -- 结构 样式的拆分
 - 下面大概是ToDoList的结构
 <!-- 
@@ -5725,11 +6089,10 @@
   我们先改成这样 也是有问题的
   <input type="checkbox" defaultChecked={done}/>
 
-
-  知识扩展:
-  defaultChecked
-  默认是否勾选 后续是可以改的 它只管第一次上来勾选还是不勾选
  -->
+
+> 知识扩展: defaultChecked
+- 默认是否勾选 后续是可以改的 它只管第一次上来勾选还是不勾选
 
 ----------------------------
 

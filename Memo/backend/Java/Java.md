@@ -4616,9 +4616,9 @@
 
   // 求中间值
   // 定义 首索引
-
   int head = 0;
-  // 定义 末索引
+  
+  // 定义 末位索引
   int end = arr.length - 1;
 
   boolean flag = true;
