@@ -14,6 +14,12 @@
 
 md rd hello.txt d: dir rm
 
+
+> 常用的node命令
+- node  
+- 启动交互命令 进入shell
+- 两次control+c 退出
+
 ----------------------
 
 ### 进入node环境
@@ -328,6 +334,43 @@ md rd hello.txt d: dir rm
     node的缺点也有解决方案 可以做一个分步式 一个服务器不够了再来一个 两个不够来三个 我们可以增加服务器的数量 还好node
     对服务器的要求不高 花1000元买的服务器能达到10000元的效果
  -->
+
+----------------------
+
+### REPL 运行环境概述
+- nodejs中提供了一个交互式运行环境 REPL
+- 在这个运行环境中 我们可以做一些简单的应用程序的测试和调试
+
+- 进入方式:
+- node
+
+- 退出方式:
+- ctrl + c x 2
+
+> REPL运行环境中 操作变量
+- 我们在该环境中可以使用let关键字来定义一个变量并为其赋值 但是在定义变量后 该表达式的结果将显示undefined
+
+- 而不使用let等关键字定义的变量则为其对应的变量值
+<!-- 
+    > name = "erin"
+    'erin'
+
+    > let age = 18
+    undefined
+ -->
+
+- 原因
+- REPL环境内部使用eval函数来评估该表达式的执行结果 而js中将上述两条表达式作为eval函数的参数 则eval函数将返回不同的结果
+
+----------------------
+
+### nodejs中的控制台
+- 在nodejs中 使用console对象代表控制台
+
+> console.log
+- 该方法用于进行标准输出流的输出
+
+- 可以通过参数指定输出字符串的格式
 
 ----------------------
 
@@ -995,6 +1038,17 @@ for(let i=0; i<buf2.length; i++){
 
 ----------------------
 
+### 异步式I/O 与 事件式编程
+- Node.js 最大的特点就是异步式 I/O（或者非阻塞 I/O）与事件紧密结合的编程模式。
+
+- 这种模式与传统的同步式 I/O 线性的编程思路有很大的不同，因为控制流很大程度上要靠事件和回调函数来组织，一个逻辑要拆分为若干个单元。
+
+- 什么是阻塞（block）呢？线程在执行中如果遇到磁盘读写或网络通信（统称为 I/O 操作），通常要耗费较长的时间，这时操作系统会剥夺这个线程的 CPU 控制权，使其暂停执行，同时将资源让给其他的工作线程，这种线程调度方式称为 阻塞。当 I/O 操作完毕时，操作系统将这个线程的阻塞状态解除，恢复其对CPU的控制权，令其继续执行。这种 I/O 模式就是通常的同步式 I/O（Synchronous I/O）或阻塞式 I/O （Blocking I/O）
+
+- 相应地，异步式 I/O （Asynchronous I/O）或非阻塞式 I/O （Non-blocking I/O）则针对所有 I/O 操作不采用阻塞的策略。当线程遇到 I/O 操作时，不会以阻塞的方式等待 I/O 操作的完成或数据的返回，而只是将 I/O 请求发送给操作系统，继续执行下一条语句。当操作系统完成 I/O 操作时，以事件的形式通知执行 I/O 操作的线程，线程会在特定时候处理这个事件。为了处理异步 I/O，线程必须有事件循环，不断地检查有没有未处理的事件，依次予以处理。
+
+----------------------
+
 ### fs 文件系统 file system
 - 通过node来操作系统中的文件  做一些增删改查的操作
 
@@ -1384,8 +1438,26 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
 - 不管我们返回的响应 还是发送请求 我们都要遵从http协议
 - 当返回响应的时候如果出现乱码, 则需要设置响应头
 
+- 简单的搭建服务器程序的代码示例
+<!-- 
+    const http = require("http")
 
-> http.createServer()
+    http.createServer((req, res) => {
+
+    res.writeHead(200, {
+        "Content-Type": "text/html"
+    })
+
+    res.write("<h1>NodeJS</h1>")
+    res.end("<p>hello world</p>")
+
+    }).listen(3000)
+
+    console.log("http server is listening at port 3000")
+ -->
+
+
+> http.createServer(回调)
 - 用来创建服务器对象
 - 每收到一次请求, 就会执行一次回调中的代码
 - 参数:
@@ -1393,29 +1465,39 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
     - requset       请求对象
     - response      响应对象
 
+> res.write()
+- 这个方法可以向浏览器书写一些响应体内容
 
-> response.end([data[, encoding]][, callback])
+<!--
+    response.write()
+    response.end()
+
+    相同点: 都可以传入参数表示往浏览器写一些内容
+    不同点: write可以连续操作, end表示响应结束一般放最后
+
+    res.write("<h1>NodeJS</h1>")
+    res.end("<p>hello world</p>")
+ -->
+
+
+> res.end([data[, encoding]][, callback])
 - 用来给浏览器发送响应
 - 使用end()方法代表响应工作已经结果, 所以这个方法后面不要再去写关于响应的操作了
 <!--    
     response.end('1');      这个方法后面不要写关于响应的操作
-
     response.end('2');      这个不会执行 会报错
  -->
 
-> response.write()
-- 这个方法可以向浏览器书写一些响应体内容
 
+> res.writeHead(状态码, { "key": "value" })
+- 书写状态码和首部字段
 <!-- 
-    response.end()
-    response.write()
-
-    相同点: 都可以传入参数表示往浏览器写一些内容
-    不同点: write可以连续操作, end表示响应结束一般放最后
+    res.writeHead(200, {
+        "Content-Type": "text/html"
+    })
  -->
 
-
-> response.setHeader('Content-type', 'text/html;charset=utf-8');
+> res.setHeader('Content-type', 'text/html;charset=utf-8');
 - 当返回响应为中文的时候如果出现乱码, 则需要设置响应头
 
 

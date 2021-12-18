@@ -7541,6 +7541,7 @@
 > + 表示 public 类型
 > - 表示 private 类型
 > # 表示 protected 类型
+> → 表示 extends 继承
 
 
 > 方法的写法:
@@ -8306,6 +8307,7 @@
  -->
 
 - 5. 如果使用的类或接口是本包下定义的 可以省略import结构
+- 换句话说使用别的包下的类那就要显式使用 import 导入该包
 <!-- 
   如果我们调用的是其它包下的 或者 lang包下定义的 则需要显式的使用import结构导入包
  -->
@@ -8557,16 +8559,1020 @@
       this.email = email;
     }
   }
+ -->
+
+> 要点：
+- 1. 如果我们要使用的类不处于当前的包下 那么就要使用 import 显式导入该类
+<!-- 
+  import src.cmu.bean.Customer;
+  落脚点是类名
+ -->
+
+- 2. java中数组元素的删除
+- 不能将指定位置的数据设置为null 因为数组都是有序的 连续的空间 中间不能空着(尾部元素可以直接置换成null)
+
+- 所以在java中当删除数组的元素的时候 都是用后面一个将前面一个元素覆盖掉 然后把最后一个元素设置为null
+
+<!-- 
+  // total标识着这个数组中已保存客户的总数
+  - 比如:
+  - 长度为10的数组 里面只存放了3个客户 那么total的值就为3
+
+  for(int i=index; i<total-1; i++) {
+    customers[i] = customers[i+1];
+  }
+
+
+  - 思路：
+  - 我们既然要删除数组中指定位置的数据 
+      arr = [1, 2, 3, 4, 5]
+  - 我们要删除索引为2的数据 那么跟索引为0 1位置的数据就没有关系吧
+
+  - 所以循环中 i的初始化值为index
+
+  - 那么循环到什么时候结束？ total-1
+    total=5 - > -1 为4
+
+  - 当index为2的时候 就是 i=2; i<4; i++
+  - 整个循环执行2次 数组的最后一个元素没有在循环的次数里
+    customers[i] = customers[i+1];
+
+  - 但是正好我们要将i的下一个元素赋值给前一个 
+  - 如果循环条件为i<total的话 customers[i+1]就越界了
+ -->
+
+**扩展:**
+- 现阶段我们对数组增删改查的时候 都是我们亲自的一点点去操作这个数组 尤其想删除的时候还得走一些逻辑
+
+- 后面我们我们在学习集合的时候会使用 ArrayList 代替数组 因为它里面都封装好了 我们可以调用现成的方法 实现增删改查就可以了
+<!-- 
+  js的Array么？
+ -->
+
+- 现阶段用数组的时候还有一个不好的地方 比如我们创建了一个长度为10的数组 当我们想添加第11个客户的时候就添加失败了
+<!-- 
+  数组的话确实有一个长度 一旦数组初始化完成后 就不能修改了
+
+  但是我们想完成不停的往里面追加 不让它满了 但也不能让数组在初始化的时候创建的长度特别的长 
+
+  所以我们也想当这种情况出现的时候 可以对数组进行扩容 扩容的事儿ArrayList也有体现
+ -->
+
+- 开发的时候 我们也是使用ArrayList替换数组
+
+
+> CustomerList类
+- 该类主要负责对数组客户的增删改查等操作
+<!-- 
+  package src.cmu.service;
+  import src.cmu.bean.Customer;
+
+  // 里面造一个数组 对Customer进行 增 删 改 查 操作的类
+  public class CustomerList {
+    
+    // 属性
+    // 用来保存客户对象的数组
+    // 这里相当于定义了一个数组类型的变量 我们还需要对它进行数组化
+    private Customer[] customers;
+
+    // 记录已保存客户对象的数量
+    private int total = 0;
+
+    /**
+    * @param totalCustomer
+    * 指定customers数组的长度
+    * 
+    * 用途: 构造器 用来初始化customers数组
+    */
+    public CustomerList(int totalCustomer) {
+      customers = new Customer[totalCustomer];
+    }
+
+    /**
+    * 
+    * @param customer
+    * 指定要添加的客户对象
+    * 用途: 将指定的客户添加到数组中
+    * 
+    * 添加成功返回true 添加失败返回false 
+    * - 数组满了就失败了
+    */
+    public boolean addCustomer(Customer customer) {
+      // total 是已保存客户的数量
+      if(total >= customers.length) {
+        return false;
+      }
+
+      // 添加客户到数组中 total++ 保证每次存放客户的时候指针的位置是对的
+      customers[total] = customer;
+      total++;
+      return true;
+    }
+
+
+
+    /**
+    * 修改指定索引位置上客户的信息
+    * @param index
+    * @param cust
+    * @return 修改成功true false修改失败
+    * 
+    * 修改失败的原因： 跟index有关 
+    * 比如我们数组里面存放了3个客户 那索引值的有效范围就是0-2 其它位置都是null不能修改
+    * total属性是已保存客户的数量 保存了3个客户 index 只能是0-2 所以index不能>=total
+    */
+    public boolean replaceCustomer(int index, Customer cust) {
+      if(index < 0 || index >= total) {
+        return false;
+      }
+
+      // 把我们customers数组上 index位置的客户 改成新的
+      customers[index] = cust;
+      return true;
+    }
+
+    // 删除指定位置的客户
+    public boolean deleteCustomer(int index) {
+      if(index < 0 || index >= total) {
+        return false;
+      }
+
+      // 错误的 - 数组是有序的 不能直接将这个位置的数据置为null 应该是后面的将前面的覆盖掉
+      // customers[index] = null;
+
+      /*
+        数组删除元素的逻辑
+        我们是从index的位置删除 
+        我们要将index位置的下一个元素 赋值给 index位置上的元素
+        所以i要从index的位置开始 因为index前面的元素不用动呀
+
+        到那停呢？ 到total停? 但是我们要拿i+1位置的元素 如果是<total停
+        i+1的时候就会越界 所以 <total-1
+
+        比如 arr = [1, 2, 3] 我们的index为1
+        i<total-1 说明i<2 循环一次
+        也就是说整个循环到数组最后一位的前一位停止 但是i+1的位置还是有的
+      */
+
+      for(int i=index; i<total-1; i++) {
+        customers[i] = customers[i+1];
+      }
+
+      // 客户数组的最后一个有数据的元素需要置空
+      customers[total - 1] = null;
+      // customers[--total] = null;
+
+      // 注意
+      // 往数组中添加客户的时候我们++ 删除客户的时候同样我们也要--
+      total--;
+      return true;
+    }
+
+    // 获取所有的客户信息
+    // 注意我们不能直接return customers 因为有的位置可能是null的
+    // 我们想输出的信息是客户信息 如果我们直接返回customers 那这个数组中保存的会是[1, 2, 3, null, null]
+    // 所以我们要创建一个新的数组 将客户信息保存到新的数组中
+    public Customer[] getAllCustomers() {
+      Customer[] custs = new Customer[total];
+      for(int i=0; i<custs.length; i++) {
+
+        // 这里面赋的是地址值 地址值也好当customers做了修改操作之后 我们返回的也是修改后的对象
+        custs[i] = customers[i];
+      }
+
+      return custs;
+    }
+
+
+    // 获取指定索引位置上的客户
+    public Customer getCustomer(int index) {
+      if(index < 0 || index >= total) {
+        return null;
+      }
+
+      return customers[index];
+    }
+
+    // 获取已存储客户的数量
+    public int getTotal() {
+      return total;
+    }
+  }
 
  -->
 
 
+> CustomerView类
+- 部分1：
+- 界面的绘制：
+<!-- 
+  package src.cmu.ui;
+
+  import src.cmu.service.CustomerList;
+  import src.cmu.util.CMUtility;
+
+  // 该类负责界面 与 和用户交互的类
+  public class CustomerView {
+    
+    // 相当于创建了一个customerList对象 对象中有customers客户数组的属性和方法
+    // 我们给这个customerList对象中的数组长度指定了值
+    private CustomerList customerList = new CustomerList(10);
+
+    // 显示主界面的方法
+    private void enterMainMenu() {
+      // 呈现界面
+      boolean isFlag = true;
+      do {
+        System.out.println("\n-----------------客户信息管理软件-----------------\n");
+        System.out.println("                   1 添 加 客 户");
+        System.out.println("                   2 修 改 客 户");
+        System.out.println("                   3 删 除 客 户");
+        System.out.println("                   4 客 户 列 表");
+        System.out.println("                   5 退       出\n");
+        System.out.print("                   请选择(1-5)：");
+
+        // 从键盘上获取用户输入的值
+        char menu = CMUtility.readMenuSelection();
+
+        // char型要加'''
+        switch(menu) {
+          case '1' :
+            addNewCustomer();
+            break;
+          case '2' :
+            modifyCustomer();
+            break;
+          case '3' :
+          deleteCustomer();
+            break;
+          case '4' :
+            listAllCustomers();
+            break;
+          case '5' :
+            System.out.println("确认是否退出(Y/N)");
+            char isExit = CMUtility.readConfirmSelection();
+
+            // 基本数据类型不能. 之前有个equals方法 但是 char型是基本数据类型 不能点也就是没有方法
+            // 它只能 == 判断两个的asn2码的值是否相等
+            if(isExit == 'Y') {
+              // 在某一个时刻我们将isFlag改为false停止循环
+              isFlag = false;
+            }
+            break;
+        }
+      } while(isFlag);
+    }
 
 
+    // 添加客户的操作
+    private void addNewCustomer() {
+      System.out.println("添加客户");
+    }
+
+    // 修改客户的操作
+    private void modifyCustomer() {
+      System.out.println("修改客户");
+    }
+
+    // 删除客户的操作
+    private void deleteCustomer() {
+      System.out.println("删除客户");
+    }
+
+    // 显示客户列表的操作
+    private void listAllCustomers() {
+      System.out.println("显示客户列表");
+    }
 
 
+    // 程序要想执行都是从main方法中进入
+    public static void main(String[] args) {
+      // main方法中要想调用当前类的方法 那么就要在这里面创建当前类的对象
+      CustomerView view = new CustomerView();
+      view.enterMainMenu();
+    }
+  }
+
+ -->
+
+- 部分2
+- 完成 CustomerView类 中的各个方法
+
+> 显示客户列表的操作
+  private void listAllCustomers() {
+    System.out.println("显示客户列表");
+  }
+
+<!-- 
+  private void listAllCustomers() {
+
+    // 拼接 界面 结构
+    System.out.println("---------------------------客户列表---------------------------");
+
+    // 如果没有保存客户数据 展示 ”没有客户数据“ 的样式
+    // 根据 CustomerList类中的 getTotal 方法 获取已保存的用户数据
+    int total = customerList.getTotal();
+    if(total == 0) {
+      System.out.println("没有客户记录");
+    } else {
+      // 进入到这里代表找到客户记录
+      System.out.println("编号\t姓名\t性别\t年龄\t电话\t邮箱");
+
+      // 展示所有客户的记录
+      // 调用getAllCustomers方法得到的是一个保存客户记录的数组
+      Customer[] custs = customerList.getAllCustomers();
+      for(int i=0; i<custs.length; i++) {
+        // 拼接客户信息
+        // 注意 客户信息中的编号字段不属于 Customer类中的属性 就是依次往下排的
+        // (i+1) + '\t' 不能这么写 这么写就成加法运算了 因为单引号是char型
+        System.out.println((i+1) + "\t" + custs[i].getName() + "\t" + custs[i].getGender() + "\t" + custs[i].getAge() + "\t" + custs[i].getPhone() + "\t" + custs[i].getEmail());
+      }
+    }
+
+    System.out.println("---------------------------客户列表完成---------------------------");
+  }
+ -->
 
 
+> 添加客户的操作
+  private void addNewCustomer() {
+    System.out.println("添加客户");
+  }
+
+<!-- 
+  private void addNewCustomer() {
+    System.out.println("---------------------添加客户---------------------");
+    System.out.print("姓名: ");
+
+    // 从键盘获得结果
+    System.out.print("姓名：");
+		String name = CMUtility.readString(4);
+
+		System.out.print("性别：");
+		char gender = CMUtility.readChar();
+
+		System.out.print("年龄：");
+		int age = CMUtility.readInt();
+
+		System.out.print("电话：");
+		String phone = CMUtility.readString(15);
+
+		System.out.print("邮箱：");
+		String email = CMUtility.readString(15);
+
+    // 我们将信息获取到后 我们要存数组中 将上述的变量封装到一个对象当中
+    Customer customer = new Customer(name, age, gender, phone, email);
+
+    // 调用customerList的添加用户的方法 将用户添加到数组中
+    // 这个方法会返回返回值 true false用来判断添加客户是否成功
+    boolean isSuccess = customerList.addCustomer(customer);
+    if(isSuccess) {
+      System.out.println("添加完成");
+    } else {
+      System.out.println("添加失败");
+    }
+  }
+ -->
+
+
+> 修改客户的操作
+  private void modifyCustomer() {
+    System.out.println("修改客户");
+  }
+
+<!-- 
+  private void addNewCustomer() {
+    System.out.println("---------------------添加客户---------------------");
+    System.out.print("姓名: ");
+
+    // 从键盘获得结果
+    System.out.print("姓名：");
+		String name = CMUtility.readString(4);
+
+		System.out.print("性别：");
+		char gender = CMUtility.readChar();
+
+		System.out.print("年龄：");
+		int age = CMUtility.readInt();
+
+		System.out.print("电话：");
+		String phone = CMUtility.readString(15);
+
+		System.out.print("邮箱：");
+		String email = CMUtility.readString(15);
+
+    // 我们将信息获取到后 我们要存数组中 将上述的变量封装到一个对象当中
+    Customer customer = new Customer(name, age, gender, phone, email);
+
+    // 调用customerList的添加用户的方法 将用户添加到数组中
+    // 这个方法会返回返回值 true false用来判断添加客户是否成功
+    boolean isSuccess = customerList.addCustomer(customer);
+    if(isSuccess) {
+      System.out.println("添加完成");
+    } else {
+      System.out.println("添加失败");
+    }
+  }
+
+  // 修改客户的操作
+  private void modifyCustomer() {
+    System.out.println("---------------------修改客户---------------------");
+    // 逻辑:
+    /*
+      当我们输入的不是 正常范围内的数字的话 请选择待修改客户编号的逻辑会反复执行
+      知道我们输入的是正确的数字才可以
+    */
+
+    Customer cust;
+    int num;
+    for(;;) {
+      System.out.print("请选择待修改客户编号(-1退出)：");
+      num = CMUtility.readInt();
+      if(num == -1) {
+        return;
+      }
+
+      // 当用户输入的是-1我们退出当前方法 当用户输入不是合理范围内的索引的时候 我们也要进行判断
+      // 方式1 我们可以判断下 用户输入的数字是否是 total 范围内的
+      // 方式2 我们可以利用 customerList.getCustomer() 这个方法 该方法是根据index去数组中找对应位置的客户 如果没找到它会返回null 我们可以判断结构是否为null 从而判断用户输入的是否合理
+
+      // 这里要注意的是 用户输入的是编号从1开始的 我们的索引是从0开始了 我们要-1
+      cust = customerList.getCustomer(num-1);
+      if(cust == null) {
+        System.out.println("无法找到指定客户！");
+      } else {
+        // 找到了相应编号的客户 接下来也可以在else里面写修改客户的逻辑 但是逻辑中可能还需要用的for循环 整个for就会变的很复杂 这里我们写break终止循环
+        break;
+      }
+    }
+
+    // 上面break后 代码就会结束循环跑到这里 跑到这里就意味着找到了客户 我们在这里修改客户信息
+    System.out.print("姓名(" + cust.getName() + ")：");
+    // 从键盘上获取用户输入想改的信息
+    String name = CMUtility.readString(4, cust.getName());
+
+    System.out.print("性别(" + cust.getGender() + ")：");
+		char gender = CMUtility.readChar(cust.getGender());
+
+		System.out.print("年龄(" + cust.getAge() + ")：");
+		int age = CMUtility.readInt(cust.getAge());
+
+		System.out.print("电话(" + cust.getPhone() + ")：");
+		String phone = CMUtility.readString(15, cust.getPhone());
+
+		System.out.print("邮箱(" + cust.getEmail() + ")：");
+		String email = CMUtility.readString(15, cust.getEmail());
+
+    // 收集到数据后 我们要拿到新数据装到一个新的对象中
+    Customer newCust = new Customer(name, age, gender, phone, email);
+
+    // 调用customerList.replaceCustomer 方法 修改指定索引上的客户
+    boolean isReplace =  customerList.replaceCustomer((num-1), newCust);
+    if(isReplace) {
+      System.out.println("---------------------修改完成---------------------");
+		} else {
+			System.out.println("----------无法找到指定客户,修改失败--------------");
+		}
+  }
+ -->
+
+
+> 删除客户的操作
+  private void deleteCustomer() {
+    System.out.println("删除客户");
+  }
+
+<!-- 
+  private void deleteCustomer() {
+    System.out.println("---------------------删除客户---------------------");
+
+    // 
+    int num = 0;
+		Customer cust = null;
+		for (;;) {
+			System.out.print("请选择待删除客户编号(-1退出)：");
+			num = CMUtility.readInt();
+			if (num == -1) {
+				return;
+			}
+
+			cust = customerList.getCustomer(num - 1);
+			if (cust == null) {
+				System.out.println("无法找到指定客户！");
+			} else {
+        break;
+      }
+		}  
+
+    // 走到这里代码找到该客户了 接下来我们要进行删除的逻辑
+    System.out.print("确认是否删除(Y/N)：");
+		char isDelete = CMUtility.readConfirmSelection();
+		if (isDelete == 'N')
+      // 选择n是退出该方法
+			return;
+
+		boolean deleteSuccess = customerList.deleteCustomer(num - 1);
+		if (deleteSuccess) {
+			System.out
+					.println("---------------------删除完成---------------------");
+		} else {
+			System.out.println("----------无法找到指定客户,删除失败--------------");
+		}
+  }
+ -->
+
+> 项目2中的总结
+- 我们项目的核心就写了三个类 每一个类负责相关的业务
+- 比如
+- Customer类 提供了一个客户的基本属性和对应的get set方法(JavaBean)
+- CustomerList类 提供了客户的增删改查的
+
+- 我们都是各种类互相配合 互相调用
+
+- 整个项目就是在内存层面对Customer这个对象进行增删改查
+- 本质就是一个数组 在数组中我们进行了增删改查的操作 将对数组的这些操作封装到了一个类中CustomerList
+
+- 数组中存放的都是Customer类的对象  
+- 显示菜单 和 用户的交互都是在 CustomerView 类中
+
+----------------------------
+
+### 继承性 extends
+- public class 子类 extends 基类 { }
+
+- 当我们使用 extends 关键字 继承了基类后 基类中定义的属性 和 方法 每一个子类中都有 都可以进行调用和修改
+<!-- 
+  我们也可以理解为 我们将n个类中的共同部分 抽出来放到一个基类中
+  然后n个类我们可以继承基类(父类)
+ -->
+
+- 继承性的优势
+- 1. 减少了代码的冗余 提供了代码的复用性
+- 2. 便于功能的扩展(把子类都想扩展的功能 可以定义在父类中)
+- 3. 为了之后的多态性的使用 提供了前提
+
+
+> 继承性的格式 extends
+- class A extends B { }
+- A: 子类, 派生类(subClass)
+- B: 父类, 超类, 基类(supperClass)
+
+- 体现：
+- 一旦一类继承了父类 子类就获取了父类中声明的所有的结构(主要说的是属性和方法 报错private权限的)
+    - 父类中声明的private的属性或方法 子类继承父类以后 也继承了private权限修饰的属性和方法 只是由于封装性的影响 使得子类不可以直接调用父类的结构
+
+<!-- 
+  // 父类
+  public class Person {
+    private int age;    // 这是权限 private
+
+    public Person() {}
+    public Person(String name, int age) {
+      this.age = age;
+    }
+
+    public int getAge() {
+      return this.age;
+    }
+
+    public void setAge(int age) {
+      this.age = age;
+    }
+  }
+
+
+  // 子类
+  上面父类中的age属性设置了权限 private 
+  当子类extends父类之后 其实也继承了 age 属性 只是由于封装性的影响 我们不能直接 调用
+
+  p1.age = 1;   这样是不行的
+
+  但是父类中可以提供 get set 方法 因为方法的权限是public 所以我们可以通过这些方法 来调用age 用来读取和设置
+  p1.getAge
+  p1.setAge
+
+  ------
+
+  方法也是一样 假如父类中的方法的权限被设置为了private
+  当子类 extends 父类后 子类也会有这个方法 只是由于封装性的原因不能直接调用但是可以这样实验下
+
+  // 比如 父类中对 sleep 方法设置了权限 private
+  private void sleep() {}
+
+  // 我们可以在 public 的方法中调用 sleep
+  public void showInfo() {
+    sleep()
+  }
+
+  然后在子类中通过实例对象调用 showInfo 方法 假如能输出sleep中的逻辑就说明我们继承到了 sleep 方法 事实证明也是可以的
+ -->
+
+- 封装性想解决的是结构可见性的问题 继承性我们解决的是能否拿到父类中的结构 但是继承后的结构能不能调用还是要看封装性 不冲突
+
+- 子类继承父类以后 还可以声明自己特有的属性和方法 实现功能的拓展
+<!--  
+  // 父类
+  String name;
+  int age;
+
+  // 子类 继承父类后 还可以声明自己的属性 major
+  // String name;     -- 继承来的
+  // int age;         -- 继承来的
+  String major;
+
+  // 子类的构造器中 因为继承了父类的name age 还有自己的major 构造器中的属性要写全
+  public Student(String name, int age, String major) {
+    this.name = name;
+    this.age = age;
+    this.major = major;
+  }
+ -->
+
+- 由于子类可以扩展自己的属性和方法 从功能性来讲子类要比父类强很多
+<!-- 
+  extends的英文释义： 延展 扩展
+ -->
+
+
+> java中关于继承性的规定
+- 1. 一个类可以被多个子类继承
+<!-- 
+          父类
+
+  子类  子类  子类  子类
+ -->
+
+- 2. 一个子类只能有一个父类(类是单继承，java中的接口是可以多继承的 c++也是可以多继承的)
+
+- 3. 子父类是相对的概念(多层继承)
+- 我们还可以让直接父类再去继承一个类 这样子类能有更多的功能扩展
+<!-- 
+          人类
+        ↙   ↓   ↘
+    学生    白领    军人
+     ↓
+   大学生
+
+
+   java中可以多层继承 
+   人类 是 学生的父类   学生 是 人类的子类
+   但对于大学生类来讲 学生是它的父类
+
+
+   人类     父类  - 间接父类(以上都是间接父类)
+
+   学生     父类  - 直接父类
+
+   大学生   子类  - 对于大学生来讲 (该类拥有所有父类的属性和方法)
+ -->
+
+- 4. 子类直接继承的父类 称为 直接父类 间接继承的父类称为 间接父类
+- 5. 子类继承父类以后 就获取了直接父类以及所有间接父类中声明的属性和方法
+
+- 6. 如果我们没有显式的声明一个类的父类的话 则此类继承与 java.lang.Object 类(它是所有类的父类)
+
+- 7. 所有的java类(除了java.lang.Object类以外) 都直接或间接的继承于 java.lang.Object 类 意味着所有的java类具有java.lang.Object声明的功能
+<!-- 
+  js的原型链的尽头么？
+ -->
+
+
+> 练习
+- 1. 定义一个 ManKind 类 包括
+  - 成员变量 int sex 和 int salary
+  - 方法：
+  - void manOrWoman 根据sex的值显示 man 或者 woman
+  - void employeed  根据salary显示 nojob 或者 job
+
+- 2. 定义Kids类继承Mankind
+  - 成员变量 int yearsOld
+  - 方法
+  - printAge打印yearsOld的值
+
+- 3. 定义类KidsTest 在类的main方法中实例化Kids的对象someKid 用该对象访问其父类的成员变量以及方法
+<!--  
+  // ManKind类
+  package src.com;
+  public class ManKind {
+    int sex;
+    int salary;
+
+    public ManKind() {}
+    public ManKind(int sex, int salary) {
+      this.sex = sex;
+      this.salary = salary;
+    }
+
+    public void manOrWoman() {
+      if(sex == 1) {
+        System.out.println("我的性别是: man");
+      } else {
+        System.out.println("我的性别是: woman");
+      }
+    }
+
+    public void employeed() {
+      if(salary == 0) {
+        System.out.println("我还没有工作");
+      } else {
+        System.out.println("我已经有工作了");
+      }
+    }
+  }
+
+
+  // Kids
+  package src.com;
+  public class Kids extends ManKind {
+    int yearsOld;
+
+    public Kids() {}
+    public Kids(int yearsOld) {
+      this.yearsOld = yearsOld;
+    }
+    public Kids(int sex, int salary, int yearsOld) {
+      this.sex = sex;
+      this.salary = salary;
+      this.yearsOld = yearsOld;
+    }
+
+    public void printAge() {
+      System.out.println("我今年: " + yearsOld + "岁了。");
+    }
+  }
+
+
+  // KidsTest类
+  package src.com;
+  public class KidsTest {
+    public static void main(String[] args) {
+      
+      Kids someKid = new Kids(1, 0, 18);
+      someKid.printAge();
+      someKid.manOrWoman();
+      someKid.employeed();
+    }
+  }
+ -->
+
+
+> 总结:
+- java中的面向对象风格
+- 我们会定义一个一个的类 相当于我们定义了一个个的对象
+<!-- 
+  类中定义了 构造器用来对 对象进行初始化
+
+  类中定义了 属性和方法 
+    属性用来描述该对象
+    方法是该对象提供的功能 可能是修改对象属性 可能是对外提供某些功能
+
+    但都是用来操作该对象的
+ -->
+
+- 然后我们分别创建类的实例对象 通过实例对象互相调用对象的属性和方法 来完成逻辑
+<!-- 
+  相当于 js 中的这种模式
+  let ManKid = {
+    sex: 0,
+    salary: 0,
+
+    manOrWoman() {
+      if(sex == 1) {
+        console.log("我的性别是: man");
+      } else {
+        console.log("我的性别是: woman");
+      }
+    }
+  }
+
+  我们在其他的地方 或全局 或函数中通过 对象来调用这些属性和方法 
+  不同于js的地方在于 java中定义对象是通过 class 类 定义的
+ -->
+
+
+> 练习2
+- 根据下图实现类 在CylinderTest类中创建Cylinder类的对象 设置圆柱的底面半径和高 并输出圆柱的体积
+<!-- 
+    Circle类
+
+    -radius: double
+
+    Circle(): 构造器 将radius属性初始化为1
+    +setRadius(double: radius): void
+    +getRadius(): double
+    +findArea():double 计算圆的面积
+
+
+    Cylinder类
+
+    Cylinder(): 构造器 将length属性初始化为1
+    +setLength(double length): void
+    +getLength(): double
+    +findVolume(): double 计算圆柱体积
+ -->
+
+<!-- 
+  // Circle类
+  package src.com;
+  public class Circle {
+    private double radius;
+
+    public Circle() {
+      radius = 1.0;
+    }
+
+    public double getRadius() {
+      return radius;
+    }
+
+    public void setRadius(double radius) {
+      this.radius = radius;
+    }
+
+    public double findArea() {
+      return Math.PI * radius * radius;
+    }
+  }
+
+
+  // Cylinder类
+  package src.com;
+  // 圆柱类 继承 圆类
+  public class Cylinder extends Circle {
+    private double length;
+
+    public Cylinder() {
+      this.length = 1.0;
+    }
+
+    public double getLength() {
+      return this.length;
+    }
+
+    public void setLength(double length) {
+      this.length = length;
+    }
+
+    public double findVolume() {
+      // 底面积 X h
+      // 这里 * length 也行
+      return findArea() * getLength();
+    }
+  }
+
+
+  // 测试类
+  package src.com;
+  public class CylinderTest {
+    public static void main(String[] args) {
+      
+      // 我们new的是子类
+      Cylinder cy = new Cylinder();
+
+      // 我们调用的是子类继承到父类的方法
+      cy.setRadius(2.1);
+      cy.setLength(2.6);
+
+      double res = cy.findVolume();
+
+      System.out.println(res);
+    }
+  }
+
+ -->
+
+----------------------------
+
+### Debug调试
+- 调试程序的两种方式:
+- 1. 在程序中写输出语句 System.out.println
+- 一遍走一边看 依次加输出语句慢慢调试
+
+- 2. debug调试
+  - 1. 设置断点 我们在程序的行编号那里点击 设置断点
+  <!-- 
+    断点相当于 我们在程序从上到下执行的过程当中设置的一个个关卡
+    当我们加上断点之后 程序再次执行的时候就会在小关卡的地方停一下
+   -->
+
+  - 2. 然后我们在程序中 右键 选择 Debug java
+    - 当我们首次运行的时候 一下就会到我们打断点的位置
+    - 我们可以在左侧变量 - local 中看到 内存中加载了什么变量 值是多少
+
+    - 点击 继续 是执行下一行语句
+    - 点击 单步调试是进入该行语句的方法内部 然后继续点击 单步调试是在方法内部 执行下一行语句
+
+----------------------------
+
+### 方法的重写 (override / overwrite)
+- 上面我们讲过方法的重载(overload)
+
+> 方法的重写 (简单的理解就是覆盖父类中的同名同参数的方法)
+- 定义:
+- 在子类继承父类以后，在子类中可以根据需要对父类中继承来的方法进行改造 也称为方法的重置 覆盖
+<!-- 
+  相当于在子类中把父类中的同名同参数的方法在子类中又重新的定义了一份
+ -->
+
+- 在程序执行时 子类的方法将覆盖父类的方法
+<!-- 
+  重写以后 当创建子类对象以后 通过子类对象调用父类中的同名同参数的方法时 实际执行的是子类重写父类的方法
+ -->
+
+<!-- 
+  // 父类
+  public class Person {
+    String name;
+    int age;
+
+    public Person() {}
+    public Person(String name, int age) {
+      this.name = name;
+      this.age = age;
+    }
+
+    public void eat() {
+      System.out.println("吃饭");
+    }
+
+    public void walk(int distance) {
+      System.out.println("今天我走了， " + distance + "公里");
+    }
+  }
+
+
+  // 子类
+  public class Student extends Person {
+
+    String major;
+
+    public Student() {}
+    public Student(String name, int age, String major) {
+      this.name = name;
+      this.age = age;
+      this.major = major;
+    }
+
+    public void study() {
+      System.out.println("学习, 专业是: " + major);
+    }
+
+    // 我们对父类中的方法进行重写
+    // 要求： 方法名和形参列表必须和父类的一样的 因为要覆盖么
+    public void eat() {
+      System.out.println("学生因为正在学习要吃有营养的食物");
+    }
+  }
+
+
+  // 测试类
+  public class PersonTest {
+    public static void main(String[] args) {
+      
+      // 学生类调用的是重写后的eat方法
+      Student s = new Student();
+      s.eat();
+
+      // 父类调用的是自己的eat方法
+      Person p = new Person();
+      p.eat();
+    }
+  }
+ -->
+
+
+- 面试题：区分方法的重载与重写
+- 重写是子类对父类目标方法(同名同参数)的覆盖操作 在调用子类中的该方法的时候 调用的是新方法
+
+- 重载是在一个类中允许有多个同名方法 区分它们的条件就是形参列表(个数类型顺序)
+
+
+- 要求：
+- 1. 子类重写的方法*必须*和父类被重写的方法具有相同的*方法名和参数列表*
+<!-- 
+  子类重写的方法 方法名 形参列表 == 父类被重写的方法的方法名 形参列表
+ -->
+
+- 2. 子类重写的方法的返回值类型*不能大于*父类被重写的方法的返回值类型
+<!-- 
+  子类重写的方法的返回值 <= 父类被重写的方法的返回值
+ -->
+
+- 3. 子类重写的方法使用的访问权限*不能小于*父类被重写的方法的访问权限
+<!-- 
+  子类重写的方法的权限修饰符 >= 父类被重写的方法的权限修饰符
+ -->
+
+- 4. 子类方法抛出的异常*不能大于*父类被重写方法的异常
+<!-- 
+  子类重写的方法抛出的异常 <= 父类被重写的方法的抛出的异常
+ -->
+
+**注意**
+- 子类与父类中同名同参数的方法必须同时声明为非static的(即为重写)
+- 或者同时声明为static(不是重写)
+
+- 因为static方法是属于类的 子类无法覆盖父类的方法
 
 
 

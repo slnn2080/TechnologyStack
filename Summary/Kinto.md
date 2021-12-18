@@ -1,3 +1,59 @@
+### 学习会
+vuetify / data
+
+global kinto design system daft ver 1.0
+
+uiガイドライン
+
+
+g导入vuetify 提供scss文件 前后端导入vuetify
+
+怎么导入？
+pug template
+
+css部分
+temp - /systembase link css
+js怎么导入截图的
+
+全体使用 v-app 包裹
+<v-app>
+  原本的内容
+<v-app>
+
+
+localhost:3000/development/system
+- 这好像是一个 指南的页面
+
+
+599 sp
+600 904 pad
+905-1239
+1240-1439 pc
+1440 以上
+
+sp 4 4
+pad 8 8
+
+pc 1440  12 12
+
+
+stretch 
+折り返し
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### 需要问的东西
 - https://kinto-dev.atlassian.net/jira/software/projects/BACKLOG/boards/192/roadmap?selectedIssue=BACKLOG-710
 - 能从上面的url中得到什么样的信息 起票是什么意思

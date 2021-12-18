@@ -1,5 +1,129 @@
 ### Js技巧
 
+### 判断空对象
+<!-- 
+    let oo = {}
+    oo = JSON.stringify(oo)     // '{}'
+
+    Object.keys(oo).length == 0
+ -->
+
+### 有趣的数据结构遍历 启发
+<!-- 
+    let before = {
+      Vmmare: ["128.203.64", "128.2.1.2"]
+    }
+
+    let handler = []
+    !function(before, handler) {
+      let obj = {}
+      for(let key in before) {
+        obj.value = key
+        obj.label = key
+        obj.children = []
+        before[key].forEach((item, index, arr) => {
+          let childObj = {}
+          childObj.value = arr[index]
+          childObj.label = arr[index]
+          obj.children.push(childObj)
+        })
+      }
+      handler.push(obj)
+      //return option
+    }(before, handler)
+
+
+    // 结果
+    const option = [
+      {
+        value: "Vmmare",
+        label: "Vmmare",
+        children: [
+          {
+            value: "128.203.64",
+            label: "128.203.64"
+          },
+          {
+            value: "128.2.1.2",
+            label: "128.2.1.2"
+          },
+
+        ]
+      }
+    ]
+
+
+    // 类案例
+    let data = [
+      {
+        type: "无类型",
+        store: null,
+        rule: null,
+        relateCode: null,
+        id: 35,
+        projectId: 1,
+        versionId: null,
+        groupId: 4,
+        primaryDomainId: "rdr_examiantion",
+        primaryDomainName: "影像学检查",
+        secondaryDomainId: "SBS",
+        secondaryDomainName: "骨扫描",
+        variableName: "数据抽取时间",
+        variableCode: "EMGRPID",
+        examSearchCode: 0,
+        examIsQuantify: 0,
+        valueType: "string",
+        classificationFlag: false,
+      },
+      {
+        type: "无类型",
+        store: null,
+        rule: null,
+        relateCode: null,
+        id: 34,
+        projectId: 1,
+        versionId: null,
+        groupId: 4,
+        primaryDomainId: "rdr_examiantion",
+        primaryDomainName: "影像学检查",
+        secondaryDomainId: "SBS",
+        secondaryDomainName: "骨扫描",
+        variableName: "就诊标识",
+        variableCode: "VISITNUM",
+        examSearchCode: 0,
+        examIsQuantify: 0,
+        valueType: "string",
+        classificationFlag: false,
+      },
+    ]
+
+    console.log("原始", data)
+
+    function dataForamt(data) {
+      let obj = {}
+      let childObj = {}
+      data.forEach(item => {
+        obj.primaryDomainId = item.primaryDomainId
+        obj.primaryDomainName = item.primaryDomainName
+        obj.name = item.primaryDomainName
+        obj.children = []
+
+        childObj.secondaryDomainId = item.secondaryDomainId
+        childObj.secondaryDomainName = item.secondaryDomainName
+        childObj.name = item.secondaryDomainName
+        childObj.children = []
+
+        obj.children.push(childObj)
+        childObj.children.push(item)
+      })
+
+      return obj
+    }
+
+    let res = dataForamt(data)
+    console.log("修改", res);
+ -->
+
 ### url参数提取
 <!-- 
     let str = "?q=%E6%98%A5%E8%8A%82"

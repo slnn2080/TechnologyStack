@@ -1,5 +1,117 @@
 ### 番外篇
 
+### 视频全屏相关
+- 全屏api可以控制浏览器的全屏显示 让一个element节点以及它的子节点占满用户的整个屏幕
+
+- 现在各大浏览器都支持这个api 但是使用的时候需要加上浏览器前缀
+
+> 全屏的方法 requestFullscreen()
+- 这个方法可以使整个节点全屏状态 但是该方法必须用户手动触发才能生效
+<!-- 
+    btn.onclick = function() {
+      el.requestFullscreen()
+    }
+
+    // 要加上浏览器前缀 判断有这个方法你再进行调用
+    if(el.requestFullscreen) {
+        el.requestFullscreen()
+    }
+
+    el.requestFullscreen
+    el.mozRequestFullScreen
+    el.msRequestFullscreen
+    el.webkitRequestFullscreen
+ -->
+
+- 放大一个节点时， firefox和chrome在行为上略有不同
+- firebox自动为该节点增加一条css规则 将该元素放大至全屏状态 width 100% height 100%
+
+- 而chrome则是将该节点 放在屏幕的中央 保持原来的大小 其它的部分变黑 
+- 为了让chrome的行为与firebox保持一致 可以自定义一条css规则
+<!-- 
+    :-webkit-full-screen #myvideo {
+        width: 100%;
+        height: 100%;
+    }
+ -->
+
+
+> document.exitFullscreen()
+- 用于取消全屏 该方法也带有浏览器前缀
+<!-- 
+    document.exitFullscreen()
+    document.msExitFullscreen()
+    document.mozCancelFullScreen()
+    document.webkitExitFullscreen()
+ -->
+
+> 如何判断节点是否为全屏
+> 方式1: document.fullscreenElement
+- 该属性返回正处于全屏状态的el节点 如果当前没有节点处于全屏状态 则返回null
+<!-- 
+    document.fullscreenElement
+    document.mozFullScreenElement
+    document.webkitFullscreenElement
+ -->
+
+> 方式2: document.fullScreen
+<!-- 
+    const isFullScreen = 
+        document.fullScreen ||
+        document.mozFullScreen ||
+        document.webkitIsFullScreen ||
+        document.msFullscreenElement
+
+    这个变量会返回 true / false
+ -->
+
+
+> document.fullscreenEnabled
+- 该属性返回一个布尔值 表示当前文档是否可以切换到全屏状态
+- 判断当前浏览器是否可以全屏可以用它
+
+
+> 全屏事件
+> fullscreenchange事件
+- 浏览器进入或离开全屏的时候触发
+
+
+> fullscreenerror事件
+- 浏览器无法进入全屏时触发 可能是技术或者是用户拒绝
+
+<!-- 
+    document.addEventListener("fullscreenchange", () => {
+        if(document.fullscreenElement) {
+            console.log("进入全屏")
+        } else {
+            console.log("退出全屏")
+        }
+    })
+ -->
+
+- 上面的代码发生fullscreenchange时 通过fullscreenElement属性判断到底是进入全屏还是退出全屏
+
+
+> 全屏状态的css
+- 全屏状态下 大多数的浏览器css支持 
+    :full-screen伪类 
+
+- 只有ie11支持 :fullscreen伪类 使用这个伪类 可以对全屏状态设置单独的css属性
+<!-- 
+    :-webkit-full-screen
+    :-moz-full-screen
+    :-ms-fullscreen
+    :full-screen
+    :fullscreen
+    
+    :-webkit-full-screen video {
+        width: 100%;
+        height: 100%;
+    }
+ -->
+
+
+
 ### 滚动到底部
 - 当一个盒子内部的内容增加的时候 并且超过该盒子的高度的时候 我们希望它自动滚动到底部
 
@@ -1357,6 +1469,13 @@ observer.observe(video);
 - 删除对象中的属性
 <!-- 
     delete req.session['id']
+ -->
+
+- 删除数组中的指定元素
+<!-- 
+    let arr = [1, 2, 3]
+    delete arr[1]
+    console.log(arr)        [1, empty, 3]
  -->
 
 
@@ -12023,7 +12142,16 @@ let data = [
     {
         id:1,
         name:'家电',
-        goods: [{id:11, gname:'冰箱'}, {id:12, gname:'洗衣机'}]
+        goods: [
+            {
+                id:11, 
+                gname:'冰箱'
+            },
+            {
+                id:12, 
+                gname:'洗衣机'
+            }
+        ]
     }, 
     {
         id:2,
@@ -12036,8 +12164,8 @@ let data = [
 <!-- 
     查询数组的每一个对象 我们用forEach来做, 既然我们想输入id号, 那么我们可以封装成一个函数 
 -->
-    function getId(json, id) {
-        json.forEach(function(value, index){
+    function getId(obj, id) {
+        obj.forEach(function(value, index){
 <!-- 
     里面有两个元素, 第一个是id为1的对象, 第二个是id为2的对象 
 -->
@@ -12118,7 +12246,7 @@ let data = [
     这里把结果返回 为什么把返回结果写在if里面呢? 因为结果都是在if里面得到的
     elseif只是负责递归函数而已
 -->
-                return value;
+                return obj;
 
             } else if (value.goods && value.goods.length > 0) {
 <!-- 
