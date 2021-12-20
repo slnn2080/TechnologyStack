@@ -1,5 +1,34 @@
 ### Js技巧
 
+### 请求技巧 等待上一个请求完成后 再请求下一个
+- 在node爬虫里面遇到的问题
+<!-- 
+const host = "https://www.dydytt.net"
+const uri = "/html/gndy/rihan/list_6_2.html"
+
+let pageArr = []
+for(let i=1; i<= 100; i++) {
+  pageArr.push(host + `/html/gndy/rihan/list_6_${i}.html`)
+}
+
+// 这个arr中装着一个分类下所有的电影页面
+console.log(pageArr)
+
+// 我们要请求 pageArr 中的每一项 但是我们需要的是 在一个请求结束后再进行下一个请求
+pageArr.reduce((rs, url) => {
+  return rs.then(() => {
+    return new Promise(async (resolve) => {
+      await req(url)
+      resolve()
+    })
+  })
+}, Promise.resolve())
+    // 这种方式会等待上一个req请求完成后 再执行下一个请求
+    // rs就是我们的默认值 Promise.resolve()
+ -->
+
+
+    
 ### 判断空对象
 <!-- 
     let oo = {}

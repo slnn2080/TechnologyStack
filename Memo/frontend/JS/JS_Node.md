@@ -1,4 +1,70 @@
+### 待看前端的设计模式
+
 ### 番外篇
+
+### 自定义实现 监听事件 和 触发事件 逻辑
+<!-- 
+- 1. 定义 事件对象 内包含 
+    - 事件名: 对应事件处理函数
+    - 绑定事件的方法
+    - 触发事件的方法
+
+    let eventObj = {
+        // 事件对象
+        event: {
+            // 我们绑定什么事件 比如我们可以绑定 fileSuccess 事件
+            fileSuccess: [],
+        }
+        
+
+        // 绑定事件的on方法
+        on: function(eventName, eventFn) {
+            // 我们绑定的事件名称在事件对象里面的话
+            - 比如我们绑定的是 fileSuccess事件 那就把回调push到 fileSuccess对应的事件数组中
+            if(this.event[eventName]) {
+                this.event[eventName].push(eventfn)
+            } else {
+                // 如果不在的话 就创建一个该事件kv 整理成
+                - 新事件: []
+                - 然后将回调push到新事件对应的事件数组中 做初始化的路基
+                this.event[eventName] = []
+                this.event[eventName].push(eventfn)
+            }
+        },
+        
+        // 定义触发事件的逻辑函数
+        emit: function(eventName, data) {
+            if(this.event[eventName]) {
+                this.event[eventName].forEach(itemFn => {
+                    itemFn(data)
+                });
+            }
+        }
+    }
+
+// 当读取数据后触发 自定义事件的回调
+let fs = require("fs")
+fs.readFile("./output.txt", "utf-8", (err, data) => {
+  if(!err) lcEvent.emit("fileSuccess", data)
+})
+
+
+// 自定义事件的逻辑部分
+lcEvent.on("fileSuccess", (data) => {
+  console.log("查看数据库")
+})
+
+lcEvent.on("fileSuccess", (data) => {
+  console.log("统计年龄比例")
+})
+
+lcEvent.on("fileSuccess", (data) => {
+  console.log("查看所有用户的信息")
+})
+
+- 上面我们就完成了 "自定义事件的逻辑"
+- 通过去订阅我们自己设定的事件 监听触发完成回调
+ -->
 
 ### 视频全屏相关
 - 全屏api可以控制浏览器的全屏显示 让一个element节点以及它的子节点占满用户的整个屏幕
@@ -6291,6 +6357,23 @@ fun.call() fun.apply() fun()这三个效果都是一样的
 
     var reg = / /
     reg.test()  
+
+
+> 正则对象.exec("字符串")
+- 返回匹配的字符串
+- 返回一个数组 找不到的话返回null
+
+- 数组中第一个元素是 与正则表达式相匹配的文本
+- 数组中第二个元素是 正则表达式的第 1 个子表达式相匹配的文本（如果有的话）
+
+- 当我们使用()进行分组的时候 我们匹配的结果会体现在数组的的一个个元素上
+<!-- 
+    let reg = /<a href="(.*)">(.*)<\/a>/igs
+    这就是两个组 () ()
+
+    我们在获取结果的时候就是 res[1] res[2]
+ -->
+- 
 
 
 ### 正则表达式的组成

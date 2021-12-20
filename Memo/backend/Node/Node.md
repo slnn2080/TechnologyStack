@@ -375,17 +375,27 @@ md rd hello.txt d: dir rm
 ----------------------
 
 ### NodeJs中的全局对象 global
-- js中有一个特殊的对象, 成为全局对象, 它及其所有属性都可以在程序的任何地方访问, 即全局变量
+- 在nodejs中 仍然存在一个全局作用域 即可以定义一些不需要通过任何模块的加载即可以使用的变量 函数 或 类
+
+- 同时 也预先定义了一些全局方法以及全局类
+
+- 另外 nodejs 中 定义了一个global对象 代表nodejs中的全局命名空间 任何全局变量 函数 或者 对象都是该对象的一个属性值
+
+- 它叫做成为全局对象, 它及其所有属性都可以在程序的任何地方访问, 即全局变量
+
 - 在浏览器js中, 通常window是全局对象, 而nodejs中的全局对象是global, 所有全局变量(除了gloabl本身以外)都是global对象的属性
 
 - 后面看到的所有的全局变量, 例如console setTimeout和process是global变量的成员, 我们设置可以想全局变量添加成员, 使其在任何地方都可用
 
-> 总结:
 
+> 总结:
 - 1. nodejs里面没有window对象, 有global对象, 之间所使用的console等这些是global对象下的属性 / 成员
 
 - 2. node里面声明的变量, 不会挂载到global里面
-<!-- console.log(global.a)   // undefined -->
+<!-- 
+    let a = 10
+    console.log(global.a)   // undefined 
+-->
 
 - 3. 可以想global添加成员, 可以在任何地方去使用
 <!-- 
@@ -399,6 +409,130 @@ md rd hello.txt d: dir rm
 
     console.log(global === this)    // true     在node的交互环境中
  -->
+
+
+> setTimeout clearTimeout
+> setInterval clearInterval
+- 在nodejs中 预定义了一些全局函数
+
+> setTimeout(callback, ms, [args], [...])
+> setInterval(callback, ms, [args], [...])
+- 这个函数的作用和js类似 都是当前时刻过去多少毫秒之后执行某个回调函数
+- 该函数会返回一个*定时器对象*
+
+- 参数:
+- 1. 回调函数
+- 2. 毫秒数
+- 3. 向回调函数中传入的参数
+
+
+> 与模块相关的全局函数 以及 对象
+
+> require() 加载模块
+- 在nodejs中 可以使用require函数来加载模块
+<!-- 
+    let foo = require("../foo.js")
+ -->
+
+- 该函数使用一个参数 参数为：
+- 1. 带有完整路径的模块文件名
+- 2. 模块名
+
+
+> require.resolve 查询完整的模块名
+- 使用该函数来查询某个模块文件的带有完整绝对路径的文件名
+<!-- 
+    require.resolve("./testModule.js")
+ -->
+
+
+> require.cache 对象
+- 该对象代表缓存了所有已被加载模块的缓存区
+- 我们可以在repl运行环境中 可以使用 console.log(require.cache) 来查看该缓存区中的内容
+
+
+> __filename 变量
+- 在任何模块文件内部 可以使用 __filename 变量获取当前模块文件的带有完整绝对路径的文件名
+- 落脚点包括当前文件名
+
+
+> __dirname 变量
+- 在任何模块文件内部 可以使用 __dirname 变量获取当前模块文件所在目录的完整绝对路径
+- 落脚点只在当前文件所在的文件夹
+
+
+> 事件处理机制 以及 事件环机制
+- 在js中 当用户对页面进行交互操作的时候 每个元素都可能会触发一个事件
+- 比如 当用户点击一个按钮的视乎 将会触发这个按钮的click事件
+
+- 同样 在nodejs中 许多对象也会触发各种事件
+- 比如 针对代表web服务器的 http.server对象来说 可能会触发 
+    - 接收到客户端请求
+    - 产生链接错误
+- 等各种事件 针对每个不同的事件 都需要进行不同的事件处理
+
+> EvenetEmitter类
+- 在node的用于实现各种事件处理的 event模块中 定义了一个EventEmitter类
+- 所有可能触发事件的对象都是一个继承了 EvenetEmitter类的子类的实例对象
+
+- 在node中 EvenetEmitter类定义了许多的方法 所有与对象的事件处理函数的绑定 以及 解除相关的处理均依靠这些方法的调用来执行
+
+> 绑定事件 addListener(event, listener)
+> 绑定事件 on(event, listener)
+- 可以通过多个on方法的执行来对同一个事件绑定多个事件处理函数
+
+> 绑定事件 once(event, listener)
+
+> 解绑事件 removeListener(event, listener)
+> 解绑所有事件 removeAllListeners([event])
+
+> setMaxListeners(n)
+- 指定处理函数的最大数量 n为整数值 代表最大的可指定事件处理函数的数量
+
+> listeners(event)
+- 获取指定事件的所有事件处理函数
+
+> emit(event, [arg1], [arg2], [argn])
+
+- event为事件名
+- listener为事件回调
+
+
+> EventEmitter类的各个方法
+- 当需要对指定事件绑定事件处理函数的时候 可以使用 EventEmitter类 的on方法或addListener方法
+
+- 这两个方法的区别仅在于方法名而已
+
+
+> 事件环机制
+- 在nodejs中 与js或其它语言一样 采用事件环机制
+- 在js中 大部分代码都是用于进行诸如 onclick onmouseover 之类的用户交互事件的处理
+
+- 在服务器端 虽然不会存在由用户对于界面上的操作而产生的事件 但是将存在一个服务器应用程序中所可能触发的各种事件
+- 比如 当一个用户想服务器发出一个客户端请求的时候 将会触发http服务器的一个在node中定义为request事件
+
+- 在node中 采用非阻塞型i/o机制 这意味着所有要求应用程序进行的处理 如http请求 数据库查询 文件的输入 或 输出等 都不会在处理结束之前阻碍其它处理的进行
+
+- 就是说 这些处理都是独立进行的 当处理结束时会触发一个回调事件 也就是说 在node中 我们所要编写的就是各种i/o事件的回调函数中的处理
+
+- 对于事件环机制的另一个乔当的比喻是将它比作一个邮递员 而每个事件就好比是邮递员需要送达的一封信邮件 它受伤有大量需要依序送达的邮件 而他需要按照指定的路线来送达这些邮件
+
+- 而回调函数就好比这些路线 由于邮递员只有一双腿 所以它每次只能按照指定路线来送达一封邮件
+
+- 也就是说 它每次只能处理一个回调函数 在它按照某条指定路线送某封邮件的途中 可能会有人给他新的邮件
+- 这就是代码中要求他处理的新的事件 这种情况下 邮递员将会转而处理新的事件 在该事件处理完毕之后转而送达原本要送达的邮件 就是说 在回调函数的执行过程中 他将转而处理新的事件
+
+- 在该事件处理完毕后 转而继续处理原回调函数 这种环状处理机制 叫做事件环机制
+
+- 让我们用实际应用程序中的例子来看一下该邮递员的行为
+- 假设我们一个http服务器 它需要接收客户端请求 根据请求参数从数据库中获取一些数据 然后将这些数据返回客户端
+
+
+> 调试器
+- node提供了一个在命令行界面中可以使用的调试器 可以利用该调试器来进行一些应用程序的简单调试 比如显示代码 变量 函数的返回值等
+
+> 使用方式 node debug <需要被执行的脚本文件名>
+
 
 > global中的参数
 <!-- 
@@ -556,6 +690,8 @@ md rd hello.txt d: dir rm
 ### 导出模块
 - 在node中 每一个js文件中的js代码都是独立运行在一个函数中的 而不是全局作用域 所以一个模块中的变量和函数在其他模块中无法访问
 
+- 在一个模块文件中定义的本地变量 函数或对象只在该模块内有效 当你需要从模块外部引用这些变量 函数 对象的时候 需要在该模块文件内使用 exports对象
+
 > 导出模块的方式:
 
     let num = 10;
@@ -569,12 +705,23 @@ md rd hello.txt d: dir rm
     }
 
 > 导出方式:
+> 使用exports对象导出
 > 1. 使用 exprots.变量名 导出
 - 如果是这么导出的 在引入的时候, 创建的变量就是导出的变量
     exports.num = num;
     exports.sum = sum;
     exports.Animal = Animal;
 
+- 将上述的代码保存为foo.js文件后 我们再导入的时候
+<!-- 
+    let foo = require("./foo.js")
+    foo.num
+ -->
+
+
+> 将模块定义为类的方式导出
+- 在模块文件内部将 exports对象 写成 module.exports 
+- 注意 需要将模块定义为一个类的时候 只能使用这种方式
 
 > 2. 使用 module.exports = { } 导出
 - 集中导出
@@ -690,102 +837,6 @@ md rd hello.txt d: dir rm
 
 ----------------------
 
-### path模块
-- 处理跟路径相关的功能
-
-> __dirname
-- 它是一个特殊的变量
-- 得到当前执行的文件的绝对路径, 不包括文件名
-
-> __filename
-- 它是一个特殊的变量
-- 得到当前执行的文件的绝对路径, 包括文件名
-
-<!-- 
-    D:\Memo\Sam\5_Learning_Content\VUE\tabbar\src
- -->
-
-> 模块的使用
-- 导入内置模块和第三方模块的时候要写在最上面
-<!-- 
-    const path = require('path')
- -->
-
-> path模块的方法:
-
-> path.extname(__filename);
-- 获取指定文件的扩展名(后缀名), 只是扩展名并不包含文件名
-- 参数是文件所在的路径, 我这里传递了一个变量
-<!--    
-    const path = require('path');
-    let extname = path.extname(__filename);
-    console.log(extname);       // .js
- -->
-
-
-> path.basename(__filename)
-- 获取指定文件的文件名(包括扩展名)
-- 参数是文件所在的路径, 我这里传递了一个变量
-<!-- 
-    let basename = path.basename(__filename);
-    console.log(basename);
- -->
-
-
-> path.dirname(__filename)
-- 获取指定文件当前所在路径
-- 参数是文件所在的路径, 我这里传递了一个变量
-<!-- 
-    let dirname = path.dirname(__filename);
-    console.log(dirname);
- -->
-
-
-> path.parse(__filename)
-- 获取指定文件的所有信息, 是一个对象, 可以通过对象来调用
-- 它把路径解析成一个对象, 里面包含了下面的信息
-
-- root: 所在盘符
-- dir:  文件所在目录
-- base: 文件名(包括扩展名)
-- ext:  扩展名
-- name: 文件名
-
-<!-- 
-    const path = require('path');
-    let parseObj = path.parse(__filename);
-    console.log(parseObj);
-
-    {
-        root: 'D:\\',
-        dir: 'D:\\Memo\\Sam\\5_Learning_Content\\Node_JS',
-        base: 'module1.js',
-        ext: '.js',
-        name: 'module1'
-    }
- -->
-
-> path.join(目标1, 目标2)
-- 路径拼接
-- 下面的例子 当前文件的所在路径 和 test.js 进行拼接
-- 给我的感觉就是 目标1 目标2 目标3 用 \ 链接起来
-- 一层目录就是一个参数
-<!-- 
-    const path = require('path');
-    let fullpath = path.join(__dirname, 'test.js');
-    console.log(fullpath);
-
-    D:\Memo\Sam\5_Learning_Content\Node_JS\test.js
- -->
-
-- 拼接 当前文件所在目录的文件夹里的文件
-<!-- 
-    let fullpath = path.join(__dirname, 'module', 'test.js');
-    D:\Memo\Sam\5_Learning_Content\Node_JS\module\test.js
- -->
-
-----------------------
-
 ### process对象
 
 > process.argv
@@ -842,6 +893,43 @@ md rd hello.txt d: dir rm
 <!-- 
     因为2进制太长了, 因为数据最终要发送给客户端 或者说从客户端接收过来的 在传输的时候都是2进制传输的, 因为我们传输的时候传输的是电信号 所以最终都得转换为2进制 
 -->
+
+- 在node中 buffer类是一个可以在任何模块中被利用的全局类 不需要为该类的使用而加载任何的模块
+- 可以使用new关键字来创建该类的实例对象
+- buffer类拥有三种形式的构造函数
+
+> new Buffer(size)
+- 第一种是只需将缓存区大小(以字节为单位)指定为构造函数的参数
+- 被创建的buffer对象拥有一个length属性 属性值为缓存区的大小
+
+- 注意
+- 在显示的时候 使用十六进制数值来显示其中的二进制数据
+
+
+> buffer实例对象.fill(value, [offset], [end])
+- 该方法用来初始化缓存区中的所有内容
+
+- 参数:
+- 1. 必须指定的参数 值为被写入的数值
+- 2. 指定从第几个字节处开始写入被指定的数值 默认值为0 即从缓存区的起始位置开始写入
+- 3. 指定将数值一直写入到第几字节处 默认值为buffer对象的大小 即书写到缓存区底部
+
+
+
+> new Buffer(array)
+- buffer类的第二种形式的构造函数是直接使用一个数组来初始化缓存区
+- 这种形式的构造函数中 使用一个存放了需要被指定数值的数组来作为构造函数的参数
+
+
+> new Buffer(str, [encoding])
+- 第三种形式的构造函数是直接使用一个字符串来初始化缓存区
+- 参数
+- 1. 初始化缓存区的字符串
+- 2. 指定文字编码格式的字符串 默认值 utf8
+
+
+
+
 
 
 > Buffer
@@ -1104,22 +1192,52 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
 - 异步文件系统不会阻塞程序的执行，而是在操作完成时，通过回调函数将结果返回。
 
 - 使用fs文件系统 要先引入fs模块 fs是核心模块 直接引入 不需要下载
+
+> 引入 fs 模块
 - let fs = require('fs');
 
 ------
 
-### 读取文件
+### 读取文件 
+- 读写文件也有同步和异步之分
+- java是同步的方式获取磁盘的数据(同步的方法中没有回调之类)
+
+- node中一般都是使用回调的方式来读取文件 或 写入文件
 
 > 同步方法:
-> fs.readFileSync(文件路径, '配置参数')
+- 同步方法好像都需要创建变量接收 方法的返回值
+
+> path.join()
+- 拼接路径
+
+> 读取文件
+- 打开文件夹 - 找到目标文件 - 打开文件 - 读取
+
+- 这个部分看看李老师讲的
+> let fd = fs.openSync(path, [flags], [mode])
+- 读取目标文件的标识符(相当于我们在内存层面打开文件 但是打开的是一个标识符)
+- 需要创建变量接收 标识
+<!-- 
+    我们正常操作系统的时候 双击文件夹 会弹出一个窗口
+    而现在我们是用命令打开文件所在的目录 fd 就是相当于我们在内存中打开一个窗口 fd 用于我们在内存中找到这个窗口
+ -->
+
+- 参数
+- 1. 路径
+- 2. 标识符
+    (标识符的主要作用在这个文件存在的时候如何操作 不存在的时候又如何操作)
+- 3. 设置读取数据的模式(一般使用默认值)
+
+
+
+> 同步方法:
+> fs.readFileSync(文件路径, [{配置参数}])
 - 这个方法返回的返回值就是文件的内容, 所以我们要创建变量来进行接收
 - 参数:
 - 1. 文件的路径
-- 2. 配置参数可选
-    编码格式：
-        'utf-8', 我们在第二个位置传递这个参数就不用每次都使用 toString() 了
-
-    flag： 默认是r
+- 2. 配置参数: 类型 对象或者字符串
+    - encoding
+    - flag 默认是r
     
 <!-- 
     // 我们还可以利用path.join()方法来获取文件的绝对路径
@@ -1137,9 +1255,21 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
     同步读取文件信息, 要把整个文件读取完毕之后才继续往下执行, 如果上面的文件很大, 下面的 console 要很长时间后才能得到执行
  -->
 
+<!-- 
+    // 示例2： 配置对象形式
+    let content = fs.readFileSync("./hello.txt", "utf-8")
+    console.log(content)
+
+    let content = fs.readFileSync("./hello.txt", {
+        encoding: "utf-8",
+        flag: "r"
+    })
+    console.log(content)
+ -->
+
 
 > 异步方法:
-> fs.readFile(文件路径, [配置参数], callback)
+> fs.readFile(文件路径, [{配置参数}], callback)
 - 文件的数据会在回调中, 当读取文件完毕后执行回调中的代码
 - 参数
 - 配置参数: 类型 对象或者字符串
@@ -1161,12 +1291,56 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
     })
  -->
 
+
+> 将异步方法封装为 promise
+<!-- 
+    function fsRead(path) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(path, "utf-8", (err, data) => {
+                if(err) {
+                    reject(err)
+                } else {
+                    resolve(data)   
+                }
+            })
+        })
+    }
+
+    fsRead("./hello.txt").then(data => {
+    console.log(data)
+ -->
+
+
+- 在上面的基础上 我们再使用 async await 来接收结果
+- 要点:
+- await 必须在一个函数里面使用 且这个函数必须被async修饰
+
+- 也就是说我们可以先封装一个promise方法
+- 然后创建一个async修饰的函数 在里面调用 promise方法并用await接收结果
+<!-- 
+    async function readList() {
+        let file1 = await fsRead("./hello.txt")
+        let file2 = await fsRead("./hello1.txt")
+        let file3 = await fsRead("./hello2.txt")
+
+        console.log(file1 + file2 + file3)
+    }
+
+
+    readList()
+ -->
+
 ------
 
 ### 写入文件
 > 异步写入
-> fs.writeFile(文件路径文件名, 写入内容, 'utf-8', callback(err))
-- 使用异步写入文件属于重写(覆盖)
+> fs.writeFile(文件路径文件名, 写入内容, [{配置对象}], callback(err))
+- 这个方法如果没有文件的话 会*自动创建文件*
+- 一般使用异步写入文件属于重写(覆盖) 如果想追加请配置标识符
+
+- 参数
+- 配置对象
+- 里面可以写 flag 标识符 w是覆盖 a是追加 r是读
 <!-- 
     fs.writeFile(fillpath, '我是新写入的内容', 'utf-8', err => {
         if(err) {
@@ -1176,7 +1350,91 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
 
         console.log('写入完毕')
     })
+
+    ------
+
+    // 先写一下
+    fs.writeFile("./hello.txt", "不要再怀孕了", "utf-8", (err) => {
+        if(err) return
+    })
+
+    // 后读一下
+    fsRead("./hello.txt").then(data => {
+        console.log(data)
+    })
  -->
+
+
+
+### 删除文件
+> fs.unlink(path, callback)
+- 该方法仅适用于删除文件 
+- 参数
+- path  - 文件路径
+- cb    - 回调
+<!-- 
+    let fs = require("fs")
+    fs.unlink("./hello2.txt", (err) => {
+        if (err) throw err;
+        console.log('path/file.txt was deleted');
+    })
+ -->
+
+
+**注意:**
+- 不适用于目录，无论是空目录还是其他目录。 要删除目录，请使用 fs.rmdir()。
+
+------
+
+### 读取目录
+> fs.readdir(path, callback)
+- 参数
+- callback
+    err 没读到的报错信息
+    files 为目录下的文件数组列表 文件名称
+
+------
+
+### 案例： 删除文件夹中的指定文件
+<!-- 
+let fs = require("fs")
+
+fs.readdir(__dirname, (err, files) => {
+  console.log(files)
+  // [ 'app.js', 'hello1.txt', 'hello2.txt', 'hello3.txt' ]
+
+  files.forEach(item => {
+    if(item.endsWith("txt")) {
+      fs.unlink(item, () => {
+        console.log(item + "已删除")
+      })
+    }
+  })
+})
+ -->
+
+------
+
+### 删除目录
+> fs.rmdir(path, callback)
+<!-- 
+let fs = require("fs")
+fs.rmdir("./abc", () => {
+  console.log("删除成功")
+})
+ -->
+
+------
+
+### 创建目录
+> fs.mkdir(path, [{配置对象}], 回调)
+- 参数
+- path
+- 配置对象
+    recursive 是否以递归的方式创建目录 默认为false
+    mode 这是目录权限 默认为0777
+
+- 回调函数没有参数
 
 ----------
 
@@ -1306,6 +1564,1080 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
             })
         })
     })
+ -->
+
+----------
+
+### 控制台输入输出 readline模块
+- 模块提供了用于从可读流（例如 process.stdin）每次一行地读取数据的接口。 可以使用以下方式访问它：
+
+- 一旦调用此代码，则 Node.js 应用程序将不会终止，直到 readline.Interface 关闭，因为接口在 input 流上等待接收数据。
+
+- 效果
+- 控制台提出问题 我们进行回答
+- 有点像js的confirm方法 从控制台定义问题 收到用户的输入
+
+- 首先导入 readline
+- let readline = require("readline")
+
+<!-- 
+let readline = require("readline")
+
+// 创建readline接口实例
+let rl = readline.createInterface({
+  // 输入和输出都在终端   process进程
+  input: process.stdin,
+  output: process.stdout
+})
+
+// question方法 提问 回答模式
+rl.question("你的名字是?", function(answer) {
+  console.log("我的名字是: " + answer)
+
+  // 不加close 则程序不会结束
+  rl.close()
+})
+
+// close事件监听
+rl.on("close", () => {
+  // 结束程序
+  process.exit(0)
+})
+ -->
+
+
+> 练习： 自己创建 package.json
+- 创建 node init 创建项目的案例 自己创建package
+<!-- 
+let readline = require("readline")
+let fs = require("fs")
+
+// 创建readline接口实例
+let rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+})
+
+// question方法
+// rl.question("你的名字是?", function(answer) {
+
+        正常的一问一答中 用户输入的答案都会在回调中体现出来
+        为了避免层层嵌套 我们需要自定义 promise函数
+
+        使用 async await 的形式体现
+
+// })
+
+// 定义 一问一答的 promise方法
+function encapsulationQuestion(Q) {
+  return new Promise((resolve, reject) => {
+    rl.question(Q, function(A) {
+      resolve(A)
+    })
+  })
+}
+
+// 读取用户输入的信息
+async function createPackage() {
+  let name = await encapsulationQuestion("您的包名叫什么?")
+  let desc = await encapsulationQuestion("您的描述是什么?")
+  let main = await encapsulationQuestion("您的主程序入口文件是什么?")
+  let author = await encapsulationQuestion("您的包的作者是什么")
+
+
+  // 写入一个文件
+  // fs.writeFile(文件路径文件名, 写入内容, [{配置对象}], callback(err))
+
+  // 定义内容模板
+  let content = `{
+    "name": "${name}",
+    "description": "${desc}",
+    "main": "${main}",
+    "author": "${author}"
+  }
+  `
+  fs.writeFile("./package.json", content, {flag: "a", encoding: "utf-8"}, (err) => {
+    // 写入成功后 调用关闭进程的事件
+    rl.close()
+  })
+}
+createPackage()
+
+
+// close事件监听
+rl.on("close", () => {
+  // 结束程序
+  process.exit(0)
+})
+
+ -->
+
+----------------------
+
+### node 读写流 Stream
+- 上面我们学习了读取文件的相当操作 但是当这个文件特别大的时候
+- 万一我的内存并不能直接把所有的数据读取下来 比如我们电脑一般都是8g内存 但是我们的文件是50G的和平精英
+
+- 当我们读取比较大的数据的时候 不可能一次性的将所有的数据都读下来 
+<!-- 
+    比如我们要将一个水塘里面的谁抽到另一个水塘
+    我们就需要在两个水塘之间建立一个管道 读一点是一点
+ -->
+
+- 所以我们在读写比较大的数据的时候 肯定会遇到流这样的接口
+
+
+
+- Stream是一个抽象接口 node中有很多对象实现了这个接口
+- 例如
+- 对http服务器发起请求的request对象就是一个Stream 还有stdout(标准输出)
+
+- nodejs中 Stream有四种流类型
+- 1. Readable 可读操作
+- 2. Writable 可写操作
+- 3. Duplex   可读可写操作
+- 4. Transform 操作被写入数据 然后读出结果
+
+- 所有的Stream对象都是 EventEmitter的实例 常用的事件有
+- 1. data   当有数据可读时触发
+- 2. end    没有更多的数据可读时触发
+- 3. error  在接收和写入过程中发生错误时触发
+- 4. finish 所有数据已被写入到底层系统时触发
+
+- 5. open   文件打开时触发
+- 6. close  文件关闭时触发
+- 7. ready  文件打开时触发
+
+
+> 写入流
+> 1. 引入 fs 模块
+- let fs = require("fs")
+
+> 2. 创建 写入流对象 并指定写入到哪个文件
+> fs.createWriteStream(path, [{配置对象}])
+- 没有的话会自动创建吧
+- 配置对象可以设置 flag encodeing
+
+- let writeStream = fs.createWriteStream("output.txt")
+
+
+> 3. 调用 写入流对象的 write() 方法
+- writeStream.write(content, "utf-8", [callback])
+- 指定写入内容 和 内容的编码格式
+- callback err 
+
+- 可以写入多次 多次调用 write() 方法
+
+
+> 4. 调用 写入流对象 end() 方法
+> writeStream.end([callback])
+- 标记文件的末尾 标记写入结束
+
+> 5. 监听各种事件
+
+- 示例：
+<!-- 
+let fs = require("fs")
+let content = "hello, world"
+let content2 = "hello, world2"
+let content3 = "hello, world3"
+
+// 创建一个可以写入的流 写入到文件 output.txt
+let writeStream = fs.createWriteStream("output.txt")
+
+// 使用utf8编码写入数据
+writeStream.write(content, "utf-8")
+writeStream.write(content2, "utf-8")
+writeStream.write(content3, "utf-8")
+    // 写入流的优势就在于 可以多次分次写入
+
+// 标记文件末尾 最终写完之后要标记 end 代表写入完成
+writeStream.end()
+
+// 处理流事件 -- data end error
+writeStream.on("finish", () => {
+  console.log("写入完成")
+  fs.readFile("./output.txt", "utf-8", (err, data) => {
+    if(!err) console.log("data", data)
+  })
+})
+
+writeStream.on("error", () => {
+  console.log(err.stack)
+})
+
+// 它反而到先执行
+console.log("程序执行完毕")
+ -->
+
+
+> 读取流
+- 引入fs
+
+> 创建 读取流对象 设置读哪个文件（path)
+> let readerStream = fs.createReadStream(path, [{配置对象}])
+- 读哪个文件
+
+
+> 设置编码格式
+> readerStream.setEncoding("utf-8")
+
+> 监听各种事件
+- 事件跟上面的一样open close等
+
+> data事件
+- 数据是分批读取的 每一批为一个chunk
+- 每一个chunk是有大小的 每一个chunk 65536字节
+
+    readerStream.on("data", (chunk) => {
+        content += chunk
+    })
+
+- 读取二进制数据的时候不用设置utf-8了 
+
+
+- 示例：
+<!-- 
+let fs = require("fs")
+let content = ""
+
+// 创建一个可读流
+let readerStream = fs.createReadStream("input.txt")
+
+// 设置编码为 utf-8
+readerStream.setEncoding("utf-8")
+
+// data事件 当有数据可读时触发 监听数据的流入
+参数 chunk 每一批数据 (数据很大是分批读取)
+readerStream.on("data", (chunk) => {
+  content += chunk
+})
+
+// end事件 没有更多的数据可读时触发 流完后的事件
+readerStream.on("end", () => {
+  console.log(content)
+})
+
+readerStream.on("error", (err) => {
+  console.log(err.stack)
+})
+
+console.log("程序执行完毕")
+ -->
+
+- 最后我们可以将读到的内容 创建写入流 写入到某个文件
+<!-- 
+readerStream.on("data", (chunk) => {
+  // 创建写入流 这样每读取到一批数据 就写入一批数据
+  ws.write(chunk, () => {})
+})
+
+// 当读取完成后 我们调用 ws.end()
+// end事件 没有更多的数据可读时触发 流完后的事件
+// 或者 close事件 也可以
+readerStream.on("end", () => {
+    ws.end()
+})
+ -->
+
+
+> 管道流
+- 管道流提供了一个输出流到输入的机制 通常我们用于从一个流中获取数据并将数据传递到另一个流中
+
+- 比如我们把文件比作装水的桶 而水就是文件里面的内容 我们用一根管子链接两个桶使得水从一个桶流入另一个桶 这样就慢慢的实现了大文件的复制过程
+
+> readerStream.pipe(writeStream)
+- 读取文件到指定文件
+
+<!-- 
+let fs = require("fs")
+
+// 创建一个可读流
+let readerStream = fs.createReadStream("input.txt")
+
+// 创建一个可写流
+let writeStream = fs.createWriteStream("output.txt")
+
+// 管道读写操作 搭根管子
+// 读取 input.txt 文件内容 并将内容写入到 output.txt文件中
+
+从 读 到 写 
+readerStream.pipe(writeStream)
+
+console.log("程序执行完毕")
+ -->
+
+----------------------
+
+### node事件循环
+- nodejs是单进程单线程的程序 但是因为v8引擎提供的异步执行回调接口 通过这些接口可以处理大量的并发 所以性能非常的高
+
+- nodejs几乎每一个api都是支持回调函数的 基本上所有的事件机制都是用设计模式中 - 观察者模式实现
+
+- node单线程类似进入一个whiletrue事件循环 直到没有事件观察者退出 每个异步事件都生成一个事件观察者 如果有时间发生就调用该回调函数
+<!-- 
+    伪代码:
+
+    开启进程
+    开启线程
+    初始化数据
+    while(true) {
+
+        初始化事件列表
+        根据事件修改初始化数据
+        根据数据去渲染页面
+    }
+ -->
+
+- 事件循环 相当于在一个 while(true) 循环里面 从上到下 反复执行 事件的回调 之所以在同步console的后面打印 是因为console在第一轮 然后循环到我们点击按钮那轮才会被打印
+
+
+> 事件驱动程序
+- 在说事件驱动程序之前 我得先说说自己的理解
+- 前端js中 我们的事件大多都是通过点击来触发 比如用户想完成点击的逻辑 就是有click事件 用户要关闭某个窗口对应的可能就是close事件
+
+- 我们在不同的事件回调中处理对应的逻辑
+- 现在我们想下这个场景 假如我们现在需要读取一个文件里面的数据 然后依据读到的数据 我们要做依次的逻辑 伪代码如
+<!-- 
+    fs.readFile("./userInfo.json", "utf-8", (err, data) => {
+        if(!err) {
+            1. 读取数据库
+            2. 渲染页面
+            3. 统计用户信息
+        }
+    })
+ -->
+
+- 假如我们将1 2 3三种逻辑都放在回调中处理的话 1是可能会产生回调地狱 2回调中的逻辑可能会非常的多
+
+- 那有没有种方式 当我们数据读取成功后会依次调用这3块的逻辑呢？
+<!-- 
+    那把这3块内容封装成3个方法不可以么？
+ -->
+
+- 还有一种思路
+> 自定义实现 监听事件 和 触发事件 逻辑 这也是消息的订阅与发布模式
+- 1. 定义 事件对象 内包含 
+    - 事件名: 对应事件处理函数
+    - 绑定事件的方法
+    - 触发事件的方法
+<!-- 
+    let eventObj = {
+        // 事件对象
+        event: {
+            // 我们绑定什么事件 比如我们可以绑定 fileSuccess 事件
+            fileSuccess: [],
+        }
+        
+
+        // 绑定事件的on方法
+        on: function(eventName, eventFn) {
+            // 我们绑定的事件名称在事件对象里面的话
+            - 比如我们绑定的是 fileSuccess事件 那就把回调push到 fileSuccess对应的事件数组中
+            if(this.event[eventName]) {
+                this.event[eventName].push(eventfn)
+            } else {
+                // 如果不在的话 就创建一个该事件kv 整理成
+                - 新事件: []
+                - 然后将回调push到新事件对应的事件数组中 做初始化的路基
+                this.event[eventName] = []
+                this.event[eventName].push(eventfn)
+            }
+        },
+        
+        // 定义触发事件的逻辑函数
+        emit: function(eventName, data) {
+            if(this.event[eventName]) {
+                this.event[eventName].forEach(itemFn => {
+                    itemFn(data)
+                });
+            }
+        }
+    }
+
+// 当读取数据后触发 自定义事件的回调
+let fs = require("fs")
+fs.readFile("./output.txt", "utf-8", (err, data) => {
+  if(!err) lcEvent.emit("fileSuccess", data)
+})
+
+
+// 自定义事件的逻辑部分
+lcEvent.on("fileSuccess", (data) => {
+  console.log("查看数据库")
+})
+
+lcEvent.on("fileSuccess", (data) => {
+  console.log("统计年龄比例")
+})
+
+lcEvent.on("fileSuccess", (data) => {
+  console.log("查看所有用户的信息")
+})
+ -->
+
+- 上面我们就完成了 "自定义事件的逻辑"
+- 通过去订阅我们自己设定的事件 监听触发完成回调
+
+- 上面的整个逻辑 其实node中已经提供给我们了
+
+
+> node中的 EventEmitter 自定义事件模块
+- node使用事件驱动模型 当web server接收到请求 就把它关闭然后进行处理 然后去服务下一个web请求 当这个请求完成 它被放回处理队列 当到达队列开头 这个结果被返回给用户
+
+- 这个模型非常高效可扩展性非常强 因为 webserver一致接收请求而不等待任何读写操作 在事件驱动模型中 会生成一个主循环来监听事件 当检测到事件时触发回调函数
+
+- node里 我们没有浏览器的众多的事件 但是可以自定义事件的逻辑完成实现各种逻辑
+
+<!-- 
+// 引入 事件模块 (events)
+let events = require("events")
+let fs = require("fs")
+
+// 实例化 EventEmitter 对象
+let eventEmitter = new events.EventEmitter()
+
+// 通过实例对象 监听自定义事件
+eventEmitter.on("helloSuccess", (data) => {
+  console.log("一会吃个橘子")
+  console.log(data)
+})
+eventEmitter.on("helloSuccess", (data) => {
+  console.log("然后吃个香蕉")
+  console.log(data)
+})
+eventEmitter.on("helloSuccess", (data) => {
+  console.log("最后看个小说")
+  console.log(data)
+})
+
+// 合适的实际的时候 通过 触发自定义事件
+fs.readFile("./output.txt", {encoding: "utf-8"}, (err, data) => {
+  if(!err) {
+    eventEmitter.emit("helloSuccess", data)
+  }
+})
+ -->
+
+- 修改为promise
+<!-- 
+function fsRead(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, {encoding: "utf-8"}, (err, data) => {
+      if(!err) {
+        resolve(data)
+      } else {
+        reject(err)
+      }
+    })
+  })
+}
+
+fsRead("./output.txt").then((data) => {
+  eventEmitter.emit("helloSuccess", data)
+})
+ -->
+
+- 根据上面的逻辑 修改为await
+<!-- 
+async function promiseRead() {
+  let data = await fsRead("./output.txt")
+  eventEmitter.emit("helloSuccess", data)
+}
+promiseRead()
+ -->
+
+----------------------
+
+### 路径模块和系统模块
+- node中path模块提供了一些路径操作的api
+- os模块提供了一些操作系统相关信息的api
+
+> path模块
+- 处理跟路径相关的功能
+- 我们还需要获取路径上的信息
+
+> __dirname
+- 它是一个特殊的变量
+- 得到当前执行的文件的绝对路径, 不包括文件名
+
+> __filename
+- 它是一个特殊的变量
+- 得到当前执行的文件的绝对路径, 包括文件名
+
+<!-- 
+    D:\Memo\Sam\5_Learning_Content\VUE\tabbar\src
+ -->
+
+> 模块的使用
+- 导入内置模块和第三方模块的时候要写在最上面
+
+    const path = require('path')
+
+
+> path模块的方法:
+
+> path.extname(__filename);
+- 获取指定文件的扩展名(后缀名), 只是扩展名并不包含文件名
+- 参数是文件所在的路径, 我这里传递了一个变量
+<!--    
+const path = require('path');
+let extname = path.extname(__filename);
+console.log(extname);       // .js
+
+    -----
+
+还能获取网址的资源的后缀名
+let str = "http://www.enterdesk.com/download/37982-220381.jpg"
+
+// 获取路径信息的扩展名
+let info = path.extname(str)
+console.log(info)
+ -->
+
+
+> path.basename(__filename)
+- 获取指定文件的文件名(包括扩展名)
+- 参数是文件所在的路径, 我这里传递了一个变量
+<!-- 
+    let basename = path.basename(__filename);
+    console.log(basename);
+ -->
+
+
+> path.dirname(__filename)
+- 获取指定文件当前所在路径
+- 参数是文件所在的路径, 我这里传递了一个变量
+<!-- 
+    let dirname = path.dirname(__filename);
+    console.log(dirname);
+ -->
+
+
+> path.parse(__filename)
+- 获取指定文件的所有信息, 是一个对象, 可以通过对象来调用
+- 它把路径解析成一个对象, 里面包含了下面的信息
+
+- root: 所在盘符
+- dir:  文件所在目录
+- base: 文件名(包括扩展名)
+- ext:  扩展名
+- name: 文件名
+
+<!-- 
+    const path = require('path');
+    let parseObj = path.parse(__filename);
+    console.log(parseObj);
+
+    {
+        root: 'D:\\',
+        dir: 'D:\\Memo\\Sam\\5_Learning_Content\\Node_JS',
+        base: 'module1.js',
+        ext: '.js',
+        name: 'module1'
+    }
+ -->
+
+
+> path.resolve([...path]) 解析路径
+- 把一个路径或图片片段的序列解析为一个绝对路径
+- 方式1：
+- 传入一个文件名 自动会解析为一个绝对路径
+
+- 方式2：
+- 传入一个字符串数组
+- 自动会帮我们拼接沉给一个路径 会加上系统地址
+<!-- 
+    let info = path.resolve("./output.txt")
+    console.log(info)
+
+    /Users/LIUCHUNSHAN/Desktop/Sam/exer/node_exer/output.txt
+
+    ---- 
+
+    let arr = ["sxt/", "qianduan"]
+    let info = path.resolve(...arr)
+
+    /Users/LIUCHUNSHAN/Desktop/Sam/exer/node_exer/sxt/qianduan
+ -->
+
+
+> path.join(目标1, 目标2) 拼接路径
+- 路径拼接
+- 下面的例子 当前文件的所在路径 和 test.js 进行拼接
+- 给我的感觉就是 目标1 目标2 目标3 用 \ 链接起来
+- 一层目录就是一个参数
+<!-- 
+    const path = require('path');
+    let fullpath = path.join(__dirname, 'test.js');
+    console.log(fullpath);
+
+    D:\Memo\Sam\5_Learning_Content\Node_JS\test.js
+ -->
+
+- 拼接 当前文件所在目录的文件夹里的文件
+<!-- 
+    let fullpath = path.join(__dirname, 'module', 'test.js');
+    D:\Memo\Sam\5_Learning_Content\Node_JS\module\test.js
+ -->
+
+> process.cwd()
+- 获取当前指定 node命令的时候的文件夹目录名
+
+let info = process.cwd()
+console.log(info);
+
+
+**扩展**
+- 项目部署上线后 为了保证24小时服务正常运行 运维就需要去解决各种问题
+
+----------------------
+
+### 系统模块 os
+
+    let os = require("os")
+
+> os.cpus() 获取cpu相关信息
+    let os = require("os")
+    console.log(os.cpus())
+
+
+> os.totalmem() 获取内存信息 
+- 8589934592 8g内存
+
+> os.arch() 返回操作系统的架构 x64
+
+> os.freemem() 返回闲置的内存
+- 17883136
+
+> os.hostname() 返回主机名称
+- orannoMacBook-Pro.local
+
+> os.platform() 返回平台
+- darwin
+
+----------------------
+
+### URL模块
+    let url = require("url")
+
+- 用来处理网络路径
+- url核心模块为我们解析url地址时提供了非常方便的api 常见包含有
+- 查询字符串的url地址解析
+
+> url.parse() *已弃用*
+- 该方法可以解析一个url地址 通过传入第二个参数 true 把包含有查询字符串的query转换成对象
+<!-- 
+    let url = require("url")
+
+    let path = "www.baidu.com/?name=sam&age=18"
+    let info = url.parse(path)
+
+    console.log(info)   // 对象
+
+    console.log(info.query)
+        name=sam&age=18
+ -->
+
+
+### url模块(弃用)
+- 我们再发送get请求的时候 会在url上使用? 拼接很多的参数, 为了解析url中的参数
+- 我们还要引用 url 模块
+
+> url模块已经弃用
+
+### new URL() 类 代替 url模块
+- 当我们想解析 get请求 url上的参数的时候, 我们可以通过创建 URL() 类的实例来获取参数
+
+>new URL(要解析的url, [base])
+- 参数
+- 要解析的绝对或相对的 URL。
+- 如果为相对路径, 则要带上base, 
+- 如果是绝对路径, 则省略base
+- base后面不用 接 /
+<!-- 
+    const myURL = new URL('/foo', 'https://example.org/');
+
+    比如 我们通过requset.url获取的是 相对路径
+    requset.url : /index.html?curPage=1&perPage=10
+
+    这时我们就要使用base
+    const myURL = new URL(requset.url, 'https://localhost:8000');
+ -->
+
+
+> URL实例对象.searchParams.get('属性名')
+- 通过url的实例对象 获取url中的参数
+- 必须指定属性名
+<!-- 
+    myURL.searchParams.get('curPage')   // 1
+ -->
+
+
+- 1. 创建 URL 实例对象
+<!-- 
+    const data = new URL(reqUrl);
+
+    实例对象中是url完成的信息
+    URL {
+        href: 'http://localhost:8000/index.html?curPage=1&perPage=10',
+        origin: 'http://localhost:8000',
+        protocol: 'http:',
+        username: '',
+        password: '',
+        host: 'localhost:8000',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/index.html',
+        search: '?curPage=1&perPage=10',
+        searchParams: URLSearchParams { 'curPage' => '1', 'perPage' => '10' },
+        hash: ''
+    }
+
+ -->
+
+2. 调用实例对象的.searchParams.get()
+<!-- 
+    let result = data.searchParams.get('curPage');
+ -->
+
+- 3. result就是想要的结果
+
+
+> 代替url.resolve的方法
+> let newURL = new URL(httpURL, targetURL)
+
+----------------------
+
+### 爬虫
+- 爬虫要点 首先我们爬取的内容必须是别人公开公布的数据 比如我们不能跳过登录去爬内容
+- 不能拿别人的数据去做自己盈利的业务
+
+- 我们做爬虫大部分都是get请求
+
+- 我们node中的http模块 也有发送请求的方法
+
+> http.get(url, (res) => {})
+- 1. 先引入http模块 然后调用其get方法
+- 2. 监听res的data事件 该事件在数据回来后触发
+<!-- 
+let http = require("http")
+
+http.get("http://www.baidu.com", (res) => {
+  // 设置相应体的编码格式
+  res.setEncoding("utf8")
+
+  // 监听res的data事件 当有数据回来的时候会触发该事件
+  res.on("data", (res) => {
+    console.log(res)
+  })
+})
+
+我们请求到的数据 赋值到html文件里面就是跟原网页一样的东西
+ -->
+
+
+> requestjs库 发请求
+- 1. npm i request --save
+- 2. 如下方法
+<!-- 
+let request = require("request")
+request("http://www.baidu.com", (err, res, body) => {
+  console.log(err)
+  console.log(res && res.statusCode)
+  console.log(body)
+})
+ -->
+
+
+> 爬虫的业务逻辑
+- 1. 访问服务器
+<!-- 向百度发起请求 得到页面 -->
+
+- 2. 下载页面
+<!-- 上面我们的body就是页面信息 -->
+
+- 3. 分析页面
+<!--  
+    我们请求回来的数据 很多数据都是不需要的
+    我们要拿到我们想要的数据
+ -->
+
+- 4. 提取信息
+<!-- 
+    把上面分析完的关键信息提取出来
+ -->
+
+- 5. 保存数据
+<!-- 保存到本地 -->
+
+- https://www.dydytt.net/index2.htm
+- 电影天堂举例
+
+- 1. 首先我们要知道电影的信息 这就是我们最终想要抓取的数据
+<!-- 
+    1. 电影名字
+    2. 电影详情
+    3. 图片
+    4. 下载链接
+
+    比如 我们京东 我们要想抓取的数据可能是商品的数据
+    商品名称 商品图片 商品详情 商品价格
+
+    我们看看电影天堂链接
+
+    // 比如我们选择的是 日韩电影 
+    // 第一页的时候 list_6_1
+    https://www.dydytt.net/html/gndy/rihan/list_6_1.html
+    https://www.dydytt.net/html/gndy/rihan/list_6_2.html
+
+    // 每一页的电影项链接
+    https://www.dydytt.net/html/gndy/jddy/20211207/62095.html
+    https://www.dydytt.net/html/gndy/jddy/20211207/62094.html
+
+    我们通过url大致能分析出来哪些是电影的id
+ -->
+
+> 编码格式 乱码
+- 上面有的时候会发现 我们请求回来的数据 有中文乱码的情况 这是因为以前编码的时候大部分都是使用gb2312格式的编码
+
+- 上面我们都是在对应的位置上设置头部信息
+
+- 这里我们介绍一个框架专门解决这样的问题
+
+> 安装
+- npm i iconv-lite --save
+
+> 引入
+- let iconv = require("iconv-lite")
+
+> 使用
+<!-- 
+// 引入
+let iconv = require("iconv-lite")
+let request = require("request")
+let url = "https://www.dydytt.net/html/gndy/rihan/index.html"
+request(url, {
+  // 关闭request自己的编码格式
+  encoding: null
+} ,(err, res, body) => {
+  
+  // 我们调用iconv.decode将body传入 然后传入gb2312原编码格式
+  const bufs = iconv.decode(body, 'gb2312')
+
+  // 调用返回结果的toString方法指定我们想要的编码格式
+  const html = bufs.toString("utf8")
+  console.log(html)
+})
+ -->
+
+
+> 将上面的请求方法封装为proimse方法
+<!-- 
+const req = (url) => {
+  return new Promise((resolve, reject) => {
+    request(url, {
+      encoding: null
+    } ,(err, res, body) => {
+      if(res.statusCode === 200) {
+        const bufs = iconv.decode(body, 'gb2312')
+        const html = bufs.toString("utf8")
+        resolve(html)
+      } else {
+        reject(err)
+      }
+    })
+  })
+}
+req(url)
+ -->
+
+
+> cheerio模块
+- 模仿jq的设计 运行在server端(jq在客户端)
+- 这个模块可以解析html文档
+- 那是不是说 我们爬取的网页内容 在查找替换修改上的时候 就可以借助这个模块 相当于我们在后台操作dom(请求回来的数据)
+
+> 安装
+- npm i cheerio --save
+
+
+>  cheerio.load(html页面)
+- 可以是请求回来的数据 也可以是我们定义的html标签 创建变量接收 $
+<!-- 
+const cheerio = require("cheerio")
+// 比如我们后面的部分就是 html
+const $ = cheerio.load("<h2 class='title'>hello</h2>")
+
+// 修改上面html的内容 和 添加classname
+$("h2.title").text("hello there")
+$("h2").addClass("wel")
+
+console.log($.html())
+
+<html>
+<head></head>
+<body><h2 class="title wel">hello there</h2></body>
+</html>
+ -->
+
+
+- 现阶段我们已经把页面请求回来了 保存在 html 变量里面
+- 我们接下来要分析一下页面信息 提取有用的部分 我们上面分析了电影的类型 以及 类别下一个电影的页面是什么样的
+<!-- 
+    日韩
+    https://www.dydytt.net/html/gndy/rihan/index.html
+    https://www.dydytt.net/html/gndy/rihan/list_6_2.html
+
+    咒术尸战
+    https://www.dydytt.net/html/gndy/jddy/20211207/62095.html
+ -->
+
+- 我们打开分类页面后 每一个title就是一个链接 我们需要知道的是 所有title的值
+<!-- 
+    const host = "https://www.dydytt.net"
+    const uri = "/html/gndy/rihan/list_6_2.html"
+    我们请求的是host+uri页面
+
+    title
+    [最新电影] 2021年剧情动作 <太太请小心轻放电影版>
+
+    这个title对应的结构
+    div co_content8
+        ul
+            table   每一个表就是一个电影的信息
+                每一个table的第2个tr里面就是title的信息
+
+    我们可以看看 co_content8 是不是只有一个 如果是的话 我们就可以从里面找我们想要的资源了
+ -->
+
+- 阶段1
+- 我们分析完html结构后 就可以使用 cheerio 来查找我们想要的元素了
+<!-- 
+const host = "https://www.dydytt.net"
+const uri = "/html/gndy/rihan/list_6_2.html"
+req(host + uri).then(res => {
+
+  // 使用 cheerio 加载html页面
+  const $ = cheerio.load(res)
+
+  // $就可以操作html文档了
+  $(".co_content8 ul table tbody tr:nth-child(2) td:nth-child(2) b a:nth-child(2)").each((i, item) => {
+
+    // 我们找到的是一个dom
+    let link = $(item).attr("href")
+
+    console.log(link) 
+        // /html/gndy/jddy/20210621/61553.html 所有的url
+  })
+})
+
+我们再发下一次请求的时候 我们直接 host + link 就可以了吧
+ -->
+
+- 阶段2
+- 我们上面获取了 title 也就是每一个电影标题对应的uri的部分
+- 然后我们根据host + uri的部分 能够请求每一个电影的详情页
+<!-- 
+const cheerio = require("cheerio")
+let iconv = require("iconv-lite")
+let request = require("request")
+// let url = "https://www.dydytt.net/html/gndy/rihan/index.html"
+
+// request(url, {
+//   encoding: null
+// } ,(err, res, body) => {
+
+//   const bufs = iconv.decode(body, 'gb2312')
+//   const html = bufs.toString("utf8")
+//   console.log(html)
+// })
+
+// 将上面的请求封装成promise方法
+const req = (url) => {
+  return new Promise((resolve, reject) => {
+    request(url, {
+      encoding: null
+    } ,(err, res, body) => {
+      if(res.statusCode === 200) {
+        const bufs = iconv.decode(body, 'gb2312')
+        const html = bufs.toString("utf8")
+        resolve(html)
+      } else {
+        reject(err)
+      }
+    })
+  })
+  
+}
+const host = "https://www.dydytt.net"
+const uri = "/html/gndy/rihan/list_6_2.html"
+req(host + uri).then(res => {
+
+  // 使用 cheerio 加载html页面
+  const $ = cheerio.load(res)
+
+  // $就可以操作html文档了
+  $(".co_content8 ul table tbody tr:nth-child(2) td:nth-child(2) b a:nth-child(2)").each((i, item) => {
+    // 我们找到的是一个dom
+    let link = $(item).attr("href")
+    // console.log(link) // /html/gndy/jddy/20210621/61553.html 所有的url
+
+    // 我们拿到每一个 电影标题的 uri部分后 再次根据uri部分发送请求 我们需要得到电影的详情页面
+    getMovieDetail(link)
+  })
+})
+
+// 再封装了await方法 根据uri部分 发送请求 获取电影详情的页面
+const getMovieDetail = async (url) => {
+  const html = await req(host + url)
+  console.log(html) // 我们能够拿到每一个电影详情页的内容
+}
+ -->
+
+
+- 阶段3
+- 我们获取了电影详情的页面后 又要对页面开始分析
+- 比如 我们进入这个页面 我们看看 这个页面中 哪些是我们想要提取的部分
+<!-- 
+    https://www.dydytt.net/html/gndy/jddy/20211207/62095.html
+
+    比如我们需要获取
+    电影名
+    下载链接
+    海报
+ -->
+
+> 技巧
+- 控制台 - 选择节点 - 右键 - copy - selector 就能得到选择这个元素的选择器
+
+<!-- 
+// 再封装了await方法 根据uri部分 发送请求 获取电影详情的页面
+const getMovieDetail = async (url) => {
+  const html = await req(host + url)
+  // console.log(html) // 我们能够拿到每一个电影详情页的内容
+
+  // 这里也是一样 我们要使用 cheerio 加载html 要操作html
+  const $ = cheerio.load(html)
+  const movie = {
+    // 电影名:
+    name: $("#header > div > div.bd2 > div.bd3 > div.bd3l > div.co_area2 > div.title_all > h1 > font").text(),
+    // 电影详情:
+    img: $("#Zoom > span > img").attr("src"),
+    // 下载链接
+    link: $("")
+  }
+  console.log(movie)
+}
+ -->
+
+- 以上就完成了简单的数据爬取
+
+> 难的爬虫
+- 需要模拟用户登录操作 拿到用户的数据
+- 比如淘宝的后台商家数据 淘宝肯定要做用户的登录检验 比如我们要了解淘宝做的是什么样的登录
+<!-- 
+    比如百度的登录 比如cookie 还有的是本地存储 我们要拿到这些 才能
  -->
 
 ----------------------
@@ -1528,71 +2860,6 @@ ax+     打开文件进行读取和追加,如果路径存在则失败
         console.log('服务器已启动, 8000')
     })
  -->
-
-----------------------
-
-### url模块(弃用)
-- 我们再发送get请求的时候 会在url上使用? 拼接很多的参数, 为了解析url中的参数
-- 我们还要引用 url 模块
-
-> url模块已经弃用
-
-### new URL() 类 代替 url模块
-- 当我们想解析 get请求 url上的参数的时候, 我们可以通过创建 URL() 类的实例来获取参数
-
->new URL(要解析的url, [base])
-- 参数
-- 要解析的绝对或相对的 URL。
-- 如果为相对路径, 则要带上base, 
-- 如果是绝对路径, 则省略base
-- base后面不用 接 /
-<!-- 
-    const myURL = new URL('/foo', 'https://example.org/');
-
-    比如 我们通过requset.url获取的是 相对路径
-    requset.url : /index.html?curPage=1&perPage=10
-
-    这时我们就要使用base
-    const myURL = new URL(requset.url, 'https://localhost:8000');
- -->
-
-
-> URL实例对象.searchParams.get('属性名')
-- 通过url的实例对象 获取url中的参数
-- 必须指定属性名
-<!-- 
-    myURL.searchParams.get('curPage')   // 1
- -->
-
-
-- 1. 创建 URL 实例对象
-<!-- 
-    const data = new URL(reqUrl);
-
-    实例对象中是url完成的信息
-    URL {
-        href: 'http://localhost:8000/index.html?curPage=1&perPage=10',
-        origin: 'http://localhost:8000',
-        protocol: 'http:',
-        username: '',
-        password: '',
-        host: 'localhost:8000',
-        hostname: 'localhost',
-        port: '8000',
-        pathname: '/index.html',
-        search: '?curPage=1&perPage=10',
-        searchParams: URLSearchParams { 'curPage' => '1', 'perPage' => '10' },
-        hash: ''
-    }
-
- -->
-
-2. 调用实例对象的.searchParams.get()
-<!-- 
-    let result = data.searchParams.get('curPage');
- -->
-
-- 3. result就是想要的结果
 
 ----------------------
 
