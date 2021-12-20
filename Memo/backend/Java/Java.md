@@ -9547,15 +9547,47 @@
 - 重载是在一个类中允许有多个同名方法 区分它们的条件就是形参列表(个数类型顺序)
 
 
-- 要求：
+> 重写的方法的声明:
+  权限修饰符 返回值类型 方法名(形参列表) {
+    // 方法体
+  }
+
+<!-- 
+  约定俗成：
+  父类中的叫做被重写的方法
+  子类中的叫做重写的方法
+ -->
+
+
+> 细节要求：
 - 1. 子类重写的方法*必须*和父类被重写的方法具有相同的*方法名和参数列表*
 <!-- 
   子类重写的方法 方法名 形参列表 == 父类被重写的方法的方法名 形参列表
+  我就想覆盖你 所以方法名和形参列表一样
  -->
 
 - 2. 子类重写的方法的返回值类型*不能大于*父类被重写的方法的返回值类型
 <!-- 
   子类重写的方法的返回值 <= 父类被重写的方法的返回值
+
+  - 1. 如果父类中的被重写的方法的返回值是 void
+            那么子类中重写的方法只能是 void
+
+  - 2. 如果父类中的被重写的方法的返回值是 a类型
+            那么子类重写的方法的返回值类型 可以是a类或a类的子类
+      public Object info() { }  -- 父
+      public String info() { }  -- 子
+
+      子类的返回值类型是String的话也是可以的 
+          因为String是Object的子类
+
+      上面说的 a类 或 a类的子类 是针对于类来讲的 类属于引用数据类型 那我们知道方法的返回值除了引用数据类型之外 还可以是基本数据类型
+
+  - 3. 如果父类中的被重写的方法的返回值是 基本数据类型
+            那么子类重写的方法的返回值类型 必须是相同的基本数据类型
+        
+      父类如果是 double
+      子类必须是 double
  -->
 
 - 3. 子类重写的方法使用的访问权限*不能小于*父类被重写的方法的访问权限
@@ -9563,9 +9595,24 @@
   子类重写的方法的权限修饰符 >= 父类被重写的方法的权限修饰符
  -->
 
+**注意:**
+- 子类不能重写父类中声明为private权限的方法
+<!-- 
+  父类中有一个方法它的权限比较小 已经是private了 那么子类就不能对这个方法进行重写
+
+  重写的方法 我们调用的时候会是子类最新的方法
+ -->
+
+
 - 4. 子类方法抛出的异常*不能大于*父类被重写方法的异常
+- 方法体前面还可以加上 异常的类型
+
+    权限修饰符 返回值类型 方法名(形参列表) throws {
+      // 方法体
+    }
 <!-- 
   子类重写的方法抛出的异常 <= 父类被重写的方法的抛出的异常
+  具体放在异常处理的位置上再详解
  -->
 
 **注意**
@@ -9574,13 +9621,202 @@
 
 - 因为static方法是属于类的 子类无法覆盖父类的方法
 
+- 子类和父类中同名同参数的方法要么都声明为非static的(这时候才能考虑重写) 要么都声明为static的(不用考虑重写 static的方法一定不可以被重写的)
 
 
+> 智慧的体现:
+- 在实际开发过程中 当我们想重写父类的方法的时候 直接去父类中复制方法声明的部分到子类中 进行重写就可以了
+
+----------------------------
+
+### 测试4种不同的权限修饰
+- 上面我们说过4种权限修饰符的可见性 现在我们讲了继承 我们再看看 protected 权限的可见性
+
+<!-- 
+  修饰符      类内部    同一个包    不同包的子类    同一个工程
+
+  private     yes
+
+  缺省        yes        yes
+
+  protected  yes        yes       yes
+
+  public     yes        yes       yes         yes
+ -->
+
+- protected可以在不同包的子类下看到
+<!-- 
+  SubOrder.java 在A包中
+  Order.java 在B包中
+
+  public class SubOrder entends Order {
+
+  }
+
+  在A包中 使用 SubOrder类 继承 B包中的Order类
+  这样就是不同包的子类下 
+
+  那也就是说 我们需要在另外一个包里 继承Order类之后 protected 的对应的属性和方法才能够看见
+
+  因为继承了Order类 所以Order内部的结构 SubOrder是都能够看见的
 
 
+  // 报错的情况
+  public class SubOrder {
+  public void method() {
+      // 不同包 读取 protected属性 看不见
+      Order order = new Order();
+      order.orderProtected = 2;   // 报错
+
+      不同包下的普通类(非子类) 要使用Order类 不可以调用声明为private 缺省 protected 声明的属性 和 方法
+    }
+  }
 
 
+  // 正确的情况
+  public class SubOrder extends Order {
+    public void method() {
+      orderProtected = 2;
 
+      在不同包的子类中 不能调用Order类中声明为private和缺省权限的属性和方法
+
+    }
+  }
+  不同包下 我们继承 Order 这样 因为继承后 内部结构都能够看见 就不用再通过创建order对象调用 
+  我们可以直接使用 orderProtected
+ -->
+
+- 实际开发中 我们使用protected的时候不多 用的多的还是private和public
+
+----------------------------
+
+### super关键字
+- 现在有子父类的概念了 父类中定义了方法A 子类中将父类的方法A重写了 也就是子类中的方法会覆盖父类中的方法
+
+- 当我们再在子类中调用该方法的时候 都是子类重写后的方法 那我们在子类中还能不能用下父类中被重写的方法 这时候我们就用super来区分
+
+
+> super关键字的使用
+- 1. super理解为： - 父类的
+- 2. super可以用来调用： 属性 方法 构造器
+<!-- 
+  super和this相似 都可以调用属性 方法 构造器
+  this.name
+  super.name
+ -->
+
+<!-- 
+// 父类
+package src.com;
+public class Person {
+  String name;
+  int age;
+
+  int id = 1001;  身份证号
+
+  public Person() {}
+  public Person(String name) {
+    this.name = name;
+  }
+
+  public Person(String name, int age) {
+    this(name);
+    this.age = age;
+  }
+
+  public void eat() {
+    System.out.println("人，吃饭");
+  }
+
+  public void walk() {
+    System.out.println("人，走路");
+  }
+}
+ -->
+
+<!-- 
+// 子类
+package src.com;
+public class Student extends Person {
+
+  String major;
+
+  int id = 1002;  学号
+
+  public Student() {}
+  public Student(String major) {
+    this.major = major;
+  }
+
+  public void study() {
+    System.out.println("学习, 学习知识");
+  }
+
+  // 对父类中的方法的重写
+  public void eat() {
+    System.out.println("学生, 因为正在学习要吃有营养的食物");
+  }
+}
+ -->
+
+- 上面我们定义了两个类 父类Person 子类Student 
+- 接下来我们在子类中定义了一个方法 show
+<!-- 
+  public void show() {
+   
+    System.out.println("name = " + this.name + ", age = " + this.age);
+
+    System.out.println("name = " + super.name + ", age = " + super.age);
+  }
+ -->
+
+- 我们在show方法中 分别通过this和super调用属性 有什么样的区别？
+- 上述的情况没有过多的区别 当我们继承了父类后 父类中定义的属性和方法在子类的堆空间中也有一份
+
+- 但有一种情况就会产生冲突
+- 比如我们在Person类中定义 id 代表 身份证号
+- 然后我们在Student类中定义 id 代表 学号
+
+- 那么在内存中会有两个id 因为*属性来说 不会像方法那样存在重写覆盖的情况* 属性是不会覆盖的
+
+- 当我们通过this或者什么都不写调用的时候 调用的会是子类中定义的id
+- 当我们通过 super.id 调用的时候 调用的会是父类中的id值
+<!-- 
+  也就是说当我们遇到 父类和子类都有同一个属性的时候 我们要通过super关键字来区别我们调用的是谁
+ -->
+
+> 总结1: 我们可以在子类的方法或构造中 通过 super.属性 或 super.方法 的形式 显式的调用父类中声明的属性和方法
+- 通常情况下 都习惯省略 super.
+<!-- 
+  - this.name
+  - 程序会先在当前类中找name属性 如果没有找到会去父类中找
+
+  - super.name
+  - 程序没有在本类中找name 直接回父类中找了
+ -->
+
+
+> 总结2: 特殊情况 当子类和父类中定义了同名的属性的时候 我们要想在子类中调用父类中声明的属性 则必须显式的使用 super.属性 的方式 表明调用的是父类中声明的属性
+
+- 通常我们在开发中子类中不会声明同名的属性
+
+
+> 总结3: 当子类重写了父类中的方法后 我们想在子类中调用父类中被重写的方法时 则必须显式的使用 super.方法 的方式 表明调用的是父类中声明的方法
+- 子类调用重写父类的方法 肯定是子类中的新方法
+<!-- 
+  父类定义 eat()
+  子类重写 eat()
+
+  子类在调用的时候 肯定是子类中重写后的eat()
+  默认省略了this.eat()
+
+  super.eat()
+    这样我们调用的就是父类中被重写的方法
+
+  对于没有重写的方法前面 this 还是 super 都没有太大的关系
+  this的话先在本类中找该方法 没找到回父类找 (间接父类也会找 直到找到为止)
+  super直接回父类中找
+ -->
 
 
 
