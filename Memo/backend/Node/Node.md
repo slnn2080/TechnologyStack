@@ -2538,6 +2538,10 @@ req(host + uri).then(res => {
 - 阶段2
 - 我们上面获取了 title 也就是每一个电影标题对应的uri的部分
 - 然后我们根据host + uri的部分 能够请求每一个电影的详情页
+
+> 要点: $().each((i, el) => { })
+- 每一个 $(el) 是jq对象 所以我们可以 $(el).text()
+
 <!-- 
 const cheerio = require("cheerio")
 let iconv = require("iconv-lite")
@@ -2631,6 +2635,7 @@ const getMovieDetail = async (url) => {
 }
  -->
 
+- 进入到页面其实就是get请求
 - 以上就完成了简单的数据爬取
 
 
@@ -2640,6 +2645,128 @@ const getMovieDetail = async (url) => {
 <!-- 
     比如百度的登录 比如cookie 还有的是本地存储 我们要拿到这些 才能
  -->
+
+----------------------
+
+### 表情包
+- 我们爬到图片地址之后 就可以下载图片了
+<!-- 
+    扩展正则
+    let title = 小红猪表情2019-11-24
+
+    只获取文字部分
+    let reg = /(.*)\d/igs
+    title = reg.exec(title)[1]      // 因为上面分组了 就一个组
+ -->
+
+- 再获取所有的图片链接后 我们将图片下载到本地
+- 1. 创建 img 文件夹
+- 2. 调用fs.mkdir方法 在img文件夹下 按照分类创建文件夹
+<!-- 
+    fs.mkdir("./img/" + title, (err) => {})
+ -->    
+
+- 3. 因为图片都是请求回来的 所以我们拿着图片的链接地址发送请求 将请求回来的内容 写入一个新文件里
+<!-- 
+    // 创建一个写入流 第一个参数为往哪写 关于文件名有很多种方式提取 比如我们可以new URL解析图片的下载地址 提取文件名
+    let ws = fs.createWriteStream("./img/文件夹名/文件名.扩展名")
+
+    // 设置
+    axios.gete(imgUrl, {responseType: "stream"}).then((res) => {
+        res.data.pipe(ws)
+    })
+ -->
+
+> 要点:
+- 如果要求是流式写入 一样要设置 {responseType: "stream"}
+
+----------------------
+
+### 反爬策略
+- 大部分情况 我们发起请求都会返回给我们一个html文档 但是也有的时候 我们的数据不是事先在html文档中
+
+- 比如前端在某种条件下 才会发起ajax请求获取数据 这时候我们就不能再用cheerio库 而是要使用正则还获取
+
+> 反爬机制
+- 每秒请求100次以上 那就说明你请求的速度太快了 不正常 会给你发个验证码之类的 让你操作下 
+
+- 它要是知道你是爬虫了 会封你的ip地址 也就是说从这个ip地址发的请求都会被拒绝
+
+- 这时候我们可以使用代理 我们发送并不是发给对方的服务器 而是发给代理 让代理转发给服务器
+
+> axios中追加代理
+- http://www.axios-js.com/zh-cn/docs/#%E5%93%8D%E5%BA%94%E7%BB%93%E6%9E%84
+- 在请求配置中追加代理配置
+<!-- 
+    // 'proxy' 定义代理服务器的主机名称和端口
+  // `auth` 表示 HTTP 基础验证应当用于连接代理，并提供凭据
+  // 这将会设置一个 `Proxy-Authorization` 头，覆写掉已有的通过使用 `header` 设置的自定义 `Proxy-Authorization` 头。
+  proxy: {
+    // 代理的地址
+    host: '127.0.0.1',
+    port: 9000,
+
+    // 如果有权限验证的话 输入的账号密码
+    auth: {
+      username: 'mikeymike',
+      password: 'rapunz3l'
+    }
+  },
+ -->
+
+- 代理需要花钱买 也有免费的
+- 一般我们都是整一个免费的代理池 就是将所有的代理放在一起 我们挨个去ping这些代理 看他们有没有响应 看看哪个是好用的 挑出能用的存起来 这就是一个刷选网上代理的过程
+
+> axios 简单的代理
+<!-- 
+const axios = require("axios")
+let httpUrl = "https://www.doutula.com/article/detail/9002522"
+let options = {
+  proxy: {
+    // 免费的代理是没有权限验证的
+    host: '171.13.202.99',
+    port: 9999,
+  },
+}
+
+axios.get(httpUrl, options).then((data) => {
+  console.log(data.data);
+})
+ -->
+
+
+> 放爬虫策略
+- 1. 我们爬取的文件 爬下来的时候都不是正常的文字 可能都是字体图标 
+<!-- 
+    既然可能是字体图标 那就说明对应的有字体文件 我们把字体文件下载下来
+    进行解析 看下这个编码对应的是什么文字 解析 然后 转换
+ -->
+
+- 2. 如果我们查看源代码的时候数据都在html结构里面 我们爬取数据非常的好爬(后端渲染 后端组织好的html给你) 但是如果spa页面(前端渲染)里面是没有数据的
+
+- 这时候我们就要在network里面分析请求的内容
+- 比如我们在network页面 看请求数据的时候 打开index.html虽然这里面什么也没有 但是有js <script> 
+
+- 讲了好多哦
+- https://www.bilibili.com/video/BV1i7411G7kW?p=11&spm_id_from=pageDriver
+
+- 我们在network中点击xhr 然后看看 queryIndexContent 文件 该文件是获取首页内容
+
+- 这个就是一个json数据
+- 我们就找 query打头的看 id对应着商品
+- 我们还能在headers选项卡中看到请求地址
+- 比如我们就可以从id 0开始请求 一直请求几十万 暴力请求回来
+
+
+----------------------
+
+### Puppeteer
+- 无头浏览器(以前用的是selenium webdrive)
+- chrome自带的headless无界面模式很方面做自动化测试或爬虫 但是如何和headless模式的chrome交互则是一个问题
+
+- puppeteer是谷歌官方出品的一个通过devtools协议控制的headless chrome的node库 可以通过puppeteer的提供的api直接控制chrome模拟大部分用户来进行ui test或者作为爬虫访问页面来收集数据
+
+- 通过写代码控制浏览器的打开 输入 百度 模拟用户来进行操作 还可以控制打开控制台 获取dom对象 和 console输出 通过代码来控制整个浏览器
 
 ----------------------
 

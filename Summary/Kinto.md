@@ -42,7 +42,48 @@ stretch
 
 
 
+### 主视图页面的总结
+- 问题：
+- 1. 他们不是将整个主视图的区域 拿图片来做 而是将主视图当中的元素 切成一张张的图片 然后放到这个主视图的区域中 然后使用定义来做
 
+<!-- 
+    主视图区域的结构如下
+    http://localhost:3000/lp/alphard
+
+    section   // css: margin: 0 auto
+      div 整个主视图区域的包裹    // css: min-height: 500px flex... width: 100%
+        div 图片区域    
+        div 文本区域    css: width: 444px 
+
+  
+  整个主视图区域的包裹 的文本区域 它有款 位置是relative 和 padding来控制
+
+  图片区域 
+    整个是一个div 图片当做div的背景来配置
+        background: url(/lp/alphard/assets/img/kv/kv_pc@2x.jpg) center center no-repeat;
+        background-size: cover;
+    它的宽度 基本上是100% 
+            但是左侧如果有内容的话  width: calc(100% - 444px);
+
+    它的高度 padding: 24% 0; 是用csspadding来控制的
+
+  .kv-img-area {
+    width: 100%;
+    padding-top: 75%;
+    background: url("/lp/alphard/assets/img/kv/kv_sp.jpg") center center no-repeat;
+    background-size: cover;
+    
+    @include base.mq {
+      background: url("/lp/alphard/assets/img/kv/kv_pc@2x.jpg") center center no-repeat;
+      background-size: cover;
+      width: calc(100% - 444px);
+      padding: 24% 0;
+    }
+  }
+ -->
+
+
+- 他们把图片当做一个盒子的背景 
 
 
 

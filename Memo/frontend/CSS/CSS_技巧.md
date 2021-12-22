@@ -1,3 +1,31 @@
+### cover contain 区别
+- 相同点: 
+- background-size中的cover与contain都是将图片以相同的宽高比缩放以适应容易的宽高，
+
+- 不同点: 
+- cover:  会缩放至图片能够铺满整个容器，可能会有部分图片区域被裁剪，
+- contain:则是图片会缩放至整个图片都能显示完全，但是容易可能会有留白。
+
+<!-- 
+    background: url(/assets/img/ic_pdf_001.svg) no-repeat center top;
+
+    background: url('/assets/img/triangle.svg') 0 0 no-repeat;
+
+    background: url(/toyota_jp/yaris/assets/img/kv_yaris_sp@2x.jpg) top left no-repeat;
+    background-size: 100% auto;
+
+      @include g.mq {
+        background: url(/toyota_jp/yaris/assets/img/kv_yaris@2x.jpg) top left no-repeat;
+        background-size: cover;
+      }
+    }
+
+
+    background: url(/toyota_jp/common/assets/img/text_01.svg) center center no-repeat;
+    background-size: contain;
+ -->
+
+
 ### flex space-b
 - 要想第2行实现左对齐的效果 我们可以在开启flex的容器上添加一个::after 让它的width等于项目的宽度就可以
 <!-- 

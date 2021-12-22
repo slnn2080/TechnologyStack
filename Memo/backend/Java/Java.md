@@ -7640,7 +7640,7 @@
 
 > this 调用构造器  -- this(形参列表)
 - 要点:
-- 1. 我们在类的构造器中 可以显式的使用 'this(形参列表)' 方式 调用本类中指定的其他构造器
+- 1. 我们在类的构造器中 可以显式的使用 'this(形参列表)' 方式 调用本类中指定的(重载的)其他构造器
 <!-- 
   情景:
     - 很多情况下 我们在对类进行初始化的时候 我会执行一些默认得逻辑
@@ -9237,6 +9237,14 @@
  -->
 
 
+> 如果判断是否该继承某个类
+- ( ... ) is a ( ... )
+- 我们使用上面的格式来套用 
+
+- 比如 student is a person 如果是 那么我们就可以继承
+- 比如 dog is a person 这种情况我们就不应该继承
+
+
 > 练习
 - 1. 定义一个 ManKind 类 包括
   - 成员变量 int sex 和 int salary
@@ -9818,6 +9826,675 @@ public class Student extends Person {
   super直接回父类中找
  -->
 
+- 上面将了 super关键字 如何调用属性和方法 下面说说super如果调用构造器
+
+
+> super调用构造器
+- super代表的是父类的 那么通过super来调用的话 调用的也是父类的构造器(指定的构造器 我们通过形参列表一一对应来指定)
+<!-- 
+  // Person类
+  public class Person {
+  String name;
+  int age;
+
+  int id = 1001;  身份证号
+
+  public Person() {}
+  public Person(String name) {
+    this.name = name;
+  }
+
+  public Person(String name, int age) {
+    this(name);
+    this.age = age;
+  }
+
+  // Student类
+  public Student(String name, int age, String major) {
+    // 因为父类中name age的权限不是private 所以我们这里可以初始化
+    this.name = name;
+    this.age = age;
+        // 假如父类中的属性时private的情况下 那我们就要
+        this.name = setName
+        this.age = setAge
+
+    还有一种更好的方式
+    我们在一个类中调用其它的构造器可以
+    this()
+
+    我们还可以通过super关键字来调用父类中的关键字
+    super()
+
+    super(name, age);   // 调用父类中的构造器 传过去数据 进行初始化
+    this.major = major;
+  }
+ -->
+
+- 1. 我们可以在子类的构造器中显式的使用 super(形参列表) 的方式 调用父类中声明的指定的构造器
+
+- 2. super(形参列表) 的使用 必须声明在子类构造器的首行！
+- 3. 我们在类的构造器中 针对于 this(形参列表) super(形参列表) 只能两选一 不能同时出现
+
+- 4. 在构造器首行没有显式的声明 this(形参列表) 或 super(形参列表) 那么默认调用的是父类中空参的构造器 *系统默认会调用 super()*
+<!-- 
+  // 子类的构造器
+  public Student(String major) {
+    // super();   即使不写 系统也会默认加上
+    this.major = major;
+  }
+ -->
+
+- 即使我们上面子类的构造器中只写了 this.major = major; 因为我们是继承的原因 默认也会有一个 super() 那也就是意味着父类中必须有一个空参构造器
+
+**注意:**
+- 当有继承关系的时候 类中必须有一个空参构造器 原因如上
+- 因为子类构造器中上来就会super() 调用父类的空参构造器
+
+- 5. 在类的多个构造器中 至少有一个类的构造器中使用了 super(形参列表) 调用父类的构造器
+<!-- 
+  前面我们说了 当继承了父类的时候 父类中的结构 子类中也会有 
+  就是因为默认调用了 super()
+ -->
+
+- this() 调用的是本类中的其它构造器
+- super() 调用的是父类中的构造器
+
+----------------------------
+
+### 子类对象实例化过程
+- 举例
+- 我们造了一个Dog类 Dog还有父类 如下
+<!-- 
+  栈空间 
+  ------  
+  dog
+
+             堆空间
+             ------
+
+             ______  -- Object类
+
+             age;
+             ______  -- Createure类
+
+             name;
+             food;
+             ______  -- Animal类
+
+             hostName;
+             ______  -- Dog类
+
+  Dog类上面还有 Animal类 Createure类 最上层是Objec类
+
+  当我们 Dog dog = new Dog("小花", "小红") 的时候
+  我我们继承父类的时候 那么子类中就拥有了父类中的结构
+ -->
+
+> 子类对象实例化的全过程
+- 1. 从结果上来看 (继承性)
+    当子类继承父类以后 就获取了父类中声明的属性或方法
+    创建子类的对象 在堆空间中 子类中就加载所有父类中声明的结构
+
+- 2. 从过程上来看
+    当我们通过子类的构造器创建了子类对象时 我们一定会直接或间接的调用其父类的构造器 进而调用父类的父类的构造器 直到调用了java.lang.Object类中的空参构造器为止
+
+    正因为加载过所有的父类的结构 所以内存中才能看到父类中的结构 子类对象才可以考虑进行调用
+
+  - 虽然创建子类对象时 调用了父类的构造器 但是自始至终就创建了一个对象 即为new的对象
+
+<!-- 
+
+  ----------
+     Object
+  ----------
+
+              ↖
+
+  ----------    ----------    ----------    Creature
+              →             ←
+  ----------    ----------    ----------    
+
+              ↖                    ↑
+
+  ----------    ----------    ----------    Animal
+              →
+  ----------    ----------    ----------    
+
+      ↑
+
+  ----------    ----------    ----------    Dog
+              ←             ←
+  ----------    ----------    ----------  
+
+
+  每一个小格就是一个类中的构造器  
+  我们前面说过一个类中有n个构造器 最多有n-1个写this() 最后一个肯定是super()
+
+  那也就是说 我们new Dog对象一定会直接或间接的 调用到 Animal构造器
+  Animal也是同样的道理 直接或间接的调用到Creature类中的构造器
+
+  Creature也一样 也会直接或间接的调用到Object的构造器
+
+  虽然我们直接会间接的调用了父类中的构造器 super()
+  那内存中 我们造了几个对象？ 我们只造了一个对象 这个对象就是我们new Dog的对象
+
+  只是说我们调用父类的构造器 并不是new 所以不是造对象
+ -->
+
+- 父类中不定义构造器 子类在继承父类的时候不会报错
+
+- 就是我们在通过构造器对属性初始化的时候 即使不写super() 默认也是有的 正因为我们默认调用了super() 内存中就加载了父类的结构(直至加载到Object为止) 我们才能在内存中看到父类的结构 从而才能调用
+<!-- 
+  public Student(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  上面我们没有写super 其实默认也是有的
+  super();
+  this.name = name;
+  this.age = age;
+
+  不管是子类会默认调用 super()
+  我们所谓的父类Person内部的构造器里也会调用super() 因为它继承于Object
+ -->
+
+
+> 总结
+- 无论通过哪个构造器创建的子类对象 首先都会初始化父类 目的就是当子类继承父类以后 
+- 继承父类中所有的属性和方法 因为子类有必要知道父类如何为对象进行初始化
+- 所以优先加载父类 一致加载到Object
+
+
+> 对一个练习的总结
+- 1. 当我们创建了一个子类 继承父类 那么该类中就必须写构造器
+    - 要么父类中定义一个空参的构造器
+    - 要么子类中的构造器中调用父类指定的构造器
+<!-- 
+  // 子类构造器
+  public CheckAccount(int id, double balance, double annua, double overdraft) {
+
+    // 这里调用父类中指定的构造器
+    super(id, balance, annua);
+
+        // 这里注意 我们传入的是 父类中定义好的属性 id, balance, annua 并没有传递 子类中的属性
+  }
+ -->
+
+- 2. 当父类中的属性时 private 的时候子类想去调用父类中的属性 通过super调用是不对的 因为super解决的是同名属性在子父类中冲突的问题 并不能解决封装性的问题 所以还是需要使用get set方法
+
+
+- 3. 当我们在子类中想要完成取钱的操作的时候 注意当前的取钱的方法是重写父类的取钱的方法
+<!-- 
+  public void withdraw(double amount) {
+
+    // 如果余额大于要取的钱
+    if(getBalance() >= amount) {
+      // 错误方式1
+      getBalance() -= amount;
+          - 原因 -= 相当于 a = a-1 是一个赋值的过程 get只能用来读取不能设置
+
+          - 使用getBalance方法的原因就是父类中 balance 的权限是private所以提供了get set方法
+
+      // 正确的方式 通过set方法来设置余额 完成取钱操作
+      setBanlance(getBalance() - amount);
+
+      // 正确的方式
+      super.withdraw(amount)
+          - 使用super关键字调用父类中的取钱逻辑
+          - 问题:
+            - 这样修改的不是父类中的余额么
+            - 还是说我们就造了一个对象 new的时候 构造器中调用了super 这样父类中的结构 子类中都有 相当于有两个方法都是对这个子类开放的 就看我们使用哪个 默认是使用重写后的 被重写的也有只是需要用super来调用
+    }
+  }
+ -->
+
+----------------------------
+
+### 多态性
+- 多态性 是面向对象中最重要的概念 下面我们先看一个例子
+
+- 什么是多态性：
+- 多态性又成对象的多态性
+
+    Person p = ... new (这个部分要是一个对象)
+
+- 右侧的部分的对象体现了多种形态 叫做对象的多态性
+- 也就是子类的对象赋给父类的引用 或者 父类的引用指向子类的对象
+
+> Person父类
+- 定义了属性 name age 方法 eat walk
+<!-- 
+public class Person {
+  String name;
+  int age;
+
+  public void eat() {
+    System.out.println("人吃饭");
+  }
+
+  public void walk() {
+    System.out.println("人走路");
+  }
+}
+ -->
+
+> Man子类
+- 继承了Person父类 同时拓展了属性isSmoking 方法earnMoney
+- 重写了Person父类 中的eat walk方法
+<!-- 
+public class Man extends Person {
+  
+  // 子类中特有的属性和方法
+  boolean isSmoking;
+
+  public void earnMoney() {
+    System.out.println("男人负责赚钱养家");
+  }
+
+
+  // 对父类中方法的重写
+  public void ear() {
+    System.out.println("男人多吃肉 长肌肉");
+  }
+
+  public void walk() {
+    System.out.println("男人要霸气的走路");
+  }
+}
+ -->
+
+
+> 测试类 Demo
+- 之前我们要是想调用另一个类中的结构 我们需要在main方法中实例化该对象 通过实例对象.的方式 获取实例对象的属性和方法
+
+- 简单的说就是造个类 造个对象 造个方法
+    - 创建个父类对象
+    Person p1 = new Person();
+    p1.eat();
+
+    - 创建个子类对象 继承父类 就能得到父类中的结构
+    Man man = new Man();
+    man.age = 25;
+    man.earnMoney();
+
+- 在我们学了继承后 当子类继承了Person类 子类还可以重写父类中的同名同参数的方法
+- 我们注意下 之前我们实例化对象的时候 左边声明的什么对象类型 右边就new什么类型的对象
+    Person p1 = new Person();
+
+- 我们来看看 多态性的体现:
+    Person p2 = new Man();
+
+    - 解析：
+    - 我们左边声明了一个Person类型
+    - 我们右边却 new Man() new的是父类的子类
+<!-- 
+  这也是对象的多态性 
+  我们左面声明了一个变量 当右侧的值是一个对象的时候 
+  
+  这个对象体现了多种形态 
+  上面左边变量类型是Person 右侧是一个Man 
+  不仅可以是Man 还可以是Woman 甚至只要是Person的子类 
+  我都可以去new 右侧是一个对象 这个对象是多种形态的
+ -->
+
+> 多态性的体现: 
+- 上面概括一句话就是：
+    - *父类的引用* 指向 *子类的对象*
+    - 父类的引用就是p2 
+    - 子类的对象 子类的对象就是new Man
+
+
+> 虚拟方法调用
+- 上面我们创建了p2 但是p2是new Man产生的 
+- 那么我们调用里面的eat方法的时候 是Person类中被重写的方法 还是 Man类中重写后的方法呢？
+
+  - 答案：
+  - p2.eat(); 
+  - Man子类重写后的方法
+
+- 当调用子父类同名同参数的方法时 实际执行的是子类重写父类的方法 --- *也叫做虚拟方法调用*
+<!-- 
+  那能不能通过p2去调用 Man 中特有的方法？
+  p2.earnMoney(); 报错 
+ -->
+- 上面说该方法在Person中未定义 也就是说我们*只能调用Person中声明过的方法*
+
+- 上面是编译过程中报错 也就是说编译的时候
+- 看的是左边 Person p2 声明的是什么类型 我们才能.出什么结构
+<!-- 
+  (比如我们p2.eat() 点一下eat方法会跳到父类中 因为编译的时候看的是声明的类型 也就是Person类中) 
+  -->
+  
+- 我们可以调用Person中定义好的方法 eat walk 但是不能调用子类特有的earnMoney() 
+
+- p2.eat()
+- 但是执行(运行)的时候 我们发现执行的是子类中重写的方法
+
+- 在有了多态以后 我们相当于将程序分为两个状态 一个是编译状态 和 运行时状态
+
+<!-- 
+public class Demo {
+  public static void main(String[] args) {
+
+    Person p1 = new Person();
+    p1.eat();
+
+    Man man = new Man();
+    man.age = 25;
+    man.earnMoney();
+
+    System.out.println("***********多态性***********");
+
+    // new的是Person类的子类
+    Person p2 = new Man();
+    p2.eat();     // 执行的是子类重写过的方法
+    p2.walk();
+  }
+}
+
+ -->
+
+> 对象的多态性: 
+- 可以理解为一个事物的多种形态
+
+- 定义: 
+- 父类的引用指向子类的对象(或者说子类的对象赋值给父类的引用)
+
+- 使用:
+- 虚拟方法调用 
+- 有了对象的多态性以后 我们在编译期 只能调用父类中声明的方法 但在运行期 我们实际执行的是子类重写父类的方法
+
+- 总结：
+- 调用方法时：
+- 编译看左边 
+  (我们看看左边是什么类型的 编译的时候我们就能调用这个类型中的结构 没有的就调不了)
+
+- 运行看右边 (调用的就是重写后的方法)
+
+**多态性的使用前提:**
+- 1. 要有类的继承关系 没有继承就没有多态性
+- 2. 要有方法的重写(要不就没有必要new子类了 直接new父类就好了)
+
+----------------------------
+
+### 多态性的使用举例
+- 我们前面知道了继承性 和 封装性 它们也很容易理解一个是扩展功能 一个是使用权限修饰符还来控制结构可见性的大小
+
+- 但是多态性就一个Person p = new Man() 
+- 这怎么理解 又为什么这样设计呢？ 但其实多态性应用的非常广 没有多态性后续的抽象类和接口都没有意义了
+
+- 我们来举一个多态性的例子 来看看多态性的应用
+- 下面的例子中 我们分别定义了 
+  - Animal父类:
+    - 提供了两个方法
+
+  - Dog Cat子类
+    - 重写了父类的两个方法
+
+  - AnimalTest测试类
+    - 我们定义了一个方法用于输出对象中的eat shout方法
+    <!-- 
+      public void func(Animal animal) {
+        animal.eat();
+        animal.shout();
+      }
+
+      test.func(new Dog());   // 结果是 子类中重写后的方法
+     -->
+
+- 注意：
+- 上面在定义func方法的形参 我们定义的是父类Animal animal
+- 但是调用方法传递的实参却是 new Dog 传入的是 Animal的子类
+
+- 我们声明的是Animal形参 那么编译的时候会看形参的类型 我们能调用的结构必须是该类型中的机构
+- 但是执行的时候 执行的是子类中重写后的方法
+
+- 上面就是就是多态性的一个应用*我们在定义形参的时候传入的是父类 调用方法的实参是子类* 这样这个方法就能输出各个子类中的重写方法
+
+- 代码部分
+<!-- 
+public class AnimalTest {
+  
+  public static void main(String[] args) {
+    
+    // 我们要在这里调用当前类的属性 和 方法 就要在这里创建 当前类的对象
+    AnimalTest test = new AnimalTest();
+
+    // 我们要在这里传一个实例
+    test.func(new Dog());   // 执行的结果是狗特有的方法
+    test.func(new Cat());
+  }
+
+  public void func(Animal animal) {
+    animal.eat();
+    animal.shout();
+  }
+}
+
+
+// 父类
+class Animal {
+
+  // 方法
+  public void eat() {
+    System.out.println("动物进食");
+  }
+
+  public void shout() {
+    System.out.println("动物叫");
+  }
+}
+
+
+// 子类
+class Dog extends Animal {
+
+  // 对父类中的方法进行重写
+  public void eat() {
+    System.out.println("狗吃狗粮");
+  }
+
+  public void shout() {
+    System.out.println("汪汪汪");
+  }
+}
+
+// 子类
+class Cat extends Animal {
+
+  // 对父类中的方法进行重写
+  public void eat() {
+    System.out.println("猫吃鱼");
+  }
+
+  public void shout() {
+    System.out.println("喵喵喵");
+  }
+}
+-->
+
+> 思考:
+- 假如上面 AnimalTest类 func方法没有多态性的话的 是不是说 
+- 我们形参定义的是Animal 
+- 那么我们传入的也必须是一个Animal 只能new Animal不能new别的 因为没有多态性
+
+- 那就意味着 如果我们想调用其它子类中的方法 那就要在AnimalTest类中再定义两个形参为 Dog dog 和 Cat cat 的方法 
+- 如果没有多态性 我们声明什么类型 只能new这个类型的对象
+<!-- 
+  public void func(Dog dog) { ... }
+  public void func(Cat cat) { ... }
+ -->
+
+- 如果没有多态性的话 就意味着我们要造很多重载的方法
+
+- 扩展：
+- 我们后面还会接触mysql oracle db2 ss 我们需要用java链接这些数据库并操作数据库中的数据 要想操作数据 就要先获得数据库的链接 我们要先搭上链接 然后才能进行操作
+<!-- 
+class Driver {
+  public void doData(Connection conn) {
+    // 后续的操作数据库 都是很规范的 不管操作哪个数据库都是3步
+  }
+}
+ -->
+- Connection类型的形参我们定义一个父类类型的形参 
+- 当我们调用这个方法的时候 我们传的都是子类的对象了
+
+- 比如我们传递实参的时候 传递进去 new MySQLConnection 这就相当于我们建立的是mysql的链接 
+- 比如我们还可以传递进去 new oracle 那么我们建立的就是oracle数据库的链接 
+
+
+> 多态性不适用于属性
+- 我们在父类 Person类中 定义属性 int id = 1001;
+- 我们在子类 Man类中 定义属性 int id = 1002;
+- 然后我们 Person p = new Man();
+- 我们输出 p.id 会是什么结果？
+
+- 属性是不存在覆盖之说的 结果只能是父类中的id=1001;
+- 结果是父类中定义的属性
+
+> 总结:
+- 对象的多态性只适用于方法 不使用于属性 (属性的时候 编译和运行都看左边)
+
+<!-- 
+  Person p = new Man()
+
+  栈结构      堆结构
+  p           name
+              age
+              id:1001
+              isSmocking
+              id:1002
+
+  子类继承了父类Person 并且我们还使用了多态的形式
+  这时候的内存结构图中 
+  1 是有父类的结构 还有子类中自己的结构
+  2 这时候我们观察 堆空间中是同时有两个id的 属性不存在覆盖一说(跟js不一样耶)
+
+  那么这两个id到底调用的是哪个？
+  这时候的编译和运行都不看左边了 p.id 那他调用的就是 父类中的id
+  只有我们 new Man().id 的时候会是 子类中的id
+ -->
+
+
+> 虚拟方法调用的再理解 (父类中被重写的方法就是虚拟方法)
+- 上面说了多态性只适用于方法不适用于属性 方法我们指的就是虚拟方法的调用
+
+- 正常方法的调用:
+    Person p = new Person();
+    p.getInfo();
+
+    Student s = new Student();
+    s.getInfo();
+
+- 虚拟方法的调用:
+- 子类中定义了与父类同名同参数的方法(重写) *在多态情况下 将此时父类的方法称为虚拟方法* 
+- 父类根据赋给它的不同子类对象 动态调用属于子类的该方法(重写后的方法) 这样的方法调用在编译期是无法确定的(编译期的时候不知道右边new的是哪个对象的)
+<!-- 
+  我们认为
+    在编译期的时候调用的还是 父类的虚拟方法
+    
+  父类的方法是虚的 编译的时候让你看一下 运行的时候跟它就没关系了
+ -->
+
+  Person p = new Student();
+  p.getInfo();
+
+- 编译时类型 和 运行时类型
+- 编译时p为Person类型 而方法的调用时在运行时确定的 所以调用的是Student类的getInfo方法 --- *动态绑定*
+
+
+- 那多态的使用是编译时的行为 还是运行时的行为呢？
+- 是运行时行为 真正运行的时候才知道造的是哪个子类对象
+ 
+> 面试题
+- 多态是编译时的行为 还是运行时的行为 如何证明
+<!-- 
+  class Animal {
+    protected void eat() {
+      system.out.println("animal eat food")
+    }
+  }
+
+  class Cat extends Animal {
+    protected void eat() {
+      system.out.println("cat eat fish")
+    }
+  }
+
+  class Dog extends Animal {
+    protected void eat() {
+      system.out.println("dog eat bone")
+    }
+  }
+
+  class Sheep extends Animal {
+    protected void eat() {
+      system.out.println("sheep eat grass")
+    }
+  }
+
+
+  // 
+  public class InterviewTest {
+
+    public static Animal getInstance(int key) {
+      switch(key) {
+        case 0:
+          return new Cat();
+        case 1:
+          return new Dog();
+        default:
+          return new Sheep();
+      }
+    }
+
+
+    // main方法
+    public static void main(String[] args) {
+      // 随机数 0 - 2
+      int key = new Random().nextInt(3);
+      System.out.println(key);
+
+      // 调用getInstance方法将随机数传入 将getInstance的返回值赋值给animal 也就是animal是父类 赋的值是子类 这里就是多态性
+      Animal animal = getInstance(key);
+
+      // 单纯的看整个代码的逻辑看到这里 是没有返回知道 打印的结果是什么 是吃草 吃鱼 还是吃骨头
+      animal.eat();
+    }
+  }
+
+  // 要是能看出就是编译行为
+  // 要是看不出来就是运行行为(只有运行的时候才能确定new的是谁)
+ -->
+
+
+> 面试题方法的重载与重写
+- 1. 二者的定义
+- 2. 从编译和运行的角度看
+
+- 重载
+- 是指允许存在多个同名方法 而这些方法的参数不同 编译器根据方法不同的参数表 对同名方法的名称做修饰
+- 对于编译器而言 这些同名方法就成了不同的方法 *它们的调用地址在编译期就绑定了*
+
+- java的重载是可以包括父类和子类的 即子类可以重载父类中的同名不同参数的方法
+<!-- 
+  比如父类中定义的 eat 两个参数
+  子类中定义的 eat 也有两个参数
+  这种情况也叫做重载
+ -->
+
+- 所以对于重载而言 在方法调用之前 编译器就已经确定了所要调用的方法 这成为 早绑定 或 静态绑定
+
+- 而对于多态 只有等到方法调用的那一刻 解释运行器(也可以范范的说是编译器)才会确定所要调用的具体方法 这成为 晚绑定 或 动态绑定
+
+- 总结：
+- 不要犯傻 如果它不是晚绑定 它就不是多态
+
+
+
+
+
 
 
 
@@ -9831,6 +10508,7 @@ public class Student extends Person {
 
 ### 创建工程的流程
 > 1. 先创建 package
+- 也就是先创建一个包 便于管理我们写的功能
 <!-- 
   包名: 小写
   作用: 包相当于一个班级 每一个java文件相当于一个同学
@@ -9851,6 +10529,11 @@ public class Student extends Person {
 
 > package 文件夹名;
 - 上面就是如果 .java 文件处于子文件夹中 就要求该文件在开头出 写上这样的语句
+<!-- 
+  package src.com;
+
+  该类在 src 的 com 下面
+ -->
   
 
 > 2. 在创建好的包下 右键创建class 就会生成一个java文件
@@ -9862,13 +10545,14 @@ public class Student extends Person {
 
 > 有 包 的情况下的 命令行 方式
 - package src.com;
+
 - java_exer
   - com
     Demo.java
 
 - 1. 注意包名结构 返回 最开的src的上一层目录
-- 执行命令: javac -d . src/包名(文件夹名)/文件名.java
-- 执行命令: java src.包名.类名 (执行这个包下的指定类)
+> 执行命令: javac -d . src/包名(文件夹名)/文件名.java
+> 执行命令: java src.包名.类名 (执行这个包下的指定类)
 <!-- 
   javac -d . src/com/Demo.java
   java src.com.Demo

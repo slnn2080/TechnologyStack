@@ -16268,6 +16268,16 @@ footer    footer    footer
 
 ### 技巧
 
+> 路由重复报错
+- 在路由的indexjs文件中 加上这样的配置
+<!-- 
+const originalPush = VueRouter.prototype.push
+
+VueRouter.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch(err => err)
+}
+ -->
+
 > style中 导入样式
 - @import "../../"
 
