@@ -10491,14 +10491,492 @@ class Driver {
 - 总结：
 - 不要犯傻 如果它不是晚绑定 它就不是多态
 
+----------------------------
+
+### 关键字 instanceof 多态性下调用子类特有的结构
+- 上面我们写的例子的代码体现了多态性
+<!-- 
+  Person p1 = new Man();
+  p1.eat();
+
+  编译的时候看左边 看Person类中的结构
+  运行的时候看右边 看子类 运行的是子类重写后的方法
+ -->
+
+- 上面的代码 我们声明的 p1实际new的是Man 我们在编译器认为p1就是Person 我们只能够调用Person中声明的属性和方法
+<!-- 
+  我们是不能通过p1(父类的引用)调用子类独有的方法
+  原因就是编译时 p1是Person类型 在Person中就没有定义过 子类独有的方法
+ -->
+
+- 那我们思考一下 我们上面 new Man() 进行了这样的操作后 内存中有没有 子类特有的属性和方法
+
+- 有的
+- 也就是说 Person p1 = new Man(); 这样的逻辑后
+- 在堆空间中 new Man() 这个对象中是有 Person 和 Man 的所有属性和方法的 
+
+- 但是p1的类型是Person 它只能调用对象中Person的结构 相当于对象中子类的特有的结构被屏蔽掉了
+
+> 总结
+- 有了对象的多态性以后 内存中实际上是加载了子类特有的属性的方法的 由于变量声明为父类类型 导致编译时只能调用父类中声明的属性和方法 子类中特有的属性和方法不能调用
+<!--  
+  子类的结构在内存中确实是加载了 但是我们调不了
+ -->
+
+> 那如何才能调用子类特有的属性和方法呢？
+<!-- 
+  要是想调用子类特有的属性和方法 那对于我们编译器来讲它看到p1的类型就不能是一个Person类型的才可以
+
+  编译只能看左边 你要是想调子类的结构 那么就需要将左边的类型改掉 比如这样
+  Man m1 = p1     // 报错
+
+      - 原因：
+      =是赋值符号 赋值符号要求 要么是两边的类型一样 要么有基本数据类型提升
+
+      - 现在是一个类类型的不行 子类对象可以往父类身上赋值 但是父类不能赋值给子类
+
+
+  Man m1 = (Man)p1;
+      我把 Person类型的变量 p1 强制转换为 Man类型
+ -->
+
+- 解决方法：
+- 使用强制类型转换符 Man m1 = (Man)p1
+
+- 上面的这种方法又称为 *向下转型*
+
+> 向下转型
+- 前面我们学习基本数据类型的时候 提到到 强制类型转换 和 自动类型提升
+<!-- 
+            较高的基本数据类型
+
+     强制类 ↓ 型转换    自动类 ↑型提升
+
+            较低的基本数据类型
+
+  比如
+  有一个int类型变量想要转成double类型的 直接赋值过去就可以
+  有一个double类型的先概要转成int类型的 那么就要使用()
+ -->  
+
+- 在多态性这里有跟上面相类似的知识
+- 向上转型(多态)
+- 当有一个Student对象(子类) 可以直接赋值给父类类型 是ok的(体现为多态)
+
+- 向下转型
+- 声明为父类(Person变量) 向下转型为(Student类型) 需要使用强制类型转换符
+    Student s = (Student)p
+<!-- 
+              父类(如: Person)
+
+            ↓                 ↑
+          向下转型          向上转型
+      使用 instanceof       多态
+         进行判断   
+
+            子类(如: Student)
+ -->
+
+
+- Person p = new Man()
+- 我们通过p.的形式调用可以调用Person类中定义过的结构(调用的还是Man对象中的结构 这些结构只能是Person类中定义过的 没定义过Man对象里面特有的调用不了)
+
+- Man m = (Man)p
+- 这里使用强制类型转换符 将p(Person)类型的变量 向下转型(转成子类的Man)
+- 这样我们就能通过m 调用Man对象中(子类特有的属性和方法了)
+
+- m.特有的属性    // ok
+- m.特有的方法    // ok
+
+- 内存结构图
+<!-- 
+    栈空间
+    m   ↘
+    p     
+        ↘ 地址值 地址值是包含两部分有 类型@地址
+
+            堆空间
+            ---------------------------
+
+            ---------------------------
+            | 有person中声明的属性和方法 |
+            ---------------------------
+
+            ---------------------------
+            | 有man中声明的属性和方法    |
+            ---------------------------
+
+            ---------------------------
+
+  因为地址值有类型的限制 所以当我们赋值给m的时候会报错不行 类型不一样 因为有类型的存在
+  Man m = p
+
+  所以要加强制转换符
+  Man m = (Man)p
+
+  m这样也指向堆空间的对象了 由于m是Man 所以m就能调用对象中特有独有的结构了
+ -->
+
+- 但是凡是使用 强制转换符的都会有风险
+- 在基本数据类型中的强转 代表精度会有损失
+
+- 在这里的体现就是转不成功 使用强转时可能出现 “ClassCaseException” 的异常 当类型不能转换的时候会报这样的异常
+
+- 当我们进行向下转型的时候 使用强制转换符 为了避免出现这样的问题 我们要使用 instanceof
+
+> instanceof 关键字
+- 判断是否是类的实例 如果是 返回true 如果不是 返回false
+- 格式：
+- a instanceof A
+
+- 判断对象a是否是类A的实例
+
+<!-- 
+  if(p instanceof Woman) {
+    Woman w = (Woman)p
+    w.女人类特有的结构
+  }
+
+
+  Person p = new Man()
+  if(p instanceof Man) { } 结果为true
+
+  是因为 p 的结果就是一个 Man
+ -->
+
+> 应用场景
+- 为了使用向下转型时出现 ClassCaseException 的异常 在向下转型之前 先进行instanceof的判断 一旦返回true 就进行向下转型 如果返回false 不进行向下转型
+
+- 如果 
+- a instanceof A 返回 true
+- a instanceof B 也返回 true
+- 那么 类B是类A的父类
+<!-- 
+  如果 a instanceof A 返回 true 
+  那么A的位置替换成A类的父类 也一定是对的
+ -->
+
+**注意:**
+- 要想向下转型能成功 我们new的肯定不能试自己 只能new子类
+<!-- 
+  Person p = new Man()      这可以
+  Person p = new Person()   这不行
+ -->
+
+
+> 向下转型中的常见问题
+- 问题1: 编译时通过 运行时不通过
+<!-- 
+  Person p = new Woman();
+  Man m = (Man)p
+
+  编译时通过 运行时不通过
+  因为Man Woman这两个类型之间没有关系
+
+
+  Person p = new Person();
+  Man m = (Man)p
+
+  我们new的是一个Person 怎么能强转成子类呢
+ -->
+
+- 问题2: 编译通过 运行时也通过
+<!-- 
+  Object obj = new Woman();
+  Person p = (Person)obj;
+
+  编译通过 运行时也通过
+
+            ---- Object
+          ↙                ↖
+向下转型   ↓  ---- Person    ↑   向上转型 多态
+          ↘                ↗
+            ---- Woman
+
+  Object obj = new Woman();  向上转型 多态
+  Person p = (Person)obj;    向下转型
+ -->
+
+- 问题3: 编译不通过
+<!-- 
+  Man m = new Woman()
+  String str = new Date();    这也是错的 不是js哈哈
+  
+  日期对象和String对象类型不匹配
+  赋值的时候必须是子类 类型不匹配 它俩没啥关系
+ -->
+
+- 总结:
+- 不相关的两个类是没有办法互相赋值了
+
+
+> 练习：
+- 要点：
+- 1. 一旦子类继承了父类 那么子类new的对象里面就有父类和子类的所有结构
+    - 当不存在继承的时候
+    - 通过实例对象.的方法去调用属性和方法 跟this.的就近原则一样 如果自己定义的结构中有 就调用自己的 如果没有就去看父类中定义的结构
+
+    - 当存在继承的时候
+    - 就要看是否是多态的形式 如果是
+    - 创建的变量 只能调用父类中定义的属性和方法
+    - 子父类中的属性不存在覆盖
+    - 当调用方法的时候 会调用子类中重写后的方法
+
+<!-- 
+class Base {
+  int count = 10;
+
+  public void display() {
+    System.out.println(this.count);
+  }
+}
+
+class Sub extends Base {
+  int count = 20;
+
+  // 对父类的方法进行了重写
+  public void display() {
+    System.out.println(this.count);
+  }
+}
+
+public class Demo {
+  public static void main(String[] args) {
+    // 一旦子类继承了父类 那么子类new的对象里面就有父类和子类的结构
+
+    // this.属性 这个属性不一定是自己类定义的 也可能是父类中定义的 只是是先在自己的类中去找 没找到再去父类中找 要是在子类中找到了就用自己的 就近原则
+
+    // Sub 也是一样 就近原则 先在自己里面找 找到了就是20
+    Sub s = new Sub();
+    System.out.println(s.count);  // 20
+    s.display();  // 20
+
+    // 多态
+    Base b = s;
+    // 对于引用数据类型的 == 比较的是引用数据类型变量的地址值
+    System.out.println(b == s);   // true
+
+    // 多态性不适用属性 count只会在Base中定义的结构中去找
+    System.out.println(b.count);  // 10
+
+    // 虚拟方法调用 执行的子类中重写后的方法
+    b.display();    // 20
+  }
+}
+ -->
+
+- 总结：
+- 若子类重写了父类方法 就意味着子类里定义的方法彻底覆盖了父类里的同名方法 系统将不可能把父类里的方法转移到子类中
+<!-- 
+  虚拟方法 执行时就是执行的子类中重写后的方法
+ -->
+**对于方法: 编译看左边 运行看右边**
+
+- 对于实例变量则不存在这样的现象 即使子类里定义了与父类完全相同的实例变量 这个实例变量依然不可能覆盖父类中定义的实例变量
+<!-- 
+  堆空间中存在两个同名变量 到底调用谁 就看声明的是谁(编译阶段看左边 会去左边里面找对应的结构)
+
+  Base b = s;
+  b.count 调用的就是Base类中定义的结构
+ -->
+**对于属性: 编译运行都看左边**
+
+
+> 练习2
+- 定义三个类
+- 父类: GeometricObject 代表几何形状
+- 子类: Circle 代表圆形
+- 子类: MyRectangle 代表矩形
+
+- 测试类: GeometricTest
+  - 编写equalsArea方法测试两个对象的面积是否相等 注意方法的参数类型 利用动态绑定技术
+
+  - 编写displayGeometricObject方法显示对象的面积 注意方法的参数类型 利用动态绑定技术
+
+- 类图
+<!-- 
+  GeometricObject
+  -----------------
+  #color: String
+  #weight: double
+  -----------------
+  #GeometricObject(color:String, weight:double)
+  -----------------
+  属性的get set方法
+  +findArea():double
+
+
+  Circle
+  -----------------
+  -raduis:double
+  -----------------
+  Circle(radius:double, color:String, weight:double)
+  -----------------
+  radius属性的set get方法
+  +findArea():double 计算圆的面积
+
+
+  MyRectangle
+  -----------------
+  -width:double
+  -height:double
+  -----------------
+  +MyRectangle(width:double, height:double, color:String, weight:double)
+  -----------------
+  属性的get set方法
+  +findArea():double 计算矩形的面积
+ -->
+
+- 简单的使用多态性 这里也是常用的场景
+- 我们声明的时候声明的是父类的类型 调用的时候 传入的是子类的对象
+<!-- 
+// 父类 几何图形类
+public class GeometricObject {
+  protected String color;
+  protected double weight;  // 权重
+
+  public GeometricObject() {}
+  public GeometricObject(String color, double weight) {
+    super();
+    this.color = color;
+    this.weight = weight;
+  }
+
+  public String getColor() {
+    return this.color;
+  }
+  public double getWeight() {
+    return this.weight;
+  }
+
+  public void setColor(String color) {
+    this.color = color;;
+  }
+  public void setWeight(double weight) {
+    this.weight = weight;
+  }
+
+  // 求几何图形的面积
+  // 但是怎么写呢？ 几何图形不一样 求面积的方式也不一样
+  // 这个方法肯定会被子类求面积的方法重写 所以先返回一个0.0
+  public double findArea() {
+    return 0.0;
+  }
+}
+
+
+// 子类 圆类
+public class Circle extends GeometricObject{
+  private double radius;
+
+  public Circle(String color, double weight, double radius) {
+    super(color, weight);
+    this.radius = radius;
+  }
+
+  public double getRadius() {
+    return this.radius;
+  }
+
+  public void setRadius(double radius) {
+    this.radius = radius;
+  }
+
+  // 重写父类中的求面积的方法
+  public double findArea() {
+    return Math.PI * radius * radius;
+  }
+}
+
+
+// 测试类
+public class GeometricTest {
+
+  public static void main(String[] args) {
+    GeometricTest test = new GeometricTest();
+
+    Circle c1 = new Circle("yellow", 1.0, 2.3);
+    test.displayGeometricObject(c1);
+
+    Circle c2 = new Circle("red", 2.0, 2.3);
+    test.displayGeometricObject(c2);
+
+    boolean isEquals = test.equalsArea(c1, c2);
+    String str = isEquals ? "相等" : "不等";
+    System.out.println("c1 和 c2的面试是否相等: " + str);
+  }
+  
+  // 下面的方法就是多态性的使用 我们声明的时候声明的是父类的类型 调用的时候 传入的是子类的对象
+
+  // 判断两个对象的面积是否相等 我们的父类GeometricObject是几何图形对象 我们把父类传入到形参中
+  public boolean equalsArea(GeometricObject o1, GeometricObject o2) {
+    return o1.findArea() == o2.findArea();
+  }
+
+  // 显示对象的面积
+  public void displayGeometricObject(GeometricObject o) {
+    double res = o.findArea();
+    System.out.println("面积为: " + res);
+  }
+}
+
+ -->
+
+
+> 练习
+- 以下的输出结果是什么
+- 要点:
+- public void add(int a, int[] arr)   子类方法
+- public void add(int a, int ...arr)  父类方法
+
+- 子类方法算不算对父类方法的重写 
+- 如果是重写 那么就是sub
+- 如果不是重写 那么就是base
+
+- 是重写
+
+<!-- 
+class Base {
+  public void add(int a, int ...arr) {
+    System.out.println("base");
+  }
+}
+
+class Sub extends Base {
+
+  public void add(int a, int[] arr) {
+    System.out.println("sub");
+  }
+
+  // 如果加上了该方法 输出结果是什么？   sub
+  - 还是我们要看这个方法是不是对上面方法的重写
+  - 在多态的时候 编译的时候要去看父类中的结构
+    执行的时候执行的是重写后的方法 下面这个方法不是重写的方法 多态的时候只会调用重写的方法 所以会调用上面那样 输出sub
+  public void add(int a, int b, int c) {
+    System.out.println("sub2");
+  }
+}
+
+public class Demo {
+  public static void main(String[] args) {
+    Base base = new Sub();
+    base.add(1, 2, 3);
+ 
+    Sub s = (Sub)base;
+    s.add(1,2,3);     // sub2
+  }
+}
+ -->
+
+----------------------------
+
+### 
 
 
 
+----------------------------
 
-
-
-
-
+### 书签
 
 
 
