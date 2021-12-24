@@ -1,5 +1,39 @@
 ### Js技巧
 
+### once 实现原理
+> 传参：
+- 我们是once函数内传递参数(fn, 参数1, 参数2)
+- 然后由once函数将收到的参数 传递给 返回函数内部的函数调用fn.apply(this, name)
+- once --- return --- fn
+
+<!-- 
+    const once = (fn, ...name) => {
+      let flag = true
+      
+      return () => {
+        if(flag) {
+          flag = false
+          fn.apply(this, name)
+        }
+      }
+    }
+
+    let fn = (name) => {
+      console.log(name)
+    }
+    btn.onclick = once(fn, "sam")
+ -->
+
+### 合并数组
+let arr1 = [1, 2, 3]
+let arr2 = [4, 5, 6]
+
+> Array.prototype.push.apply(arr1, arr2)
+> arr1.push.apply(arr1, arr2)
+console.log(arr1);
+
+
+
 ### 请求技巧 等待上一个请求完成后 再请求下一个
 - 在node爬虫里面遇到的问题
 <!-- 

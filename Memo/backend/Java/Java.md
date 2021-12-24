@@ -10970,8 +10970,818 @@ public class Demo {
 
 ----------------------------
 
-### 
+### Object类的使用
+- Object类是所有Java类的根父类
+<!-- 
+  java类的继承关系实际上是树形结构 既然是树形结构那么一定会有一个根节点
+ -->
 
+- 如果在类的声明中未使用extends关键字指明其父类 则默认父类为java.lang.Object类
+
+  public class Person { }
+
+  等价于
+
+  public class Person extends Object { }
+
+
+- 我们可以从代码层面看看 Object是否为 根父类
+> 对象.getClass()
+- 获取当前对象是哪个类造的
+
+> 对象.getSuperclass()
+- 获取其父类
+
+<!-- 
+public class Demo {
+  public static void main(String[] args) {
+    TestClass tc = new TestClass();
+    System.out.println(tc.getClass().getSuperclass());
+      // class java.lang.Object
+  }
+}
+
+class TestClass { }
+ -->
+
+- Object类既然是所有类的直接或间接父类 就说明这个类中定义的功能是通用的 那都有哪些功能
+<!-- 
+  Object类中
+      1. 没有定义属性
+      2. 只有空参构造器
+ -->
+
+> 实例对象.clone()
+- 复制一个对象 返回当前对象的赋值品
+- 深拷贝 克隆后的对象和原对象之间没有任何关系
+<!--  
+  Person p = new Person();
+  Person vp = (Person)p.clone();
+ -->
+
+
+> 实例对象.finalize()  -- *我们不要自己调用该方法*
+- 该方法是垃圾回收机制自己调用的
+- 当没有引用指向堆空间的一个对象的时候 该对象被回收之前 垃圾回收机制会自己调用该方法
+
+
+> 实例对象.getClass()
+- 获取当前对象的所属类
+- 任何对象都有能力获取它的类(每个对象有权利知道自己是谁造的)
+<!-- 
+  TestClass tc = new TestClass();
+  System.out.println(tc.getClass());
+        // class src.com.TestClass
+ -->
+
+
+> 实例对象.hoahCode()
+- 返回当前对象的哈希值
+
+------
+
+> 实例对象.equals(Object obj)
+- 比较两个对象是否相等
+- 返回值: boolean
+
+- 我们在这里先回顾一下 == 然后研究下 == 和 equals 方法有什么样的区别
+
+> ==
+- == 是一个运算符
+- 1. 可以使用在基本数据类型变量 和 引用数据类型变量中
+    \\ 基本数据类型:
+    - 使用 == 的时候 比较两个变量保存的数据是否相等(不一定类型要相同 自动类型提升)
+    <!-- 
+      int i = 10;
+      int j = 10;
+      double d = 10.0;
+      i == j;    // true
+      i == d;    // 因为有类型提升 所以是true
+      
+      - 扩展:
+      - 基本数据类型的自动类型提升适用于任何符号
+     -->
+
+    \\ 引用数据类型:
+    - 比较两个对象的地址值是否相同(两个引用是否指向一个对象的实体)
+    <!-- 
+      Cusomer cust1 = new Customer("Tom", 21);
+      Cusomer cust2 = new Customer("Tom", 21);
+ 
+      cust1 == cust2;   // false  new了两次
+
+      // String类也可以new
+      String str1 = new String("sam")
+      String str2 = new String("sam")
+
+      str1 == str2;     // false 只要是引用类型的 == 都是在比较地址值
+    -->
+
+- 2. == 符号使用时 必须保证符号左右两边的变量类型一致(统一一下 别左边是个String 右边是个Date)
+
+
+> equals()方法的使用
+- 相当于==来讲 是一个方法 并非是一个运算符
+- 该方法需要通过实例对象来调用 所以不能使用在基本数据类型上 *适用于引用数据类型*
+<!-- 
+  int i = 0;
+  i.equqals()   // 不行 i不是对象
+
+  Cusomer cust1 = new Customer("Tom", 21);
+  Cusomer cust2 = new Customer("Tom", 21);
+
+  // 使用equals方法来判断
+  cust1.equals(cust2);    // false
+ -->
+
+- 我们看在 equals方法 在Object类中的定义原码
+- Object类当中定义的方法 和 == 的作用是相同的
+<!-- 
+  public boolean equals(Object obj) {
+    return (this == obj)
+  }
+ -->
+
+- 但是有些对象调用equals方法的时候返回的又是true 比如String Date等
+<!-- 
+  String str1 = new String("sam")
+  String str2 = new String("sam")
+
+  str1.equals(str2);    // true
+
+
+
+  Date date1 = new Date(32432525324L);
+  Date date2 = new Date(32432525324L);
+    // 这也是两个对象 如果用 == 去判断的话 肯定是false
+
+  date1.equals(date2)   // true
+ -->
+
+- 像 *String Data File 包装类* 等都*重写*了Object类中的 equals() 方法  
+- 重写后 比较的不是两个引用的地址是否相同 而是比较两个对象的"实体内容"是否相同(我们new对象时传入的参数都是对象中的属性 它比较的就是这个属性对应的数据是否相同)
+
+
+- 但是通常情况下 我们对象调用.equals了说明想比较的也是实体内容而不是地址值, 该怎么做呢？
+
+- 那我们也必须对Object类中的equals方法进行重写了
+
+> 自定义类如何重写equals()
+- 通常情况下 我们自定义的类如果使用equals的话 也通常是想比较两个对象的实体内容是否相同 那么我们就需要对Object类中的equals方法进行重写
+
+- 解析：
+- 如果我们想比较两个对象的实体内容是否相同 也就是说我们比较的是 对象中的属性是否相同
+
+- 重写规则:
+  - 比较两个对象的实体内容'(即: name age)是否相同
+<!-- 
+  public class Customer {
+    private int age;
+    private String name;
+
+
+    // 我们在这个类里面 重写 Object中的equals方法
+    public boolean equals(Object obj) {
+      // 重写规则:
+        - 比较两个对象的实体内容'(即: name age)是否相同
+
+        // 当前对象和传入对象的地址值一样的情况下 我们return true
+        if(this == obj) {
+          return true;
+        }
+
+        // 地址不一样的情况 我们看看obj是不是Customer的子类
+        if(obj instanceof Customer) {
+
+          // 强制转换的目的 向下转型 obj是Object类型
+          向下转型后 它就能和cust一样点出一样的属性
+          Customer cust = (Customer)obj;
+              // 比较两个对象的属性是否相同
+
+          // this.name == cust.name这里不能这么写 因为字符串是引用数据类型 我们比较的时候 调用String类中重写的equals方法 比较的是内容
+          if(this.age == cust.age && this.name.equals(cust.name)) {
+            return true
+          } else {
+            return false
+          }
+
+          // 或者 第二种方式
+          return this.age == cust.name && this.name.equals(cust.name);
+        } 
+
+        return false
+    }
+  }
+ -->
+
+- 开发中编辑器中有重写equals的快捷键 可以设置让哪些属性参与equals的比较
+- 编辑器自动生成的equals
+<!-- 
+  public boolean equals(Object obj) {
+    if(this == obj) return true;
+    if(obj == null) return false;
+    if(getClass() != obj.getClass()) return false;
+
+    Customer other = (Customer)obj;
+    if(age != other.age) return false;
+    if(name == null) {
+      if(other.name != null) return false;
+      else if(!name.equals(other.name)) retur false;
+    }
+    return true;
+  }
+ -->
+
+----------------------------
+
+### toString()使用
+- Object类中 toString() 方法的使用
+
+> 实例对象.toString()
+- 当我们输出一个对象的引用(对象的变量)的时候 实际上就是调用了这个当前对象的toString()方法
+<!-- 
+  Customer cust = new Customer()
+
+  // 调用对象的toString()方法 打印的是地址值
+  println(cust.toString())   // 地址值
+          - src.com.TestClass@5e91993f
+
+  // 直接输出对象也是地址值
+  println(cust)   // 地址值
+          - src.com.TestClass@5e91993f
+ -->
+
+- Object类中toString()的定义 也就是源码
+<!-- 
+  public String toString() {
+    return getClass().getName() + "@" + Integer.toHexString(hashCode());
+  }
+
+  getClass().getName()
+      - 这个对象的类的类名
+    
+  Integer.toHexString(hashCode())
+      - 根据hashCode值计算这个对象在堆空间的位置 并且转为16进制
+
+  Java中的内存地址时虚拟的内存地址 因为我们在操作系统之上还有一层jvm
+  jvm就是虚拟的操作系统 所以我们的内存地址也是虚拟的内存地址 是哈希code算出来的值
+ -->
+
+- 我们看下下面的情况
+- 上面说过我们输出一个对象的引用的时候 实际上调用的就是这个对象的toString方法
+- 下面相当于 str.toString() date.toString()
+<!-- 
+  String str = new String("MM");
+  System.out.println(str); 
+        // 输出的是MM
+
+  Date date = new Date(324254235236L);
+  System.out.println(date);
+        // 1980-04-11
+ -->
+
+- 像String Date File 包装类等都重写了Object类中的toString方法 重写后的toString()方法输出的是内容实体
+- 使得在调用对象的toString方法时 返回的“实体内容”信息
+
+> 自定义类 重写toString()方法
+> public String toString() {}
+- 当调用我们重写的toString方法时 返回对象的实体内容
+
+<!-- 
+public class Demo {
+  public static void main(String[] args) {
+    
+    // 直接输出对象的引用 相当于调用了o.toString()方法
+    - 而这个方法我们在Order类中进行了重写
+    Order o = new Order("sam", 18);
+    System.out.println(o);
+    
+  }
+}
+
+class Order {
+  private String name;
+  private int age;
+
+  public Order() {}
+  public Order(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  // 重写toStringfangfa
+  public String toString() {
+    return "Customer[name = " + name + ", age = " + age + "]";
+  }
+}
+ -->
+
+- 以后我们想输出对象的地址值就直接调用对象的toString方法
+- 如果我们想通过 toString方法输出 对象的内容 就需要重写toString方法
+
+- 这个toString也是比较常用的功能 所以编辑器里面有直接重写toString的功能
+- ctrl + shift + p 选择 然后生成 就可以
+
+
+> 练习
+- 定义两个类 父类Geometric代表几何形状 子类Circle代表原型
+<!-- 
+  GeometricObject
+  ------------------
+  protected String color;
+  protected double weight;
+  ------------------
+  protected GeometricObject()
+  protected GeometricObject(String color, double weight)
+  ------------------
+  属性的get set
+  ------------------
+
+  初始化对象的color属性为 white weight为1.0
+
+  ↑
+  Circle
+  ------------------
+  private double radius
+  ------------------
+  public Circle()
+  public Circle(double radius)
+  Public Circle(double radius, String color, double weight)
+  ------------------
+  radius属性的set get
+  public double findArea() 计算圆的面积
+  public boolean equals(Object obj)
+  public String toString()
+
+  构造器1
+  初始化对象的color属性为 white weight属性为1.0
+  radius属性为1.0
+
+  构造器2
+  初始化对象的color属性为white weight属性为1.0
+  radius根据参数构造器确定
+
+  重写equals方法 比较两个圆的半径是否相等 
+  重写toString方法 输出圆的半径
+
+
+  写一个测试类创建两个Circle对象 判断其颜色是否相等 利用equals方法判断其半径是否相等 利用toString方法输出其半径
+ -->
+
+- 基类 GeometricObject
+<!-- 
+public class GeometricObject {
+  protected String color;
+  protected double weight;
+  
+  protected GeometricObject() {
+    this.color = "white";
+    this.weight = 1.0;
+  }
+
+  protected GeometricObject(String color, double weight) {
+    this.color = color;
+    this.weight = weight;
+  }
+
+  public String getColor() {
+    return color;
+  }
+
+  public void setColor(String color) {
+    this.color = color;
+  }
+
+  public double getWeight() {
+    return weight;
+  }
+
+  public void setWeight(double weight) {
+    this.weight = weight;
+  }
+}
+ -->
+
+- 子类 Circle
+<!-- 
+public class Circle extends GeometricObject {
+
+  private double radius;
+
+  public Circle() {
+    this.color = "white";
+
+    // 因为父类中已经做过初始化了 子类中这个部分可以注释掉
+    // this.weight = 1.0;
+    // this.radius = 1.0;
+  }
+
+  public Circle(double radius) {
+    // this.color = "white";
+    // this.weight = 1.0;
+    this.radius = radius;
+  }
+
+  public Circle(double radius, String color, double weight) {
+    super(color, weight);
+    this.radius = radius;
+  }
+
+  public double findArea() {
+    return Math.PI * this.radius * this.radius;
+  }
+
+  // 重写equals 判断半径是否相等
+  public boolean equals(Object obj) {
+    if(this == obj) return true;
+    if(obj instanceof Circle) {
+      Circle c = (Circle)obj;
+      return this.radius == c.radius;
+    }
+    return false;
+  }
+
+  @Override
+  public String toString() {
+    return "Circle [radius=" + radius + "]";
+  }
+}
+ -->
+
+- 测试类
+<!-- 
+public class Demo {
+  public static void main(String[] args) {
+    
+    Circle c1 = new Circle(2.3);
+    Circle c2 = new Circle(3.3, "white", 2.0);
+
+    // 判断两个对象的颜色是否相等 比内容就用equals
+    System.out.println("颜色是否相等: " + c1.getColor().equals(c2.getColor()));
+
+    // 半径是否相等 因为重写的equals方法比较的就是半径 直接调
+    System.out.println("半径是否相等: " + c1.equals(c2));
+
+    // 调用toString方法输出半径值
+    System.out.println(c1.toString());
+    System.out.println(c2.toString());
+  }
+}
+ -->
+
+> 要点:
+- 只要是比较内容 那么我们就使用equals方法
+
+----------------------------
+
+### 单元测试方法的使用
+- 我们在测试的时候 经常会在代码的一个部分里 利用输出的形式输出分割符 用到分割想要测试的部分
+<!-- 
+  System.out.println("***************");
+ -->
+
+- 在实际的开发中也是 有一些代码的部分我们测试过了 就不想再测了
+- 最好的结果就是我们想测试哪段就测试哪段
+<!--
+  -----------
+    先测试这段
+  -----------
+
+  code....
+
+  -----------
+    再测试这段
+  -----------
+-->
+
+- 这就是单元测试
+- 想测试哪段代码就测试哪段代码
+
+> JUnit 单元测试
+- 1. 选中当前工程 就是选中项目文件夹(最外围的) 右键 -- Bulid path -- Add Lib... -- JUnit -- JUnit4 -- 完成
+
+- 2. 然后工程下会多了一个 JUnit4 的包
+- 3. 新建一个类 进行单元测试
+  - 此时的java类 要求：
+  - 1. *此类是公共的 public*
+  - 2. 此类要提供一个公共的*无参的构造器*(不要写构造器就完事了)
+  <!-- 
+    这个类就是用来测试的 不是用来造对象的
+   -->
+  - 3. 在此类中声明单元测试方法 要求此方法的*权限是public* *没有返回值* *没有形参*
+   <!-- 
+      public class JUnitTest {
+        // 创建测试方法 testXxx方法名
+        public void testEquals() {
+
+        }
+      }
+    -->
+
+  - 4. 此单元测试方法上需要声明 *@Test* 注解 *并在单元测试类中导入 import org.junit.Test;*
+  <!-- 
+    // 这是单独的一个类
+    import org.junit.Test;
+    public class JUnitTest {
+
+      // 这个类中可以定义属性 测试类中的属性可以直接在测试方法中使用 不同通过造本类对象然后.的形式调用属性
+      int num = 10;
+
+      @Test      
+      public void testEquals() {
+        // 我们把它想象成main方法 在这里面进行代码测试
+        String s1 = "MM"
+        String s2 = "MM"
+        System.out.println(s1.equals(s2))
+      }
+    }
+   -->
+  
+  - 5. 声明好单元测试方法以后 就可以在方法体内测试相关代码
+  - 6. 写完代码以后 双击选中方法名 右键 run as junit Test
+
+  - 7. 我们测试完一段逻辑后 可以再造一个测试方法再测试下一个结构
+
+- 说明：
+- 如果执行结果没有任何异常是绿色条
+- 如果执行失败或出现异常是红色条
+
+
+- 扩展:
+- 之所以在main方法中要使用本类的方法和属性的时候 要先造本类对象 通过对象.的形式调用属性和方法 的原因是 main方法是静态的 static
+
+- 之所以在测试方法中不用通过造对象 .属性的方式 就能够直接的使用本类中的属性 是因为 它就是一个普通的方法 普通方法可以直接读本类中的属性
+
+> vscode中的测试方式
+- 好像是 ctrl shift p 输入测试关键字 找对应的选项
+- https://blog.csdn.net/ME__WE/article/details/104887568?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link
+
+- 好像就是导入jar包就可以了
+
+----------------------------
+
+### 包装类(Wrapper)的使用
+- java提供了8种基本数据类型对应的包装类 使得基本数据类型的变量具有类的特征
+
+- 有了类的特点 就可以调用类中的方法
+<!-- 
+      基本数据类型            包装类
+                                      -------------
+      byte                  Byte
+      short                 Short
+      int                   Integer    这些都算数值型的
+      long                  Long       父类为 Number
+      float                 Float       
+      double                Double
+                                      -------------
+      boolean               Boolean
+      char                  Character
+ -->
+
+- int i 来举例： 包装类(Integer)相当于把我们的基本数据类型封装到一个类当中了 类中有一个属性时int型的i
+
+- 也就是说我们希望让java中基本数据类型的变量也有类的特征 所以我们给每一种基本数据类型对应的生成了一种包装类
+<!-- 
+  星矢 -- 菜 -- 关键 -- 射手座圣衣 -- 牛逼了
+ -->
+
+- 以后我们使用基本数据类型的时候就可以使用对应的类型的包装类了
+- 那基本数据类型 和 包装类 和 String 三者之间是如何转换的呢？
+
+- 下面我们研究下它们之间的相互转换
+
+<!-- 
+        装箱: 
+        1. 通过构造器:  Integer t = new Integet(11);
+        2. 通过字符串参数: Float f = new Float("32.1F");
+        3. 自动装箱
+
+                → →
+  基本数据类型          包装类
+                ← ←
+
+        拆箱:
+        1. 调用包装类的方法: xxxValue()
+        2. 自动拆箱
+
+  ------
+
+        1. String类的 valueOf(3.4f)方法
+        2. 23.4+“”
+
+                → →
+  基本数据类型          String类
+                ← ←
+
+        1. 调用响应的包装类的 parseXxx(String)静态方法
+        2. 通过包装类构造器: boolean b = new Boolean("true")
+
+  ------
+
+        1. 包装类对象的toString()方法
+        2. 调用包装类的toString(形参)方法
+
+          → →
+  包装类          String类
+          ← ←
+
+        通过字符串参数
+        Float f = new Float("32.1F")
+ -->
+
+> 基本数据类型 转换为 包装类
+> Integer in1 = new Integer(num1);
+- 类型是 Integer
+- new Integer(int型的数字 or "字符串型数字")
+<!-- 
+  // 高版本弃用方法
+  int num1 = 10;
+  Integer in = new Integer(num1);
+  Integer in = new Integer("123");  // 注意: "123ab" 这样的不行
+
+    // 新方法
+    Integer num2 = 10;
+    System.out.println(num2.toString());
+
+    Integer in1 = Integer.valueOf(num1);
+    System.out.println(in1.toString());
+
+
+  // 高版本弃用方法
+  Float f1 = new Float(12.3f)   // 注意: float类型要加上f
+  System.out.println(f1.toString());  
+
+    // 新方法
+    Float f1 = 12.3f;
+    System.out.println(f1.toString());
+
+
+  // 高版本弃用方法
+  Boolean b1 = new Boolean(true);
+  Boolean b1 = new Boolean("true");
+
+      // 新方法
+      Boolean b1 = Boolean.valueOf(true);
+      Boolean b2 = Boolean.valueOf("true");
+      System.out.println(b1);
+      System.out.println(b2);
+
+      Boolean b3 = true;
+      System.out.println(b3);
+ -->
+
+**注意: Boolean包装类的注意点**
+- Boolean b1 = new Boolean("true123");    // false
+- 布尔类型的包装类 可以传递 "true123" 类似这样的数据
+- 因为布尔类型的包装类做过优化 只有传入true的时候才是true *而且忽略大小写* 否则其它的都是false
+<!-- 
+  Boolean b1 = new Boolean("TruE")   // true 忽略大小写
+ -->
+
+- Boolean.valueOf()方法也一样
+
+> 扩展
+- 基本数据类型变为包装类后 默认值会发生改变 *null*
+<!-- 
+  Order order = new Order();
+  System.out.println(order.isMale);   // false  基本数据类型的默认值
+  System.out.println(order.isFemal);  // null 因为人家是一个类 所以null
+
+  class Order {
+    boolean isMale;
+    Boolean isFemal;    // isFemal 已经是一个类(对象了)
+  }
+ -->
+
+
+**注意:**
+- 9以上 new Integer(num1) 方式弃用了 可能改成以下的两种方式了
+
+> 1. Integet in1 = Integer.valueOf(num1);
+- 调用包装类的valueOf方法
+- *弹幕上说一般用valueOf 构造的方法被弃用了*
+- 该方法可以传递"123"形式的数据
+<!-- 
+  Float in1 = Float.valueOf("23.3");
+  System.out.println(in1.toString());
+ -->
+
+> 2. Integer in = 10;
+- 直接声明为int型的包装类 然后定义变量赋值
+- 这种方式不能这样
+    Float f1 = "12.3";  不会将字符型的数字转换为数字
+<!-- 
+  Integer num = 10;
+  System.out.println(num.toString());
+
+  Integer in1 = Integer.valueOf(num1);
+  System.out.println(in1.toString());
+ -->
+
+
+
+> 包装类 转换为 基本数据类型
+- 包装类作为类的对象 是*不可以参与加减乘除运算*的 所以在参与运算的时候 我们需要把包装类转换为基本数据类型
+
+> 已被包装类包装的变量.包装类类型Value();
+- 调用包装类的xxxValue()
+- 该方法会返回一个基本数据类型
+
+- int型:
+- intValue();
+
+- float型:
+- floatValue();
+
+- double型:
+- doubleValue();
+
+- 以下同理
+
+<!-- 
+  // 低版本
+  Integet in1 = new Integer(12)
+  int i2 = in1.intValue();
+
+  // 高版本
+  Integer num = 10;  
+  int i1 = num.intValue();
+
+  System.out.println(i1 + 1);
+ -->
+
+
+> 自动装箱 and 自动拆箱
+<!-- 
+  int num1 = 10;
+
+  // 多态 method 方法接收 一个对象
+  public void method(Object obj) {
+
+  }
+ -->
+
+- 但是这时候我们要是想将num1放入method方法中 是不可以的 因为num1是基本数据类型我们想放进去是不行的
+
+  method(num1);
+
+- 所以我们需要先把基本数据类型 转换为 包装类的对象 我们相当于转换为 Integer了 Integer间接继承Object类 这样我们就可以往里面放了
+
+- 反过来也是 我们不能让一个类去做加减乘除 所以就需要将包装类转换为基本数据类型
+
+- 上面将基本数据类型转为包装类 和 将包装类转为基本数据类型 很常用
+- 所以在jdk5.0的时候假如了新特性 新特性的名字是 自动装箱与拆箱
+
+- 上面的例子中 按正常来讲我们的 num1 是没办法 放入到 method() 方法中的
+- 但是 method(num1) 也没报错
+<!-- 
+  @Test
+  public void test3() {
+    int num = 10;
+    method(num);
+
+    // 这里 并不是 Object obj = num 将int类型的num 赋值给了形参Object类型的obj num 和 obj的类型不一样 也没有子父类的关系 
+
+    但是为什么不报错呢？ 因为隐含了一个知识点 就是自动装箱和拆箱
+  }
+
+  public void method(Object obj) {
+    System.out.println(obj);    // 不仅没有报错还能正常的输出
+  }
+ -->
+
+> 自动装箱
+- 实现了 基本数据类型 --- 包装类
+
+int num2 = 10;
+Integer in1 = num2;
+
+- 为什么一个int型的变量能赋值给in1这个类呢？
+- 这里就是自动装箱
+<!-- 
+  哦哦哦哦哦 上面 Integer num = 2; 就是自动装箱啊
+  int型的2 赋值了 类型的num
+ -->
+
+- 有了自动装箱的特性后 我们再包装基本数据类型的时候就不用我们new了
+<!-- 
+  boolean b1 = true
+  Boolean b2 = b1   // 自动装箱
+ -->
+
+
+> 自动拆箱
+- *直接把一个包装类的对象赋值给基本数据类型的变量*
+
+<!-- 
+  int num2 = 10;
+  Integer in1 = num2;
+
+  // 自动拆箱
+  int num3 = in1;
+ -->
+
+- 5.0之后才可以使用自动装箱 和 自动拆箱
 
 
 ----------------------------

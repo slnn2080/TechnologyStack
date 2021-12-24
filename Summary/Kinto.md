@@ -1,3 +1,33 @@
+### nuxt化
+
+- 1. http://store.kinto-jp.com/
+- 2. http://store.kinto-jp.com/tool/
+- 3. http://store.kinto-jp.com/lexus/
+
+- vuetify:
+- https://kinto-dev.atlassian.net/wiki/spaces/KINTO/pages/1193954642/MIL
+
+
+- 注意点:
+- nodeのバージョンを16.3.0
+- ローカルのnode_modulesを削除して再度インストール
+- pug→HTMLにするのでご注意を
+
+
+- 什么意思?
+- nuxt2系でもcomposition APIが使えるので使いたい
+
+
+> 问题:
+- 1. 源文件在哪里
+- 2. 上面的网站打不开
+- 3. 项目中使用vuetify框架么 ルール是学习会的时候讲的么
+- 4. composition API具体指的是什么
+- 5. vuetify的链接地址打不开
+
+
+
+
 ### 学习会
 vuetify / data
 

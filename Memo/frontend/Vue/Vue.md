@@ -2345,6 +2345,42 @@ directives: {
 
 --------------------------
 
+### 修饰符
+> .sync
+- 将父组件传递给子组件的数据 实现双向绑定
+<!-- 
+  // 回顾 正常我们修改父组件传递进来的数据应该怎么处理
+  <子组件 :title="title" @update:title="title = $event">
+  </子组件>
+        - 哈默说子组件传递的数据在$event中
+
+  // 子组件
+  button @click="changeTitle"
+  changeTitle() {
+    this.$emit("update:title", "新数据")
+  }
+ -->
+
+- .sync的使用
+<!-- 
+  <子组件 :title.sync="title">
+  </子组件>
+
+  .sync相当于我们把title传递进去的同时 再监听子组件派发的自定义事件
+ -->
+
+- 技巧
+- 当我们想将对象中的属性传递给子组件的时候
+- 这样就相当于v-bind="对象" 会将对象中的所有属性传递过去
+<!-- 
+  <子组件 v-bind.sync="obj">
+  </子组件>
+ -->
+
+- 但是子组件的派发自定义事件还是得照做
+
+--------------------------
+
 ### 事件的修饰符
 - 在某些情况下, 我们拿到event的目的可能是进行一些事件的处理
 - vue提供了修饰符来帮助我们方便的处理一些事件
@@ -4204,6 +4240,7 @@ directives: {
 > beforeDestroy（销毁前）
 - 在这里一般做一些收尾的工作 比如清除定时器
 - 下面处于组件销毁的阶段, 该阶段没有数据绑定 没有交互了
+- 同时在这个逻辑里面将timer设置为null
 <!-- 
   服务器端渲染期间不会被调用
 
@@ -4222,6 +4259,7 @@ directives: {
 
    beforeDestroy() {
      clearInterval(this.timer)
+     this.timer = null
    },
    destroyed() {
      console.log("我被销毁了")
