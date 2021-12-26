@@ -365,6 +365,39 @@
 
 -------------------
 
+### 匹配 替换符号
+> 正则匹配到的内容为 $& \0
+- 如下 匹配的是后盾人   $&则代表匹配到的内容
+- 在正则中对应着 \0
+<!-- 
+  // 我们给教育加上链接
+  <main>
+    在线教育是一种高效的学习方法
+  </main>
+
+  main.innerHTML = 
+    main.innerHTML.replace(/教育/, `<a href="www.baidu.com">$&</a>`)
+ -->
+
+
+> $` -- 匹配内容的 左边 的所有内容
+> $' -- 匹配内容的 右边 的所有内容
+
+-------------------
+
+### 原子组别名 (?<con>)
+- 之前我们使用原子组的时候 对应的都是 $1
+
+- 现在我们可以给原子组起别名 对应的就是 $<con>
+<!-- 
+  $1
+  $<con>
+
+  1就是名字 现在换成了<con>
+ -->
+
+-------------------
+
 ### 不记入组
 > (?:)
 - 我们可以对正则来进行分组 那分组之后每一个组就会产生对应的编号 比如
@@ -387,6 +420,179 @@
   let reg = /https:\/\/(\w+\.\w+\.(?:com|cn|org))/i
   console.log(hd.match(reg)[1]);
  -->
+
+-------------------
+
+### 禁止贪婪
+- 我们看下下面的案例
+- 需求：
+- 将span标签全部替换为h4 然后描红 内容前加上sam-
+<!-- 
+  <div>
+    <h3>houduren</h3>
+    <span>后盾人</span>
+    <span>后盾人</span>
+    <span>后盾人</span>
+    <span>后盾人</span>
+    <h3>hdcms</h3>
+  </div>
+ -->
+
+- 如果我们这么定义正则
+- const reg = /<span>[\s\S]+<\/span>/ig
+
+- 我们会发现是一次性的提取的是所有span
+  <span>后盾人</span>
+  <span>后盾人</span>
+  <span>后盾人</span>
+  <span>后盾人</span>
+
+- 如果我们写的是进制贪婪 *+?* 那么每次会匹配一个span标签 依次匹配到最后
+- const reg = /<span>[\s\S]+?<\/span>/ig
+
+<!-- 
+  const main = document.querySelector("div")
+  const reg = /<span>([\s\S]+?)<\/span>/ig
+  main.innerHTML = main.innerHTML.replace(reg, (content, s1) => {
+    return `<h1 style="color: red">sam - ${s1}</h1>`
+  })
+ -->
+
+-------------------
+
+### matchAll 全局匹配
+- 我们来看下下面的情况 需求我们要提取后盾人 也就是说我们要提取的是标签体的内容
+<!-- 
+  <div>
+    <span>后盾人</span>
+    <span>后盾人</span>
+    <span>后盾人</span>
+    <span>后盾人</span>
+  </div>
+ -->
+
+- 根据上面html的结构 我们可能会这么写逻辑
+<!-- 
+  const div = document.querySelector("div")
+
+  let reg = /<h1>(.+?)<\/h1>/ig
+  console.log(div.innerHTML.match(reg))
+ -->
+
+- 写 g 的时候 会把连带标签元素 和 标签体内容 都装进去数组中去
+<!-- 
+   ['<h1>后盾人</h1>', '<h1>后盾人</h1>', '<h1>后盾人</h1>', '<h1>后盾人</h1>']
+
+   这样我们还是取不到标签体内容
+ -->
+
+- 写 i 的时候 能获取标签体内容 但是仅会匹配第一个
+<!-- 
+   [
+    '<h1>后盾人</h1>', 
+    '后盾人',           // 这个就是编组后的匹配内容
+    index: 5, 
+    input: '\n    <h1>后盾人</h1>\n    <h1>后盾人</h1>\n    <h1>后盾人</h1>\n    <h1>后盾人</h1>\n  ', 
+    groups: undefined
+  ]
+ -->
+
+> matchAll(正则)
+- 这个API得到的是一个可迭代的对象 我们可以遍历这个迭代器对象
+- 注意:
+- 要开启 g 模式
+<!-- 
+  const div = document.querySelector("div")
+  console.log(div.innerHTML);
+  let reg = /<h1>(.+?)<\/h1>/ig
+
+  // 得到可迭代对象
+  iterator = div.innerHTML.matchAll(reg)
+
+  let contents = []
+  // 遍历可迭代对象
+  for(let searchArr of iterator) {
+    contents.push(searchArr[1])
+  }
+
+  console.log(contents);
+ -->
+
+-------------------
+
+### 正则的方法 
+> reg.test(字符串)
+- 返回值为布尔值
+
+> reg.exec(字符串)
+- 如果单次匹配的时候(就是没有 g 的时候) 与match方法相似
+- 都会返回原子组的详细信息
+
+- 但是使用 g 的时候 就会有区别
+- match方法会将匹配到的内容装到一个数组中 但是原子组的细节就没有了
+
+- exec方法 原子组的细节还是有 但是会有 *reg.lastIndex* 
+- 该方法每检索一次会暂停 reg.lastIndex++
+-  该方法调用多次后 会延续上次一次的检索结果 继续检索 直到找不到为null停止
+
+- 比较适合做循环
+
+-------------------
+
+### 断言匹配
+- 也就是正则表达式的条件语句
+
+> 后面是什么的
+> /检索内容(?=检索条件)/    --  ...(?=)
+- 检索的还是 "检索内容" (里面是条件) 该条件指定的是 *后面是什么* 
+<!-- 
+  /后盾人(?=教程)/
+
+  匹配 后端人后面有教程的 后端人
+ -->
+
+> 前面是什么的
+> /(?<=检索条件)检索内容/  --  (?<=)...
+
+
+> 后面不是什么的
+> /检索内容(?!检索条件)/    --  ...(?!)
+
+
+> 前面不是什么的
+> /(?<!检索条件)检索内容/    --  (?<!)...
+
+
+> 练习
+- 需求 将价格后面没有.00的补上.00
+<!--  
+  let lesssons = `
+    js, 200元, 300次
+    php, 300.00元, 100次
+    nodejs, 180元, 260次
+  `
+-->
+<!--
+  let reg = /(\d+)(.00)?(?=元)/ig
+  lesssons = lesssons.replace(reg, (item, ...args) => {
+    // console.log(s1)
+    // s1: 200 也就是组1中的内容
+    // console.table(args)
+    // s2: 组2中的内容 检索不到就是undefined
+
+    // 当s1 s2分组很多的时候 我们可以将它们放到...args中
+    // args[0]就是 组1中的内容 200
+    // args[1]就是 组2中的内容 .00 没有就是undefined
+
+    // 如果是undefined的话 就改为.00
+    args[1] = args[1] || ".00"
+    
+    // args中的参数有4个0 1 2 3 我们只需要用前两个参数
+    return args.splice(0,2).join("")
+  })
+
+  console.log(lesssons)
+-->
 
 -------------------
 

@@ -10491,6 +10491,28 @@ class Driver {
 - 总结：
 - 不要犯傻 如果它不是晚绑定 它就不是多态
 
+
+> 对多态性的理解
+- 封装性:
+- 我们把信息都封装在类中了 类中定义了很多的功能 这些功能如果不想对外暴露的话 使用权限修饰 去描述我们的封装性
+
+- 继承性:
+- 让类和类之间达到继承关系 从而让代码能够进行重用
+
+- 多态性
+- 多态性想要完成的事情 就是尽可能的让代码能用具有通用性
+<!-- 
+  比如equals方法 形参中的类型 都是object 然后我们传入对象的时候可以传入任意的子类对象
+
+  之所以能够传入子类对象 就是因为有多态性的存在
+  我们不光光能放Object类型的 还可以放它子类类型的
+ -->
+
+- 抽象类和接口的使用也能体现多态性
+- 如果没有多态性 抽象类和接口就没有意义 也就是说抽象类 接口的使用肯定体现了多态性(因为抽象类 接口不能实例化)
+
+- 多态是运行时行为
+
 ----------------------------
 
 ### 关键字 instanceof 多态性下调用子类特有的结构
@@ -10560,12 +10582,29 @@ class Driver {
  -->  
 
 - 在多态性这里有跟上面相类似的知识
-- 向上转型(多态)
+
+> 向上转型(多态)
 - 当有一个Student对象(子类) 可以直接赋值给父类类型 是ok的(体现为多态)
 
-- 向下转型
+
+> 向下转型
 - 声明为父类(Person变量) 向下转型为(Student类型) 需要使用强制类型转换符
     Student s = (Student)p
+
+**理解: 我声明的是父类引用， 想把它转为子类**
+- 因为子类肯定要比父类的功能更强档一些 向下转型的目的就是为了应用子类中特有的方法和属性
+<!-- 
+  - 比如 equals() 方法
+  public boolean equals(Object obj) { }
+
+  在方法体中判断的时候 我们必须将obj 转为user类型
+  不向下转为user类型的话 我们就没办法看到 user类中的name age属性
+ -->
+
+- 当我们把一个子类放入形参中的时候 会发生多态 把子类提升到Object类
+- 然后当我们内部要重写equals方法的时候 会像下转型 将提升到Object类的obj转为和子类一样的类型
+
+
 <!-- 
               父类(如: Person)
 
@@ -10581,7 +10620,7 @@ class Driver {
 - Person p = new Man()
 - 我们通过p.的形式调用可以调用Person类中定义过的结构(调用的还是Man对象中的结构 这些结构只能是Person类中定义过的 没定义过Man对象里面特有的调用不了)
 
-- Man m = (Man)p
+> Man m = (Man)p
 - 这里使用强制类型转换符 将p(Person)类型的变量 向下转型(转成子类的Man)
 - 这样我们就能通过m 调用Man对象中(子类特有的属性和方法了)
 
@@ -10620,14 +10659,15 @@ class Driver {
 - 但是凡是使用 强制转换符的都会有风险
 - 在基本数据类型中的强转 代表精度会有损失
 
-- 在这里的体现就是转不成功 使用强转时可能出现 “ClassCaseException” 的异常 当类型不能转换的时候会报这样的异常
+- 在这里的体现就是转不成功 使用强转时可能出现 *“ClassCaseException”* 的异常 当类型不能转换的时候会报这样的异常
 
 - 当我们进行向下转型的时候 使用强制转换符 为了避免出现这样的问题 我们要使用 instanceof
 
 > instanceof 关键字
 - 判断是否是类的实例 如果是 返回true 如果不是 返回false
 - 格式：
-- a instanceof A
+- a(变量名) instanceof A(类型)
+- a(对象) instanceof A(类)
 
 - 判断对象a是否是类A的实例
 
@@ -10662,6 +10702,8 @@ class Driver {
   Person p = new Man()      这可以
   Person p = new Person()   这不行
  -->
+
+- instanceof关键字两侧 必须是子父类关系
 
 
 > 向下转型中的常见问题
@@ -11038,6 +11080,20 @@ class TestClass { }
 > 实例对象.hoahCode()
 - 返回当前对象的哈希值
 
+
+> 扩展
+- 数组也可以看做是一个特殊的类，继承我们的Object
+- 也就是说当有一些参数为Object类型的形参的时候 我们也可以把数组往里面丢
+
+- 同时arr也能.出Object类中的方法
+<!-- 
+  arr.clone()
+  arr.equals()
+  arr.getClass() 获取arr是哪个类
+  arr.getClass().getSuperclass   // Object
+  ...
+ -->
+
 ------
 
 > 实例对象.equals(Object obj)
@@ -11243,6 +11299,32 @@ class TestClass { }
 - 像String Date File 包装类等都重写了Object类中的toString方法 重写后的toString()方法输出的是内容实体
 - 使得在调用对象的toString方法时 返回的“实体内容”信息
 
+
+- 上面我们说了*输出一个对象的引用的时候 实际上是调用这个对象的toString方法*
+<!-- 
+  String s = "abc";
+
+  System.out.println(s);
+  System.out.println(s.toString());
+        -- 这时候 上面的两条 输出是一样的
+
+  ------ 
+
+  String s = "abc";
+  s = null;
+
+  System.out.println(s);
+        -- null
+
+  System.out.println(s.toString());
+        -- null.toString() 会是空指针异常
+ -->
+
+- 当时null的使用 上面的 *结论* 有些区别
+- 在println里面有保护机制 当我们传入是个String s类型的参数的时候 内部会做判断 if(s == null) s = "null"
+- 所以它输出的是字符串类型的 null
+
+
 > 自定义类 重写toString()方法
 > public String toString() {}
 - 当调用我们重写的toString方法时 返回对象的实体内容
@@ -11282,6 +11364,7 @@ class Order {
 - 这个toString也是比较常用的功能 所以编辑器里面有直接重写toString的功能
 - ctrl + shift + p 选择 然后生成 就可以
 
+------------------
 
 > 练习
 - 定义两个类 父类Geometric代表几何形状 子类Circle代表原型
@@ -11784,13 +11867,819 @@ Integer in1 = num2;
 - 5.0之后才可以使用自动装箱 和 自动拆箱
 
 
+> 基本数据类型 和 包装类 转换为 String类型
+- 我们看下下面的问题 我们把一个int型的数据 赋值给String类型的变量是不行的 因为基本数据类型和String类型之间没有自动类型提升
+
+<!-- 
+  import org.junit.Test;
+  @Test
+  public void test4() {
+    int num1 = 10;
+    String str1 = num1;
+  }
+ -->
+
+- 但是我们可以这样 String str1 = *num1 + ""*;
+- 我们让基本数据类型 链接一个空字符串 这样它就是一个String类型的了
+
+- 除了int之外的所有基本数据类型都可以
+
+> 基本数据类型 转换为 String类型 方式1
+> 连接运算 -- 基本数据类型 + ""
+<!-- 
+  int num1 = 10;
+  String str1 = num1 + "";
+ -->
+
+
+> 基本数据类型 转换为 String类型 方式2
+> String.valueOf(基本数据类型数据)
+- 该方法返回的是一个String类型的数据
+<!-- 
+  float f1 = 12.3f;
+  String str= String.valueOf(f1)  // "12.3"
+ -->
+
+- 因为有自动拆箱的概念 所以我们也可以往 String.valueOf(*往这里丢包装类*)
+<!-- 
+  Double d1 = new Double(12.3)
+  String.valueOf(d1)
+
+  我们往()中丢了一个包装类对象进去 因为有自动拆箱的功能 所以这样做也是可以的
+ -->
+
+
+> Sring类型 转换为 基本数据类型 和 包装类
+- 现在我们要将 String类型的数据 转换为 基本数据类型
+<!-- 
+  String str = "123";
+  int num = str;
+
+  这样肯定是不可以的
+ -->
+
+- 当我们要将String类型的数据 转换为 基本数据类型的时候 我们要调用*包装类的parseXxx()方法*
+
+> Integer.parseInt(String s)
+- 该方法会返回一个基本数据类型的数据
+<!-- 
+  String str = "123";
+  int num = Integer.parseInt(str);
+ -->
+
+> Boolean.parseBoolean(变量)
+> Float.parseFloat(变量)
+
+- 我们要保证要转换的数 是可以转的
+
+
+
+> 面试题：
+- 如下两个题目输出结果相同么？ 各是什么
+<!-- 
+  Object o1 = true ? new Integer(1) : new Double(2.0)
+  system.out o1    // 1.0
+ -->
+
+- 为啥是1.0呢？
+- 为啥不是1 地址
+
+> 解析：
+- 当我们使用 三元运算符的时候 前后两个条件 要统一成一个类型
+- 因为编译的时候 就需要统一成一个类型 才能根据条件 赋值给 定义的变量 因为变量的类型已经定义好了 它只能接收确定的一种类型吧
+
+        A                 B
+  new Integer(1) : new Double(2.0)
+
+- A和B要统一成一个类型 所以这里面就包含了 自动类型提升 的概念
+
+
+- 下面没啥知识点就是1
+<!-- 
+  Object o2;
+  if(true) o2 = new Integer(1)
+  else 
+    o2 = new Double(2.0)
+
+  system.out o2    // 1
+ -->
+
+
+> 2
+- 之前老师说过在println()的时候 对于数组的情况
+- 当我们里面放的是char型数组的时候 我们输出的是内容 
+- 除了char型数据 其它输出的都是地址值
+
+<!-- 
+  public void method1() {
+    Integer i = new Integer(1)
+    Integer j = new Integer(1)
+    System.out.println(i == j)  // 引用类型比地址 false
+
+
+    Integer m = 1;
+    Integer n = 1;
+    System.out.println(m == n)  // 自动装箱 true
+
+
+    Integer x = 128;
+    Integer y = 128;
+    System.out.println(x == y)  // false 为什么跟上面看着一样却是false
+  }
+ -->
+
+- Integer包装类是对int变量的一个封装
+<!-- 
+  包装类其实很简单 核心就是 将基本数据类型的变量给我们包了一下 作为该类的属性出现了 另外加了一些方法
+  class Integer {
+    private int value
+  }
+ -->
+
+- 那为什么下面两个输出结果会不同
+  Integer m = 1;
+  Integer n = 1;
+  System.out.println(m == n) true
+
+
+  Integer x = 128;
+  Integer y = 128;
+  System.out.println(x == y) false
+
+- 因为在 Integer类中定义了一个 *内部类* 叫 IntegerCache  
+- 这个内部类中有一个数组 是Integer类型的数组 Integer cache[]
+- 这个数组中存了 从 -128 - 127 之间的数 相当于 byte范围的数
+
+- 这个数组的目的就是方便我们去用 因为在这个范围内的数 用的非常的频繁 所以处于性能的原因 我们就有这个缓存数组 提前加载好  
+
+- 所以当我们自动装箱的时候 
+  Integer m = 1 
+  - 那么就直接走的缓存数组中的1 因为走的是缓存数组 地址值一样
+
+  Integer n = 1
+- 还是个1 那么还走缓存数组 因为缓存数组都是一个 所以地址值相同
+- 那我们使用 == 比较两个对象的时候 比较的就是地址值
+- 所以是true
+
+- 当我们写128的时候 不在缓存数组中了 那么就会新创建两个128的包装类因为是两个对象 地址值就会不同 
+- 所以是false
+
+> 总结
+- Integer内部定义了IntegerCache结构 IntegerCache中定义了 Integer[] 保存了-128 - 127 范围的整数
+- 如果我们使用自动装箱的方式 给Integer赋值的范围在 -128 - 127 范围内时 可以直接使用数组中的元素 不用再去new了 目的就是为了提高效率
+
+- 128则相当于 new了一个Integer对象
+
+
+> 为什么要使用包装类
+- 因为有些方法的形参就是Object类型 我们要是把基本数据类型往里面放是放不进去的 所以必须要以包装类的形式往里面放
+
+- 同时才想取出来的时候 要进行运算的时候 还要转换为 基本数据类型
+
+
+> 基本数据类型 和 包装类 互转 String类型 的技巧
+> A 转换 S
+
+- 如果 A 转为 S  那就去调用 S中的方法 String.valueOf(Xxx)
+- 如果 S 转为 A  那就是调用 A中的方法 包装类.parseXxx(S)
+
+
+> 练习
+- 利用Vector代替数组处理:利用
+- 从键盘读入学生成绩（以负数代表输入结束），找出最高分，并输出学生成绩等级。
+<!-- 
+  为什么要使用Vetor代替数组？
+  数组一旦创建，长度就固定不变，所以在创建数组前就需要知道它的长度。而向量类 java.util.Vector 可以根据需要动态伸缩。
+ -->
+
+  - 提示：
+  - 创建 Vector 对象： 
+      Vector v=new Vector();
+
+  - 给向量添加元素 
+      v.addElement(Object obj); 
+    - obj 必须是对象
+    
+  - 取出向量中的元素： 
+      Object obj v.elementAt(0)
+    - 注意第一个元素的下标是 0 ，返回值是 Object 类型的。
+
+  - 计算向量的长度： 
+      v.size()
+
+  - 若与最高分相差 
+    10 分内： A 等； 
+    20 分内： B 等； 
+    30 分内： C 等；
+    其它：    D 等；
+<!-- 
+package src.com;
+import java.util.Scanner;
+import java.util.Vector;
+
+import org.junit.Test;
+
+public class Demo {
+  public static void main(String[] args) {
+
+    // 1. 实例化 Scanner 用于从键盘获取学生成绩
+    Scanner scan = new Scanner(System.in);
+
+    // 2. 创建vector对象 相当于原来的数组
+    Vector<Integer> v = new Vector<Integer>();
+
+    // 定义最大值
+    int maxScore = 0;
+
+    // 3. 通过循环的方式给vector中添加数据
+    for(;;) {
+      System.out.println("请输入学生成绩(输入负数表示结束)");
+      int score = scan.nextInt();
+
+      // 3.2 当输入是负数的时候跳出循环
+      if(score < 0) { break; }
+      if(score > 100) { 
+        System.out.println("成绩非法, 请重新输入");
+        continue; // 因为成绩非法 跳过这次 存储操作
+      }
+
+      // 3.1 添加操作 v.addElement(Object obj)
+
+  - 将成绩添加到 Vector 中 在jdk5.0之前
+  - 我们要添加到Vector中必须使用new Integer的形式创建包装类 
+  - 将成绩转为包装类对象再放入到Vector方法中 
+    // Integer inScore = new Integer(score)  
+    // v.addElement(Object obj)
+    // v.addElement(inScore)
+        - 转为对象后就可以放进去了    
+      
+      // 自动装箱
+      v.addElement(score);
+
+      if(maxScore < score) {
+        maxScore = score;
+      }
+    }
+
+    // 遍历Vector 得到每个学生的成绩 并与最大成绩比较 得到每个学生的等级
+    char level;
+    for(int i=0; i<v.size(); i++) {
+
+      - 我们取出来的是一个 object类型的 
+      - 因为我们放里放的时候就是Object类型 取的时候也是这个类型 
+      - 但是我们要转成int型的包装类 所以下面要强转
+      Object obj = v.elementAt(i);
+
+      - 我们要将对象转为基本数据类型 与最大值比较 得到学生的等级
+      - jdk5.0之前
+      - Integer inScore = (Integer)obj
+      - int score = inScore.intValue()
+
+      // 5.0之后
+      // 这里正常应该先拆成包装类 然后再拆成int
+      int score = (int)obj;
+
+      if(maxScore - score <= 10) {
+        level = 'A';
+      } else if(maxScore - score <= 20) {
+        level = 'B';
+      } else if(maxScore - score <= 30) {
+        level = 'C';
+      } else {
+        level = 'D';
+      }
+
+      System.out.println(level);
+    }
+  }
+}
+ -->
+
+----------------------------
+
+### static 关键字
+- static关键字修饰一个变量 不归每一个具体的对象所有 而是大家共享
+<!-- 
+  当我们编写一个类的时候 其实就是在描述其对象的属性和方法 而并没有产生实质上的对象 只有通过new关键字才会产生出对象
+
+  这时系统才会分配内存空间给对象 其方法才可以供外部调用 我们有时候希望无论是否产生了对象或无论产生了多少对象的情况下
+
+  --- 某些特定的数据在内存空间里只有一份 ---
+  --- 有些时候希望一个属性不归具体的对象所有---
+
+  例如所有的中国人都有个国家的名称 每一个中国人都共享这个国家的名称 不必在每一个中国人的实例对象中都单独分配一个用于代表国家的名称变量
+ -->
+
+- static: 静态的
+- static: 可以用来修饰： 属性 方法 代码块 内部类
+
+
+> static 修饰属性
+- 静态变量(变量分为局部变量和属性 static只能修饰属性)
+- 属性按是否使用 static 修饰 分为
+  - 1. 静态属性
+  - 2. 非静态属性(实例变量 或 实例属性)
+<!-- 
+  实例变量:
+  没有用static修饰的属性就是 实例变量
+ -->
+
+> 实例变量
+- 我们创建了类的多个对象 每个对象都独立的拥有一套类中的非静态属性
+<!-- 
+  实例 实例 实例的对象 是归实例化的对象所有的变量 
+ -->
+
+- 要点:
+- 当修改其中一个对象中的非静态属性时 不会导致其它对象中同样的属性的值的修改
+
+
+> 静态变量(类变量)
+- 我们创建了类的多个对象 *多个对象共享同一个静态变量*
+- 当通过某一个对象修改静态变量时 会导致其它对象调用次静态变量时 是修改过的
+<!-- 
+public class StaticTest {
+
+  public static void main(String[] args) {
+
+    Chiness c1 = new Chiness();
+    Chiness c2 = new Chiness();
+
+    c1.nation = "CHN";
+    System.out.println(c2.nation);
+          -- 不是空 而是 CHN
+  }
+}
+
+class Chiness {
+  static String nation;
+}
+ -->
+
+- 一个家 很多房间 每一个房间就相当于一个对象 房间内的设备是对象中的一个个属性(实例变量) 而厨房和卫生间是共享的(静态变量)
+
+> static修饰属性 - 其它说明
+- 静态变量(类变量) 跟具体的对象没有关系了 而是归类所有
+- 1. 静态变量随着类的加载而加载 可以通过*类.静态变量*的方式调用
+- 2. 静态变量的加载要早于对象的创建
+<!-- 
+  以前说过 实例变量在我们new完以后 就在堆空间中加载到对象内部了
+  也就是说实例变量是随着对象的创建而加载的
+
+  现在是静态变量随着类的创建而加载的 也就是数静态变量的加载 会早于 实例变量的加载
+ -->
+
+- 3. 由于类只会加载一次 则静态变量在内存中也只会存在一份 存在方法区的静态域中
+<!-- 
+  jvm会将整个类加载到方法区 它会把类本身缓存起来 只要我们用这个类 它还都在
+
+  除非我们把java虚拟机关掉 或者 缓存不足的时候 否则类会一直在
+  也就是说 在类的生命周期中 static修饰的结构就一份
+ -->
+
+- 4. 类.实例变量 不能通过类去调用实例变量
+
+
+> 静态属性举例
+- System.out
+- Math.PI
+<!-- 
+  以前我们说过要想使用类中的属性 我们要先创建当前类的对象 通过对象.属性的方法我们去调用
+
+  现在需要做一些调整
+ -->
+
+- 对于非静态的属性 我们在调用属性的时候 要先通过实例化对象 通过对象.属性的方式调用
+
+- 对于静态的结构 我们就不用去造对象了 直接可以通过类去调用(通过对象调也行)
+
+
+> 静态变量 和 实例变量的内存解析
+<!-- 
+  class Chinese {
+    String name;
+    int age;
+    static String nation;   // 静态
+  }
+
+  执行步骤
+  - 1. Chinese.nation = "中国";
+  - 2. chinese c1 = new Chinese();
+
+
+  栈结构             堆结构
+  ---------        ---------
+  栈: 局部变量       堆: 存放 new出来的结构: 对象和数组
+
+  c1        →       name:null / age:0
+                    name: "张三"    age: 40
+                        -- 张三其实是放在常量池中的 这里存放的是地址值
+
+
+
+                    方法区
+                    ---------
+                    方法区: 类的加载信息 静态域 常量池
+
+                    执行步骤1
+                    类一上来就加载了 所以类中的静态属性也会在这里被加载
+
+                    nation: null;  默认值 后来修改为 中国
+                        -- 静态属性就一份 哪个对象修改 修改的都是这里的nation
+ -->
+
+
+> static 修饰方法
+- 使用 static修饰的方法 就是静态方法
+- 1. 随着类的加载而加载 可以通过 类.静态方法 的形式来调用
+- 2. *实例对象也可以调用静态方法* 
+- 3. 静态方法: 
+      - 只能调用静态的结构 静态属性 或 静态方法
+
+     非静态方法:
+      - 既可以调用调用非静态的方法或属性 也可以调用静态的方法或属性
+
+- 4. 在静态的结构中 不能使用this super关键字
+
+- 5. 对于静态属性和静态方法 在静态方法中调用的时候 可以 *省略 类名.* 
+- 比如nation 直接写 nation 的时候 相当于省略了 Chinese.nation
+<!-- 
+  System.out.println(nation)
+  System.out.println(Chinese.nation)
+
+  就跟 实例变量
+  name == this.name 一样 省略了this
+
+  nation == Chinese.nation
+      省略了 Chinese
+
+
+  public static void walk() {
+
+  }
+ -->
+
+- 6. 关于静态属性和静态方法的使用 大家都从生命周期的角度去理解
+- 7. 类中的常量也常常声明为 static
+<!-- 
+  这个常量就是 针对每个对象来讲 都是这个值 所以让所有对象都共享这一个就可以了
+ -->
+
+
+**注意:**
+- static 中 不能写 this 关键字 因为this是当前对象 eat方法是实例对象的 在静态方法里的时候 还没有对象呢
+<!-- 
+  public static void show() {
+    eat();      // 报错
+
+    eat(); == this.eat();
+    也说明静态方法中不能写this
+  }
+ -->
+
+- super也是 在static中不能写 super 关键字 因为super也是必须有当前对象了 基于当前对象的父类 静态结构中 还没有对象呢 所以也不能使用super
+
+
+> 类的销毁
+- 当内存中不会再使用类的时候 如果内存足够 那就是当jvm停下来的时候 那我们就会把类的加载也在内存中进行销毁
+
+- 一开始类的加载是放在缓存区的 不会马上销毁掉 你再去用 再去加载
+- 类加载的时间比较长 当jvm关掉以后 jvm加载的内存结构也就销毁了
+
+- 这就是类的销毁 类销毁的时候 静态的结构也就销毁了 静态结构完全是跟类的生命周期是同步的
+<!-- 
+  非静态结构是跟对象是同步的
+  也就是说 晚出生的可以调用早出生的 早出生的不能调用晚出生的
+ -->
+
+
+> static的应用场景:
+
+- 在开发中 如何确定一个属性是否要声明为static的？
+> 属性是可以被多个对象所共享的 不会随着对象的不同而不同 static
+
+- 在开发中 如何确定一个方法是否要声明为static的？
+> 操作静态属性的方法 通过设置为 static
+<!-- 
+  比如 静态属性的get set方法 也应该是静态的
+ -->
+
+> 工具类中的方法 习惯上声明为 static
+<!-- 
+  声明为static的方法后 就不用造对象了
+  比如Math Arrays Collections 都是直接调用方法的
+ -->
+
+
+> 静态属性的get set方法示例：
+<!-- 
+  // 静态属性设置get方法的时候 不能加this
+  public static double getInteresRate() {
+    return interesRate;
+  }
+
+  // 静态属性设置set方法的时候 要如下
+  public static void setInteresRate(double interesRate) {
+    Account.interesRate = interesRate;
+  }
+
+  public static double getMinMoney() {
+    return minMoney;
+  }
+
+  public static void setMinMoney(double minMoney) {
+    Account.minMoney = minMoney;
+  }
+ -->
+
+
+> 练习1
+- 编写一个类实现银行账户的概念 包含的属性有
+  - 账号 密码 存储余额 利率 最小余额
+- 定义封装这些属性的方法 *账号要自动生成*
+- 编写主类 使用银行账户类 输入 输出3个储户的上述信息
+
+- 考虑 哪些属性可以设计成static属性?
+<!-- 
+  账号 密码不行 存储余额 因为每个对象的账号密码应该不一样
+  利率 最小余额 可以 因为大家都一样
+-->
+
+- 要点:
+- 1. 要注意静态属性的get set方法中没有this只能同过类名的形式赋值
+- 2. 实例对象身上的属性(非静态属性)我们才考虑在构造器中进行初始化
+- 也就是说 静态属性一般不会在构造器中初始化
+<!-- 
+public class Account {
+  
+  private int id;
+  private String pwd = "000000";
+  private double balance;
+
+  // 利率和最小余额都应该是共同的
+  private static double interesRate;
+  private static double minMoney = 1.0;
+
+  // 因为账号要自动生成 用于自动生成id使用的
+  private static int init = 1001;
+
+  public Account() {
+    // 自动生成账户 利用了static 初始值 init属性完成的
+    id = init++;
+  }
+
+
+  // 实例对象有的属性 我们才考虑在构造器中初始化 静态的属性通常不会在构造器中进行初始化工作
+  public Account(String pwd, double balance) {
+    this.pwd = pwd;
+    this.balance = balance;
+    id = init++;
+  }
+
+  public int getId() {
+    return this.id;
+  }
+
+  public String getPwd() {
+    return this.pwd;
+  }
+
+  public void setPwd(String pwd) {
+    this.pwd = pwd;
+  }
+
+  public double getBalance() {
+    return this.balance;
+  }
+
+  // 静态属性设置get方法的时候 不能加this
+  public static double getInteresRate() {
+    return interesRate;
+  }
+
+  // 静态属性设置set方法的时候 要如下
+  public static void setInteresRate(double interesRate) {
+    Account.interesRate = interesRate;
+  }
+
+  public static double getMinMoney() {
+    return minMoney;
+  }
+
+  public static void setMinMoney(double minMoney) {
+    Account.minMoney = minMoney;
+  }
+}
+
+ -->
+
+
+
+
+
+
+
+
+> 练习2 static关键字的应用
+- 需求：
+- 1. 每创建一个圆 圆的id值 自增
+- 2. 统计圆的个数
+
+- 圆的属性:
+- 半径: radius
+- id
+
+- 为了统计圆的个数(total) 和 id自增(init)
+- 我们就可以考虑 让这两个属性 设置为static 这样所有圆共用total 每创建一个圆就total就会加1
+<!--  
+  如果不设置为static 那么每一个对象上都会有一个total 这样就不能统计了
+ -->
+
+- Circle类
+<!-- 
+class Circle {
+  // 每个圆都有自己不同的半径 id 所以是非static的
+  private double radius;
+  private int id;
+
+
+  // 统计圆的个数的属性 记录下造了多个圆
+  private static int total;
+
+  // 希望每造一个圆的对象的id值 是依次递增的 这个属性也设置为static
+  // 多个对象共享
+  private static int init = 1001;
+
+
+  // 想让id属性为自动赋值 我们可以在构造器中完成逻辑
+  public Circle() {
+
+    - 能不能这么写?
+    id = init
+        - 不能
+        - 这样的话 我们造的每一个对象的id就相同了 因为我们拿 静态属性init赋值的
+        - 这里可以让init++
+
+    // 第一次我们造对象的时候 是1001 第二次的时候就是1002
+    id = init++;
+
+    total++;
+  }
+
+
+  // 给半径赋值的构造器
+  public Circle(double radius) {
+    this();
+    this.radius = radius;
+
+      - 注意 这两个也要放进来 用这个构造器创建对象也要自动累加
+      - id = init++;
+      - total++;
+      - 也可以在构造器最上面调用 this();
+  }
+
+  // 每个圆的面积不一样 所以求面积的方法也是非静态的方法
+  public double findArea() {
+    return Math.PI * radius * radius;
+  }
+
+
+  public double getRadius() {
+    return this.radius;
+  }
+
+  public void setRadius(double radius) {
+    this.radius = radius;
+  }
+
+  public int getId() {
+    return this.id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  // total是静态变量 所以我们也要提供了一个静态的get方法
+  public static int getTotal() {
+    return total;
+  }
+}
+ -->
+
+- 测试类调用
+<!-- 
+public class Demo {
+  public static void main(String[] args) {
+
+    Circle c1 = new Circle();
+    Circle c2 = new Circle();
+
+    System.out.println(c1.getId());
+    System.out.println(c2.getId());
+
+    System.out.println("创建圆的个数为: " + Circle.getTotal());
+
+  }
+}
+ -->
+----------------------------
+
+### 单例设计模式
+- 设计模式：
+- 设计模式是在大量的实践中总结和理论化之后优选的代码结构 编程风格 以及解决问题的思考方式
+- 设计模式就像是经典的棋谱 不同的棋局 我们用不同的棋谱 免去我们自己再思考和摸索 *套路*
+
+
+> 单例模式：
+- 所谓类的单例设计模式 就是采取一定的方法保证在整个的软件系统中 对某个类只能存在一个*对象实例*。并且该类只提供一个取得对象实例的方法
+<!-- 
+  主要就是想创建一个对象
+ -->
+
+- 如果我们要让类在一个虚拟机中只能产生一个对象 我们首先*必须将类的构造器的访问权限设置为private* 这样 就不能用new操作符在类的外部产生类的对象了
+
+- 但在类内部仍可以产生该类的对象 因为在类的外部开始还无法得到类的对象
+- 只能*调用该类的某个静态方法*以返回类内部创建的对象 静态方法只能访问类中的静态成员变量 所以指向类内部产生的*该类对象的变量也必须定义成静态的*
+<!-- 
+  创建型模式 供5种
+    工厂方法模式 抽象工厂模式 单例模式 建造者模式 原型模式
+  
+  结构型模式 供7中
+    适配器模式 装饰器模式 代理模式 外观模式 桥接模式 组合模式 享元模式
+
+  行为型模式
+    策略模式 模板方法模式 管擦着模式 迭代子模式 责任链模式 命令模式 备忘录模式 状态模式 访问者模式 中介者模式 解释器模式
+ -->
+
+
+> 单例模式 -- 饿汉式实现
+- 单例模式的核心 就是只打造一个对象
+
+- 实现步骤:
+- 1. 类内部私有化类的构造器 *避免在Bank类的外部调用构造器 创建对象*
+- 2. 类内部通过构造器创建实例对象 *创建的该对象 相当于类的属性*
+<!-- 
+  // 下面 name 和 bank 都是类的属性
+  class Demo {
+    name = "sam"
+  }
+
+  class Demo {
+    private static Bank bank = new Bank();
+  }
+ -->
+
+- 3. 提供公共的方法 返回类内部创建的实例对象 *注意：创建的实例对象 和 对外提供的get方法都必须是static*
+
+- 因为在类内部创建的static 静态属性是公共的 唯一的 类外部不管怎么调用修改 改的都是同一个 想想厕所
+
+<!-- 
+// 测试类调用
+public class Demo {
+  public static void main(String[] args) {
+
+    // 返回的就是一个Bank实例对象
+    Bank bank = Bank.getInstance();
+
+    // 再次调用 Bank.getInstance() 
+    - 得到的还是我们Bank类中唯一new的那个对象
+    Bank bank2 = Bank.getInstance();
+
+    // bank1 == bank2;  true
+  }
+}
+
+// 单例银行类 只造一个对象
+class Bank {
+
+  // 1. 私有化类的构造器
+  // - 目的: 避免在Bank类的外部调用构造器
+  private Bank() {}
+
+  // 
+  // 2. 内部创建类的对象
+  - 私有化构造器后 外部没办法造对象了 那只能在Bank类内部造对象
+  - 实例对象也相当于类的一个属性了 跟int name = “sam” 没区别
+  private static Bank instance = new Bank();
+
+  // 3. 提供公共的方法 返回类的对象
+  - 但是在类的外部怎么调用该方法 方法是非静态的 如果要在类的外部调用的话 得创建类的对象 但是单例模式还没办法创建 怎么处理？ 
+
+  - 将方法声明为static 这样我们就可以通过类去调用getInstance()
+  public static Bank getInstance() {
+
+    - 静态方法中只能调用静态的结构 所以创建的 instance 对象也必须是static类型的
+    return instance;
+  }
+
+  - 注意 类内部实例化的对象 和 对外暴露提供实例对象的get方法都必须是静态的 因为静态方法中只能用静态属性 所以必须都是静态的
+}
+ -->
+
 ----------------------------
 
 ### 书签
-
-
-
-
 
 ----------------------------
 
