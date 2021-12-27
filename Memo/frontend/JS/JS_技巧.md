@@ -1,5 +1,51 @@
 ### Js技巧
 
+### 交换数组中元素的位置
+- 除了利用中间变量的另外一种方式
+
+<!-- 
+    let arr = [
+      {id:1, name: "1"},
+      {id:2, name: "2"},
+      {id:3, name: "3"},
+    ]
+
+    let [item1, item2, item3] = arr
+    let newArr = [item3, item1, item2]
+    
+    console.dir(newArr);
+ -->
+
+
+### 将数组中的元素 插入数组中指定的位置
+<!-- 
+    let arr = [
+      {id:1, name: "sam"},
+      {id:2, name: "erin"},
+      {id:3, name: "nn"},
+    ]
+
+    /**
+     * @id: 根据id找出要移动的元素
+     * @delIndex: 将要 要移动的元素删除
+     * @targetIndex: 将目标元素 移动到哪个元素的前面
+     * @arr: 要操作的数组
+    */
+    function changeEl(id, delIndex, targetIndex, arr) {
+      let obj = arr.find((item) => {
+        return item.id == id
+      })
+
+      arr.splice(delIndex, 1)
+      arr.splice(1, 0, obj)
+      return arr
+    }
+
+    changeEl(3, 2, 1, arr)
+    console.table(arr);
+ -->
+
+
 ### once 实现原理
 > 传参：
 - 我们是once函数内传递参数(fn, 参数1, 参数2)

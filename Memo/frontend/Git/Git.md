@@ -835,6 +835,9 @@ git push origin master
 > 情景1: 未提交到暂存区的时候 
 > git checkout -- file
 - 可以丢弃工作区的修改
+
+> git checkout .
+- 撤销所有未add的更改
 <!-- 
     git checkout -- readme.txt
     命令git checkout -- readme.txt意思就是，把readme.txt文件在工作区的修改全部撤销，这里有两种情况：

@@ -16306,6 +16306,237 @@ footer    footer    footer
 
 ### 技巧
 
+> render函数
+- render方法的实质就是生成template模板
+
+> 要点：
+- 组件内部要是使用 render函数的话 就不能在写<template>标签了
+<!-- 
+  带有render函数的组件应该是这样的
+  
+  // 不能写 <template>
+
+  <script>
+    export default {
+      name: "",
+      render() {}
+    }
+  </script>
+
+  <style>
+    ......
+  </style>
+ -->
+
+
+- 我们先回忆一下 整个页面的挂载流程
+- 1. 模板通过编译生成ast 再由ast生成vue的render函数(渲染函数)
+- 2. 渲染函数结合数据生成虚拟dom树
+- 3. 再经过diff和patch后生成新的ui
+
+- 模板: 
+- Vue的模板基于纯HTML，基于Vue的模板语法
+
+- AST:
+- Vue使用HTML的Parser将HTML模板解析为AST，并且对AST进行一些优化的标记处理，提取最大的静态树，方便Virtual DOM时直接跳过Diff
+
+- 渲染函数:
+- 渲染函数是用来生成Virtual DOM的。Vue推荐使用模板来构建我们的应用界面，在底层实现中Vue会将模板编译成渲染函数，当然我们也可以不写模板，直接写渲染函数，以获得更好的控制 
+
+- Virtual DOM:
+- 虚拟DOM树，Vue的Virtual DOM Patching算法是基于Snabbdom的实现，并在些基础上作了很多的调整和改进。
+
+- Watcher:
+- 每个Vue组件都有一个对应的watcher，这个watcher将会在组件render的时候收集组件所依赖的数据，并在依赖有更新的时候，触发组件重新渲染。你根本不需要写shouldComponentUpdate，Vue会自动优化并更新要更新的UI。
+
+
+> createElement参数
+- createElement 有三个参数
+
+> 参数1:
+- String | Object | Function
+- 第一个参数对于createElement而言是一个必须的参数，这个参数可以是字符串string、是一个对象object，也可以是一个函数function。
+
+<!-- 
+  // 可以是 标签 
+  createElement("div")
+
+  // 可以是 模板
+  createElement({
+    template: "<div>hello</div>"
+  })
+
+  // 还可以是一个函数 return 一个模板出来
+ -->
+
+
+> 参数2:
+- 可选参数
+- 参数类型是一个对象 该对象中可以定义一些属性 会显示在标签属性或者标签文本中
+<!-- 
+  createElement("div", {
+
+    // class
+    "class": {
+      foo: true
+    },
+    
+    // 内联样式
+    style: {
+      color: "red"
+    }
+
+    // 标签属性
+    attrs: {
+      name: "headingId",
+      href: "",
+      id: ""
+    }
+
+    // dom属性
+    domProps: {
+      innerHTML: "<span style="color:blue;font-size:24px">江心比心</span>"
+    }
+
+    // 组件的props
+    props: {
+      myProp: 'bar'
+    }
+
+    on: {
+      click: function(event) {
+        event.preventDefault();
+        console.log(111);
+      }
+    }
+
+    // 仅对于组件，用于监听原生事件，而不是组件内部使用 `vm.$emit` 触发的事件。
+    nativeOn: {
+      click: this.nativeClickHandler
+    }
+
+    // 自定义指令。注意事项：不能对绑定的旧值设值  Vue 会为您持续追踪
+    directives: [
+      {
+        name: 'my-custom-directive',
+        value: '2',
+        expression: '1 + 1',
+        arg: 'foo',
+        modifiers: {
+          bar: true
+        }
+      }
+    ]
+
+    // Scoped slots in the form of
+    - { name: props => VNode | Array<VNode> }
+    scopedSlots: {
+      default: props => createElement('span', props.text)
+    },
+
+    // 如果组件是其他组件的子组件，需为插槽指定名称
+    slot: 'name-of-slot',
+
+    // 其他特殊顶层属性
+    key: 'myKey',
+    ref: 'myRef'
+  })
+ -->
+
+
+> 参数3：
+- 这个参数是可选的
+- 可以给其传一个String 或 Array
+- 第三个参数可以设置多个子元素 是一个数组 “可选”
+<!-- 
+  return createElement(
+    'div', 
+    {
+      class: {
+        title: true
+      },
+      style: {
+        border: '1px solid',
+        padding: '10px'
+      }
+    }, 
+    [
+      createElement('h1', 'Hello Vue!'),
+      createElement('p', '开始学习Vue!')
+    ] 
+  )
+ -->
+
+
+> 利用render函数实现 v-if v-for
+<!-- 
+  Vue.component('tb-heading', {
+    render: function(createElement) {
+      console.log(this)
+      if (this.items.length) {
+        return createElement('ul', this.items.map(function(item){
+          return createElement('li', item.name);
+        }))
+      } else {
+        return createElement('p', 'No items found.');
+      }
+    },
+    
+    props: {
+      items: {
+        type: Array,
+        default: function() {
+          return [
+            {
+              name: 'kongzhi1'
+            },
+            {
+              name: 'kongzhi2'
+            }
+          ]
+        }
+      }
+    }
+  });
+ -->
+
+
+> render函数实现 v-model
+<!-- 
+  <script>
+    Vue.component('tb-heading', {
+      render: function(createElement) {
+        var self = this;
+        return createElement('input', {
+          domProps: {
+            value: '11'
+          },
+          on: {
+            input: function(event) {
+              self.value = event.target.value;
+              self.$emit('input', self.value);
+            }
+          }
+        })
+      },
+      props: {
+        
+      }
+    });
+    new Vue({
+      el: '#container',
+      methods: {
+        inputFunc: function(value) {
+          console.log(value)
+        }
+      }
+    });
+  </e>
+ -->
+------
+
+
+
 > 路由重复报错
 - 在路由的indexjs文件中 加上这样的配置
 <!-- 

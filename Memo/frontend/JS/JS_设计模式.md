@@ -127,3 +127,108 @@
 
   console.log(p1 == p2)
  -->
+
+- 根据java延伸的思路 饿汉式单例
+<!-- 
+  class Person {
+    static instance = new Person()
+    static createInstance() {
+      return Person.instance
+    }
+  }
+
+  const p1 = Person.createInstance()
+  const p2 = Person.createInstance()
+
+  console.log(p1 == p2)
+ -->
+
+
+### 观察者模式
+- 观察者 和 发布订阅 是两个设计模式 (vue作者认为它俩是一个东西)
+
+- 思路:
+- 我们想想 监控
+- 我们在教室里就是 *被观察者* 在监控后面的老师就是 *观察者*
+- 当被观察者触发了一些条件的时候 观察者就会触发一些技能
+
+> 观察者模式
+- 就是监控一个对象的状态 一旦状态发生变化 马上触发技能
+
+- 我们需要两个构造函数来实现
+- 1. 创建被观察者
+- 2. 创建观察者
+<!-- 
+  观察者的技能是看 被观察者什么时候触发条件
+ -->
+
+- 思路：
+- 首先有两个角色
+- 1. 被观察者
+- 2. 观察者
+
+- 当被观察者的状态发生变化的时候 会触发被观察者的事件
+
+> 创建观察者类
+- 构造器中要写上当被观察者的状态发生变化的时候 触发的事件
+<!-- 
+  class Observer {
+
+    // name 观察者的身份, fn技能 默认这为空函数 不至于调用的时候报错
+    constructor(name, fn = () => {}) {
+      this.name = name
+      this.fn = fn
+    }
+  }
+ -->
+
+
+> 创建被观察者类
+- 这个类中应该有 
+- 1. 状态
+- 2. 观察者列表
+  - 用于保存观察的人
+
+- 3. 改变状态的方法
+- 4. 添加观察者的方法
+- 5. 删除观察者的方法
+
+- 核心:
+- 当我们调用改变被观察者的状态方法的时候 同时触发保存在队列中对象中的方法
+<!-- 
+  class Subject {
+    constructor(state) {
+      // 记录自己的状态
+      this.state = state
+
+      // 这个数组用来保存观察着我们的人
+      this.observers = []
+    }
+
+    // 设置自己的状态
+    setState(state) {
+      this.state = state
+
+      // 一旦状态改变 那么我们就触发所有观察者的技能 遍历this.oobservers 依次触发技能
+      this.observers.forEach(item => {
+
+        // 并且把我改变的状态传回去 告诉他我改变了什么状态
+        item.fn(this.state)
+      })
+    }
+
+    // 添加观察者
+    addObserver(obs) {
+      // some只要有一个是true就返回true
+      const res = this.observers.some(item => item == obs)
+      if(!res) {
+        this.observers.push(obs)
+      }
+    }
+
+    delObservere(obs) {
+      // 把obs观察者删除就可以了
+      this.observers = this.observers.filter(item => item !== obs)
+    }
+  }
+ -->
