@@ -1,5 +1,301 @@
 ### Js技巧
 
+### requestAnimationFrame API
+### 分页逻辑
+### 分页渲染结构
+
+> 后端逻辑
+- 后端逻辑： 组织好10w+数据 返回给前端
+
+```js
+const http = require("http)
+http.craeteServer((req, res) => {
+    res.writeHead(200, {
+        'Access-Control-Allow-Origin': '*',
+        "Access-Control-Allow-Methods": "DELETE,PUT,POST,GET,OPTIONS",
+        'Access-Control-Allow-Headers': 'Content-Type'
+    })
+
+    let list = []
+    let num = 0
+
+    for(let i=0; i<100000; i++) {
+        num++
+        list.push({
+            src: "一张图片",
+            text: `我是${num}号选手`,
+            id: num
+        })
+    }
+
+    res.end(JSON.stringify(list))
+}).listen(3000, () => {
+    console.log("server is listening on 3000 port")
+})
+```
+
+
+> 前端逻辑
+- AJAX获取请求数据 封装强求函数
+
+```js
+const getList = () => {
+    return new Promise((resolve, reject) => {
+        let ajax = new XMLHttpRequest()
+        ajax.open("get", "http://127.0.0.1:3000")
+        ajax.send()
+        ajax.onreadystatechange = function() {
+            if(ajax.readyState == 4 && ajax.status == 200) {
+                resolve(JSON.parse(ajax.responseText))
+            }
+        }
+    })
+}
+```
+
+> 直接渲染方法
+- 将我们从后端获取的10w条数据一次性的渲染到页面上 (非常耗时)
+- 封装渲染结构的函数
+
+```js
+const renderList = async () => {
+    const list = await getList()
+    list.forEach(item => {
+        const div = document.createElement("div")
+        div.className = "xxx"
+        div.innerHTML = `<img src="${item.src}"><span>${item.text}</span>`
+        container.appendChild(div)
+    })
+}
+
+renderList()
+```
+
+
+> setTimeout分页渲染
+- 定义变量:
+- 1. 总数据的条数 
+        -- *total*: list.length
+
+- 2. 自定义每页显示条数 变量 
+        -- *limit*: 200
+
+- 3. 自定义当前页 变量(初始值) 
+        -- *page*: 0
+
+- 4. 总页数(总数据条数/每页显示条数) 
+        -- *totalPage*: Math.ceil(total / limit)
+
+
+- 渲染逻辑:
+- 定义分页渲染函数
+- 利用递归 循环渲染 递归的退出条件 当前页 >= 总页数
+- 开启定时器 0秒间隔 分批渲染
+
+- 第一次渲染前200条 第二次渲染后200条
+
+```js
+const renderList = async () => {
+    const list = await getList()
+    const total = list.length
+    const page = 0
+    const limit = 200
+    const totalPage = Math.ceil(total/limit)
+
+    const render = page => {
+        if(page >= total) return
+        setTimeout(() => {
+            for(let i = page * limit; i  < page * limit + limit; i++) {
+                const item = list[i]
+                const div = document.createElement('div')
+                div.className = 'sunshine'
+                div.innerHTML = `<img src="${item.src}" /><span>${item.text}</span>`
+                container.appendChild(div)
+            }
+
+            render(page + 1)
+        }, 0)
+    }
+
+    render(page)
+}
+```
+
+
+> requestAnimationFrame 渲染
+- 使用requestAnimationFrame代替setTimeout，减少了重排的次数，极大提高了性能，建议大家在渲染方面多使用requestAnimationFrame
+
+```js
+const renderList = async () => {
+    console.time('列表时间')
+    const list = await getList()
+    console.log(list)
+    const total = list.length
+    const page = 0
+    const limit = 200
+    const totalPage = Math.ceil(total / limit)
+
+    const render = (page) => {
+        if (page >= totalPage) return
+
+        // 使用requestAnimationFrame代替setTimeout
+        requestAnimationFrame(() => {
+            for (let i = page * limit; i < page * limit + limit; i++) {
+                const item = list[i]
+                const div = document.createElement('div')
+                div.className = 'sunshine'
+                div.innerHTML = `<img src="${item.src}" /><span>${item.text}</span>`
+                container.appendChild(div)
+            }
+            render(page + 1)
+        })
+    }
+    render(page)
+    console.timeEnd('列表时间')
+}
+```
+
+> 文档碎片 + requestAnimationFrame
+- 文档碎片的好处:
+- 1. 之前都是每次创建一个div标签就appendChild一次，但是有了文档碎片可以先把1页的div标签先放进文档碎片中，然后一次性appendChild到container中，这样减少了appendChild的次数，极大提高了性能
+
+- 2. 页面只会渲染文档碎片包裹着的元素，而不会渲染文档碎片
+
+```js
+const renderList = async () => {
+    console.time('列表时间')
+    const list = await getList()
+    console.log(list)
+    const total = list.length
+    const page = 0
+    const limit = 200
+    const totalPage = Math.ceil(total / limit)
+
+    const render = (page) => {
+        if (page >= totalPage) return
+        requestAnimationFrame(() => {
+
+            // 创建一个文档碎片
+            const fragment = document.createDocumentFragment()
+
+            for (let i = page * limit; i < page * limit + limit; i++) {
+                const item = list[i]
+                const div = document.createElement('div')
+                div.className = 'sunshine'
+                div.innerHTML = `<img src="${item.src}" /><span>${item.text}</span>`
+
+                // 先塞进文档碎片
+                fragment.appendChild(div)
+            }
+
+            // 一次性appendChild
+            container.appendChild(fragment)
+            render(page + 1)
+        })
+    }
+    render(page)
+    console.timeEnd('列表时间')
+}
+```
+
+> vue3 + ts
+- 备用吧
+
+```js
+<script setup lang="ts">
+import { onMounted, ref, computed } from 'vue'
+const getList = () => {
+  // 跟上面一样的代码
+}
+
+const container = ref<HTMLElement>() // container节点
+const blank = ref<HTMLElement>() // blank节点
+const list = ref<any>([]) // 列表
+const page = ref(1) // 当前页数
+const limit = 200 // 一页展示
+// 最大页数
+const maxPage = computed(() => Math.ceil(list.value.length / limit))
+// 真实展示的列表
+const showList = computed(() => list.value.slice(0, page.value * limit))
+const handleScroll = () => {
+  // 当前页数与最大页数的比较
+  if (page.value > maxPage.value) return
+  const clientHeight = container.value?.clientHeight
+  const blankTop = blank.value?.getBoundingClientRect().top
+  if (clientHeight === blankTop) {
+    // blank出现在视图，则当前页数加1
+    page.value++
+  }
+}
+
+onMounted(async () => {
+  const res = await getList()
+  list.value = res
+})
+</script>
+
+<template>
+  <div id="container" @scroll="handleScroll" ref="container">
+    <div class="sunshine" v-for="(item) in showList" :key="item.tid">
+      <img :src="item.src" />
+      <span>{{ item.text }}</span>
+    </div>
+    <div ref="blank"></div>
+  </div>
+</template>
+```
+
+
+> requestAnimationFrame(callback)
+- https://wangdoc.com/javascript/bom/window.html#windowgetcomputedstylewindowmatchmedia
+
+- 这个函数要是想执行动画都是利用了递归
+
+- API详解:
+- window.requestAnimationFrame()方法跟setTimeout类似
+- 都是推迟某个函数的执行。不同之处在于，setTimeout必须指定推迟的时间，
+
+- window.requestAnimationFrame()则是推迟到浏览器下一次重流时执行，执行完才会进行下一次重绘。
+
+<!-- 
+    重绘通常是 16ms 执行一次，不过浏览器会自动调节这个速率，
+    比如网页切换到后台 Tab 页时，
+    
+    requestAnimationFrame()会暂停执行。
+
+    如果某个函数会改变网页的布局，一般就放在window.requestAnimationFrame()里面执行，这样可以节省系统资源，使得网页效果更加平滑。因为慢速设备会用较慢的速率重流和重绘，而速度更快的设备会有更快的速率。
+ -->
+
+- window.requestAnimationFrame()的*返回值是一个整数*，
+- 这个整数可以传入*window.cancelAnimationFrame()*，用来取消回调函数的执行。
+
+```js
+var element = document.getElementById('animate');
+element.style.position = 'absolute';
+
+var start = null;
+
+// callback 的参数(timestamp)是 高精度时间戳 表示距离网页加载的时间。
+function step(timestamp) {
+  if (!start) start = timestamp;
+  var progress = timestamp - start;
+
+  // 元素不断向左移，最大不超过200像素
+  element.style.left = Math.min(progress / 10, 200) + 'px';
+
+  // 如果距离第一次执行不超过 2000 毫秒，  就继续执行动画
+  if (progress < 2000) {
+    window.requestAnimationFrame(step);
+  }
+}
+
+window.requestAnimationFrame(step);
+```
+
+
+
+
+
 ### 交换数组中元素的位置
 - 除了利用中间变量的另外一种方式
 

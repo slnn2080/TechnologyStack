@@ -232,3 +232,395 @@
     }
   }
  -->
+
+
+### 发布订阅模式
+- 这个模式和观察者模式很像
+- 思路
+- 有一个对象 有人一直看着他 当这个对象发生变化的时候 第三方通知这个看着的人 触发技能
+
+- 例子：
+- 普通程序员买书 -- 去书店 -- 问 -- 没有 -- 回家
+- 这个过程反复一直到买到书了为止
+
+- 发布订阅程序员 -- 去书店 -- 没有 -- 留联系方式 -- 一旦有了书就会接到电话 -- 触发技能去买书
+
+- 上面的逻辑还是跟观察者模式很像 但是实现的逻辑 一个函数就够
+
+- 只需要一个构造函数 创建一个第三方店员的身份
+<!-- 
+  其实我们在开发中用的特别多 addEventListener 
+  由浏览器在给你看着div 一旦触发了click行为 马上执行回调
+ -->
+
+> 视频中的逻辑整理
+- 我们想想 on函数 off函数 调用的时候 是不是也要传入事件名 和 回调
+- 我们创建一个事件队列 类型是一个对象 因为对象可以承载 事件名 和 事件数组的形式
+- 我们创建on方法 调用on函数的时候 将事件名 和 事件回调传入事件队列中
+- 我们创建emit方法 当发射事件名的时候 遍历调用事件队列中的函数
+
+> 逻辑整理
+- 消息的订阅与发布 还是理解为 
+- 一方发布消息 比如发布 callbackSuccess 事件 并发送数据
+- 一方订阅此消息 当发布的时候 就会调用回调 并拿到数据
+
+- 所以我们先完成发布消息方的逻辑
+
+
+
+> 分析构造函数
+- 属性：
+- 任务队列 也叫做消息队列
+  {
+    click: [fn1, fn2, fn3],
+    change: [fn1, fn2, fn3]
+  }
+- 一旦用户触发了click行为 就执行click对应的 函数
+
+- 方法：
+- 向消息队列中添加内容
+
+- 方法：
+- 删除消息队列里面的内容
+
+- 方法：
+- 能触发消息队列里面的内容
+
+
+> 理解上的要点:
+- 1. if else逻辑 和 if(!xx) code... 逻辑的区别
+
+- A
+<!-- 
+  if(this.message[type]) {
+    this.message[type].push(fn)
+  } else {
+    this.message[type] = []
+
+    // 我们可以在这里添加这样的逻辑就可以了
+    this.message[type].push(fn)
+  }
+ -->
+
+- B
+ <!-- 
+  if(!this.message[type]) {
+    this.message[type] = []
+  } 
+  this.message[type].push(fn)
+  -->
+
+- 上面两块代码的区别是什么
+- A的逻辑咋一看没有问题 第一次走else进行初始化 第二次往数组里push元素
+- 但实际操作的时候 发现 调用两次 o.on("click", fn1) o.on("click", fn2) 只push进去一个fn2
+- 原因第一次走的确实是初始化的逻辑 但是 if else 整体就会执行一次 既然走了else的逻辑 就没有push的操作
+- 所以第二次调用的时候 才会push元素进去
+
+- 而B是 可以看做两条语句 先执行if判断确实没有click 设置[] 然后下一行就是push 所以好好考虑下
+
+
+- 2. 有时候我们要进行严谨的判断 所以经常要使用 这种方式 
+
+    if(!this.message[type]) return 
+
+
+- 视频中的代码部分
+<!-- 
+class Observer {
+
+  constructor() {
+    // 消息队列 或者称为 任务队列
+    this.message = {}
+  }
+
+  // 向消息队列里面添加内容
+  on(type, fn) {
+
+    if(!this.message[type]) {
+      this.message[type] = []
+    } 
+    this.message[type].push(fn)
+
+  }
+
+  // 删除消息队列里面的内容
+  off(type, fn) {
+
+    // 判断 如果fn不存在 只有一个参数的情况下
+    if(!fn) {
+
+      // fn不存在代表我们要 代表我要情况click对应的事件队列
+      this.message[type] = []
+      // delete this.message[type]
+      return
+      
+    }
+    
+    // 代表能来到这里表示fn存在
+    if(!this.message[type]) return 
+    this.message[type] = this.message[type].filter(item => {
+      return item !== fn
+    })
+  }
+
+  // 触发消息队列
+  emit(type) {
+    if(!this.message[type]) return
+    this.message[type].forEach(item => item())
+  }
+
+}
+
+// 创建实例
+const p = new Observer()
+
+let handleClickA = () => {
+  console.log("handleClickA")
+}
+let handleClickB = () => {
+  console.log("handleClickB")
+}
+
+p.on("click", handleClickA)
+// console.log(p);
+p.on("click", handleClickB)
+// console.log(p);
+
+
+// p.off("click")
+
+// 删除指定事件
+// p.off("click", handleClickA)
+
+// 这个人一旦触发a行为 就要吧后面的所有事件处理函数执行掉
+p.emit("click")
+ -->  
+
+
+> 爬虫中的启示
+<!-- 
+  let eventObj = {
+    // 事件对象
+    event: {
+      // 我们绑定什么事件 比如我们可以绑定 fileSuccess 事件
+      fileSuccess: [],
+    }
+        
+
+    // 绑定事件的on方法
+    on: function(eventName, eventFn) {
+      // 我们绑定的事件名称在事件对象里面的话
+      - 比如我们绑定的是 fileSuccess事件 那就把回调push到 fileSuccess对应的事件数组中
+      if(this.event[eventName]) {
+        this.event[eventName].push(eventfn)
+      } else {
+      // 如果不在的话 就创建一个该事件kv 整理成
+      - 新事件: []
+      - 然后将回调push到新事件对应的事件数组中 做初始化的路基
+      this.event[eventName] = []
+      this.event[eventName].push(eventfn)
+      }
+    },
+        
+    // 定义触发事件的逻辑函数
+    emit: function(eventName, data) {
+      if(this.event[eventName]) {
+        this.event[eventName].forEach(itemFn => {
+          itemFn(data)
+        });
+      }
+    }
+  }
+
+// 当读取数据后触发 自定义事件的回调
+let fs = require("fs")
+fs.readFile("./output.txt", "utf-8", (err, data) => {
+  if(!err) lcEvent.emit("fileSuccess", data)
+})
+
+
+// 自定义事件的逻辑部分
+lcEvent.on("fileSuccess", (data) => {
+  console.log("查看数据库")
+})
+
+lcEvent.on("fileSuccess", (data) => {
+  console.log("统计年龄比例")
+})
+
+lcEvent.on("fileSuccess", (data) => {
+  console.log("查看所有用户的信息")
+})
+ -->
+
+
+### 策略模式
+- 一个问题匹配多个解决方案 但是不一定要用到哪一个方案 而且有可能随时还会继续增加多个方案
+
+- 比如:
+- 购物车结算 我们有好多种结算方式
+- 1. 满100减10元
+- 2. 满200减25元
+- 3. 纯8折
+
+- 4. 有一天可能突然打7折
+- 5. 突然有一天还取消7折
+
+
+> 逻辑代码
+- 参数1： 商品原价格
+- 参数2： 折扣活动种类 因为什么活动打折
+function calcPrice(price, type) {
+  if(type == "100_10") {
+    price -= 10
+  } else if(type == "200_25") {
+    price -= 25
+  } else if(typeof == "80%") {
+    price *= 0.8
+  } else {
+    console.log("没有这种折扣")
+  }
+
+  return price
+}
+
+- 商品原价格为320元
+- 折扣活动为 满100减10元
+const res = calcPrice(320, "100_10")
+console.log(res)
+
+------
+
+- 上面的代码完成基本的逻辑是没有问题的
+- 但是一旦加一种折扣或者删除一种折扣 就需要回程序中改写源代码
+
+
+> 自执行函数 + return函数 和 普通函数的区别 要点：
+- 下面两种方式的结果是一样 在调用的时候都是 calcPrice() 只不过第一种自执行函数可以利用闭包保存数据
+
+    const calcPrice = (function() {内部return函数})()
+    const calcPrice = () => {}
+
+
+> 策略模式的思路
+- 把我们的多种方案 以闭包的形式保存起来 按照传递进来的折扣和价格计算最终价格返回
+
+- 对外留一个接口 可以添加和减少 折扣种类
+<!-- 
+  // 1. 自执行函数 得到的结果就是内部的return fn
+  const calcPrice = (function() {
+
+      // 折扣方案放在这里
+
+      return function() {}
+    }
+  )()
+ -->
+
+- 阶段1
+- 下面的逻辑实现了一部分 但是并没有对外提供添加折扣种类 和 删除折扣种类的接口
+<!-- 
+  const calcPrice = (function() {
+
+      const sale = {
+        // 满100减10
+        "100_10": price => price -= 10,
+        "200_25": price => price -= 25,
+        "80%": price => price *= 0.8,
+      }
+
+      // 被return出去的函数 才是calcPrice本体 闭包只是为了存放数据
+      return function(price, type) {
+
+        // 判断对象中有没有这个折扣类型
+        if(!sale[type]) return '没有这个折扣'
+
+        // 如果有就执行对象中对应的逻辑 找到sale里面指定的哪个函数执行计算出结果 返回给外边
+        const ret = sale[type](price)
+        return ret
+      }
+    })()
+
+    const res = calcPrice(320, "100_10")
+ -->
+
+- 阶段2
+- 留下添加 删除折扣种类的接口
+- 我们要知道函数也是一个对象 向里面添加一些成员
+<!--  
+  const calcPrice = (function() {
+
+    const sale = {
+      "100_10": price => price -= 10,
+      "200_25": price => price -= 25,
+      "80%": price => price *= 0.8,
+    }
+
+    function calcPrice(price, type) {
+      if(!sale[type]) return '没有这个折扣'
+      return sale[type](price)
+    }
+
+    // 把函数当做一个对象 向里面添加一些成员
+    // 专门添加折扣的方法 使用的时候 calcPrice.add("70%", (price) => {return price *= 0.7})
+    calcPrice.add = function(type, fn) {
+      // 判断折扣是否存在
+      if(sale[type]) return "该折扣已存在"
+
+      // 代码来到这里 表示折扣不存在 因为是闭包 数据会存在这里面
+      sale[type] = fn
+      return "添加成功"
+    }
+
+    calcPrice.del = function(type) {
+      // 把对应的折扣删除调
+      delete sale[type]
+    }
+
+    return calcPrice
+  })()
+
+  const res = calcPrice(320, "100_10")
+ -->
+
+
+> 用类改造一下上面的逻辑
+<!-- 
+  class SaleCampaign {
+    static sale = {
+      "100_10": price => price -= 10,
+      "200_25": price => price -= 25,
+      "80%": price => price *= 0.8,
+    }
+
+    static add(type, fn) {
+      if(SaleCampaign.sale[type]) return "该折扣已存在"
+      SaleCampaign.sale[type] = fn
+      console.log("折扣添加成功")
+    }
+
+    static del(type) {
+      delete SaleCampaign[type]
+    }
+
+    static showCampaign() {
+      console.log(SaleCampaign.sale)
+    }
+
+    calc(price, type) {
+      if(!SaleCampaign.sale[type]) {
+        console.log("没有这个折扣")
+        return
+      }
+
+      return SaleCampaign.sale[type](price)
+    }
+  }
+
+  // SaleCampaign.add("70%", price => price *= 0.7)
+  // SaleCampaign.showCampaign()
+  
+  const instance = new SaleCampaign()
+  let res = instance.calc(320, "100_10")
+  console.log(res);
+ -->

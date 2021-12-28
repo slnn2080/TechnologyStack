@@ -1,4 +1,7 @@
 ### 待学的知识点：
+> 数据话大屏组件库
+- http://datav.jiaminghi.com/
+
 > addRoutes 的使用
 - https://www.cnblogs.com/zhuhuoxingguang/p/11759001.html
 - https://www.jianshu.com/p/27e304884459
