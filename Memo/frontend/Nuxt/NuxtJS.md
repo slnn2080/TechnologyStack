@@ -183,6 +183,47 @@
 
 ---------------
 
+### 修改端口
+- 我们需要在package.json文件中加上
+
+```js
+"config": {
+  "nuxt": {
+    "host": "127.0.0.1",
+    "port": "8001"
+  }
+},
+```
+
+
+### 安装scss
+- npm install --save-dev node-sass sass-loader
+- 或者再 nuxt.config.js 里面配置
+  - 1. 在asset文件夹下新建css文件夹，在css文件夹中新建index.scss文件，作为scss样式的总入口，然后在index.scss中通过@import引入其他scss样式文件
+  - 2. 在配置中引入index.scss文件 在nuxt.config.js文件中的css中引入
+- 或者组件内直接使用
+
+```js
+module.exports = {
+  css: [
+    // 直接加载一个 Node.js 模块。（在这里它是一个 Sass 文件）
+    'bulma',
+    // 项目里要用的 CSS 文件
+    '@/assets/css/main.css',
+    // 项目里要使用的 SCSS 文件
+    '@/assets/css/main.scss'
+
+    // 或者这么写
+    { src: '~/assets/css/index.scss', lang: 'scss' }
+  ]
+}
+```
+
+
+### nuxt对components里面的组件 是自动导入 无需手动导入
+
+---------------
+
 ### 项目目录结构：
 - assets
     资源性的文件夹
@@ -629,6 +670,44 @@
   }
  -->
 
+> nuxt.config.js 中配置 head 的方式
+- <html {{ HTML_ATTRS }}> 中的 HTML_ATTRS 也是在下方更改
+```js
+head: {
+  title: 'dealer',
+  htmlAttrs: {
+    lang: 'en'
+  },
+  meta: [
+    { charset: 'utf-8' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    { hid: 'description', name: 'description', content: '' },
+    { name: 'format-detection', content: 'telephone=no' }
+  ],
+  link: [
+    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+  ]
+},
+```
+
+
+### assets static
+```html
+<!-- 引用 static 目录下的图片 -->
+<img src="/my-image.png" />
+
+<!-- 引用 assets 目录下经过 webpack 构建处理后的图片 -->
+<img src="~/assets/my-image-2.png" />
+```
+
+**请注意:** 
+- 从 Nuxt 2.0 开始，
+- ~/alias将无法在CSS 文件中正确解析。
+你必须在 url CSS 引用中使用 ~assets（没有斜杠）或@别名，即background:url("~assets/banner.svg")
+
+- 试试这种
+'@/assets/css/main.css',
+'~/assets/css/main.css',
 
 ---------------
 

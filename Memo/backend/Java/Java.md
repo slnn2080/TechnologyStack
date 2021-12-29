@@ -11829,7 +11829,7 @@ public class Demo {
 
 - 上面的例子中 按正常来讲我们的 num1 是没办法 放入到 method() 方法中的
 - 但是 method(num1) 也没报错
-<!-- 
+```java 
   @Test
   public void test3() {
     int num = 10;
@@ -11837,13 +11837,13 @@ public class Demo {
 
     // 这里 并不是 Object obj = num 将int类型的num 赋值给了形参Object类型的obj num 和 obj的类型不一样 也没有子父类的关系 
 
-    但是为什么不报错呢？ 因为隐含了一个知识点 就是自动装箱和拆箱
+    - 但是为什么不报错呢？ 因为隐含了一个知识点 就是自动装箱和拆箱
   }
 
   public void method(Object obj) {
     System.out.println(obj);    // 不仅没有报错还能正常的输出
   }
- -->
+```
 
 > 自动装箱
 - 实现了 基本数据类型 --- 包装类
@@ -11868,13 +11868,13 @@ Integer in1 = num2;
 > 自动拆箱
 - *直接把一个包装类的对象赋值给基本数据类型的变量*
 
-<!-- 
+```java 
   int num2 = 10;
   Integer in1 = num2;
 
   // 自动拆箱
   int num3 = in1;
- -->
+```
 
 - 5.0之后才可以使用自动装箱 和 自动拆箱
 
@@ -11882,14 +11882,14 @@ Integer in1 = num2;
 > 基本数据类型 和 包装类 转换为 String类型
 - 我们看下下面的问题 我们把一个int型的数据 赋值给String类型的变量是不行的 因为基本数据类型和String类型之间没有自动类型提升
 
-<!-- 
+```java 
   import org.junit.Test;
   @Test
   public void test4() {
     int num1 = 10;
     String str1 = num1;
   }
- -->
+```
 
 - 但是我们可以这样 String str1 = *num1 + ""*;
 - 我们让基本数据类型 链接一个空字符串 这样它就是一个String类型的了
@@ -11934,10 +11934,10 @@ Integer in1 = num2;
 
 > Integer.parseInt(String s)
 - 该方法会返回一个基本数据类型的数据
-<!-- 
+```java 
   String str = "123";
   int num = Integer.parseInt(str);
- -->
+```
 
 > Boolean.parseBoolean(变量)
 > Float.parseFloat(变量)
@@ -11948,10 +11948,10 @@ Integer in1 = num2;
 
 > 面试题：
 - 如下两个题目输出结果相同么？ 各是什么
-<!-- 
+```java 
   Object o1 = true ? new Integer(1) : new Double(2.0)
   system.out o1    // 1.0
- -->
+```
 
 - 为啥是1.0呢？
 - 为啥不是1 地址
@@ -11967,14 +11967,15 @@ Integer in1 = num2;
 
 
 - 下面没啥知识点就是1
-<!-- 
+
+```java 
   Object o2;
   if(true) o2 = new Integer(1)
   else 
     o2 = new Double(2.0)
 
   system.out o2    // 1
- -->
+```
 
 
 > 2
@@ -11982,7 +11983,7 @@ Integer in1 = num2;
 - 当我们里面放的是char型数组的时候 我们输出的是内容 
 - 除了char型数据 其它输出的都是地址值
 
-<!-- 
+```java 
   public void method1() {
     Integer i = new Integer(1)
     Integer j = new Integer(1)
@@ -11998,7 +11999,7 @@ Integer in1 = num2;
     Integer y = 128;
     System.out.println(x == y)  // false 为什么跟上面看着一样却是false
   }
- -->
+```
 
 - Integer包装类是对int变量的一个封装
 <!-- 
@@ -12084,7 +12085,8 @@ Integer in1 = num2;
     20 分内： B 等； 
     30 分内： C 等；
     其它：    D 等；
-<!-- 
+
+```java 
 package src.com;
 import java.util.Scanner;
 import java.util.Vector;
@@ -12115,11 +12117,11 @@ public class Demo {
         continue; // 因为成绩非法 跳过这次 存储操作
       }
 
-      // 3.1 添加操作 v.addElement(Object obj)
 
-  - 将成绩添加到 Vector 中 在jdk5.0之前
-  - 我们要添加到Vector中必须使用new Integer的形式创建包装类 
-  - 将成绩转为包装类对象再放入到Vector方法中 
+      // 3.1 添加操作 v.addElement(Object obj)
+    - 将成绩添加到 Vector 中 在jdk5.0之前
+    - 我们要添加到Vector中必须使用new Integer的形式创建包装类 
+    - 将成绩转为包装类对象再放入到Vector方法中 
     // Integer inScore = new Integer(score)  
     // v.addElement(Object obj)
     // v.addElement(inScore)
@@ -12165,7 +12167,7 @@ public class Demo {
     }
   }
 }
- -->
+```
 
 ----------------------------
 
@@ -12222,7 +12224,7 @@ public class Demo {
 > 静态变量(类变量)
 - 我们创建了类的多个对象 *多个对象共享同一个静态变量*
 - 当通过某一个对象修改静态变量时 会导致其它对象调用次静态变量时 是修改过的
-<!-- 
+```java 
 public class StaticTest {
 
   public static void main(String[] args) {
@@ -12239,7 +12241,7 @@ public class StaticTest {
 class Chiness {
   static String nation;
 }
- -->
+```
 
 - 一个家 很多房间 每一个房间就相当于一个对象 房间内的设备是对象中的一个个属性(实例变量) 而厨房和卫生间是共享的(静态变量)
 
@@ -12330,7 +12332,8 @@ class Chiness {
 
 - 5. 对于静态属性和静态方法 在静态方法中调用的时候 可以 *省略 类名.* 
 - 比如nation 直接写 nation 的时候 相当于省略了 Chinese.nation
-<!-- 
+
+```java
   System.out.println(nation)
   System.out.println(Chinese.nation)
 
@@ -12344,7 +12347,7 @@ class Chiness {
   public static void walk() {
 
   }
- -->
+```
 
 - 6. 关于静态属性和静态方法的使用 大家都从生命周期的角度去理解
 - 7. 类中的常量也常常声明为 static
@@ -13596,6 +13599,759 @@ class Student extends Person {
   }
 ```
 
+
+> abstract抽象的 应用场景
+- 在上面的一个案例中
+- 有一个几何图形的类 然后有圆形 和 长方形的子类
+- 父类中定义了求面积的方法 但是因为圆形和长方形的面积公式不一样 父类的求面积的方法比较难写(因为不知道图形是什么) 
+- 求面积的方法不知道怎么定义才好 我们就直接 return 0.0 然后要求子类去重写该方法
+```java
+
+// 父类 类内部有抽象方法 那么该类也必须是抽象类
+public abstract class GeometricObject {
+
+  // 求面积的方法
+  public double findArea() {
+    return 0.0
+  }
+
+  // 这时候该方法就可以设置为抽象方法
+  public abstract double findArea();
+}
+```
+
+- 之前return 0.0的时候 我们子类中需要记得点 findArea方法需要在子类中重写
+- 但是定义为 abstract 之后 不重写一定会提示报错
+
+
+> abstract 使用时候的注意点
+- 1. abstract不能用来修饰 *属性* *构造器* 等结构
+- 2. abstract不能用来修饰 
+  - 私有方法(private) 
+  - 静态方法(static) 
+  - final的方法
+  - final的类
+
+<!-- 
+  私有方法的原因:
+    因为声明为 private 的方法 不能被重写 所以没有办法设置为 abstract
+
+  静态方法的原因:
+    当初我们说重写的时候 就说过只有非静态的方法才能被重写
+    如果父类有一个静态方法 子类也有一个静态方法 同名同参数的
+    我们不认为这两个方法是覆盖
+ -->
+
+
+> 抽象性的练习
+- 1. 为什么抽象类不可以用final关键字声明
+- 抽象类都要求子类去继承 final代表不能继承 冲突
+
+- 2. 抽象类中可以定义构造器么？
+- 可以 子类造对象的时候 会默认调用父类的构造器去加载父类的属性和方法
+
+- 3. 是否可以这样理解 抽象类就是比普通类多定义了抽象方法 除了不能直接进行类的实例化操作之外 并没有任何的不同？
+- 也可以这样想
+
+- 4. 编写一个Employee类 声明为抽象类 包含三个属性
+  name id salary
+- 提供必要的构造器和抽象方法: work()
+- 对于Manager类来说 他即是员工 还具有奖金 bonus 的属性
+- 请使用继承的思想 设计CommonEmployee类和Manager类 要求类中提供必要的方法进行属性访问
+
+```java
+public abstract class Employee {
+  private String name;
+  private int id;
+  private double salary;
+
+  public Employee() {
+    // 即是不显式的写出来 默认也会调用super
+    super();
+  }
+
+  public Employee(String name, int id, double salary) {
+    this.name = name;
+    this.id = id;
+    this.salary = salary;
+  }
+
+  // 方法通常定义为public
+  public abstract void work();
+}
+
+
+// 哪怕是老大也属于员工
+public class Manager extends Employee {
+  private double bonus;
+
+  // 空参构造器
+  public Manager() {}
+
+  // 单独属性的构造器
+  public Manager(double bonus) {
+    this.bonus = bonus;
+  }
+
+  // 全部属性的构造器
+  public Manager(String name, int id, double salary, double bonus) {
+    super(name, id, salray);
+    this.bonus = bonus;
+  }
+
+  // 重写抽象方法 就不用有 abstract关键字了
+  public void work() {
+    System.out.println("管理员工 提高公司运行效率")
+  }
+}
+
+// 普通员工的类
+public class CommonEmployee extends Employee {
+  
+  // 重写方法
+  public void work() {
+    System.out.println("员工在一线车间生产产品")
+  }
+}
+
+
+// 测试类
+public classs EmployeeTest {
+
+  Manager manager = new Manager("sam", 1001, 20000, 20000);
+  manager.work();
+
+  // 如下的方式是多态的使用
+  Employee manager = new Manager("sam", 1001, 20000, 20000);
+    - 解析:
+    - 为什么要使用多态
+    - Employee类是一个抽象的类 当有一个方法的形参必须放一个抽象类作为参数的时候
+    - 我们就使用利用多态的形式 声明一个父类型是抽象类(父类的类型具有通用性) 但是造的是子类的对象
+    - 然后我们把这个对象丢到形参里面去
+}
+```
+
+
+> 抽象类的匿名子类
+- 之前我们介绍过匿名对象 这个部分我们来了解下一下 匿名类
+
+- 先回顾一下匿名对象的使用方式
+```java
+  public class PersonTest {
+    public static void main(String[] args) {
+      // 匿名对象的传参方式
+      method(new Student())
+    }
+
+    /*
+    之前我们要是想在main方法中调用method方法 必须要new当前类的对象 通过对象来调用method方法
+
+    我们也可以将下面的方法用static来修饰 这样可以直接在main方法中调用
+    */
+    public static viod method(Student s) {}
+  }
+```
+
+- 然后我们再看下匿名子类
+- 场景:
+- Person类现在是一个abstract抽象类
+```java
+  public class PersonTest {
+
+    // 定义一个方法 注意形参是Person类型 但Person是一个抽象类
+    public static void method(Person p) {
+      p.eat();
+    }
+      - 如上:
+      - 我们在调用method方法的时候需要传递 Person对象 Person本身是抽象的 所以我们必须new一个Person子类的对象
+
+
+    // 非匿名的类 和 非匿名的对象 正常的写法
+    Worker worker = new Worker();
+    method(worker);
+
+
+    // 非匿名的类 但是对象是匿名的
+    method(new Worker());
+
+
+    // 创建了一个匿名子类的对象 然后使用了多态形式赋给了父类的引用
+    // 下面new的不是Person类而是Person的子类
+    Person p = new Person() {
+      // 只有子类才能重写方法 这种形式其实也是在new子类 匿名的子类
+
+      // 这里面要重写抽象方法 
+    }
+    method(p);
+
+
+    // 创建匿名子类的匿名对象
+    method(new Person() {
+      // 重写抽象类中的方法
+    })
+  }
+
+  // 定义Person子类
+  class Worker extends Person { }
+```
+
+> 匿名子类的创建方式
+- 正常我们创建一个对象的形式是:
+  Test t = new Test(参数);
+
+- 匿名子类的创建方式:
+  Person p = new Person() { // 内部重写抽象方法 }
+
+- 要点：
+- new Person() { 有方法体 }
+- 这不是在创建Person的实例化对象 而是创建了一个Person类的子类 就是这个子类没有名字
+
+- Person p = new Person() { 有方法体 }
+- 这是什么意思呢？ 这是多态
+- 我们将匿名子类赋值给父类Person的引用
+
+
+> 练习:
+- 编写工资系统 实现不同类型员工(多态)的按月发放工资
+- 如果当月出现某个 Employee对象的生日 则将该员工的工资增加100元
+
+- 实现说明
+- 1. 定义一个Employee类该类包含
+  - private String name
+  - private int number
+  - birthday 是MyDate类的对象
+
+  - abstract earnings()
+  - toString()方法 输出对象的name number birthday
+
+> Employee类
+- 该类为抽象类 定义了员工的基本信息 其中员工的生日是一个对象
+- 提供了全参的构造器 初始化的时候 初始化一个员工的对象
+- 提供了一个抽象计算工资的方法 要求继承的子类来重写
+
+```java
+public abstract class Employee {
+  private String name;
+  private int number;
+  private MyDate birthday;
+
+  public Employee(String name, int number, MyDate birthday) {
+    this.name = name;
+    this.number = number;
+    this.birthday = birthday;
+  }
+
+  // 抽象方法
+  public abstract double earnings();
+
+  // 这个部分提供get set方法
+
+  @Override
+  public String toString() {
+    return "{" +
+      " name='" + name + "'" +
+      ", number='" + number + "'" +
+      ", birthday='" + birthday.toDateString() + "'" +
+      "}";
+  }
+}
+```
+------
+
+- 2. MyDate类包含
+  - private year month day
+  - toDateString() 放回日期对应的字符串 xxx年xx月xx日
+
+
+> MyDate类
+- 这个类就是一个日期对象 里面涉及了 属性的get set方法
+- 输出整体年月日信息的toDateString方法
+
+```java
+public class MyDate {
+  private int year;
+  private int month;
+  private int day;
+
+  public MyDate(int year, int month, int day) {
+    this.year = year;
+    this.month = month;
+    this.day = day;
+  }
+
+  public String toDateString() {
+    return year + "/" + month + "/" + day;
+  }
+}
+```
+------
+
+- 3. 定义SalariedEmployee类继承Employee类
+  - 实现按月计算工资的员工处理
+  - 该类包括：
+  - private monthlySalary
+  - 实现父类的抽象方法earnings() 该方法返回monthlySalary值
+  - toString()方法输出员工类型信息以及员工的name number birthday
+
+> SalariedEmployee类
+- 该类是抽象Employee类的子类 
+- 这个类描述的是正常上班的人的信息 继承了父类的基本信息的基础上还有自己的月工资的属性
+
+```java
+public class SalariedEmployee extends Employee {
+
+  // 月工资
+  private double monthlySalary;
+
+  // 通过传参的方法实例化自己的属性的时候 要调用super
+  public SalariedEmployee(String name, int number, MyDate birthday) {
+    super(name, number, birthday);
+  }
+
+  public SalariedEmployee(String name, int number, MyDate birthday, double monthlySalary) {
+    super(name, number, birthday);
+    this.monthlySalary = monthlySalary;
+  }
+
+  @Override
+  public double earnings() {
+    return this.monthlySalary;
+  }
+
+  public String toString() {
+    // 父类中有toString方法 我们可以通过super直接调用
+    return "当前员工的类型: SalariedEmployee" + super.toString();  
+  }
+}
+```
+------
+
+- 4. 参照SalariedEmployee类定义HourlyEmployee类 实现按小时计算工资员工处理 该类包括
+  - private成员变量 wage 和 hour
+  - 实现父类的抽象方法earnings() 该方法返回wage * hour值
+  - toString()方法输出员工类型信息以及员工的name number birthday
+
+```java
+public class HourlyEmployee extends Employee {
+
+  // 每小时的工资
+  private int wage;
+
+  // 月工作的小时数
+  private int hour;
+
+  public HourlyEmployee(String name, int number, MyDate birthday) {
+    super(name, number, birthday);
+  }
+  public HourlyEmployee(String name, int number, MyDate birthday, int wage, int hour) {
+    super(name, number, birthday);
+    this.wage = wage;
+    this.hour = hour;
+  }
+
+  @Override
+  public double earnings() {
+    return wage * hour;
+  }
+
+  public String toString() {
+    // 父类中有toString方法 我们可以通过super直接调用
+    return "当前员工的类型: HourlyEmployee" + super.toString();  
+  }
+}
+```
+
+- 5. 定义PayrollSystem类创建Employee变量数组并初始化 该数组存放各类雇员对象的引用 利用循环结构遍历数组元素 输出各个对象的类型 name number birthday 以及该对象生日 
+- 当键盘输入本月月份值时 如果本月是某个Employee对象的生日 还要输出增加工资信息
+
+- 提示
+- 定义People类型的数组 People c1[] = new People[10]
+- 数组元素赋值
+- c1[0] = new People("John", "0001", 20)
+- c1[1] = new People("Bob", "0002", 19)
+
+- 若People有两个子类Student和Officer 则数组元素赋值时 可以使父类类型的数组元素指向子类
+- c1[0] = new Student("John", "0001", 20, 85.0)
+- c1[1] = new Officer("Bob", "0002", 19, 90.5)
+
+```java
+import java.util.Calendar;
+import java.util.Scanner;
+
+public class PayrollSystem {
+  public static void main(String[] args) {
+
+    // Scanner scan = new Scanner(System.in);
+    // System.out.println("请输入当月的月份: ");
+    // int month = scan.nextInt();
+
+    // 通过日期对象 得到当前的月份
+    Calendar calendar = Calendar.getInstance();
+    // 获取当前的月份
+    int month = calendar.get(Calendar.MONTH);
+    
+    // Employee类型不是一个抽象类么 这里要画结构图的话 就是堆空间中有一个数组 长度是2 每一个位置声明为一个Employee类型 并不是new Employee对象 new对象的时候不能new Employee 只能new它的子类对象
+    // 多态性的体现 声明Employee类型但是放的是子类对象
+    Employee[] emps = new Employee[2];
+    
+
+    emps[0] = new SalariedEmployee("sam", 1001, new MyDate(1985, 10, 02), 10000);
+    emps[1] = new HourlyEmployee("erin", 1002, new MyDate(1986, 10, 22), 60, 240);
+
+    for (int i = 0; i < emps.length; i++) {
+      System.out.println(emps[i]);
+      double salary = emps[i].earnings();
+      System.out.println(salary);
+
+      // 加100元的逻辑 
+      if(month+1 == emps[i].getBirthday().getMonth()) {
+        System.out.println("生日快乐 奖励100元");
+      }
+    } 
+  }
+}
+```
+
+----------------------------
+
+### 设计模式之 模板方法设计模式
+- 这里也是 抽象和多态的应用
+
+- 抽象类体现的就是一种模板模式的设计
+- 抽象类作为多个子类的通用模板 子类在抽象类的基础上进行扩展 改造 但子类总体上会保留抽象类的行为方式
+
+- 解决的问题：
+- 1. 当功能内部一部分实现是确定的 一个部分实现是不确定的 这时可以把不确定的部分暴露出去 让子类去实现
+
+- 2. 换句话说 在软件开发中实现一个算法时 整体步骤很固定 通用 这些步骤已经在父类中写好了 但是某些部分易变 易变部分可以抽象出来 供不同子类去实现 这就是一种模板模式
+
+> 举例
+- 我们现在想要测试一段代码的所花费的时间 我们就可以使用这种模板设计模式
+
+- 逻辑有一部分是固定 当中包含了不确定的部分 我们将不确定的部分使用 abstract 关键字 封装成一个方法 暴露出去 让继承的子类来重写
+
+```java
+  public void spendTime() {
+    long start = System.currentTimeMillis();
+
+    ---- 就这个部分是要测试的代码 ----
+    
+    long end = System.currentTimeMillis();
+    System.out.println("这段代码总消耗时间为: " + (end - start) + " 毫秒");
+  }
+```
+
+- 比如上面 要测试的代码就是个不确定的部分 我们可以将这个部分封装成一个抽象方法 然后让子类重写 我们在这里通过this来调用子类的重写后的逻辑
+
+- 这样这段逻辑在这里执行了 我们就能计算出这段逻辑所花费的时间了
+
+```java
+abstract class Template {
+
+  public void spendTime() {
+    long start = System.currentTimeMillis();
+
+    // 这里时候this 这样 实例化的对象再调用spendTime()方法的时候 就会执行实例化对象的code方法
+    this.code();
+    
+    long end = System.currentTimeMillis();
+    System.out.println("这段代码总消耗时间为: " + (end - start) + " 毫秒");
+  }
+
+  // 定义抽象方法: 既然是抽象方法 那么当前类也必须是抽象类
+  public abstract void code();
+}
+```
+
+- 上面的关键点:
+- this.code();
+- 像个钩子一样 具体执行时 挂哪个子类 就执行哪个子类的实现代码
+
+> 完整示例：
+```java
+
+// 测试类
+public class TemplateTest {
+  public static void main(String[] args) {
+
+    // 多态 声明父类的类型 new的子类对象 
+    Template t = new SubTemplate();  
+    t.spendTime();
+
+    ------
+
+    // 造个子类的也没有问题因为子类继承了父类 也有这个方法
+    SubTemplate t = new SubTemplate();
+    t.spendTime();
+  }
+}
+
+
+// 模板父类
+abstract class Template {
+
+  // 计算某段代码执行所花费的时间的方法
+  public void spendTime() {
+    long start = System.currentTimeMillis();
+
+    this.code(); // 不确定的部分 或者说 易变的部分
+    
+    long end = System.currentTimeMillis();
+    System.out.println("这段代码总消耗时间为: " + (end - start) + " 毫秒");
+  }
+
+  public abstract void code();
+}
+
+
+// 模板父类的子类
+class SubTemplate extends Template {
+
+  // 重写抽象方法 这个code就是我们要测试的目标逻辑代码
+  public void code() {
+    for(int i=2; i<1000; i++) {
+      boolean flag = true;
+      for(int j=2; j<=Math.sqrt(i); j++) {
+        if(i % j == 0) {
+          flag = false;
+          break;
+        }
+      }
+      if(flag) {
+        System.out.println(i);
+      }
+    }
+  }
+}
+```
+
+----------------------------
+
+### interface 接口
+- 一方面 有时必须从几个类中派生出一个子类 继承它们所有的属性和方法
+<!-- 
+  也就是说这个子类继承了好几个父类
+ -->
+
+- 但是 java不支持多重继承(java是单继承，没有多继承的功能扩展的快) 有了接口 就可以得到多重继承的效果
+<!-- 
+  通过让一个类实现多个接口从而解决java的单继承性的问题
+ -->
+
+- 另一方面 有时必须从几个类中抽取出一些共同的行为特征 而它们之间又没有is-a(student is a person)的关系 仅仅是具有相同的行为特征而已
+<!-- 
+  不是继承的关系
+ -->
+
+- 例如 鼠标 键盘 打印机 扫描仪 摄像头 充电器等都支持usb链接
+<!-- 
+  比如上面的商品 能抽取取来usb的功能 比如数据怎么传输
+  但是把usb封装成一个类不太合适 我们不能说 mp3 手机都 is a usb
+
+  那怎么描述这种非is a的关系 我们就有了接口的概念 
+ -->
+
+<!-- 
+                 学习的技能(接口)
+                  ↑        ↑
+        运动员     ↑        ↑   学生
+      ↙       ↘   ↑        ↑  ↙   ↘
+篮球运动员    跨栏运动员      大学生    中学生
+
+
+运动员 和 篮球跨栏 描述的是is-a的关系
+学生 和 大学生 中学生也是这种关系 我们都用实线来表示
+
+三个箭头的部分就是 接口的关系
+运动员和学生都有学习的技能 那我们就把这个学习的技能封装起来
+但是它又不能是一个父类 
+跨栏运动员 和 大学生 都有自己的父类了 java的单继承性 又不能同时有同级的其它父类
+
+另一方面 跨栏运动员 is a 学习技能 这种描述也不合适
+java中怎么描述这种关系呢？ 我们把学习技能封装到一个接口当中 让类实现接口
+
+实现接口 跟继承有些像 接口中定义的功能 它(实现类)就有了
+ -->
+
+- 接口就是规范 定义的是一组规则 体现了现实世界中 如果你是要...则必须能... 的思想
+- *继承是一个“是不是”的关系 而接口实现则是 “能不能”的关系*
+
+- *接口的本质是契约 标准 规范* 就像我们的法律一样 指定好后大家都要遵守
+
+
+> 接口的定义与使用 interface 关键字
+- 之前我们在定义一个类的时候 格式如下:
+- class Demo { }
+
+- 定义一个接口
+- interface Demo { }
+
+- 要点：
+- 1. 在java中接口和类是并列的两个结构
+- 2. 接口中的属性都是public的
+- 3. 接口也可以用public来修饰
+- 4. *接口中是不能定义构造器的* 意味着接口不可以实例化
+
+```java
+public interface InnerDemo {
+
+  - 全局常量
+  - 抽象方法
+
+  - 不能定义构造器
+
+}
+```
+
+
+> 接口中可以声明的结构
+> JDK7以及JDK7以前的版本
+- 只能定义全局常量和抽象方法
+  - 1. 全局常量:
+  - public static final 的变量
+  - 定义的全局常量我们可以通过 接口去调用
+  ```java
+  interface Flyable {
+    public static final int MAX_SPEED = 7900;
+  }
+
+  // 接口调用全局常量
+  Flyable.MAX_SPEED
+  ```
+  <!-- 
+    书写的时候可以不写 public static final 但是它也在默认就有
+
+    public static final int MAX_SPEED = 7900;
+    int MAX_SPEED = 7900;
+
+    上面的写法在接口中 认为是一样的
+  -->
+
+  - 2. 抽象方法
+  - public abstract 的方法
+  <!-- 
+    书写的时候可以不写 public abstract 但是它也在默认就有
+
+    public abstract void stop();
+    void stop();
+
+    上面的写法在接口中 认为是一样的
+   -->
+
+> 接口的实现 类 implements 接口
+- 在java开发中 接口通过让类去实现 (implements) 的方式来使用
+- 如果实现类覆盖了接口中的所有抽象方法 则此实现类就是可以实例化(可以造对象了)
+- 如果实现类没有覆盖接口中所有抽象方法 则此实现类仍为一个抽象类
+
+**注意:**
+- 父类的时候 我们对于抽象方法 叫做重写
+- 接口的时候 我们对于抽象方法 叫做实现
+
+```java
+// 接口
+interface Flyable {
+
+  // 全局常量 1秒7.9公里 第一宇宙速度(摆脱引力的速度)
+  public static final int MAX_SPEED = 7900;
+  int MIN_SPEED = 1;
+
+  // 抽象方法
+  public abstract void fly();
+  void stop();
+}
+
+
+// 实现类
+class Plane implements Flyable {
+
+  @Override
+  public void fly() {
+    System.out.println("飞机通过引擎起飞");
+  }
+
+  @Override
+  public void stop() {
+    System.out.println("驾驶员减速停止");
+  }
+}
+
+
+// 测试类
+public class Test {
+  public static void main(String[] args) {
+    
+    // 实例化实现类
+    Plane plane = new Plane();
+    plane.fly();
+  }
+}
+```
+
+> java中接口的特性
+- Java类可以实现多个接口(多实现) 弥补了java单继承的局限性
+
+```java
+// 子弹实现类 实现两个接口 Attackable Flyable
+class Bullet implements Flyable, Attackable {
+
+  - 注意：
+  - 这时如果 Bullet 类想要实例化 就必须实现 两个接口中的所有抽象方法
+
+  @Override
+  public void attack() { }
+
+  @Override
+  public void fly() { }
+
+  @Override
+  public void stop() { }
+}
+```
+
+> 子类 继承 实现 接口 的格式：
+- 先继承父类 后实现接口
+```java
+  class 子类 extends 父类 implements 接口1, 接口2 { }
+```
+
+
+> 接口 和 接口之间的多继承
+- 接口与接口之间可以继承 而且可以多继承
+```java
+// 接口
+interface AA {
+  void method1();
+}
+
+interface BB {
+  void method2();
+}
+
+interface CC extends AA, BB {
+
+  - cc接口中 就有两个抽象方法了 method1 2 
+  - 这时有类实现我们的接口CC的时候 要求也要实现抽象方法
+
+}
+```
+
+
+> 细节
+- 1. 接口的具体使用 体现多态性
+- 2. 接口实际上就可以看做是一种规范
+
+
+> 实例演示接口是一种规范
+
+
+
+
+
+
+
+
+> JDK8
+- 除了定义全局常量和抽象方法 还可以定义*静态方法和默认方法*
 
 ----------------------------
 

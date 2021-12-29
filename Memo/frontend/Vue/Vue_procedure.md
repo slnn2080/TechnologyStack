@@ -6,6 +6,13 @@
 - 5. mysql -u root
 - 6. use mysql
 - 7. UPDATE mysql.user SET authentication_string=PASSWORD('你的密码') WHERE User='root';
+<!-- 
+  - 在erin的电脑上用这条命令
+  - UPDATE mysql.user SET authentication_string=PASSWORD('') WHERE User='root';
+
+  同时上面的内容没有错 顺序执行就可以
+ -->
+
 
 
 ### 项目概述
