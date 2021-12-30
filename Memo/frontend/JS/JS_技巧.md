@@ -404,14 +404,108 @@ pageArr.reduce((rs, url) => {
  -->
 
 
+### JavaScript 循环中使用 async/await
+> 按顺序读取Promise
+- 假设有一个文件列表，我们想按顺序读取并记录每个文件的内容。怎么做呢？我们可以在异步函数中使用for ...循环。请看代码片段
+
+```js
+async function printFiles () {
+  let fileNames = ['picard', 'kirk', 'geordy', 'ryker', 'worf'];
+  for (const file of fileNames) {
+    const contents = await fs.readFile(file, 'utf8');
+    console.log(contents);
+  }
+}
+```
+**注意:**
+- 如果你想按顺序读取文件，则不能使用forEach循环。
+
+
+
+```js
+async function someFunction(items) {
+  items.forEach( async(i) => {
+     const res = await someAPICall(i);
+     console.log('--->', res);
+  });
+}
+function someAPICall(param) {
+    return new Promise((resolve, reject)=>{
+      setTimeout(()=>{
+        resolve("Resolved" + param)
+      },param);
+    })
+}
+someFunction(['3000','8000','1000','4000']);
+```
+
+- 在上面的代码中，有一个名为someFunction的简单异步函数，它接受数组作为参数，迭代该数组并为每个数组项发出API请求（通过一个假的API函数哈哈）。此时，我们希望按顺序解析API调用。希望输出打印的内容如下所示：
+<!-- 
+// 预期输出
+3000
+8000
+1000
+4000
+ -->
+
+- 但实际上，我们看到的不是这样的输出，而是以下结果
+<!-- 
+// 实际输出
+1000
+3000
+4000
+8000
+ -->
+
+- forEach循环不是按顺序进行API调用，而是一个接一个连续地调用API，中间不等待前一个调用完成。这就是为什么我们得到的是第一次解析的promise。这也是我们不使用forEach循环的主要原因。
+
+- 相反，我们可以使用reduce函数来遍历数组并按顺序解析promise。来看下面这个例子。
+
+```js
+function testPromise(time) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log(`Processing ${time}`);
+      resolve(time);
+    }, time);
+  });
+}
+
+let result = [3000,2000,1000, 4000].reduce( (accumulatorPromise, nextID) => {
+  return accumulatorPromise.then(() => {
+    return testPromise(nextID);
+  });
+}, Promise.resolve());
+
+result.then(e => {
+  console.log("All Promises Resolved !!✨")
+});
+```
+
+> 并行解析Promise
+- 接下来，让我们看看如何并行解析promise。回到第一个例子。现在我们想要并行读取，而不是按顺序读取文件。在这种情况下，我们不关心内容在控制台中的打印顺序。因此就可以将Promise.all()函数与map一起使用。
+
+```js
+async function printFiles () {
+  let fileNames = ['picard', 'kirk', 'geordy', 'ryker', 'worf'];
+  await Promise.all(fileNames.map(async (file) => {
+    const contents = await fs.readFile(file, 'utf8');
+    console.log(contents);
+  }));
+}
+```
+
+- 每个async回调函数调用都会返回一个promise，我们将它们保存起来，并与Prmiss.all()并行地一次性进行解析。
+
+
     
 ### 判断空对象
-<!-- 
-    let oo = {}
-    oo = JSON.stringify(oo)     // '{}'
+```js
+let oo = {}
+oo = JSON.stringify(oo)     // '{}'
 
-    Object.keys(oo).length == 0
- -->
+Object.keys(oo).length == 0
+```
 
 ### 有趣的数据结构遍历 启发
 <!-- 

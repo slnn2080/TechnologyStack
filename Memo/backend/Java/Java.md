@@ -14178,6 +14178,13 @@ java中怎么描述这种关系呢？ 我们把学习技能封装到一个接口
 
 - *接口的本质是契约 标准 规范* 就像我们的法律一样 指定好后大家都要遵守
 
+- 接口的主要用途就是被实现类实现(面向接口编程)
+<!-- 
+  项目具体需求是多边的 我们必须以不变应万变才能从容开发 此处的 不变 就是 规范 因此 我们开发项目往往都是面向接口编程
+ -->
+
+- 接口和类是并列关系 或者可以理解为一种特殊的类 从本质上讲接口一种特殊的抽象类 这种抽象类中只*包含常量和方法的定义(JDK7之前)* 而没有变量和方法的实现
+
 
 > 接口的定义与使用 interface 关键字
 - 之前我们在定义一个类的时候 格式如下:
@@ -14337,21 +14344,629 @@ interface CC extends AA, BB {
 
 
 > 细节
-- 1. 接口的具体使用 体现多态性
+- 1. 接口的具体使用 体现多态性 也就是说接口要是用的话 也必须使用多态的方式去用了(它自己又没有构造器对象又造不了)
+<!-- 
+  因为抽象类和接口都不能实例化 在这点它们之间还是有共性的
+
+  如果一个方法的形参声明成一个 抽象类 或者接口了 我们要是传参的话就必须体现多态的特性了
+
+  我们只能提供子类或者实现类的对象
+ -->
+
+
 - 2. 接口实际上就可以看做是一种规范
+<!-- 
+  接口中定义了全局常量 每个实现它的类 都有 且不能改
+  接口中定义了 实现类中的方法 可以重写 但必须有
+
+  也就是说 实现了这个接口 那么这个实现类一定有该属性和该方法
+
+  这些全局属性和抽象方法相当于制定了规范
+ -->
+
+- 比如下面的示例
+比如我们制定了usb接口 现在我们生产一个设备 这个设备实现了usb接口
+
+  那么这个设备就要遵循 usb接口中的常量(长宽高 不然生产的设备插不进去)
+  要遵循接口中的方法 比如方法名接口中定义好了 就识别这个方法名 你生产出来的设备弄个不一样的方法名 兴许就识别不了
+
+  这就是规范
 
 
-> 实例演示接口是一种规范
+> 上面的2中细节上的示例: 
+- 设备和电脑之间可以传输数据，但怎么和电脑连在一起(U盘 还是 数据线的接口头) 和 电脑中传输数据时 需要遵循的方法
+<!-- 
+  比如:
+  电脑会定义接口出的 长 宽 针头 --- 常量
+
+  电脑在传输数据时候规定的方法
+  - 1. 先开启设备
+  - 2. 传输数据
+  - 3. 关闭设备
+ -->
+
+- 我们要想和电脑链接传输数据都要遵从这种规范 下面我们从代码上看看具体的实现
+
+```java
+// 电脑类
+- 电脑类中 定义了传输数据的方法 要求传入的是一个实现了接口的对象
+
+class Computer {
+
+  // 电脑类中定义了一个传输数据的方法 要求要传入USB类型的对象 USB没办法造对象 就拿它的实现类造对象
+  public void transferData(USB usb) {
+
+    // 1. usb开启
+    usb.start();
+
+    // 2. 省略具体的传输细节
+    System.out.println("具体的传输细节");
+
+    // 3. usb关闭
+    usb.stop();
+  }
+}
 
 
+// USB接口
+interface USB {
+
+  // 常量: 定义了长宽最大最小的传输速度
+  void start();
+  void stop();
+
+  - 这里也相当于一种规范 这种规范叫做USB 
+  - 谁要是想传输数据 都的实现这个接口 把规范明确一下 
+  - 因为电脑类中用到了这个接口 
+  - 也就是说想用电脑来传输数据 必须先遵循USB接口的规范
+} 
 
 
+// Upan实现类
+class Upan implements USB {
+
+  @Override
+  public void start() {
+    System.out.println("U盘开启工作");
+  }
+
+  @Override
+  public void stop() {
+    System.out.println("U盘停止工作");
+  }
+}
+```
+
+>  实现类 实现类对象的多种书写格式
+
+```java
+
+// 1. 创建了接口的 非匿名实现类的 非匿名对象
+Flash flash = new Flash();
+computer.transferData(flash);
 
 
+// 2. 创建了接口的 非匿名实现类的 匿名对象
+computer.transferData(new Flash());
 
+
+// 3. 创建了接口的 匿名实现类的 非匿名对象
+// 猛一看USB接口怎么还能new呢 其实是造的匿名实现类的对象
+USB phone = new USB() {
+  // 这里要重写接口中的抽象方法
+};
+computer.transferData(phone);
+
+
+// 4. 创建了接口的 匿名实现类的 匿名对象
+computer.transferData(new USB() {
+  // 这里要重写接口中的抽象方法
+});
+```
 
 > JDK8
 - 除了定义全局常量和抽象方法 还可以定义*静态方法和默认方法*
+
+----------------------------
+
+### 设计模式之 代理模式(proxy)
+- 这里也是接口的应用
+- 概述：
+- 代理模式是java开发中使用较多的一种设计模式
+- 代理模式就是其它对象提供一种代理以控制对这个对象的访问
+<!-- 
+                  接口
+              ↗         ↖
+ProxyObject(代理类)    Objecttimpl(被代理类)
+
+  +proxyObject()      +action():void
+  +action():void
+
+
+  ProxyObject 和 Objecttimpl 实现了 接口
+  我们想想租房 中介 明星 经纪人
+ -->
+
+- 这里老师没有讲太细 等以后学业有成再回来看看这部分吧
+
+> 逻辑：
+- 我们拿明星和经纪人说
+- 明星要想去参加商演 她必须要完成 下面的一系列操作
+  
+  面谈 - 签合同 - 订票 - 唱歌(重点) - 收钱
+
+- 明星很忙 所以她将除了重点以外的事情 都可以让经纪人去做
+
+- 所以我们可以将上面的一系列的事情抽成一个接口
+  面谈 - 签合同 - 订票 - 唱歌(重点) - 收钱
+
+- 然后 经纪人(代理类) 和 明星(被代理类) 都实现这个接口
+- 然后双方都有
+  面谈 - 签合同 - 订票 - 唱歌(重点) - 收钱
+  这一系列的功能
+
+- 经纪人负责
+  面谈 - 签合同 - 订票 - 唱歌(重点) - 收钱
+
+- 但是再唱歌里面 我们调用的是 明星 让明星自己去唱歌
+- 上面就是代理
+
+- 从代码的外观上看 没有直接操作 明星 操作的都是经纪人 但是经纪人中 唱歌的方法内部 调用的是明星的
+
+
+> 实现要点
+- 1. 定义接口
+- 这点没什么说的 将共同的部分 抽成一个接口 让代理类 和 被代理类都继承这个接口
+
+- 2. 被代理类
+- 定义真正要做的事情 关键的事情 比如唱歌
+
+- 3. 代理中
+- 要定义一个接口类型的属性
+- 利用构造器给它初始化
+- 在唱歌的方法中 通过 接口属性去调用唱歌的方法
+- 因为在实例化代理类的时候 会将被代理类放入形参中
+
+```java
+public class NetWorkTest {
+  public static void main(String[] args) {
+    // new一个真实的服务器
+    Server server = new Server();
+    // 相当于将 
+    ProxyServer proxyServer = new ProxyServer(server);
+    proxyServer.browse();
+  }
+}
+
+
+// 接口
+interface NetWork {
+    
+  // 只要能连上网 我们就有 浏览的功能
+  public void browse();
+}
+
+
+// 被代理类
+class Server implements NetWork {
+  // 实现抽象方法
+  public void browse() {
+    System.out.println("真实的服务器访问网络");
+  }
+}
+
+
+// 代理类
+class ProxyServer implements NetWork {
+
+  // 利用接口的多态 我们可以在方法中传入实现类
+  private NetWork work;
+
+  // 当前代理类的构造器
+  public ProxyServer(NetWork work) {
+    // 在这里对 NetWork work 属性进行初始化
+    this.work = work;
+  }
+
+  // 代理 服务器访问网络的时候 先做一些校验的操作
+  public void check() {
+    System.out.println("联网之前的一些检查工作");
+  }
+
+  public void browse() {
+    // 先校验
+    check();
+
+    // 让NetWork的实现类来调用browse()方法 也就是让真正的明星调用这个方法 这里的work相当于接口的实现类
+    work.browse();
+  }
+}
+```
+
+> 应用场景
+- 1. 安全代理:
+  - 屏蔽对真实角色的直接访问
+
+- 2. 远程代理:
+  - 通过代理类处理远程方法调用(RMI)
+
+- 3. 延迟加载:
+  - 先加载轻量级的代理对象 真正需要再加载真实对象
+<!-- 
+  比如你要开发一个大文档查看软件 大文档中有大的图片 有可能一个图片有100mb 在打开文件的时候 不可能将所有的图片都显示出来 这样就可以使用代理模式 
+
+  当需要查看图片的时候 用proxy来进行大图片打开
+ -->
+
+- 分类:
+- 静态代理(静态定义代理类)
+- 动态代理(动态生成代理类)
+- jdk自带的动态代理 需要反射等知识
+
+----------------------------
+
+### 设计模式之 工厂模式
+- 也属于接口的应用
+- 工厂是用来造对象的
+
+
+- 工厂模式:
+- 实现了创建者(new对象的叫做创建者)与调用者的分离 即 将创建对象的具体过程屏蔽隔离起来 达到提高灵活性的目的
+
+- 其实设计模式和面向对象设计原则都是为了使得开发项目更加容易扩展和维护 解决方式就是一个“分工”
+
+
+- 工厂模式分类
+- 1. 简单工厂模式
+- 用来生产同一等级结构中的任意产品(对于增加新的产品 需要修改已有代码)
+
+- 2. 工厂方法模式
+- 用来生产同一等级结构中的固定产品(支持增加任意产品)
+
+- 3. 抽象工厂模式
+- 用来生产不同产品族的全部产品(对于增加新的产品 无能为里 支持增加产品族)
+
+> 无工厂的代码逻辑
+```java
+  interface Car {
+    void run();
+  }
+
+  class Audi implements Car {
+    public void run() {
+      System.out.println("奥迪在跑")
+    }
+  }
+  class BYD implements Car {
+    public void run() {
+      System.out.println("比亚迪在跑")
+    }
+  }
+
+  // 测试类中创建对象的样子
+  public class Client01 {
+    public static void main(String[] args) {
+      Car a = new Audi();
+      Car b = new BYD();
+
+      a.run();
+      b.run();
+
+      - 上面的逻辑中 创建对象 和 调用方法 的逻辑就混在了一起
+    }
+  }
+```
+
+> 简单工厂模式
+- 简单工厂模式 从命名上就可以看出来这个模式一定很简单 它存在的目的很简单 定义一个用于创建对象的工厂类
+```java
+interface Car {
+  void run();
+}
+
+class Audi implements Car {
+  public void run() {
+    System.out.println("奥迪在跑");
+  }
+}
+
+class BYD implements Car {
+  public void run() {
+    System.out.println("比亚迪在跑");
+  }
+}
+
+// 工厂类
+- 以后我们看到XxxFactory就是Xxx的工厂 提供了静态方法
+- 我们特意定义了一个工厂类 体现了创建者的角色
+class CarFactory {
+  // 方式1
+  public static Car getCar(String type) {
+    if("奥迪".equals(type)) {
+      return new Audi();
+    } else if("比亚迪".equals(type)) {
+      return new BYD();
+    } else {
+      return null
+    }
+  }
+
+  // 方式2
+  public static Car getAudi() {
+    return new Audi();
+  }
+
+  public static Car getByd() {
+    return new BYD();
+  }
+}
+
+
+// 测试类
+- 这个类里面独立的体现了调用者
+public class Client02 {
+  public static void main(String[] args) {
+    Car a = CarFactory.getCar("奥迪")；
+    a.run();
+  }
+}
+```
+
+- 上面的逻辑完成了 调用者只要知道他要什么 从哪里拿 如何创建 不需要知道
+- 分工 多处了一个专门生产Car的实现类对象的工厂类 *把调用者与创建者分离*
+
+- 小结：
+- 简单工厂模式也叫静态工厂模式 就是工厂类一般是使用静态方法 通过接收的参数的不同来返回不同的实例对象
+
+- 缺点：
+- 对于新增新产品 不修改代码的话 是无法扩展的 违反了开闭原则（*对扩展开放 对修改封闭*）
+
+
+> 工厂方法模式
+- 为了避免简单工厂模式的缺点 不完全满足OCP(对扩展开放 对修改关闭)工厂方法模式和简单工厂模式最大的不同在于
+
+- 简单工厂模式只有一个(对于一个项目或者一个独立的模块而言)工厂类，而工厂方法模式有一组实现了相同接口的工厂类
+
+- 这样在简单工厂模式里集中在工厂方法上的压力可以由工厂方法模式里不同的工厂子类来分担
+
+```java
+interface Car {
+  void run();
+}
+
+class Audi implements Car {
+  public void run() {
+    System.out.println("奥迪在跑");
+  }
+}
+
+class BYD implements Car {
+  public void run() {
+    System.out.println("比亚迪在跑");
+  }
+}
+
+// 简单工厂是用类来完成逻辑了 工厂模式里是用接口来实现
+interface Factory {
+  // 返回值类型是Car
+  Car getCar();
+}
+
+// 两个工厂类 实现了Car接口 重写了返回Car的方法
+class AudiFactory implements Factory {
+  public Audi getCar() {
+    return new Audi();
+  }
+}
+
+class BYDFactory implements Factory {
+  public BTD getCar() {
+    return new BYD();
+  }
+}
+
+// 测试类
+public class Client {
+  public static void main(String[] args) {
+    Car a = new AudiFactory().getCar();
+    a.run();
+  }
+}
+```
+
+- 总结：
+- 简单工厂模式与工厂方法模式真正的避免了代码的改动了？ 没有 在简单工厂模式中 新产品的加入要修改工厂角色中的判断语句
+
+- 而在工厂方法模式中 要么将判断逻辑留在抽象工厂角色中 要么在客户程序中将具体工厂角色写死(就像上面的例子一样)
+
+- 而且产品对象创建条件的改变必然会引起工厂角色的修改 面对这种情况 *java的反射机制与配置文件的巧妙结合突破了限制--在Spring中完美的体现了出来*
+
+
+> 抽象工厂模式
+- 抽象工厂模式和工厂方法模式的区别就在于需要创建对象的复杂程度上，而且抽象工厂模式是三个里面最为抽象 最具一般性的
+
+- 抽象工厂模式的用意为 给客户端提供一个接口 可以创建多个产品族中的产品对象 而且使用抽象工厂模式还要满足一下条件
+
+- 1. 系统中有多个产品族 而系统一次只可能消费其中一族产品
+- 2. 同属于同一个产品族的产品以其使用
+
+- 看过了前两个模式 对这个模式各个角色之间的协调情况应该心里有数了 这里没举例子
+
+
+> 面试题
+- 一下程序有没有问题 如果有问题 怎么改
+```java
+interface A {
+  int x = 0;
+}
+
+class B {
+  int x = 1;
+}
+
+class C extends B implements A {
+  public void pX() {
+    // The field x is ambiguous
+    System.out.println(x)
+
+    - 因为C类中既有接口的x 也有B类的x 编译器不知道 上述的print中的x是谁 所以报错了
+
+    - 1. 如果要调用父类中的x
+    System.out.println(super.x);
+
+    - 2. 如果要调用接口中的x
+    System.out.println(A.x);
+      // 因为接口中的x是全局常量 static final
+  }
+
+  public static void main(String[] args) {
+    new C().pX();
+  }
+}
+```
+<!-- 
+  我们接口 和 父类 可以理解为是平级的
+
+      ----- 接口 ----- 父类 -----
+
+                  ↖     ↑
+                       子类
+ -->
+
+
+> 面试题2
+- 下面两个接口都有 play() 方法 但是类中只有一个play()的实现 有没问题么？
+- 没问题
+- 谁让接口中的play()方法名重复了呢？ 类中的play()方法会被认为同时对两个接口中的play方法的重写(实现)
+
+```java
+  interface Playable {
+    void play();
+  }
+
+  interface Bounceable {
+    void play();
+  }
+
+  interface Rollable extends Playable, Bounceable {
+    // 这相当于我们声明了一个属性
+    Ball ball = new Ball("PingPang");
+  }
+
+  class Ball implements Rollable {
+    private String name;
+    public String getName() {
+      return name;
+    }
+
+    public Ball(String name) {
+      this.name = name;
+    }
+
+    // 重写
+    public void play() {
+      // 接口中的ball是全局常量 不能被赋值 
+      ball = new Ball("Football");
+
+      System.out.println(ball.getName());
+    }
+  }
+```
+
+> 练习
+- 定义一个接口用来实现两个对象的比较
+```java
+  interface CompareObject {
+    public int compareTo(Object o);
+    // 若返回值为0 - 相等; 正数 - 当前对象大; 负数 - 当前对象小
+  }
+```
+
+- 定义一个Circle类 声明redius属性 提供get set方法
+```java
+public class Circle {
+  private double radius;
+
+  public double getRadius() {
+    return this.radius;
+  }
+
+  public void setRadius(double radius) {
+    this.radius = radius;
+  }
+
+
+  public Circle() { }
+  public Circle(double radius) {
+    this.radius = radius;
+  }
+}
+```
+
+- 定义一个ComparableCircle类 继承Circle类 并且实现CompareObject接口
+- 在ComparableCircle类中给出接口中方法compareTo的实现体 用来比较两个圆的半径大小
+```java
+public class ComparableCircle extends Circle implements CompareObject {
+
+  public ComparableCircle(double radius) {
+    super(radius);
+  }
+
+  public int compareTo(Object o) {
+    // 先判断当前的this 和 o 是不是同一个引用 同一个引用就不用比了
+    if(this == o) {
+      return 0;
+    }
+
+    // 不是同一个引用 我们就要比较半径了 比较的时候我们要把Object o 强转
+    if(o instanceof ComparableCircle) {
+      ComparableCircle c = (ComparableCircle)o;
+      // 强转为int型后精度损失可能结果会是0 2.3 - 2.1
+      // return (int)(this.getRadius() - c.getRadius());
+      if(this.getRadius() > c.getRadius()) {
+        return 1;
+      } else if(this.getRadius() < c.getRadius()) {
+        return -1;
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+      // throw new RuntimeException("传入的数据类型不匹配")
+    }
+  };
+}
+```
+
+- 定义一个测试类 interfaceTest 创建两个ComparableCircle对象 调用compareTo方法比较两个类的半径大小
+```java
+public class ComparableCircleTest {
+  public static void main(String[] args) {
+
+    ComparableCircle c1 = new ComparableCircle(3.4);
+    ComparableCircle c2 = new ComparableCircle(3.6);
+
+    int compareValue = c1.compareTo(c2);
+
+    if(compareValue > 0) {
+      System.out.println("c1对象大");
+    } else if(compareValue < 0) {
+      System.out.println("c2对象大");
+    } else {
+      System.out.println("一样大");
+    }
+  }
+}
+```
+
+- 当属性radius声明为Double类型时 可以调用包装类的比较方法
+<!-- 
+  this.getRadius().compareTo(c.getRadius())
+ -->
+
+- 思考：
+- 参照上述做法定义举行类Rectangle和ComparableRectangle类 在ComparableRectangle中给出compareTo方法的实现 比较两个矩形的面积大小
+
 
 ----------------------------
 
