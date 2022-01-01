@@ -13531,6 +13531,26 @@ Person p = new Person();
 abstract class Person { }
 ```
 
+> 抽象的使用前提 -- 继承性
+- 假如我们定义了一个结构叫做抽象 它使用的前提 我们需要提供它的子类 就依托于继承性 只要看到抽象类了 那肯定有它的子类
+
+
+> 抽象类的 -- 多态性
+- 下面方法的形参是抽象类 类型的
+- 我们传递实参的时候 一定是抽象类的子类的对象
+```java
+// 方法的情况
+public void method(抽象类 p) { }
+
+// 声明的情况 声明的时候是抽象类 那么右侧肯定也是抽象类的子类
+抽象类 p = 抽象类的子类
+```
+
+> 从声明的位置看多态还是继承的体现
+- 也就是说 我们声明的时候 声明的是父类类型 那么就是多态性的体现
+- 如果声明的是子类的类型 那就不是多态性 只是继承性的体现
+
+
 - 思考：
 - 父类被abstract修饰后 不能实例化对象了 也就是说 我们没有办法通过构造器实例器对象了 那么父类Person中的构造器还有用么？
 
@@ -13556,9 +13576,11 @@ class Student extends Person {
 
 
 > 抽象方法
+- 抽象方法只定义了一种功能的标准 具体的执行 需要子类去实现
+ 
 - 1. 抽象方法只有方法的声明 没有方法体
-```java
 
+```java
   public void eat() {
     System.out.println("吃饭");
   }
@@ -13568,6 +13590,7 @@ class Student extends Person {
 ```
 
 - 2. 抽象方法必须在抽象类中 包含抽象方法的类一定是抽象类
+
 - 3. 只有子类重写了父类中的所有抽象方法后 子类才可以实例化
 - 若子类没有重写父类中所有的抽象方法 则该子类也是一个抽象类 需要使用abstract去修饰下
 <!-- 
@@ -13575,6 +13598,7 @@ class Student extends Person {
 
   因为如果有没重写的抽象方法 那么该子类也得是一个抽象类 因为抽象方法只能存在于抽象类中
  -->
+
 
 **注意:**
 - 是重写父类中的所有抽象方法 不仅仅是父类 间接父类中的抽象方法在子类中也必须要重写
@@ -14322,7 +14346,7 @@ class Bullet implements Flyable, Attackable {
 ```
 
 
-> 接口 和 接口之间的多继承
+> 接口 和 接口之间的多继承 extends
 - 接口与接口之间可以继承 而且可以多继承
 ```java
 // 接口
@@ -14967,6 +14991,1519 @@ public class ComparableCircleTest {
 - 思考：
 - 参照上述做法定义举行类Rectangle和ComparableRectangle类 在ComparableRectangle中给出compareTo方法的实现 比较两个矩形的面积大小
 
+----------------------------
+
+### 接口 在JDK8中的新特性
+- java7中规定了类中只能定义两个结构 一个 全局常量 抽象方法
+
+- java8中 你可以为接口添加静态方法和默认方法 从技术角度来说 这是完全合法的 只是它看起来范围了接口作为一个抽象定义的丽娘
+
+> 静态方法： static
+- 使用 *static* 关键字修饰 可以通过接口直接调用静态方法 并执行其方法体
+- 我们经常在相互一起使用的类中使用静态方法 你可以在标准库中找到想 Collection/Collections或者Path/Paths这样承兑的接口和类
+
+> 默认方法： default
+- 默认方法使用 *default* 关键字修饰 可以通过实现类对象来调用
+- 我们在已有的接口中提供新方法的同时 还保持了与旧版本代码的兼容性
+- 比如: java8 api中对 Colletion List Comparator等接口提供了丰富的默认方法
+
+
+> 要点:
+- java8中的接口越来越像一个类了 在接口中定义的静态方法和默认方法 因为有方法体 子类在实现接口的时候就可以考虑不用重写了
+
+> 1. 接口中定义的静态方法只能通过接口来调用
+<!-- 
+  接口中定义的静态方法 实际上不是想让实现类去继承的 我想自己用的
+  这样的接口就有些像工具类了
+ -->
+
+> 2. 通过实现类的对象 可以调用接口中默认的方法 如果实现类重写了接口中的默认方法 调用时 仍然调用的是重写后的方法
+
+> 3. 如果子类(或实现类)继承的父类和实现的接口中都声明了同名同参数的方法 那么子类在没有重写此方法的情况下 *默认调用的是父类中的同名同参数的方法* --> *类优先原则*
+<!-- 
+  接口和类中的同名属性不是哦 必须要显示区分
+  但是接口和类中的同名同参数的方法 有 类优先原则
+ -->
+
+> 4. 如果子类(或实现类) 如果实现类实现了多个接口 而这多个接口中定义了同名同参的默认方法 那么在实现类没有重写此方法的情况下 会报错 --> *接口冲突*
+<!-- 
+  接口1
+    default show() {
+      Sytem.out.println("hellow")
+    }
+
+  接口2
+    default show() {
+      Sytem.out.println("hellow")
+    }
+
+  当类同时实现了这两个接口的时候 调用show()会报错 因为接口冲突
+  编辑器不知道调用哪个接口的方法
+ -->
+
+- 当*接口冲突*的时候 我们必须在实现类中重写此方法
+
+```java
+interface CompareA {
+
+  // 静态方法 
+  public static void staticMethod() {
+    System.out.println("CompareA: 北京");
+  }
+
+  // 默认方法
+  public default void defaultmethod() {
+    System.out.println("CompareA: 上海");
+  }
+
+  // public 可以省略掉 但默认还是会有
+  default void method3() {
+    System.out.println("CompareA: 深圳");
+  }
+}
+
+
+// 测试类
+public class Demo {
+  public static void main(String[] args) {
+    SubClass s = new SubClass();
+
+    // 通过实例对象能调用的只有接口中的默认方法
+    s.defaultmethod();
+
+    // 通过接口名调用 接口中的静态方法
+    CompareA.staticMethod();
+  }
+} 
+```
+
+> 5. 实现类中调用接口中的默认方法? 
+> 接口.super.默认方法()
+```java
+class SubClass extends SuperClass implements CompareA, CompareB {
+  publc void myMethod() {
+    // 调用本类中重写的方法
+    method();
+
+    // 调用父类中声明的方法
+    super.method();
+
+    // 调用接口中的默认方法
+    CompoareA.super.method();
+  }
+}
+```
+
+> 接口和抽象类的总结:
+- 1. 接口可以继承接口
+- 2. 抽象类也可以实现接口
+- 3. 抽象类可以继承非抽象的类(抽象类本身就继承Object类)
+
+- 4. 抽象类和接口有哪些共同点和区别？
+- 共同点：
+- 它们不能实例化 需要提供它们的子类或者实现类
+- 内部都可以定义抽象方法 抽象类不一定有抽象方法 接口中通常都会定义抽象方法(接口中就是一种规范 规范就主要就是从抽象方法中体现的)
+- 都可以被继承
+- 
+- 不同点：
+- 抽象类有构造器
+- 接口没有构造器
+
+- 抽象类和接口是并列的结构
+- 接口可以多继承 抽象类只能但继承
+
+- 类和类之间是继承关系 - 单继承
+- 接口跟类之间是实现关系 - 多实现
+- 接口和接口之间是多继承 extends
+- 接口随着jdk的不断迭代 我们看到的趋势就是接口在不断的往类靠近 尽可能的让功能的扩展性强一些
+
+
+> 练习：
+- 接口冲突的解决方法
+```java
+// 孝顺的
+interface Filial {
+  default void help() {
+    System.out.println("老妈 我来救你了")
+  }
+}
+
+// 痴情的
+interface Spoony {
+  default void help() {
+    System.out.println("媳妇 我来救你了")
+  }
+}
+
+class Man implements Filial, Spoony {
+  //  当实现的接口中 有同名同参数的默认方法 我们必须要重写 我们必须要选择一个
+  default void help() {
+    System.out.println("我该怎么办呢?")
+
+    Filial.super.help();
+    Spoony.super.help();
+  }
+}
+```
+
+----------------------------
+
+### 内部类
+- 当一个事物的内部 还有一个部分需要一个完整的结构进行描述 而这个内部的完整的结构又只为外部事物提供服务 那么整个内部的完整结构最好使用内部类
+<!-- 
+  比如我们定义了一个 Person类 我们可以在类中定义 name age 属性
+  
+  这时候我还想定义一个类 大脑
+  但是如果放在外面 那么 大脑类 和 Person 属于平级关系 
+
+  我们的大脑类 只想在Person类里面 用来描述大脑的完整结构
+  这时候我们就可以使用内部类 
+-->
+
+- 1. 在java中 允许一个类A声明在另一个类B中 则类A就是*内部类* 类B就是*外部类*
+
+- 2. 内部类的分类:
+- 和变量一样如果我们定义在类内部 方法构造器代码块等外部 我们通常将该变量称之为成员变量 而定义在方法代码块等内部的我们称之为局部变量 内部类也一样
+
+> 内部类的声明位置
+- 成员内部类(static成员内部类和非static成员内部类)
+- 局部内部类(方法内 代码块内 构造器内) 匿名内部类
+
+```java
+class Person {
+
+  // 静态成员内部类
+  static class Dog {}
+
+  // 非静态成员内部类
+  class Cat {}
+
+  // 定义在方法中的局部内部类
+  public void method() {
+    // 局部内部类
+    class AA {}
+  }
+
+  // 定义在代码块中的局部内部类
+  {
+    class BB {}
+  }
+
+  // 定义在构造器中的局部内部类
+  public Person() {
+    class CC {}
+  }
+}
+```
+
+
+> 成员内部类的特点
+- 我们从两方面谈论成员内部类的特点
+> 1. 从类的角度谈成员内部类能做什么？
+  - 内部类内可以定义属性 方法 构造器等 也可以继承
+
+  - final:
+  - 可以被final修饰 表示此内部类不能被继承 言外之意不使用final就可以被继承
+
+  - abstract:
+  - 可以被abstract修饰 表示此内部类不能被实例化
+
+```java
+class Person {
+
+  // 静态成员内部类 - 用abstract修饰
+  abstract static class Dog {
+    String name;
+
+    // 构造器
+    public Dog() {}
+
+    // 方法
+    public void sing() {
+      System.out.println("我是一只小小小小狗");
+    }
+  }
+
+  // 非静态成员内部类 - 用final修饰
+  final class Cat { }
+}
+```
+
+> 2. 内部类作为外部类的成员能做什么？（String name 就是成员）
+  - 1. 内部类中可以调用外部类的结构
+  - 静态内部类中不可以调用外部类的结构
+  - 非静态内部类中可以调用外部类的非静态属性
+  <!-- 
+    内部类的方法中 调用了 eat() 相当于
+    eat()
+    Person.this.eat();
+   -->
+
+```java
+class Person {
+
+  String name;
+  int age;
+
+  public void eat() {
+    System.out.println("吃饭");
+  }
+
+  // 静态内部类
+  static class Dog {
+    String name;
+    int age;
+
+    public void show() {
+      // 我在静态的内部类中  可以调用外部类的eat()方法么？
+      eat();
+        - 不行 因为静态结构加载的早 所以不能调用eat()
+
+      System.out.println("卡拉是条狗")
+    }
+  }
+
+  // 非静态内部类
+  class Bird {
+    String name;
+    
+    public void sing() {
+      System.out.println("我是一只小小鸟")
+
+      // 我在非静态的内部类中 可以调用外部类的eat()方法么？
+      eat();
+      Person.this.eat();
+        - 可以
+
+        - 要点:
+        - eat(); 的前面 省略了 Person.this.eat()
+        - Person.this.eat()的书写方式 相当于 obj.name
+        - 内部类作为成员变量 不就是通过Person.属性的方法么
+    }
+  }
+}
+```
+
+  - 2. 可以被static修饰
+  - static主要用来修饰类的内部成员 非构造的器其它结构 本来外部类肯定不能用static来修饰 但我们现在是内部类的话就没有问题了
+```java
+class Person {
+
+  // 内部类使用static来修饰
+  static class Dog {
+    String name;
+    int age;
+
+    public void show() {
+      System.out.println("卡拉是条狗")
+    }
+  }
+}
+```
+  - 3. 内部类作为外部类的成员可以被4种不同的权限修饰符修饰(内部类就相当于一个类的属性 和用权限修饰符修饰属性时一样的)
+
+
+- 下面我们要研究下
+- 1. 如何实例化成员内部类的对象
+- 2. 如何在成员内部类中区分调用外部类的结构
+- 3. 开发中局部内部类的使用
+
+
+> 1. 如何实例化成员内部类的对象
+  - 1. 静态内部类的实例化
+  - Person.Dog dog = new Person.Dog();
+  - new Person的静态内部类Dog
+
+  - 2. 非静态内部类的实例化
+  - 先实例化外部类 然后通过外部类的对象 new 内部类
+  - Person p = new Person();
+  - Person.Bird bird = p.new Bird();
+
+- 两种方式 好好记下前面的声明 都是 
+
+  Person的xx内部类 = 静态就是 实例对象.new 非静态内部类
+  Person的xx内部类 = 非静就是 new 类.静态内部类
+
+```java
+class Person {
+
+  String name;
+  int age;
+
+  public void eat() {
+    System.out.println("人吃饭");
+  }
+
+  // 静态成员内部类
+  static class Dog {
+    public void show() {
+      System.out.println("卡拉是一条狗");
+    }
+  }
+
+  // 非静态成员内部类
+  class Bird {
+    public void sing() {
+      System.out.println("我是一只小小鸟");
+    }
+  }
+}
+
+
+// 测试类
+public class Demo {
+  public static void main(String[] args) {
+
+    // 创建 静态内部类的实例化对象
+    Person.Dog dog = new Person.Dog();
+    dog.show();
+
+    // 创建 非静态内部类的实例化对象
+    // 因为Bird是非静态的 我们需要创建外部类的实例 然后new里面非静态的结构
+    Person p = new Person();
+    Person.Bird bird = p.new Bird();
+    // p.new Bird(); 有了实例对象 然后new内部类的结构
+    bird.sing();
+  }
+}
+```
+
+> 2. 如何在成员内部类中区分调用外部类的结构
+- 当没有重名的时候 内部类可以直接调用外部类中的结构
+  eat();
+  Person.this.eat();
+
+- 内部类中直接写外部类的结构就可以 但是默认会有 Person.this.xx
+
+```java
+class Person {
+
+  String name;
+  int age;
+
+  public void eat() {
+    System.out.println("吃饭");
+  }
+
+  // 静态内部类
+  static class Dog {
+    String name;
+    int age;
+
+    public void show() {
+      // 我在静态的内部类中  可以调用外部类的eat()方法么？
+      eat();
+        - 不行 因为静态结构加载的早 所以不能调用eat()
+
+      System.out.println("卡拉是条狗")
+    }
+  }
+
+  // 非静态内部类
+  class Bird {
+    String name;
+    
+    public void sing() {
+      System.out.println("我是一只小小鸟")
+
+      // 我在非静态的内部类中 可以调用外部类的eat()方法么？
+      eat();
+      Person.this.eat();
+    }
+  }
+}
+```
+
+- 当有重名的属性的时候
+- 外部类中有 name 属性
+- 内部类中有 name 属性
+- 内部类的方法中的形参还是 name 属性
+
+- 这时我们怎么在 display 方法中 区分调用这三个 name 呢？
+
+```java
+class Person {
+
+  String name;
+
+  // 非静态内部类
+  class Bird {
+    String name;
+    public void display(String name) {
+      // 调用形参的name
+      System.out.println(name);
+
+      // 调用Bird内部类的name 
+      System.out.println(this.name);
+        - display方法所在类的name 通过this
+
+      // 调用外部类的name
+      System.out.println(Person.this.name);
+    }
+  }
+}
+```
+
+- 没有重名的属性的时候 直接调用就可以 通过作用域就找到了
+
+
+> 3. 开发中局部内部类的使用
+
+- 下面这种局部内部类的情况很少见
+```java
+public class Demo {
+
+  // 下面这种的内部类情况比较少
+  public void method() {
+    // 局部内部类
+    class A { }
+  }
+}
+```
+
+- 常见的局部内部类 
+- 方法的返回值是一个*接口* 调用该方法返回一个实现了该接口的类
+```java
+public class Demo {
+
+  // 一般都是方法有返回值的类型 Compareable是接口
+  // 返回一个实现了Compareable接口的类的对象
+  public Compareable getCompareable() {
+
+    // 创建一个实现了Compareable接口的类
+    class MyCompareable implements Compareable {
+
+    }
+
+    return new MyCompareable;
+  }
+}
+
+- 该内部类就是方法类 造一个内部类 这个内部类为接口的实现类 然后返回
+
+- 方式2：
+- 创建一个实现了 Compareable 接口的匿名实现类的匿名对象
+public class Demo {
+
+  public Compareable getCompareable() {
+
+      // 实现类没有名对象也没有名
+      return new Compareable() { }
+  }
+}
+
+```
+
+- 内部类在开发中用的不多
+- 成员内部类和局部内部类 在编译以后 都会生成字节码文件
+- 格式：
+- 成员内部类: 外部类$内部类名.class
+- 局部内部类: 外部类$数字 内部类名.class
+
+
+> 在局部内部类的方法中注意点:
+- 在局部内部类的方法中（比如下面的show()) 如果调用局部内部类所声明的方法中的局部变量的话
+
+- 要求:
+- 此局部变量声明为final(num)
+
+- 为什么要声明成 final 的?
+- 规定
+- 外部类的话会生成字节码文件 内部类也是独立的字节码文件 相当于两个文件了 两个文件就对应着两个类 method方法是存在外部类的结构里 method方法中有一个num变量 该变量出了方法就失效了
+
+- 而内部类也是个独立的文件 这个文件中用了num变量 因为是两个文件了 实际上我们给内部类文件传递过去的是一个num的副本
+
+- 也就是说相当于重新复制了一个变量给内部类用的 内部类只能用 不能改 因为你也改不了 因为传入的是一个副本 所以我们标记为final 明确 你只能用不能改
+
+```java
+public class Demo {
+  public static void main(String[] args) {
+
+  }
+
+  // 方法
+  public void method() {
+
+    // 局部变量
+    int num = 10;
+
+    - jdk7中 该属性如果给内部类用的话要显示声明为 final
+    - final int num = 10;
+
+    - jdk8中 该属性如果给内部类用的话可以不显示声明 但是默认会有final
+
+    // 内部类
+    class AA {
+
+      // 方法
+      public void show() {
+
+        // 局部内部类可以直接调用 局部内部类所在的方法中的属性
+        System.out.println(num);
+        - 我们在这里直接调用num是没有问题的 但是 有要求 num必须是一个final的
+        - 也就是说我们在内部类中给num重新赋值 会报错
+      }
+    }
+  }
+}
+```
+ 
+- 在移动端这情况比较常见
+
+----------------------------
+
+### 异常处理
+- 在使用计算机语言进行项目开发的过程中 即使程序员把代码写的尽善尽美 在系统的运行过程中仍然会遇到一些问题 
+
+- 因为很多问题不是靠代码能够避免的 比如 客户输入数据的格式 读取文件是否存在 网络是否始终保持通畅等等
+
+> 异常
+- 在java语言中 将程序执行中发生的不正常情况成为  异常
+<!-- 
+  开发过程中的语法错误和逻辑错误不是异常
+ -->
+
+- java程序再执行过程中所发生的异常事件可分为两类
+
+> Error:
+- java虚拟机无法解决的*严重问题*
+<!--  
+  我们程序分为编译过程和运行过程 运行的时候需要用java虚拟机的加载器和解释运行器 帮我们去解释运行 在解释运行的过程中java虚拟机都没有办法帮我们运行了
+ -->
+- 如 jvm系统内部错误 资源耗尽等严重情况
+- 比如: StackOverflowError和OOM 一般不编写针对性的代码进行处理(一般也不用编写代码去解决这样的error，只能改原代码)
+
+> 栈溢出异常: java.lang.StackOverflowError
+
+```java
+// 比如递归调用就会导致栈溢出的error
+public class ErrorTest {
+  public static void main(String[] args) {
+    main(args)
+  }
+}
+```
+
+> 堆溢出异常: java.lang.OutOfMemoryError
+- 简称OOM
+
+```java
+// 如果堆空间不够大 堆空间就会报错
+public class ErrorTest {
+  public static void main(String[] args) {
+    Integer[] arr = new Integer[1024*1024*1024]
+  }
+}
+```
+
+
+> Exception
+- 其它因编程错误或偶然的外在因素导致的一般性问题 可以使用针对性的代码进行处理
+- 1. 空指针访问
+- 2. 试图读取不存在的文件
+- 3. 网络连接终端
+- 4. 数组角标越界
+
+- 对于这些错误 一般有两种解决方法
+- 1. 遇到错误就终止程序的运行 
+- 2. 由程序员在编写程序时 就考虑到错误的检测 错误消息的提示 以及错误的处理
+
+- 捕获错误最理想的是在*编译期间* 但有的错误只有在*运行时*才会发生
+<!-- 
+  编译期异常 - 受检checked 异常 - 
+  运行时异常 - 非受检unchecked 异常 - runtime exception
+ -->
+- 比如 除数为0 数组下标越界(空指针异常)等
+- 分类：
+- 编译时异常和运行时异常
+
+
+> 异常的体系结构
+- java.lang.Throwable (异常的顶级父类)
+  | -- java.lang.Error
+  | -- java.lang.Exception
+
+    | -- 编译时异常(checked受检时异常)
+
+    | -- 运行时异常(unchecked非受检时异常)
+      -- nullPointerException
+      -- ArrayIndexOutOfBounds
+      -- ClassCastException - 类型转换异常
+      -- NumberFormException - 数字格式化异常
+      -- InputMissMatchException - 输入不匹配异常
+      -- ArithmeticException - 算数异常
+
+
+> 常见的运行时异常 示例
+```java
+public class ExceptionTest {
+  
+  // 算数异常 ArithmeticException
+  @Test
+  public void test6() {
+    int a = 10;
+    int b = 0;
+    // 除了个0
+    a / b;
+  }
+
+
+  // InputMissMatchException
+  // 输入的值数据类型与设置的值数据类型不能匹配。”
+  @Test
+  public void test5() {
+    // 当我们输入的不是int型的时候 会报这个异常
+    Scanner scanner = new Scanner(System.in);
+    int score = scanner.nextInt();
+  }
+
+
+  // 数字格式化异常 NumberFormatException
+  @Test
+  public void test4() {
+    // 试图将 abc 转换为 数字
+    String str = "abc";
+    int num = Integer.parseInt(str);
+  }
+
+
+  // 类型转换异常 ClassCastException
+  @Test
+  public void test3() {
+    Object obj = new Date();
+    String str = (String)obj;
+  }
+
+
+  // 角标越界 ArrayIndexOutOfBounds
+  @Test
+  public void test2() {
+    int[] arr = new int[10];
+    arr[10];  // 不在0-9
+
+    // StringIndexOutOfBounds
+    String str = "abc";
+    str.charAt[3]; 
+  }
+
+
+  // 空指针异常
+  @Test
+  public void test1() {
+    // nullPointerException
+    int[] arr = null;
+    arr[3]
+
+    // nullPointerException
+    // 试图通过对象去调方法 对象还是个空的
+    String str = "abc";
+    str = null;
+    str.charAt[0]; 
+  }
+}
+```
+
+
+> 常见的编译时异常 示例：
+- 下面的就当看看吧 没学呢
+- 下面的代码在编译时就会报错 也就是说对应的字节码文件是不会生成的
+
+```java
+public class ExceptionTest {
+  
+  public void test() {
+
+    FileInputStream fis = null; 
+
+    try {
+      File file = new File("hello.txt");
+      fis = new FileInputStream(file);
+  
+      int data = fis.read();
+  
+      while(data != -1) {
+        System.out.print((char)data);
+        data = fis.read();
+      }
+
+    } catch(Exception e) {
+      e.printStackTrace();
+
+    } finally {
+      // 我们将关闭操作放在finally中 
+      try {
+        fis.close();
+      } catch(IOException e) {
+        e.printStackTrace();
+      }
+
+      - 之所以加try catch 因为fis.close();也可能会出现异常
+    }
+  }
+}
+```
+
+----------------------------
+
+### 异常的处理方式
+- 在编写程序的时候 经常要在可能出现错误的地方加上检测的代码 如进行x/y的运算的时候 要检测分母为0 数据为空 输入的不是数据而是字符等
+
+- 过多的if-else分支会导致程序的代码加长 臃肿可读性差 因此采用异常处理机制
+
+
+> java异常处理
+- java采用的异常处理机制 是将异常处理的程序代码集中在一起 与正常的程序代码分开 使得程序间接 优雅 并易于维护
+
+
+> 异常的处理: 抓抛模型
+
+- 过程1 "抛": 
+- 程序在正常的执行的过程中 一旦出现异常 就会在异常代码处生成一个异常类的对象
+- 并将此对象抛出(抛给程序的调用者)
+- 一旦抛出对象后 其后的代码就不再执行
+
+
+- 过程2 "抓":
+- 抓住抛出来的异常对象 也就是异常的处理方式
+- 异常的处理方式有两种 
+- 1. try catch finally
+- 2. throws
+
+### try catch finally (自己解决异常)
+- catch可以有多个结构，当出现异常类型1的时候 走对应的逻辑
+- 就跟switch case一样
+
+> 结构
+```java
+  try {
+    // 可能出现异常的代码
+  } catch(异常类型1 变量名1) {
+    // 处理异常的方法1
+  } catch(异常类型2 变量名2) {
+    // 处理异常的方法2
+  } catch(异常类型3 变量名3) {
+    // 处理异常的方法3
+  }
+  ...
+  finally {
+    // 一定会执行的代码
+  }
+```
+
+- 其中 finally结构 是可选的
+
+
+- 我们看看代码部分的示例:
+
+```java
+public void test1() {
+  String str = "123";
+  str = "abc";
+  try {
+    int num = Integer.parseInt(str);  
+  } catch (NumberFormatException e) {
+    System.out.println("出现数字转换异常了 不要着急...");
+  }
+}
+```
+
+- 1. 首先在 可能出现异常的部分 使用 try { } 包住 在执行过程中一旦出现异常 就会生成一个对应异常类的对象 根据此对象的类型 去catch中进行匹配
+
+- 2. 然后在 catch的形参中 指明异常对象的类型 一旦try中的异常对象匹配到某一个catch的时候 就会进入catch中进行异常处理 *一旦处理完成以后就会跳出当前的 try-catch结构(在没有写finally的情况下)* 继续执行其后的代码
+
+- 3. 这样catch就会捕获指定异常类型的被抛出来的异常对象
+- 也就是说 *我们自己指定的异常类型 要和 异常本身的类型 一致*
+
+- 4. catch中的异常类型如果没有子父类关系 则声明在上 谁声明在下无所谓
+- 如果catch中的异常类型满足子父类关系 则要求子类一定要声明在父类的上面
+
+- 5. 在try结构中声明的变量 再出了try结构以后 就不能被调用
+- 6. try catch finally结构可以嵌套使用
+
+**注意:**
+- 1. 
+- catch(指明指定异常) { ... }
+- catch(Exception e) { ... }
+- Exception是所有异常 上面的两种写法都可以
+```java
+try {
+  int num = Integer.parseInt(str);  
+
+} catch(NumberFormatException e) {
+  System.out.println("出现数字转换异常了 不要着急...");
+
+  // 总异常
+} catch(Exception e) {
+  System.out.println("出现异常了 不要着急...");
+}
+```
+
+- 2. 
+- 异常对象也是一个类 每一个异常对象可能是并列的子类 或者 嵌套的子类
+<!-- 
+  异常对象1   异常对象2     --- 并列关系
+
+  异常对象1                --- 嵌套关系
+    异常对象2
+ -->
+
+- 这里跟if 和 else if一样
+- 如果是两个没关系的子类的时候 catch的顺序 谁写上面 谁写下面没有关系
+- 但是如果是嵌套关系的话 我们就要将父类写在下面 确保我们想要执行的逻辑写在上面(放在上面会报错)
+
+
+> try catch的执行逻辑
+- 我们定义了 两行测试语句 看看测试语句的执行
+
+```java
+public class Demo {
+
+  @Test
+  public void test1() {
+    String str = "123";
+    str = "abc";
+    try {
+
+      - 下面的代码会有异常产生
+      int num = Integer.parseInt(str);  
+
+      - 一旦在这个位置出现异常了 就会在这个位置出现一个异常对象 NumberFormatException 
+
+      - 然后这个异常对象就会抛出来 
+      - 然后就会到catch的位置进行匹配 
+      - 配上对应的异常类型就会被捕获 
+      - 然后就会执行对应catch中的逻辑 
+      - 然后相当于我们把异常处理掉了 
+      - 所以会看到 测试 ---- 语句2
+
+      System.out.println("测试 ---- 语句1");
+      // 这句没有执行 原因可能是在发生错误的地方 抛出了异常对象后 后面的逻辑就不执行了
+
+    } catch (NumberFormatException e) {
+      System.out.println("出现数字转换异常了 不要着急...");
+    }
+
+    System.out.println("测试 ---- 语句2");
+  }
+}
+
+// 结果:
+- 出现数字转换异常了 不要着急...
+- 测试 ---- 语句2
+```
+
+> 常用的异常对象 e 身上的方法
+- catch (NumberFormatException e)
+- 该对象身上的方法用于处理异常
+
+> e.getMessage();
+- 该方法返回值为字符串
+```java
+System.out.println(e.getMessage());
+```
+
+> e.printStackTrace();
+- 直接调用就可以 没有返回值
+- 该方法的效果就是 报错 但是不影程序的向下执行 而且该方法的输出信息中包含了 e.getMessage(); 的内容
+
+```java
+catch(Exception e) {
+  e.printStackTrace();
+}
+```
+
+- 使用try catch finally处理编译时异常 使得程序再编译时就不再报错了 但是运行时仍可能报错
+
+- 相当于我们使用try catch finally结构将一个编译时可能出现的错误延迟到运行时了
+
+
+> finally的使用
+- finally结构中的代码一定会执行 该结构为可选
+- 如果有必须要执行的代码的情况下 可以选择使用该结构
+
+- finally中声明的是一定会被执行的代码 即使catch中又出现异常了 或者 try和catch当中有return语句等情况 finally中的结构也会被执行
+
+```java
+// catch中有异常的情况
+public void test1() {
+  try {
+    int a = 10;
+    int b = 0;
+    System.out.println(a/b);
+
+  } catch(ArithmeticException e) {
+
+    // catch中也可能会有异常哦 如果这个部分没有try catch那么程序到这里 因为异常会导致跳出该方法
+    int[] arr = new int[10];
+    System.out.println(arr[10]);
+
+    e.printStackTrace();
+
+    // 但是有finally的情况下 该结构也会执行
+  } finally {
+    System.out.println("有return也会被执行哦");
+  }
+}
+
+
+- 注意：
+- 执行顺序可能是先finally 再是catch中的逻辑
+- 比如下面的逻辑
+public class Demo {
+
+// 有return的情况
+  @Test
+  public void show() {
+    int num = test1();
+    System.out.println(num);
+  }
+
+  public int test1() {
+    try {
+      int a = 10;
+      int b = 0;
+      System.out.println(a/b);
+      return 0;
+
+    } catch(ArithmeticException e) {
+      e.printStackTrace();
+      return 1;
+
+    } finally {
+      System.out.println("我好帅啊");
+    }
+  }
+}
+
+- 执行顺序：
+- 先执行 finally 然后执行 catch 中的 return
+```
+
+> 对上解析
+- 方法中的逻辑是从上到下执行的 只有执行到最后一行 方法才会得到返回值
+- 所以当最后有finally的时候 会执行完finally 然后再看返回值
+- 所以finally中的逻辑 在整个的输出结果中是在前面的
+
+
+> 什么情况下 要使用finally
+- 必须一些必须执行的操作 比如物理链接 数据库链接 输入输出流 socket链接 jvm是没办法将这些物理上链接的操作关闭的 需要我们自己去关(不关的话 会有泄漏的风险 和 内存会持续占用) 也就是说对于这样的链接操作我们要自己去关闭
+
+- 即使之前的代码出现异常 我们也保证要让链接关闭掉
+
+- 像数据库连接 输入输出流 网络编程socket等资源 jvm是不能自动的回收的 我们需要自己手动的进行资源的释放
+- 这些资源释放的操作 就需要声明在finally中
+<!-- 
+  以防关闭的操作 受到前面代码异常的影响 导致关闭操作没办法执行
+  这样不行 不管有没有异常 我们是一定要释放的 所以要将逻辑放入到finally当中
+ -->
+
+```java
+public class ExceptionTest {
+  
+  public void test() {
+
+    FileInputStream fis = null; 
+
+    try {
+      File file = new File("hello.txt");
+      fis = new FileInputStream(file);
+  
+      int data = fis.read();
+  
+      while(data != -1) {
+        System.out.print((char)data);
+        data = fis.read();
+      }
+
+    } catch(Exception e) {
+      e.printStackTrace();
+
+    } finally {
+      // 我们将关闭操作放在finally中 
+      try {
+        if(fis != null) fis.close();
+      } catch(IOException e) {
+        e.printStackTrace();
+      }
+
+      - 之所以加try catch 因为fis.close();也可能会出现异常
+    }
+  }
+}
+```
+
+
+> 编译时异常和运行时异常的不同处理
+- 在开发中对于运行时异常 我们不用try catch处理
+- 但是如果是编译期的异常 我们就会使用try catch要不编译过不去
+<!-- 
+  我们在处理异常的时候 会使用e.printStackTrace()
+  该方法是在出现异常的时候 为了让程序不崩溃 打印异常信息
+
+  但是使用try catch e.printStackTrace() 和不使用它们没什么区别
+
+  比如我们没使用try catch在运行的时候也是会爆同样的错误
+  所以使用try结构 和 不使用的区别 几乎没有 所以在运行时异常 我们就不使用try catch结构了
+ -->
+
+- 上面我们说过 我们使用 try结构处理编译时异常 使得程序再编译时就不再报错 但是运行时仍可能报错 相当于我们将编译时异常转化为运行时异常
+
+- 但是对于本身就是运行时异常就没必要用try结构了
+
+- 开发中由于运行时异常比较常见 所以我们通常就不针对运行时异常编写try结构 但是针对于编译时异常我们一定要处理
+
+----------------------------
+
+### throws + 异常类型
+- 异常的第二种处理方式 我们也是在编译时异常的情况下 可以使用该方式
+
+- 比如下面的代码会是编译时异常 当出现异常以后 要么我们选择用 try catch处理 要么就可以选择 throws
+<!-- 
+  throws方法本质上来讲 并没有把异常catch住 干掉
+  而是选择了向上抛异常的策略 让它的上一级去处理
+
+  throws后面加的是异常的类型 看看我们下面的程序中会有什么样的异常
+ -->
+
+> throws的书写位置和格式
+> () throws 异常类型1, 异常类型2{}
+- 我们将method方法中的异常抛到上一级 也就是谁调用method方法 就抛给谁
+
+```java
+public class ExceptionTest {
+
+  // main方法
+  public static void main(String[] args) {
+    try {
+      method2();
+
+      // 别人抛出了几个异常对象 我们这就写几个 
+    } catach(FileNotFoundException e) {
+      e.printStackTrace();
+    } catach(IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  - 注意:
+  - 由于FileNotFoundException和IOException是子父类的关系(包含关系) 如果我们处理逻辑是一样的 我们可以只写一个IOException的处理方案
+
+
+  // 接着往上一层抛异常 抛到了main方法中 相当于到头了
+  public void method2() throws FileNotFoundException, IOException {
+    method();
+  }
+
+
+  // 抛出异常的方法 谁调用该方法就将异常抛给谁
+  public void method() throws FileNotFoundException, IOException {
+
+    File file = new File("hello.txt");
+    fis = new FileInputStream(file);
+    int data = fis.read();
+    while(data != -1) {
+      System.out.print((char)data);
+      data = fis.read();
+    }
+    fis.close();
+  }
+}
+```
+
+- 从上面的代码我们能看到 throws只是将异常往上抛 当前的结构没有异常了 但是本质来讲异常并没有被解决掉 try catch的方法才是真正的去解决异常
+
+
+> 总结
+- 1. throws + 异常类型 写在方法的声明处 指明此方法执行时 可能会抛出的异常类型 一旦当方法体执行时 出现异常 仍会在异常代码处生成一个异常类的对象 此对象满足throws后异常类型时 就会被抛出 
+
+- 异常代码后续的代码 就不再执行
+
+- 2. 体会：
+- try catch finally 真正的将异常处理掉了 
+- throws的方式只是将异常抛给了方法的调用这 并没有真正的将异常处理掉
+
+
+> 重写方法抛出异常的规则
+- 方法被重写的时候 方法是可以抛出异常的 如果父类中被重写的方法抛出了一个异常 子类也要抛出异常 但是要满足一定的规则 子类抛出的异常不能大于父类抛出的异常
+<!-- 
+  比如
+    父类抛出的异常是 IOException
+  那么
+    子类抛出的异常可以是 IOException 也可以是File的
+ -->
+
+> 方法重写的规则之一：
+- 子类重写的方法抛出的异常类型不大于父类重写的方法抛出的异常类型
+- 如果父类中的方法没有抛出异常 子类也不能抛出异常
+```java
+// 父类
+class SuperClass {
+  public void method() throws IOException {
+
+  }
+}
+
+// 子类
+class SubClass extends SuperClass {
+  // 重写父类中的方法
+
+  // 1. 该形式也算重写 子类的异常类型可以比父类的小 小到极限就是没有
+  public void method() { }
+
+  // 2. 异常类型可以一样大
+  public void method() throws IOException { }
+
+  // 3. 异常类型可以比父类的要小
+  public void method() throws FileNotFoundException { }
+}
+```
+
+- 为什么？
+- 存在这样的一种情况
+```java
+// 定义父类
+class SuperClass {
+  public void method() throws IOException { }
+}
+
+// 定义子类 重写父类中的方法
+class SubClass extends SuperClass {
+  public void method() throws FileNotFoundException { }
+}
+
+// 定义一个方法 该方法形参为父类对象 体现多态
+public void display(SuperClass s) {
+  // 既然method可能会抛出IOException
+  try {
+    s.method();
+  } catch(IOException e) {
+    e.printStackTrace();
+  }
+}
+
+- 当我们调用display()方法的时候 必须传入对象
+- 假如我们子类重写的方法 抛出的异常 比父类的IOException还要大的情况下
+
+- 那上面display方法中的try catch就罩不住了
+- 所以子类中的异常不能比父类的大 就是因为这个
+
+```
+
+
+> 开发中使用哪种方式处理异常
+- 1. 如果父类中被重写的方法没有抛出异常(throws) 则子类重写的方法也不能使用throws 意味着如果子类重写的方法中有异常 必须使用try catch的方式处理异常
+
+- 2. 执行的方法A中 先后又调用了另外的几个方法 这几个方法是递进关系(方法1的结果方法2要用方法2的结果会传入方法3)执行的
+- 我们建议这几个方法使用throws的方式进行处理 而执行的A中考虑统一用try catch进行处理
+
+- try catch的本意是 给我们的代码做一个预案 预估下我们代码可能出现的问题 然后给出一个友好的提示 不至于让用户看到乱码 或者 错误代码的界面 
+
+- 但是本意我们还是要回来修改源代码来清楚实际问题的
+
+----------------------------
+
+### 手动抛出异常
+- 关于异常对象的产生 上面都是系统在出现异常的时候自动生成的对象
+- 这节我们说下如何手动的生成一个异常对象 并抛出 *throw*
+<!-- 
+  throw 是手动产生一个异常对象
+  throws 是处理异常的一种方法 系统自动抛出异常
+ -->
+
+- 有些情况下 我们还必须抛出一个异常
+- 比如下面 我们给id进行赋值 当为正数的时候 给id赋值 当用户输入为负数的时候 我们给出提示
+
+- 但即使我们给出提示 输出的也会是id的默认值0
+- 这时候我们就可以手动的抛出一个异常
+
+```java
+public class Demo {
+
+  public static void main(String[] args) {
+    Student s = new Student();
+    s.regist(-1001);
+
+    System.out.println(s);
+  }
+}
+
+
+class Student {
+  private int id;
+
+  public void regist(int id) {
+    if(id > 0) {
+      this.id = id;
+    } else {
+      System.out.println("您输入的数据不合法");
+
+      // 这里我们还可以自定义一个异常
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "{" +
+      " id='" + id + "'" +
+      "}";
+  }
+}
+```
+
+
+> 手动创建异常 
+> throw new 异常类型
+- 这里我们可以考虑 Exception 或者 RuntimeException
+- 我觉得也可以定义指定异常类型对象
+
+```java
+throw new Exception();
+throw new RuntimeException("您输入的数据非法");
+```
+
+> throw new RuntimeException("提示文字")
+- 运行时异常
+- 这是抛出的运行时异常 可以不用try catch进行处理
+
+
+> throw new Exception("提示文字")
+- 编译时异常
+- 这时候我们就需要选择来处理异常了
+
+```java
+
+public static void main(String[] args) {
+  try {
+    Student s = new Student();
+    s.regist(-1001);
+      - 由于这个位置出现了异常 下面的System输出不会执行 会跳到catch里面
+
+    // 不会执行
+    System.out.println(s);
+
+  } catch(Exception e) {
+
+    // 这时我们输出的message就是我们自定义的异常中的提示字符串
+    System.out.println(e.getMessage());
+  }
+}
+
+// 下面我们选择的是 throws 抛出异常
+public void regist(int id) throws Exception {
+  if(id > 0) {
+    this.id = id;
+  } else {
+    // 在方法内生成一个异常对象
+    throw new RuntimeException("您输入的数据非法");
+      - 运行时异常 不用处理
+
+    throw new Exception();
+      - 编译时就会报错 我们要考虑使用哪种方式处理
+  }
+}
+```
+
+----------------------------
+
+### 自定义异常类
+- 上面我们在手动抛出异常的时候 我们通过 throw new 异常对象
+- 我们new的异常对象 都是API中提供好的 那我们可不可以自己定义一个异常类型
+
+- 首先 我们创建一个 异常类的.java文件 然后让它继承现有的异常结构 继承现有的异常类通常我们只会选择两个
+- 1. RuntimeException
+  - 运行时异常 - 不用考虑显式的处理
+
+- 2. Exception
+  - 编译时就会报错 - 需要处理
+<!-- 
+  MyException.java
+ -->
+
+> 如何自定义异常类
+- 1. 继承于现有的异常结构
+```java
+public class MyException extends RuntimeException {
+  
+}
+```
+
+- 2. 提供全局常量 serialVersionUID 序列号
+- 这个是属性时static的随着类的加载而加载 就一份 是对我们类的标识
+```java
+public class MyException extends RuntimeException {
+  static final long serialVersionUID = -7034897190745766939L;
+}
+```
+
+- 3. 提供重载的构造器
+```java
+public class MyException extends RuntimeException {
+  
+  static final long serialVersionUID = -7034897190745766939L;
+
+  // 空参构造器
+  public MyException() {}
+
+  // 带参的构造器 msg就是提示文字 这个是父类中有的
+  public MyException(String msg) {
+    super(msg);
+  }
+}
+```
+
+- 当我们定义的异常是 运行时异常 那就不用处理
+- 当我们定义的异常是 编译时异常 那我们调用的结构中就要选择处理方式
+
+
+> 练习
+- 判断程序的输出结果
+
+```java
+public class ReturnExceptionDemo {
+  static void methodA() {
+    try {
+      System.out.println("进入方法A");
+      throw new RuntimeException("制造异常")
+    } finally {
+      System.out.println("用A方法的finally");
+    }
+  }
+
+
+  static void methodB() {
+    try {
+      System.out.println("进入方法B");
+      return;
+    } finally {
+      System.out.println("调用B方法的finally");
+    }
+  }
+
+
+  public static void main(String[] args) {
+    try {
+      methodA();
+    } catch(Exception e) {
+      System.out.println(e.getMessage());
+    }
+
+    methodB();
+  }
+}
+
+// 结果：
+- 1. System.out.println("进入方法A");
+- 2. System.out.println("用A方法的finally");
+- 3. 制造异常
+- 4. System.out.println("进入方法B");
+- 5. System.out.println("调用B方法的finally");
+
+```
+
+
+> 练习2
+- 编写应用程序EcmDef.java 接收命令行的两个参数 要求不能输入负数 计算两数相除
+
+- 对数据类型不一致(NumberFormatException)
+- 缺少命令行参数(ArrayIndexOutOfBoundsException)
+- 除0(ArithmeticException)
+- 输入负数(EcDef自定义的异常)
+- 对以上异常进行处理
+
+- 提示：
+- 1. 在主类(EcmDef)中定义异常方法(ecm)完成两数相除功能
+- 2. 在main方法中使用异常处理语句进行异常处理
+- 3. 在程序中 自定义对应输入负数的异常类(EcDef)
+- 4. 运行时接受参数java EcmDef 20 10 (args[0] = "20")
+- 5. Integer类的static方法parseInt(String s)将s转成对应的int值
+<!-- 
+  int a = Integer.parseInt("3.14");
+  a = 3.14;
+ -->
+
+> 要点
+- 这道题的意思是
+- 我们从命令行接受两个参数 然后让这两个参数进行运算 在运算的期间可能会出现什么样的异常信息
+
+- 1. ecm()方法 用于计算两个数据相除 并返回结果
+- 如果接收到的参数是负数的情况下 我们要考虑抛出一个异常
+
+- 所以下面的代码中我们抛出了一个自定义的异常 又因为是递进关系的方法 我们选择使用 throws 方法将异常抛给调用ecm方法的地方统一进行处理
+
+```java
+public int ecm(int i, int j) throws EcDef {
+  if(i < 0 || j < 0) {
+    throw new EcDef("分子或分母为负数了");
+  }
+
+  return i / j;
+}
+```
+
+> 完整的代码部分
+```java
+public class EcmDef {
+  public static void main(String[] args) {
+
+    // 直接往里面放会报错 因为args是String类型 ecm的返回值是int类型
+    // ecm(args[0], args[1]);
+
+    try {
+      int i = Integer.parseInt(args[0]);
+      int j = Integer.parseInt(args[1]);
+      int res = ecm(i, j);
+      System.out.println(res);
+
+      // 可能转换出异常
+    } catch(NumberFormatException e) {
+      System.out.println("数据类型不一致");
+
+    } catch(ArrayIndexOutOfBoundsException e) {
+      System.out.println("缺少命令行参数");
+
+    } catch(ArithmeticException e) {
+      System.out.println("除0");
+
+      // 自定义异常的处理
+    } catch(EcDef e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  public static int ecm(int i, int j) throws EcDef {
+    if(i < 0 || j < 0) {
+      throw new EcDef("分子或分母为负数了");
+    }
+
+    return i / j;
+  }
+}
+```
+----------------------------
+
+### 异常总结
+
+        捕获异常        抛出异常        声明异常
+
+try     执行可能产生      throw         throws
+        异常的代码
+                      异常的生成阶段    异常的处理方法
+                      手动抛出异常对象  声明方法可能要
+                                     抛出的各种异常类
+catch   捕获异常
+
+
+finally 无论是否发生异常
+        代码总被执行
+
+- 上游排污 下游治污
+
+
+> throw 和 throws 的区别
+- throws是抛出异常 对异常处理的一种方式
+- throw是生成对象的一种情况 用来手动抛出一个异常对象
+
+- 它们属于两个环节 throw是生成异常对象的环节 throws是处理异常对象的环节
 
 ----------------------------
 
