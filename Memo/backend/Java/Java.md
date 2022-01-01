@@ -31,6 +31,7 @@
   - https://www.bilibili.com/video/BV12b411K7Zu?from=search&seid=5669396497179590778&spm_id_from=333.337.0.0
 
   - jdbc
+  - https://www.bilibili.com/video/BV1eJ411c7rf?spm_id_from=333.788.b_636f6d6d656e74.9
 
 - 2. javaweb部分
   - https://www.bilibili.com/video/BV1Y7411K7zz

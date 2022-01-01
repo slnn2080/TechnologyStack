@@ -2,6 +2,24 @@
 
 ### 番外篇
 
+### onsubmit事件
+- 我们一般会阻止表单的自动提交
+- 阻止表单提交事件的步骤
+- 1. 给表单绑定submit事件
+- 2. 在事件内部调用 e.preventDefault();
+- 3. 按钮使用 <input type="submit">
+<!-- 
+  button类型必须指定为 submit 要不不会触发表单的提交
+ -->
+
+```js
+let submit = document.querySelector("#sub")
+form.onsubmit = function(e) {
+  e.preventDefault();
+}
+```
+
+
 ### 自定义实现 监听事件 和 触发事件 逻辑
 <!-- 
 - 1. 定义 事件对象 内包含 

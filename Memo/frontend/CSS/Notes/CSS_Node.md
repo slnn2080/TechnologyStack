@@ -103,7 +103,30 @@ tr:nth-child(odd) {
 - 内联框架不会被搜索引擎去检查
 - 内联框架的边框 属性：frameborder 值为 0 / 1    没有边框 / 有边框
 - eg:
-    <iframe src="" frameborder="0"></iframe>    
+    <iframe 
+        src="" 
+        frameborder="0"
+        width="number"
+        height="number"
+    ></iframe>  
+
+- 一把的应用场景 创建导航菜单 点击按钮让内联框架里面展示不同的页面
+
+> iframe标签 和 a标签组合使用步骤
+- 1. 在iframe标签中使用name属性
+- 2. 在a标签的target属性上设置iframe的name属性值
+
+```html
+<iframe 
+    src="" 
+    frameborder="0"
+    width="number"
+    height="number"
+    name="abc"
+></iframe> 
+
+<a target="abc" href="页面地址">
+```
 
 -------------------------------
 
