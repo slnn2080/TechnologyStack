@@ -15367,7 +15367,7 @@ class SubClass extends SuperClass implements CompareA, CompareB {
 - 接口没有构造器
 
 - 抽象类和接口是并列的结构
-- 接口可以多继承 抽象类只能但继承
+- 接口可以多继承 抽象类只能单继承
 
 - 类和类之间是继承关系 - 单继承
 - 接口跟类之间是实现关系 - 多实现
@@ -16204,7 +16204,7 @@ public void test1() {
 
 
 - 注意：
-- 执行顺序可能是先finally 再是catch中的逻辑
+- *执行顺序可能是先finally 再是catch中的逻辑*
 - 比如下面的逻辑
 public class Demo {
 
@@ -16323,7 +16323,7 @@ public class ExceptionTest {
  -->
 
 > throws的书写位置和格式
-> () throws 异常类型1, 异常类型2{}
+> () throws 异常类型1, 异常类型2 {}
 - 我们将method方法中的异常抛到上一级 也就是谁调用method方法 就抛给谁
 
 ```java
