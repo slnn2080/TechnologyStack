@@ -2826,6 +2826,16 @@ observer.observe(video);
 
 
 > 位运算 XOR    ^
+- 为什么当布尔类型的值进行 ^ 运算的时候 得到的是数字呢？
+
+```js
+let a = true
+let b = false
+
+let flag = a ^ b;
+console.log(flag)       // 1
+```
+
 - 位运算 XOR 由符号（^）表示 当然，也是直接对二进制形式进行运算
 - XOR 不同于 OR，当只有一个数位存放的是 1 时，它才返回 1。真值表如下：
 <!-- 
