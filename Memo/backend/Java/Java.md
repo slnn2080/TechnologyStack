@@ -16764,6 +16764,922 @@ finally 无论是否发生异常
 
 ----------------------------
 
+### IDEA相关
+
+- 创建包
+- src - 右键 创建 package 输入包名
+  com.sam.java
+
+- 创建类
+- 在包下右键创建 class 类
+
+
+> 创建模块(module)
+- 我们在idea的工程下 右键 创建module
+
+- 比如我们创建了一个 java_exer 的项目
+- 这个项目下可以有很多的模块 
+<!-- 
+  | - java_exer
+    | - module1
+      | - src
+        | - 创建package包
+    | - module2
+      | - src
+        | - 创建package包
+
+  相当于 
+  java_idea_project
+    day01
+      src
+        com.sam.java
+
+    day02
+      src
+        com.sam.java
+ -->
+
+- 在eclipse中我们有 workspace(工作空间) 和 project(工程)的概念
+
+- 在idea中只有project和moudule的概念 这里对应的关系为
+
+<!-- 
+  eclipse中的 workspace 相当于
+    idea中的 project
+
+  eclipse中的 project 相当于
+    idea中的 moudule
+ -->
+
+- idea中一个工程只能维护一个窗口 我们要是想再开启一个创建 相当于我们要重新再创建一个项目
+
+- 但是一个工程下我们可以提供多个module
+<!-- 
+  比如我们开发京东商城 一个京东商城就是一个项目
+  这个京东商城下面 有很多的模块
+  登录模块
+  秒杀模块
+
+  我们把一个项目打成很多的模块 把这些模块集成在一起构成整个的一个项目
+ -->
+  
+- 小项目就无需搞得这么复杂 只有一个module的结构idea也是支持的 并且idea创建项目的时候 默认就是单模块的
+
+
+> 删除模块
+- 1. 模块处右键 - open module setting - 点击减号
+
+- 2. 模块处右键 - remove
+
+- 最后 右键 delete
+<!-- 
+  移除module的身份后 就是一个普通的文件目录了 右键的时候就有delete了
+ -->
+
+
+> 常用配置
+- idea - preferences
+
+- 配置项
+- Appearance & Behavior (外观和行为)
+
+- Keymap (快捷键)
+
+- Editor (编辑器)
+  - 设置编辑区的主题 color scheme
+  - http://www.riaway.com
+  - 下载以后
+  - file - import setting - 选中下载的主题jar文件 - 一路确认 - 重启
+
+- Plugins (插件)
+
+- Version Contorl (版本控制)
+
+- Build Execution Deployment (构建 执行 部署)
+
+- Languages && Frameworks (语言 架构)
+
+- Tools (工具集)
+
+- Advanced Setting
+
+
+> 设置文档头部信息
+- editor - file and code templates - includes
+
+
+> 快捷键
+- psvm
+  - main方法
+
+- "hello".sout
+- sout
+  - system.out.println
+
+- 右键 run 运行
+
+- ctrl + d
+  - 复制
+
+- ctrl + enter
+  - 创建对象
+  - 先写new Data()然后使用快捷键
+
+
+----------------------------
+
+### java多线程篇
+
+### 程序 进程 线程 基本概念
+
+> 程序 program
+- 程序是为完成特定任务 用某种语言编写的一组指令的集合 即指*一段静态的代码* 静态对象
+<!-- 
+  我们写完的代码就认为是静态的
+  
+  当我们把程序加载到内存当中 这时候它运行要占用cpu的资源 这就是一个动态的过程
+ -->
+
+- 一旦我们把一个程序加载到内存中让它跑起来了 它就是一个进程了
+
+- 也就是说程序是一段静态的代码 而进程是这段静态代码的一次执行过程
+
+
+> 进程 process
+- 是程序的一次执行过程 或者*正在运行的一个程序*
+- 是一个动态的过程 有它自身的产生 存在 和 消亡的过程 -- *生命周期*
+<!-- 
+  当我们把程序加载到内存中的时候 就是存在了
+  当我们把程序从进程中清掉 关闭程序 就是消亡了
+ -->
+  - 如： 运行中的QQ 运行中的MP3播放器
+  - 程序时静态的 而进程是动态的
+  - *进程做为资源分配的单位* 系统在运行时会为每一个进程分配不同的内存区域(每一个进程有独立的方法区和堆)
+
+
+> 线程 thread
+- 进程可进一步细化为线程 *是一个程序内部的一条执行路径*
+- 若一个进程同一时间并行执行多个线程 就是支持多线程的
+<!-- 
+  一个进程中有一条线程 -- 单线程
+  ------------------
+  |                |
+  |  ~~~~~~~~~~~~~ |
+  |                |
+  ------------------
+
+
+  多条执行路径 并列执行 -- 多线程
+  ------------------
+  |  ~~~~~~~~~~~~~ |
+  |  ~~~~~~~~~~~~~ |
+  |  ~~~~~~~~~~~~~ |
+  ------------------
+ -->
+
+- 我们的main方法其实就是一条线程
+
+- *线程做为调度的执行的单位 每个线程拥有独立的运行栈和程序计数器* 线程切换的开销小
+<!-- 
+  简单的说下 jvm内存
+
+  class文件 ---- > 类加载器
+
+                    ↑ ↓
+
+  内存区域：
+
+  方法区      虚拟机栈    本地方法栈
+
+  堆          程序计数器
+
+
+  先是类的加载器把我们的.class文件加载进来
+  我们的类就加载到内存当中了 内存中就会有上面的对应的结构
+
+
+  虚拟机栈 -- 就是我们知道的栈空间
+
+
+  本地方法栈 -- 
+      native当中的方法 好像是c吧
+
+
+  程序计数器 和
+  虚拟机栈    -- 
+      它们两个每一个线程有一份 比如如果有一个进程里面有两个线程 就意味着 这两个线程各自有一套 程序计数器 和 虚拟机栈
+
+
+  方法区 -- 
+      存放静态结构
+
+
+  堆  -- 
+      new的对象在这里
+
+  - 方法区和堆是一个进程有一份
+  - 而一个进程当中有多个线程 就意味着这些线程共用一个方法区和堆结构
+ -->
+
+- 一个进程中的多个线程共享相同的内存单元/内存地址空间(共享堆和方法区)
+
+- 它们从同一个堆中分配对象 可以访问相同的变量和对象 这就使得线程间通信更简便 高效
+
+- 但多个线程操作共享的系统资源可能会带来*安全的隐患*
+<!-- 
+  到底你操作数据 还是我操作数据
+  或者
+  我操作数据的时候 你又来了 这就是安全隐患的问题
+ -->
+
+
+> 单核cpu和多核cpu的理解
+- 单核cpu
+- 其实是一种假的多线程 因为在一个时间单元内 也只能执行一个线程的任务
+<!-- 
+  单核cpu就意味着只有一个核能进行 数据处理
+
+  单核的时候
+  我们发现我们也能开好多个程序 每一个程序都是一个进程 而每一个进程里面至少有一个线程
+  那是不是说单核的时候 有时多线程的呢？
+
+  其实这时候是一个假的多线程 简单的说 就是一个核 有好多进程过来都希望它能够执行
+
+  cpu会给一个进程执行一段时间然后换下一个进程再执行一段时间 依次执行 因为cpu的主频太高了
+
+  虽然单核的cpu同一个时间段只能做一件事情 但是它太快了
+
+  就像饭店的大厨 虽然只有一个大厨 但它同时做了好多桌的菜 一个炒这个 一个炒那个 能让你感觉出来后台有好多厨师
+ -->
+
+- 例如：
+- 虽然有多车道 但是收费站只有一个工作人员在收费 只有收了费才能通过
+
+- 那么cpu就好比收费人员 如果有某个人不想交钱 那么收费人可以把他“挂起”(晾着他 等他想通了 准备好钱了 再去收费) 但是因为cpu时间单元特别端 因此感觉不出来
+
+- 如果是多核的话 才能更好的发挥多线程的效率(现在的服务器都是多核的)
+
+- 一个java应用程序java.exe 其实至少有3个线程：
+  - 1. main()主线程
+  - 2. gc()垃圾回收线程
+  - 3. 异常处理线程
+
+- 当然如果发生异常 会影响主线程
+
+
+> 并行 与 并发
+- 并行：
+- *多个cpu*同时执行多个任务 比如 多个人*同时做不同的事情*
+
+- 并发：
+- *一个cpu*(采用时间片的策略切换不同的任务)*同时执行多个任务* 比如 秒杀 多个人做同一件事
+<!-- 
+  多个人做同一件事
+    - 多个线程做同一件事
+
+
+  秒杀
+    - 100台iphone 1万个人在秒杀它 这些人同一时间段涌进来 来抢这100台手机
+
+  篮球在空中 一堆人去抢 这个画面就是并发
+ -->
+
+
+> 使用多线程的优点
+- 背景
+- 以单核cpu为例 只使用单个线程先后完成多个任务(调用多个方法) 肯定比用多个线程来完成用的时间更短 为何仍需多线程呢？
+<!-- 
+  比如
+  我们c盘有1g的文件 要复制到d盘中
+  我们e盘有1g的文件 要复制到f盘中
+
+  假设电脑只有一个单核cpu
+  看看下面两种方式哪个快
+
+  先复制c-d       然后e-f
+  ---------     ---------
+
+  还是c-d e-f同时进行
+  ---------
+  ---------
+
+  上面的两种方式哪个快？
+  第一个快一些 第二个为什么慢么呢？
+  因为一个cpu但是有两个任务 第二种方式相当于有两个线程 这时候我们不光要复制 还要来回的不停切换 第二种方式反而是慢了
+
+  但是有多核的时候 不用来回切换了 第二种方式就快了
+ -->
+
+- 但是也不是说 单核的时候就不会创建多线程
+
+- 多线程程序的优点
+- 1. 提高应用程序的响应 对图形化界面更有意义 可增强用户体验
+<!-- 
+  比如360的界面 有的时候我们就需要同时做多个事情
+
+  要是dos的时候 我们通过命令行的方式 一个线程就可以了
+  但是图形化界面的时候 比如 先是电脑体检 然后同时 我们还想来一个电脑查杀
+ -->
+
+- 2. 提高计算机系统cpu的利用率
+- 3. 改善程序结构 将既长又复杂的进程分为多个线程 独立运行 利于理解和修改
+
+
+> 何时需要多线程
+- 程序需要同时执行两个或多个任务
+<!-- 
+  比如java程序 一方面我们要开启mian方法 主线程跑我们的程序 还有垃圾回收的线程
+ -->
+- 程序需要实现一些需要等待的任务时 如用户输入 文件读写 网络操作 搜索等
+- 需要一些后台运行的程序时
+
+----------------------------
+
+### 线程的创建和使用
+
+- 先看下下面的代码 注意 它不是多线程的代码
+```java
+package com.sam.java;
+
+public class Sample {
+  public  void method1(String str) {
+    System.out.println(str);
+  }
+
+  public void method2(String str) {
+    method1(str);
+  }
+
+  public static void main(String[] args) {
+    Sample s = new Sample();
+    s.method2("hello");
+  }
+}
+```
+
+- 上面的代码不是在main方法中执行method2了 还执行method1了 为什么不是多线程呢？
+
+- 怎么判断是不是多线程 我们就看能不能用一条线画出来 我们说一个一个线程就是程序执行的一条路径 我们要是能用一条线画出来的就是一条路径 就是单线程
+
+- 如果发现这一条路径画不完了 同时还有另外一条路径就是多线程
+
+- 比如上面的代码 main方法进来
+
+    造对象
+      ↓
+  调用method2
+      ↓
+  method2内部调用method1
+      
+- 我们能用一条线给它画出来 那它就是单线程
+
+
+> 线程的创建和启动
+- 一个Thread对象就是一条线程 java语言的jvm允许程序运行多个线程 它通过java.lang.thread类来创建多线程
+
+
+> Thread类的特性
+- 每个线程都是通过某个特定的Thread对象的run()方法来完成操作的 经常把run()方法的主体称为线程体
+
+- 通过该Thread对象的start()方法启动这个线程 而非直接调用run()
+
+
+> 创建线程的方式1: 继承于Thread类
+> 创建线程的步骤
+- 1. 创建一个继承于Thread类的子类
+
+- 2. 重写Thread类中的run方法
+- 主要是重写run方法的方法体 我们将这个线程要做的事情放在方法体中
+
+- 3. 创建Thread类的子类的对象
+- 实例化对象的操作 要在主线程中做 也就是main方法中
+
+- 4. 通过此对象调用start()
+- 调用start()方法后会自动调用当前线程对象的run()方法
+
+```java
+// 创建一个继承于Thread类的子类
+class MyThread extends Thread {
+
+  // 重写Thread类中的run方法
+  @Override
+  public void run() {
+
+    // 我们将这个线程要做的事情 写在run()的方法体中
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(i);
+      }
+    }
+  }
+}
+
+// 测试类
+public class ThreadTest {
+  public static void main(String[] args) {
+    // 主线程中的逻辑
+
+    // 创建Thread类的子类的对象
+    MyThread t1 = new MyThread();
+
+    // 通过此对象调用start() 会自动调用当前线程对象的run()方法
+    t1.start();
+
+    // 如下的逻辑 仍然是在main线程(主线程)中执行的
+    System.out.println("hello");
+  }
+}
+```
+
+- 上面的代码就是 就是创建的就是一个新的线程了 不同于我们的main 
+<!-- 
+  main方法中做了
+    MyThread t1 = new MyThread();  
+    t1.start(); 
+  
+  等主线程的事
+-->
+
+- 解析上面代码的执行过程
+- main()方法开始 
+- 先造了一个对象MyThread t1 = new MyThread(); 
+<!-- 
+  这里是main方法对应的主线程完成的逻辑
+  也就是说 t1 这个线程是在主线程中造的
+ -->
+
+- 调用t1.start(); 方法 也是主线程做的
+<!-- 
+  调用start方法后 t1线程开始执行了
+ -->
+
+- 调用完start以后执行的是 线程中的run()方法里面的逻辑
+
+- 而 System.out.println("hello"); 还在主线程里面执行的
+- 也就是说这时候两两个线程在执行 但是hello在哪个地方出来就不确定了 因为两个线程一起执行的
+
+
+> 线程实例对象.start();
+- 作用：
+- 1. 启动当前的线程
+- 2. 调用当前线程的run()方法
+<!-- 
+  也就是说 
+  我们调用 t1.start(); 包括这句代码本身 
+  都是 mian()方法对应的主线程 帮我们做的事情
+
+  在启动线程以后 start()方法会自动帮助我们调用 当前线程的run()
+
+  当前线程的run()就是Thread类中的run方法 但由于我们对run方法做了重写
+
+  继承里面说过 当重写父类中的方法后 调用的就是重写后的方法 就会自动执行 我们创建的线程类 MyThread 的run方法
+ -->
+
+**注意：**
+- 不行让已经调用start()的线程 再次调用start()(试图开始另外一个线程) 会报 IllegalThreadStateException
+
+
+
+> 线程实例对象.run();
+- *该方法是通过 start()方法自动调用的* 不需要自己去调用
+- 因为自己调用该方法 相当于普通的调用t1对象中的方法 并不是开启一个线程
+
+- 我们也会发现 当我们调用t1.run()后 run方法中的逻辑还是在主线程中执行的
+
+
+> 实现多线程
+- 上面的代码我们启动了一个线程(除了main主线程外) 那如何再启动一个线程呢？
+
+- 要想创建多个线程就去造多个线程对象
+<!-- 
+  那怎么让不同的线程做不同的事儿？
+  创建多个线程类么？
+ -->
+
+- 我们要重新创建一个线程对象并调用start()方法(new一个新对的线程对象)
+```java
+public class ThreadTest {
+  public static void main(String[] args) {
+    
+    MyThread t1 = new MyThread();
+    t1.start();
+
+    MyThread t2 = new MyThread();
+    t2.start();
+  }
+}
+```
+
+> 练习
+- 需求两个分线程
+- 一个线程遍历100以内的偶数
+- 一个线程遍历100以内的奇数
+
+- 上面的案例中我们只接触过 两个线程执行的逻辑是一样的
+
+- 这个案例中我们两个线程执行的逻辑是不一样的 怎么办？
+- 我们可以*造两个Thread类的子类*呀
+
+```java
+package com.sam.thread_exer;
+
+public class ThreadDemo {
+  public static void main(String[] args) {
+    Thread1 thread1 = new Thread1();
+    Thread2 thread2 = new Thread2();
+
+    thread1.start();
+    thread2.start();
+
+    System.out.println("main");
+  }
+}
+
+// 创建一个输出偶数的线程
+class Thread1 extends Thread {
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println("Thread1 *** " + i);
+      }
+    }
+  }
+}
+
+// 创建一个输出奇数的线程
+class Thread2 extends Thread {
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 != 0) {
+        System.out.println("Thread2 *** " + i);
+      }
+    }
+  }
+}
+
+------
+
+// 多线程的简写方法 
+- 虽然也是这4步 但是我们可以调整下 变成匿名子类的方法
+new Thread() {
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println("匿名子类 *** " + i);
+      }
+    }
+  }
+}.start();
+```
+
+> Thread类的相关方法
+> 实例对象.start();
+- 返回值 void
+- 启动当前线程 并自动调用当前线程对象中的run()方法
+
+
+> 实例对象.run();
+- 通常需要重写Thread类中的run()方法
+- 线程在被调用的时候自动执行
+
+- 将要在线程中执行的逻辑放在run()方法中
+<!-- 
+  就是这个线程到底要干什么
+ -->
+
+
+> Thread.currentThread();
+- Thread类的静态方法
+- 返回当前执行代码的线程 
+<!-- 
+  Thread.currentThread() 执行这行代码的当前线程
+ -->
+
+- 在Thread子类中就是this 通常用于主线程和Runnable实现类
+<!-- 
+  Thread.currentThread() 就是当前线程
+  比如我们给当前线程设置名字
+  Thread.currentThread().setName()
+
+  是不是相当于 this.setName()
+ -->
+
+
+> 实例对象.getName();
+- 返回值 String
+- 返回线程的名称
+
+
+> 实例对象.setName(String name);
+- 设置该线程的名称
+- 要在start()方法执行之前设置
+
+```java
+// 测试类
+public class TreadMethodTest {
+  public static void main(String[] args) {
+    ThreadTest1 t1 = new ThreadTest1();
+    
+    // 设置线程名称 必须在start()方法之前
+    t1.setName("线程一");
+
+    t1.start();
+
+    // 给主线程设置线程名
+    Thread.currentThread().setName("主线程");
+
+    // 主线程中测试的逻辑
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+    }
+  }
+}
+
+// 线程类
+class ThreadTest1 extends Thread {
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+    }
+  }
+}
+
+// 结果： Thread-0:90
+```
+
+> 给线程起名字
+- 上面我们可以通过 setName() 方法给线程起名字
+- 我们还可以在Thread子类中 通过构造器的形式给线程起名字
+```java
+
+// 测试类
+public class TreadMethodTest {
+  public static void main(String[] args) {
+    ThreadTest1 t1 = new ThreadTest1("Thread: 1");
+
+    // t1.setName("线程一");
+
+    t1.start();
+  }
+}
+
+
+// Thread子类
+class ThreadTest1 extends Thread {
+
+  // 通过构造器的形式给线程起名字
+  public ThreadTest1(String name) {
+    super(name);
+  }
+
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+    }
+  }
+}
+```
+
+> yield();
+- 返回值 void
+- 释放当前cpu的执行权(有可能又被cpu分配回来)
+
+- 线程中的方法 所以得是一个线程去调用该方法
+- 或者看看下面的例子中是怎么调用的
+
+- 暂停当前正在执行的线程 把执行机会让给优先级相同或更高的线程
+- 若队列中没有同优先级的线程 忽略此方法
+
+<!-- 
+  // Thread: 1 是分线程
+
+  主线程: *** :2
+  主线程: *** :4
+  主线程: *** :6
+  Thread: 1 *** :54
+  Thread: 1 *** :56
+  Thread: 1 *** :58
+  Thread: 1 *** :60
+  主线程: *** :8
+
+
+  我们观察分线程能发现 我们连续执行了 四个分线程的语句 54 56 58 60
+
+  就是说 执行完54以后 cpu还继续执行分线程的56 58 60
+
+  相当于在这段时间内主线程是没有做任何事情的都分为分线程来做了
+ -->
+
+```java
+
+// 测试类
+public class TreadMethodTest {
+  public static void main(String[] args) {
+
+    // 通过构造器的形式给分线程起名字
+    ThreadTest1 t1 = new ThreadTest1("Thread: 1 *** ");
+    t1.start();
+
+    // 主线程的测试逻辑
+    Thread.currentThread().setName("主线程: *** ");
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+    }
+  }
+}
+
+// 线程类
+class ThreadTest1 extends Thread {
+
+  public ThreadTest1(String name) {
+    super(name);
+  }
+
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+
+      if(i % 20 == 0) {
+
+        yield();
+        // this.yield();
+        // Thread.currentThread().yield(); 这两种写法是一回事
+        - run() 方法中调用 yield() 方法
+        - 相当于方法中调用方法 一般省略的都是this
+
+        - this代表当前类的对象 也就是实例对象 t1
+
+        - t1也相当于当前的线程(Thread.currentThread())
+      }
+    }
+  }
+}
+
+- yield();
+- 释放当前cpu的执行权 我们在i为60的时候 释放了当前线程的执行权
+
+- 那么就意味着执行权就会被另外的一个线程拿到 所以
+
+- 这里也要注意 我们虽然释放了当前线程的执行权 但是还有可以被重新抢回来
+
+- 比如:
+- Thread: 1 *** :60
+  Thread: 1 *** :62
+  主线程: *** :8
+
+- 正常60的时候我们会释放执行权 后面应该执行其它线程的逻辑 但是我们发现60后面还是62
+
+- 因为分线程释放了执行权 但是又被分线程抢到了
+- 或者说cpu又把执行权分给分线程了
+```
+
+> join()
+- 线程中的方法 让线程去调 比如 线程的实例对象
+- 该方法会抛出 *InterruptedException 异常*
+
+- 线程A中 调用线程B的join方法 此时线程A进入阻塞状态 直到线程B完全执行完以后 线程A才会结束阻塞状态
+
+- 比如当前的线程正在执行(A) 这时候我们调用了另外一个线程(B)的join方法 这时候就会执行另外一个线程(B)的逻辑 直到另外一个线程B执行完毕后 才会继续执行线程A
+<!-- 
+  | 主线程
+  || 分线程
+
+
+  |
+  |
+  |
+  |       分线程 join
+  ||    ↙
+  ||
+  ||
+  ||    → 分线程执行完毕
+  |     → 分线程执行完毕后 恢复主线程的执行
+  |
+  |
+ -->
+
+- 应用场景
+- 线程A执行执行 执行到一半的时候需要一些数据 这些数据需要另外一个线程帮它提供 
+- 这时候就去调用另外一个线程的join方法 另外一个线程就会执行 在另外一个线程执行的期间 线程A不要动 当数据完全提供给你以后 线程A再继续往下走
+
+```java
+public class TreadMethodTest {
+  public static void main(String[] args) {
+    ThreadTest1 t1 = new ThreadTest1("Thread: 1 *** ");
+    t1.start();
+
+    // 以下都是主线程的逻辑
+    Thread.currentThread().setName("主线程: *** ");
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+
+      // 主线程中 调用 join();
+      if(i == 20) {
+        try {
+
+          // 在这里我们调用了另外一个线程(t1这个线程的join方法)
+          t1.join();
+        } catch(InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+}
+```
+
+
+> sleep(long millis); (毫秒)
+- 线程的方法
+- 我们可以通过Thread.currentThread().sleep()调用
+- 因为它也是静态方法 也就是使用Thread类去调用
+- Thread.sleep();
+
+- 也可以在线程类中直接使用 因为相当于省略了this 而this就是实例对象 也就是线程
+
+- 返回值 void
+
+- 让当前线程阻塞(睡眠)指定的毫秒数 在指定的毫秒时间内 当前的线程是阻塞状态
+
+- 当 当前线程执行完毕后 也不是马上的执行后面的逻辑 而是等待cpu给我们分配资源
+
+
+- 令当前活动线程在指定时间段内放弃对cpu控制 使其他线程有机会被执行 时间到后重排队
+- 该方法会抛出 *InterruptedException 异常*
+
+- 应用场景
+- 比如写桌面级的应用 倒计时 每一秒出现一个 我们就可以用这个sleep方法 让数字每秒跳一下
+
+```java
+class ThreadTest1 extends Thread {
+
+  // 因为父类中 提供了这样的构造器 所以调用super传参
+  public ThreadTest1(String name) {
+    super(name);
+  }
+
+  @Override
+  public void run() {
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+
+        // 相当于省略了this
+        try {
+          sleep(1000);
+        }catch(InterruptedException e) {
+          e.printStackTrace();
+        }
+        - 这里也不能使用throws 抛异常 因为run方法是重写父类中的方法 父类中没有throws异常 所以我们子类也不能往上抛异常
+
+        // 每次先阻塞一秒 然后再执行下面的逻辑
+        System.out.println(Thread.currentThread().getName() + ":" + i);
+      }
+
+      if(i % 20 == 0) {
+        yield();
+      }
+    }
+  }
+}
+```
+
+> stop();
+- 当执行此方法时 强制结束当前线程 不推荐使用 *弃用了*
+
+
+> isAlive();
+- 返回值 boolean
+- 判断线程是否还活着
+- 线程 当run方法执行完后 就消亡了
+
+```java
+System.out.printl(t1.isAlive());
+```
+
+----------------------------
+
+### 线程的调度
+
+----------------------------
+
 ### 书签
 
 ----------------------------
