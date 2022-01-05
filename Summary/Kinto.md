@@ -1,6 +1,5 @@
 ### nuxt化
 - 1. http://store.kinto-jp.com/
-- 2. http://store.kinto-jp.com/tool/
 - 3. http://store.kinto-jp.com/lexus/
 
 

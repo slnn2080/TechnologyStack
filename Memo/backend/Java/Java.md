@@ -17677,6 +17677,393 @@ System.out.printl(t1.isAlive());
 ----------------------------
 
 ### 线程的调度
+- 什么叫做调度？
+- 我们创建的多个线程被cpu执行的时候 涉及到cpu调度的策略
+- 正常来说cpu采用的时间片的方式来回切换 每个线程执行一段时间
+<!-- 
+    ---   ---   ---
+      ___   ___   ___
+ -->
+
+- 除了时间片的方式 还有一种方式 叫做 *抢占式*
+- *高优先级的线程抢占cpu*
+<!-- 
+  我们可以给线程设置优先级 高优先级的线程会抢占低优先级线程的cpu资源
+ -->
+
+- 也就是说cpu在切换的时候会优先考虑高优先级的线程
+<!-- 
+  比如我们去工商银行 办理业务 排号 有A开头 有T开头
+  我们有的时候会发现 叫了好几次T才叫一个A 说明T的优先级要比A高
+ -->
+
+> java的调度方法
+- 同优先级线程组成先进先出队列(先到先服务), 使用时间片策略
+- 对高优先级 使用优先调度的抢占式策略(高优先级抢占低优先级)
+<!-- 
+  相当于给线程设置为vip客户 
+ -->
+
+
+> 线程的优先级等级
+- 1. MAX_PRIORITY: 10   -- 最大优先级
+- 2. MIN_PRIORITY: 1    -- 最小优先级
+- 3. NORM_PRIORITY: 5   -- 默认优先级
+- 这些常量是直接定义在 Thread类 中的
+<!--  
+  也就是说 线程的优先级有10档
+ -->  
+
+- 我们使用这些常量的时候 也是通过 Thread去调用
+- Thread.MAX_PRIORITY
+
+
+> 获取 和 设置 当前线程的优先级
+> getPriority();
+- 获取当前线程的优先级
+
+> setPriority(int newPriority)
+- 设置当前线程的优先级
+- 在 线程对象.start() 方法前 修改 线程的优先级
+
+**说明：**
+- 线程创建时继承父线程的优先级
+- 低优先级*只是获得调度的概率低* 并非一定是在高优先级线程之后才被调用
+<!-- 
+  高优先级的线程要抢占低优先级线程cpu的执行权
+  但是只是从概率上讲 高优先级的线程高概率的情况下被执行
+
+  并不意味着只有当优先级的线程执行完以后 低优先级的线程才执行
+ -->
+
+- 比如我们可以*查看*下 当前线程的*优先级*
+- 要点：
+- 我们可以利用 线程中的"this"(Thread.currentThread())来调用 getPriority() 方法
+```java
+// 分线程
+class ThreadTest1 extends Thread {
+
+  @Override
+  public void run() {
+
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+
+        System.out.println(
+          // 获取当前线程名
+          Thread.currentThread().getName() 
+          + ":"
+          + i 
+          + " *** 当前线程的优先级: " 
+          + 
+          // 获取当前线程的优先级值
+          Thread.currentThread().getPriority());
+      }
+
+      if(i % 20 == 0) {
+        yield();
+      }
+    }
+  }
+}
+
+// 因为在线程类中 我们也可以省略 
+// Thread.currentThread()
+
+// 结果:
+Thread: 1 *** :0 *** 当前线程的优先级: 5
+主线程: *** :0 *** 当前线程的优先级: 5
+主线程: *** :2 *** 当前线程的优先级: 5
+主线程: *** :4 *** 当前线程的优先级: 5
+Thread: 1 *** :2 *** 当前线程的优先级: 5
+```
+
+
+- 比如我们可以*设置*下 当前线程的*优先级*
+- 要点：
+- 要在*start()方法前* 设置线程的优先级
+```java
+public class TreadMethodTest {
+  public static void main(String[] args) {
+
+    // 设置分线程的优先级
+    // t1.setPriority(10);  -- 最高
+    t1.setPriority(Thread.MAX_PRIORITY);
+
+    t1.start();
+
+
+    // 给主线程设置 线程名
+    Thread.currentThread().setName("主线程: *** ");
+
+    // 给主线程设置 优先级  --- 最低
+    Thread.currentThread().setPriority(Thread.MIN_PRIORITY)
+
+    // 主线程的测试逻辑
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(
+          Thread.currentThread().getName() 
+          + ":" 
+          + i 
+          + " *** 当前线程的优先级: " 
+          + 
+          Thread.currentThread().getPriority());
+      }
+
+      // 主线程中 调用 join();
+      if(i == 20) {
+        try {
+          t1.join();
+        } catch(InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+}
+```
+
+- 总结：
+- 我们观察执行结果能看到 当我们把分线程的优先级调成最高 主线程的优先级调成最低
+
+- 结果并不是分线程执行完后 才执行主线程的逻辑 实际上它们之间也有交错输出逻辑
+
+- 我们只能说分线程设置的优先级比较高 从概率上讲 分线程就有可能被cpu优先执行 但并不一定会被执行
+
+
+> 练习：
+- 需求： 创建3个窗口卖票 总票数为100张
+
+- 要点:
+- 我们造3个Window的对象 然后分别start() 让它们执行内部的run()方法 这三个方法都做同一件事情 就是卖票
+
+- 我们发现 线程类中的ticket必须声明成static的 因为这样才能解决 三个窗口共用一份数据的问题
+
+- 那我们不加static有没有办法解决这个问题呢？
+- 这就涉及到我们创建多线程的第二种方式
+
+```java
+package com.sam.java;
+
+public class WindowTest {
+  public static void main(String[] args) {
+    Window t1 = new Window();
+    Window t2 = new Window();
+    Window t3 = new Window();
+
+    // 给线程起名字
+    t1.setName("窗口1");
+    t2.setName("窗口2");
+    t3.setName("窗口3");
+
+    t1.start();
+    t2.start();
+    t3.start();
+  }
+}
+
+// 创建线程
+class Window extends Thread {
+
+  // 一共100张票 要加static哦
+  private static int ticket = 100;
+
+  @Override
+  public void run() {
+    // 这个线程主要做的事情就是卖票
+    while (true) {
+
+      // 说明还有余票
+      if(ticket > 0) {
+        // getName() 相当于 Thread.currentThread().getName()
+        System.out.println(getName() + ": 卖票, 票号为: " + ticket);
+
+        // 票一张 就减少一张
+        ticket--;
+
+      } else {
+        // 如果ticket为0了 跳出循环
+        break;
+      }
+    }
+  }
+}
+```
+
+----------------------------
+
+### Error: java: 无效的源发行版: 1.9
+- 主要是针对jdk1.9 相当于我们在1.9的版本上跑了 
+- 比如我们当前项目的 External Libraries 是jdk1.8
+- 然后我们试图让它用jdk1.9去跑 报的错误
+
+- 可能是 Project Structure 设置中
+- project选项卡
+- A module specific language level can be congifured for each of ths modules as required
+
+- 这里选择8
+- 或者 选择 SDK default
+
+----------------------------
+
+### 创建线程的方式2: 实现Runnable接口
+- 我们上面就说过有多种方式来创建多线程 上面介绍了创建一个线程类然后让它继承Thread类的方式 创建的线程
+
+- 这里再介绍一种方式 实现Runnable接口 的方式
+
+> 实现Runnable接口的具体步骤
+- 1. 创建一个实现了 Runnable 接口的类 (实现类)
+- 2. 实现类去实现Runnable中的抽象 run() 方法
+- 3. 创建实现类的对象
+- 4. 将实现类的对象作为参数传递到Thread类的构造器中 创建Thread类的对象
+- 5. 通过Thread类的对象 调用start()
+
+```java
+public class ThreadTest2 {
+  public static void main(String[] args) {
+    // 3. 创建实现类的对象
+    ThreadRunnable threadRunnable = new ThreadRunnable();
+
+    // 4. 创建Thread类的对象 将实现类的对象作为参数传递到Thread类的构造器中
+    Thread t1 = new Thread(threadRunnable);
+      - Thread(Runnable) Thread类中有一个构造器的参数就是Runnable接口 
+      - 这里我们传入的是该接口的实现类 属于多态的形式了
+
+    // 5. 通过Thread类的对象 调用start()
+    t1.start();
+  }
+}
+
+// 1. 创建一个实现了 Runnable 接口的类 (实现类)
+class ThreadRunnable implements Runnable {
+
+  // 2. 实现类去实现Runnable中的抽象 run() 方法
+  @Override
+  public void run() {
+    // 线程中要做的事情
+    for (int i = 0; i < 100; i++) {
+      if(i % 2 == 0) {
+        System.out.println(i);
+      }
+    }
+  }
+}
+
+- 上面我们创建了一个 t1 线程
+- 谁start()的 谁就是线程
+```
+
+> 思考： 为什么 t1.start() 后执行的是实现类中的run()
+- 上面我们讲过 t1.start() 的方法的作用
+- 1. 启动线程
+- 2. 调用当前线程的run() 那它调用的应该是Thread类中的run()方法
+<!-- 
+  Thread t1 = new Thread(threadRunnable);
+ -->
+
+- 之前(继承Thread类的方式创建线程)我们通过t1.start()的时候 因为是继承了Thread类 然后重写了Thread类中的run方法，所以我们执行的是 线程类中重写后的run方法中的逻辑
+
+- 但现在是我们创建了一个类 实现了Runnable接口 接口中实现了run()方法
+- 为什么t1.start()执行的是 实现类中的run方法的逻辑呢？我们确实实现了Runnable 但继承的是Object类啊
+
+- 我们看下原码
+- 我们调用start()后 确实执行的是Thread中的run
+```java
+public void run() {
+  if(target != null) target.run();
+}
+```
+
+- target 是 Thread类中声明的一个变量 它就是Runnable的类型
+```java
+private Runnabale target;
+``` 
+
+- 上面我们创建Thread类的时候 我们用的是带参的Thread构造器
+```java
+public Thread(Runnable target) { }
+```
+
+- 相当于我们在 Thread t1 = new Thread(threadRunnable); 放入形参的就是实现类
+
+- 然后原码中将我们传入的实现类 赋值给了 target
+private Runnabale target; 
+
+- 然后我们再看下面的原码就知道 调用的是target.run()就是调用的实现类中的run()
+```java
+public void run() {
+  if(target != null) target.run();
+}
+```
+
+> 再创建一个线程 执行同样的逻辑
+```java
+public class ThreadTest2 {
+  public static void main(String[] args) {
+    ThreadRunnable threadRunnable = new ThreadRunnable();
+
+    Thread t1 = new Thread(threadRunnable);
+    t1.start();
+
+    // 再启动一个线程 遍历100以内的偶数
+    Thread t2 = new Thread(threadRunnable);
+    t2.start();
+  }
+}
+```
+
+
+> 练习
+- 需求： 多窗口卖票 总票数100张
+- 使用实现Runnable的方式
+
+- 要点：
+- 为什么我们在实现类中没有加static 它们也是共用同一个ticket呢？
+
+```java
+package com.sam.java;
+public class WindowTest2 {
+  public static void main(String[] args) {
+
+    Window2 w = new Window2();
+    // 答案： 
+    - 我们只造了一个实现类的对象 
+    - 这一个对象放到了下面3个Thread构造器中 
+    - 相当于这3个线程用的都是同一个实现类的对象 
+    - 所以实现类中的ticket自然而然的用的就是同一个
+
+    Thread t1 = new Thread(w);
+    Thread t2 = new Thread(w);
+    Thread t3 = new Thread(w);
+
+    t1.setName("窗口1");
+    t2.setName("窗口2");
+    t3.setName("窗口3");
+
+    t1.start();
+    t2.start();
+    t3.start();
+  }
+}
+
+
+class Window2 implements Runnable {
+
+  private int ticket = 100;
+
+  @Override
+  public void run() {
+    while(true) {
+      if(ticket > 0) {
+        System.out.println(Thread.currentThread().getName() + ": 卖票, 票号为: " + ticket);
+      } else {
+        break;
+      }
+    }
+  }
+}
+```
 
 ----------------------------
 
