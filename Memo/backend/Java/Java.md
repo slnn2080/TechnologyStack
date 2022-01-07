@@ -18281,7 +18281,618 @@ class Window2 implements Runnable {
 ----------------------------
 
 ### 线程安全问题的举例和解决措施
+- 上面我们做过通过多线程的方式 卖票的练习
+- 但是我们发现 当我们使用共享数据的时候 会产生 线程安全的问题 比如我们上面的练习中就出现了 卖重票的问题
 
+> 重票
+- 重票是线程安全中的一种情况
+```java
+package com.sam.java;
+
+public class WindowTest {
+  public static void main(String[] args) {
+    Window w = new Window();
+    Thread t1 = new Thread(w);
+    Thread t2 = new Thread(w);
+    Thread t3 = new Thread(w);
+
+    t1.setName("窗口1");
+    t2.setName("窗口2");
+    t3.setName("窗口3");
+
+    t1.start();
+    t2.start();
+    t3.start();
+  }
+}
+
+class Window implements Runnable {
+  private int ticket = 100;
+
+  @Override
+  public void run() {
+    while (true) {
+      if(ticket > 0) {
+        System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+        ticket--;
+      } else {
+        break;
+      }
+    }
+  }
+}
+
+```
+
+<!-- 
+  窗口3: 卖票，票号为: 100
+  窗口3: 卖票，票号为: 99
+  窗口1: 卖票，票号为: 100
+  窗口1: 卖票，票号为: 97
+  窗口2: 卖票，票号为: 100
+
+  我们会看到 窗口1 2 3 都卖了100号的票 -- 重票了
+-->
+
+
+> 错票
+- 错票也是线程安全中的另一种情况
+- 为了演示线程安全问题 我们将线程 sleep 下
+
+```java
+class Window implements Runnable {
+  private int ticket = 100;
+
+  @Override
+  public void run() {
+    while (true) {
+      if(ticket > 0) {
+        // 1. sleep方法会抛异常
+        // 2. sleep方法是静态的方法
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+
+        System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+        ticket--;
+      } else {
+        break;
+      }
+    }
+  }
+}
+```
+
+<!-- 
+  窗口3: 卖票，票号为: -1
+
+  我们发现卖票的结果中出现 -1 的情况
+ -->
+
+> 思考:
+- 为什么加上sleep后会出现 -1 的情况呢？
+- 我们没有加sleep的时候 出现0票 和 -1票的概率小一些 但是加上sleep以后 相当于让线程进入try的时候 会阻塞一下
+
+- 我们加sleep的目的不是让原来不出现0 -1 让0 -1出现 原来的情况也是会出现的 只是我们使用sleep后让0 -1的出现的概率变大了
+<!-- 
+  情景重现
+  有一种极端状态 ticket只有1张了 现在有3个线程要执行run方法中的逻辑
+
+  线程1先去执行 run中if会判断ticket是否>0 线程1就能进入if语句 进入if语句后 就被sleep进入了阻塞状态
+
+  就在线程1被阻塞的时候 线程2 3也有非常大的概率也会进到run方法中 和 if语句的判断里
+
+  它们也会碰到sleep后 被阻塞 也就是说 现在有3个线程都处于了阻塞状态
+
+  等sleep时间到了后 这三个线程就会变成就绪状态 cup就会相继的执行这3个线程
+
+  因为都在if语句里 都会执行ticket--的操作 就会变成如下状态
+  t1 - 打印车票 1
+  t2 - 打印车票 0
+  t3 - 打印车票 -1
+
+ -->
+
+- 我们不能因为出现重票和错票的概率小 就不去解决这个问题 0.01%的概率我们也要去解决
+<!-- 
+  这里面最好的例子就是春运 上10亿的人迁徙 就容易出现上面的重票和错票的问题
+ -->
+
+- 以上就是待解决的线程问题
+- 1. 问题：
+- 卖票过程中 出现了重票和错票 -- 线程的安全问题
+
+- 2. 问题出现的原因：
+- 当某个线程操作车票的过程中 尚未操作完成时 其它的线程参与进来 也操作车票(共享数据)
+
+- 3. 解决方法：
+- 当一个线程a在操作ticket的时候 其它的线程bc不能参与进来 直到线程a操作完ticket的时候 其它的线程才可以操作ticket 这种情况即使线程a出现了阻塞 也不能被改变
+<!-- 
+  举个生活中的例子:
+  - 学校厕所的坑位是有限的 学生们下课需要上厕所 正常来说 一个学生进去后 拉完 下一个学生才能进 但是有极端案例 你上厕所的时候 另一个学生也进去了
+
+  - 解决方式
+  - 学生进去后 把门上锁 这样其它人就进不来了
+
+  - 车票的问题也是 
+  - 我们的线程进入到run方法中后 即使sleep了 别的线程也不准进来 知道我自己单独走完卖票的逻辑 别的线程再进来
+ -->
+
+----------------------------
+
+### 同步代码块 和 同步方法 解决 实现Runnable和继承Thread方法的线程安全问题
+
+> 同步代码块 处理 实现Runnable接口的线程安全问题
+- 在java中 我们通过同步机制 来解决线程的安全问题
+- java中解决线程安全问题 一共有3种方式
+- jdk5.0之前有两种 之后有一种新增的方式
+
+
+> JDK5.0之前的方式1：  同步代码块(相当于synchronized函数)
+- *操作共享数据的代码* 就是 *需要被同步的代码*
+
+> 1. 共享数据：
+- 多个线程共同操作的变量就是共享数据 比如上面案例中的ticket就是共享数据
+
+> 2. 同步监视器：
+- 俗称：锁
+<!-- 
+  比如上面的去厕所的例子 怎么才算安全呢？ 我们进去以后锁一下 一锁就安全了 别人开门开不开 因为锁给锁住了
+
+  这时候我们就放把锁 谁进去谁就拿着这把锁 没进去的人就拿不到锁 谁能拿到锁谁就操作这段代码
+ -->
+
+- 锁：
+- 任何一个类的对象　都可以充当锁
+```java
+// 这个obj也可以当锁
+Object obj = new Object();
+```
+
+> 锁的要求：
+- 多个线程必须要共用同一把锁
+
+> 具体代码
+```java
+  synchronized(同步监视器) {
+    需要被同步的代码
+  }
+```
+
+**注意：**
+- “需要被同步的代码” 不能包多了 也不能包少了
+<!-- 
+  包多了为什么不对 
+  1. 包起来的代码就会变成单线程 有效率上的问题
+  2. 有的时候包多了 就错了 
+  - 比如下面的代码中 我们就没有包 while true 包上后 就变成一个线程把这些票都卖了
+ -->
+
+```java
+  // 部分代码
+  Object obj = new Object();    // 1. 创建锁
+
+  // 2. 传入锁
+  synchronized(obj) {
+
+    // 3. 包裹操作共享数据的代码
+    if(ticket > 0) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+      ticket--;
+    } else {
+      break;
+    }
+  }
+```
+- 结合上面的卖票的案例 把操作ticket数据的代码 就是需要被同步的代码
+
+<!-- 
+  - 一些代码 == 需要被同步的代码
+
+  下面的 "一些代码" 我们希望线程过来执行 可能会阻塞
+          ---------------
+  线程  → |   一些代码     |  → 出去
+          ---------------
+
+  只要 "一些代码" 还在 synchronized的方法体里面 
+  这时候 其它的线程都得等着
+
+  当线程出去以后 其它线程看谁能抢到cpu分配的执行权 谁再进去执行
+ -->
+
+
+> 同步代码块的方式 解决 实现Runnable方式的线程安全问题
+- 代码部分：
+```java
+package com.sam.java;
+
+public class WindowTest {
+  public static void main(String[] args) {
+    // 因为我们只new了一个对象 里面对应的就一把锁 t123共用这个对象
+    Window w = new Window();
+    Thread t1 = new Thread(w);
+    Thread t2 = new Thread(w);
+    Thread t3 = new Thread(w);
+
+    t1.setName("窗口1");
+    t2.setName("窗口2");
+    t3.setName("窗口3");
+
+    t1.start();
+    t2.start();
+    t3.start();
+  }
+}
+
+class Window implements Runnable {
+
+  private int ticket = 100;
+
+  // 任何对象都可以充当锁 
+  // 但要求就是 所有线程共用同一把锁
+  Object obj = new Object();
+
+  @Override
+  public void run() {
+    while (true) {
+      // 共享数据是ticket 
+      // 我们将操作共享数据的代码 用 synchronized 的方法体包起来
+      // if ticket > 0 也属于操作ticket了
+      synchronized(obj) {
+        if(ticket > 0) {
+          try {
+            Thread.sleep(100);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+
+          System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+          ticket--;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+}
+```
+
+> 同步代码块的方式 解决 继承Thread类的方式的线程安全问题
+- 代码部分
+```java
+package com.sam.java;
+
+public class WindowTest2 {
+  public static void main(String[] args) {
+    Window2 t1 = new Window2();
+    Window2 t2 = new Window2();
+    Window2 t3 = new Window2();
+
+    t1.setName("窗口1");
+    t2.setName("窗口2");
+    t3.setName("窗口3");
+
+    t1.start();
+    t2.start();
+    t3.start();
+  }
+}
+
+class Window2 extends Thread {
+
+  private static int ticket = 100;
+  
+  // 注意多个线程需要共用一把锁 要求唯一
+  private static Object obj = new Object();
+
+  @Override
+  public void run() {
+    while (true) {
+      
+      // 使用 synchronized()
+      synchronized(obj) {
+        if(ticket > 0) {
+
+          try {
+            Thread.sleep(50);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+
+          System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+          ticket--;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+}
+```
+
+
+> 关于锁的简单用法 
+- 上面我们使用同步代码块的方式解决实现Runnable接口 和 继承Thread类的两种方式的线程安全问题
+
+- 当中我们都使用 Object obj = new Object() 造了一个obj来充当"锁"
+- 那有没有什么简单的 对象 可以用 不用每次都造呢？
+
+> 实现Runnable接口 --- this
+- 当前对象!!!
+```java
+class Window implements Runnable {
+  public void run() {
+    while (true) {
+      // 这里使用 this
+      synchronized(this) {
+
+      }
+    }
+  }
+}
+
+- this谁？
+- this代表着当前对象 调用run方法的对象 就是this 
+- 而run方法定义在Window类中
+- Window的对象就是this
+- 我们只造过一个Window的对象 Window w = new Window()  w
+- 所以 this -- w 就是唯一的
+```
+
+
+> 继承Thread类的方式 --- Window.class
+- *该方式不能使用this*
+- 因为我们new了3次Window对象 就有3个this
+```java
+Window2 t1 = new Window2();
+Window2 t2 = new Window2();
+Window2 t3 = new Window2();
+```
+
+- 但是该种方式 我们可以用 Window.class 我们拿当前类去充当“锁”
+- 因为类也是对象 因为类只会加载一次 所以也是唯一的
+
+```java
+class Window implements Runnable {
+  public void run() {
+    while (true) {
+      // 这里使用 Window.class
+      synchronized(Window.class) {
+
+      }
+    }
+  }
+}
+```
+
+> 总结：
+- 在实现Runnable接口创建多线程的方式中 我们可以考虑使用this充当同步监视器
+
+- 在继承Thread类创建多线程的方式中 慎用this充当同步监视器 可以考虑当前类充当同步监视器 Window.class
+
+
+> JDK5.0之前 解决线程安全问题的第2种方式:
+> synchronized 同步方法 解决实现Runnable和继承Thread的线程安全问题
+- 如果操作共享数据的代码完整的声明在一个方法中 我们不妨将此方法声明为同步的 该方法就是同步方法
+
+> 同步方法:
+- 在方法的返回值类型前面使用 synchronized 关键字 进行修饰
+- 注意：
+- 我们使用 synchronized 关键字 包裹的是 处理同步数据的逻辑 不能包多也不能包少
+
+```java
+
+- 如果run方法里面完整的就是操作共享数据的逻辑 我们可以考虑给run()方法添加该关键字 但是不适用于我们卖票的逻辑
+- 因为如果将while也包进去的话 会变成一个线程单独卖100张票的情况
+
+public synchronized void run() { }
+```
+
+- 适用 synchronized关键字 修饰的同步方法 就跟 使用同步锁的功能是一样的
+- 同步方法外面可能有好几个线程 但是同步方法里面只能进去一个线程
+
+> 代码演示部分 -- 同步方法解决 实现Runnable接口方式的线程安全问题
+```java
+class Window3 implements Runnable {
+
+  private int ticket = 100;
+
+  @Override
+  public void run() {
+    while(true) {
+      // 调用show方法
+      show();
+    }
+  }
+
+  // 定义一个操作共享数据的show方法 里面是完整的操作共享数据的代码
+  // 我们对这个方法 使用 synchronized 关键字修饰
+  private synchronized void show() {
+    if(ticket > 0) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+      ticket--;
+    }
+    // break要用在循环当中 show()方法里面没有循环 所以不能适用break
+    // else { break; }
+  }
+}
+```
+
+- 思考
+- 同步方法中有没有同步监视器(锁)?
+- 在同步方法中默认的监视器就是this 所以不用显示声明
+
+
+> 代码演示部分 -- 同步方法解决 继承Thread类方式的线程安全问题
+- 这里我们使用同步方法解决继承Thread类方式的线程安全问题
+
+> 代码演示部分
+```java
+class Window4 extends Thread {
+  private static int ticket = 100;
+
+  @Override
+  public void run() {
+    while (true) {
+      // 非静态的方法是可以调用静态的方法
+      show();
+    }
+  }
+
+  // 必须加上static
+  private static synchronized void show() {
+    if(ticket > 0) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      System.out.println(Thread.currentThread().getName() + ": 卖票，票号为: " + ticket);
+      ticket--;
+    }
+    // else { break; }
+  }
+}
+```
+
+- 思考：
+- 继承方式中 使用同步方法 我们将方法声明为static 那么这时候的同步监视器是谁
+- Window4.class
+
+
+> 关于同步方法的总结：
+- 同步方法仍然涉及到同步监视器 只是不需要我们显式声明
+- 非静态的同步方法 同步监视器("锁"): this
+- 静态的同步方法 同步监视器("锁"): 当前类本身 Window4.class
+
+
+> 同步的方式 解决线程的安全问题的优缺点
+- 1. 优点
+- 解决了线程安全问题
+
+- 2. 缺点
+- 操作同步代码时 只能有一个线程参与 其它线程等待 相当于是一个单线程的过程 效率低
+
+- 但即使这样我们为了解决安全性的问题也要这么做
+
+----------------------------
+
+### 单例模式（懒汉式） 的线程安全问题
+- 之前我们说过懒汉式是线程不安全的一种模式 我们将懒汉式改为线程安全的
+- 
+- 我们使用同步的方式来解决线程安全的问题 有2点缺点
+- 1. 因为成为同步了 那么效率会有些低
+- 2. 容易造成 “死锁”
+
+
+> 场景：
+- 我们创建单例模式就是为了只创建一个实例 当在多线程的情况下 有可能实例对多次创建 这就是在懒汉式带来的线程安全问题
+
+- 我们创建多个线程 它们各自去调用 run方法 在各自的run方法中又调用了 createBank()
+
+- 就意味着可能会有多个线程来调用 createBank()方法
+- 在极端情况下 一个线程进入if判断后可能会遇到阻塞的情况 另外的一个线程这时候也会进来 就可能造成会创建两个Bank实例
+
+- 之所以出现了线程安全问题 是因为我们有两个线程 而且还有共享数据 bank
+
+> 共享数据：
+- 我们对bank共享操作一方面判断它是不是null 一方面给它进行了赋值
+- return bank 算不上是对共享数据的操作 上面的if和赋值才算 包不包都行
+
+
+> 解决方案
+- 关于解决线程安全问题 有两种解决方法 同步代码块 和 同步方法
+
+- 1. 同步方法
+- 我们直接在createBank方法的前面使用synchronized修饰 这时候它就是一个线程安全的
+- public static synchronized Bank createBank() { }
+
+- 原因:
+- 这时候 createBank就是一个同步方法 同步方法的所是当前类
+- 静态类的同步方法的锁是当前类本身
+
+
+> 演示代码部分
+```java
+package com.sam.java1;
+
+// 使用同步机制将单例模式中的懒汉式改写为线程安全的
+public class BankTest {
+
+}
+
+class Bank {
+  private static Bank bank = null;
+  private Bank() { }
+
+  // 使用同步方法 解决
+  public static synchronized Bank createBank() {
+    if(bank == null) {
+      bank = new Bank();
+    }
+    return bank;
+  }
+
+
+  // 这种方法效率比较差
+  // 使用同步代码块的方式 解决
+  public static Bank createBank() {
+
+    // 使用代码块进行包裹 注意静态方法中的锁是 类本身
+    synchronized (Bank.class) {
+      if(bank == null) {
+        bank = new Bank();
+      }
+      return bank;
+    }
+  }
+}
+```
+
+
+> 为什么使用同步代码块的方式解决线程安全问题 效率会比较差？
+- 比如我们 synchronized 代码块外面有多个线程 线程a拿到同步锁了进到if里面了 然后它把对象创建了 然后出了代码块
+
+- 线程b等线程a执行完后也进去if里面了 但是什么也没有干 出了if直接拿着return的结果出去了 因为不为null了所以什么也没干
+
+- 后面还有线程cdefg 它们也会进到if 而实际上它们不用进到if 可以直接拿着return的结果走就可以了
+
+- 修改：
+```java
+public static Bank createBank() {
+  if(bank == null) {
+    synchronized (Bank.class) {
+      if(bank == null) {
+        bank = new Bank();
+      }
+    }
+  }
+  // 这里就没有把return bank认为是操作共享数据
+  return bank;
+}
+```
+
+- 为什么上述方式效率比较高？
+- 后来的线程再进去的时候 判断if就不是null了 所以拿着return的结果直接就走了
+
+
+- 总结：
+- 以后写单例模式要写一个线程安全的模式
 
 ----------------------------
 
@@ -18792,3 +19403,52 @@ export CLASSPATH
 > 算法
 - 排序算法
 - 搜索算法
+
+<!-- 
+  扩展插入 - 区块链
+
+- 区块链表面始终it技术 实际上是一种思维方式
+- 我们现实生活中很多都是这样的情况 表面看是技术 实际上是思维方式
+
+大家都学英语 为什么有人说的好 有人说的不好呢？ 
+其实并不是说他会多少单词 真正英语说的好的人 能站在老外的角度上思考问题 思维方式完全符合欧美人
+
+跟动物也是 是因为你完全无法理解动物的思维方式 而不是我们发不出那个声音
+
+- 现在网络发展的特别快 大量交互的数据怎么来保证这些数据的安全 谁来管理这些数据
+- 现在数据模型也好 网络模型也行 叫做中心化的一种网络模型 比如我们用到的一些服务 比如微信 腾讯给我们提供 比如我看电影 就是youtube给我提供 比如说要是存钱就是银行给你提供这个功能
+
+都是有一个中心存在 然后这个中心为所有的客户服务 这样一个结构
+
+但是区块链是平坦的 没有中心 就是说这个服务并不是某一个机构给你提供的也不是某个国家给你提供的也不是某个个人给你提供的
+
+它是所有人共同提供的 共同使用的 这个思想其实很早就有了 但是一直以来没有敢碰触这块 就是因为它思想的核心是 去中心 
+
+去中心就意味着不需要管理者 这是政府和大企业也好 都无法接受的 政府本身就是一个中心 你现在要建立一个东西要去掉中心 那政府就没有存在的必要了 
+
+大企业也是一样 我提供一个服务 我就是中心 我就是卖这个服务的 我要挣钱的
+你把我去掉了 大家都在使用 那不是说对我一点意义都没有了
+
+那为什么要有这个东西呢 其实这个世界上有很多东西是不需要有中心的 比如钱就是 你的钱为什么要存在别人那个地方 安全么？ 那为什么在你这就不安全呢
+
+为什么你就放心放在银行里进行管理呢 因为银行提供担保 但其实银行也是一个机构 任何一个机构它都有可能倒闭 遇到风险 或者出错 也就造成你的损失
+
+那有没有一种安全机制能够避免这些风险？ 让你的钱 安安全全的在你的手里 而且又不被任何人管理
+
+比如比特币 比特币之所以这么牛就是因为它建立在区块链技术上
+钱就是大家交易的一种工具而已 我们多年以来已经慢慢把一些不太方便交易的东西渐渐的变成一个很容器携带的金子这种东西了 但是金子其实最终还是不容易保管和携带的 于是产生了比特币 就是一串数字 钱本身就是数字么
+
+而这段数字由谁来管理呢 是所有人在管理 区块链也叫做全民记账系统 我花的每一块钱(我把钱给你叫做花钱) 我花一块钱这个事情 被所有人手里的账本记录上之后
+
+我少一块钱 你多一个块钱 这个事情就成为一个事实 因为每个人的账本上都写着 我少了一块 你多了一块 我擅自改动账本也不能改变这个事实 因为和你们所有人的账本对不上 所以只要不超过50%的账本被篡改的话 这就事实
+
+当然超过50%的话 被篡改的事情就成为事实了 但是区块链这个技术就保证 因为用户群体特别的庞大 你不可能篡改所有人的账本 就是通过信息共享来保证信息的安全
+
+当初有这个技术的时候很多人都不知道干什么 直到2008年有个叫中本聪的人 他说这个可以做货币 于是他用了两个月的时间就建立了比特币系统 直到今天这个系统也没有什么问题 大家还照样炒着比特币
+
+之后很多人从比特币身上发现 这个技术可以击溃世界上很多的大企业
+
+
+- 建立在区块链上有两个东西 特别重要 一个是虚拟货币 一个是nft
+- nft简单的来说就是标识资产的东西 在现实里面你家的东西就是你的 你兜里的东西就是你的 但在虚拟世界里 怎么区分是你的还是别人的 就需要通过区块链技术的nft来标识你的资产 当虚拟世界里面的东西可以被标记的时候 它就成为资产 就变的有价值了 不能被标记就没有价值
+-->

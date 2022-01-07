@@ -9144,6 +9144,19 @@ allowed in .vue files - render functions are required elsewhere
 > nextTick(function() { })
 - 这个不是路由组件的生命周期
 - 当修改了数据之后 vue帮我们操作完dom之后 把真实的dom放在页面了 就会调用这个函数
+<!-- 
+  nextTick原理
+
+  1、异步说明
+  Vue 实现响应式并不是数据发生变化之后 DOM 立即变化，而是按一定的策略进行 DOM 的更新
+  
+  2、事件循环说明
+  简单来说，Vue 在修改数据后，视图不会立刻更新，而是等同一事件循环中的所有数据变化完成之后，再统一进行视图更新。
+
+  created、mounted
+  在 created 和 mounted 阶段，如果需要操作渲染后的试图，也要使用 nextTick 方法。
+  注意 mounted 不会承诺所有的子组件也都一起被挂载。如果你希望等到整个视图都渲染完毕，可以用 vm.$nextTick 替换掉 mounted
+ -->
 
 --------------------------
 
