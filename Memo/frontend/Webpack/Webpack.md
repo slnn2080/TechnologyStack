@@ -1,3 +1,7 @@
+### webpack打包体积优化,详细分布查看插件
+- https://www.npmjs.com/package/webpack-bundle-analyzer
+
+
 ### Webpack
 - webpack是一个现代的js应用的静态模块打包工具, 从两个点来解释前面的话就是 模块 和 打包
 
@@ -153,7 +157,7 @@ webpack ./src/main.js -o ./dist/bundle.js
 <!-- 目前对我自己来讲 这个文件名要求是固定的  -->
 - 当我们在 webpack.config.js 文件中定义完入口和出口后 终端里执行webpack命令后它会自动找webpack.config.js这个文件 找入口和出口
 
-<!-- 
+```js 
   const path = require('path')
 
   // 在这里用commonjs的规范导出一个对象
@@ -168,7 +172,7 @@ webpack ./src/main.js -o ./dist/bundle.js
       filename: 'bundle.js'
     }
   }
- -->
+```
 
 > 配置 webpack.config.js的 具体步骤
 - 1. 首先我们要导入一个 path模块(第三方模块)
@@ -185,8 +189,8 @@ webpack ./src/main.js -o ./dist/bundle.js
       filename: 'bundle.js'
     }
   }
-<!-- 
-  相关参数:
+ 
+- 相关参数:
   entry:    入口文件路径(要打包的目标文件)
   output:   出口路径 这里我们要动态获取绝对路径, webpack.config.js文件在哪 就从哪开始获取
 
@@ -195,16 +199,16 @@ webpack ./src/main.js -o ./dist/bundle.js
     filename:   出口文件的名字
   }
 
-  path模块有两个函数 用来动态获取出口的绝对路径和相对路径
+- path模块有两个函数 用来动态获取出口的绝对路径和相对路径
   path.resolve()   它是做绝对路径的
   path.join()      它是做相对路径的
 
-  __dirname:
+- __dirname:
   这是node上下文里自带的全局变量, 不用我们自已定义 它保存着 webpack.config.js这个文件所在的路径
 
-  resolve()函数的作用:
+- resolve()函数的作用:
   它的作用是对__dirname 和 'dist' 文件夹进行拼接
- -->
+¥
 
 > 使用 node 包时的注意点
 - 一旦我们的项目中涉及到node相关的东西的时候, 我们首先要在根目录下创建 package.json 文件

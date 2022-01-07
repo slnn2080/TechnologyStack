@@ -8203,16 +8203,16 @@ allowed in .vue files - render functions are required elsewhere
 - 我们在每一个一级路由里面使用 children属性 它的值是一个数组 数组里面是对象
 - 注意：
 - 在写二级路由的时候 path的值里不要带/
-<!-- 
+```js 
   children: [
     {
       path: '/news'  这就是错的
       path: 'news'   这就是对的     二级路由不要带 / 
     }
   ]
- -->
+```
 
-<!-- 
+```js 
   const router = new VueRouter({
     routes: [
 
@@ -8234,13 +8234,13 @@ allowed in .vue files - render functions are required elsewhere
 
   // 结果：
   /about/news
- -->
+```
 
 
 > 总结：
 - 首先决定路由是否嵌套 就要看该组件需要通过 router-view 来展示
 - 如果是 就要看 router-view 定义在哪个组件里 那么通过这个标签来展示的组件就是子组件 子组件就要定义在该组件的路由规则的children属性中
-<!-- 
+```js 
   // 比如 我们的 welcome 组件就要在 home 的 router-view 中展示 
   {
     path: "/home",
@@ -8260,7 +8260,7 @@ allowed in .vue files - render functions are required elsewhere
       }
     ]
   },
- -->
+```
 
 
 **注意：**

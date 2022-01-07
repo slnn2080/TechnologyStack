@@ -1,5 +1,33 @@
 ### Js技巧
 
+### 通过创建类 实例化该类的时候 自动给指定元素添加特殊的功能
+```js
+// app.js
+window.addEventListener("load", () => {
+  new Scroll();
+  new EnviromentLinkChange();
+});
+
+
+// util.js
+import SweetScroll from "sweet-scroll";
+
+// 创建类的目的就是 当new该类的时候 页面上的元素就是自动的添加一些功能
+export default class Scroll {
+  constructor() {
+    this.eventBind();
+  }
+
+  eventBind() {
+    new SweetScroll({
+      trigger: "a[href^='#']",
+      offset: -110,
+    });
+  }
+}
+
+```
+
 ### requestAnimationFrame API
 ### 分页逻辑
 ### 分页渲染结构
