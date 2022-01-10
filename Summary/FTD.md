@@ -2415,7 +2415,7 @@ export default {
 - window.stop()方法完全等同于单击浏览器的停止按钮，会停止加载图像、视频等正在或等待加载的对象。
 
 
-> window.closed，window.opener
+> window.closed， window.opener
 - window.closed属性返回一个布尔值，表示窗口是否关闭。
 - 这个属性一般用来检查，使用脚本打开的新窗口是否关闭。
 <!--
