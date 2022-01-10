@@ -20311,6 +20311,824 @@ class NumberThread3 implements Runnable {
 
 ----------------------------
 
+### 跟字符串相关的类
+
+###  String
+- String类代表字符串 在java程序中的所有字符串字面值("abc")都作为此类的实例实现
+
+- String是一个final类(不能被继承) 代表*不可变的字符序列*
+
+- 字符串是常量 用双引号引起来表示 它们的值在创建之后*不能更改*
+
+- String对象的字符内容是存储在一个char[]字符数组中的
+<!-- 
+  每一个字符存储在char型数组中 这个数组是final的
+  private final value[]
+
+  说明这个数组是一个常量 数组都是有地址值的 修饰成final后 就代表地址值不能被修改
+ -->
+
+
+> 重新理解 Sting
+- 首先我们看看字符串 String类 的特性
+- 1. String类是声明为final的 不可被继承
+- 2. String实现了如下3个接口
+    - Serializable(可序列化的)
+<!-- 
+  // 字符串是支持序列化的
+  - java是面向对象的语言 数据都封装在对象中 而对象是可以进行传输的 
+
+  - 比如A电脑中的对象可以通过网络发送给B电脑 B电脑接收到后再将对象还原回来 传输的时候我们使用的是流 字节的方式传输 而对象默认情况下是不能传输的 
+  
+  - 但是字符串序列化之后就可以进行传输了
+  - 而String实现了这个接口后 就可以通过网络的方式进行传输了
+-->
+    - Comparable接口
+<!-- 
+  - 实现了该接口String就可以比较大小了
+ -->
+    - CharSequence接口
+
+
+- 3. String内部定义了
+  final char[] value
+  用于存储字符串数据 因为是final修饰的 也就是说这个char[]数组*不能被重新赋值* 而且该*数组中的元素也不能被修改*
+
+- 4. 通过字面量的方式(区别于new)给一个字符串赋值 此时的字符串值声明在字符串的常量池中
+- 字符串常量池中是不会存储相同内容的字符串的(相当于我们拿重写后的equals比较真实的内容)
+
+- 5. String代表不可变的字符序列 简称 不可变性
+  - 1. 当对字符串重新赋值的时候 需要重写指定内存区域赋值 不能对原有的char[]进行重新赋值
+
+  - 2. 当对现有的字符串进行连接操作的时候 也需要重新指定内存区域赋值 不能对原有的char[]进行重新赋值
+
+  - 3. 当调用String的replace()方法修改指定字符或字符串时 也需要重新指定内存区域赋值 不能对原有的char[]进行重新赋值
+
+
+> 字符串的不可变性
+- 创建字符串有两种方式 一种是普通的赋值 也就是字面量的赋值方式 另一种是通过new(我还没看过 可能前面有 但忘记了)
+```java
+// 字面量赋值的方式
+String str = "abc"
+```
+- 而我们通过字面量赋值的方式 是在堆空间 - 方法区 - 常量池中创建 字符串的
+- 常量池中的特点就是 不能存储一样的字符串 
+- 常量池中的字符串有对象的特点有地址值 我们是把地址值赋值给变量 变量拿到引用
+- 字符串不能被修改 替换 修改和替换都是在常量池中创建新的存储空间
+
+- 代码部分
+```java
+@Test
+  public void test1() {
+
+    // String是一个类 
+    - 但是赋值的时候可以不用new 直接就可以使用字面量的形式赋值
+    - 使用字面量赋值的方式 s1 s2拿到的是同一个常量池中的字符串的地址值
+    String s1 = "abc";
+    String s2 = "abc";
+
+    // 两个对象用 == 比较的是地址值
+    System.out.println(s1 == s2); //true
+
+    s1 = "hello";
+    // 当s1的值重新赋值为hello的时候 
+    - 并不是将常量池的abc修改为hello 
+    - 我们的abc底层是使用char[]存储的 存放abc的char[]数组的长度就是3 而hello的长度是5 数组的长度确定后是不能修改的 
+    - 而char[]数组是final的不能被重新赋值 所以当s1="hello"的时候 是在常量池中新造了一个hello的值
+
+    System.out.println(s1); // hello
+    System.out.println(s2); // abc
+
+    System.out.println("**********");
+
+
+    // 对原有字符串进行拼接的情况
+    String s3 = "abc";
+    // 相当于在现有的字符串上拼接了一段内容
+    s3 += "def";
+
+    // 注意当拼接新内容的时候 也不是在原有的abc的后面添加新内容 我们是在常量池中新造了一个abcdef
+    System.out.println(s3); // abcdef
+
+    // 怎么证明是不是新建了一个abcdef 那么我们输出下s2 看看结果就可以
+    System.out.println(s2);
+
+    System.out.println("**********");
+
+    // 对原有字符串进行修改的情况
+    String s4 = "abc";
+    // 将a修改为m
+    String s5 = s4.replace("a", "m");
+    System.out.println(s4);   
+    // abc  s4没有变 也就是说即使仅仅是替换char[]数组中的元素 也不是对原有的char[]进行修改 而是又在常量池中新创建了一个mbc
+
+    System.out.println(s5);   // mbc
+  }
+```
+
+
+> 常量池中的逻辑解析
+<!-- 
+
+// String通过字面量赋值的时候 它们在内存中同一个
+String s1 = "abc";    --- 1 生成abc
+String s2 = "abc";
+
+
+    栈空间               堆空间
+    -------             --------------
+
+
+
+                        方法区
+       ↗  0x1212       --------------
+    s2             ↘   | 字符串常量池
+                  
+       ↗  0x1212→       0x1212
+    s1                  abc
+                ↘
+                        0x2323
+                        hello
+s1 = "hello"
+ -->
+- 解析：
+- 通过字面量的形式赋值 我们认为数据都是在方法区的字符串常量池中
+
+- 字符串常量池中的特性：
+- 不会存两个相同内容的字符串的
+
+当 String s1 = "abc"; 的时候
+在栈中定义s1 
+首次没有abc的时候 会在方法区的 字符串常量池中造一个abc
+
+当 String s2 = "abc"; 的时候
+系统会先去常量池中找找看看有没有abc 有的话我们就会复用 所以就会将 0x1212 的地址给s2
+
+- 所以这时候我们比较 s1 == s2 就是true
+
+
+- 当我们进行 s1 = "hello" 的操作的时候
+- 会在常量池里面新造一个hello 并将hello的地址值 给了栈空间中的s1 也就是说赋值的操作仅仅是换了一个地址值
+
+- 注意：
+- 这里并不是将常量池的abc修改为hello 我们的abc底层是使用char[]存储的 存放abc的char[]数组的长度就是3 
+- 而hello的长度是5 数组的长度确定后是不能修改的 
+- 同时char[]数组是final的不能被重新赋值 所以当s1="hello"的时候 是在常量池中新造了一个hello的值 并将地址值给了栈空间的s1
+
+
+> String对象的创建
+- 也就是使用字符串的两种方式
+- 上面讲了使用字面量赋值方式的一些特点 现在我们看看 还有什么方式
+
+> 字面量的赋值方式
+> String str = "hello"
+
+
+> new的方式
+> String str = new String();
+- String str = new String();
+- 我们使用上述方式赋值 相当于赋了一个 new char[0] 长度为0
+- 我们给字符串赋值 本质就是给String类内部的char[]数组赋值
+<!-- 
+  private final value[]
+
+  原码当中的赋值方式
+  this.value = new char[0]
+ -->
+
+
+> String str = new String(String original);
+- String str = new String("hello");
+- 相当于底层是hello的长度是5 造了一个长度是5的char[]
+<!-- 
+  原码当中的赋值方式
+  this.value = original.value
+ -->
+
+
+> String str = new String(char[] a);
+- 还可以直接传递一个char[] 实际上相当于一个copy的操作了
+<!-- 
+  原码当中的赋值方式
+  this.value = Arrays.copyOf(value, value.length)
+ -->
+
+
+> String str = new String(char[] a, int startIndex, int count)
+- 传递char[] 从中挑指定位置的指定个数的字符
+
+
+> 我们主要说说 new 的方式
+- 之前我们说过 new的结构都会在堆里 而字面量的形式是存在常量池中 这两种的方式的区别是什么？
+
+```java
+String str1 = "abc"
+
+and
+
+String str2 = new String("abc")
+```
+
+> new String方式声明的数据
+- 我们通过str2 = new String("abc")方式创建的字符串 是在堆空间声明了一个对象
+- 该对象中有value属性 值为一个char[]数组
+- str2拿到的是堆空间中对象的地址值
+- 堆空间中对象的value属性拿到的是 "abc"在常量池中的地址值
+
+```java
+public void test2() {
+    // 字面量声明的数据javaEE是声明在方法区中的字符串的常量池中
+    String s1 = "javaEE";
+    String s2 = "javaEE";
+
+    // 通过new + 构造器的方式 此时的s3 s4保存的地址值 是数据在堆空间中开辟空间以后对应的地址值 堆空间的地址给了s3 和 s4
+    String s3 = new String("javaEE");
+    String s4 = new String("javaEE");
+
+    System.out.println(s1 == s2);   // true
+    // 这里比较的是常量池的地址值 和 堆的地址值 不一样所以是false
+    System.out.println(s1 == s3);   // false
+    // 2个新的对象 相比当然是false
+    System.out.println(s3 == s4);   // false
+  }
+```
+
+> 内存解析
+<!-- 
+  String str2 = new String("abc")
+  我们new了一个String 存放在堆空间中 也就是说我们new了一个对象
+
+  该对象中有value的属性
+  value的值是char[] final的
+
+  而value属性时一个引用类型的变量 它存的也是一个地址值
+  value属性存放的地址值 就是 常量池中 abc 的地址值
+
+    栈空间               堆空间
+    -------             --------------
+         0x2345 →       0x2345
+        ↗               value: char[] final
+    str2                value也存的是地址值指向常量池
+                        0x1212
+
+                          ↓
+
+                        方法区
+                        --------------
+                        字符串常量池         
+                        0x1212
+                        abc
+ -->
+
+
+- 思考：
+- 之前我们经常写这样的代码 分析下下面的问题 以及想想内存中的结构是什么样的？
+
+```java
+class Person {
+  String name;
+  int age;
+
+  public Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+}
+
+public class PersonTest {
+  public static void main(String[] args) {
+    Person p1 = new Person("Tom", 12)
+    Person p2 = new Person("Tom", 12)
+
+    p1.name == p2.name ?  // true
+  }
+}
+```
+
+- 上面Person类中使用字面量方式定义的Tom 实际上是存放在常量池中 name拿到的是常量池中的地址值
+<!-- 
+    栈空间               堆空间
+    -------             --------------
+                        1. 0x7788
+                        name: 0x123
+                        age: 12
+                  ↗
+    p1: 0x7788
+    p2: 0x9988
+                  ↘
+                        2. 0x9988
+                        name: 0x123
+                        age: 12
+
+                        ↓
+    
+                        方法区
+                        --------------
+                        常量池
+                        0x123
+                        Tom
+
+ -->
+
+
+> 面试题
+- String s = new String("abc") 方式创建对象 在内存中创建了几个对象?
+
+- 两个
+- 1个是堆空间中new的结构
+- 另1个是堆空间对象中的char[]对应的常量池中的数据(本质上的abc)
+
+
+> String不同拼接操作的对比
+- 1. 常量与常量的拼接结果在常量池中 且常量池中不会存在相同内容的常量
+<!-- 
+  两个字面量的连接的结果 和 一个字面量一样的时候 常量池中认定它们就是同一个
+  String s3 = "javaEEhadoop";
+  String s4 = "javaEE" + "hadoop";
+ -->
+
+- 2. 只要=右侧拼接中有一个是变量 结果就在堆中
+<!-- 
+  就是说=右侧拼接中有一个是变量 那就相当于在堆空间new了一下
+  那就是说 s变量拿到的是堆空间中对象的地址值
+ -->
+
+- 3. 如果拼接的结果调用 intern()方法 返回值在常量池中
+<!-- 
+  String s8 = s5.intern();
+  System.out.println(s3 == s8); // true
+
+  该方法返回得到的s8使用的常量池中已存在的“javaEEhadoop”
+  既然常量池中有javaEEhadoop 那就把这个常量池中的地址值给s8
+
+  s3 == s8 两个常量池中的地址值对比就是true
+ -->
+
+> 字符串.intern();
+- 要求该方法的返回值在常量池中声明  不管之前是在堆还是在常量池 都要求在常量池声明
+
+- 就是说返回值如果常量池有那就复用得到常量池中的地址值
+
+
+```java
+  @Test
+  public void test3() {
+    String s1 = "javaEE";
+    String s2 = "hadoop";
+
+    // 这里是一个字面量
+    String s3 = "javaEEhadoop";
+
+    // 这里是两个字面量的连接 也就是 常量和常量的拼接
+    String s4 = "javaEE" + "hadoop";
+    
+
+    String s5 = s1 + "hadoop";
+    String s6 = "javaEE" + s2;
+
+    String s7 = s1 + s2;
+
+    // == 比较看的都是地址
+    System.out.println(s3 == s4); // true
+      // 两个字面量的连接的结果 和 一个字面量一样的时候 常量池中认定它们就是同一个
+
+
+    // 以下的 只要发现 = 右侧赋值的时候有变量名参与了 这时候都不是在常量池了 而是在堆空间中开辟 相当于new s变量存储的就是堆空间的地址值 下面的所有结果都是两个堆空间的地址值在比较
+    System.out.println(s3 == s5); // false
+    System.out.println(s3 == s6); // false
+    System.out.println(s5 == s6); // false
+
+    System.out.println(s3 == s7); // false
+    System.out.println(s5 == s6); // false
+    System.out.println(s5 == s7); // false
+    System.out.println(s6 == s7); // false
+  }
+```
+
+- 类似下面的情况也是 属于在堆空间里面创建 类似new
+```java
+String s = 0;
+for(int i=0; i<5; i++) {
+  s += i;
+    // s = s + i 也是=右侧有变量的形式
+  System.out.println(s)
+}
+
+- 上面的这种情况s都是在堆空间中存放的
+```
+
+
+> 面试题
+- 下列程序运行的结果?
+
+```java
+public class StringTest {
+  String str = new String("good");
+  char[] ch = {'t','e','s','t'};
+
+  // 形参str是一个新的变量
+  public void change(String str, char ch[]) {
+    str = "test ok";
+    ch[0] = 'b';
+  }
+
+  public static void main(String[] args) {
+    StringTest ex = new StringTest();
+    ex.change(ex.str, ex.ch);
+    System.out.println(ex.str);
+        // good
+    System.out.println(ex.ch)
+        // best
+  }
+
+  // 解析： 
+  - 当我们传递实参 str 的时候 会被形参str接收
+  public void change(String str, char ch[])
+
+  - 因为传递的是地址值 那么形参str接收到的就是地址值 形参str指向了good
+
+  - 但是change方法内部将形参str修改了 但是String是不可变的 方法内部的str是"test ok"; 但是类中的变量仍然还是good
+
+
+  - char[]没有什么不可变 传递实参ch的时候 传递的是地址值 所以形参和实参都指向了一个对象 修改也会影响到方法外的ch
+}
+```
+
+----------------------------
+
+### jvm中涉及字符串的内存结构
+- java虚拟机的规范会随着jvm的版本的变化而变化 规范最终也会落地 那就涉及到最终的jvm jvm不只一个
+
+- jvm要针对具体问题做一些优化处理 所以就开发了不同的jvm
+
+> 三种JVM
+- 1. Sun公司的HotSpot
+- 2. BEA公司的JRockit
+- 3. IBM公司的J9 VM
+
+- 我们通常所说的jvm都是HotSpot
+
+<!-- 
+          JVM运行时数据区
+
+  A              B             B
+  -----------   -----------   -----------
+  方法区          虚拟机栈        本地方法栈
+  -----------   -----------   -----------
+
+  A              B
+  -----------   -------------------------
+  堆              程序计数器
+  -----------   -------------------------
+
+
+  -----------   -----------
+  执行引擎        本地库接口
+  -----------   -----------
+
+
+  A: 由线程共享的数据区
+  B: 线程私有的数据区
+ -->
+
+- 上图我们能看到 *堆 和 方法区 是两个并列的结构*
+
+> 堆的细分
+- 我们再来说下 堆 堆细分有3部分
+
+- 一个jvm实例只存在一个堆内存 堆内存的大小是可以调节的
+- 类加载器读取了类文件后 需要把类 方法 常变量放到堆内存中 保存所有引用类型的真实信息 以方便执行器执行 
+
+- 堆内存分为3个部分
+- 1. 新生区     Young 
+- 2. 养老区     Old
+- 3. 永久存储区  Perm   --- 又是非堆 不属于堆的一部分
+
+- 从规范上将堆有3部分(上述123) 但事实上Perm又没有划分到堆里面 *永久区Perm可以看做是方法区*
+<!-- 
+  虽然jvm规范将方法区描述为堆的一个逻辑部分 
+  但它却还有一个别名叫做Non-Heap(非堆)
+
+  目的就是要和堆分开
+ -->
+
+> 新生区 异常 Java heap space
+- 新生区是属于堆 当堆出问题的时候 会报 *Java heap space异常* 说明java虚拟机的堆内存不够 原因可能是
+- 1. java虚拟机的堆内存设置不够 可能通过参数-Xms -Xmx来调整
+- 2. 代码中创建了大量大对象 并且长时间不能被垃圾收集器收集(存在被引用) --- 内存溢出 内存泄漏
+
+
+> 永久区 异常 PermGen space
+- 永久存储区是一个常驻内存区域 用于存放jdk自身所携带的class interface的元数据
+- 也就是说它存储的是环境必须的类信息 被装载进此区域的数据是不会被垃圾回收器回收掉的 关闭jvm才会释放此区域所占用的内存
+
+- 如果出现了 java.lang.OutOfMemoryError: PermGen space 
+- 说明java虚拟机对永久代Perm内存设置不够 一般出现这种情况 都是程序启动需要加载大量的第三方jar包
+
+- 例如 在一个tomcat下部署了太多的应用 或者大量动态反射生成的类不断被加载 最终导致Perm区被占满
+
+- jdk1.6以及之前: 常量池分配在永久代 1.6在方法区
+- jdk1.7: 有 但已经逐步 去永久代 1.7在堆
+- jdk1.8以及之后: 无, 1.8在元空间
+
+
+
+> JDK1.6
+- JDK1.6中把常量池放在了方法区 (具体实现: 永久代)
+- 我们上面讲的所有情况都是基于JDK1.6 也就是常量池在方法区
+- 永久代
+
+> JDK1.7
+- JDK1.7中把常量池放在了堆里面
+
+> JDK1.8
+- JDK1.8中把常量池放在了方法区 (具体实现: 元空间)
+- 元空间
+
+- 现阶段我们说字符串的常量池在方法区了
+
+----------------------------
+
+### String的常用方法
+
+> 字符串.length();    -- int
+- 返回字符串的长度
+<!-- 
+  底层来说 就是char[] value的长度 return value.length
+ -->
+```java
+System.out.println(s1.length());
+```
+
+> 字符串.charAt(int index);   -- char
+- 取指定位置上的字符
+```java
+System.out.println(s1.charAt(2));
+```
+
+> 字符串.isEmpty();   - boolean
+- 判断是否为空字符串
+<!-- 
+  底层来说 就是判断char[] value的长度
+  return value.length == 0
+ -->
+```java
+s1 = "";
+System.out.println(s1.isEmpty());
+```
+
+
+> 字符串.toLowerCase()
+> 字符串.toUpperCase()
+- 使用默认语言环境 将字符串转为小写 / 大写
+- 需要创建变量接收新的字符串
+
+```java
+- js中经常会说 会不会影响原字符串 
+- 因为*字符串的不可变性* 即使是转换大小写 也是新造的字符串
+
+String s1 = "HelloWorld";
+String s2 = s1.toLowerCase();
+
+System.out.println(s1);   // HelloWorld
+System.out.println(s2);   // helloworld
+```
+
+
+> 字符串.trim();
+- 去除两端空格 
+- 结果需要创建变量接收(相当于用新的变量指向新字符串)
+```java
+s1 = "  hello  ";
+String s2 = s1.trim();
+```
+
+
+> 字符串.equals(Object obj);    -- boolean
+- 比较实际的内容是否相同
+- 字符串是严格区分大小写的
+```java
+String s1 = "HelloWorld"
+String s2 = "helloworld"
+s1.equals(s2);    // false
+```
+
+
+> 字符串.equalsIgnoreCase(String anotherString) -- boolean
+- 在忽略大小写的情况下 比较实际内容是否相同
+```java
+String s1 = "HelloWorld"
+String s2 = "helloworld"
+s1.equalsIgnoreCase(s2);    // true
+```
+
+
+> 字符串.concat(String str); 
+- 将指定的字符串链接到此字符串的结尾 等价于 +
+- 创建新的变量接收
+```java
+String s1 = "abc";
+String res = s1.concat("def");
+```
+
+
+> compareTo(String anotherString);    -- int
+- 比较两个字符串的大小
+- 返回结果是int型的 
+- 如果返回负数则当前对象小 正数则当前对象大 0则相等
+
+- 因为String类实现了Comparable接口 所以可以比较大小
+<!-- 
+  String实现了抽象方法 compareTo
+  底层就是 
+  拿着每一个元素去对比 如果有不一样的 就让两个元素相减
+ -->
+```java
+String s1 = "abc";
+String s2 = "abe";
+
+int res = s1.compareTo(s2);   // -2
+```
+
+- 应用场景:
+- 字符串排序 手机联系人
+
+
+> 字符串.substring(int beginIndex, [endIndex])
+- 如果只传入beginIndex 则从指定位置开始截取字符串 包含index位置
+
+- 如果传入endIndex 则截取从开始(包括)到结束(不包括)的字符串
+- 返回一个新的字符串 
+```java
+String s1 = "北京尚硅谷教育";
+// 目标 尚硅谷教育
+String res = s1.substring(2); // 尚硅谷教育
+
+// 目标 尚硅谷
+String res = s1.substring(2, 5); // 尚硅谷
+```
+
+
+> 字符串.endsWith(String 给定字符);   -- boolean
+> 字符串.startsWith(String 给定字符);   -- boolean
+- 判断字符串是否以 给定字符 结束 / 开始
+- 需要创建变量接收
+```java
+String str = "helloworld";
+boolean res = str.endsWith("ld"); // true
+```
+
+
+> 字符串.startsWith(String 给定字符, int index);   -- boolean
+- 判断从index位置为准(包含开始位置) 是否以给定字符串开始
+- 需要创建变量接收
+```java
+String str = "helloworld";
+boolean res = str.endsWith("ll", 2); // true
+```
+
+
+> 字符串.contains(CharSequence s);    -- boolean
+- 判断当前字符串中是否包含给定字符串
+- 对大小写敏感
+
+```java
+String str1 = "helloworld";
+String str2 = "wo";
+boolean res = str1.contains(str2);  // true
+```
+
+
+> 字符串.indexOf(String str);   -- int
+- 返回指定字符在字符串中第一次出现的索引
+- 没找到返回 -1
+
+```java
+String str1 = "helloworld";
+int res = str1.indexOf("lo");  // 3
+```
+
+
+> 字符串.indexOf(String str, int index);   -- int
+- 从指定的位置开始 返回指定字符串在字符串中第一次出现的索引
+- 没找到返回 -1
+
+```java
+String str1 = "helloworld";
+int res = str1.indexOf("lo", 5);  // -1
+```
+
+- 应用场景
+- 我们可以查找 or 出现了几次
+- helloworld
+- 我们找到第一个or出现的位置后 比如是7 然后让它加上or的长度2 让它从l的位置(9)开始接着往后找
+
+
+> 字符串.lastIndexOf(String str);   -- int
+- 从后往前找 给定字符串在字符串中首次出现的索引
+**注意:**
+- 虽然是从后往前找 但是返回的还是从前往后的索引
+
+
+> 字符串.lastIndexOf(String str, int index);   -- int
+- 返回指定字符串在字符串中最后一次出现的索引 *从指定的索引开始反向搜索* 也就是从右往左
+**注意:**
+- 虽然是从后往前找 但是返回的还是从前往后的索引
+
+```java
+String str = "hellorworld";
+// 注意 从o的位置  往左!!! 找
+int res = str.lastIndexOf("or", 6); // 4
+```
+
+> 什么情况下 indexOf 和 lastIndexOf 返回值相同
+- 要么只有一个 也就是存在唯一的一个str
+- 要么就没有  也就是不存在str
+
+
+> 字符串.replace(旧字符, 新字符);
+> 字符串.replace(旧字符串, 新字符串);
+- 返回一个新的字符串
+- 将字符串中的目标字符 替换为 指定字符 (会将字符串中所有的目标字符修改为指定字符)
+```java
+String str = "北京尚硅谷教育北京";
+String res = str.replace("北", "东");  
+  // 东京尚硅谷教育东京
+```
+
+
+> 字符串.replaceAll(String 正则, 给定字符串)
+- 返回新的字符串
+- 将符合正则的部分 替换为给定字符串
+
+- 注意:
+- 1. 正则是字符串形式的 相当于在 new RegExp("正则") 当中写正则表达式 注意要对符号进行转义
+
+- 2. replaceAll方法只有符合正则的全部都会被替换 相当于开启了匹配模式g
+```java
+String str = "12hello34world5java789mysql456";
+String newStr = str.replaceAll("\\d+", ",").replaceAll("^,|,$", "");
+```
+
+
+> 字符串.replaceFirst(String 正则, 给定字符串)
+- 将符合正则的部分 替换为给定字符串
+- 只替换第一个匹配到的内容 相当于匹配模式中的i
+
+
+> 字符串.matches(String 正则);    -- boolean
+- 告知此字符串是否匹配给定的正则表达式 返回布尔值
+- 看看字符串是否匹配正则的格式
+- 相当于 test();
+```java
+String str = "12345";
+boolean res = str.matches("\\d+");    // true
+```
+
+
+> 字符串.split(String 正则);    -- String[]
+> 字符串.split(String 正则, int limit);    -- String[]
+- 根据正则将匹配的内容拆分成String[]数组
+
+- 带limit参数的方法
+- 根据匹配给定的正则来拆分此字符串 最多不超过limit个
+- 如果超过了 剩下的全部都放到最后一个元素中
+
+```java
+String str = "hello|world|java";
+String[] strs = str.split("\\|");
+
+for(int i=0; i<strs.length; i++) {
+  System.out.println(strs[i]);
+}
+```
+
+----------------------------
+
+### [复习] String类与其它结构之间的转换
+> String 与基本数据类型, 包装类之间的转换
+
+- 1. String --> 基本数据类型 包装类
+    - 调用包装类的静态方法: parseXxx(str)
+```java
+String str = "123";
+int num = Ingeter.parseInt(str);
+```
+
+
+- 2. 基本数据类型 包装类 --> String
+    - 调用String.valueOf(xxx)
+```java
+int num = 1;
+String str = String.valueOf(num);
+```
+
+----------------------------
+
+### 
+
+----------------------------
+
 ### 书签
 
 ----------------------------
@@ -20819,9 +21637,9 @@ export CLASSPATH
 - 排序算法
 - 搜索算法
 
-<!-- 
-  扩展插入 - 区块链
+--------------------------------
 
+### 区块链 扩展
 - 区块链表面始终it技术 实际上是一种思维方式
 - 我们现实生活中很多都是这样的情况 表面看是技术 实际上是思维方式
 
@@ -20866,4 +21684,3 @@ export CLASSPATH
 
 - 建立在区块链上有两个东西 特别重要 一个是虚拟货币 一个是nft
 - nft简单的来说就是标识资产的东西 在现实里面你家的东西就是你的 你兜里的东西就是你的 但在虚拟世界里 怎么区分是你的还是别人的 就需要通过区块链技术的nft来标识你的资产 当虚拟世界里面的东西可以被标记的时候 它就成为资产 就变的有价值了 不能被标记就没有价值
--->
