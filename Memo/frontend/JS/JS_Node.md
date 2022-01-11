@@ -2,6 +2,59 @@
 
 ### 番外篇
 
+### js获取输入光标的位置
+- https://cloud.tencent.com/developer/article/1753347?from=15425
+
+
+> <p contenteditable="true">
+- 我们给一个标签添加上 contenteditable 属性则该标签的内部元素则变为可编辑状态
+
+
+> 如何获取光标的位置
+> window.getSelection();
+- selection对象是用户再页面上选择的范围的对象
+```js
+let selection = window.getSelection();
+```
+
+> selection.getRangeAt(0)
+- selection对象里面包含0个或多个range对象 通过range对象的属性和方法就可以获取到鼠标光标所在的位置 和 鼠标光标处插入dom节点
+```js
+let selection = window.getSelection();
+let range = selection.getRangeAt(0);
+```
+
+> range.endContainer 光标所在的节点
+> range.endOffset 光标所在节点的偏移量
+- 使用range对象的endContainer属性获取光标所在的dom对象
+- 使用range对象的endOffset获取光标所在dom对象的偏移量
+
+
+
+> 创建要插入的dom节点
+```js
+let node = document.createElement("span")
+node.setAttribute("class", "at")
+node.innerHTML = "测试"
+```
+
+> 在光标处插入dom元素
+> range.insertNode(node)
+```js
+let selection = window.getSelection();
+let range = selection.getRangeAt(0)
+
+let endDom = range.endContainer
+let offset = range.endOffset
+
+let node = document.createElement("span")
+node.setAttribute("class", "at")
+node.innerHTML = "测试"
+
+range.insertNode(node)
+```
+
+
 ### onsubmit事件
 - 我们一般会阻止表单的自动提交
 - 阻止表单提交事件的步骤

@@ -1,5 +1,172 @@
 ### Js技巧
 
+### 为什么前后台交互要转成json
+- 在日常的开发过程中 我们发送请求的数据的时候 有的时候会将js对象转成json
+
+- 那什么时候需要将js对象转成json呢？
+- 有一个人在编辑器里面测试 传数据到后台一个对象 就不会报错 但是他用postman去测试就会报错
+<!-- 
+    Content-type: application/json
+ -->
+
+- 为什么呢？
+- 因为ajax axios jquery对数据进行了处理
+
+- 第一种情况 请求头不指定格式
+- 请求数据不指定格式(application/x-www-form-urlencoded)，看看后端接收参数是啥样子
+<!-- 
+    {"object Object": ""}
+ -->
+
+- 第二种情况 请求头指定为json格式
+<!-- 
+    application/json
+    xhr.setRequestHeader("Content-Type": "application/json")
+
+    这里同时还要设置 我们传递的数据是json类型 json.stringify
+ -->
+
+- 也就是说当我们指定了请求头的格式的为json的时候 
+- 我们发送的数据的格式也必须是json
+
+- 如果不指定的话 默认就是 x-www-form-urlencoded
+
+
+- postman中参数的类型有
+- form-data
+- x-www-form-urlencoded
+- raw
+- binary
+- graphql
+
+> raw：
+- 这种方式也可以成为json提交, 可能每种参数类型对应的 contentType类型是不一样的
+- 使用的是纯字符串上传的方式 所以在post之前可能需要将json格式的数据转换为字符串
+
+<!-- 
+    contentType: "application/json"
+    data: JSON.stringify({
+        org,
+        msg
+    })
+
+
+    而 form-data 的方式就是 key-value 的提交，数据其实是分割的
+-->
+
+- 比如 我选择了 raw 
+- 后面的类型选择text 那么请求头中的 Content-Type: text/plain
+- 后面的类型选择json 那么请求头中的 Content-Type: application/json
+
+
+> 设置 contentType 的方式
+- "Content-Type" : "application/json"
+- 用于定义用户的浏览器或相关设备如何显示将要加载的数据，或者如何处理将要加载的数据，此属性的值可以查看 MIME 类型。
+
+- MIME:
+- 是描述消息内容类型的因特网标准。MIME 消息能包含文本、图像、音频、视频以及其他应用程序专用的数据。
+
+- content-type 一般以下面的形式出现：
+- Content-Type: [type]/[subtype];parameter
+
+> type 有下面的形式：
+- Text：
+- 用于标准化地表示的文本信息，文本消息可以是多种字符集和或者多种格式的；
+- 
+- Multipart:
+- 用于连接消息体的多个部分构成一个消息，这些部分可以是不同类型的数据；
+
+- Application
+- 用于传输应用程序数据或者二进制数据；
+
+- Message:
+- 用于包装一个E-mail消息；
+
+- Image:
+- 用于传输静态图片数据；
+
+- Audio
+- 用于传输音频或者音声数据；
+
+- Video
+- 用于传输动态影像数据，可以是与音频编辑在一起的视频数据格式。
+
+> subtype
+- 用于指定 type的详细形式。“type/subtype”配对的集合和与此相关的参数。下面是最经常用到的一些 MIME 类型：
+- text/html（HTML 文档）；
+  text/plain（纯文本）；
+  text/css（CSS 样式表）；
+  image/gif（GIF 图像）；
+  image/jpeg（JPG 图像）；
+  application/x-javascript（JavaScript 脚本）；
+  application/x-shockwave-flash（Flash）；
+  application/x- www-form-urlencoded（使用 HTTP 的 POST方法提交的表单）；
+  multipart/form-data（同上，但主要用于表单提交时伴随文件上传的场合）。
+
+
+> enctype属性
+- 规定在发送到服务器之前应该如何对表单数据进行编码，默认的表单数据会编码为 "application/x-www-form-urlencoded"
+- enctype的属性值有
+
+
+1. application/x-www-form-urlencoded
+   在发送前编码所有的字符
+   这应该是最常见的 POST 提交数据的方式了。浏览器的原生
+   表单，如果不设置 enctype 属性，那么最终就会以 application/x-www-form-urlencoded 方式提交数据。
+<!--
+    Content-Type: application/x-www-form-urlencoded;charset=utf-8
+    title=test&sub%5B%5D=1&sub%5B%5D=2&sub%5B%5D=3
+
+    提交的数据按照 key1=val1&key2=val2 的方式进行编码，key 和 val 都进行了 URL 转码。
+   大部分服务端语言都对这种方式很好的支持，常用的如jQuery中的ajax请求，Content-Type 默认值都是「application/x-www-form-urlencoded;charset=utf-8
+-->
+
+2. multipart/form-data
+   不对字符编码 在使用包含文件上传控件的表单时 必须使用该值
+   这也是常见的post请求方式，一般用来上传文件，各大服务器的支持也比较好。所以我们使用表单 上传文件 时，必须让
+<!--
+    表单的enctype属性值为 multipart/form-data.
+    注意：以上两种方式：application/x-www-form-urlencoded和multipart/form-data都是浏览器原生支持的。
+-->
+
+
+3. application/json    ---   它可能对应的就是 raw
+   application/json作为响应头并不陌生，实际上，现在很多时候也把它作为请求头，
+   用来告诉服务端消息主体是序列化的JSON字符串，
+   除了低版本的IE，基本都支持。除了低版本的IE都支持JSON.stringify()的方法，服务端也有处理JSON的函数，使用json不会有任何麻烦。
+
+   
+4. text/plain
+   空格转换为"+"加号，但不对特殊字符编码
+
+> postman中 post请求 的form-data、x-www-form-urlencoded、raw、binary的区别
+> form-data:
+- 等价于http请求中的multipart/form-data,它会将表单的数据处理为一条消息，以标签为单元，用分隔符分开。
+- 既可以上传键值对，也可以上传文件。
+- 当上传的字段是文件时，会有Content-Type来表名文件类型；content-disposition，用来说明字段的一些信息
+- 由于有boundary隔离，所以multipart/form-data既可以上传文件，也可以上传键值对，它采用了键值对的方式，所以可以上传多个文件。
+
+
+> x-www-form-urlencoded:
+- 等价于application/x-www-from-urlencoded,会将表单内的数据转换为键值对，比如,name=java&age = 23
+
+
+> raw
+- 可以上传任意格式的文本，可以上传text、json、xml、html等
+
+
+> binary
+- 相当于Content-Type:application/octet-stream,
+- 从字面意思得知，只可以上传二进制数据，通常用来上传文件，由于没有键值，所以，一次只能上传一个文件。
+
+
+
+> MIME 类型
+- MIME 类型是一种文本标记，表示一种*主要的对象类型和一个特定的子类型*，中间由一条斜杠来分隔。
+
+
+
+
 ### 通过创建类 实例化该类的时候 自动给指定元素添加特殊的功能
 ```js
 // app.js

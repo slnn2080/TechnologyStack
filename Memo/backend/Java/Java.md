@@ -20343,7 +20343,7 @@ class NumberThread3 implements Runnable {
   - 但是字符串序列化之后就可以进行传输了
   - 而String实现了这个接口后 就可以通过网络的方式进行传输了
 -->
-    - Comparable接口
+    - Comparable接口(比较器)
 <!-- 
   - 实现了该接口String就可以比较大小了
  -->
@@ -20355,7 +20355,7 @@ class NumberThread3 implements Runnable {
   用于存储字符串数据 因为是final修饰的 也就是说这个char[]数组*不能被重新赋值* 而且该*数组中的元素也不能被修改*
 
 - 4. 通过字面量的方式(区别于new)给一个字符串赋值 此时的字符串值声明在字符串的常量池中
-- 字符串常量池中是不会存储相同内容的字符串的(相当于我们拿重写后的equals比较真实的内容)
+- 字符串常量池中是不会存储相同内容的字符串的(相当于我们拿String类中重写后的equals比较真实的内容)
 
 - 5. String代表不可变的字符序列 简称 不可变性
   - 1. 当对字符串重新赋值的时候 需要重写指定内存区域赋值 不能对原有的char[]进行重新赋值
@@ -21125,7 +21125,895 @@ String str = String.valueOf(num);
 
 ----------------------------
 
-### 
+### String与char[]数组之间的转换
+
+> char[] -> 字符串
+- 将char[] 转换为 字符串 只需要调用String的构造器就可以了
+```java
+char[] arr = new char[] {'h', 'e', 'l', 'l', 'o'}
+String str = new String(arr);   // hello
+```
+
+> 将char[]数组中指定位置指定长度的字符转为字符串
+> String(char[], int beginIndex, int length)
+- 调用String的构造器就可以了
+```java
+char[] arr = new char[] {'h', 'e', 'l', 'l', 'o'};
+String str = new String(arr, 1, 3);
+System.out.println(str);    // ell
+```
+
+
+> 字符串 -> char[]
+> 字符串.toCharArray()
+- 将字符串转为char[]数组 
+- 该方法的返回值就是一个char[]
+```java
+String str = "abc123";
+char[] charArray = str.toCharArray();
+
+for (int i = 0; i < charArray.length; i++) {
+  System.out.println(charArray[i]);
+}
+```
+
+
+> 将字符串中指定位置的字符 放到 char[]的指定位置
+> 字符串.getChars(int strIndexBegin, strIndexEnd, char[] arr, arrIndexBegin)
+- 该方法没有返回值
+
+- 参数1: int index 字符串中开始位置的索引(包括)
+- 参数2: int index 字符串中结束位置的索引(不包括)
+- 参数3: char[] 
+- 参数4: char[] 的起始位置
+```java
+String str = "abc123";
+// 先定义一个char[]
+char[] strArr = new char[8];
+
+// 将abc赚到arr里面 从1的位置开始装
+str.getChars(0, 3, strArr, 1);
+
+for (int i = 0; i < strArr.length; i++) {
+  System.out.println(strArr[i]);
+}
+```
+
+
+> 思考
+- String str = "abc123";
+- 组织成 a21cb3
+
+- 提示：
+- a 3不懂 bc12反转
+
+----------------------------
+
+### String与byte[]数组之间的转换
+- 在io流的里面就涉及到了这里的操作
+
+- 编码:
+- 将我们能看的懂的转换为看不懂的
+
+- 字符串 -> 字节
+<!-- 
+  字符串是我们能看的懂的东西
+  字节就是底层的数了
+ -->
+
+- 解码:
+- 将看不懂的二进制数据转换为能看得懂 不一定是字符串了
+
+- 字节 -> 字符串
+
+
+> byte[] -> 字符串    -- 相当于解码的过程
+> String(byte[], [charsetName])
+- 调用String的构造器
+- 返回值为byte[]
+
+- charsetName为可选 选择字符集
+- 如果不指定解码的字符集 会使用默认的
+
+- 注意:
+- *编码和解码对应的字符集要一样*
+
+```java
+String str = "abc123中国";
+// 使用默认的字符集进行的编码
+byte[] bytes = str.getBytes();    // 编码的过程
+
+// 将byte[]转换为 字符串 使用默认的字符集进行的解码
+String newStr = String(bytes)     // 解码的过程
+```
+
+> 将char[]数组中指定位置指定长度的字符转为字符串
+> String(byte[], int beginIndex, int length)
+
+---
+
+> 字符串 -> byte[]    -- 相当于一个编码的过程
+> 字符串.getBytes();
+- 返回值一个byte[]数组
+- 将字符串转为byte数组
+- 使用默认的字符集进行转换
+
+```java
+String str = "abc123";
+byte[] bytes = str.getBytes(); 
+
+// 使用 Array.toString 遍历 byte[]
+System.out.println(Array.toString(bytes))
+// [97, 98, 99, 49, 50, 51]
+```
+
+> 当有汉字的情况下 我们是根据指定的编码集对汉字进行byte字节的转换
+```java
+String str = "abc123中国";
+byte[] bytes = str.getBytes();
+System.out.println(Array.toString(bytes))
+// [97, 98, 99, 49, 50, 51, -28, -72, -83, -27, -101, -67]
+```
+- 我们要知道到byte这个阶段(字节阶段) 就是纯数了
+- 比如a对应的是asc码里面的97
+
+- 但是"中"不存在asc码 由于我们系统当前使用的编码集是utf-8 
+- 在调用str.getBytes(); 方法的时候 就是按照当前系统的编码集将中文解析为了byte[]
+- 而在utf-8当中 一个汉字就是3位字节
+<!-- 
+  中: -28, -72, -83
+  国: -27, -101, -67
+ -->
+
+- 我们上面是使用的是默认的当前系统(编辑器里面设定的)的编码集
+- 我们还可以指定编码集
+
+> 字符串.getBytes(String charsetName);
+- 返回一个byte[]
+- 使用指定的字符集 进行转换
+
+- 该方法会抛异常 *UnsupportedEncodingException*(比如我们输入的不是正确的编码集 所以报错 所以该方法在设置的时候 就会往外抛*不支持*的异常) 我们可以选择处理异常的方式
+
+```java
+@Test
+public void test() throws UnsupportedEncodingException {
+  String str = "abc123中国";
+  byte[] bytes = str.getBytes("gbk");
+  System.out.println(Array.toString(bytes))
+  // gbk是专门针对汉字进行编码的 简体 繁体都有
+  // 中国对应的编码集 就变成了 2位一组
+  // 中: -42 -48
+  // 国: -71, -6
+}
+```
+
+- utf-8和gbk在指定字母的时候 跟asc是一样的
+- gbk中一个汉字用两个字节来表示
+
+
+> 练习
+- 上面我们说String的时候说过 常量 和 常量 进行拼接的时候 是在常量池 
+<!-- 
+  String str = "javaEE" + "hadoop";   // 常量池
+  String str2 = str + "hadoop";       // 堆空间
+ -->
+
+```java
+@Test
+public void test() {
+  String s1 = "javaEEhadoop";
+  String s2 = "javaEE";
+  String s3 = s2 + "hadoop";
+
+  s1 == s3;   // false
+
+  // final修饰的变量就是常量了
+  final String s4 = "javaEE";
+  String s5 = s4 + "hadoop";
+
+  s4 == s5;   // true
+}
+```
+
+- 没加final之前 s3的值是由含有变量的数据进行拼接的
+- 加final之后 为什么是true呢？
+- 我们说常量和常量的拼接在常量池 我们使用final后 该变量就变成常量了 所以还在常量池
+
+
+> 总结:
+- 1. final可以修饰局部变量
+- 2. final修饰的变量 是 常量
+- 3. 常量 和 常量进行拼接会在常量池
+
+----------------------------
+
+### StringBuffer类
+### StringBuilder类
+- String类是不可变的字符序列
+- 而StringBuffer代表 StringBuilder类为 *可变的字符序列* jdk1.0中声明 可以对字符串内容进行增删 此时不会产生新的对象
+
+
+> String StringBuffer StringBuilder 三者的异同
+
+> String
+- 不可变的字符序列 该类为jdk1.0就开始有的
+
+
+> StringBuffer
+- 可变的字符序列 该类为jdk1.0就开始有的
+- 该类中的方法都是线程的安全的(效率低)
+
+
+> StringBuilder
+- 可变的字符序列 该类为jdk1.5后新增的
+- 该类中的方法几乎和StringBuffer是一样的 但是没有synchronized修饰 就是线程不安全的(效率高一些)
+
+
+> StringBuilder效率该但线程不安全 StringBuffer线程安全但效率低 那我们怎么选择?
+- 看是否为多线程的问题
+- 不是多线程问题的时候 我们选择StringBuilder 提高效率
+
+
+> 相同点
+- 底层都是使用char[]存储
+
+> 思考
+- 为什么都用char[]数组存 String就不可变 StringBuffer StringBuilder就可变呢？
+
+- 可变的体现
+```java
+StringBuffer sb1 = new StringBuffer("abc");
+
+// 将字符串指定位置的字符 替换为给定字符 该方法没有返回值
+sb1.setCharAt(0, 'm')   // mbc
+```
+
+- 我们说String类是不可变的 它调用方法修改字符串后都需要创建新的变量来接收 并不影响原字符串
+- 而我们发现 setCharAt方法 没有返回值 真的把原字符串直接修改了 也就是说 影响的就是原字符串
+- 这就是可变的
+
+
+- 那大家底层都一样 为什么它就是可变的呢？ 接下来我们看看它的底层实现
+
+> 原码分析
+- String str = new String();
+- 如果我们这么new了一个str 那么底层它帮我们new了一个char[0]数组 长度为0
+- char[] value = new char[0]
+
+- String str = new String("abc")
+- 如果我们这么new了一个str 那么底层它帮我们创建了一个 如下的char[] 长度为3
+- char[] value = new char[] {'a','b','c'}
+
+
+- 当我们使用空参的StirngBuffer创建一个sb1的时候
+- StringBuffer sb1 = new StringBuffer()
+- char[] value = new char[16]
+- 底层创建了一个长度为16的char[]
+
+- 比如我们添加了一个'a' 相当于
+- sb1.append('a');  --  value[0] = 'a'
+- sb1.append('b');  --  value[1] = 'b'
+- sb1.append('c');  --  value[2] = 'c'
+
+- 也就是说 String和StringBuffer底层都是char[]数组 因为char[]的初始化长度不一样 往里面添加元素的方式不一样 所以体现的可变
+
+
+- StringBuffer sb2 = new StringBuffer("abc");
+- public StringBuffer(String str) {
+  super(str.length() + 16)
+}
+- 使用上面方式创建的sb2 相当于在字符串的长度之外 额外的+16
+- char[] value = new char["abc".length + 16]
+
+- 相当于我们每次造完后都额外的空出来16个char
+
+> 问题1: 
+- sb1 2的长度是多少呢？
+```java
+StringBuffer sb1 = new StringBuffer()
+System.out.println(sb1.length());   // 0
+
+StringBuffer sb2 = new StringBuffer("abc");
+System.out.println(sb2.length());   // 3
+```
+- length()方法返回的是char[]数组中 实际的元素个数
+
+
+> 问题2: 
+- new StringBuffer() 这种方式创建的字符串相当于创建了一个长度为16的char[]
+
+- 如果要添加的数据底层盛不下了 那就需要扩容底层的数组
+- 默认情况下 扩容为原来容量的2倍 + 2
+- 同时将原有数组中的元素复制到新的数组中
+
+- 我们看看 append() 方法底层是怎么样的逻辑
+
+> 扩容的原码解析
+```java
+if(str == null) return appendNull();
+// 当我们传入str有长度的时候
+int len = str.length();
+// 先确保容量是够的
+- 比如 我们已经存了15个了 现在还要添加"abc"
+- count就是15 + 3 = 18
+ensureCapacityInternal(count + len);
+
+
+// 看看 ensureCapacityInternal 方法 value.length是底层的数组
+- 18 - 16 > 0 说明数组不够了 
+if(18 - value.length > 0) {  
+  value = Array.copyOf(value, newCapacity(18))
+}
+
+- 然后调用的了 newCapacity 将数组扩容了一倍 然后+2
+- int newCapacity = (value.length << 1) + 2
+
+
+str.getChars(0, len, value, count);
+count += len;
+return this
+```
+
+- 如果开发中 我们需要对一个字符串频繁的进行修改 我们尽可能的不要选String(它的效率最差 因为每次都要新造一个字符串) 而StringBuffer StringBuilder当原有的16长度不够用的时候才会扩容
+<!-- 
+  先是扩容一倍+2 再超过就拿超过的长度赋值给value[]
+ -->
+
+- 应用场景
+- 当我们知道 我们要调用 append() 方法多少次的时候
+- 我们尽可能的使用 下面的构造器
+
+> new StringBuffer(int num)
+- 创建指定容量的StringBuffer 为了避免自动扩容
+- 比如造一个长度为30 40长度的
+<!-- 
+  因为默认就是16 16个字符
+ -->
+
+- StringBuffer 和 StringBuilder 使用哪个我们就要看线程是否安全
+
+----------------------------
+
+### StringBuffer(StringBuilder) 常用方法
+- 下面我们说的都是StringBuffer方法 StringBuilder差不多 区别就是是否是同步了
+<!-- 
+  append 和 insert 时 如果原来value数组长度不够 可扩容
+  下面这些方法支持方法链操作
+
+  方法链原理
+  @overwrite
+  public StringBuilder append(String str) {
+    super.append(str);
+    return this;
+  }
+ -->
+
+
+> sb.append([int char float double long boolean char[] String str CharSequence s StringBuffer sb])
+- 我们可以传递多种数据类型
+
+- 作用：
+- 往字符串中*添加*字符
+
+```java
+// 调用空参构造器创建sb空字符串(可扩展)
+StringBuffer sb = new StringBuffer();
+
+sb.append(1);
+sb.append("b");
+sb.append("字符串");
+sb.append(0.0);
+
+System.out.println(sb);
+// 1b字符串0.0
+```
+
+> sb.delete(int start, int end)
+- *删除*指定位置的内容
+- 包括开始位置 不包括结束位置
+
+- 影响原字符串
+
+- 返回值
+- 也可以创建变量接收删除指定字符后的结果(没必要啊)
+
+```java
+StringBuffer sb = new StringBuffer("abc");
+sb.append(1);
+sb.append(1);
+
+System.out.println(sb);
+// abc11
+
+sb.delete(2, 4)
+// ab1    -- 删除了c1
+
+StringBuffer res = sb.delete(2, 4)
+System.out.println(res);
+// ab1
+```
+
+> sb.replace(int start, int end, String str)
+- 将指定位置的字符 *替换*为新的字符串
+- 包括开始位置 不包括结束位置
+
+- 影响原字符串
+
+```java
+StringBuffer sb = new StringBuffer("abc");
+sb.replace(0, 2, "hello")   // helloc
+```
+
+> sb.insert(int offset, [int char long float double boolean Object String char[]])
+- 在指定的位置 *插入*数据
+- 能插入的类型有很多 但最终都会转为字符串
+
+- 影响原字符串
+
+```java
+StringBuffer sb = new StringBuffer("abc");
+sb.insert(1, true)
+// atruebc
+```
+
+> sb.reverse()
+- 反转字符串
+- 影响原字符串
+
+- String类没有这样的方法
+
+
+> sb.indexOf(String str)
+- 返回值为int型
+- 返回给定字符串在原字符串中首次出现的位置
+- 没有找到是-1
+
+
+> sb.substring(int start, int end)
+- 返回值为String型
+- *截取*指定位置的字符，包括开始 不包括结束
+
+- 需要创建变量接收新的字符串
+
+
+> sb.length()
+- 返回值为int型
+- 返回字符串的长度
+
+
+> sb.charAt(int n)
+- 返回值为char型
+- 跟String类型里面的使用方式一样
+
+
+> sb.setCharAt(int n, char c)
+- 没有返回值
+- *修改*原字符串中指定位置的字符
+- 只能修改一个字符
+
+
+> 总结：
+- 增 : append()
+- 删 : delete()
+- 改 : setCharAt() / replace()
+- 查 : charAt()
+- 插 : insert()
+- 长度 : length()
+- 遍历 : toString() / for + charAt()
+
+
+> String StringBuffer StringBuilder效率测试
+- 从高到低 StringBuilder > StringBuffer > String
+
+----------------------------
+
+### String 转换为 StringBuffer StringBuilder
+### StringBuffer StringBuilder 转换为 String 
+- 调用StringBuffer的构造器
+- 调用String的构造器
+
+
+> String 转换为 StringBuffer StringBuilder
+- 以 String -> StringBuffer 为例
+```java
+String str = "abc"
+StringBuffer strBuf = new StringBuffer(str);
+```
+
+> StringBuffer StringBuilder 转换为 String
+- 1. 调用String的构造器
+- 2. 调用StringBuffer.toString()返回的就是一个String类型的字符串
+
+----------------------------
+
+### String相关练习 常见的算法题
+> 1. 模拟一个trim方法 去除字符串两端的空格
+```java
+public String myTrim(String str) {
+  if (str != null) {
+    // 用于记录从前往后首次索引位置不是空格的位置的索引
+    int start = 0;
+
+    // 用于记录从后往前首次索引位置不是空格的位置的索引
+    int end = str.length() - 1;
+
+    while (start < end && str.charAt(start) == ' ') {
+      start++;
+    }
+
+    while (start < end && str.charAt(end) == ' ') {
+      end--;
+    }
+    if (str.charAt(start) == ' ') {
+      return "";
+    }
+
+    return str.substring(start, end + 1);
+  }
+  return null;
+}
+```
+
+------
+
+> 2. 将一个字符串进行反转 将字符串中指定部分进行反转
+- 比如 "ab*cdef*g 反转为 *abfedcg*
+
+> 方式1
+```java
+/**
+* @param str  要反转的字符串
+* @param startIndex  反转指定位置的子串 - 开始位置
+* @param endIndex  - 结束位置
+* @return 返回String类型 因为要返回反转后的字符串
+*
+* 思路：
+* 方式1：
+* 转换为char[] 利用数组来解决问题
+* 成为数组后 我们可以依次交换两个元素的位置
+* x最前面的元素 y最后面的元素 这样最前最后两个位置的元素交换
+* 然后x++ y-- x往右一位 y往左一位 继续交换
+* 直到最后
+*/
+
+public String reverse(String str, int startIndex, int endIndex) {
+  // 将字符串转为数组
+  char[] arr = str.toCharArray();
+
+  // 快速处理机制 如果传递的数据是null的话 直接return null
+  if(str != null) {
+    // 对指定范围进行反转 因为 ab ... g 是固定
+    // 1. 初始化两个x y变量
+    // 2. 让x++ y-- 一个往前走 一个往后走 终止条件为 位置互换 x < y
+    for (int x = startIndex, y = endIndex; x < y; x++, y--) {
+      char temp = arr[x];
+      arr[x] = arr[y];
+      arr[y] = temp;
+    }
+
+    // 将结果返回
+    return new String(arr);
+  }
+  return null;
+}
+```
+
+------
+
+> 方式2
+```java
+/**
+  * @param str  要反转的字符串
+  * @param startIndex  反转指定位置的子串 - 开始位置
+  * @param endIndex  - 结束位置
+  * @return 返回String类型 因为要返回反转后的字符串
+  *
+  * 方式2：
+  * 使用String的拼接操作
+  *
+  * 思路：
+  * 将目标字符串 abcdefg 看做是 StringBuilder
+  * 将目标字符串 abcdefg 看做是3部分 ab + 目标子串 + g
+  * 
+  * 然后将ab部分提取出来 + for循环倒叙反转目标子串 + 最后的部分
+  */
+public String reverse(String str, int startIndex, int endIndex) {
+  // 部分1 开始固定的ab部分
+  // 截取 abcdefg 0 2 -> ab 也就是将指定位置前的字符 提取出来
+  String reverseStr = str.substring(0, startIndex);
+
+  // 部分2 目标子串
+  // 利用 倒！ for循环提取 目标子串 部分 拼接到 strPart1 中
+  for (int i = endIndex; i > startIndex; i--) {
+    reverseStr += str.charAt(i);
+  }
+
+  // 部分3 最后固定的g
+  reverseStr += str.substring(endIndex + 1);
+
+  return reverseStr;
+}
+```
+
+------
+
+> 方式3: (对方法2的优化)
+```java
+/**
+* 方式3:
+* 使用StringBuffer替换String
+*/
+public String reverse(String str, int startIndex, int endIndex) {
+  // 放用户输入的字符串比较长的时候 不让它被动的扩展容量(默认只有16个)
+  // 创建一个指定容量的字符串
+  StringBuilder builder = new StringBuilder(str.length());
+
+  // 将原有的字符串的3部分 放到 builder 里面
+  // 放入第一部分子串
+  builder.append(str.substring(0,startIndex));
+
+  // 放入第2部分子串
+  for (int i = endIndex; i > startIndex; i--) {
+    builder.append(str.charAt(i));
+  }
+
+  // 放入第三部分
+  builder.append(str.substring(endIndex + 1));
+
+  // 最后我们返回一个String类型 现在是sb类型
+  return builder.toString();
+}
+```
+
+------
+
+> 3. 获取一个字符串在另一个字符串中出现的次数
+- 比如 获取 "ab" 在 "abkkcadkabkebfkabkskab" 中出现的次数
+
+> 方式1:
+```java
+/**
+* 获取subStr在mainStr中的次数
+*
+* @param mainStr
+* @param subStr
+* @return int count
+*
+* 思路：
+* "ab" 在 "abkkcadkabkebfkabkskab" 中出现的次数
+* 1. 创建一个计数变量
+* 我们用 mainStr.indexOf(subStr) ab 第一次出现的位置是 0
+* 结果不为-1我们让计数变量++下
+*
+* 2. 下次我们在 mainStr.indexOf(subStr) 就应该用kk开始了 从2开始
+* 也就是说 indexOf 返回的索引位置 + subStr的长度
+*/
+public int getCount(String mainStr, String subStr) {
+  int mainLen = mainStr.length();
+  int subLen = subStr.length();
+
+  int count = 0;
+  int index;
+  // 我们要查找的是短字符串在长字符串中出现的次数 所以判断下
+  if(mainLen >= subLen) {
+    // 将ab第一次出现的位置 给 index
+    while((index = mainStr.indexOf(subStr)) != -1) {
+      count++;
+      // 下一次我们要从 抛去ab之后的字符串中进行indexOf查找
+      mainStr = mainStr.substring(index + subStr.length());
+    }
+    return count;
+  } else {
+    return 0;
+  }
+}
+
+@Test
+public void test() {
+  String mainStr = "abkkcadkabkebfkabkskab";
+  String subStr = "ab";
+  int count = getCount(mainStr, subStr);
+  System.out.println(count);
+}
+```
+
+------
+
+> 方式2： (对方式1的改进)
+- 要点：
+- 这里我们还用的while循环 和 indexOf
+- 但要点区别于方式1
+- 方式1中是开始从主串: abcdedfg中找ab 当找到第一次后
+- 我们将主串重新赋值了 主串变成了cdedfg
+
+- 方式2中 我们没有采用重新赋值的方式 而是利用了
+- indexOf(给定字符串, 开始查找的位置)
+- 这个方法 还是一个主串 abcdedfg
+- 当找到第一个ab后 给index重新赋值 然后下一轮从index的位置找
+
+```java
+public int getCount(String mainStr, String subStr) {
+  int mainLen = mainStr.length();
+  int subLen = subStr.length();
+
+  int count = 0;
+  int index = 0;
+
+  if(mainLen >= subLen) {
+    while((index = mainStr.indexOf(subStr, index)) != -1) {
+      count++;
+      index += subLen;
+    }
+    return count;
+  } else {
+    return 0;
+  }
+}
+```
+
+> 4. 获取两个字符串中最大的相同子串
+- str1 = "abcwerthelloyuiodef"
+- str2 = "cvhellobnm"
+- 提示：
+- 将端的那个串进行长度依次递减的子串与较长的串比较
+
+```java
+```
+
+
+> 5. 对字符串中字符进行自然顺序排序
+- 提示：
+- 1. 字符串变成字符数组
+- 2. 对数组排序 选择 冒泡 Arrays.sort()
+- 3. 将排序后的数组变成字符串
+```java
+public void testSort() {
+  String str = "abcwerthelloyuiodef";
+  char[] arr = str.toCharArray();
+  Arrays.sort(arr);
+
+  String newStr = new String(arr);
+  System.out.println(newStr);
+}
+```
+
+----------------------------
+
+### 日期时间API -- JDK8之前
+
+> System.currentTimeMillis()
+- 返回值:
+- long型
+- 得到的是毫秒数(时间戳)
+
+- 返回当前时间与1970年1月1日0时0分0秒之间 以毫秒为单位的时间差
+- 此方法适用于计算时间差
+
+```java
+long time = System.currentTimeMillis();
+```
+
+
+> Date类
+- Date类有两个地方都有
+<!-- 
+  java.util.Date
+    | -- java.sql.Date
+
+  这两个类是子父类的关系
+ -->
+
+- 我们先说说 java.util.Date 类：
+<!-- 
+  java.sql.Date类对应着数据库中的日期类型的变量
+  数据库中的一条记录会转换为java层面的一个对象 而数据库中的date转换为对象后 对应的就是 sql.Date 类
+
+  跟数据库交互的时候我们才会用 sql.Date 类
+ -->  
+
+> 创建 Date 对象    -- java.util.Date
+> new Date();   -- 空参构造器
+- 空参构造器返回的是当前时间的date对象
+
+- 注意：
+- 因为两个地方都有Date类 所以idea不会帮我们自动导包 我们要自己选择使用哪个Date类
+
+```java
+import java.util.Date;
+
+@Test
+public void test() {
+
+  Date date = new Date();
+
+  System.out.println(date);
+  // Tue Jan 11 18:11:10 JST 2022
+  // xian是当前的 年月日时分秒
+
+  System.out.println(date.toString());
+  // 输出和上面一样 意思也和上面的一样 该方法在Date类中重写过
+}
+```
+
+
+> new Date(long date)
+- 传入给定的毫秒数
+- 创建指定毫秒数的date对象
+
+```java
+Date date = new Date(1550306204104L);
+
+System.out.println(date);
+// Tue Jan 11 18:11:10 JST 2022
+```
+
+> date.getTime();
+- 获取的是毫秒数(时间戳)
+
+- 返回值
+- long型
+
+
+> 创建 Date 对象    -- java.sql.Date
+> new java.sql.Date(long date)
+- 如果项目有已经导入 java.util.Date了 那我们再使用sql.Date的时候 就要显式的指定包名
+
+```java
+java.sql.Date date = new java.sql.Date(1550306204104L)
+System.out.println(date);
+// 2016-10-01
+// sql.Date 的toString输出的是 2016-10-01
+```
+
+- 该类同样有toString() 和 getTime()
+
+
+> sql.Date对象 - 多态 -> util.Date对象
+- 这两个对象之间又如何转换呢？
+- 直接赋值 因为是子父类的关系 多态
+
+
+> util.Date对象 --> sql.Date对象
+- 相当于从父类的往子类去转
+```java
+
+// 多态的体现 sql.Date赋值给util.Date
+Date date = new java.sql.Date(1550306204104L)
+
+// 将父类型的Date date强转为子类的sql.Date
+java.sql.Date date2 = (java.sql.Date)date2
+
+- 上面相当于sql.Date多态转上去 再强转下来
+```
+
+
+> 另一种情况
+- 场景：
+- 我们在java层面new了一个util下的date对象 我们要将该对象塞到数据库中
+
+- 我们不可能直接塞过去 因为数据库的date对象是跟sql.Date搭配
+- 所以我们这种情况下要将util.Date转为sql.Date
+```java
+Date date = new Date();
+
+// 下面的方式进行强转肯定报错 classCastException
+java.sql.Date date2 = (java.sql.Date)date // x
+
+- 我们new的是util.Date对象 怎么可能转换为java.sql.Date对象呢
+- 也就是说我们new的就是父类 怎么可能转换为子类呢？
+- 我们以前讲的强转能成都是因为我们new的子类 多态到父类 然后再强转下来 这可以
+```
+
+> 解决方式
+```java
+Date date = new Date();
+
+// 调用date的getTime()方法 拿到毫秒数
+long time = date.getTime();
+
+// 利用毫秒数重新状态sql.Date对象
+java.sql.Date date2 = new java.sql.Date(time)
+```
 
 ----------------------------
 
