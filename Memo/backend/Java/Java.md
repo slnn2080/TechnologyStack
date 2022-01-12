@@ -21858,6 +21858,114 @@ public int getCount(String mainStr, String subStr) {
 - 将端的那个串进行长度依次递减的子串与较长的串比较
 
 ```java
+/**
+* 获取两个字符串中最大的相同子串(查找两个字符串中相同的部分 hello)
+* - str1 = "abcwerthelloyuiodef"
+* - str2 = "cvhellobnm"
+*
+* 思路：
+* 我们先想想12和16中的最大公约数 找的时候 我们是从12开始递减的左找
+* 最大公约数是不会超过12的 也就是说 最大的相同子串不会超过短的str2的
+* 我们找完12 11 10 找到4 发现是 那下面就不用找了
+*
+* 上面这道题也是
+* 1. 我们看看这个短串在不在长串里面
+* 2. 如果不在 我们就在短串中减一个 但有两种情况我们都要考虑
+* 比如 abcd 减一个 abc 或者 bcd
+* 相当于我们需要定义两个指针 一个指针当头 一个指针当尾
+* 第一轮 指针头部就在头 尾部就在尾 也就是字符串本身
+* abcdefg
+* ↑     ↑
+* 第二轮相对于原字符串来讲 相当于扣出去一个
+* 第三轮相对于原字符串来讲 相当于扣出去二个
+* 第四轮相对于原字符串来讲 相当于扣出去三个 以此类推
+*
+* 扣出去一个的时候 就涵盖了两种情况
+* 扣出去三个的时候 情况更多 所以最少我们要使用双重for循环
+*/
+public String getMaxSameString(String str1, String str2) {
+
+  // 先判断两个str谁短 我们要操作短的
+  String maxStr = (str1.length() >= str2.length()) ? str1 : str2;
+  String minStr = (str1.length() < str2.length()) ? str1 : str2;
+
+  // 我们要扣出去的轮数 实际上就是 短的字符串的长度
+  int length = minStr.length();
+  for (int i=0; i<length; i++) {
+    // 在这里定义两个指针 控制截取短串 y第一轮是最后一个 第二轮就是-1 三轮-2 所以-i
+    for (int x=0, y=length-i; y <= length; x++, y++) {
+      String subStr = minStr.substring(x, y);
+      // 第一轮 一个也不扣出去的情况 指针就是头尾 所以subStr = minStr
+      if(maxStr.contains(subStr)) {
+        return subStr;
+      }
+
+      // 第二轮 我们要判断的是minStr的子串 因为我们要从它身上扣出去一个
+      // 我们先考虑第二轮的第一种情况 abcd 扣一个abc的情况
+    }
+  }
+  return null;
+}
+```
+
+> 对上扩展
+```java
+// 如果存在多个长度相同的最大相同子串
+// 此时先返回String[]，后面可以用集合中的ArrayList替换，较方便
+public String[] getMaxSameSubString1(String str1, String str2) {
+  if (str1 != null && str2 != null) {
+    StringBuffer sBuffer = new StringBuffer();
+    String maxString = (str1.length() > str2.length()) ? str1 : str2;
+    String minString = (str1.length() > str2.length()) ? str2 : str1;
+
+    int len = minString.length();
+    for (int i = 0; i < len; i++) {
+      for (int x = 0, y = len - i; y <= len; x++, y++) {
+        String subString = minString.substring(x, y);
+        if (maxString.contains(subString)) {
+          sBuffer.append(subString + ",");
+        }
+      }
+
+      if (sBuffer.length() != 0) {
+        break;
+      }
+    }
+    String[] split = sBuffer.toString().replaceAll(",$", "").split("\\,");
+    return split;
+  }
+
+  return null;
+}
+```
+
+
+> 对上扩展
+```java
+// 如果存在多个长度相同的最大相同子串：使用ArrayList
+public List<String> getMaxSameSubString1(String str1, String str2) {
+  if (str1 != null && str2 != null) {
+    List<String> list = new ArrayList<String>();
+    String maxString = (str1.length() > str2.length()) ? str1 : str2;
+    String minString = (str1.length() > str2.length()) ? str2 : str1;
+
+    int len = minString.length();
+    for (int i = 0; i < len; i++) {
+      for (int x = 0, y = len - i; y <= len; x++, y++) {
+        String subString = minString.substring(x, y);
+        if (maxString.contains(subString)) {
+          list.add(subString);
+        }
+      }
+      if (list.size() != 0) {
+        break;
+      }
+    }
+    return list;
+  }
+
+  return null;
+}
 ```
 
 
@@ -21877,6 +21985,43 @@ public void testSort() {
 }
 ```
 
+----------------------------
+
+### IDEA的 Debug
+> 步骤
+- 1. 在需要观察的行号位置 点击 加上红点
+- 2. Test方法名的位置 右键 - Debug "对应的test方法"
+
+- 假如我们要是想看源码 点击 ↓ into 想从源码出来 点击 ↑ out
+<!-- 
+  红色箭头是强制进入
+ -->  
+
+- step over是下一行代码
+
+- 左侧有一个播放的箭头 是进入到下一个debug点
+- 比如我们有3个debug点 我们点击3下 会依次进入到3个debug点
+
+- 左侧有停止按钮 就是停止debug操作的意思
+
+- 测试用的代码
+```java
+@Test
+public void testStringBuffer() {
+  String str = null;
+  StringBuffer sb = new StringBuffer();
+  // 通过append方法 将null放入sb中 没有抛异常 把null添加进去了
+  sb.append(str);
+
+  System.out.println(sb.length());  // 4
+  System.out.println(sb);   // "null"
+
+  // 通过构造器的方式 将null放进去 抛异常了 NullPointerException
+  // 因为我们把null放进去 源码中是 super(str.length() + 16) null.length就是空指针了
+  StringBuffer sb1 = new StringBuffer(str);
+  System.out.println(sb1);
+}
+```
 ----------------------------
 
 ### 日期时间API -- JDK8之前
@@ -22014,6 +22159,365 @@ long time = date.getTime();
 // 利用毫秒数重新状态sql.Date对象
 java.sql.Date date2 = new java.sql.Date(time)
 ```
+
+----------------------------
+
+### 日期时间API SimpleDateFormat类 -- JDK8之前
+- 直译: 简单的日期格式化
+- Date类的API不易于国际化 大部分被废弃了 
+- java.text.SimpleDateFormat类是一个不与语言环境有关的方式来格式化和解析日期的具体类
+
+- SimpleDateFormat类说白了就是对Date类进行一些的操作 这些操作涉及到了格式化和解析
+
+  格式化:  日期 -> 文本 (指定格式的字符串)
+  解　析:  文本 (指定格式的字符串) -> 日期
+
+
+> SimpleDateFormat类的实例化 -- 使用默认的构造器
+> SimpleDateFormat sdf = new SimpleDateFormat();
+- 通过空参构造器 得到一个 sdf实例化对象
+
+**注意:**
+- 该对象只能将 date对象格式化成 默认格式的日期字符串
+- 该对象只能将 默认格式的日期字符串 解析成date对象
+
+
+> sdf.format(Date date);
+- 该方法用于 将日期对象进行格式化操作 日期 -> 文本
+- 参数
+- 日期对象
+
+- 返回值
+- String
+
+- 格式化默认格式
+- 2022/01/12 13:49
+
+```java
+// 实例化 SimpleDateFormat
+SimpleDateFormat sdf = new SimpleDateFormat();
+
+// 格式化: 日期 -> 字符串
+Date date = new Date();
+System.out.println(date);
+    // Wed Jan 12 13:49:04 JST 2022
+
+// 该方法返回的是格式化后的字符串
+String dateFormat = sdf.format(date);
+System.out.println(dateFormat);
+    // 2022/01/12 13:49
+```
+
+
+> sdf.parse(指定格式的日期文本)
+- 将日期格式的文本 转换为 date对象
+
+- 返回值
+- Date date
+
+- 异常
+- 该方法会抛出异常 选择处理方式 ParseException
+
+- 对传入的字符串的格式有要求
+- 默认是什么格式的 我们就要传入什么格式的文本 我们可以先调用format()方法看看默认格式
+<!-- 
+  2022/01/12 13:49
+ -->
+
+```java
+throws ParseException
+
+// String str = "2016-10-01 上午11：39";   报错 格式不对
+String str = "2016/10/01 13:58";
+Date date1 = sdf.parse(str);
+System.out.println(date1);
+    // Sat Oct 01 13:58:00 JST 2016
+```
+
+
+> 常用该格式的构造器
+> SimpleDateFormat类的实例化 -- 传入参数(格式)
+> SimpleDateFormat sdf = new SimpleDateFormat(格式);
+- 我们可以传入一个指定格式 然后通过 format() 或者 parse()
+- 可以格式化成我们指定格式的日期字符串
+<!-- 
+  格式符号:
+  G 年代标志符
+  y 年
+  M 月
+  d 日
+  h 时 在上午或下午 (1~12)
+  H 时 在一天中 (0~23)
+  m 分
+  s 秒
+  S 毫秒
+  E 星期
+  D 一年中的第几天
+  F 一月中第几个星期几
+  w 一年中第几个星期
+  W 一月中第几个星期
+  a 上午 / 下午 标记符
+  k 时 在一天中 (1~24)
+  K 时 在上午或下午 (0~11)
+  z 时区
+
+  最常用的格式
+  yyyy-MM-dd HH:mm:ss
+ -->
+
+```java
+SimpleDateFormat sdf1 = new SimpleDateFormat("yyyyy.MMMMM.dd GGG hh:mm aaa");
+String format = sdf1.format(date);
+System.out.println(format);
+    // 02022.1月.12 西暦 02:14 午後
+```
+
+
+**注意：**
+- 解析的时候 我们要用格式化的格式
+- 要求字符串必须是符合SimpleDateFormat识别的格式(通过构造器参数体现的) 否则就会抛异常
+
+
+> 练习:
+- 字符串 "2020-09-08" 转为java.sql.Date
+- 场景：
+- 我们注册时候的生日 会写入日期 然后前端要将数据传到后台 传到后台的时候 我们以字符串的形式没有问题 但是后台最终要将数据保存到数据库
+
+- 而数据库中需要的是sql.Date对象 所以我们在java层面 将字符串 的日期 转为 sql的Date对象
+```java
+String birth = "2020-09-08";
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+// 解析成 util.Date 对象
+Date date = sdf.parse(birth);
+
+long ms = date.getTime();
+java.sql.Date sqlDate = new java.sql.Date(ms);
+
+System.out.println(sqlDate);
+```
+
+
+> 练习2:
+- 让渔夫 从 1990-01-01 开始 执行三天打鱼两天晒网的逻辑
+- 1 2 3打鱼 4 5晒网 6 7 1打鱼
+- 我们要求 在以后的某年每月某日 这个渔夫是在打鱼还是在晒网
+
+- 思路：
+- 三天打鱼两天晒网 相当于5天一个周期
+- 我们要求出来 某年每月某日 - 1990-01-01 之间的天数
+- 或者说 某年每月某日 是 1990-01-01起的多少天
+
+- 举例：
+- 2020-09-08是在打鱼还是在晒网
+
+- 总天数 % 5 看余数
+- 余数是1 2 3的时候在打鱼 0 4的时候在晒网
+
+> 方式1:
+- (date2.getTime() - date1.getTime()) / (1000 * 60 * 60 * 24) + 1
+<!-- 
+  因为有除不尽的情况 所以+1
+ -->
+
+----------------------------
+
+### Calendar日历类的使用
+- Calendar是一个抽象基类 主要用于完成日期字段之间相互操作的功能
+- 既然是抽象类就意味着它不能进行实例化 也就是说我们要通过实现了它的子类去造对象了 
+
+- Calendar的实现子类 -- GregorianCalendar
+
+> 实例化对象
+> 1. 通过 Calendar的实现子类 -- GregorianCalendar 调用该子类的构造器
+
+```java
+GregorianCalendar calendar = new GregorianCalendar();
+```
+> 2. 使用 Calendar.getInstance() 方法创建 Calendar的实例对象
+```java
+Calendar calendar = Calendar.getInstance();
+System.out.println(calendar.getClass());
+    //  java.util.GregorianCalendar
+
+
+// 解析： 
+- Calendar类是抽象类 我们创建的也是Calendar类子类的对象 只不过在这返回的类型是Calendar
+
+- 看不到之类是哪个类了 但通过calendar.getClass()方法查看 能看到实际还是 GregorianCalendar
+```
+
+- 注意:
+- 两种方式创建的实例对象 类型不同
+- GregorianCalendar
+- Calendar
+
+- 两种方式其实是一样的 只是GregorianCalendar太难记 喜欢使用第二种方式
+
+
+
+> calendar的常用方法
+```java
+DAY_OF_MONTH
+DAY_OF_WEEK
+    // 周几 英国国家星期从星期日开始算
+DAY_OF_WEEK_IN_MONTH
+DAY_OF_YEAR
+    // 一年中的第几天
+
+WEEK_OF_MONTH
+WEEK_OF_YEAR
+
+HOUR_OF_DAY
+
+YEAR
+MONTH
+    // 结果要+1
+DATE
+HOUR_OF_DAY
+MINUTE
+SECOND
+```
+
+> 获取
+> calendar.get(Calendar.XXX)
+- 从当前日期对象中得到年月日时分秒
+
+- 返回值
+- int
+
+- 参数
+- 参考上面 注意是通过 Calendar 调用的常量
+```java
+Calendar calendar = Calendar.getInstance();
+
+
+calendar.get(Calendar.DAY_OF_MONTH);  // 12
+calendar.get(Calendar.DATE)   // 12
+calendar.get(Calendar.MONTH)  // 要加1
+```
+
+> 设置
+> calendar.set(int field, int value)
+- 没有返回值
+- 将指定的属性 设置为指定的值 修改的就是calendar对象本身
+
+```java
+// 将当天修改为 指定的时间22号
+calendar.set(Calendar.DAY_OF_MONTH, 22);
+
+// 再获取下当天的时间看看
+int day1 = calendar.get(Calendar.DAY_OF_MONTH);
+System.out.println(day1);   // 12 -> 22
+```
+
+
+> 加减运算 增加
+> calendar.add(int field, int value)
+- 没有返回值
+- 在指定日期上进行加的运算 正数是加 负数是减
+
+```java
+calendar.add(Calendar.DAY_OF_MONTH, 3);
+calendar.add(Calendar.DAY_OF_MONTH, -3);
+```
+
+
+> calendar.getTime()
+- 将calendar对象转换为date对象
+- 日历类 --> Date
+
+- 返回值
+- Date
+
+```java
+Date date = calendar.getTime();
+System.out.println(date);
+    // Wed Jan 12 23:04:17 JST 2022
+```
+
+
+> calendar.setTime()
+- 将date对象转换为calendar对象
+- Date --> 日历类
+
+- 返回值
+- Calendar
+
+```java
+Date date = new Date();
+
+// 设置calendar的时间为date
+calendar.setTime(date);
+```
+
+**注意:**
+- 获取月份时: 一月是0 ... 12月是11
+- 获取星期时: 周日是1, 周一0, 周六7
+
+----------------------------
+
+### JDK8 -- 日期时间API
+- 我们最开始关于时间的api是jdk1.0中引入的概念Date类, 但是它的太多数方法在jdk1.1引入calendar类引入之后就被弃用了
+
+- 而Calendar类并不比Date好多少 它们面临的问题是
+
+- 1. 可变性
+- 像日期和时间这样的类应该是不可变的
+<!-- 
+  而我们可以根据 set add等方法修改时间 
+  正常应该像String那样 我们能得到的是返回值 而不是修改时间对象本身
+
+  jdk8中的就是不可变的
+ -->
+
+- 2. 偏移性
+- Date中的年份是从1900开始的 而月份都从0开始
+```java
+Date date = new Date(2020, 9, 8);
+date.sout
+  // Fri Oct 08 00:00:00 GMT+08:00 3920
+
+- 2020年 变成 3920
+    // 底层源码在 year+1900
+- 9月8日 变成 10月8日
+    // 月份是从0开始的 我们输入的9 实际就是10
+
+- 如果我们真想表示2020年9月8日 我们要先处理偏移量 将偏移量减下去之后再当做参数放入构造器中
+
+Date date = new Date(2020-1900, 9-1, 8);
+```
+
+- 3. 格式化
+- 格式化只对Date有用 Calendar则不行
+
+- 此外 它们也不是线程安全的 不能处理润秒等
+- 总结 对日期和时间的操作一直是java程序员最痛苦的地方之一
+
+
+- 上面我们知道有很多不足的地方 所以在java 8中引入了java.time API 已经纠正了过去的缺陷 将来很长一段时间内它都会为我们服务
+
+- java8吸收了 *Joda-Time* 的精华 以一个新的开始为java创建了优秀的API
+
+- 新的 java.time 中包含了所有关于
+    本地日期(localDate)
+    本地时间(localTime)
+    本地日期时间(localDateTime)
+    时区(ZoneDateTime)
+    持续时间(Duration) 的类
+
+- 历史悠久的Date类新增了toInstant()方法 用于把Date转换成新的表示形式 这些新增的本地化时间日期API大大简化了日期时间和本地化的管理
+
+<!-- 
+  java.time -- 包含值对象的基础包
+  java.time.chrono -- 提供对不同的日历系统的方法
+  java.time.format -- 格式化和解析时间和日期
+  java.time.temporal -- 包括底层框架和扩展
+  java.time.zone -- 包含时区支持的类
+
+  大多数开发者只会用到基础包和format包 也可能会用到temporal包
+  因此 尽管有68个新的公开类型 大多数开发者 大概将只会用到其中的三分之一
+ -->
 
 ----------------------------
 
