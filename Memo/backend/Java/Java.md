@@ -23083,7 +23083,7 @@ java.text.DateFormat
 
 - 但是在开发场景中 我们需要对多个对象进行排序 言外之意 就是需要比较对象的大小
 
-- 如何实现？ 我们就需要使用下面的两个接口
+- 如何实现？ 我们就需要使用下面的两个接口 我们比较大小用到的两个接口
 
 > java实现对象排序的方式有两种
 - 自然排序: 
@@ -23091,6 +23091,136 @@ java.text.DateFormat
 
 - 定制排序:
   - java.util.Comparator
+
+
+- 之前我们说过实现了Comparable接口的类就可以进行比较了
+- 比如我们前面说到的String类 它就实现了Comparable接口 从而String类这种引用数据类型的 也可以进行对象的大小的比较了
+```java
+// 创建一个字符串数组
+String[] arr = new String[] {"AA", "CC", "MM", "GG", "JJ", "DD", "KK"};
+
+// 调用排序方法
+Arrays.sort(arr);
+
+- 我们发现字符串数组是从小到大的顺序排列的 
+- 为什么可以排序?
+- 就是因为String实现了Comparable接口
+
+- String里面重写了compareTo方法 源码中的比较方式 就是从前往后比 有不一样的就做减法
+```
+
+
+> 重写compareTo(obj)的规则：
+- 像String 包装类等*实现了Comparable接口* *重写了compareTo方法* 给出了比较两个对象大小的方式
+
+- 对于String和包装类来说 重写的规则如下
+
+- 如果当前对象this大于形参对象obj 则返回正整数
+- 如果当前对象this小于形参对象obj 则返回负整数
+- 如果相等则返回0
+
+- String 包装类重写compareTo()方法以后 默认情况下是重小到大的顺序排列的
+
+- 实现Comparable接口的对象列表(和数组)可以通过Collections sort或Arrays.sort进行自动排序
+- 实现此接口的对象可以用作有序映射中的键或有序集合中的元素 无需指定比较器
+
+> 总结：
+- 对于实现了Comparable接口的类 我们想对它们进行排序的时候 直接调用方法就可以了
+<!-- 
+  因为上述的类已经重写过了Comparable接口中的compareTo()方法了
+ -->
+- Arrays.sort()
+- Collections sort
+
+----------------------------
+
+### 自然排序 -- 自定义类实现Comparable接口
+> 扩展总结
+- 创建一个对象 相当于开一个文件创建一个类
+
+- 上面说了 如果是String类 包装类的时候 我们要对它们进行排序直接调用Arrays.sort方法就可以了
+
+- 但是如果是自定义的类(对象) 我们要对它们进行排序的时候 就要按照下面的步骤来处理
+
+> 自定义类 -- 自然排序 -- 排序要点
+- 1. 让自定义实现 Comparable接口
+- 2. 重写compareTo()方法 在compareTo()方法中指明如何排序
+
+- 比如
+- 我们对商品对象的价格进行排序 从低到高
+
+```java
+@Test
+public void goodsTest() {
+  // 我们造一个长度为4的数组 类型为Goods对象
+  Goods[] arr = new Goods[4];
+
+  arr[0] = new Goods("lianxiangMouse", 34);
+  arr[1] = new Goods("dellMouse", 43);
+  arr[2] = new Goods("xiaomiMouse", 12);
+  arr[3] = new Goods("huaweiMouse", 65);
+
+  Arrays.sort(arr);
+  System.out.println(Arrays.toString(arr));
+  /*
+  这里注意 在没有将商品对象实现Comparable接口之前 调用
+  Arrays.sort(arr); 方法 会报异常
+
+  java.lang.ClassCastException: class com.sam.exer.Goods cannot be cast to class java.lang.Comparable
+
+  原因是我们调用了sort 里面涉及到数组的元素进行排序 就意味着要比较大小 而我们的元素是对象 默认的情况下是不能比较大小的
+
+  要想排序 必须要实现接口 重写方法 
+  实现和重写做完之后 就不会报错了
+  */
+}
+
+
+
+// Goods对象类
+// 商品类
+public class Goods implements Comparable {
+
+  ...
+
+  // 在该重写的方法中 
+  // 我们指明按照什么方式进行排序(指明商品比较大小的方式)
+  @Override
+  public int compareTo(Object o) {
+
+    // 在强转之前的判断
+    if(o instanceof Goods) {
+      Goods goods = (Goods)o;
+      // 价格从低到高
+      if(this.price > goods.price) {
+        return 1;
+      } else if(this.price < goods.price) {
+        return -1;
+      } else {
+        // 没有商品价格一样的情况
+        return 0;
+
+        // 当两个商品的价格一样的时候 我们可以按照产品名称再次排序 从低到高
+        return this.name.compareTo(goods.name);
+
+        // 从高到低
+        return -this.name.compareTo(goods.name);
+      }
+
+      // 方式2
+      // return Double.compare(this.price, goods.price);
+    }
+
+    // 有可能传入的不是一个商品 o instanceof Goods 为false的情况 我们抛出一个异常
+    throw new RuntimeException("传入的数据类型不一致");
+  }
+}
+```
+
+----------------------------
+
+### 定制排序 -- 使用Comparator
+
 
 ----------------------------
 
