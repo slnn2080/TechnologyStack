@@ -15004,24 +15004,35 @@ fs.readFile('D:/Memo/Erin/1.jpg', function(err, data){
 
 > 核心代码演示
 ```js
+const express = require("express")
 const multiparty = require("multiparty")
+const cors = require('cors');
+
+const app = express()
+app.use(cors());
+
+app.use(express.urlencoded({extended: false}));
+app.use(express.json());
+
+let num = 0;
 
 app.post("/login", (req, res) => {
-  
-  res.header('Access-Control-Allow-Origin', '*')
-  // 允许请求的方法
-  res.header('Access-Control-Allow-mehods', 'POST, GET')
-
+  // 实例化 form 对象
   let form = new multiparty.Form()
+
+  // 调用实例对象的parse方法
   form.parse(req, (err, field, files) => {
-    console.log(field, num++)
+    console.log(field)
   })
 
-
   let data = {
-    title: "登录页面"
+    msg: "登录成功"
   }
   res.send(data)
+})
+
+app.listen(3333, () => {
+  console.log("服务器已开启")
 })
 ```
 
@@ -15029,7 +15040,7 @@ app.post("/login", (req, res) => {
 - npm install multipary
 - const multiparty = require("multiparty")
 
-> 创建 multiparty 实例
+> 1. 创建 multiparty 实例
 - let form = new multiparty.Form();
 
 - 插件的构造函数接收一个对象作为参数，参数是可选的，可以不传。
@@ -15049,7 +15060,8 @@ app.post("/login", (req, res) => {
     uploadDir：
         放置文件的目录，只有autoFiels为true是有用。
 
-> form.parse(req, (err, field, files) => { ... })
+> 2. 调用form.parse(方法)
+- form.parse(req, (err, field, files) => { ... })
 <!-- 
     实例化完构造函数后，开始正式解析FormData数据。
     利用parse()方法来解析。
