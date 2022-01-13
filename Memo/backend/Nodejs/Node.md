@@ -14997,3 +14997,171 @@ fs.readFile('D:/Memo/Erin/1.jpg', function(err, data){
  -->
 
 - 还可以使用nginx 它会分析我们的请求是前端路由还是后端路由
+
+
+### multiparty 中间件的使用
+- Multiparty是用来解析FormData数据的一款插件，还有一款与之功能相同的插件，叫Formidable。
+
+> 核心代码演示
+```js
+const multiparty = require("multiparty")
+
+app.post("/login", (req, res) => {
+  
+  res.header('Access-Control-Allow-Origin', '*')
+  // 允许请求的方法
+  res.header('Access-Control-Allow-mehods', 'POST, GET')
+
+  let form = new multiparty.Form()
+  form.parse(req, (err, field, files) => {
+    console.log(field, num++)
+  })
+
+
+  let data = {
+    title: "登录页面"
+  }
+  res.send(data)
+})
+```
+
+> 安装
+- npm install multipary
+- const multiparty = require("multiparty")
+
+> 创建 multiparty 实例
+- let form = new multiparty.Form();
+
+- 插件的构造函数接收一个对象作为参数，参数是可选的，可以不传。
+- 参数的属性有：
+    encoding：
+        formdata的数据设置编码，默认是utf-8。 
+    maxFieldsSize:
+        限制字段，按字节分配的内存量，默认是2M，超出则会产生错误。 
+    maxFields：
+        限制被解析字段的数量，默认为1000。
+    maxFilesSize：
+        此属性只有在autoFiles为true的时候生效，设置上传文件接收字节的最大数量。也就是限制最大能上传多大的文件。
+    autoFields：
+        启用字段事件，并禁用字段的部分时间。如果监听字段事件，该属性自动为true。
+    autoFiles：
+        启用文件事件，并禁用部分文件事件，如果监听文件事件，则默认为true。
+    uploadDir：
+        放置文件的目录，只有autoFiels为true是有用。
+
+> form.parse(req, (err, field, files) => { ... })
+<!-- 
+    实例化完构造函数后，开始正式解析FormData数据。
+    利用parse()方法来解析。
+    
+    方法接收两个参数，无返回值。
+        第一个参数为request对象，把创建服务时，回掉函数中的第一个参数传进去就可以。
+        
+        第二个参数是cb，一个回掉函数，通过该回掉函数，可以获取到解析后的数据。
+        
+    如果你是上传文件，使用这个回调函数的话。那我可以很荣幸的告诉你，你不需要在执行写入文件的工作了，因为插件已经完成了。
+
+    你只需要设置好uploadDir属性，然后做些后续操作就可以了。
+
+    因为回掉函数会默认开启autoFields和autoFlies。
+    
+    个人感觉应该是内部监听field和file事件。继续说回调函数，
+    它有三个参数，第一个参数是err，第二个参数是fields，第三个参数是flies。
+    
+    err是发生错误时，返回的异常信息。
+    fields是一个对象，存储着FormData里的字段信息。
+    files存储的是文件信息。
+    
+    如果你把整个file对象直接放进formData内，则有值，否则为空对象。假如你想自己写文件的话，这个回调函数完全可以忽略掉。
+ -->
+
+-  part事件，之所以先说这个事件，因为它是实现自己写文件的关键。
+该事件会在请求中遇到文件数据时触发，它的回调函数是一个实现可读流的实例对象。
+
+- 对象提供的属性有
+    headers：存储着请求的头部信息。
+    name：字段名称。
+    filename：文件名称。
+    byteFffset:这部分数据，在主体数据中的字节偏移量。
+    byteCount：数据总的字节长度。
+    
+- 注意使用part事件时，不要再去监听fields和files事件。如果监听了的话，那在part事件中，你将得不到你想要的数据。
+
+```js
+form.on("part", part => {
+    if(part.filename) {
+        if(!w) {
+            w = file.createWriteStream("../...")
+            part.pipe(w)
+        }
+    }
+})
+```
+
+-  aborted事件会在请求中止时触发。
+- close事件会在请求结束之后触发。
+- file事件，
+    如果发送的是文件，则可以监听该事件。监听此事件，插件会把文件写到磁盘上，在利用回调返回相关信息。参数一name：字段名称。参数二file：存储着文件信息的对象。属性有：fieldName：字段名称。originalFilename：文件名称。path：写到磁盘上文件的具体路径。headers：存储着头部信息。size：文件具体大小。
+
+    field事件，监听此事件，可以获取到请求中的具体数据。回调函数两个参数。name：字段名。value：字段值。
+
+
+
+> NodeJs+Express 利用multiparty中间件实现文件上传功能
+> 服务端
+```js
+var fs = require('fs');
+var path = require('path');
+var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
+//登录
+var Login_File = path.join(__dirname, 'demo/tongxunlu.json'); 
+var router = express.Router();
+var multiparty = require('multiparty');
+var util = require('util');
+// 图片上传
+app.post('/demo/upload',function(req, res) {
+ // don't forget to delete all req.files when done 
+ //生成multiparty对象，并配置上传目标路径
+ var form = new multiparty.Form({uploadDir: './upload/picture/'});
+
+ //上传完成后处理
+ form.parse(req, function(err, fields, files) {
+ var obj ={};
+
+  var filesTmp = JSON.stringify(files,null,2);
+ if(err){
+      console.log('parse error: ' + err);
+   }
+   else {
+     
+     console.log('parse files: ' + filesTmp);
+     var inputFile = files.inputFile[0];
+     var uploadedPath = inputFile.path;
+     var dstPath = './upload/picture/' + inputFile.originalFilename;
+   //重命名为真实文件名
+   fs.rename(uploadedPath, dstPath, function(err) {
+     if(err){
+       console.log('rename error: ' + err);
+   res.writeHead(200, {'content-type': 'text/plain;charset=utf-8'});
+   res.end("{'status':200, 'message': '上传失败！'}");
+     } else {
+       console.log('rename ok');                
+   res.writeHead(200, {'content-type': 'text/plain;charset=utf-8'});
+   res.end("{'status':400, 'message': '上传成功！'}");
+     }
+   });
+   }
+ });
+});
+module.exports = router;
+```
+
+> 这个服务端有三个坑需要注意
+- 1.var form = new multiparty.Form({uploadDir: './upload/picture/'});
+需要注意一下，这里的文件路径并不会自动创建，需要用户在开发过程中自己在项目的根目录中创建该路径，否则就会报文件路径不存在的错误。
+
+- 2.var inputFile = files.inputFile[0];
+这行代码中，inputFile是form表单中的input组件的name值，这里要在postman中将请求参数调整成inputFile，否则就会报变量未定义的错误。
+

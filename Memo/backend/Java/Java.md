@@ -22521,6 +22521,579 @@ Date date = new Date(2020-1900, 9-1, 8);
 
 ----------------------------
 
+### LocalDate, LocalTime, LocalDateTime
+- 这三个类是其中比较重要的几个类 它们的实例是*不可变的对象* 分别表示使用 ISO-8601 日历系统的 日期 时间 日期和时间
+<!-- 
+  ISO-8601 日历系统时国际标准化组织制定的现代公民的日期和时间的表示法 也就是公历
+ -->
+
+- 它们提供了简单的本地日期或时间 并不包含当前的时间信息 也不包含与时区相关的信息
+
+- LocalDate 代表IOS格式(yyyy-MM-dd)的日期 可以存储生日 纪念日等日期
+
+- LocalTime 表示一个时间 而不是日期
+
+- LocalDateTime 用来表示日期和时间的 *这是一个最常用的类之一*
+
+
+> LocalDate LocalTime LocalDateTime
+- LocalDate
+    打印的是日期 - 2022-01-13
+
+- LocalTime
+    打印的是时间 - 15:26:27.531941
+
+- LocalDateTime
+    打印的是日期+时间 - 2022-01-13T15:27:36.098656
+
+
+> 实例化对象
+- 注意 3个类返回的都是各自类型的
+
+> 实例化方式1: 通过各自类调用 now() 方法
+> LocalDate.now([时区])
+> LocalTime.now([时区])
+> LocalDateTime.now([时区])
+- 返回的是对应类型的时间对象
+
+```java
+// 获取当前本地的日期
+LocalDate localDate = LocalDate.now();
+System.out.println(localDate);  
+    // 2022-01-13
+
+// 获取当前本地的时间
+LocalTime localTime = LocalTime.now();
+System.out.println(localTime);  
+    // 15:26:27.531941
+
+// 获取当前本地的日期+时间
+LocalDateTime localDateTime = LocalDateTime.now();
+System.out.println(localDateTime);  
+    // 2022-01-13T15:27:36.098656
+```
+
+
+> 实例化方式2: 通过各自类调用 of() 方法
+> LocalDate.of(指定日期)
+> LocalTime.of(指定时间)
+> LocalDateTime.of(指定日期和时间)
+- 该方法可以设置指定的年 月 日 时 分 秒 没有偏移量
+
+```java
+LocalDateTime localDateTime1 = LocalDateTime.of(2020, 10, 6, 13, 23, 43);
+System.out.println(localDateTime1);
+    // 2020-10-06T13:23:43
+```
+
+> 时间对象.get相关方法
+- 没有偏移量的问题哦
+- 该方法用于 *获取* 时间对象中的 年 月 日 时 分 秒
+
+```java
+LocalDateTime localDateTime1 = LocalDateTime.of(2020, 10, 6, 13, 23, 43);
+
+// 2020-10-06T13:23:43
+
+// 年
+localDateTime1.getYear();
+    // 2020
+
+// 月
+localDateTime1.getMonthValue()
+    // 10
+// 几月
+localDateTime1.getMonth()
+    // OCTOBER
+
+// 日
+localDateTime1.getDayOfMonth();
+    // 6
+// 周几
+localDateTime1.getDayOfWeek();
+    // TUESDAY
+
+// 时分秒
+localDateTime1.getHour()
+localDateTime1.getMinute()
+localDateTime1.getSecond()
+```
+
+
+> 时间对象.with相关方法
+- 该方法用于 *设置* 时间对象中的 年 月 日 时 分 秒
+- 不用考虑偏移量的问题
+- *不可变性* 需要创建对应类型的变量接收结果
+
+```java
+// 修改时间对象的 - 日 有返回值
+LocalDateTime localDateTime2 = localDateTime1.withDayOfMonth(1);
+
+// 设置 年
+localDateTime1.withYear();
+
+// 设置 月
+localDateTime1.withMonth();
+
+localDateTime1.withDayOfYear();
+
+localDateTime1.withHour();
+localDateTime1.withMinute();
+localDateTime1.withSecond();
+```
+
+
+> 时间对象.plus相关方法
+> 时间对象.minus相关方法
+- 该方法用于 *运算-加减* 时间对象中的 年 月 日 时 分 秒
+- 参数类型为 long型
+
+- 不可变性
+
+- 有返回值
+- 为各类时间对象
+
+```java
+localDateTime1.plusYears(3);
+localDateTime1.plusMonths();
+localDateTime1.plusDays();
+
+localDateTime1.plusHours();
+localDateTime1.plusMinutes();
+localDateTime1.plusSeconds();
+
+localDateTime1.plusWeeks();
+```
+
+> 扩展
+- 毫秒 - 微妙 - 纳秒(nanos)
+
+----------------------------
+
+### Instant类
+- Instant
+- 时间线上的一个瞬时点 这可能被用来记录应用程序中的事件时间戳
+
+- 在处理时间和日期的时候 我们通常会想到年 月 日 时 分 秒
+- 然而 这只是时间的一个模型 是面向人类的
+
+- 第二种通用模型是面向机器的 或者说是连续的
+<!-- 对于机器来说它只认数 -->
+
+- 在此模型中 时间线中的一个点表示为一个很大的数 这有利于计算机处理
+
+- 在unix中 这个数从1970年开始 以秒为的单位 同样的 
+- 在java中也是从1970年开始 但以毫秒为单位
+<!-- 既然机器只认数 那么数就要有一个起始点 1970 -->
+
+- java.time包通过值类型instant提供机器视图 不提供处理人类意义上的时间单位
+
+- instant表示时间线上的一点 而不需要任何上下文信息
+- 例如
+- 时区概念上讲 它只是简单的表示自1970年1月1日0时0分0秒开始的秒数
+
+- 因为java.time包是基于纳秒计算的 所以instant的精度可以达到纳秒级
+
+- 1ns = 10^-9s
+- 1秒 = 1000毫秒 = 10^6微妙 = 10^9纳秒
+
+
+- 该类类似于 java.util.Date 类
+
+> 扩展
+- UTC 统一标准时间
+- GMT 格林威治标准时间  -- 欧洲 英国
+- CST 中央标准时间  -- 美国
+
+
+> 实例化方式1
+> Instant.now()
+- 创建 Instant 实例对象
+- 默认得到的是中时区的时间对象
+
+```java
+Instant instant = Instant.now();
+System.out.println(instant);
+    // 2022-01-13T07:18:47.287346Z
+```
+
+- 我们发现上面的输出结果 小时上 有所差别
+- 07
+- 16
+- 差了9个小时(中国的话差8个小时)
+
+- 中国在东八区
+- 伦敦在中时区(子午线 - 格林威治时间)
+
+- 如果我们是早上9点 伦敦就是凌晨1点
+- 而Instant的时间就是中时区的时间 到中国的话结果+8 到日本的话结果就要+9
+
+
+> 得到指定所在时区的instant时间对象
+> instant对象.atOffset(Zone.xxx)
+- 根据时区调整偏移量
+
+```java
+// 日本要加9小时
+OffsetDateTime offsetDateTime = instant.atOffset(ZoneOffset.ofHours(9));
+
+System.out.println(offsetDateTime);
+    // 2022-01-13T16:26:02.385918+09:00
+```
+
+> 实例化的方式2
+> Instant类.ofEpochMilli(long型);
+- 根据给定毫秒数创建时间对象 获取instant实例
+```java
+Instant instant1 = Instant.ofEpochMilli(1642059179780L);
+
+System.out.println(instant1);
+```
+
+
+> instant对象.toEpochMilli()
+- 获取瞬时点的毫秒数 从1970年1月1日0秒 开始的毫秒数
+- 返回值是long型
+
+- 和date.getTime()类似
+
+```java
+long milli = instant.toEpochMilli();
+```
+
+----------------------------
+
+### DateTimeFormatter的使用
+- 需要格式化 解析日期或时间的时候 我们就使用该类 用来替换原有的SimpleDateFormat类
+- java.time.format.DateTimeFormatter类 提供了三种实例化的方式
+
+
+> DateTimeFormatter的实例化
+> 方式1: 预定义的标准格式
+> DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+- 通过调用DateTimeFormatter类的常量 创建一个 formatter 对象
+
+- 该对象用于格式化 或 解析 日期或时间对象
+
+- 注意:
+- 通过此方式创建的 formatter对象 只能格式化成 或 解析成默认格式的时间字符串
+
+- 解析只能解析成默认格式(解析成时间对象的时候 我们要传入字符串 传入的字符串的格式必须和格式化出来的格式一致)
+- 格式化也只能格式化默认格式
+
+
+> 方式2: 本地化的相关的格式
+> DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG)
+- 参数有如下3个 参数不同 我们得到的时间格式也不同
+- 下面3个参数用于指定 格式化的风格
+
+- FormatStyle.LONG
+    - 使用LONG格式报错 没有时区信息
+    - .withZone(ZoneOffset.ofHours(9))
+    - 2022年1月13日 21:15:18 +09:00
+
+- FormatStyle.MEDIUM
+    - 2022/01/13 21:17:08
+
+- FormatStyle.SHORT
+    - 2022/01/13 21:07
+```java
+// 创建一个format对象用于解析 和 格式化 日期 时间对象 
+DateTimeFormatter format = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+
+// 使用LONG的时候报错 说没有时区信息 我们在后面加上了
+// .withZone(ZoneOffset.ofHours(9));
+DateTimeFormatter format1 = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG).withZone(ZoneOffset.ofHours(9));
+
+
+// 创建一个日期时间对象
+LocalDateTime localDateTime = LocalDateTime.now();
+
+// 调用format()方法 格式化日期时间对象 得到一个str
+String dataStr = format.format(localDateTime);
+System.out.println(dataStr);
+    // 2022/01/13 21:07
+```
+
+> DateTimeFormatter.ofLocalizedDate()
+- 参数有如下4个
+- FormatStyle.FULL
+    - 2022年1月13日木曜日
+
+- FormatStyle.LONG
+- FormatStyle.MEDIUM
+- FormatStyle.SHORT
+
+```java
+DateTimeFormatter format1 = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
+
+String dataStr = format1.format(LocalDate.now());
+System.out.println(dataStr);
+    // 2022年1月13日木曜日
+```
+
+- 使用这种方式创建的formatter对象 格式化的格式是不能变的
+
+
+> 方式3: 自定义的格式   -- 常用
+> DateTimeFormatter formatter = DateTimeFormatter.ofPattern("指定格式");
+- 该方法便于我们指定我们自己想要的时间格式
+
+```java
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss");
+String s = formatter.format(LocalDateTime.now());
+System.out.println(s);
+    // 2022-01-13 09:23:25
+```
+
+
+> 格式化
+> formatter.format(时间或日期对象)
+- 日期 -> 字符串
+- 返回值
+- String类型
+
+```java
+DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+// 格式化  日期 -> 字符串
+LocalDateTime localDateTime = LocalDateTime.now();
+
+String str1 = formatter.format(localDateTime);
+System.out.println(str1);
+    // 2022-01-13T20:40:32.295775
+```
+
+
+> 解析
+> formatter.parse(字符串)
+- 字符串 -> 日期
+- 我们传入的格式 一定要和指定格式化的格式一致
+
+```java
+TemporalAccessor parse = formatter.parse("2022-01-13T20:40:32.295775");
+- 这里接收的类型 因为我们没有指定Date 还是Time 还是DateTime 所以这里呈现的是一种接口的形式 这里相当于一种多态的形式
+
+- 我们可以对parse对象做一些转换
+
+System.out.println(parse);
+// {},ISO resolved to 2022-01-13T20:40:32.295775
+```
+
+----------------------------
+
+### 其它的日期时间 相关的API使用
+
+> ZoneId类
+- 全世界一共分成了24个时区
+- 该类中包含了所有的时区信息 一个时区的 ID 
+- 如 Europe/Paris
+
+
+> ZoneId.of("Asia/Tokyo")
+- 获取指定时区的时间
+
+```java
+LocalDateTime
+localDateTime = LocalDateTime.now(ZoneId.of("Asia/Tokyo")
+System.out.println(localDateTime);
+```
+
+
+> ZonedDateTime类
+- 带时区的日期时间
+
+```java
+// 获取本时区的 zonedDateTime 对象
+ZonedDateTime zonedDateTime = ZonedDateTime.now();
+
+// 获取指定时区的 zonedDateTime 对象
+ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo");
+```
+
+> Clock
+- 使用时区提供对当前即时 、 日期和时间的访问的时钟 。
+
+> Duration类
+- 当我们想计算两个时间的间隔 以秒和纳秒为基准
+- 持续时间:
+- 用于计算两个 时间 间隔
+
+```java
+LocalTime localTime = LocalTime.now();
+LocalTime localTime1 = LocalTime.of(15, 23, 32);
+
+// 创建 Duration对象 表示两个时间的间隔
+Duration duration = Duration.between(localTime, localTime1)
+
+System.out.println(duration.getSeconds())
+System.out.println(duration.getNano())
+System.out.println(duration.toDays())
+
+```
+
+> Period
+- 计算年月日之间的间隔
+- 日期间隔
+- 用于计算两个 日期 间隔
+
+```java
+LocalDate localDate = LocalDate.now()
+LocalDate localDate1 = LocalDate.of(2028, 3, 18)
+
+Period period = Period.between(localDate, localDate1)
+
+System.out.println(period.getYears())
+System.out.println(period.getMonths())
+System.out.println(period.getDays())
+
+Period period1 = period.withYears(2)
+System.out.println(period1)
+```
+
+> TemporalAdjuster
+- 调整时间的
+- 时间校正器。有时我们可能需要获取例如：将日期调整 到“下一个工作日”等操作。
+
+> TemporalAdjusters
+- 该类通过静态方法
+(firstDayOfXxx()/lastDayOfXxx()/提供了大量的常用
+TemporalAdjuster的实现 。
+
+```java
+// 获取当前日期的下一个周日是哪天？
+TemporalAdjuster temporalAdjuster = TemporalAdjusters.next(DayofWeek.SUNDAY)
+
+LocalDateTime localDateTime = LocalDateTime.now().with(temporalAdjuster)
+
+// 获取下一个工作日是哪天
+LocalDate localDate = LocalDate.now().with(new TemporalAdjuster() {
+  @Override
+  public Temporal adjustInfo(Temporal temporal) {
+    LocalDate date = (LocalDate) temporal;
+    if(date.getDayOfWeek().equals(DayOfWeek.FRIDAY)) {
+      return date .plusDays(3)
+    } else if(date.getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
+      return date .plusDays(2)
+    } else {
+      return date .plusDays(1)
+    }
+  }
+})
+```
+
+
+
+<!-- 
+java.time.Instant
+与 
+java.util.Date 
+      // To遗留类
+      Date.from(instant)
+
+      // From 遗留类
+      date.toInstant()
+
+
+java.time.Instant
+与 
+java.sql.Timestamp 
+      // To遗留类
+      Timestamp.from(instant)
+
+      // From 遗留类
+      timestamp.toInstant()
+
+
+java.time.ZonedDateTime
+与 
+java.util.GregorianCalendar 
+      // To遗留类
+      GregorianCalendar.from(zonedDateTime)
+
+      // From 遗留类
+      cal.toZonedDateTime()
+
+
+
+java.time.LocalDate
+与 
+java.sql.Time 
+      // To遗留类
+      Date.valueOf(localDate)
+
+      // From 遗留类
+      date.toLocalDate()
+
+
+
+java.time.LocalTime
+与 
+java.sql.Time
+      // To遗留类
+      Date.valueOf(localDate)
+
+      // From 遗留类
+      date.toLocalDate()
+
+
+java.time.LocalDateTime
+与
+java.sql.Timestamp
+      // To遗留类
+      Timestamp.valueOf(localDateTime)
+
+      // From 遗留类
+      timestamp.toLocalDateTime()
+
+
+java.time.ZoneId
+与
+java.util.TimeZone
+      // To遗留类
+      Timezone.getTimeZone(id)
+
+      // From 遗留类
+      timeZone.toZoneId()
+
+
+java.time.format.DateTimeFormatter
+与
+java.text.DateFormat
+      // To遗留类
+      formatter.toFormat()
+
+      // From 遗留类
+      无
+ -->
+
+----------------------------
+
+### Java比较器
+- 我们前面学过比较运算符
+- == != < > <= >= instanceof 我们会发现绝大数的运算符是使用在基本数据类型中的
+
+- 但是我们有个述求 我们希望java对象是可以比较大小的 就有了java的比较器
+<!-- 
+  比如京东上对商品的排序 比如按综合 按销量 按评论 按新品等等 
+-->
+
+- java中的对象 正常情况下 只能进行比较: 
+- == 或 != 不能使用 > 或 < 
+
+- 但是在开发场景中 我们需要对多个对象进行排序 言外之意 就是需要比较对象的大小
+
+- 如何实现？ 我们就需要使用下面的两个接口
+
+> java实现对象排序的方式有两种
+- 自然排序: 
+  - java.lang.Comparable
+
+- 定制排序:
+  - java.util.Comparator
+
+----------------------------
+
 ### 书签
 
 ----------------------------
