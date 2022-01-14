@@ -16,6 +16,24 @@
 
 
 
+### vue2中怎么使用 composition API
+
+> 1. 安装
+- npm install @vue/composition-api
+
+> 2. 注册
+```js
+// main.js中
+import Vue from 'vue'
+import VueCompositionAPI from '@vue/composition-api'
+
+Vue.use(VueCompositionAPI)
+```
+
+> 3. 使用
+- import { ref, reactive } from '@vue/composition-api'
+
+
 ### Vue
 - vue分为插件和核心库, 核心库比较小, 在这做项目的时候再根据需求下载对应的插件
 - 作用: 动态构建用户界面
@@ -1189,9 +1207,9 @@ directives: {
 - 我们要是对select这种类型标签 收集数据 要注意以下几点
 - 1. 给 select标签绑定 v-model = 将数据收集到哪里
 - 2. 第一个option可以是value为空 对应的data中对应的变量的初始值也为空
-<!-- 
+```html 
   <select v-model='city'>
-    <option value="">请选择</option>
+    <option disabled value="">请选择</option>   默认值的部分就好加上 *disabled*
     <option value="北京">北京</option>
     <option value="上海">上海</option>
     <option value="深圳">深圳</option>
@@ -1202,7 +1220,7 @@ directives: {
       city: ''
     } 
   }
- -->
+```
 
 
 > 选择多个值 变量的类型是数组
@@ -1228,6 +1246,11 @@ directives: {
 
 --------------------------
 
+### v-model 组件
+- HTML 原生的输入元素类型并不总能满足需求。
+- 幸好，Vue 的组件系统允许你创建具有完全自定义行为且可复用的输入组件。这些输入组件甚至可以和 v-model 一起使用！
+
+--------------------------
 ### 补充下 form 相关知识
 - 使用form提交页面会刷新
 - 一般我们都是使用ajax页面无刷新的状态请求数据 或者 发送数据
@@ -1413,7 +1436,7 @@ directives: {
 - 对象的写法适用于 决定改样式显示与否
 
 - 将样式名：boolean组成一个对象 根据true 和 false 来确定是否应用该样式 我们通过布尔值来控制类名的添加与否 true:添加 false:不添加
-<!-- 
+```js
   <h2 :class='classObj'></h2>
 
   data: {
@@ -1432,7 +1455,30 @@ directives: {
 
   写法2
   <h2 :class='{类名:isShow}'></h2>
- -->
+```
+
+- 如果类名添加与否的条件太过复杂 可以将classObj定义为一个计算属性
+```js
+<div :class="classObject"></div>
+
+
+data() {
+  return {
+    isActive: true,
+    error: null
+  }
+},
+
+
+computed: {
+  classObject() {
+    return {
+      active: this.isActive && !this.error,
+      'text-danger': this.error && this.error.type === 'fatal'
+    }
+  }
+}
+```
 
 
 > 总结:
@@ -17548,6 +17594,34 @@ setup() {
   }
 ```
 
+> vue3中如果对props进行限制
+```js
+export default {
+  props: {
+    isShow: {
+      type: String
+    }
+  },
+
+  emits: {
+    "my-close": null
+  },
+
+  setup(props, context) {
+    const btnClose = () => {
+      context.emit("my-close")
+    }
+
+    return {
+
+    }
+  }
+
+
+}
+```
+
+
 - 形参2：
 - context： 
 - 上下文对象 它就是一个普普通通的object对象 它有三个属性
@@ -17592,12 +17666,18 @@ slots: (...)
 
 - vue3中要求 在子组件中要使用 emits 配置项 声明接收hello事件
 emits: ["hello"]   它跟methods同级
+
 ```js
 // 比如 子组件给父组件发射一个自定义事件
 props: ["name", "age"],
 
 // 子组件要先声明接收 父组件绑定的自定义事件
 emits: ["hello"],
+
+// emits 还可以写成对象的格式
+emits: {
+  "事件名": null
+}
 
 setup(props, context) {
 
@@ -18926,4 +19006,46 @@ export default {
 - 过滤器虽然看起来很方便 但它需要一个自定义语法 打破大括号内表达式是 只是javascript的假设 
 - 这不仅有学习成本 而且有实现成本 建议用方法调用或计算属性去替换过滤器
 
+--------------------------
 
+### 文档相关的知识点总结
+
+> 创建实例 createApp
+- 每个vue应用都是通过用 createApp 函数创建一个新的应用实例
+```js
+const app = Vue.createApp({ 配置对象 })
+
+// 这是不是相当于 new Vue({})
+```
+
+- 我们可以通过 app 实例来注册全局组件
+```js
+const app = Vue.createApp({})
+app.component('SearchInput', SearchInputComponent)
+app.directive('focus', FocusDirective)
+
+app.use(LocalePlugin)
+
+// 还可以链式调用
+Vue.createApp({})
+  .component('SearchInput', SearchInputComponent)
+  .directive('focus', FocusDirective)
+  .use(LocalePlugin)
+```
+
+
+> 实例的配置对象
+- emits: {}
+- emits: []
+- 用于注册自定义事件
+
+
+
+
+> 链式注册插件
+- import { createApp } from 'vue'
+-  createApp(App).use(store).use(router).mount('#app')
+
+
+> 注册全局组件
+- 通过 let app = createApp() 得到的app对象 来注册全局组件

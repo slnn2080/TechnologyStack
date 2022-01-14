@@ -21194,6 +21194,7 @@ for (int i = 0; i < strArr.length; i++) {
 
 - 编码:
 - 将我们能看的懂的转换为看不懂的
+- 我们写了两个字符(文本数据) 我们按照某种编码集和字符集转成底层的二进制数据(字节)
 
 - 字符串 -> 字节
 <!-- 
@@ -21203,8 +21204,11 @@ for (int i = 0; i < strArr.length; i++) {
 
 - 解码:
 - 将看不懂的二进制数据转换为能看得懂 不一定是字符串了
+- 编码的逆过程就是解码
 
 - 字节 -> 字符串
+
+- 解码和编码的编码集要一致
 
 
 > byte[] -> 字符串    -- 相当于解码的过程
@@ -22173,6 +22177,10 @@ java.sql.Date date2 = new java.sql.Date(time)
   解　析:  文本 (指定格式的字符串) -> 日期
 
 
+> 该类就是对日期Date类进行解析和格式化的
+- 该类只能操作Date 不能操作Calendar
+
+
 > SimpleDateFormat类的实例化 -- 使用默认的构造器
 > SimpleDateFormat sdf = new SimpleDateFormat();
 - 通过空参构造器 得到一个 sdf实例化对象
@@ -22324,7 +22332,7 @@ System.out.println(sqlDate);
 
 ### Calendar日历类的使用
 - Calendar是一个抽象基类 主要用于完成日期字段之间相互操作的功能
-- 既然是抽象类就意味着它不能进行实例化 也就是说我们要通过实现了它的子类去造对象了 
+- 既然是抽象类就意味着它不能进行实例化 也就是说我们要通过*实现了它的子类去造对象*了 
 
 - Calendar的实现子类 -- GregorianCalendar
 
@@ -23130,7 +23138,7 @@ Arrays.sort(arr);
   因为上述的类已经重写过了Comparable接口中的compareTo()方法了
  -->
 - Arrays.sort()
-- Collections sort
+- Collections.sort()
 
 ----------------------------
 
@@ -23220,7 +23228,335 @@ public class Goods implements Comparable {
 ----------------------------
 
 ### 定制排序 -- 使用Comparator
+- 定制排序也是一个接口 java.util.Comparator
+- 定制排序 按照我们的需求定制排序
 
+> 应用场景
+- 当元素的类型没有实现 java.lang.Compoarable接口
+- 而又不方便修改代码 或者 实现了 java.lang.Comparable接口规则不适合当前的操作 
+<!-- 
+  比如jdk当中现有的类 没有实现Compoarable接口 但我们又不能修改当前类
+
+  或者实现了Compoarable接口但是里面的方式 又不符合当前的操作
+  就像String默认是从小到大 但我现在的需求就是从大到小
+  就像上面的例子中的goods 我就想姓名先排 然后再按照价格排
+
+  这时候我们可以定制排序
+ -->
+
+- 既然 Comparator 是一个接口 那我们还是要使用该接口的实现类的对象
+
+> 使用方式
+- Arrays.sort(要排序的对象, new Comparator() {
+
+})
+
+- Collections.sort(要排序的对象, new Comparator() {
+  
+})
+
+- 在上面两个方式中的第二个参数的位置 传入一个Comparator接口的匿名实现类对象 在方法体中重写compare()方法
+
+
+> 重写compare() 抽象方法
+- 重写规则：
+- 重写compare(Object o1, Object o2)方法
+- 比较o1 和 o2的大小
+- 如果方法返回正整数 则表示o1大于o2 
+- 如果方法返回0 则表示相等
+- 如果方法返回负整数 则表示o1小于o2
+
+<!-- 
+  // compare 和 compareTo 的区别
+  compare(二个参数) 这里是让形参这两个对象比大小
+  compareTo(一个参数) 我们拿着调用这个方法的对象和形参去比大小
+ -->
+
+```java
+String[] arr = new String[] {"AA", "CC", "KK", "GG"};
+
+Arrays.sort(arr, new Comparator() {
+  @Override
+  public int compare(Object o1, Object o2) {
+    return 0;
+  }
+});
+```
+
+> 基本使用的示例
+- "AA", "CC", "KK", "GG" 我们要对这个字符串排序
+- 但是还没有讲泛型 而且能看到我们在compare(o1, o2)方法中定义的都是object类型的
+
+- 而我们要对字符串进行排序 所以我们这里要进行下判断 我们传入的o1 和 o2是不是String类型 如果是 我们进行下强转
+```java
+Arrays.sort(arr, new Comparator() {
+  // 按照字符串从大到小的顺序进行排列
+  @Override
+  public int compare(Object o1, Object o2) {
+    if(o1 instanceof String && o2 instanceof String) {
+      String s1 = (String)o1;
+      String s2 = (String)o2;
+
+      // s1.compareTo(s2); 默认是从小到大 但是我们可以在前面加一个-
+      return -s1.compareTo(s2);
+    }
+    throw new RuntimeException("传入的数据类型不符合");
+  }
+});
+
+System.out.println(Arrays.toString(arr));
+```
+
+- 总结:
+- 个人看法 很多时候我们不能修改类的原码去让该类实现comparable接口 但还想实现比较大小的逻辑
+- 或者像上面的例子 String虽然实现了comparable接口 但是默认的从小到大的排序规则 不适合我们 我们想要从大道小
+
+- 这时候我们就可以使用Comparator接口 像*打补丁似的*给一个方法注入 排序 指定排序规则
+
+> 技巧
+- s1.compareTo(s2); 是从小到大
+- -s1.compareTo(s2); 就是从大到小
+
+
+> 自定义类实现定制排序的示例
+- 即使这个类内部已经实现了Comparable接口 我们觉的这个接口的排序方式不适合我们
+
+- 我们还可以通过"打补丁"的方式使用Comparator接口的实现类方式 指定新的排序规则
+
+- 比如我们上面的案例中Goods类已经实现了Comparable接口也重写了compareTo方法
+
+- 内部指定的排序规则是 价格从低到高
+- 但我们觉得这个规则不适合我们 下面我们是用“打补丁”的方式 修改下排序规则
+
+```java
+public void test2() {
+  Goods[] arr = new Goods[5];
+  arr[0] = new Goods("lenovoMouse", 34);
+  arr[1] = new Goods("dellMouse", 15);
+  arr[2] = new Goods("huaweiMouse", 99);
+
+  // Arrays.sort(arr); 如果没有指定第二个参数 那么默认还是从小到大
+
+  Arrays.sort(arr, new Comparator() {
+    // 指明商品比较大小的方式: 按照产品名称从低到高排序 再按照价格从高到低排序
+    @Override
+    public int compare(Object o1, Object o2) {
+      if(o1 instanceof Goods && o2 instanceof Goods) {
+        Goods g1 = (Goods)o1;
+        Goods g2 = (Goods)o2;
+
+        // 如果它们的名字一样 按照价格排 不一样
+        if(g1.getName().equals(g2.getName())) {
+          return -Double.compare(g1.getPrice(), g2.getPrice());
+        } else {
+          // 名字不一样 按照名字从低到高排序
+          return g1.getName().compareTo(g2.getName());
+        }
+      }
+
+      throw new RuntimeException("传入的数据类型不一致");
+    }
+  });
+}
+```
+
+- 总结
+- 只要我们在程序中涉及到对象来比较大小了
+- 就会跟这两个接口打交道
+
+- 区别
+- 我们让两个对象比较大小
+
+- 使用Comparable方式
+  - 相当于让对象所属的类 实现Comparable接口
+  - 一劳永逸
+  - 一旦指定 能够保证Comparable接口实现类的对象在任何位置都能比较大小
+
+- 使用Comparator方式
+  - 我们调用排序方式的时候 临时给了一种排序方式
+  - 打补丁
+  - 临时性的比较
+
+----------------------------
+
+### System, Math, BigInteger, BidDecimal的使用
+
+
+### System类
+- 该类代表系统 系统级的很多属性和控制方法都放置在该类的内部 该类位于java.lang包
+<!-- 
+  该类的构造器是private的 所以无法创建该类的对象 也就是无法实例化该类
+
+  其内部的成员变量和成员方法都是static的 所以也可以很方便的进行调用
+ -->
+
+- 类似一个工具类 因为都是通过类名调用的
+
+> 成员变量
+- System类内部包含 in out err 三个成员变量
+- 分别代表标准输入流(键盘输入) 标准输出流(显示器) 和标准错误输出流(显示器)
+
+
+> 成员方法
+> System.currentTimeMillis()
+- native long currentTimeMillis()
+- 该方法的作用是返回当前的计算时间 时间的表达格式为当前计算机时间和GMT时间(格林威治时间) 1970 1 1 0 0 0所差的毫秒数
+
+
+> System.exit(int status)
+- void exit(int status)
+- 该方法的作用是退出程序
+- 其中status的值为0 -- 正常退出
+- 非0 -- 异常退出
+
+- 使用该方法可以在图形界面编程中实现程序的退出功能等
+
+
+> System.gc()
+- void gc()
+- 该方法的作用是请求系统进行垃圾回收 至于系统是否立刻回收则取决于系统中垃圾回收算法的实现以及系统执行时的情况
+
+
+> System.getProperty(String key)
+- String getProperty(String key)
+- 该方法的作用是获得系统中属性名为key的属性所对应的值 系统中常见的属性名以及属性的作用如下表
+<!-- 
+      属性名          属性说明
+    java.version    java运行时环境版本
+    java.home       java安装目录
+    os.name         操作系统的名称
+    os.version      操作系统的版本
+    user.name       用户的账户名称
+    user.home       用户的主目录
+    user.dir        用户的当前工作目录
+ -->
+
+
+### Math
+- java.lang.Math提供了一系列的静态方法用于科学计算 其方法的参数和返回值类型一般为double型
+
+> abs
+- 绝对值
+
+> acos, asin, atan, cos, sin, tan
+- 三角函数
+
+> sqrt
+- 平方根
+
+> pow(double a,doble b) 
+- a的b次幂
+
+> log
+- 自然对数
+
+> exp 
+- e为底指数
+
+> max(double a,double b)
+> min(double a,double b)
+> random()
+- 回 0.0 到 1.0 的随机数
+
+> long round(double a) 
+- double型数据 a 转换为 long 型 四舍五入 
+
+> toDegrees(double angrad)
+- 弧度 -> 角度
+
+> toRadians(double angdeg)
+- 角度 -> 弧度
+
+
+### BigInteger类
+- Integer 类作为 int 的包装类 能存储的最大整型值为2^31-1 
+<!-- 
+  int是4个字节 4 x 8 32位 一半正的一半负的
+ -->
+- Long 类也是有限的 最大为 2^63-1。如果要表示再大的整数 不管是基本数据类型还是他们的包装类都无能为力 更不用说进行运算了
+
+- java.math包的BigInteger可以表示不可变的任意精度的整数 想要多少位就有多少位
+
+- BigInteger提供所有java的基本整数操作符的对应物
+- 并提供java.lang.Math的所有相关方法 另外 BigInteger还提供以下运算
+
+- 模算术
+- GCD计算
+- 质数测试
+- 素数生成
+- 位操作
+- 以及一些其它操作
+
+> 构造器
+> BigInteger(String val)
+- 根据字符串构建BigInteger对象
+
+> 常用方法
+> public BigInteger abs()
+- 返回此BigInteger的绝对值的BigInteger
+
+> BigInteger add(BigInteger val)
+- 返回其值为(this + val)的BigInteger
+
+> BigInteger subtract(BigInteger val)
+- 返回其值为(this - val)的BigInteger
+
+> BigInteger multiply(BigInteger val)
+- 返回其值为(this * val)的BigInteger
+
+> BigInteger divide(BigInteger val) 
+- 返回其值为(this / val)的BigInteger 整数相除只保留整数部分
+
+> BigInteger remainder(BigInteger val)
+- 返回其值为(this % val)的BigInteger
+
+> BigInteger[] divideAndRemainder(BigInteger val)
+- 返回包含(this / val)后跟(this % val)的两个BigInteger的数组
+
+> BigInteger pow(int exponent)
+- 返回其值为(this^exponent)的BigInteger
+
+
+### BidDecimal类
+- BigInteger对应的整型 BidDecimal对应的就是浮点型
+
+- 一般的float类和double类可以用来做科学计算或工程计算 但在商业计算中 要求数字精度比较高 故用到java.math.BigDecimal类
+
+- BigDecimal类支持不可变的 任意精度的有符号十进制定点数
+
+
+> 构造器
+> public BigDecimal(double val)
+> public BigDecimal(String val)
+
+
+> 常用方法
+> public BigDecimal add(BigDecimal augend)
+- 加
+
+> public BigDecimal subtract(BigDecimal subtrahend)
+- 减
+
+> public BigDecimal multiply(BigDecimal multiplicand)
+- 乘
+
+> public BigDecimal divide(BigDecimal divisor, int scale, int roundingMode)
+- 除
+
+```java
+BigInteger bi = new BigInteger("121212");
+BigDecimal bd = new BigDecimal("12.2342")
+
+BigDecimal bd2 = new BigDecimal("11")
+
+bd.divide(bd2)  // 报错 因为除不尽我们要指定除不尽的时候 怎么解决 比如下面的两种方式
+
+// 四舍五入
+bd.divide(bd2, BigDecimal.ROUND_HALF_UP)
+
+// 要求保留15位小数
+bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
+```
 
 ----------------------------
 
