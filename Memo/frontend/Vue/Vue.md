@@ -16925,25 +16925,25 @@ VueRouter.prototype.push = function push(location) {
   }
  -->
 
-- setup函数的两种返回值
+> setup函数的两种返回值
   - 1. 若返回一个对象，则对象汇总的属性 方法 在模板中均可以直接使用
-  <!-- 
-    setup() {
-      let name = "张三"
-      let age = 18
+```js 
+setup() {
+  let name = "张三"
+  let age = 18
 
-      function sayHello() {
-        alert(`我叫${name}，我今天${age}岁了，你好啊`)
-      }
+  function sayHello() {
+    alert(`我叫${name}，我今天${age}岁了，你好啊`)
+  }
 
-      // 返回的数据在模板中可以直接使用
-      return {
-        name,
-        age,
-        sayHello
-      }
-    },
-   -->
+  // 返回的数据在模板中可以直接使用
+  return {
+    name,
+    age,
+    sayHello
+  }
+},
+```
 
 **注意：**
 - setup中必须要return 不然模板中读取不到数据和方法
@@ -16951,26 +16951,28 @@ VueRouter.prototype.push = function push(location) {
   - 2. 若返回一个渲染函数：则可以自定义渲染内容
     - 1. 引入： import {h} from "vue"
     - 2. return部分
-    <!-- 
-      return () => {
-        return h("h1", "尚硅谷")
-      }
+```js
+  // 要点: return的里面还有一个return
+  return () => {
+    return h("h1", "尚硅谷")
+  }
 
-      简写形式：
-      return () => h("h1", "尚硅谷")
+  // 简写形式
+  return () => h("h1", "尚硅谷")
+```
 
-      首先setup的返回值可以是一个渲染函数
-      其次将 h函数的返回值 return 出去
+-  首先setup的返回值可以是一个渲染函数
+- 其次将 h函数的返回值 return 出去
 
-      结果：
-      模板中内容已经不重要了 不管是什么都会被渲染函数的内容所覆盖
-     -->
+- 结果：
+- 模板中内容已经不重要了 不管是什么都会被渲染函数的内容所覆盖
 
 
 > 注意点：
 - 1. 在vue3中可以使用vue2中的配置式方式写代码 但尽量不要与vue2配置混用，下面的注释中既有data，methods等配置项 也有setup配置项
-<!-- 
+```js 
   export default {
+    // vue2中的方式
     name: 'App',
     data() {
       return { sex: "男" }
@@ -16978,6 +16980,8 @@ VueRouter.prototype.push = function push(location) {
     methods: {
       sayWelcome() { alert("hello") }
     },
+
+    // vue3中的方式
     setup() {
       let name = "张三"
       let age = 18
@@ -16991,29 +16995,36 @@ VueRouter.prototype.push = function push(location) {
       }
     },
   }
- -->
+```
 
-- 但是：
+- 注意：
 - vue2配置(data，methods，computed)中可以访问到setup中的属性方法
-- 但在setup中不能访问到vue2配置 如果有重名，setup优先
+- 但在setup中不能访问到vue2配置 如果有重名，*setup优先*
 
-- 2. setup不能是一个async函数，因为返回值不再是return对象 而是promise，模板看不到return对象中的属性
+- 2. *setup不能是一个async函数*，因为返回值不再是return对象 而是promise，模板看不到return对象中的属性
 
 --------------------------
 
-### 常用的 composition API  ---  ref函数
+### 常用的 composition API  ---  ref函数 - 使数据为响应式
 - 之前我们在vue2中使用ref属性是为了获取当前的节点
-- 这里我们介绍一个 ref函数 与上述 ref节点的使用方式不同 是领一种作用
+- 这里我们介绍一个 ref函数 与上述 ref节点的使用方式不同 是另一种作用
 
 - 在上一节里面我们在setup配置项中定义了 属性 但是在setup中定义的属性 当我们修改这些属性的时候 他们并不是响应式的
-<!-- 
-  // 当我们想通过 changeInfo 方法修改name和age的时候 vue是不认的 做不到响应式 页面不会有对应的变化
+```js 
+  <template>
+    <div id="container">
+      <h3>title</h3>
+      <button @click="changeInfo">click</button>
+    </div>
+  </template>
 
+  // 当我们想通过 changeInfo 方法修改name和age的时候 vue是不认的 做不到响应式 页面不会有对应的变化
   setup() {
     let name = "张三"
     let age = 18
 
-    function changeInfo() {
+    // 函数中默认的参数还是e
+    function changeInfo(e) {
       name = "李四"
       age = 20
     }
@@ -17024,33 +17035,36 @@ VueRouter.prototype.push = function push(location) {
       changeInfo
     }
   },
- -->
+```
 
-- 作用:
-- 将卸载setup函数中的数据实现响应式的效果 就要使用ref函数
+> 作用:
+- 如果要实现数据实现响应式的效果 就要使用ref函数
 
 
 > ref的使用步骤
 > 1. 引入
 - import {ref} from "vue"
 
-
 > 2. 使用 ref() 函数将属性的属性值包裹
-- 通过ref() 加工完的数据 是一个refimpl的实例对象(引用实现对象)
+> ref() 处理 文本类型
+- 通过ref() 加工完的数据 是一个*refimpl的实例对象*(引用实现对象)
 - ref：refernce引用  impl：implement实现
-<!-- 
+
+```js 
   let name = ref("张三")
   let age = ref(18)
 
-  RefImpl {_shallow: false, dep: Set(1), __v_isRef: true, _rawValue: '张三', _value: '张三'}
+  // RefImpl {_shallow: false, dep: Set(1), __v_isRef: true, _rawValue: '张三', _value: '张三'}
+```
 
-  其中引用对象中的 value: {...} 就是响应式的数据 内部实现也是通过getter 和 setter来实现的
- -->
+- 其中引用对象中的 value: {...} 就是响应式的数据 内部实现也是通过getter 和 setter来实现的
 
 
 > 3. 当我们修改 数据的时候 要通过 .value 的形式
-- 因为通过ref函数将数据封装成了一个引用对象 我们要通过name.value的形式取到值
-<!-- 
+- 因为通过ref函数将数据封装成了一个引用对象 
+- 也就是说经过ref(变量) 包装后的变量 就变成了一个对象 对象中有很多别的属性
+- *对象.value* 才是我们的 数据 我们要通过name.value的形式取到值
+```js 
   setup() {
     // 通过 ref函数 将name属性封装成了一个对象
     let name = ref("张三")
@@ -17061,7 +17075,6 @@ VueRouter.prototype.push = function push(location) {
       // name属性被ref封装成了一个对象 所以我们要通过 name.value的形势取值
       name.value = "李四"
       age.value = 20
-      console.log(name,age)
     }
 
     return {
@@ -17070,52 +17083,94 @@ VueRouter.prototype.push = function push(location) {
       changeInfo
     }
   },
- -->
+```
 
+> 模板中直接使用变量就可以
 - 在模板中解析的时候 vue会发现name是一个ref引用对象，vue在解析模板的时候会自动.value 所以我们不用特意的在模板用name.value的形式取值
-<!-- 
+```js 
   <h3>{{name}}--{{age}}</h3>
- -->
+```
 
 ------
 
 > ref函数 -- 处理对象类型
 - 上面使用ref函数对数据(数字 字符串)等类型加工为响应式数据的时候
-- 属性值被ref函数包裹后该值会变成一个 引用对象 在获取值的时候是通过getter 和 setter来做到响应式的
-<!-- 
+- 属性值被ref函数包裹后该值会变成一个 *引用对象* 
+- 在获取值的时候是通过getter 和 setter来做到响应式的
+```js 
   let name = ref("张三")
   let age = ref(18)
 
   name.value
   age.value
- -->
+```
 
 - 当我们使用ref去封装对象的时候，也是一样 属性值会被封装成一个对象，这时候注意，job.value 不再跟上面的例子一样直接是属性值 而是一个对象
 
 - 这个对象(job.value)里面有type 和 salary  也就是说当 要做响应式的数据类型是对象的时候 整个对象会被vue包装成一个proxy代理对象
-<!-- 
+```js 
   let job = ref({
     type: "前端",
     salary: "30k"
   })
 
-  Proxy {type: '前端', salary: '30k'}
- -->
+  // Proxy {type: '前端', salary: '30k'}
+```
 
-- 作用：
+> 作用：
 - 定义一个响应式的数据
 
-- 语法：
-- const xx = ref({initValue})
-  创建一个包含响应式的引用对象
-  js中操作数据： xx.value
-  模板中读取数据： 不需要.value 直接使用属性名即可
+> 语法：
+> const xx = ref(obj)
+- 创建一个包含响应式的引用对象
+- js中操作数据： 对象.value.属性
+- obj.value.name = "erin"
+
+- 模板中读取数据： 不需要.value 直接使用属性名即可
+- {{obj.name}}
+
+```js
+setup() {
+  // 使用ref包装一个对象
+  let obj = ref(
+    {
+      name: "sam",
+      age: 18,
+      job: {
+        frontend: "前端",
+        backend: "后台"
+      }
+    }
+  )
+
+  function handleClick(e) {
+    console.dir(obj)
+
+    // 操作对象中的属性的时候 
+    obj.value.name = "erin"
+
+/*
+  dep: undefined
+  __v_isRef: true
+  _rawValue: {name: 'sam', age: 18, job: {…}}
+  _shallow: false
+  _value: Proxy {name: 'sam', age: 18, job: {…}}
+  value: Proxy
+
+  value: 是一个proxy 代理对象
+    [[Handler]]: Object   -- 操作对象属性的方法
+    [[Target]]: Object    -- 数据在这里
+*/
+  }
+}
+```
 
 
 > 总结：
-- ref函数对于基本数据类型的是使用ref函数 来对属性值进行包装成 引用对象并且数据响应式数据劫持是利用的getter和setter
+- ref函数对于基本数据类型的是使用ref函数 来对属性值进行包装成 引用对象 并且数据响应式数据劫持是利用的getter和setter
 
-- 但是对于对象类型的数据，对象里面的属性 并没有继续使用ref函数对它进行封装 而是对这个对象进行包装 使用了es6封装成了proxy代理对象 所以在拿对象中的属性的时候不用继续.value
+- 但是对于*对象类型的数据*，对象里面的属性 并没有继续使用ref函数对它进行封装 而是对这个对象进行包装 使用了es6封装成了proxy代理对象 
+- 所以在拿对象中的属性的时候不用继续.value
 <!-- 
   let job = ref({
     type: "前端",
@@ -17136,6 +17191,8 @@ VueRouter.prototype.push = function push(location) {
 
 > reactive函数
 - 使用方式：
+- 使用 reactive函数 封装的响应式对象 直接可以通过 *对象.属性* 的方法访问数据 
+- 不用像ref封装的对象那样 对象.value.属性
 
 > 引入
 - import {reactive} from 'vue'
@@ -17156,20 +17213,20 @@ VueRouter.prototype.push = function push(location) {
 - reactive只能定义对象类型的响应式数据 不能定义基本类型的响应式数据
 - ref函数 基本类型 和 对象类型 都可以
 
-<!-- 
+```js 
   let job = reactive({
     type: "前端",
     salary: "30k"
   })
 
   Proxy {type: '前端', salary: '30k'}
- -->
+```
 
 - 我们会发现使用 reactive函数 封装的响应式对象 直接可以通过
 
   job.type    // 直接取值 不用加一个.value
 
-<!-- 
+```js 
   let job = reactive({
     type: "前端",
     salary: "30k"
@@ -17178,9 +17235,10 @@ VueRouter.prototype.push = function push(location) {
   function changeInfo() {
     job.type = "ui"
   }
- -->
+```
 
-- 将一个数组包装成响应式数据，当修改响应式数组的时候 我们可以通过索引来读取和修改 这点和vue2不同 vue2中数组的修改必须借助数组的方法
+> vue3中可以通过所以读取和设置数据
+- 使用 reactive 将一个数组包装成响应式数据，当修改响应式数组的时候 我们可以*通过索引来读取和修改* 这点和vue2不同 vue2中数组的修改必须借助数组的方法
 <!-- 
   let arr = ["抽烟"]
   let arr = reactive(["抽烟"])
@@ -17198,20 +17256,25 @@ VueRouter.prototype.push = function push(location) {
  -->
 
 > 2. 引入 ref函数 onMounted函数 在setup书写逻辑
+- import {ref, reactive, onMounted} from "vue"
+
 - 1. 在 setup 中 定义 节点变量, 并将这个变量定义成响应式数据
 <!-- 
   let test = ref(null)
  -->
 
 - 2. 在 onMounted 声明周期里面 获取test.value 也就是元素节点
-<!-- 
+```js 
   onMounted(() => {
+    // 注意 我们使用的ref()包装的 所以使用的时候 test是一个对象 我们要.value才能拿到节点
     console.log(test.value)
   })
- -->
+```
 
 > 3. 在setup的最后 将 test return 出去
 - 也就是说 setup函数 先执行 我们定义了 test 一个响应式的refimpl 对象 然后将它return出去，这样模板中就可以使用test这个变量 利用ref标签属性 将元素节点挂载test变量身上
+
+- setup - return出去一个变量 - 模板中使用该变量保存ref节点对象
 
 --------------------------
 
@@ -17247,23 +17310,23 @@ VueRouter.prototype.push = function push(location) {
 - 该方法是window上的方法 es6新增
 - 我们可以通过该方法创建 代理对象 通过对代理对象的操作 映射到源对象上
 - 也就是说 我们通过对 代理对象 的操作 增删改查 会直接反应到 源对象身上
-<!-- 
-  创建 源对象
+```js
+  // 创建 源对象
   let person = { name: "张三", age: 18 }
 
-  创建 代理对象
+  // 创建 代理对象
   const p = new Proxy(person, {}) 
 
 
-  如果仅是想通过 代理对象 对 源对象 进行添加 删除 修改 读取等操作的时候 第2个参数可以传递 空对象占位
+  // 如果仅是想通过 代理对象 对 源对象 进行添加 删除 修改 读取等操作的时候 第2个参数可以传递 空对象占位
 
-  我通过 p 去修改 person 中的属性 person里面的属性是会发生对应的变化
-      p.name = "李四"
-      console.log(person)   // {name: '李四', age: 18}
+  // 我通过 p 去修改 person 中的属性 person里面的属性是会发生对应的变化
+  p.name = "李四"
+  console.log(person)   // {name: '李四', age: 18}
 
   
-  但是 如果想在映射操作的同时 做一些响应式的逻辑处理 那么就需要了解下 参数2 配置对象了
- -->
+  // 但是 如果想在映射操作的同时 做一些响应式的逻辑处理 那么就需要了解下 参数2 配置对象了
+```
 
 
 > 参数1： 源对象
@@ -17286,7 +17349,7 @@ VueRouter.prototype.push = function push(location) {
 - defineProperty中的getter 和 setter得多次为代理对象中多次添加属性 同时为每一个属性对应一套getter和setter
 - 而 proxy 中的getter setter一套为其所代理的所有属性服务
 
-<!-- 
+```js 
   let person = {
     name: "张三",
     age: 18
@@ -17294,34 +17357,34 @@ VueRouter.prototype.push = function push(location) {
 
   const p = new Proxy(person, {
 
-    当有人读取了p中的属性的时候 我们将源对象中的属性返回出去
+    // 当有人读取了p中的属性的时候 我们将源对象中的属性返回出去
     get(target, propName) {
       console.log("我要做响应式的逻辑了")
       return target[propName]
     },
 
-    当有人修改 或往 p中追加新属性的时候该方法会被调用
+    // 当有人修改 或往 p中追加新属性的时候该方法会被调用
     set(target, propName, value) {
       console.log("我要做响应式的逻辑了")
       target[propName] = value
     },
 
-    当有人删除了p中的属性的时候该方法会被调用 内部我们使用delete关键字删除属性
+    // 当有人删除了p中的属性的时候该方法会被调用 内部我们使用delete关键字删除属性
     deleteProperty(target,propName) {
       
-      delete这个关键字删除属性的时候是有返回值的 我们可以将删除结果的返回值返回出去 
+      // delete这个关键字删除属性的时候是有返回值的 我们可以将删除结果的返回值返回出去 
       console.log("我要做响应式的逻辑了")
       return delete target[propName]
     }
   }) 
- -->
+```
 
 - 上面的get set deleteProperty方法中我们是通过下面的方修改了源数据 person
-<!-- 
+```js 
   return target[propName]         getter
   target[propName] = value        setter
   return delete target[propName]  deleteProperty
- -->
+```
 
 - 但是vue3在底层并不是这么简单的修改了源数据的
 - 在此之前 我们再了解一下 window身上的另一个方法 Reflect 它也可以直接使用
@@ -17334,7 +17397,7 @@ VueRouter.prototype.push = function push(location) {
  -->
 
 - vue3在做响应式处理的时候 并不是通过 .的方式去读取属性 或者 给属性赋值 而是使用 Reflect的方式
-<!-- 
+```js 
   const p = new Proxy(person, {
 
     get(target, propName) {
@@ -17352,12 +17415,11 @@ VueRouter.prototype.push = function push(location) {
       return Reflect.deleteProperty(target, propName)
     }
   }) 
- -->
+```
 
 
 > 总结：
 - 通过 Proxy： 拦截对象中任意属性的变化 包裹 属性值的读写 属性的添加 属性的删除等
-
 - 通过 Reflect： 对被代理对象(源对象)的属性进行操作
 
 
@@ -17382,7 +17444,7 @@ VueRouter.prototype.push = function push(location) {
 
 > 技巧：
 - 基本类型的数据也可以使用 reactive 来解决 这样就不用.value
-<!-- 
+```js 
   let data = reactive({
     person: {
       name: 'sam',
@@ -17392,10 +17454,15 @@ VueRouter.prototype.push = function push(location) {
 
     }
   })
- -->
+```
 
 - 我们将所有的数据都放在data这个 然后用reactive来处理这个对象 这样不就行了么 而且还像以前的data配置项
 
+- 注意 
+- 1. ref模板中的节点的时候 不能采用这种方式
+- 2. 采用这种方式的时候 前面都要带上data.
+- 3. 采用这种方式的时候 不能够使用解构 let {title} = data 这样是不行的
+ 
 --------------------------
 
 ### setup的相关注意点：
@@ -17414,7 +17481,7 @@ VueRouter.prototype.push = function push(location) {
 
 > 补充一些vue2中没有讲到的知识点：
 > $attrs
-- 这个属性在vc身上
+- 这个属性在vc实例身上
 - $attrs 有点像捡漏的 props声明接收的部分 它捡不到 没声明接收的部分就在它那
 
 - 但是还有一个知识点前面我们没有了解过，就是子组件中我们不利用props配置项来声明接收父组件传递过来的参数，这个数据也会在vc身上
@@ -17445,21 +17512,23 @@ VueRouter.prototype.push = function push(location) {
 
 > 转到 vue3 的知识点：
 
-> setup的执行时机
+> setup的执行时机(setup中不能使用this的原因)
 - 在beforeCreate之前执行一次，this是undefined 也就是说setup函数中不可以写this
 <!-- 
   beforeCreate是vue2中最早的钩子函数，但是setup执行的时机比它还要早
  -->
 
 
-> setup的参数
+> setup函数的参数
+- 形参1:
 - props： 
     - 值为对象，包含：组件外部传递过来的且组件内部声明接收了的属性
-<!-- 
-  当父组件中使用props 向子组件中传递数据的时候
-  1. 子组件要先使用props配置项声明接收数据
-  2. 在setup函数中的第一个参数内部就能收到这两个数据 并且是proxy对象
 
+- 当父组件中使用props 向子组件中传递数据的时候
+- 1. 子组件要先使用props配置项声明接收数据
+- 2. 在setup函数中的第一个参数内部就能收到这两个数据 *并且是proxy对象*
+
+```js
   // 父组件
   <Demo name="erin" age="18"/>
 
@@ -17477,66 +17546,78 @@ VueRouter.prototype.push = function push(location) {
       let {name, age} = props
       console.log(name, age)
   }
- -->
+```
 
+- 形参2：
 - context： 
-    - 上下文对象 它就是一个普普通通的object对象 它有三个属性
+- 上下文对象 它就是一个普普通通的object对象 它有三个属性
+```js
+attrs: (...)
+emit: (event, ...args) => instance.emit(event, ...args)
+expose: exposed => {…}
+slots: (...)
+```
 
-    - attrs：
-      值为对象，包含：props配置项里没有接收的数据，就会保存在attrs对象中 相当于 this.$attrs
+- attrs：
+  值为对象，包含：
+  props配置项里没有接收的数据，就会保存在attrs对象中 相当于 this.$attrs
 
-    - slots：
-      收到的插槽内容 相当于 this.$slots
-
-      **注意：**
-      - vue3中要使用具名插槽的时候 <template v-slot:插槽名>
-      - vue3只支持上面的方式
-      <!-- 
-        <Demo @hello="showInfo" name="erin" age="18">
-          <template slot="left" / #left>
-            <span>我是填入的内容</span>
-          </template>
-        </Demo>
-
-        // 子组件
-        <slot name="left"></slot>
-       -->
-
-    - emit:
-      分发自定义事件的函数 相当于 this.$emit
-      用于在setup中的方法，要发射自定义事件的时候，我们可以使用context.emit来完成
-
-      **注意：**
-      - 因为 父组件需要在子组件标签中绑定自定义事件
-      <Demo @hello="showInfo" name="erin" age="18"/>
-
-      - vue3中要求 在子组件中要使用 emits 配置项 声明接收hello事件
-      emits: ["hello"]   它跟methods同级
-    <!-- 
-      比如 子组件给父组件发射一个自定义事件
-
-      props: ["name", "age"],
-      emits: ["hello"],
-
-      setup(props, context) {
-
-        // 当点击子组件中的按钮的时候 将自定义事件hello发送给父组件
-        function test() {
-          context.emit('hello', 666)
-        }
-
-        return {
-          person,
-          test
-        }
-      }
+- slots：
+  收到的插槽内容 相当于 this.$slots
 
 
-      // 父组件
-      <template>
-        <Demo @hello="showInfo" name="erin" age="18"/>
-      </template>
-     -->
+**注意：**
+- vue3中要使用具名插槽的时候 <template v-slot:插槽名>
+- vue3只支持上面的方式
+```html
+  <Demo @hello="showInfo" name="erin" age="18">
+
+    <template slot="left" / #left>
+      <span>我是填入的内容</span>
+    </template>
+
+  </Demo>
+
+  // 子组件
+  <slot name="left"></slot>
+```
+
+- emit:
+  分发自定义事件的函数 相当于 this.$emit
+  用于在setup中的方法，要发射自定义事件的时候，我们可以使用context.emit来完成
+
+**注意：**
+- 因为 父组件需要在子组件标签中绑定自定义事件
+<Demo @hello="showInfo" name="erin" age="18"/>
+
+- vue3中要求 在子组件中要使用 emits 配置项 声明接收hello事件
+emits: ["hello"]   它跟methods同级
+```js
+// 比如 子组件给父组件发射一个自定义事件
+props: ["name", "age"],
+
+// 子组件要先声明接收 父组件绑定的自定义事件
+emits: ["hello"],
+
+setup(props, context) {
+
+  // 当点击子组件中的按钮的时候 将自定义事件hello发送给父组件
+  function test() {
+    context.emit('hello', 666)
+  }
+
+  return {
+    person,
+    test
+  }
+}
+
+
+// 父组件
+<template>
+  <Demo @hello="showInfo" name="erin" age="18"/>
+</template>
+```
 
 --------------------------
 
@@ -17544,7 +17625,8 @@ VueRouter.prototype.push = function push(location) {
 - 虽然不建议这么做 但还是要说下 在vue3中在写计算属性的时候是可以按照vue2中的方式来写
 
 - vue3中将计算属性变成了组合式的api 我们要是需要使用计算属性的时候 需要引入
-- import {computed} from 'vue'
+
+> import {computed} from 'vue'
 <!-- 
   vue2中是写各种的配置项
   vue3中必须要先引入
@@ -17552,12 +17634,14 @@ VueRouter.prototype.push = function push(location) {
 
 > 使用方式：
 - 1. 先从vue中引入 computed
+
 - 2. 定义计算属性 并且属性值部分使用 computed函数 内部传入回调
+> let 计算属性 = computed(() => { return ... })
 - vue3中 计算属性也在 setup函数内部来定义
 - 回调中的书写方式和vue2中一样
 
 > 简写形式：
-<!-- 
+```js 
   let fullName = computed(() => {
     return person.firstName + '-' + person.lastName
   })
@@ -17593,11 +17677,13 @@ VueRouter.prototype.push = function push(location) {
     },
   }
   </script>
- -->
+```
 
 
-> 完整形式：
-<!-- 
+> 完整形式(get set)：
+- 完整形式的写法是在computed的形参中传入一个配置对象
+
+```js 
   let fullName = computed({
     get() {
       return person.firstName + '-' + person.lastName
@@ -17609,29 +17695,29 @@ VueRouter.prototype.push = function push(location) {
       person.lastName = nameArr[1]
     } 
   })
- -->
+```
 
 
 > 技巧：
 - 我们可以在setup中任何一个需要属性的地方使用这种方式将该属性变为计算属性
-<!-- 
+```js
   let fullName = computed(() => {
     return person.firstName + '-' + person.lastName
   })
 
-  上面还可以这样：
+  // 上面还可以这样：
 
   person.fullName = computed(() => {
     return person.firstName + '-' + person.lastName
   })
- -->
+```
 
 
 > watch函数
 - 它跟vue2中watch配置功能是一致的
 
 - 先简单的复习一下 vue2 中的监视如果使用
-<!-- 
+```js
   // vue2中 简写的方式：
   watch: {
     sum(newValue, oldValue) {
@@ -17649,27 +17735,32 @@ VueRouter.prototype.push = function push(location) {
       }
     }
   },
- -->
-
+```
 
 - 我们再来看看vue3中的watch怎么使用 vue3中的watch也是组合api 组合api都是vue中内置的一些函数 我们要是想使用的话 需要提前引入
 
 
 > vue3 中 watch的使用方式
-- 监视属性也是在 setup 函数中书写 监视属性写成一个函数调用的形式 第一个参数为监视谁，第二个参数为回调，当监视的属性发生变化的时候 回调中的逻辑就会被调用
-
-- watch() 不用创建什么变量去接返回值
+- 监视属性也是在 setup 函数中书写 
+- 监视属性写成一个函数调用的形式 
+    第一个参数为监视谁，
+    第二个参数为回调，
+    
+- 当监视的属性发生变化的时候 回调中的逻辑就会被调用
+- *watch() 不用创建什么变量去接返回值*
 
 > 1. 引入
 - import {watch} from 'vue'
 
-> 2. watch(要监视的属性, (n, o) => { })
+> 2. watch(要监视的属性, (n, o) => { }, [{配置项}])
+
 > 情况一 和 二： 监视ref定义的一个 或 多个响应式数据
-<!-- 
+```js 
   // 监视ref定义的一个响应式数据
   setup() {
     let sum = ref(0)
 
+    // 监视数据sum
     watch(sum, (newValue, oldValue) => {
       console.log(newValue, oldValue)
     })
@@ -17691,13 +17782,13 @@ VueRouter.prototype.push = function push(location) {
   watch(msg, (newValue, oldValue) => {
     console.log(newValue, oldValue)
   })
- -->
+```
 
 - 从上面我们能看出vue2和vue3中的 关于watch的一个区别 vue2中我们只能写一个监视属性(因为watch是一个配置项 没办法写2个一样配置项)，但是vue3中我们可以多次调用watch函数来监听多个属性
 
 - 当监视多个属性的时候 我们可以将watch函数的第一个参数 写成一个数组
-> watch([监视数据1, 监视数据2], (新值数组，旧值数组) => { })
-<!-- 
+> watch([监视数据1, 监视数据2], (新值数组，旧值数组) => { }, [{配置项}])
+```js 
   let sum = ref(0)
   let msg = ref("你好啊")
 
@@ -17705,30 +17796,31 @@ VueRouter.prototype.push = function push(location) {
     console.log(newValue, oldValue)
   })
 
+
+  // 结果
   newValue： 是一个装有监视属性新值的数据
   [1, '你好啊']
 
   oldValue： 是一个装有监视属性旧值的数据
   [0, '你好啊']
- -->
+```
 
 
 > vue3中 将deep 和 immediate等配置放在了watch函数的第三个参数的位置
-> watch(要监视的属性, (n, o) => { }, {配置对象})
-<!-- 
+> watch(要监视的属性, (n, o) => { }, {配置对象}, [{配置项}])
+```js 
   watch([sum, msg], (newValue, oldValue) => {
     console.log(newValue, oldValue)
   }, {
     deep: true,
     immediate: true
   })
- -->
-
+```
 
 - 上面介绍的都是使用ref函数定义的基本类型的数据 那如果是reactive函数定义的对象怎么办？
 
 > 情况三：监视reactive所定义的一个响应式数据中的全部属性
-<!-- 
+```js 
   let person = reactive({
     name: "erin",
     age: 18
@@ -17737,8 +17829,9 @@ VueRouter.prototype.push = function push(location) {
   watch(person, (n, o) => {
     console.log("person变化了", n, o)
   })
-  注意： 当我们输出newValue 和 oldValue 的时候发现n 和 o是一样的
- -->
+  
+  - 注意： 当我们输出newValue 和 oldValue 的时候发现n 和 o是一样的
+```
 
 **注意：**
 - 当我们将reactive所定义的数据交给watch去监视的时候 我们没办法获取正确的oldValue值 它会和newValue是一样的
@@ -17746,31 +17839,34 @@ VueRouter.prototype.push = function push(location) {
 - 当reactive所定义的对象类型的数据里面还有对象的时候 vue3在watch里面强制开启了deep深度监视 而且关不上
 
 
-> 情况四：监视reactive所定义的一个响应式数据中的某个属性
+> 情况四： 监视reactive所定义的一个响应式数据中的某个属性
 - 比如： 我只想监视person中的age属性 怎么写？
-- 我们要将watch函数的第一个参数定义成一个函数 返回值为 reactive所定义的对象中的属性
-<!-- 
+- 我们要*将watch函数的第一个参数定义成一个函数 返回值为 reactive所定义的对象中的属性*
+```js
   watch(() => person.name, (n, o) => {
     console.log("person变化了", n, o)
   })
 
-  注意： 这里的n o都是正确的
- -->
+  - 注意： 这里的n o都是正确的
+```
 
 
 > 情况五：监视reactive所定义的一个响应式数据中的某些属性 
-- 我们将监视一个reactive所定义的数据中多个属性 写成一个数组
-<!-- 
+- 我们将监视一个reactive所定义的数据中多个属性 写成一个数组 然后第一个参数使用返回返回值的方式返回属性
+
+  () => person.name
+
+```js 
   watch([() => person.name, () => person.age], (n, o) => {
     console.log("person变化了", n, o)
   })
- -->
+```
 
 
 > 特殊情况：
 - 当reactive定义的对象中还有对象的时候，我们使用watch监视对象中的对象中的属性的时候，要开启deep深度监视 
 - hahaha 太乱了
-<!-- 
+```js 
   let person = reactive({
     name: "erin",
     age: 18,
@@ -17779,16 +17875,17 @@ VueRouter.prototype.push = function push(location) {
     }
   })
 
-  我们监视job里面的j1的时候 要开启deep深度监视
+  // 我们监视job里面的j1的时候 要开启deep深度监视
   watch(() => person.job, (n, o) => {
     console.log("person的job对象变化了")
   }, {deep: true})
- -->
+```
 
 
 > 两个小坑
-- 监视reactive定义的响应式数据时候：
-  - oldvalue无法正确获取，强制开启了深度监视(deep配置失效)
+- *监视reactive定义的响应式数据时候：*
+  - *oldvalue无法正确获取，强制开启了深度监视(deep配置失效)*
+
   - 当数据是一个基本数据类型的时候oldValue是有效的 当数据是一个对象数据类型的时候 oldValue 是无效的
 
   - 监视reactive定义的响应式数据中的某个属性时：deep配置有效
@@ -17797,26 +17894,31 @@ VueRouter.prototype.push = function push(location) {
 
 ### watch时value的问题
 - 我们使用watch监视ref定义的数据的时候 用不用.value
+
 - 在上面的案例中我们监视一个ref定义的数据的时候 我们没有.value
-<!-- 
+```js 
   let sum = ref(0)
 
+  // 用了 .value 反而报错了
   watch(sum.value, (newValue, oldValue) => {
     console.log(newValue, oldValue)
   })
+```
 
-  报错 当我们监视 sum.value 的时候会报错 说我们没办法监视一个数0
+- 报错 当我们监视 sum.value 的时候会报错 说我们没办法监视一个数0
   当我们想做监视的时候往往是监视的是一个数据结构 
 
   当我们监视 sum 的时候 我们监视的是 refimpl{...} 这个对象中任何属性的修改我都能监测到
- -->
+
 
 - 当我们监测的是 let person = ref({name: "sam"}) 的时候
+
 - 注意：
 - 这里我们使用的是ref函数定义的数据 当它定义的数据类型是一个对象的时候 内部还是会调用reactive的
+
 - 所以我们使用watch去监视person的时候要 person.value
 - 因为 person 是 refimpl对象 person.value 才是我们要监视的 proxy 对象
-<!-- 
+```js 
   watch(person.value, (newValue, oldValue) => {
     console.log(newValue, oldValue)
   })
@@ -17826,7 +17928,7 @@ VueRouter.prototype.push = function push(location) {
   watch(person, (newValue, oldValue) => {
     console.log(newValue, oldValue)
   }, {deep: true})
- -->
+```
 
 --------------------------
 
@@ -17837,14 +17939,14 @@ VueRouter.prototype.push = function push(location) {
 > watchEffect(() => { })
 - 这个回调上来就会执行一次
 - 这个回调中用到了哪些数据 就会监视哪些数据
-<!-- 
+```js 
   watchEffect(() => {
     const x1 = sum.value
     const x2 = person.job.j1.salary
 
     当x1 x2的值变化的时候 这个回调就会执行
   })
- -->
+```
 
 > 总结：
 - watch的套路是：
@@ -17868,7 +17970,7 @@ VueRouter.prototype.push = function push(location) {
 
 - 给目标添加 v-if 后 当不满足条件的时候 该组件会直接被卸载掉
 
-- 要点1：
+> 要点1：
 - 生命周期的写法 可以还像vue2中 写配置项的形式使用生命周期
 - 也可以利用组合api的形式将生命周期写在setup中
 
@@ -17892,21 +17994,26 @@ VueRouter.prototype.push = function push(location) {
 
 - 既然是组合式的api 那我们就要先引入
 
-> 1. 引入 生命周期函数
+> 1. 引入 生命周期函数 都是on开头的
 - import {onBeforeMount, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted} from "vue"
 
-- 我们引入的都是函数，它们都可以传递一个回调当做参数 在对应的实际会调用回调
-<!-- 
+- 我们*引入的都是函数*，它们都可以*传递一个回调当做参数* 在对应的实际会调用回调
+```js 
   onBeforeMount(() => { })
 
   setup() {
     let sum = ref(0)
-    onBeforeMount(() => {})
+
+    // 相当于调用这个函数 在实参里面传递回调
+    onMounted(() => {
+      console.log("onMounted")
+    })
+
     return {
      
     }
   },
- -->
+```
 
 --------------------------
 
@@ -17919,7 +18026,7 @@ VueRouter.prototype.push = function push(location) {
 - 点击屏幕打印x y的坐标
 - 思路：
 - 我们等组件挂载完毕的时候 给window绑定点击事件 获取到鼠标的坐标 赋值给数据
-<!-- 
+```js 
   setup() {
     let point = reactive({
       x: 0,
@@ -17944,7 +18051,7 @@ VueRouter.prototype.push = function push(location) {
       point
     }
   },
- -->
+```
 
 - 当setup中的逻辑越来越多的时候 我们很容易造成 不知道哪些逻辑是哪个功能
 - 比如我们上面创建的功能 当别的组件想复用的时候 难道要复制粘贴么？
@@ -17953,10 +18060,14 @@ VueRouter.prototype.push = function push(location) {
 
 > 1. 在src文件夹下 创建 hooks 文件夹 创建 useXxx.js 文件
 - 一般情况下 hooks 里面的文件都叫做use什么什么
-<!-- 
-  思路：
+
+- 思路：
   我们在usePoint文件中 写逻辑 最后将 App组件需要的数据返回出去
+
+```js
   import {reactive, onBeforeUnmount, onMounted} from 'vue'
+
+  // 这里我们 return 一个函数
   export default function () {
     let point = reactive({
       x: 0,
@@ -17977,36 +18088,46 @@ VueRouter.prototype.push = function push(location) {
       window.removeEventListener("click", savePoint)
     })
 
+    // 最后我们将要使用的数据 return 出去
     return {
       point
     }
   }
- -->
+```
 
 
 > 2. 在App组件中我们引入这个js模块 接收 usePoint 返回出来的数据
-<!-- 
+```js 
   setup() {
     
+    // 该变量内部才是hooks里面定义的数据对象 需要.出来
     let point = usePoint()
 
     return {
       point
     }
   },
- -->
+
+
+let handleClick = () => {
+  console.log(point)    // 我们定义的point是一个对象 里面有point属性
+  console.log(point.point);  // point属性本身也是一个对象
+  console.log(point.point.x, point.point.y);
+}
+```
 
 --------------------------
 
 ### toRef
-- ref函数前面学过是专门定义一个响应式的数据的 可以接收基本数据类型 和 对象类型
+- ref函数前面学过是专门定义一个响应式的数据的 
+- 可以接收基本数据类型 和 对象类型
 
 - 我们看一个需求：
 - 下面的模板中 我们使用数据的时候 都是通过 person.name 的方式 那能不能再精简一些 也就是说 我想在模板中直接使用 name age salary
-<!-- 
+```js 
   <h3>姓名：{{person.name}}</h3>
   <h3>性别：{{person.age}}</h3>
-  <h3>薪资：{{person.job.j1.salary}}k</h3>
+  <h3>薪资：{{person.job.j1.salary}}</h3>
 
   setup() {
     
@@ -18017,16 +18138,19 @@ VueRouter.prototype.push = function push(location) {
 
     return { person }
   },
- -->
+```
 
-- 那我们能不能这么写? 不行 本意我们是希望将 person中的一条数据 交出去 但是 我们这么交出去的数据 只是简单的基本数据类型的赋值 相当于 let a = 1， b = a 他们之间并没有引用关系，不是深拷贝 不是深拷贝的话改变页面上的数据 不会有响应式的变化
-<!-- 
+- 那我们能不能这么写? 
+```js
   return {
     name: person.name
     age: person.age
     salary: person.job.j1.salary
   }
- -->
+```
+
+- 不行 本意我们是希望将 person中的一条数据 交出去 但是 我们这么交出去的数据 只是简单的基本数据类型的赋值 相当于 let a = 1， b = a 他们之间并没有引用关系，不是深拷贝 不是深拷贝的话改变页面上的数据 不会有响应式的变化
+
 
 - 那怎么办？ 我还想在模板中将代码精简一些 也就是说 我想将 响应式对象person中的一条数据交出去 并且还是响应式的
 
@@ -18041,9 +18165,9 @@ VueRouter.prototype.push = function push(location) {
 - const name = toRef(person, 'name')
 
 - 应用：
-- 要将响应式对象中的某个属性单独提供给外部使用时 这个属性还不想丢失响应式
+- *要将响应式对象中的某个属性单独提供给外部使用时 这个属性还不想丢失响应式*
 
-<!--  
+```js  
   let name = toRef(person, "name")
 
   console.log(name)
@@ -18053,14 +18177,14 @@ VueRouter.prototype.push = function push(location) {
   当我们读取这个name的时候，它就会去person中读取name属性 像getter
 
   也就是说像上面那样操作 name: person.name 这种形式不是响应式的 但是我们使用toRef就是响应式的
- -->
+```
 
 **注意：**
 - refimpl对象的值 在模板中使用的时候是不需要.value的
 
 
 - 那接下来 我们是不是可以这么操作
-<!-- 
+```js 
   <h3>姓名：{{name}}</h3>
   <h3>性别：{{age}}</h3>
   <h3>薪资：{{salary}}k</h3>
@@ -18087,10 +18211,10 @@ VueRouter.prototype.push = function push(location) {
       salary
     }
   },
- -->
+```
 
-- 我们使用 toRef 交出去的可以是常用的对象中的某些属性 比如这个对象中有800个属性 那我是不是可以将这3个使用 toRef 的形式交出去，剩下的还是将整个对象交出去呢
-<!-- 
+- 我们使用 toRef 交出去的可以是*常用的对象中的某些属性* 比如这个对象中有800个属性 那我是不是可以将这3个使用 toRef 的形式交出去，剩下的还是将整个对象交出去呢
+```js 
   let name = toRef(person, "name")
   let age = toRef(person, 'age')
   let salary = toRef(person.job.j1, "salary")
@@ -18101,21 +18225,21 @@ VueRouter.prototype.push = function push(location) {
     age,
     salary
   }
- -->
+```
 
 
 - 还有需要注意的地方
 - 假如我们使用的是ref函数包裹了person的一个数据的时候 这个name就和person中的name没有关系了 是两个对象 所以改变 name 并不会影响到 person.name
-<!-- 
+```js 
   return {
     person,
     name: ref(person.name)
   }
- -->
+```
 
 - 但是如果我们使用的是 toRef 函数包裹的话 他们之间是存在引用关系的 它会去person.name中找
 
-- 也就是说：
+> 也就是说：
 - toRef 是引用一个对象中的属性
 - ref   是复制一个对象中的属性 成为一个新对象
 
@@ -18132,7 +18256,7 @@ VueRouter.prototype.push = function push(location) {
 
 - 注意该方法只会把person对象的第一层转换为refimpl对象 嵌套深层次的不会管的 需要通过.来读取
 
-<!--  
+```js 
   <h3>姓名：{{name}}</h3>
   <h3>性别：{{age}}</h3>
   <h3>薪资：{{job.j1.salary}}k</h3>
@@ -18144,7 +18268,7 @@ VueRouter.prototype.push = function push(location) {
   return {
     ...x
   }
- -->
+```
 
 --------------------------
 
@@ -18152,13 +18276,14 @@ VueRouter.prototype.push = function push(location) {
 
 > shallowReactive 与 shallowRef
 - 既然是组合api 那我们在使用的时候也需要先引入
+- 外层数据的响应式
 
 > shallowReactive
 - 只处理对象最外层属性的响应式 (浅响应式)
-- 下面的案例中 使用 shallowReactive的结果就是：
+- 下面的案例中 使用 shallowReactive 的结果就是：
 - name age job是响应式的，但是job里面的j1 和 salary 不是响应式的
 - shallowReactive只考虑对象类型里面的第一层，其它的不做考虑
-<!-- 
+```js
   import {shallowReactive} from 'vue'
   let person = shallowReactive({
     name: "erin",
@@ -18169,16 +18294,16 @@ VueRouter.prototype.push = function push(location) {
       }
     }
   })
- -->
+```
 
 
 > shallowRef
 - 只处理基本数据类型的响应式，不进行对象的响应式处理
 - 当传入 基本数据类型的时候 Ref 和 shallowRef 没有任何区别
-<!-- 
+```js 
   let x = ref(0)   == let x = shallowRef(0)
   let x = ref({})  != let x = shallowRef({})
- -->
+```
 
 
 > 应用场景
@@ -18189,7 +18314,7 @@ VueRouter.prototype.push = function push(location) {
 
 --------------------------
 
-### readonly 与 shallowReadonly
+### readonly 与 shallowReadonly  --  只读
 - 组合式api记得要先引入哦
 - 这两个api的意义就是给我一个数据 我让它变成只读的
 - 它可以对reactive 和 ref 函数生成的响应式数据 进行加工 变成只读
@@ -18197,7 +18322,7 @@ VueRouter.prototype.push = function push(location) {
 - 场景：
 - 当我们如下定义数据的时候 都是响应式的
 - 但有些时候 我不希望你修改sum 和 person 这个时候我们就可以借助 readonly 了
-<!-- 
+```js
   let sum = ref(0)
   let person = shallowReactive({
     name: "erin",
@@ -18208,13 +18333,13 @@ VueRouter.prototype.push = function push(location) {
       }
     }
   })
- -->
+```
 
 
-- readonly：
+> readonly：
 - 让一个响应式数据变为只读的(深只读)
 
-- shallowReadonly：
+> shallowReadonly：
 - 让一个响应式数据变为只读的(浅只读)
 
 - 应用场景：
@@ -18229,7 +18354,7 @@ VueRouter.prototype.push = function push(location) {
 - readonly是一个函数 它接收一个响应式的数据 readonly拿到这个响应式的数据 进行加工后 返回一个新的person
 
 - 这个返回的新person里面的所有东西都不允许被修改
-<!-- 
+```js 
   let person = shallowReactive({
     name: "erin",
     age: 18,
@@ -18241,12 +18366,11 @@ VueRouter.prototype.push = function push(location) {
   })
 
   person = readonly(person)
-
--->
+```
 
 > shallowReadonly 用法和上面的readonly一样 但是它只考虑第一层数据
 - 也就是说 当对象类型的数据 嵌套的层次很深的时候 2层以下的还是可以修改的
-<!-- 
+```js 
   let person = shallowReactive({
     name: "erin",
     age: 18,
@@ -18260,21 +18384,22 @@ VueRouter.prototype.push = function push(location) {
   person = shallowReadonly(person)
 
   这时候job里面的j1 和 salary 还是能改的
- -->
+```
 
 --------------------------
 
-### toRaw 与 markRaw
+### toRaw 与 markRaw  响应式数据 -- 普通数据
 - 组合式的api 你懂的要先干什么
 
 - 我们先思考一个问题
 - 我们为什么要将数据使用ref reactive是为了将普通的数据变成响应式的数据
+
 - 但是
 - 有些情况下 我们是需要将 响应式的数据 变回普通数据的
 
 - 我们要实现这一点就需要用到 toRaw 函数
 
-> toRaw()
+> toRaw()   - 转换为普通对象
 - 作用：
 - 将一个由 reactive生成的响应式对象 转为 普通对象
 - 注意：
@@ -18284,7 +18409,7 @@ VueRouter.prototype.push = function push(location) {
 - 用于读取响应式对象对应的普通对象 对这个普通对象的所有操作 不会引起页面的更新
 - 比如 ajax的时候 传递数据之前对数据进行处理 用 toRaw
 
-<!-- 
+```js 
   let person = reactive({
     name: "erin",
     age: 18,
@@ -18305,30 +18430,30 @@ VueRouter.prototype.push = function push(location) {
     const p = toRaw(person)
     console.log(p)    // 这个p就是普通对象了
   }
- -->
+```
 
 - 总结：
 - reactive像是将原始对象制作成响应式的对象
 - toRaw像是还原 就响应式的对象 还原成 普通对象
 
 
-> markRaw()
+> markRaw()   - 不是响应式的了
 - 作用：
 - 标记一个对象，使其用于不会再成为响应式对象 里面的属性都不再是响应式了 
 
 - 应用场景：
 - 有些值不应该被设置为响应式的 例如： 复杂的第三方类库等
-<!-- 
+```js 
   let person = reactive({
     name: "张三",
     axios
   })
 
   比如我们想往person里面添加 axios 但是如果这么添加进去 vue会将axios里面的所有数据不管嵌套多深 都会变成响应式的 这样效率会很低
- -->
+```
 
 - 当渲染具有不可变数据源的大列表时，跳过响应式转换可以提供性能
-<!-- 
+```js 
   let car = {name:"奔驰", price: 40}
   person.car = car
 
@@ -18338,7 +18463,7 @@ VueRouter.prototype.push = function push(location) {
 
   person.car = markRaw(car)
   这样添加进去的数据就不是响应式的了 也就是数据还是能该 但是vue不对它做响应式了
- -->
+```
 
 - 这个方法的应用场景会很多 比如第三方的库 比如很大的数据结构 他们仅仅是用来展示的 不需要做响应式
 
@@ -18348,6 +18473,7 @@ VueRouter.prototype.push = function push(location) {
 
 ### customRef
 - 组合式api你懂的
+
 - 作用：
 - 创建一个自定义的ref，并对其依赖项跟踪 和 更新触发进行显式控制
 - 自定义ref是一个函数
@@ -18400,7 +18526,7 @@ VueRouter.prototype.push = function push(location) {
 - 逻辑：
 - 在初始化阶段，模板中读取的是get函数的返回值
 - 在更新后阶段，先是将set函数中修改后的数据 赋值给我们传入myRef的value 然后在set中调用trigger() 告诉vue解析模板 然后再在get函数中调用track()让其追踪最新值的变化
-<!-- 
+```js 
   setup(a, b) {
 
     const myRef = (value) => {
@@ -18439,7 +18565,7 @@ VueRouter.prototype.push = function push(location) {
       // 将我们忙活完的x暴露出去
       return x
     }
- -->
+```
 
 - 上面是防抖操作 等我们输入完了之后 然后再显示在h3中
 - 跟计算属性很像 读东西找get 改东西找set 但是就是在关键的时候 调用一些特殊的东西
@@ -18465,6 +18591,7 @@ VueRouter.prototype.push = function push(location) {
 孙  孙  孙  孙  孙   →  inject
  -->
 - 通过 provide 将数据给祖组件，通过 inject 从孙组件里面得到数据
+
 - 注意：
 - 父使用provide传递的数据 在后代组件中都可以使用inject接收到 包括 子和孙
 
@@ -18473,9 +18600,9 @@ VueRouter.prototype.push = function push(location) {
 
 - 接下来 我们准备了3个组件 app child son 一个套一个 我们要在app组件中的数据 传递给son组件
 
-> proviede('给传递的数据起个变量名字', 真正的数据)
+> provide('给传递的数据起个变量名字', 真正的数据)
 - 写在setup函数中
-<!-- 
+```js 
   // app组件
   setup() {
     let car = reactive({
@@ -18490,14 +18617,14 @@ VueRouter.prototype.push = function push(location) {
       ...toRefs(car)
     }
   },
- -->
+```
 
 
 > inject("父组件中的数据变量名")
 - 写在setup函数中
 - 我们创建一个变量用来接收数据
 - 同时 这个数据还是响应式的
-<!-- 
+```js 
   import {inject} from 'vue'
   export default {
     name: "Son",
@@ -18510,7 +18637,7 @@ VueRouter.prototype.push = function push(location) {
       }
     }
   }
- -->
+```
 
 --------------------------
 
@@ -18562,7 +18689,7 @@ VueRouter.prototype.push = function push(location) {
 
 - 我们先看一个场景 还是 app - child - son 层层嵌套的组件结构
 - 我们在son组件需要一个对话框组件 对话框组件的内容简单的是 点击打开弹窗，点击关闭弹窗
-<!-- 
+```js
 import {ref} from 'vue'
 export default {
   name: 'Dialog',
@@ -18574,7 +18701,7 @@ export default {
     }
   }
 }
- -->
+```
 
 - 但是有个问题，随着弹窗的打开和关闭 整个son组件的高度会产生变化 比如打开弹窗后页面会被撑开太高，点击关闭son组件的高度又回到原来的状态 用户体验不好
 
@@ -18590,7 +18717,7 @@ export default {
 - to:
   html标签
   css选择器
-<!-- 
+```js 
   <template>
     <div>
       <button @click='isShow = true'>click me</button>
@@ -18605,7 +18732,7 @@ export default {
       </teleport>
     </div>
   </template>
- -->
+```
 
 - 上面那样操作可以将结构传递到body下面 这样还有一个好处就是定位的时候 可以直接参考body去定位了 不会受其他的组件结构的影响
 
@@ -18614,7 +18741,7 @@ export default {
 - 1. 给对话框组件的外层加一个div当做遮罩层
 - 2. 将对话框的结构放在遮罩div的里面
 - 3. 遮罩层的div上v-if
-<!-- 
+```js 
   <template>
     <div>
       <button @click='isShow = true'>click me</button>
@@ -18646,7 +18773,7 @@ export default {
     background-color: pink;
     padding:10px;
   }
- -->
+```
 
 --------------------------
 

@@ -11,21 +11,21 @@
   但是api是java来做的
 
   在本机起了一个server run在了3000
-  
  -->  
 
 ### CSR
-- 客户端渲染： 我们请求回来的数据是通过vue react art-template等模板框架注入生成的页面，这样的页面当爬虫在爬取内容的时候是爬取不到的
+- 客户端渲染： 
+- 我们请求回来的数据是通过vue react art-template 等模板框架注入生成的页面，这样的页面当爬虫在爬取内容的时候是爬取不到的
 
 ---------------
 
 ### SSR
 - 流程：
-- 用户请求页面，后端先获取数据 通过后端的渲染引擎模板next nuxt 把数据注入到页面结构中 将携带数据的完整的页面结构返回给客户端 这样爬虫就能爬取到页面的数据 因为页面的数据是在后端准备好的
+- 用户请求页面，后端先获取数据 通过后端的渲染引擎模板 next nuxt 把数据注入到页面结构中 
+- 将携带数据的完整的页面结构返回给客户端 这样爬虫就能爬取到页面的数据 因为页面的数据是在后端准备好的
 
 <!-- 
   我们可以查看 查看源代码 不是f12 body 中有没有数据结构就能看出来是否是CSR渲染 还是 SSR渲染
-
   简单的理解 就是在服务端将vue渲染成 html 返回给浏览器
  -->
 
@@ -41,7 +41,7 @@
 
 ---------------
 
-### 服务器渲染 基本使用
+### nuxt 服务器渲染 基本使用(基本逻辑)
 > 1. 初始化 项目文件夹
 - npm init -y
 
@@ -51,16 +51,16 @@
 
 > 3. 创建 server.js 文件 以及配置了 启动命令
 - npm run dev 启动服务器文件
-<!--  
+```js  
   "scripts": {
     "dev": "nodemon ./server.js"
   }
- -->
+```
 
 > 4. 在 server.js 文件中 创建Vue实例
 - 注意：
 - 我们要通过 commonjs 的语法规范引入 Vue
-<!-- 
+```js  
   const Vue = require('vue')
   const app = new Vue({
     template: `
@@ -69,14 +69,14 @@
       </div>
     `
   })
- -->
+```
 
 > 5. 创建 服务端渲染对象
 - 1. 我们要引入 vue-server-renderer 库 它是一个渲染器
 - 2. 通过 这个库身上的 createRenderer() 方法创建 renderer对象
-<!-- 
+```js 
   const renderer = require('vue-server-renderer').createRenderer()
- -->
+```
 
 > 6. 将 vue实例渲染为HTML
 - 我们将vue实例传入到第一个参数的位置，渲染成功后会产生html代码
@@ -84,26 +84,26 @@
 
 > 方式1：普通方式
 > renderer.renderToString(vue实例, (渲染后HTML) => { })
-<!-- 
+```js  
   renderer.renderToString(app, (html) => {
     console.log(html);
   })
- -->
+```
 
 > 方式2：promise方式    推荐
 > renderer.renderToString(vue实例).then(html => { })
-<!-- 
+```js  
   renderer.renderToString(app).then(html => {
     console.log(html)
   }).catch(err => {
     console.log(err)
   })
- -->
+```
 
---------------------
 
-### 将后端生成的html代码 响应回前端浏览器
-- 上面的内容里 我们知道如何去后端渲染一个文件 利用vue框架创建了实例， 然后利用了vue-server-renderer库来将vue框架渲染成了html文件
+> 将后端生成的html代码 响应回前端浏览器
+- 上面的内容里 我们知道如何去后端渲染一个文件 利用vue框架创建了实例， 
+- 然后利用了vue-server-renderer库来将vue框架渲染成了html文件
 
 - 接下来我们需要做的就是 将这个html文件 响应回客户端
 - 那么这就需要 我们搭建一个 node 服务器
@@ -112,7 +112,7 @@
 - 在请求 / 路径的时候，在回调内部
 - 创建 vue实例 -- 使用renderer渲染html文件 -- 响应回客户端
 
-<!-- 
+```js  
   const Vue = require('vue')
 
   const express = require('express')
@@ -152,7 +152,7 @@
   server.listen(8000, () => {
     console.log('服务器已开启 8000端口')
   })
- -->
+```
 
 --------------------
 
@@ -160,30 +160,30 @@
 - vue开发的是单页面应用 有一个缺点就是seo不友好 除非vue的组件能够在服务端完成渲染 并直接返回渲染好的页面
 
 > npx create-nuxt-app .
-- 使用该命令搭建nuxt环境，在当前的项目文件夹下安装nuxt框架 有点像脚手架呢
+- 使用该命令搭建nuxt环境，在*当前的项目文件夹*下安装nuxt框架 有点像脚手架呢
 <!-- 
   npx create-nuxt-app@2.9.2 .
   新版本的 nuxt 不带server了
  -->
 
 > 安装问题
-- 1. 项目名称
-- 2. 项目描述
-- 3. 项目使用语言 
+- 01. 项目名称
+- 02. 项目描述
+- 03. 项目使用语言 
   js
   ts
 
-- 4. 包管理工具
-- 5. ui库
-- 6. 服务器端渲染的框架 
-- 7. 交互工具
-- 8. 校验工具
-- 9. 测试框架
+- 04. 包管理工具
+- 05. ui库
+- 06. 服务器端渲染的框架 
+- 07. 交互工具
+- 08. 校验工具
+- 09. 测试框架
 - 10. 渲染模式 universal选这个
 
 ---------------
 
-### 修改端口
+### 修改项目运行的端口
 - 我们需要在package.json文件中加上
 
 ```js
@@ -195,12 +195,35 @@
 },
 ```
 
+---------------
 
 ### 安装scss
+
+> 安装
 - npm install --save-dev node-sass sass-loader
+<!-- 
+  sass-loader的版本不能太高
+  太高了容易报错
+
+  "sass": "^1.46.0",
+  "sass-loader": "10",
+
+  node -v  14.11.0
+ -->
+
+> 配置
 - 或者再 nuxt.config.js 里面配置
-  - 1. 在asset文件夹下新建css文件夹，在css文件夹中新建index.scss文件，作为scss样式的总入口，然后在index.scss中通过@import引入其他scss样式文件
-  - 2. 在配置中引入index.scss文件 在nuxt.config.js文件中的css中引入
+  - 1. 
+    - 在asset文件夹下新建css文件夹，
+    - 在css文件夹中新建index.scss文件，
+    - 作为scss样式的总入口，
+    - 然后在index.scss中通过@import引入其他scss样式文件
+<!-- 
+  scss文件整理到哪里 没有关系 通过 相对路径能找到就可以
+ -->
+
+  - 2. 在nuxt.config.js文件中的css配置项中 引入index.scss文件
+
 - 或者组件内直接使用
 
 ```js
@@ -208,27 +231,44 @@ module.exports = {
   css: [
     // 直接加载一个 Node.js 模块。（在这里它是一个 Sass 文件）
     'bulma',
+
     // 项目里要用的 CSS 文件
     '@/assets/css/main.css',
+
     // 项目里要使用的 SCSS 文件
     '@/assets/css/main.scss'
 
     // 或者这么写
     { src: '~/assets/css/index.scss', lang: 'scss' }
-  ]
+  ],
+
+  // 示例2:
+  css: [
+    "~/assets/css/base/_reset.scss",
+    { src: '~/src/style/module/style.scss', lang: 'scss' },
+    { src: '~/src/style/layout/_container.scss', lang: 'scss' }
+  ],
 }
 ```
 
+- ~ 和 @ 在没有配置根目录的情况下 都代表项目的根目录(rootDir)
+- ~~ 和 @@ 代表rootDir
+
 
 ### nuxt对components里面的组件 是自动导入 无需手动导入
+
+
+### 关于 ~ @ 路径 引入的问题
+- http://www.qiutianaimeili.com/html/page/2021/02/202688dieg8ofch.html
 
 ---------------
 
 ### 项目目录结构：
 - assets
-    资源性的文件夹
+  - 资源性的文件夹
     默认情况下 nuxt使用 vue-loader file-loader url-loader
     这几个webpack加载器来处理文件的加载 
+
     对不需要通过webpack处理的静态资源文件 可以放置在 static 文件夹中
     （像 robots.txt 或 sitemap.xml 这种类型的文件就很适合放到 static 目录中。）
 
@@ -241,8 +281,8 @@ module.exports = {
      -->
 
 - components
-    vue里通用可复用的组件
-    放在这里的组件并不支持 服务端的钩子
+  - vue里通用可复用的组件
+    *放在这里的组件并不支持 服务端的钩子*
     <!-- 
       组件目录 components 用于组织应用的 Vue.js 组件。
       Nuxt.js 不会扩展增强该目录下 Vue.js 组件，
@@ -250,91 +290,119 @@ module.exports = {
      -->
 
 - layouts
-    用于展示布局 默认情况下 有default.vue布局 未来可以更换其他布局
+  - 用于展示布局 默认情况下 有default.vue布局 未来可以更换其他布局
     我们组件最终会在这个布局文件里面
     layouts 用于定义 网页中主体部分 相当于我们如何给一个div 也就是vue挂载的区域进行布局
 
 
 - middleware
-    用于存放中间件 所有的页面在运行前 可以运行这里的文件
+  - 用于存放中间件 所有的页面在运行前 可以运行这里的文件
 
 - pages
-    路由组件
+  - 路由组件
 
 - plugins
-    存放插件 组织和配置vue在实例化之前需要的插件
+  - 存放插件 组织和配置vue在实例化之前需要的插件
+  - 比如我们可以在这里配置一些初始化的操作
+```js
+// plugins
+import Scroll from "../src/javascripts/module/Scroll";
+import Tab from "../src/javascripts/module/Tab";
+import EnviromentLinkChange from "../src/javascripts/module/EnvironmentLinkChange";
+
+window.addEventListener("load", () => {
+  new Scroll();
+  new EnviromentLinkChange();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  new Tab();
+});
+
+
+// nuxt.config.js
+plugins: [
+  '~/plugins/itemCard.js',
+  '~/plugins/vueLazy.js',
+
+  // window对象在服务器端是看不见的 所以我们要ssr设置为false
+  { src: '~/plugins/init.js', ssr: false },
+]
+```
 
 - server
-    服务端的配置 主要是node里面的配置代码 node接口会写在这里文件的下面
+  - 服务端的配置 主要是node里面的配置代码 node接口会写在这里文件的下面
 
 - static
-    存放不需要webpack处理打包的静态资源文件 存放在这里js css等一些库
+  - 存放不需要webpack处理打包的静态资源文件 存放在这里js css等一些库
 
 - store
-    nuxt集成了vuex的功能 vuex相关东西会放在这里
+  - nuxt集成了vuex的功能 vuex相关东西会放在这里
 
 - .editorconfig
 - .gitignore
+
 - nuxt.config.js
     nuxt的个性化的配置一遍覆盖默认配置
 
 
-> npm run dev启动项目
-> npm run build打包项目
-> npm run start运行打包后的文件
+> 默认的命令
+- npm run dev启动项目
+- npm run build打包项目
+- npm run start运行打包后的文件
 
 ---------------
 
 ### nuxt.config.js 中的配置项
 - 1. build
 <!-- 
-  Nuxt.js 允许你在自动生成的 vendor.bundle.js 文件中添加一些模块，以减少应用 bundle 的体积。如果你的应用依赖第三方模块，这个配置项是十分实用的。
+  Nuxt.js 允许你在自动生成的 vendor.bundle.js 
+  文件中添加一些模块，以减少应用 bundle 的体积。
+  如果你的应用依赖第三方模块，这个配置项是十分实用的。
  -->
 
 - 2. css
-<!-- 
-  该配置项用于定义应用的全局（所有页面均需引用的）样式文件、模块或第三方库。
- -->
+- 该配置项用于定义应用的*全局（所有页面均需引用的）样式文件*、*模块或第三方库*。
+
 
 - 3. env
-<!-- 
-  该配置项用于定义应用客户端和服务端的环境变量。
- -->
+- 该配置项用于定义应用客户端和服务端的环境变量。
+```js
+env: {
+  apiUrl: process.env.API_BASE_URL + "/api/v1",
+  baseUrl: process.env.BASE_URL,
+  isDemo: process.env.IS_DEMO,
+  apiKey: process.env.API_KEY,
+},
+```
 
 - 4. generate
-<!--
-  该配置项用于定义每个动态路由的参数，Nuxt.js 依据这些路由配置生成对应目录结构的静态文件。
--->
+- 该配置项用于定义每个动态路由的参数，Nuxt.js 依据这些路由配置生成对应目录结构的静态文件。
+
 
 - 5. head
-<!-- 
-  该配置项用于配置应用默认的 meta 标签。
- -->
+- 该配置项用于配置应用默认的 meta 标签。
+
 
 - 6. loading
-<!-- 
-  该配置项用于个性化定制 Nuxt.js 使用的加载组件。
- -->
+- 该配置项用于个性化定制 Nuxt.js 使用的加载组件。
+
 
 - 7. plugins
-<!-- 
-  该配置项用于配置那些需要在 根vue.js应用 实例化之前需要运行的 Javascript 插件。
- -->
+- 该配置项用于配置那些需要在 根vue.js应用 *实例化之前需要运行的 Javascript 插件*。
+
 
 - 8. rootDir
-<!-- 
-  该配置项用于配置 Nuxt.js 应用的根目录。
- -->
+- 该配置项用于配置 Nuxt.js 应用的根目录。
+
 
 - 9. router
-<!-- 
-  该配置项可用于覆盖 Nuxt.js 默认的 vue-router 配置。
- -->
+- 该配置项可用于覆盖 Nuxt.js 默认的 vue-router 配置。
+
 
 - 10. server
-<!-- 
-  此选项允许您配置 Nuxt.js 应用程序的服务器实例变量。
- -->
+- 此选项允许您配置 Nuxt.js 应用程序的服务器实例变量。
+
 
 ---------------
 
@@ -357,12 +425,12 @@ module.exports = {
  -->
 
 - 那么nuxt会自动生成下面的路由规则
-<!-- 
+```js 
   routes: [
 
     // pages根目录下的 index.vue 文件作为访问的根目录
-       路径为 /
-       组件就是文件名
+    - 路径为 /
+    - 组件就是文件名
     {
       name: 'index',
       path: '/',
@@ -370,25 +438,25 @@ module.exports = {
     },
 
     // 如果有文件夹的话
-       路径为 文件夹的名字 /user
-       里面的 index.vue 就是 这个路径下的内容文件
-       里面的 别的vue文件 就是这个路径下的其它页面
+    - 路径为 文件夹的名字 /user
+    - 里面的 index.vue 就是 这个路径下的内容文件
+    - 里面的 别的vue文件 就是这个路径下的其它页面
     {
       name: 'user',
       path: '/user',
       component: 'pages/user/index.vue'
     },
 
-    // 当pages下有文件夹的时候 文件夹下的文件的name值为
-    文件夹-具体文件
-    路径为 文件名/具体vue文件
+    // 当pages下有文件夹的时候 
+    - 文件夹下的文件的name值为: 文件夹-具体文件
+    - 路径为: 文件名/具体vue文件
     {
       name: 'user-one',
       path: '/user/one',
       component: 'pages/user/one.vue'
     }
   ]
- -->
+```
 
 **基础路由(静态路由)的总结**
 - 1. index.vue 为当前文件夹下的对应内容页面
@@ -407,19 +475,27 @@ module.exports = {
       - index
       - home
 
-  那么
   那么 home.vue 文件对应的就是 localhost:3000/home
  -->
 
-- 3. 组件的name属性
+- 3. pages/ 目录下有别的文件夹的时候
+  - 文件夹根目录下只有 index.vue 
+  - 那 index.vue 文件对应的路径是: /lexus
+
+  - 文件夹根目录还有除了index.vue文件 之外的文件 
+  - 那 other.vue 文件对应的路径时: /lexus/other
+
+- 4. 组件的name属性
 - 当 pages 里面没有文件夹的时候 该vue组件对应的name值为 文件名
-- 当 pages 里面有对应的文件夹的时候 该vue组件对应的name值为
-    文件夹名/组件文件名
+- 当 pages 里面有对应的文件夹的时候 该vue组件对应的name值为 文件夹名/组件文件名
 
 
 
 > 动态路由
 - 在 Nuxt.js 里面定义带参数的动态路由，需要创建对应的以下划线作为前缀的 Vue 文件 或 目录。
+<!-- 
+  _id.vue
+ -->
 
 - 假如我们这么配置动态路由组件(也就是考虑到该组件需要接收参数的时候)
 <!-- 
@@ -436,7 +512,7 @@ module.exports = {
  -->
 
 - 那么nuxt会自动生成下面的路由规则
-<!-- 
+```js 
   routes: [
     {
       name: 'index',
@@ -445,14 +521,14 @@ module.exports = {
     },
 
     // 此处的要点:
-      - 1. 文件夹名下不带_
-      - 2. 文件夹名就是路径名 /users
-      - 3. 正常我们要访问该路径下的文件 对应的是 index.vue 文件
-           但是这里因为是动态路由 所以我们文件名要以 _ 作为前缀开头
+    - 1. 文件夹名下不带_
+    - 2. 文件夹名就是路径名 /users
+    - 3. 正常我们要访问该路径下的文件 对应的是 index.vue 文件
+          但是这里因为是动态路由 所以我们文件名要以 _ 作为前缀开头
 
-      - 4. _前缀开头的文件 文件的名字 就是parm格式的 接收参数所定义的变量
+    - 4. _前缀开头的文件 文件的名字 就是parm格式的 接收参数所定义的变量
 
-      - 5. name属性 就是 文件夹名字-接收变量的名字
+    - 5. name属性 就是 文件夹名字-接收变量的名字
     {
       name: 'users-id',
       path: '/users/:id?',
@@ -480,11 +556,10 @@ module.exports = {
       component: 'pages/_slug/comments.vue'
     }
   ]
- -->
+```
 
 
 > 嵌套路由
-
 > nuxt-child
 - 用于呈现子路由界面
 
@@ -540,7 +615,7 @@ module.exports = {
 - Nuxt.js 可以让你在动态路由组件中定义参数校验方法。
 
 > validate({params}) {...}
-<!-- 
+```js 
   比如：
   pages/users/_id.vue
 
@@ -550,9 +625,10 @@ module.exports = {
       return /^\d+$/.test(params.id)
     }
   }
- -->
+```
 
-- 如果校验方法返回的值不为 true或Promise中 resolve 解析为false或抛出 Error ， Nuxt.js 将自动加载显示 404 错误页面或 500 错误页面。
+- 如果校验方法返回的值不为 true或Promise中 resolve 解析为false或抛出 Error ， 
+- Nuxt.js 将自动加载显示 404 错误页面或 500 错误页面。
 
 ---------------
 
@@ -573,14 +649,15 @@ module.exports = {
   nuxt脚手架创建的模板中并不包含src
  -->
 
-- 模板值得是整个的网页(我们的layouts只是网页中的内容的主题部分)
-- 定制化默认得html模板 只需要在src文件夹 创建一个 app.html 的文件。
+- 模板指的是整个的网页(我们的layouts只是网页中的内容的主题部分)
+
+- 定制化默认的html模板 只需要在src文件夹 创建一个 app.html 的文件。
 <!-- 
   或者直接在根目录下创建 app.html 文件
  -->
 
 - 默认模板为：
-<!-- 
+```html 
   <!DOCTYPE html>
   <html {{ HTML_ATTRS }}>
     <head {{ HEAD_ATTRS }}>
@@ -595,10 +672,55 @@ module.exports = {
   {{APP}}就是我们写的pages文件夹下的主体页面了。
   
   需要注意的是HEAD和APP都需要大写。
- -->
+```
 
 - 设置了默认模板后要重启服务器
 
+```js
+<!DOCTYPE html>
+<html {{ HTML_ATTRS }}>
+  <head>
+    {{ HEAD }}
+  </head>
+  <body>
+    {{ APP }}
+    <script type="text/javascript" src="/js/bundle.js"></script>
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="/js/button-utils.js"></script>
+    <script type="text/javascript" src="/js/footer-link.js"></script>
+  </body>
+</html>
+
+
+<!-- nuxt config -->
+head: {
+  htmlAttrs: {
+    prefix: 'og: http://ogp.me/ns#'
+  },
+  title: 'KINTO ラインアップ | 株式会社KINTO',
+  meta: [
+    { charset: 'utf-8' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no' },
+    { 'http-equiv': 'X-UA-Compatible', content: 'IE=edge' },
+    { hid: 'og:title', property: 'og:title', content: 'title' },
+    { hid: 'og:locale', property: 'og:locale', content: 'ja_JP' },
+    { hid: 'og:type', property: 'og:type', content: 'website' },
+    // TODO:URL差し替え
+    // { hid: 'og:url', property: 'og:url', content: 'https://' },
+    { name: 'robots', content: 'noindex' },
+  ],
+  script: [
+    { src: '/customer/assets/js/jquery-3.4.1.min.js' },
+    { src: '/assets/js/writeGlonav.js' }
+  ],
+  link: [
+    { rel: 'canonical', href: 'url' },
+    { rel: 'shortcut icon', type: 'image/x-icon', href: '/assets/img/ic_favicon_001.ico'},
+    { rel: 'stylesheet', href: '/assets/customer/css/base_layout.css' },
+    { rel: 'stylesheet', href: '/assets/style/style.css' }
+  ]
+},
+```
 
 
 > 布局
@@ -658,7 +780,7 @@ module.exports = {
 - Nuxt.js 允许你在 nuxt.config.js 里定义应用所需的所有默认 meta 标签，在 head 字段里配置就可以了：
 
 - 一个使用自定义 viewport 和 谷歌字体 的配置示例：
-<!-- 
+```js
   head: {
     meta: [
       { charset: 'utf-8' },
@@ -668,7 +790,8 @@ module.exports = {
       { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Roboto' }
     ]
   }
- -->
+```
+
 
 > nuxt.config.js 中配置 head 的方式
 - <html {{ HTML_ATTRS }}> 中的 HTML_ATTRS 也是在下方更改
@@ -692,6 +815,8 @@ head: {
 
 
 ### assets static
+- 在模板中引入资源的时候 我们要注意下写法
+
 ```html
 <!-- 引用 static 目录下的图片 -->
 <img src="/my-image.png" />
@@ -731,10 +856,10 @@ head: {
 
 ### nuxt的生命周期
 - vue的生命周期跑在浏览器端，nuxt的生命周期跑在了服务端 和 客户端
-- 需要注意的是，在任何 Vue 组件的生命周期内， 只有 beforeCreate 和 created 这两个方法会在 客户端和服务端被调用。其他生命周期函数仅在客户端被调用。
+- 需要注意的是，在任何 Vue 组件的生命周期内， 只有 *beforeCreate 和 created* 这两个方法会在 客户端和服务端被调用。其他生命周期函数仅在客户端被调用。
 
 > 生命周期图：
-<!-- 
+```js
       incoming Request
 
             ↓
@@ -763,8 +888,8 @@ head: {
           render          // 开始客户端渲染
 
 
-  其中 中间件运行 到 开始客户端渲染
-  会被包裹在 navigate <nuxt-link> 中
+  - 其中 中间件运行 到 开始客户端渲染
+  - 会被包裹在 navigate <nuxt-link> 中
 
             ↓
 
@@ -777,15 +902,16 @@ head: {
             ↓
 
            其它
- -->
+```
 
 > nuxtServerInit:
 - 请求会最先来到 nuxtServerInit 这个钩子 它只会运行一次
+
 - 场景：
 - 对vuex store的一些操作 对store的初始化会在这里操作
 
 - 它需要运行在 store目录下的 actions 对象里面
-<!-- 
+```js 
   export const actions = {
 
     // 这个钩子中能够拿到store实例 和 上下文
@@ -795,15 +921,14 @@ head: {
     }
 
   }
-
-  在这个钩子中我们经常初始化一些内容放到store中
-  nuxt内部会找到store目录找到主模块 并且去运行这个actions
-  这个钩子会在最开始运行
- -->
+```
+- 在这个钩子中我们经常初始化一些内容放到store中
+- nuxt内部会找到store目录找到主模块 并且去运行这个actions 这个钩子会在最开始运行
 
 
 > middleware:
-- 允许我们定义一些函数 让它们跑在页面和组件的渲染之前 它可以运行在全局 也可以用在某一个布局页面之前 或运行在某一个组件之前
+- 允许我们定义一些函数 让它们跑在页面和组件的渲染之前 它可以运行在全局 
+- 也可以用在某一个布局页面之前 或运行在某一个组件之前
 
 - 它的配置方案有3种：
 - 1. nuxt.config.js
@@ -815,34 +940,32 @@ head: {
 
 - 2. 在middleware文件夹内定义 auth.js 文件
 - nuxt服务器在启动的时候就会找到这个模块 并且去运行它 路由每次跳转都会走这个中间件 它在做一个全局的守卫
-<!-- 
+```js 
   export default (context) => {
     // 在这个函数中我们可以完成一些全局守卫的逻辑
-
-    // 参数：
-    - context是服务端的上下文集合里面有很多的内容 我们可以从context中解构出来 
-
-    - context可以将形参 写成 这样 {store, route, redirect, params, query, req, res}
-    
-    - store
-    - route    单条路由的信息
-    - redirect 后端的跳转
-    - params
-    - query    客户端携带的数据
-    - req      请求对象
-    - res      响应对象
-
     console.log('middleware')
   }
- -->
+```
+
+> 扩展:
+- context参数
+  - context是服务端的上下文集合里面有很多的内容 我们可以从context中解构出来 
+  - context可以将形参 写成 这样 {store, route, redirect, params, query, req, res}
+  
+  - store
+  - route    单条路由的信息
+  - redirect 后端的跳转
+  - params
+  - query    客户端携带的数据
+  - req      请求对象
+  - res      响应对象
 
 
 > nuxt.config.js 中的配置注释
-<!-- 
+```js 
 module.exports = {
 
   router: {
-
     // 授权
     middleware: 'auth'      // 看这里
   }
@@ -863,30 +986,20 @@ module.exports = {
     ]
   },
   
-
   // loading配置
   loading: { color: '#fff' },
   
-  
   // 全局样式
-  css: [
-  ],
-  
+  css: [ ],
   
   // 插件
-  Nuxt.js 允许您在运行 Vue.js 应用程序之前执行 js 插件。这在您需要使用自己的库或第三方模块时特别有用。
-  plugins: [
-  ],
-  
+  - Nuxt.js 允许您在运行 Vue.js 应用程序之前执行 js 插件。这在您需要使用自己的库或第三方模块时特别有用。
+  plugins: [ ],
   
   // 模块
-  devModules: [
-  ],
+  devModules: [ ],
   
-  
-  modules: [
-  ],
-  
+  modules: [ ],
   
   // 创建时候的配置
   build: {
@@ -897,21 +1010,19 @@ module.exports = {
     }
   }
 }
-
- -->
-
+```
 
 
 - 2. matching layout
 - 可以配置在 /layouts/ 目录下的组件里面
-<!-- 
+
+```js
   打开这个文件夹下的组件，将middleware写在script标签里面
   <script>
   export default {
 
     // 可以这样写 用于连接外部的中间件
     middleware: 'auth'  // 页面层级的中间件定义
-    
 
     // 也可以这么写 用于在组件内部定义中间件
     middleware() {
@@ -919,7 +1030,7 @@ module.exports = {
     }
   }
   </script>
- -->
+```
 - 也就是说 我们的应用用到了 layout 里面的组件 这个 中间件就会被调用
 - 使用该方式 也需要在 middleware 里面定义一个对应的js文件
 
@@ -941,26 +1052,26 @@ module.exports = {
 
 
 > validate()
-- 这个钩子可以对页面 组件 进行动态参数有效性的请求 当浏览器发出请求时我们可以去校验客户端所携带的一些数据 在这个钩子中校验这些数据是否正确 校验成功可以进入目标页面 校验失败返回404页面
+- 这个钩子可以对页面 组件 进行动态参数有效性的请求 当浏览器发出请求时我们可以去校验客户端所携带的一些数据 
+- 在这个钩子中校验这些数据是否正确 校验成功可以进入目标页面 校验失败返回404页面
 
-- 当请求发出去之后 在所有的页面初始化之前 是我们的中间件 紧跟着页面还没有初始化 我们的组件还没有实例化时 会进入到 validate() 钩子
+- 当请求发出去之后 在所有的页面初始化之前 是我们的中间件 紧跟着页面还没有初始化 
+- 我们的*组件还没有实例化时 会进入到 validate() 钩子*
 
-- 这个钩子必须要定义在页面组件 因为它是用来拦截是否能进入页面的 定义在pages目录下的文件里
+- *这个钩子必须要定义在页面组件* 因为它是用来拦截是否能进入页面的 定义在pages目录下的文件里
 
-- 它写在 配置项里面 和 methods 平级
-- 这个钩子也能够拿到 context 上下信息 因为这个钩子主要是做所携带的参数的校验 我们可以从context身上解构出来{params, query}
-<!-- 
+- 它写在 *配置项里面 和 methods 平级*
+- 这个钩子也能够拿到 *context 上下文信息* 因为这个钩子主要是做所携带的参数的校验 我们可以从context身上解构出来{params, query}
+```js 
   methods: {},
   validate({params, query}) {
     console.log('validate')
 
     // 最终要return boolean true代表通过 false代表没有通过
-    return true 
-
     // 如果是false 该页面会找不到
+    return true 
   }
- -->
-
+```
 
 
 > asyncData() & fetch()
@@ -970,16 +1081,16 @@ module.exports = {
 - 适合渲染组件前 获取异步数据 它可以选择把数据返回 之后交由组件内部处理
 
 - fetch()
-- 它也适合渲染组件前 获取异步数据 可以用来填充vuex状态树
+- 它也适合渲染组件前 获取异步数据 *可以用来填充vuex状态树*
 
 - 这两个钩子都会在每次页面调用之前被调用 也就是在服务端或切换到目标路由之前都会被调用 数据都可以在这两个钩子里面读取
-
 - 由于是在组件化初始化前就被调用 这两个钩子中的方法 this是组件实例对象
 
 - 这两个钩子通常使用在页面想要抓取数据时 我们可以提前先把数据抓好 最后交由渲染函数
 
 - 位置：
 - 也是配置项的一种，与methods同级
+
 
 >>> asyncData(context)
 - 作用： 
@@ -989,59 +1100,52 @@ module.exports = {
  -->
 
 - 该钩子需要return {} 对象中写数据
-<!-- 
+```js 
   asyncData() {
-
-    该钩子里面需要return 将数据返回组件 数据将会和组件进行合并 
-    比如目标组件可能会有自己的数据 data配置项 
-    我们返回的数据会合并到data配置项中 
-    也就是说请求到的数据 相当于存放在了data配置项中
-
     console.log('asyncData')
 
     return {
       str: '1'
     }
   },
- -->
+```
+- 该钩子里面需要return 将数据返回组件 数据将会和组件进行合并 
+- 比如目标组件可能会有自己的数据 data配置项 我们返回的数据会合并到data配置项中 也就是说请求到的数据 相当于存放在了data配置项中
 
 **注意：**
-- 每一个服务端的钩子里面都能拿到context 服务端的上下文信息 我们可以在上下文信息里面提取相关的内容
+- 每一个*服务端的钩子*里面都能拿到context 服务端的上下文信息 我们可以在上下文信息里面提取相关的内容
 
 
 >>> fetch(context)
 - 该钩子也是异步请求数据用的但是它的作用是将请求回来的数据存放在vuex中，
 - 该钩子不需要return 但是需要从context身上解构出来store，利用store身上的方法 将数据保存到vuex中
-<!-- 
+```js 
   fetch({store}) {
     console.log('fetch')
-
-    // 这里无需用return返回而是使用store里面的方式提交到vuex 而是可以利用服务端的上下文对象中解构出来store对象利用它身上的方法将异步获取到的数据 保存在vuex里面
   }
- -->
+```
 
+- 这里无需用return返回而是使用store里面的方式提交到vuex 
+- 而是可以利用服务端的上下文对象中解构出来store对象利用它身上的方法将异步获取到的数据 保存在vuex里面
 
 
 > render
 - 服务端渲染 在这之前要把数据准备好 将渲染好的页面返回给浏览器 通过render
-
 - 如果用户再次请求新的页面的时候 会直接到 middleware 这个钩子 不会到达 nuxtServerinit 
 
 - render函数不同页面间需要操作相同的数据请求的时候 只要数组发生了变化 render在服务端都会重新渲染 我们从asyncData拿到数据后重新render
 
 - 它的内部不要写业务逻辑 它只能渲染一些配置 写了也不执行
-
-
 - 上述的钩子都是跑在服务器端
 
 
 > beforeCreate created
 - 看起来像vue的钩子这两个钩子既运行在服务器端 也 运行在客户端
 - 写在这两个钩子里面的逻辑非常有可能既跑在服务端 也 跑在客户端
-- 我们在这两个钩子中可以通过this能拿到 服务端的上下文 和 组件的自身
+- 我们在*这两个钩子中可以通过this能拿到 服务端的上下文 和 组件的自身*
 
 - 这两个钩子同时会跑在服务端和客户端 两端都有打印
-<!-- 
+```js 
   // ssr & csr
   beforeCreate() {
     console.log('beforeCreate')
@@ -1050,7 +1154,7 @@ module.exports = {
   created() {
     console.log('created')
   }
- -->
+```
 
 
 > 其它就是vue中剩下的钩子 比如组件创建前 和 创建后...
@@ -1077,15 +1181,14 @@ module.exports = {
 - fetch asyncData middleware等 我们可以通过context拿到服务端的信息
 
 - 但是在服务端运行时不能访问客户端 比如 我们想在 服务端的钩子里面 拿window对象
-<!-- 
+```js 
   middleware(context) {
     console.log(window)   // 这不行
   }
+```
+- 所有服务端的钩子都不能访问window对象 因为在服务端还没渲染之前是拿不到window对象的
 
-  所有服务端的钩子都不能访问window对象 因为在服务端还没渲染之前是拿不到window对象的
- -->
-
-- 1. 服务器的钩子里面不存在window
+- 服务器的钩子里面不存在window
 - 我们可以在客户端的钩子里面抓取window对象
 
 - 总结：
@@ -1105,11 +1208,10 @@ module.exports = {
 
 > 解构出得 req res 对象
 - 在服务器端调用asyncData时，您可以访问用户请求的req和res对象。
-<!-- 
+```js 
   export default {
     async asyncData({ req, res }) {
-      // 请检查您是否在服务器端
-      // 使用 req 和 res
+      // 请检查您是否在服务器端 使用 req 和 res
       if (process.server) {
         return { host: req.headers.host }
       }
@@ -1117,19 +1219,21 @@ module.exports = {
       return {}
     }
   }
- -->
+```
+
+> process.server 是否在服务端
 
 
 > 解构出得 动态路由数据
 - 可以使用配置它的文件或文件夹的名称访问动态路径参数。所以，如果你定义一个名为_slug.vue的文件，您可以通过context.params.slug来访问它
-<!-- 
+```js 
   export default {
     async asyncData({ params }) {
       const slug = params.slug // When calling /abc the slug will be "abc"
       return { slug }
     }
   }
- -->
+```
 
 --------------------
 
@@ -1139,7 +1243,6 @@ module.exports = {
 
 > pages目录
 - nuxt会监听 pages 目录中的文件的更改 因此在添加新页面时无需重新启动应用程序
-
 - nuxt会一句 pages 目录中的所有 *.vue 文件生成应用的路由配置
 
 
@@ -1158,22 +1261,23 @@ module.exports = {
  -->
 
 - 同时我们能在布局页面看到 (layouts/default.vue组件)
+
 > <nuxt /> nuxt中路由的展示区
 - 这部分也是要点 我们需要在 default.vue 组件中 设置 跳转页面的展示区 也就是 <nuxt />
-<!-- 
+```html 
   // ayouts/default.vue组件
   <template>
     <div>
       <nuxt />    默认会有一个展示区 相当于 router-view
     </div>
   </template>
- -->
+```
 
 
 > 2. 在 layouts/default.vue 布局页面中 使用 <nuxt-link> 进行跳转
 - <nuxt-link>的使用方式和<router-link>一样
 - 还可以通过直接输入 地址来进行跳转
-<!-- 
+```html 
   <template>
     <div>
       <nuxt-link to='/'>首页</nuxt-link>
@@ -1184,13 +1288,14 @@ module.exports = {
       <nuxt />
     </div>
   </template>
- -->
+```
 
 
 > 二级路由规则：
 - 当我们创建二级路由的时候 也就是说下面的这种状态
 - 我们身处 Goods路由组件 它当中还有按钮区 会跳转到 它的子页面
-- 注意；
+
+- 注意:
 - 这里是动态路由
 - 那我们怎么配置pages文件夹下的目录结构呢？
 <!-- 
@@ -1205,6 +1310,7 @@ module.exports = {
  -->
 
 - 想要完成上面的 二级路由的跳转 我们就需要在 pages 文件夹中整理好文件夹的结构
+
 
 > 1. 整理好跳转逻辑
 - 我们点击按钮跳转到对应的商品详情页上
@@ -1239,13 +1345,13 @@ module.exports = {
 - 这里注意没有_
 - params中的id必须意思是和_id.vue一个意思
 - 想要传递的数据 我们可以通过query的方式传递进来
-<!-- 
+```js 
   <nuxt-link :to='{name:'goods-id', params: {id: 3}}'>
- -->
+```
 
 
 > 约定子路由的展示区
-<!-- 
+```html 
   <template>
     <div>
       <h3>Goods</h3>
@@ -1257,7 +1363,7 @@ module.exports = {
       <nuxt/>
     </div>
   </template>
- -->
+```
 
 > 我们通过 query 和 url拼接产生的参数 可以在 _id.vue 文件里 通过 $route 来获取到 
 
@@ -1273,7 +1379,7 @@ module.exports = {
  -->
 
 - 我们通过这种方式来完成跳转到三级路由
-<!-- 
+```js 
   // goods.vue 文件中
   <template>
   <div>
@@ -1289,7 +1395,7 @@ module.exports = {
     <nuxt/>
   </div>
 </template>
- -->
+```
 
 > 总结一下：
 > 一级路由规则：
@@ -1297,7 +1403,7 @@ module.exports = {
 
 - 跳转方式：
 - 在 layout/default.vue文件中配置 配置跳转连接 和 显示区
-<!-- 
+```html 
   <template>
     <div>
       <nuxt-link to='/'>首页</nuxt-link>
@@ -1306,7 +1412,7 @@ module.exports = {
       <nuxt />
     </div>
   </template>
- -->
+```
 
 
 > 二级路由规则
@@ -1372,7 +1478,7 @@ module.exports = {
         - _cid.vue    这个文件就是 comment.vue 的详情页
  -->
 
-<!-- 
+```html 
   <template>
     <div>
       <h3>Comment</h3>
@@ -1384,7 +1490,7 @@ module.exports = {
       <nuxt/>
     </div>
   </template>
- -->
+```
 
 路由：
   约定式：
@@ -1404,7 +1510,9 @@ module.exports = {
   | - layout
     - deault.vue
     - navArea.vue
+-->
 
+```js
   // deault.vue组件
   <template>
     <div>
@@ -1434,8 +1542,9 @@ module.exports = {
     </nav>
   </template>
 
-  同时我们还给 按钮设置了 激活时的样式
- -->
+  - 同时我们还给 按钮设置了 激活时的样式
+```
+  
 
 - 但是 有一个问题，因为我们的路径都是基于/来跳转的，不管跳到哪个连接都有/的存在 所以就会产生 有激活样式的按钮始终包含了 首页
 <!-- 
@@ -1496,22 +1605,21 @@ module.exports = {
 - 当我们进入到目标路由时 可能会对目标组件传递一些参数 我们希望在这个目标组件的内容做一些参数上的校验 避免别人传递给该组件错误的一些参数 导致我们跳转后让该组件拿不到参数 导致页面渲染出错
 
 - 比如我们跳转到 商品的详情页面时 我们会给这个页面传递一个id 这是我们就可以校验这个id
-
 - 我们就可以在这个 商品详情页面组件里面做一些 参数检测的工作
-
 - 在这里我们使用 服务器端的钩子 validate() {}
 
 > validate({params, query}) { ... }
 - 这个函数返回 true 代表ok 染回 false 代表失败
 - 我们可以从 context 中解构出 params query对象 用于校验参数
-<!-- 
+
+```js
   export default {
     validate({params, query}) {
       console.log(params)
       return typeof params.id === 'number'
     }
   }
- -->
+```
 
 --------------------
 
@@ -1531,14 +1639,14 @@ module.exports = {
  -->
 
 - 我们可以通过 props 来接收
-<!-- 
+```js 
   export default {
   name:'error',
 
     // 我们可以使用 props 来接收这个err信息 我们可以根据错误描述信息决定内容是否存在
     props: ["error"]
   }
- -->
+```
 
 --------------------
 
@@ -1584,7 +1692,7 @@ module.exports = {
 
 > 组件内部单独的动画效果
 - 在组件内部 使用 transition 配置项 该配置项和data methods 平级
-<!-- 
+```js 
   export default {
     transition: 'test'
   }
@@ -1602,39 +1710,41 @@ module.exports = {
       opacity: 0;
     }
   <style>
- -->
+```
 
 --------------------
 
 ### 路由守卫
-- nuxt的路由守卫分为前置和后置，前置主要依赖中间件(middleware)和插件，后置主要依赖vue的钩子(beforeRouteLeave)
+- nuxt的路由守卫分为*前置和后置*，前置主要依赖中间件(middleware)和插件，后置主要依赖vue的钩子(beforeRouteLeave)
 
 - 由于中间件middleware可以在nuxt.config.js文件中，layout布局页面中，还有组件本身中配置 所以就形成了
 
 > 全局前置守卫守卫
 - nuxt.config.js 的middleware中定义
 - 在 layouts 里面定义
-<!-- 
-  1. 在 nuxt.config.js 配置文件中 -- router 配置项
-  2. 在router 配置项中定义 middleware 配置项
+
+- 1. 在 nuxt.config.js 配置文件中 -- router 配置项
+- 2. 在router 配置项中定义 middleware 配置项
+
   router: {
     middleware: 'auth'
   }
 
-  3. auth.js 文件我们去 middleware 文件夹中配置对应的js文件
+- 3. auth.js 文件我们去 middleware 文件夹中配置对应的js文件
   - 这个js文件也是需要暴露出来的
 
+```js
   export default ({store, route, redirect, params, query}) => {
-    我们可以从context中解构出来有用的对象 来完成全局守卫的任务
+    - 我们可以从context中解构出来有用的对象 来完成全局守卫的任务
     store: 可以拿到vuex中的数据
     route: 一条目标路由的信息
     redirect: 用于强制跳转
     params, query: 校验参数的合理性
 
-    这些足够我们玩按成比较好的路由守卫的逻辑了
+    - 这些足够我们玩按成比较好的路由守卫的逻辑了
     redirect("/login")
   }
- -->
+```
 
 > 组件独享守卫
 - 在组件内部使用 中间件 来定义
@@ -1647,7 +1757,7 @@ module.exports = {
 - 使用方式：
 - 1. 我们在 plugins 文件夹下创建一个模块 比如 router.js
 - 在这个js文件中 定义函数 并向外暴露
-<!-- 
+```js 
   export default ({app, redirect}) => {
 
     我们从context中解构出来当前应用的实例(也就是vc) 和 跳转功能
@@ -1668,7 +1778,7 @@ module.exports = {
         我们需要使用redirect来完成强制跳转
     })
   }
- -->
+```
 
 - 2. 在nuxt.config.js配置文件中 找到 plugins 配置项 注册插件
   ~ : 代表ssr 项目的根目录
@@ -1688,11 +1798,11 @@ module.exports = {
 > 插件 全局后置守卫
 - 步骤大体上跟上面一样，只不过我们通过 app 调用router身上的afterEach()方法
 - 每个路由在离开时 后置守卫都会被触发
-<!-- 
+```js 
   app.router.beforeEach((to, from) => {
     这里没有next
   })
- -->
+```
 
 
 > 全局后置守卫 beforeRouteLeave钩子 组件独享的
@@ -1701,12 +1811,12 @@ module.exports = {
 
 - beforeRouteLeave() {} 属于一个配置项跟methods平级
 - 这里是有next的 我们允许还是不允许过
-<!-- 
+```js
   beforeRouteLeave(to, from, next) {
     let bl = window.confirm('您是否要离开')
     next(bl)
   }
- -->
+```
 
 
 
@@ -1723,19 +1833,19 @@ module.exports = {
 > 2. 我们找到 nuxt.config.js　配置文件中 找到 modules 配置项
 - 注意：
 - nuxt自身携带的模块 都需要在 modules配置项里面配置进来 modules是一个数组
-<!--  
+```js  
   // 不用添加 @nuxt/proxy
   modules: [
     "@nuxtjs/axios"
   ],
- -->
+```
 
 
 > 使用 asyncData 请求同域数据
 - 添加进来的模块会以$打头，比如我们可以将axios从context中解构出来
 - 同时static是静态文件夹 可以使用axios访问到 '/data/list.json'
 - asyncData请求回来的数据 需要return {}进行导出 然后该数据会合并到vc的data中
-<!-- 
+```js 
   <template>
     <div class="container">
       <h3>{{title}}</h3>
@@ -1757,7 +1867,7 @@ module.exports = {
     }
   }
   </script>
- -->
+```
 
 - asyncData是在整个组件渲染之前就已经运行了 所以我们使用它获取到的数据是可以被爬虫爬到的
 
@@ -1765,29 +1875,29 @@ module.exports = {
 
 > 使用 fetch 请求同域数据
 - 它会将读取的数据放到vuex中
-<!-- 
+```js 
   async fetch({$axios}) {
     let res = await $axios({
       url: '/data/list.json'
     })
   }
- -->
+```
 
 
 > 使用 asyncData 请求跨域数据
 - 视频里面老师开了一个服务器在3001，客户端在3000
-<!-- 
+```js
   async asyncData({$axios}) {
     let res = await $axios({
       url: 'http://localhost://3001/api/home'
     })
   }
- -->
+```
 
 > 配置代理
 - 我们需要在 nuxt.config.js 中进行配置
 - 在 axios 配置项里 没有就创建一个
-<!-- 
+```js 
   axios: {
     proxy: true,
     // prefix: ""  // baseUrl
@@ -1808,7 +1918,7 @@ module.exports = {
       url: '/api/home'
     })
   }
- -->
+```
 
 
 > 扩展
@@ -1821,7 +1931,7 @@ module.exports = {
 
 > 1. 在 plugin 文件夹下创建 axios.js 模块
 - 只要在nuxt.config.js中注册的插件就能得到context服务器的上下文
-<!-- 
+```js 
   // 我们可以在这个模块中配置axios的配置 比如全局配置
   export default function({$axios, redirect, route, store}) {
 
@@ -1861,13 +1971,13 @@ module.exports = {
       return err
     })
   }
- -->
+```
 
 - 如果服务器的token过期了可以让它跳转到login 然后重新获取到token
 
 
 > 2. 将 axios.js 模块 添加到 nuxt.config.js 配置文件中的plugin配置项里
-<!-- 
+```js
   // nuxt.config.js 配置文件
   plugins: [
     {
@@ -1875,7 +1985,7 @@ module.exports = {
       ssr: true   // 开启服务端渲染 也就是让它能在服务端打印 运行
     }
   ],
- -->
+```
 
 --------------------
 
@@ -1886,7 +1996,6 @@ module.exports = {
 - 我们在 nuxt.config.js 文件中 找到 login 配置项
 - 我们可以在这个配置项中 定义系统默认loading效果 或者 指定一个loading组件
 <!-- 
-    
   // Customize the progress-bar color
   // 这就是nuxt自带的进度条样式
 
@@ -1902,7 +2011,7 @@ module.exports = {
 - 该组件内有nuxt预定义的方法 
 > start() { }, 该方法定义在 methods 中 代表 显示效果
 > finish() {}, 该方法定义在 methods 中 代表 隐藏效果
-<!-- 
+```js 
   <template>
     <div v-if="loading">
       <h3>Loading</h3>
@@ -1932,7 +2041,7 @@ module.exports = {
     }
   }
   </script>
- -->
+```
 
 - nuxt中的数据是预加载的 数据预加载完毕后才会跳转到别的页面
 
@@ -1957,7 +2066,7 @@ module.exports = {
 - 要点：
 - 每一个 角色 需要向外暴露 这样我们暴露出去的对象就会被vuex所接收到
 - state的写法比较特殊
-<!-- 
+```js 
   // 主模块 主模块中要求每一个角色必须向外暴露 其中state必须是一个函数
 
   export const state = () => ({
@@ -1980,11 +2089,11 @@ module.exports = {
       return state.bNav ? '显示' : '隐藏'
     }
   }
- -->
+```
 
 
 - index.js 是主模块 我们还可以在store文件目录下面创建其它的子模块
-<!-- 
+```js 
   // 子模块
   export const state = () => ({
     err: 1,
@@ -2010,14 +2119,14 @@ module.exports = {
       commit('M_UPDATE_HOME', {err: 0, data: {title: "模块"}})
     }
   }
- -->
+```
 
 
 > 组件中如果获取数据
 - 我们在store中定义了很多的模块，接下来看看怎么在页面中使用
 - 我们先去 pages 文件目录下的首页
 - 获取数据的方式 跟 vuex 是一样的
-<!-- 
+```js 
   methods: {
     test() {
       this.$store.dispatch("user/A_UPDATE_USER", {err: 0, msg: "登录成功",token: "假的token",data: {title: "user模块 由action提交过来的数据"}})
@@ -2029,7 +2138,7 @@ module.exports = {
 
     // 解构出来的东西会变成vc身上的属性
   },
- -->
+```
 
 
 > vuex中的辅助函数
@@ -2071,7 +2180,7 @@ module.exports = {
 - 比如我们在 login 页面 点击登录按钮 访问后端的接口，如果登录成功了 将拿到的数据 我们就去同步我们的状态管理和cookie
 
 - 当我们 安装完 cookie-universal-nuxt 包后 全局就会多了一个 $cookies 对象，我们可以通过这个对象身上的 this.$cookies.set() 方法，将toekn保存在cookie中 和 将返回来的数据保存在vuex中
-<!-- 
+```js 
   methods: {
     login() {
       this.$axios({
@@ -2097,7 +2206,7 @@ module.exports = {
       })
     }
   }
- -->
+```
 
 - 如果出错的话 我们可以在axios的响应拦截中 做重定向的操作 
 
@@ -2106,7 +2215,7 @@ module.exports = {
 - 强制刷新后vuex里面的数据就不存在了 所以在强制刷新后 我们可以选择在 nuxtServerInit这个钩子里面取出cookies里面的token 并且将它同步到状态管理里面去
 
 - 我们可以在 store 文件夹目录下的 index.js (主模块) 在actions配置项中做如下操作
-<!-- 
+```js 
   export const actions = {
     // 我们从context中解构出app 再从app中解构出来 $cookies
     nuxtServerInit(store, {app:{$cookies}}) {
@@ -2119,23 +2228,22 @@ module.exports = {
       store.commit("user/M_UPDATE_USER", user)
     }
   }
- -->
+```
 
 
 > axios的拦截器中读取vuex里面的内容
 - 在拦截器中我们获取的是vuex里面的token 我们可以在 /plugin/axios.js 文件中 也就是axios的配置文件中 在请求拦截的位置 做token的携带
-<!-- 
+```js 
   $axios.onRequest((config) => {
 
     在这里我们要拿到store对象
     config.headers.token = store.state.user.token
 
     // 这里有可能会取不到token 但是也没有关系 因为下面的响应拦截中 查看了错误信息 如果错误信息为2 就会跳转回登录页面
-
     // 我们将添加好后的配置返回出去
     return config
   })
- -->
+```
 
 - 为什么不从cookies对象里面拿到token 而是要vuex中取token
 - 原因：
@@ -2165,7 +2273,7 @@ module.exports = {
 
 > 1. 我们在 plugin 文件目录下创建 element-ui.js 模块
 - 别忘记在 nuxt.config.js 的 plugins 配置项中 引入我们创建的模块
-<!-- 
+```js 
   // element-ui.js
 
   // 整体引入 全局使用
@@ -2176,12 +2284,12 @@ module.exports = {
   // 按需引入 全局使用
   import {Button} from 'element-ui'
   Vue.use(Button)
- -->
+```
 
 
 > 2. 在 nuxt.config.js 里面 设置elementui的css样式
 - 在nuxt的配置文件的css配置项中
-<!-- 
+```js
   css: [
     "assets/css/transition.css",
     'element-ui/lib/theme-chalk/index.css'
@@ -2203,23 +2311,23 @@ module.exports = {
       mode: "server" / "client"   v2.4+
     }
   ],
- -->
+```
 
 > 3. 设置打包时候的需求 我们可以将elementui在打包的时候摘出来
-<!-- 
+```js
   // nuxt.config.js 的 build 配置项
 
   build: {
     transpile: [/^element-ui/],
   }
- -->
+```
 
 
 > 技巧 
 - 我们使用 导航标签 去跳转页面 比如我们现在处于商品按钮被激活的状态，当我们在强刷的时候发现 商品导航标签的样式 不是处于激活的状态了  
 
 - 原因是因为 当我们强刷后 代码会回到定义时候的状态 而我们定义时候的状态是根据data配置项中的 activeIndex 的 -1 决定的 而强刷之后 代码会回归到-1的状态
-<!-- 
+```js 
   <el-menu
     default-active="activeIndex"
   >
@@ -2234,13 +2342,13 @@ module.exports = {
       ]
     }
   }
- -->
+```
 
 - 所以 我们要想办法监听路由 当路由发生变化的时候 我们要更新activeIndex: "-1" 这里的值 来反向的激活 <el-menu>  
 
 - 我们可以在 监测属性的处理函数里面 添加如下的逻辑
 - 我们可以看看我们当前所在的位置是不是在上面的navs中的path的某一条 如果是的话 这条数据中索引的位置就可以取出来 来去影响 tiveIndex: "-1" 这条属性
-<!-- 
+```js  
   // 老师选择的是使用watch方法 我们可以监听 $route 同时为了保证首次可以运行的话 我们要加上 immediate 配置项
   watch: {
     $route: {
@@ -2268,7 +2376,7 @@ module.exports = {
       }
     }
   }
- -->
+```
 
 
 - 2. 场景：
@@ -2277,7 +2385,7 @@ module.exports = {
 - 我们可以在 layouts/default.vue 页面中做处理
 - 我们可以在这个组件中 给 导航区的组件标签 添加 v-if=”isShow“
 - 然后使用watch监测$route 在内部做判断 如果当前的路径是登录或者注册 那就隐藏导航区 否则就展示
-<!-- 
+```js  
   watch: {
     $route: {
       immediate: true,
@@ -2290,7 +2398,7 @@ module.exports = {
       }
     }
   }
- -->
+```
 
 
 > 在用户注册 或者 登录完毕后 会返回用户当前的页面 从哪来回哪取
@@ -2301,7 +2409,7 @@ module.exports = {
 
 ### 登录注册注销
 - 注销的逻辑很简单 因为token是没有状态的 我们只需要将vuex中的token和cookies中的token删掉就可以了
-<!-- 
+```js  
   methods: {
     logout() {
       this.$cookies.remove("user")
@@ -2315,7 +2423,7 @@ module.exports = {
       })
     }
   }
- -->
+```
 
 --------------------
 
@@ -2369,7 +2477,7 @@ module.exports = {
 > head() {}
 - 使用 head 方法设置当前页面的头部标签。
 - 在 head 方法里可通过 this 关键字来获取组件的数据，你可以利用页面组件的数据来设置个性化的 meta 标签。
-<!-- 
+```js  
   export default {
     data() {
       return {
@@ -2389,7 +2497,7 @@ module.exports = {
       }
     }
   }
- -->
+```
 
 **注意:**
 为了避免子组件中的 meta 标签不能正确覆盖父组件中相同的标签而产生重复的现象，建议利用 hid 键为 meta 标签配一个唯一的标识编号。
@@ -2567,7 +2675,7 @@ module.exports = {
 > 用于 Nuxt.js 的 http-proxy 中间件解决方案
 - 1. npm i @nuxtjs/proxy -D
 - 2. 在 nuxt.config.js 配置文件中添加对应的模块，并设置代理
-<!-- 
+```js 
   modules: [
     '@nuxtjs/axios',
     '@nuxtjs/proxy'
@@ -2583,7 +2691,7 @@ module.exports = {
       }
     }
   }
- -->
+```
 
 
 
