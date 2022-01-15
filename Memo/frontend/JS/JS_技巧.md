@@ -3330,3 +3330,168 @@ apple1      apple2      temp
     deepCopy(o, obj)
     console.log(o);
  -->
+
+
+---------------------
+
+### 高频手写题
+> call的实现
+- 第一个参数为null或者undefined时，this指向全局对象window，值为原始值的指向该原始值的自动包装对象，如 String、Number、Boolean
+
+- 为了避免函数名与上下文(context)的属性发生冲突，使用Symbol类型作为唯一值
+
+- 将函数作为传入的上下文(context)属性执行
+- 函数执行完成后删除该属性
+- 返回执行结果
+
+```js
+Function.prototype.myCall = function(context,...args){
+    let cxt = context || window;
+    //将当前被调用的方法定义在cxt.func上.(为了能以对象调用形式绑定this)
+    //新建一个唯一的Symbol变量避免重复
+    let func = Symbol() 
+    cxt[func] = this;
+    args = args ? args : []
+    //以对象调用形式调用func,此时this指向cxt 也就是传入的需要绑定的this指向
+    const res = args.length > 0 ? cxt[func](...args) : cxt[func]();
+    //删除该方法，不然会对传入对象造成污染（添加该方法）
+    delete cxt[func];
+    return res;
+}
+```
+
+
+> apply的实现
+- 前部分与call一样
+- 第二个参数可以不传，但类型必须为数组或者类数组
+```js
+Function.prototype.myApply = function(context,args = []){
+    let cxt = context || window;
+    //将当前被调用的方法定义在cxt.func上.(为了能以对象调用形式绑定this)
+    //新建一个唯一的Symbol变量避免重复
+    let func = Symbol()
+    cxt[func] = this;
+    //以对象调用形式调用func,此时this指向cxt 也就是传入的需要绑定的this指向
+    const res = args.length > 0 ? cxt[func](...args) : cxt[func]();
+    delete cxt[func];
+    return res;
+}
+```
+
+
+> bind的实现
+- 需要考虑：
+- bind() 除了 this 外，还可传入多个参数；
+- bind 创建的新函数可能传入多个参数；
+- 新函数可能被当做构造函数调用；
+- 函数可能有返回值；
+
+- 实现方法：
+- bind 方法不会立即执行，需要返回一个待执行的函数；（闭包）
+- 实现作用域绑定（apply）
+- 参数传递（apply 的数组传参）
+- 当作为构造函数的时候，进行原型继承
+```js
+Function.prototype.myBind = function (context, ...args) {
+    //新建一个变量赋值为this，表示当前函数
+    const fn = this
+    //判断有没有传参进来，若为空则赋值[]
+    args = args ? args : []
+    //返回一个newFn函数，在里面调用fn
+    return function newFn(...newFnArgs) {
+        if (this instanceof newFn) {
+            return new fn(...args, ...newFnArgs)
+        }
+        return fn.apply(context, [...args,...newFnArgs])
+    }
+}
+
+
+// 测试
+let name = '小王',age =17;
+let obj = {
+    name:'小张',
+    age: this.age,
+    myFun: function(from,to){
+        console.log(this.name + ' 年龄 ' + this.age+'来自 '+from+'去往'+ to)
+    }
+}
+let db = {
+    name: '德玛',
+    age: 99
+}
+
+//结果
+obj.myFun.myCall(db,'成都','上海');     // 德玛 年龄 99  来自 成都去往上海
+obj.myFun.myApply(db,['成都','上海']);      // 德玛 年龄 99  来自 成都去往上海
+obj.myFun.myBind(db,'成都','上海')();       // 德玛 年龄 99  来自 成都去往上海
+obj.myFun.myBind(db,['成都','上海'])();   // 德玛 年龄 99  来自 成都, 上海去往 undefined
+```
+
+
+> new的实现
+- 一个继承自 Foo.prototype 的新对象被创建。
+- 使用指定的参数调用构造函数 Foo，并将 this 绑定到新创建的对象。new Foo 等同于 new Foo()，也就是没有指定参数列表，Foo 不带任何参数调用的情况。
+- 由构造函数返回的对象就是 new 表达式的结果。如果构造函数没有显式返回一个对象，则使用步骤1创建的对象。
+- 一般情况下，构造函数不返回值，但是用户可以选择主动返回对象，来覆盖正常的对象创建步骤
+```js
+function Ctor(){
+    ....
+}
+
+function myNew(ctor,...args){
+    if(typeof ctor !== 'function'){
+      throw 'myNew function the first param must be a function';
+    }
+    var newObj = Object.create(ctor.prototype); //创建一个继承自ctor.prototype的新对象
+    var ctorReturnResult = ctor.apply(newObj, args); //将构造函数ctor的this绑定到newObj中
+    var isObject = typeof ctorReturnResult === 'object' && ctorReturnResult !== null;
+    var isFunction = typeof ctorReturnResult === 'function';
+    if(isObject || isFunction){
+        return ctorReturnResult;
+    }
+    return newObj;
+}
+
+let c = myNew(Ctor);
+```
+
+
+> instanceof的实现
+- instanceof 是用来判断A是否为B的实例，表达式为：A instanceof B，如果A是B的实例，则返回true,否则返回false。
+
+- instanceof 运算符用来测试一个对象在其原型链中是否存在一个构造函数的 prototype 属性。
+
+- 不能检测基本数据类型，在原型链上的结果未必准确，不能检测null,undefined
+
+- 实现：遍历左边变量的原型链，直到找到右边变量的 prototype，如果没有找到，返回 false
+
+```js
+function myInstanceOf(a,b){
+    let left = a.__proto__;
+    let right = b.prototype;
+    while(true){
+        if(left == null){
+            return false
+        }
+        if(left == right){
+            return true
+        }
+        left = left.__proto__
+    }
+}
+
+//instanceof 运算符用于判断构造函数的 prototype 属性是否出现在对象的原型链中的任何位置。
+function myInstanceof(left, right) {
+    let proto = Object.getPrototypeOf(left), // 获取对象的原型
+    prototype = right.prototype; // 获取构造函数的 prototype 对象
+    // 判断构造函数的 prototype 对象是否在对象的原型链上
+    while (true) {
+        if (!proto) return false;
+        if (proto === prototype) return true;
+        proto = Object.getPrototypeOf(proto);
+    }
+}
+```
+
+https://mp.weixin.qq.com/s/OS7gTvJ2gAVCZBvU-1cAqA

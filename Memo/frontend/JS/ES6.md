@@ -1846,9 +1846,11 @@ const SCHOOL = {                const SCHOOL = {
 
 ------------------------------
 
-### ES6 中的Set
+### Set
 - es6提供了新的数据结果set(集合), 它的类型是object但类似于数组, 但成员的值都是唯一的(有去重的效果)
 - 集合实现了iterator接口, 所以可以使用[扩展运算符] 和 for...of进行遍历
+
+- 它跟map很像 但是没有键值对的概念只有一个value
 
 > 集合的属性和方法
 - 1. size   返回集合的个数
@@ -1879,6 +1881,7 @@ const SCHOOL = {                const SCHOOL = {
     s2.add(10);
 
 > 删除元素    .delete()
+- 在删除的同时 还会返回是否删除的结果 true / false
     s2.delete(10)
 
 > 检查是否有元素    .has()
@@ -1894,18 +1897,51 @@ const SCHOOL = {                const SCHOOL = {
         console.log(item);
     }
 
+> keys() values() entries()
+- set也有这些遍历器
+
+
+> set的特性
+- 1. set中只会存储一个值 去重效果 
+- 2. 上述规则对引用数据类型不适用 也就是我们传入引用数据类型 因为引用类型存的是指针 指针不一样
+- 3. set转换成数组 [...set] 或者from 方法
+- 4. NaN 它本身不等于本身 正常是两个nan是两个nan 但是set还是可以将nan去重
+
+```js
+const set2 = new Set()
+
+let o1 = { name:"sam" }
+let o2 = { name:"erin" }
+let o3 = { name:"nn" }
+set2.add(o1)
+set2.add(o2)
+set2.add(o3)
+
+
+o3 = { name: "laoye" }
+console.log(set2)
+  // sam erin nn
+set2.add(o3)
+console.log(set2)
+  // sam erin nn laoye
+```
+
+> 场景 
+- 比如我们可以不收入重复的值 就用set 不用存值之前都查一下 这个值有没有被插入数据啊 有的话就不要插入 没有再插入
+
+
 
 ### 练习
 - 1. 数组的去重
 - 思路
 - 我们利用集合的元素的唯一性, 根据arr创建一个集合
 - 集合可以使用... 我们把集合展开放到数组里面
-<!--    
+```js   
     let arr = [1, 1, 2, 2, 3, 3, 4, 5]
     let s = new Set(arr)
     arr = [...s]
     console.log(arr);
- -->
+```
 
 
 - 2. 交集
@@ -1967,7 +2003,7 @@ const SCHOOL = {                const SCHOOL = {
 
 -------------------------------
 
-### ES6中的 Map
+### Map
 - es6中提供了map数据结构, 类似于对象, 也是键值对的集合
 - 但是 '键' 的范围不限于字符串, 各种类型的值(包括对象) 都可以当做 键
 
@@ -1977,6 +2013,12 @@ const SCHOOL = {                const SCHOOL = {
 
 - Map就是一个升级版的对象
 
+- 我们在往map里面添加数据的时候 如果map里面key则添加 如果已经有key了 则更新对应的值
+
+> map的创建
+let m = new Map()
+- map对象中可以保存键值对
+
 > Map的属性和方法
 - 1. size:  返回Map的元素个数
 - 2. set:   增加一个新元素, 返回当前Map
@@ -1984,10 +2026,10 @@ const SCHOOL = {                const SCHOOL = {
 - 4. has:   检查Map中是否包含某个元素, 返回boolean值
 - 5. clear: 清空集合, 返回undefined
 
-> 创建方式1
-let m = new Map()
 
->> 添加元素 .set()
+>> 添加元素 m.set()
+- 通过该方法保存一个键值对
+
 - m.set('键', '键值')
 - m.set('name', 'sam');
 <!-- 
@@ -2022,8 +2064,26 @@ let m = new Map()
 - m.clear();
 
 
->> 遍历元素
-- 遍历出来的每一个元素在一个数组里面
+>> 遍历map元素
+- map的每一个元素是一个键值对
+
+> keys()
+- 返回键名的遍历器
+
+> values()
+- 返回键值的遍历器
+
+> entries()
+- 返回键值对的遍历器
+
+> forEach()
+- 使用回调函数遍历每个成员
+
+> for of 用来得到对应的结果
+- 比如 for of keys() 得到 key的集合
+- 比如 for of values() 得到 values的集合
+ 
+- for of map对象 得到一个个键值对数组
     for(let item of m) {
       console.log(item)
     }
@@ -2034,8 +2094,22 @@ let m = new Map()
     (2) [{…}, Array(2)]
  -->
 
+```js
+for(let keys of map.keys()) {
+  console.log(keys)
+}
+
+for(let values of map.values()) {
+  console.log(values)
+}
+
+for(let entries of map.entries()) {
+  console.log(entries)
+}
+```
 
 > 创建Map的方式2
+- 参数是一个二维数组的格式
 - let m = new Map([['name', 'sam'], ['age', '18']]);
 
 -------------------------------

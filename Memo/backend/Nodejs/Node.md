@@ -13552,66 +13552,64 @@ https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md
 > 下面对 qn.js 做下解析
 - 调用方式
 - upload_file(上传后的名字，上传的图片路径从项目文件夹出发, 上传哪张图片)
-<!-- 
-    upload_file('01.jpg', './01.jpg')  
- -->
+
+```js
+upload_file('01.jpg', './01.jpg')  
+
+// 首先要引入 qiniu 模块
+const qiniu_sdk = require('qiniu')
 
 
-<!-- 
-    // 首先要引入 qiniu 模块
-    const qiniu_sdk = require('qiniu')
+// 自己账号的标识  个人中心 -- 密钥管理 -- 有Ak SK
+qiniu_sdk.conf.ACCESS_KEY = 'q3mcaHZe6V4vG5XtAUBP1368VVrDLcdlJIRpDhS5';
+
+qiniu_sdk.conf.SECRET_KEY = 'KfecHwFTh9jOXHNqdszh5a2vw_3iDjvSAS6zUPs1';
+
+// 要上传的空间 上传到哪个空间 这是上传到老师的空间
+const bucket = "inews01"
+
+// 文件前缀  image/avatar/01.jpg  存储空间上的文件名是有 前缀和文件组成
+const prefix = 'image/avatar/'
+
+// 生成上传文件的 token
+const token = (bucket, key) => {
+    const policy = new qiniu_sdk.rs.PutPolicy({ isPrefixalScope: 1, scope: bucket + ':' + key })
+    return policy.uploadToken()
+}
+
+const config = new qiniu_sdk.conf.Config()
+
+async function upload_file(file_name, file_path){
+    // 保存到七牛的地址
+    const file_save_path = prefix + file_name
+
+    // 七牛上传的token
+    const up_token = token(bucket, file_save_path)
+    const extra = new qiniu_sdk.form_up.PutExtra()
+    const formUploader = new qiniu_sdk.form_up.FormUploader(config)
+
+    // 上传文件
+    let ret = await new Promise((resolve, reject)=>{
+        formUploader.putFile(up_token, file_save_path, file_path, extra, (err, data) => {
+            if (!err) {
+                // 上传成功， 处理返回值
+                resolve(data);
+            } else {
+                // 上传失败， 处理返回代码
+                reject(data);
+            }
+        });    
+    }) 
+    return ret
+}
 
 
-    // 自己账号的标识  个人中心 -- 密钥管理 -- 有Ak SK
-    qiniu_sdk.conf.ACCESS_KEY = 'q3mcaHZe6V4vG5XtAUBP1368VVrDLcdlJIRpDhS5';
+// 调用方式
+// upload_file(上传后的名字，上传的图片路径从项目文件夹出发, 上传哪张图片)
+// upload_file('01.jpg', './01.jpg')  
 
-    qiniu_sdk.conf.SECRET_KEY = 'KfecHwFTh9jOXHNqdszh5a2vw_3iDjvSAS6zUPs1';
- 
-    // 要上传的空间 上传到哪个空间 这是上传到老师的空间
-    const bucket = "inews01"
- 
-    // 文件前缀  image/avatar/01.jpg  存储空间上的文件名是有 前缀和文件组成
-    const prefix = 'image/avatar/'
-    
-    // 生成上传文件的 token
-    const token = (bucket, key) => {
-        const policy = new qiniu_sdk.rs.PutPolicy({ isPrefixalScope: 1, scope: bucket + ':' + key })
-        return policy.uploadToken()
-    }
-    
-    const config = new qiniu_sdk.conf.Config()
-    
-    async function upload_file(file_name, file_path){
-        // 保存到七牛的地址
-        const file_save_path = prefix + file_name
-    
-        // 七牛上传的token
-        const up_token = token(bucket, file_save_path)
-        const extra = new qiniu_sdk.form_up.PutExtra()
-        const formUploader = new qiniu_sdk.form_up.FormUploader(config)
-    
-        // 上传文件
-        let ret = await new Promise((resolve, reject)=>{
-            formUploader.putFile(up_token, file_save_path, file_path, extra, (err, data) => {
-                if (!err) {
-                    // 上传成功， 处理返回值
-                    resolve(data);
-                } else {
-                    // 上传失败， 处理返回代码
-                    reject(data);
-                }
-            });    
-        }) 
-        return ret
-    }
-
-
-    // 调用方式
-    // upload_file(上传后的名字，上传的图片路径从项目文件夹出发, 上传哪张图片)
-    // upload_file('01.jpg', './01.jpg')  
-
-    module.exports = upload_file
- -->
+module.exports = upload_file
+ ```
 
 
 > 3. 在接口文件中 引入 qn.js
@@ -13625,32 +13623,30 @@ https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md
 - retObj中有key, 是我们的对象在存储空间中路径
 - 七牛云中有外链 是一个七牛云的网址 复制一下
 - 外链+key就是img src的值
-<!-- 
-    <img src='外链+key'>
- -->
+```js
+<img src='外链+key'>
 
-<!-- 
-    router.post('/user/pic_info', upload.single('avatar'), (req, res) => {
-        (async function () {
+router.post('/user/pic_info', upload.single('avatar'), (req, res) => {
+    (async function () {
 
-            upload(参数)
-            1. 将来上传后 图片的名字是 01.jpg   将来在存储空间看的时候会是01
-            2. 从哪找要上传的文件 路径
-            let retObj = await upload_file('01.jpg', './01.jpg')
-            // console.log(req.file);
-            console.log(retObj);
+        upload(参数)
+        // 1. 将来上传后 图片的名字是 01.jpg   将来在存储空间看的时候会是01
+        // 2. 从哪找要上传的文件 路径
+        let retObj = await upload_file('01.jpg', './01.jpg')
+        // console.log(req.file);
+        console.log(retObj);
 
 
-            在这里接口逻辑中我们只需要将 key 存到数据库中即可
+        // 在这里接口逻辑中我们只需要将 key 存到数据库中即可
 
-            retObj = {
-                hash: 'afhasfdhuiahsd',
-                key: 'image/avatar/01.jpg'
-            }
+        retObj = {
+            hash: 'afhasfdhuiahsd',
+            key: 'image/avatar/01.jpg'
+        }
 
-        })()
-    })
- -->
+    })()
+})
+```
 
 
 > 服务器 将浏览器传到服务器上的图片 上传到七牛云 并给前端返回结果
@@ -13659,7 +13655,7 @@ https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md
 - 2. req.file 里是对上传文件的信息
 - 3. 使用七牛云中的upload_file方法 将服务器端的文件上传到七牛云的存储空间
 - 4. 将七牛云服务器返回的结果中的key保存到数据库中
-<!-- 
+```js
 // 头像设置  上传图像 处理post提交逻辑的接口
 router.post('/user/pic_info', upload.single('avatar'), (req, res) => {
   (async function () {
@@ -13716,10 +13712,10 @@ router.post('/user/pic_info', upload.single('avatar'), (req, res) => {
   })()
   
 })
- -->
+```
 
 > 前端上传完图片后的代码
-<!-- 
+```js 
 $(function () {
 $(".pic_info").submit(function (e) {
     e.preventDefault()
@@ -13746,7 +13742,7 @@ $(".pic_info").submit(function (e) {
     })
     })
 })
- -->
+```
 
 ----------------------
 
