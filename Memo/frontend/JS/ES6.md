@@ -1771,7 +1771,9 @@ const SCHOOL = {                const SCHOOL = {
 
 
 > Object.fromEntries()
-- 该方法是 Object.entries() 逆操作 用于将一个键值对数组转为对象
+- 该方法是 Object.entries() 逆操作 用于将一个键值对数组为元素的数组转为对象 
+
+- [["name", "sam"], ["age", "18"]]
 - Object.fromEntries([
       ['foo', 'bar'],
       ['baz', 42]

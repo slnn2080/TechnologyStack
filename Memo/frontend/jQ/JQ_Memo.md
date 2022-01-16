@@ -555,8 +555,6 @@ JSON.stringify(jsObj/jsArr);    js对象/数组 -> json字符串
  -->
 
 
-
-
 > jQ对象.prevAll([expr]);
 - 查找当前jQ对象 之前 的 同辈元素
 <!-- 

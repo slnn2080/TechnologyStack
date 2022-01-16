@@ -16566,6 +16566,22 @@ public void regist(int id) throws Exception {
 }
 ```
 
+
+> 比较 throw 和 throws 的异同
+- 相同点：
+- 它俩没什么相同点 没啥关系
+
+- 不同点：
+- throw:
+- 手动生成一个异常对象 并抛出 
+- throw使用在方法内部 场景就是*给用户的一个提示*
+
+- throws:
+- 处理异常的方式 有别于 try catch finally
+- throws使用在() *这个位置* {}
+
+- throw和throws是递进关系 前一个环节 和 后一个环节的关系
+
 ----------------------------
 
 ### 自定义异常类
@@ -20311,6 +20327,17 @@ class NumberThread3 implements Runnable {
 }
 ```
 
+
+> 谈谈你对同步代码块中 同步监视器和共享数据的理解 以及各自的要求
+- 同步监视器: 锁
+- 要点:
+- 1. 任何一个类的对象都可以充当 锁
+- 2. 多个线程共用同一把锁
+
+- 共享数据: 多个线程共同操作的数据
+- 要点:
+- 需要使用同步机制将操作共享数据的代码包起来 不能包多了 也不能包少了
+
 ----------------------------
 
 ### 跟字符串相关的类
@@ -23566,7 +23593,7 @@ bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
 ----------------------------
 
 ### 枚举类
-- 什么叫枚举类？
+> 什么叫枚举类？
 - 统计学中 就经常用到枚举法 比如两个骰子 随机丢 问结果<=7的概率是多少
 - 这时候我们就要把<=7的情况都列出来 6x6=36种情况
 - 像上面把*所有的情况都列出来* 就是枚举法
@@ -23582,10 +23609,14 @@ bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
 - 就职状态: Busy Free Vocation Dimission
 - 线程状态: 创建 就绪 运行 阻塞 死亡
 
+- 枚举类: 类中的对象的个数是确定的 有限个
+
 
 > 枚举类的定义
 > 当一个 "类" 中的 "对象" 是有限个 确定的 的时候 这个类就是枚举类
-- 当需要定义一组常量时 强烈建议使用枚举类
+
+- 场景:
+- 当需要*定义一组常量*时 强烈建议使用*枚举类*
 <!-- 
   枚举类中有好几个对象 对象是常量
   一组常量 意味着它们之间是有相互关系的 它们都是在描述一件事情
@@ -23667,6 +23698,18 @@ class Season {
   }
 }
 
+```
+
+**注意:**
+- 枚举类中的对象的修饰符是 public static final
+```java
+// 这里的对象也是一个属性
+public static final Season WINTER = new Season("冬天", "冰天雪地");
+
+public static final
+权限的够
+加载的时间早
+不同被修改了
 ```
 
 
@@ -23866,7 +23909,7 @@ System.out.println(winter);
 
 
 > 枚举类对象.toString()
-- 返回当前枚*举类对象常量的名称*
+- 返回*当前枚举类对象常量的名称*
 ```java
 Season2 spring = Season2.SPRING;
 System.out.println(spring.toString());   // SPRING
@@ -23919,7 +23962,7 @@ public static void main(String[] args) {
   }
 ```
 
-> enum定义的枚举类实现接口的情况2: 特殊
+> enum定义的枚举类对象分别实现接口的情况2: 特殊
 - 让枚举类对象分别实现接口中的抽象方法
 
 - 我们在情况1中 实现了Info接口 里面实现了show()
@@ -23940,6 +23983,7 @@ winter.show();    // 这是一个季节
 
 ```java
 enum Season2 implements Info {
+
   // 每一个枚举类对象 在()的后面加上{ } 里面实现show方法
   SPRING("春天", "春暖花开") {
     @Override
@@ -24004,7 +24048,8 @@ spring.show();
 
 - 未来的开发模式都是基于注解的 jpa(java持久化)是基于注解的 spring2.5以上都是基于注解的 hibernate3.x以后也是基于注解的 现在struts2有一部分也是基于注解的了
 
-- 注解是一种趋势 一定程度上可以说: *框架 = 注解 + 反射 + 设计模式*
+- 注解是一种趋势 一定程度上可以说: 
+- *框架 = 注解 + 反射 + 设计模式*
 
 ----------------------------
 
@@ -24170,7 +24215,11 @@ bookShopDao.updateBookStock(isbn)
 bookShopDao.updateUserAccount(username price)
 ```
 
-- 另外 Junit单元测试中也有大量注解的使用
+------
+
+> Junit单元测试中的注解
+- Junit单元测试中也有大量注解的使用
+
 > @Test
 - 标记在非静态的测试方法上
 - 只有标记@Test的方法才能作为一个测试方法单独测试 一个类中可以有多个测试方法 运行时如果只想运行其中的一个 那么选择这个方法名 然后单独运行 否则整个类的所有标记了@Test的方法都会被执行
@@ -24232,15 +24281,17 @@ public class JunitTest {
 
 ----------------------------
 
-### 自定义注解
+### 自定义注解 Annotation
 - 参照 @SuppressWranings 的定义方式
 
-- 1. 我们创建一个 Annotation 文件
+
+> 步骤1. 我们创建一个 Annotation 文件
 <!-- 
   Annotation 和 class interface enum是并列的
  -->
 
-- 2. 注解声明为 public @interface 注解名 { }
+> 步骤2. 注解声明为 
+  public @interface 注解名 { }
 
 ```java
 // 下面就是注解的一个固定结构 和interface一点关系也没有
@@ -24249,14 +24300,14 @@ public @interface MyAnnotation {
 }
 ```
 
-- 3. 方法体中 定义成员变量
+> 步骤3. 方法体中 定义成员变量
 ```java
 public @interface MyAnnotation {
   // 定义成员变量
 }
 ```
 
-- 成员变量的要求
+> 定义成员变量的要求:
 - 该成员变量是以无参数的方法的形式定义的 但其实是一个成员变量
 - 该方法的 *方法名* 和 *返回值* 定义该成员的名字和类型
 - 我们叫它 配置参数 
@@ -24273,7 +24324,7 @@ public @interface MyAnnotation {
 }
 ```
 
-- 成员变量的类型
+> 成员变量的类型
 - 类型只能是八种基本数据类型 和 以下
 - String类型 Class类型 enum类型 Annotation类型以上所有类型的数组
 <!-- 
@@ -24281,7 +24332,7 @@ public @interface MyAnnotation {
  -->
 
 
-- 成员变量的默认值的指定:
+> 成员变量的默认值的指定:
 - 在设置默认值的时候 我们可以*使用defaule关键字*
 ```java
 String value() default "默认值"
@@ -24350,7 +24401,7 @@ class Person {
 
 ----------------------------
 
-### jdk提供的4种元注解
+### 元注解 (jdk提供的4种)
 - jdk的 元Annotation 用于修饰其它Annotation定义
 
 > 元注解
@@ -24383,9 +24434,13 @@ public @interface Override { }
 
 - 元注解一共有4个
 
+
 > @Retention
 - 只能用于修饰一个Annotation定义(修饰注解的注解)
+
+- 作用:
 - *用于指定@Retentio修饰的注解的生命周期*
+
 - @Retention 包含一个 *RetentionPolicy类型的成员变量*
 <!-- 
   RetentionPolicy是一个枚举类 里面定义了三种状态
@@ -24623,6 +24678,7 @@ public @interface Override { }
 - TYPE_PARAMETER
 - TYPE_USE
 
+
 > ElementType.TYPE_PARAMETER
     - 表示该注解能写在类型变量的声明语句中(如: 泛型声明)
 
@@ -24675,7 +24731,7 @@ public @interface MyAnnotation {
 
 ----------------------------
 
-### 集合
+### 集合 (容器)
 - 面向对象语法对事物的体现都是以对象的形式 为了方便对多个对象的操作 就要对对象进行存储
 
 - 使用Array存储对象方面具有一些弊端 而集合就是就是为了解决数组的弊端 就像是一个容器 可以*动态*地把多个对象的引用放入容器中
@@ -24719,6 +24775,14 @@ int[] numArr
 <!-- 存储数据的特点单一 -->
 
 - java集合类可以用于存储数量不等的多个对象 还可以用于保存具有映射关系的关联数组
+
+
+> 开发中:
+- 凡是涉及到对多个数据进行操作的情况下 我们很少直接调数组 
+- 只是有的时候我们调用方法 方法里面不让我们放集合 只能放数组 这时候我们造一个数组
+
+- 或者是调用方法返回的是一个数组 这时候我们要创建数组对象去接收
+- 集合出现的目的就是让我们去替代数组的
 
 ----------------------------
 
@@ -24806,9 +24870,9 @@ int[] numArr
           : 有序的可重复的数据 *也叫做动态数组*
           可以说List是替换原有数组结构的
         
-        | -- ArrayList
-        | -- LinkedList
-        | -- Vector
+        | -- ArrayList  实现类
+        | -- LinkedList 实现类
+        | -- Vector     实现类
 
 
     | -- Set子接口
@@ -24822,9 +24886,9 @@ int[] numArr
           场景:
           解决数据重复问题
 
-        | - HashSet
-        | - LinkedHashSet
-        | - TreeSet
+        | - HashSet       实现类
+        | - LinkedHashSet 实现类
+        | - TreeSet       实现类
 
 
 | -- Map接口 : 双列集合 存一对对数据
@@ -24835,6 +24899,826 @@ int[] numArr
     | - TreeMap
     | - Hashtable
     | - Properties
+
+----------------------------
+
+### Collection接口中常用的方法
+- 我们在讲对象的时候 就先讲的Object因为所有的对象都继承于它 它身上就会有一些通用的方法
+
+- Collection也一样 List接口 和 Set接口都实现了Collection接口 我们这里研究下 在存储单列数据方面 不管是有序还是无序也会有一些通用的操作 既然又适用于List 又适用于Set 那么通用的操作也会定义再Collection中
+
+- 我们看看Collection中定义了哪些Api 我们主要关心下接口中的方法
+<!-- 
+  因为接口中只能定义常量 所以我们这里只关心方法
+ -->
+
+
+> Collection接口中的抽象方法
+- 接口中定义的方法都是抽象的 抽象的都是定死的
+
+```java
+// 创建一个ArrayList的容器
+Collection coll = new ArrayList();
+    // 左面 声明为Collection 
+    // 右边 new的时候 我们拿ArrayList来充当
+
+- 原因:
+- 因为下面的方法都是在父接口中定义的 那子接口或者子接口的实现类就都可以用 Collection - List - ArrayList
+```
+
+**!!!!!!!!!要点:**
+- 向Collection接口的实现类的对象中添加数据obj时 *要求obj所在类要重写equals()方法*
+
+- 因为Collection接口中的方法的形参都是 obj 类型
+- 所以我们要在 obj所在类中重写equals()
+
+- 要注意的重写equals方法的有 contains remove equals 等等
+
+
+> 实现类对象.add(Object o)
+- 将元素 o 添加到集合中
+
+
+> 实现类对象.size()
+- 获取添加的元素的个数
+
+```java
+// 声明为Collection 右边new的时候 我们拿ArrayList来充当
+Collection coll = new ArrayList();
+
+// add()
+coll.add("AA");
+coll.add("BB");
+
+// 能放基本数据类型 - 自动装箱
+coll.add(122);
+coll.add(new Date());
+
+System.out.println(coll.size());  // 4
+```
+
+
+> 实现类对象.addAll(Collection c)
+- 将给定集合中的元素添加到当前的集合中
+- 参数是一个集合对象
+
+```java
+// 我们在创建一个集合 
+// addAll(Collection c)
+Collection coll2 = new ArrayList();
+
+// 向集合2中添加元素
+coll2.add("456");
+coll2.add(123);
+
+// 将集合2中的元素 添加到集合1中
+coll.addAll(coll2);
+System.out.println(coll.size());  // 6
+```
+
+
+> 实现类对象.toString()
+- 实现类对象中的重写toString()的方法 用于查看集合中的内容
+```java
+// 下面两种方式 实际上的效果是一样的
+System.out.println(coll.toString());
+System.out.println(coll);
+// [AA, BB, 122, Sun Jan 16 14:08:43 JST 2022, 456, 123]
+```
+
+
+> 实现类对象.isEmpty()
+- 判断当前集合是否为空
+
+- 返回值
+- Boolean
+<!-- 
+  不是判断是不是null 是判断集合中是否有元素
+  言外之意是size()
+
+  源码： 
+  public boolean isEmpty() {
+    return size == 0;
+  }
+ -->
+
+```java
+System.out.println(coll.isEmpty());   // false
+```
+
+
+> 实现类对象.clear()
+- 清空集合元素
+<!-- 
+  Collection coll = new ArrayList();
+
+  不是将 coll 赋值为 null
+  也是里面的数据不要了
+ -->
+
+```java
+coll.clear();
+System.out.println(coll.isEmpty());   // true
+```
+
+
+> 实现类对象.contains(Object obj)
+- 判断当前集合中是否包含obj
+- 我们在判断时会调用形参obj所在类的equals()方法
+- *判断的是内容 不是地址*
+
+- 要求：
+- 向Collection接口的实现类的对象中添加数据obj时 要求obj所在类要重写equals()方法
+<!-- 
+  我们往形参里面放的都是obj类型 肯定都有自己所在的类
+ -->
+
+- 返回值
+- boolean
+
+> 演示1:
+```java
+Collection coll = new ArrayList();
+
+coll.add(123);
+
+boolean contains = coll.contains(123);
+System.out.println(coll.contains(123)); // true
+```
+
+
+> 演示2:
+```java
+coll.add(new String("Tom"));
+
+// 集合中有了一个Tom 现在使用contains方法判断集合中是否有Tom
+System.out.println(coll.contains(new String("Tom")));     // true
+```
+- 要点: 这个我们使用的是new的方法 正常来说两个对象类型比较应该是false
+
+- 但是 contains() 内部的逻辑是 调用形参obj所在类的equals()比较的内容 String类中重写了equals() 所以比较的是内容
+
+
+> 演示3:
+```java
+// 我们往集合中添加了一个Person对象
+coll.add(new Person("erin", 18));
+
+// 然后使用contains()方法判断 集合中有没有Person对象
+System.out.println(coll.contains(new Person("erin", 18)));    // false
+```
+
+- 为什么演示2中的String就可以 但是这里的Person就是false呢？
+- 原因
+
+- 上面说了 contains() 内部的逻辑是:
+- 1. 通过形参obj调用形参obj所在类的equals() 
+- 2. 将集合中的元素传入形参obj所在类的equals()中 进行形参和集合元素的内容的比较
+- 3. 因为List是有序的所以会将集合中的第一位元素开始传入 依次进行比较 知道相同为止
+
+```java
+// 集合中有一个123
+coll.add(123);
+
+// 内部调用形参123所在类的equals()方法 依次将集合中的元素 传入equals(123)方法中进行内容的比较
+coll.contains(123);
+```
+
+- 演示2中输出true 因为String类中重写了equals() 所以比较的是内容
+
+- 而我们自定义Person类中并没有重写equals()方法 所以内部调用的是Object中的equals() 内部就是使用 == 判断的是地址值
+
+- 所以我们要在形参obj所在类中重写equals()方法
+
+
+
+> 实现类对象.containsAll(Collection coll2)
+- 判断形参coll2集合中的所有数据是不是都存在于当前coll1集合中
+- 都在返回true 有一个不在就是false
+
+- 返回值:
+- boolean
+
+```java
+// 创建coll集合
+Collection coll = new ArrayList();
+
+// 向coll集合中添加元素 -- 方式1
+coll.add(123);
+coll.add(new String("Tom"));
+
+// 创建coll1集合 同时调用 Arrays.asList(元素) 方法向结合中添加元素
+Collection coll1 = Arrays.asList(123, 456);
+
+// 判断coll1中的元素是否都在coll中
+System.out.println(coll.containsAll(coll1));
+```
+
+------
+
+> 扩展:
+- 想集合中添加元素的两种方式
+
+> 方式1:
+- 创建集合 然后调用实现类对象的add()方法添加
+
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+```
+
+> 方式2: Arrays.asList(元素...);
+- 创建集合的同时 向集合中添加元素
+
+- 注意: 
+- 返回值类型是 Array内部类的ArrayList 不是java.util.ArrayList
+
+```java
+Collection coll1 = Arrays.asList(123, 456);
+
+    - Arrays.asList(元素)的方式返回的是一个List List又是Collection的子接口 多态的方式
+```
+
+
+**注意:**
+- 下面发现 当我们的集合的元素是使用方式2 创建添加元素的时候
+- 后续调用add remove方法会报错 
+
+```java
+// 使用 Arrays.asList 方式创建的集合 和 添加的元素
+Collection coll = Arrays.asList(123, 456, new Person("sam", 18), false, new String("Tom"));
+
+// 当调用remove方法的时候 报错
+coll.remove(123);
+    // java.lang.UnsupportedOperationException
+```
+
+- 原因:
+- 调用Arrays.asList()生产的List的add、remove方法时报异常
+- 这是由Arrays.asList() *返回的是Arrays的内部类ArrayList 而不是java.util.ArrayList。*
+
+- Arrays的内部类ArrayList和java.util.ArrayList都是继承AbstractList
+
+- remove、add等方法AbstractList中是默认throw UnsupportedOperationException而且不作任何操作
+
+- java.util.ArrayList重写了这些方法
+- 而Arrays的内部类ArrayList没有重写，所以会抛出异常。
+
+------
+
+> 实现类对象.remove(Object obj)
+- 从当前集合中移除obj元素
+
+- 前提:
+- *obj所在类要重写equals()方法*
+<!-- 
+  remove()方法中也会调用形参obj所在类的equals() 因为要判断有没有给定元素 判断出来有才能移除
+
+  如果没有重写equals()那么比较的就是地址值 会导致删除失败
+ -->
+
+- 返回值
+- boolean
+
+> 演示1:
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+System.out.println(coll.size());
+System.out.println(coll);
+System.out.println("********");
+// [123, 456, Person{name='sam', age=18}, false, Tom]
+
+
+// 123自动装箱 包装类中重写过equals()
+coll.remove(123);   // 它还有返回值可以接收
+System.out.println(coll); // 删除了
+```
+
+> 演示2:
+```java
+// 创建集合
+Collection coll = new ArrayList();
+// 添加一个Person对象
+coll.add(new Person("sam", 18));
+
+// 删除一个Person对象 注意这里是新new的
+coll.remove(new Person("sam", 18));
+System.out.println(coll);
+```
+
+- 要点:
+- 如果Person类没有重写equals() 那么就会删除失败
+- 如果Person类*重写了equals()* 那么就会删除*成功*
+
+
+> 差集操作
+> 实现类对象.removeAll(Collection coll1)
+- 从当前集合中移除coll1中所有的元素
+- 内部也调用形参所在类的equals()了
+<!-- 
+  移除的是 coll 和 coll1 中公有的元素
+  也就是交集的元素
+ -->
+
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+
+Collection coll1 = Arrays.asList(123, 4567);
+coll.removeAll(coll1) 
+
+// 只会移除123 因为coll中没有4567
+```
+
+
+> 交集操作
+> 实现类对象.retainAll(Collection coll1)
+- 获取当前集合和coll1集合的交集 将结果重新赋值给了coll(相当于直接修改了coll)
+- 也就是说只保留两个集合中相同的元素 删除不一样的元素
+
+- 返回值
+- boolean
+
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+Collection coll1 = Arrays.asList(123, 456, 789);
+
+System.out.println(coll);   // 1
+coll.retainAll(coll1);
+System.out.println(coll);   // 2
+
+// 结果: coll集合中只保留了两个集合中相同的元素
+// 1
+[123, 456, Person{name='sam', age=18}, false, Tom]
+
+// 2
+[123, 456]
+```
+
+
+> 实现类对象.equals(Collecton coll1)
+- 要想返回true 需要当前集合和形参集合的元素都一样
+<!-- 
+  该方法内部是一个一个对象去进行比较的
+ -->
+
+- 如果右侧声明的是ArrayList(有序)的时候 那么元素的顺序在两个集合中也要相同
+
+- 有序的结构 要考虑先后顺序的问题
+- 无序的结构 不用考虑先后顺序的问题
+
+- 返回值
+- boolean
+
+> 演示1:
+- 两个集合内部的对象的顺序是*一样*的时候 返回true
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+
+Collection coll1 = new ArrayList();
+coll1.add(123);
+coll1.add(456);
+
+System.out.println(coll.equals(coll1)); //true
+```
+
+> 演示2:
+- 两个集合内部的对象的顺序是*不一样*的时候 返回false
+```java
+Collection coll = new ArrayList();
+coll.add(456);    // 不一样哦
+coll.add(123);
+
+Collection coll1 = new ArrayList();
+coll1.add(123);
+coll1.add(456);
+
+System.out.println(coll.equals(coll1)); //false
+```
+
+**注意:**
+- 上述原因是因为 有序 造成的 也就是说我们使用ArrayList
+- 因为ArrayList是有序的 所以即使是元素一样 但顺序不一样 也不算是相同
+
+
+> 实现类对象.hashCode()
+- 返回当前对象的hash值
+<!-- 
+  如果没有重写hashCode()方法 就相当于一个随机数了
+  自定义类中可以重写hashCode()方法
+
+  模板如下:
+  name age是Person类中的属性
+
+  public int hashCode() {
+    return Objects.hash(name, age);
+  }
+ -->
+
+```java
+System.out.println(coll.hashCode());
+// -752915805
+```
+
+
+> 集合 --> 数组
+> 实现类对象.toArray()
+- 返回值
+- Object类型的数组 Object[]
+
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+// 返回的类型是 Object[]
+Object[] arr = coll.toArray();
+System.out.println(Arrays.toString(arr));
+
+// 还可以使用fori 来输出
+```
+
+
+> 数组 --> 集合
+> Arrays.asList(可变形参)
+- 调用Arrays类的静态方法 asList()
+- 参数是可变形参 相当于数组类型
+
+- 返回值
+- List
+<!-- 
+  跟数组对应的集合是List 所以返回的是List类型的
+ -->
+
+```java
+// 传个数组进去 可变形参也相当于数组
+List<String> list = Arrays.asList(new String[]{"AA", "BB", "CC"});
+
+System.out.println(list);
+    // [AA, BB, CC]
+```
+
+**注意:**
+- Arrays.asList(参数部分的问题)
+- 1. 如果我们传入的是 基本数据类型的数组 那么整体会被当做是一个元素
+```java
+List<int[]> arr = Arrays.asList(new int[]{123, 456});
+System.out.println(arr);
+    // [[I@2db7a79b] 输出的是 里面就一个元素 该元素是一维数组 int型的 
+```
+
+- 2. 我们可以将数组转换为包装类的形式 就可以被识别为两个元素了
+```java
+List arr = Arrays.asList(new Integer[] {123， 456});
+
+// 或者写成这样 也可以
+List arr = Arrays.asList(123， 456);
+```
+
+- 也就是说 我们创建的是包装类的对象就会被识别为其中的两个元素了
+
+----------------------------
+
+### 使用 Iterator接口 遍历Collection (Map不用Iterator)
+- 集合元素的遍历操作 使用 Iterator接口
+
+> 作用：
+- Iterator对象成为迭代器 主要用于遍历 Collection集合中的元素
+
+> GOF给迭代器模式的定义为：
+- 提供一种方法访问一个容器(container)对象中各个元素 而又不需暴露该对象的内部细节
+<!-- 
+  - 迭代器模式: 就是为容器而生
+  - 类似 公交车上的售票员 火车上的乘务员 空姐 -- 检票 
+
+  - 一个个的都过一下
+ -->
+
+
+- Collection接口继承了java.lang.Iterator接口 该接口有一个iterator()方法 那么所有实现了Collection接口的集合类都有一个iterator()方法 用以返回一个实现了Iterator接口的对象
+
+- Iterator仅用于遍历集合 iterator本身并不提供承装对象的能力 如果需要创建iterator对象 则必须有一个被迭代的集合
+
+- 集合对象每次调用iterator()方法都得到一个全新的迭代器对象 默认游标都在集合的第一个元素之前
+
+> 生成迭代器对象
+> 迭代器对象 = 实现类对象.iterator()
+- 通过集合实现类对象调用iterator()方法，*返回Iterator接口的实例* 用于遍历集合元素
+
+- 要想遍历就要用到迭代器对象 它只是用于遍历的 它不是容器
+- 集合对象每次调用iterator()方法都得到一个全新的迭代器对象 默认游标都在集合的第一个元素之前
+
+- 返回值:
+- Iterator
+
+**注意:**
+- 每创建一个 iterator对象 它们都独有一套next()指针
+- 比如:
+- 我们创建了 iterator对象 拿着它去遍历了一个集合
+- 然后我们还想使用该iterator对象 去遍历另一个集合 不行了 因为next指针已经指到最后了
+
+- 这时我们想遍历另一个集合的时候 我们要重新创建一个 iterator 对象
+
+```java
+// 创建集合
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+
+// 通过集合对象 调用 iterator()方法 得到迭代器对象
+Iterator iterator = coll.iterator();
+
+// ... 接下来通过 迭代器对象 遍历集合
+```
+
+
+> 迭代器对象.hasNext()
+- 判断是否还有下一个元素
+<!-- 
+  判断集合中是否还有未遍历元素
+ -->
+
+> 迭代器对象.next()
+- 指针指向下一个元素 默认游标都在集合的第一个元素之前
+- 1. 指针下移
+- 2. 将下移以后集合位置上的元素返回
+- 返回的元素类型是 Object
+```java
+Object obj = iterator.next();
+```
+
+- 遍历元素演示：
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+Iterator iterator = coll.iterator();
+
+// 推荐方式 还可以用 fori coll.size() 但是一般不用
+while(iterator.hasNext()) {
+  // 判断当前集合中是否还有元素 有元素就进入循环体 没有就不要进去了
+  System.out.println(iterator.next());
+}
+```
+
+
+> 迭代器iterator的执行原理
+- 我们看看下面的代码的执行逻辑
+```java
+// 创建迭代器对象 和 指针
+Iterator iterator = coll.iterator();
+
+// 判断指针下方是否有元素
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+<!--  
+    当前集合  
+                          ← 指针
+    123
+    new String("AA")
+    new Date()
+    1
+    2
+    new Customer()
+
+    1. 我们调用iterator方法 返回迭代器对象 然后就创建了 指针
+    - 指针是指在第一个元素的上面(指的是一个空的位置)
+
+    2. 我们调用了 iterator.hasNext() 让它看看指针下方是否还有元素 返回true
+
+    3. 一旦返回true 调用next() 调用该方法后 我们做了好几件事情
+      - 1. 指针下移
+      - 2. 把指针下移之后对应的元素返回 next() 会返回一个值
+      
+    4. 以此类推
+ -->
+
+
+
+> iterator遍历集合的*两种错误写法*
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+Iterator iterator = coll.iterator();
+
+// 错误写法1
+while((iterator.next()) != null) {
+  System.out.println(iterator.next());
+}
+
+    - 会跳着输出 456 Tom 异常
+
+
+// 错误写法2
+while((coll.iterator().hasNext())) {
+  System.out.println(coll.iterator().next());
+}
+
+    - 每当调用 iterator() 都会返回迭代器对象 新的迭代器的对象的指针就会在第一个元素位置之前
+```
+
+
+> 迭代器对象.remove()
+- 调用remove()方法 移除集合中的元素
+- 在遍历的过程当中帮我们删除不想要的元素
+
+- 迭代器对象内部定义了remove方法在遍历的时候 删除集合中的元素
+- 此方法不同于 集合对象.remove()
+
+- 要点:
+- 一个iterator对象 有一套指针
+- 遍历操作的时候 想指针重新开始就要重新创建一个iterator对象
+
+```java
+// 创建集合
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+// 创建 迭代器对象
+Iterator iterator = coll.iterator();
+
+// 移除指定的元素
+while(iterator.hasNext()) {
+  // 把next返回的元素接收 用于判断
+  Object obj = iterator.next();
+
+  // 如果返回的数据是Tom 那就移除
+  if("Tom".equals(obj)) {
+    iterator.remove();
+  }
+
+      - 要点:
+      - 这里使用的是 "Tom".equals(obj)
+      - 没有使用 obj.equals("Tom")
+      - 是为了如果我们集合中取的是null 那么拿着null去调用equals就会报空指针异常的错误
+}
+
+// 遍历删除元素后的集合
+// 这时候我们还想用上面iterator遍历集合是不行的 因为上面的iterator对象的指针已经到最后了
+// 重新创建一个iterator对象 让指针从头开始
+Iterator iterator1 = coll.iterator();
+while(iterator1.hasNext()) {
+  System.out.println(iterator1.next());
+}
+```
+
+**注意:**
+- 1. iterator可以删除集合的元素 但是是遍历过程中通过迭代器对象的remove()方法 不是集合对象的remove方法
+
+- 2. 没调用next()方法 直接进行remove操作 会报IllegalStateException异常
+
+- 3. 调用next()方法后 调用两次remove操作也会报 IllegalStateException异常
+
+----------------------------
+
+### foreach 循环遍历集合 或 项目 (新特性)
+- 上面我们讲了通过 iterator 迭代器的方式 遍历集合
+- 这里我们再介绍另外一种遍历的方式 foreach
+
+
+- java5.0提供了 foreach 循环遍历 Collection(集合) 和 数组
+<!-- 
+  - 遍历操作不需要获取Collection或数组的长度 无需使用索引访问元素
+  - 遍历集合的底层调用iterator完成操作
+  - foreach还可以用来遍历数组
+ -->
+
+```java
+for(Person p: persons) {
+  System.out.println(p.getName());
+}
+
+(Person p: persons)
+Person: 
+  - 要遍历的元素类型
+
+p: 
+  - 遍历后自定义元素名称
+
+persons:
+  - 要遍历的结构名称
+
+
+// js
+for(let key of arr) 
+
+// java
+for(Person p: arr)
+```
+
+> foreach的使用方式
+> 格式:
+
+  for(集合中元素类型 局部变量: 集合/数组) {
+    ...
+  }
+
+  元素类型取决于 集合/数组中元素的类型
+  :前面的部分相当于定义了一个局部变量而已
+
+- 遍历集合
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(new Person("sam", 18));
+coll.add(false);
+coll.add(new String("Tom"));
+
+for(Object obj: coll) {
+  System.out.println(obj);
+}
+```
+
+- 遍历数组
+```java
+int[] arr = new int[] {1, 2, 3, 4, 5};
+for(int i: arr) {
+  sout(i)
+}
+```
+
+> foreach的执行过程
+- 上面的案例中 coll 是我们要遍历的集合 该集合会自动取里面的元素 它会先取集合中的第一个元素 赋值给obj变量 然后打印obj
+
+- 然后接着取集合中的第二个元素 再赋值给obj 依次类推 直到最后一个元素 
+
+- 内部的原理还是调用的跌代器
+
+
+> 练习:
+```java
+String[] arr = new String[] {"MM", "MM", "MM"};
+// 普通for循环的赋值操作
+for (int i = 0; i < arr.length; i++) {
+  arr[i] = "GG";
+}
+
+for (int i = 0; i < arr.length; i++) {
+  System.out.println(arr[i]); // GG
+}
+
+    - 这里相当于 拿着本身的值做修改
+
+
+
+// 增强型的赋值操作
+for(String s: arr) {
+  s = "GG";
+}
+
+for(String s: arr) {
+  System.out.println(s);    // MM
+}
+
+    - 这里相当于将元素取出来 赋值给s 我们把s给改了
+    - 然后我们输出的s
+
+    - 不会修改原有数组中的元素
+```
+
+----------------------------
+
+### List接口 - Collection子接口之一
+
 
 ----------------------------
 

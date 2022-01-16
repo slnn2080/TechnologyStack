@@ -1,5 +1,30 @@
 ### Js技巧
 
+### 正则提取参数
+> 方式1
+```js
+let url = "?name=sam&age=54&na=dd"
+    
+let obj = {}
+url.match(/\w+=\w+/ig).forEach(item => {
+    let arr = item.split("=")
+    obj[arr[0]] = arr[1]
+})
+```
+> 方式2
+```js
+let arr = []
+url.match(/\w+=\w+/ig).map(item => {
+    return arr.push(item.split("="))
+})
+
+// Object.fromEntries的参数 需要一个2维数组
+// [[key, value], [key, value]]
+let obj = Object.fromEntries(arr)
+console.log(obj);
+```
+
+
 ### 为什么前后台交互要转成json
 - 在日常的开发过程中 我们发送请求的数据的时候 有的时候会将js对象转成json
 
