@@ -25718,7 +25718,890 @@ for(String s: arr) {
 ----------------------------
 
 ### List接口 - Collection子接口之一
+- 鉴于java中数组用来存储数据的局限性 我们*通常使用List代替数组*
+- 所以我们通常把 List接口 称之为 *动态数组*
+<!-- 
+  原来数组的长度是固定的 以前造数组的时候 要先告诉它数组有多长 而
+  List是不用关心数组的长度 它会动态的帮我们去变换 避开了角标越界的异常
+ -->
 
+> List接口的特点
+- List集合类中*元素有序，且可重复* 集合中的每个元素都有其对应的顺序索引
+
+- List容器中的元素都对应一个整数型的序号记载其在容器中的位置 可以根据序号存储容器中的元素
+
+
+> List常用的实现类
+- jdk api中*List接口的实现类常用的有*: 
+    ArrayList LinkedList Vector
+
+
+> 对比 ArrayList LinkedList Vector
+- 面试题 ArrayList LinkedList Vector 三者的异同
+- 相同点:
+- 三个类都实现了List接口 存储的特点相同 元素有序，且可重复的数据
+
+- 异同点:
+
+> ArrayList
+- 作为List接口的主要实现类
+- 也就是说没有特殊需求的话 只是用来替换数组 我们默认就new ArrayList就可以
+
+- 线程:
+- ArrayList执行效率比较高(线程不安全)
+
+- 底层:
+- ArrayList底层使用 Object[] elementData 进行存储(这点和Vector一样)
+<!-- 
+  说用ArrayList替换数组 其实就是对数组进行的一层封装
+  数据仍然存在数组当中
+ -->
+
+
+> LinkedList
+- 作用
+- 它跟ArrayList的区别就是底层结构的不同
+
+- 底层
+- 底层使用双向链表存储
+<!-- 
+  ArrayList是顺序存储的数组 LinkedList是链表
+
+  原码：
+  transient Node first; 记录链表结构中前一个元素
+  transient Node last;  记录链表结构中后一个元素
+ -->
+```java
+private static Node<E> {
+  E item;
+  Node<E> next;
+  Node<E> prev;
+
+  Node(Node<E> prev, E element, Node<E> next) {
+    this.item = element
+    this.next = next;
+    this.prev = prev;
+  }
+}
+
+- 双向链表内部没有声明数组 而是定义了Node类型的first和last用于记录首末元素 同时定义内部类Node
+- 作为LinkedList中保存数据的基本结构 Node除了保存数据 还定义了两个变量
+
+- prev变量记录前一个元素的位置
+- next变量记录后一个元素的位置
+```
+
+- 场景
+- 对于频繁的插入和删除操作的时候 我们使用此类的效率比ArrayList高
+
+- 数组和链表的区别
+- 使用链表存储和数组存储表现出来的特点就不同了
+<!-- 
+  数组的存储
+  □ □ □ □ □ □ □ □
+
+  删除
+  当我们要删除其中的一个元素的时候 也必须是后一个替换前一个
+  比如我们现在使用ArrayList装了1万条数据 现在我们要删掉第3条 这个效率想想
+
+  插入
+  当我们要插入一个元素的时候 后面的元素要依次往后移动(先移最后一个) 把位置空出来 然后插入元素 比如再有1万条
+
+  ---
+
+  双向链表
+
+  一个元素分3个部分 中间的部分存的是核心数据 左右两侧是前一个元素是谁 和 后一个元素是谁
+
+          一个元素
+          □  □  □
+        ↙    ↓    ↘
+前一个     核心数据   后一个
+元素是谁             元素是谁
+没有就是null
+
+         →        →
+         ←        ←
+  □ □ □     □ □ □     □ □ □
+  (1)       (2)       (3)
+
+
+  当我们想把(2)元素删掉 那就
+  把(2)的next地址给(1) 让(1)指向(3)
+  把(2)的pre地址给(3)  让(3)指向(1)
+
+  比如我们1万条数据要删除第3条 那么只跟2 4有点关系 跟其它的没有关系
+ -->
+
+
+> Vector(线程安全的 效率低)
+- 作为List接口的古老实现类(不怎么用, 老臣)
+<!-- 
+  jdk1.0时候出现的 ArrayList和LinkedList在1.2 出现的
+  而List接口也是1.2出现的 也就是说Vector比List接口出现的还要早 多老
+ -->
+
+- 线程:
+- Vector执行效率低(线程安全)
+
+- 底层
+- 底层使用Object[]进行存储(这点和ArrayList一样)
+
+----------------------------
+
+### ArrayList源码分析
+- ArrayList在jdk7 和 jdk8中稍有不同
+
+- ArrayList不管7还是8底层的存储结构是不会变的都是
+- private transient Object[] elementData;
+
+> jdk7的情况下
+- 我们看看调用ArrayList里面的方法 看看怎么进行添加 
+
+> 关注点:
+> 1. 从构造器开始的原码解析:
+> ArrayList实例化
+> ArrayList list = new ArrayList();
+- 底层传递了一个长度是10的Object[]数组 
+- Object[] elementData
+
+
+- list.add(123)
+- elementData[0] = new Integer(123)
+
+- ... 第11次
+
+- list.add(11)
+- 如果此次的添加导致底层elementData数组的容量不够 则扩容
+- 默认情况下 扩容为原来的容量的1.5倍 同时需要将原有数组中的数据复制到新的数组中
+<!-- 
+  底层不断的在进行抛弃旧的创建新的 这样一个过程
+ -->
+
+
+- 当我们调用空参构造器的时候 源码解析如下
+```java
+// 创建一个底层长度为10的Object[]数组
+public ArrayList() {
+  // 首先内部调用了 重载的构造器 传入了10
+  this(10);
+}
+
+// 传入的10会到这个构造器里面
+
+public ArrayList(int initialCapacity) {
+  super();
+
+  if (initialCapacity < 0)
+    throw new IllegalArgumentException("Illegal Capacity: "+ initialCapacity);
+
+  // 相当于创建了一个长度为10的Object[]
+  this.elementData = new Object[initialCapacity];
+}
+```
+
+- 关注add()方法源码
+```java
+// 还没有讲泛型 这里我们将E看做是Object
+public boolean add(E e) {
+  
+  /*
+    - 方法: ensureCapacityInternal()
+    - 作用: 判断数组是否需要扩容
+    - 参数: size已有的元素个数 初次add的时候会是0
+  */
+  ensureCapacityInternal(size + 1);
+    
+  // 向数组中添加元素的操作 当满了需要添加第11个数据的时候 会在ensureCapacityInternal方法中 判断后调用扩容方法grow()
+  elementData[size++] = e;
+
+  return true;
+}
+
+
+
+/*
+  - 方法: ensureCapacityInternal
+  - 作用: 用于判断数组是否需要扩容
+
+  参数就是传入了的size+1 初次add的时候就是0+1
+*/
+private void ensureCapacityInternal(int minCapacity) {
+  // 这个变量关乎快速失败机制的 我们不关心
+  modCount++;
+
+  // 我们将传入的size和本身的底层数组长度相减
+  if (minCapacity - elementData.length > 0)
+
+    // 如果结果是负数 那就不需要扩容 如果是正数那就需要扩容
+    grow(minCapacity);
+}
+
+
+
+/*
+  - 方法: grow()
+  - 作用: 给数组进行扩容
+  - 参数: minCapacity
+*/
+private void grow(int minCapacity) {
+  // 首先记录本身底层数组的长度 oldCapacity旧的容纳能力
+  int oldCapacity = elementData.length;
+
+  // 新的容纳能力 = 旧的容纳能力 + 旧的容纳能力的一半
+  // 默认情况下 扩容原来的1.5倍
+  int newCapacity = oldCapacity + (oldCapacity >> 1);
+
+  // 扩容完之后发现跟实际需要的容量还是小
+  if (newCapacity - minCapacity < 0)
+    // 那我就直接拿你的容量
+    newCapacity = minCapacity;
+  
+  // 如果容量超过了整型int的最大值
+  if (newCapacity - MAX_ARRAY_SIZE > 0)
+    // 那就取整型的最大值
+    newCapacity = hugeCapacity(minCapacity);
+
+  // 扩容完之后还要将原有数组中的数据copy到新数组中
+  elementData = Arrays.copyOf(elementData, newCapacity);
+}
+
+```
+
+
+> 结论
+- 在开发过程当中基本确定ArrayList中要放多少数据 我们就尽量不要使用空参的构造器
+- 建议开发中使用带参的构造器
+
+> 当知道大致的数据长度的时候 请指定容器长度
+> ArrayList list = new ArrayList(int capacity)
+- 这样可以直接指定容器的长度 会避免在中间的环节去扩容
+
+```java
+// 源码
+public ArrayList(int initialCapacity) {
+  super();
+  if (initialCapacity < 0)
+      throw new IllegalArgumentException("Illegal Capacity: "+ initialCapacity);
+  this.elementData = new Object[initialCapacity];
+}
+```
+
+
+> jdk8当中ArrayList的变化
+- 当我们使用如下的方法创建 ArrayList 的时候
+- ArrayList list = new ArrayList()
+
+- 此时 底层Object[] elementData初始化为{} 意味着并没有创建长度为10的数组
+
+- list.add(123)
+- 当第一次调用add()方法的时候 底层才创建了长度为10的数组 并将数据123天假到elementData[0]的位置一样
+
+- 后续的添加和扩容操作跟jdk7一样
+
+- 上面内容相关的原码部分
+```java
+public ArrayList() {
+  /*
+    给底层数组指定了一个常量 
+
+    该常量的底层: 
+    private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {}
+
+    没有像jdk7一样在new的时候就将底层数组初始化长度为10了
+  */
+  this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
+}
+```
+
+- 上面源码我们发现在 new ArrayList() 的时候没有给底层的数组分配长度 而是个 {} 那什么时候开始赋值的呢？
+
+- 我们关注下add操作
+```java
+public boolean add(E e) {
+  // 首先确认下容量够不够 调用了ensureCapacityInternal()
+  ensureCapacityInternal(size+1);
+  elementData[size++] = e;
+  return true;
+}
+
+
+// ensureCapacityInternal()方法
+private void ensureCapacityInternal(int minCapacity) {
+  // 当我们首次调用add()方法的时候 elementData = {}
+  if(elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+    
+    /*
+      如果add()是第一次的话
+      会在minCapacity DEFAULT_CAPACITY取较大值
+
+      DEFAULT_CAPACITY常量10 
+    */
+    minCapacity = Math.max(DEFAULT_CAPACITY, minCapacity)
+  }
+
+  ensureExplicitCapacity(minCapacity)
+}
+
+
+// ensureExplicitCapacity()方法
+private void ensureExplicitCapacity(int minCapacity) {
+  modCount++;
+
+  // 如果10-0>0那么就执行扩容操作
+  if(minCapacity - elementData.length > 0) {
+    grow(minCapacity)
+  }
+}
+```
+
+> 小结:
+- jdk7的ArrayList有点像饿汉式 一开始就造好
+- jdk8的ArrayList有点像懒汉式 等需要的时候再造 好处是延迟了数组的创建过程 节省了内存
+
+----------------------------
+
+### LinkedList源码分析
+- 在数据结构当中提到数据存储 有两个典型的基本结构
+- 1. 数组 - 顺序表
+- 2. 链表
+<!-- 
+  还有树 图都是由上面的两种数据结构改造出来的
+ -->
+
+> 场景：
+- 当我们频繁的要进行插入 删除操作的话 我们使用LinkedList 反之我们使用ArrayList
+
+- 对于平时的遍历 查找 在头或者末尾添加呀 不涉及到插入删除的时候我们选择 ArrayList
+
+- 涉及到频繁的插入删除的时候我们选择 LinkedList
+<!-- 
+  如果仅仅是放进去在某个位置再取出来 我们选择ArrayList
+  因为ArrayList这个场景的效率会高一些
+
+  ArrayList造完数组通过角标直接往里放就可以了
+  LinkedList还要维护一对指针
+
+  如果我们想查找角标为10的元素 数组可以直接的定义到这里
+  而LinkedList得从第一个开始找 找到目标的元素
+ -->
+
+> 1. 从构造器开始的原码解析:
+> LinkedList实例化
+> LinkedList list = new LinkedList();
+- 内部声明了Node类型的first和last属性 默认值为null
+
+```java
+transient int size = 0;
+transient Node<E> first;
+transient Node<E> last;
+```
+- 我们能在LinkedList的源码中看到 上面的结构
+- Node类型的 first
+- Node类型的 last
+
+- Node就是它数据存储的基本单位 我们的数据都存在Node里面
+- 我们通过 LinkedList对象 调用add(数据)方法 往里放的数据 就作为Node的一部分
+- 我们添加一个数据 底层就会创建一个Node 
+
+- 我们打开Node就能看到下面这样的结构
+```java
+/*
+  这是 LinkedList 的内部类
+  该类只在 LinkedList 内部自己用
+*/
+private static class Node<E> {
+  // item 就是add(数据)方法添加进来的数据
+  E item;
+
+  // 记录当前元素的下一元素的指针
+  Node<E> next;
+  // 记录当前元素的上一元素的指针
+  Node<E> prev;
+
+  Node(Node<E> prev, E element, Node<E> next) {
+    this.item = element;
+    this.next = next;
+    this.prev = prev;
+  }
+}
+```
+
+- 开始解析:
+- LinkedList list = new LinkedList();
+
+- 当我们创建了 list对象 之后 就会有first 和 last
+```java
+// 分别记录整个链条的头 和 尾
+transient Node<E> first;
+transient Node<E> last;
+```
+
+- first 和 last 的作用:
+- first
+  想找某一个元素的时候要从头开发查找
+
+- last
+  想添加的话都要从尾部添加 
+
+
+> 2. 调用add()方法添加元素
+- 当调用list.add() 往里添加一个具体的对象的时候
+- 将123封装到Node中 创建了Node对象
+
+```java
+// 调用add()方法添加元素
+public boolean add(E e) {
+  linkLast(e);
+  return true;
+}
+
+
+// linkLast()
+/*
+  last当前的最后一个元素
+  如果我们是首次调用add方法 last就是null
+*/
+void linkLast(E e) {
+  // l成目标的最后一个元素
+  final Node<E> l = last;
+
+  /*
+    一个元素分三个部分
+    prev data next
+    
+    比如我们要添加的数据是e
+    A       B       C
+    □□□  ←  □□□  ←  □□□
+            pen
+
+    相当于把A的next给了B的p 就意味着B指向了A
+
+    如果本身是第一个元素的话
+    A
+    □□□
+    pen
+    p就是null
+  */
+  final Node<E> newNode = new Node<>(l, e, null);
+
+  // 我们要添加的就作为last出现了
+  last = newNode;
+
+  // 先是判断l是null么？ 如果l是null说明以前没有add过 那新添加的元素就是first 同时也是last 因为就自己
+  if (l == null)
+      first = newNode;
+  else
+      // 如果不是第一个元素 也就是不是null 让我成为最后一个 往后排
+      l.next = newNode;
+  size++;
+  modCount++;
+}
+```
+
+----------------------------
+
+### Vector源码分析
+- Vector和ArrayList还有别的不一样的地方的话
+- 它们的扩容方式稍微有些不同
+
+- jdk7 8中通过 Vertor() 构造器创建对象时 底层都创建了长度为10的数据
+
+- 扩容方面 
+- 默认扩容为原来的数组长度的2倍
+
+```java
+private void grow(int minCapacity) {
+  int oldCapacity = elementData.length;
+
+  // oldCapacity + oldCapacity 新的容量默认是扩容为原来的2倍
+  int newCapacity = oldCapacity + ((caoacityIncrement > 0) ? caoacityIncrement : oldCapacity);
+
+  if (newCapacity - minCapacity < 0)
+    newCapacity = minCapacity;
+  
+  if (newCapacity - MAX_ARRAY_SIZE > 0)
+    newCapacity = hugeCapacity(minCapacity);
+
+  elementData = Arrays.copyOf(elementData, newCapacity);
+}
+```
+
+> 那回到线程安全问题的时候 我们选择 ArrayList 还是 Vector？
+- 我们说过Vector是线程安全的
+- 那万一我们要处理线程的安全问题 那共享数据恰好是ArrayList 那不就的用Vector么
+
+- 实际上到那个时候我们也不愿意用vector 我们后面会说工具类Collections
+
+- 工具类中有 synchronized(ArrayList) 方法 我们把ArrayList丢进去 返回的就是线程安全的
+
+----------------------------
+
+### List接口中常用方法的测试
+- List是Collection的子接口 那Collection当中定义的15个方法(上面讲过) List中就都能用
+
+- 又因为List是有序的(Set是无序的) 所以List里面又会额外的加一些关于索引的方法
+
+- 下面我们说说List中的常用方法 这里我们还以ArrayList为例 因为它是一个比较常用的实现类
+
+```java
+// 共通代码
+ArrayList list = new ArrayList();
+list.add(123);
+list.add(456);
+list.add("AA");
+list.add(new Person("Tom", 12));
+list.add(456);
+
+System.out.println(list);
+// [123, 456, AA, Person{name='Tom', age=12}, 456]
+```
+
+> 实现类对象.add(int index, Object obj)
+- 在index位置插入元素
+
+```java
+// 在1的位置插入BB
+list.add(1, "BB");
+```
+
+
+> 实现类对象.add(int index, Collection coll)
+- 在index位置开始将coll集合的所有元素添加进来
+- 如果没有传递第一个参数 默认在默认添加
+
+- 返回值
+- boolean
+
+```java
+// 创建一个集合
+List list1 = Arrays.asList(1, 2, 3);
+
+// 将集合放进去
+list.addAll(list1);
+```
+
+
+> 实现类对象.get(int index)
+- 获取指定index位置的元素
+
+- 返回值
+- Object
+
+```java
+Object o = list.get(0);
+System.out.println(o);
+```
+
+
+> 实现类对象.indexOf(Objecct obj)
+- 返回obj在集合中首次出现的位置
+- 没有的话返回-1
+
+- 返回值
+- int
+
+```java
+int i = list.indexOf(456);
+System.out.println(i);
+```
+
+
+> 实现类对象.lastIndexOf(Objecct obj)
+- 返回obj在集合中最后出现的位置
+- 没有的话返回-1
+
+- 返回值
+- int
+
+```java
+int i = list.lastIndexOf(456);
+System.out.println(i);
+
+// [123, BB, 456, AA, Person{name='Tom', age=12}, 456, 1, 2, 3]
+// 5
+```
+
+
+> 实现类对象.remove(int index)
+- 移除指定index位置的元素 并返回此元素
+<!-- 
+  该方法是List中重载Collection中的方法
+  Collection:
+    remove(obj)
+
+  List:
+    remove(index)
+
+  所以我们在使用的时候 要小心 因为它既可以传入指定对象删除 也可以传入index 来删除
+ -->
+
+- 返回值
+- Object
+
+```java
+Object o = list.remove(0);
+System.out.println(o);    // 123
+System.out.println(list); // 没了123后的集合
+```
+
+
+> 实现类对象.set(int index, Object obj)
+- 设置指定index位置的元素为obj
+
+```java
+// 将索引为1位置上的元素 修改为CC
+list.set(1, "CC");
+System.out.println(list);
+```
+
+
+> 实现类对象.subList(int fromIndex, int toIndex)
+- 返回从fromIndex到toIndex位置的*子集合*
+- 包括开始 不包括结束
+
+- 不影响原List
+
+- 返回值
+- List
+
+```java
+List list1 = list.subList(0, 3);
+System.out.println(list1);
+```
+
+----------------------------
+
+### List部分中的常用方法的总结
+- 增
+  - add(obj)
+
+- 删
+  - remove(index / obj)
+
+- 改
+  - set(index, obj)
+
+- 查
+  - get(index)
+
+- 插
+  - add(index, obj)
+
+- 长度
+  - size()
+
+- 遍历
+  - iterator迭代器方式
+  - 增强for循环
+  - 普通循环
+
+
+> List的遍历
+```java
+// 迭代器
+Iterator iterator = list.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+
+System.out.println("*****");
+
+// 增强for
+for(Object obj: list) {
+  System.out.println(obj);
+}
+
+
+// 普通for
+for(int i=0; i<list.size(); i++) {
+  System.out.println(list.get(i));
+}
+```
+
+
+> 面试题 区分List中remove(int index) 和 remove(Object obj)
+```java
+@Test
+public void testListRemove() {
+  List list = new ArrayList();
+
+  // 以包装类存的123 是对象
+  list.add(1);
+  list.add(2);
+  list.add(3);
+  updateList(list);
+
+  sout(list)
+      // 1 2
+}
+
+private static void updateList(List list) {
+  // 考点: 删掉的是2还是3
+  // 因为remove有两个方法 我们传入2是索引 所以把3干掉了
+  list.remove(2)
+
+  // 删数据2
+  list.remove(new Integer(2));
+}
+```
+
+----------------------------
+
+### Set接口
+- Set接口是Collection的子接口 Set接口没有提供额外的方法
+
+- Set集合不允许包含相同的元素 如果试把两个相同的元素加入同一个Set集合中 则添加操作失败
+
+- Set判断两个对象是否相同不是使用 == 运算符 而是根据 equals()方法
+
+
+> Set的实现类
+  | - HashSet       实现类
+  | - LinkedHashSet 实现类
+  | - TreeSet       实现类
+
+
+> 对比 HashSet LinkedHashSet TreeSet
+
+> HashSet - 主要实现类
+- HashSet作为Set接口的主要实现类
+- 线程不安全的
+- 可以存储null值
+- 不能保证元素的排列顺序
+
+
+> LinkedHashSet - 实现类
+- 它其实是HashSet的子类
+<!-- 
+  相当于:
+  | - HashSet       
+      | - LinkedHashSet   
+ -->
+
+- 言外之意它在HashSet的基础上加了指针 
+
+- 效果:
+- 让它看上去是有序的 当我们遍历LinkedHashSet的时候 可以按照添加的顺序进行遍历
+
+
+> TreeSet - 实现类
+- 特点
+- 可以按照添加对象的指定属性 进行排序
+
+- 底层存储数据的方式是 二叉树(红黑树)
+
+- 要点:
+- 我们添加的元素必须是同一个类new的对象
+- 我们可以按照这个对象的某些属性来进行排序
+
+
+----------------------------
+
+### Set接口无序性和不可重复性的理解
+- 我们说Set存储的数据是无序的 和 不可重复的
+- 那我们怎么理解 无序性 和 不可重复性
+
+**注意:**
+- Set接口中没有额外的定义新的方法 我们使用的都是Collection中声明的方法
+<!-- 
+  List有一波自己的方法 是因为有索引
+  Set没有所有 所以它的方法都是Collection中的
+ -->
+
+
+- 共通代码:
+```java
+Set set = new HashSet();
+set.add(456);
+set.add(123);
+set.add("AA");
+set.add("CC");
+set.add(new Person("Tom", 12));
+set.add(129);
+```
+> 1. 无序性
+- 1. 无序性不等于随机性
+- 我们发现输出虽然没有按照添加顺序 但是 每次输出结果的顺序却是一样
+
+```java
+// 我们看看无序性 是输出的时候 没有按照添加的顺序么
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+
+// 输出结果 且 每次输出的顺序都是一样的 它也有一个顺序 每次都是这个顺序
+AA
+CC
+129
+456
+123
+Person{name='Tom', age=12}
+```
+
+- 在List中每一个元素 都是按照0 1 2 3 ... 的顺序放入的 这是有序
+
+- 无序性(以HashSet为例):
+- 不等于随机性 存储的数据在底层的数组中并非按照数组的索引的顺序进行添加
+- 而是根据 hashCode() 
+- hashCode() 会根据我们要添加的数据的哈希值 来决定在数组中的哪个位置 而不是一个挨一个的放
+<!-- 
+  HashSet的底层也是用数组存的 jdk7当中底层创建的数组的长度是16
+ -->
+
+    □ □ □ □ □ □
+
+
+- 然后我们添加的456 并不在第一个位置 比如可能在这
+    
+    □ □ □ □ □ □
+            ↑
+            456(根据456的哈希值决定的位置)
+
+- 然后我们添加的123 添加的位置也是随机的
+
+    □ □ □ □ □ □
+        ↑
+        123(根据123的哈希值决定的位置)
+
+- 以此类推 也就是添加时候的顺序是无序的 添加后还是在数组中 所以整个数组 还有一个顺序的
+
+
+> 2. 不可重复性
+- 我们说往set当中添加的数据是不能重复的 当我们加两个123的时候 发现后一个添加不进去
+
+- 不可重复性:
+- 保证添加的元素按照equals()判断时 不能返回true
+- 即 相同的元素只能添加一个
+<!-- 
+  当我们没有重写 equals() 和 hashCode() 方法的时候
+  添加两个对象的时候 都能添加进去 因为我们比较的是地址值
+
+  当重写equals() 和 hashCode() 方法后 我们两个一样的对象 就只能添加进去一个了
+ -->
+
+
+> HashSet中元素的添加过程
+
+
+
+
+
+
+
+
+
+
+> HashSet集合判断两个元素相等的标准
+- 两个对象通过 hashCode() 方法比较相等
+- 并且两个对象的equals()方法的返回值也相等
+
+
+**注意:**
+- 对于存放在Set容器中的对象 *对应的类一定要重写equals()和hashCode(Object obj)方法 以实现对象相等规则*
+
+- 即: "*相等的对象必须具有相等的散列码*"
 
 ----------------------------
 

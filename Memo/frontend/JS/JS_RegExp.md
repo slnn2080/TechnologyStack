@@ -731,13 +731,16 @@
       <span style="color: red">${search}</span>
     `
   }
+
+
 > replace方法 支持回调
 .replace(正则, (正则匹配的内容, 原子组1, 原子组2...) => {
   return `
     <span style="color: red">${search}</span>
   `
 }
-<!-- 
+
+```js 
   let con = prompt("请输入要检查的内容 支持正则")
   let div = document.querySelector("div")
 
@@ -747,7 +750,8 @@
       <span style="color: red">${search}</span>
     `
   })
- -->
+```
+
 
 **扩展**
 > str.replace("正则", "@")
@@ -758,14 +762,44 @@
 
 - 第一个参数的位置还支持正则
 
-> str.replace("正则", (匹配的元素) => { 每个匹配的元素都会过边回调} )
+
+> str.replace("正则", (匹配的元素, [原子组]) => { 每个匹配的元素都会过边回调} )
 - 第二个参数的位置还支持回调
-- 回调中的参数为 通过正则找到内容 回调中需要有返回值 return
-<!-- 
+- 回调中的参数为 通过正则找到内容 *回调中需要有返回值 return*
+
+- return search
+- 返回出去的是匹配到的内容
+- 如果对匹配到的内容进行修改后 会在元字符串中 将匹配到的内容改为修改后的内容
+
+```js 
   "abc".replace(/\w/g, search => {
     return "@"
   })
- -->
+```
+
+
+> 练习
+```js
+let str = "a           d  b  s   df   df   fhfg                    f                      d                  d";
+    
+console.log("之前: ", str)
+
+function spaceChange(str) {
+  let reg = / +/g
+
+  return str.replace(reg, content => {
+    if(content.length > 10) {
+      content = " "
+    }
+
+    // 相当于在回调中对匹配的内容进行加工后 返回出去 同时以修改后的内容替换了原位置的内容
+    return content
+  })
+}
+
+let res = spaceChange(str)
+console.log("之后: ", res);
+```
 
 -------------------
 
