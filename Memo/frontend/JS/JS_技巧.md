@@ -1,5 +1,28 @@
 ### Js技巧
 
+### 函数的柯里化 和 重写toString()
+```js
+function add() {
+    let args = [...arguments]
+    
+    let fn = function() {
+    args.push(...arguments)
+    return fn
+}
+    
+
+    // fn的toString方法会将接收到的所有参数做输出
+fn.toString = function() {
+    return args.reduce((pre, item) => pre + item, 0)
+}
+
+    return fn
+}
+
+console.log(add(1)(2).toString())
+    
+```
+
 ### 正则提取参数
 > 方式1
 ```js

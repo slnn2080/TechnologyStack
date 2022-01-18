@@ -5020,8 +5020,11 @@ computed: {
   当混合文件中没有 组件内部有 以组件内部的数据为主
 
 > 对于生命周期函数来说
-  没有上面的说法 混合文件中的 和 组件中的都会调用
+- 没有上面的说法 混合文件中的 和 组件中的都会调用
   -- 那是不是说 生命周期就不要写在 混合文件里面了 -- 
+
+- 同名的钩子函数将合并为一个数组 因此都将被调用
+- 另外*mixin对象的钩子*将在组件自身钩子*之前调用*
 
 
 > 使用场景
@@ -5073,6 +5076,16 @@ computed: {
   Vue.mixin(hunhe)
   Vue.mixin(hunhe2)
  -->
+
+
+> 要点:
+- 1. data
+- 每个mixin都可以拥有自己的data 每个data函数都会被调用 并将返回结果合并
+- 在数据的 property 发生冲突时，会以组件自身的数据为优先。
+
+- 2. 值为对象的选项，
+- 例如 methods、components 和 directives，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对。
+
 
 > 总结：
 - 1. 混合中的this是该组件的对象
@@ -17101,6 +17114,16 @@ setup() {
   let age = ref(18)
 
   // RefImpl {_shallow: false, dep: Set(1), __v_isRef: true, _rawValue: '张三', _value: '张三'}
+
+
+  // count接收到的是一个对象 { value: 0 }
+  const counter = ref(0)
+
+  console.log(counter) // { value: 0 }
+  console.log(counter.value) // 0
+
+  counter.value++
+  console.log(counter.value) // 1
 ```
 
 - 其中引用对象中的 value: {...} 就是响应式的数据 内部实现也是通过getter 和 setter来实现的
@@ -19010,6 +19033,66 @@ export default {
 
 ### 文档相关的知识点总结
 
+> .env.development .env.production
+- 在构建项目的时候 我们可以在根目录下面创建 *不能给他们包文件夹* 就在根目录下
+
+- .env.development 
+- .env.production 
+- .env 等文件
+<!-- 
+  | - env
+    - .env.development 
+        这是开发环境下的配置文件。
+
+    - .env.production 
+        这是生产环境下的配置文件
+
+    - .env
+        这是一些全局的属性。
+ -->
+
+- 该文件内部可以定义环境变量
+
+```js
+
+// .env.development 文件内容：
+ENV = 'development'
+VUE_APP_WS_HOST = 'wss://live.buding:8888'
+VUE_APP_BASE_API = 'https://development:8888/api/v1'
+VUE_CLI_BABEL_TRANSPILE_MODULES = true
+
+
+//.env.production 文件内容：
+ENV = 'production'
+VUE_APP_WS_HOST = 'wss://live.vuding:8888'
+VUE_APP_BASE_API = 'https://production:8888/api/v1'
+
+
+
+// .env 文件内容：
+NODE_ENV = 'buding'
+
+// 定义全局变量必须以VUE_APP开头
+VUE_APP_TITLE = ''
+VUE_APP_URL = 'https://quanju:8888/api/v1'
+```
+
+
+
+> 模板中 :src 引入图片 的方式
+- 1. <img :src="require(`./assets/${imgName}`)" alt="">
+
+- 2. 
+```js
+data() {
+  return {
+    books: [1, 2, 3],
+    imgName: "51636690825_.pic_hd.jpg",
+    img: require("./assets/51636690825_.pic_hd.jpg")
+  }
+},
+```
+
 > 创建实例 createApp
 - 每个vue应用都是通过用 createApp 函数创建一个新的应用实例
 ```js
@@ -19040,8 +19123,6 @@ Vue.createApp({})
 - 用于注册自定义事件
 
 
-
-
 > 链式注册插件
 - import { createApp } from 'vue'
 -  createApp(App).use(store).use(router).mount('#app')
@@ -19049,3 +19130,239 @@ Vue.createApp({})
 
 > 注册全局组件
 - 通过 let app = createApp() 得到的app对象 来注册全局组件
+
+
+> 组件之间的通信 Provide / inject
+- 作用：
+- 用于组件之间 嵌套层次太深的情况下的组件之间的通信
+
+- provide
+- 父组件用来提供数据
+- 格式:
+- 1. 对象写法:
+- provide的值定义成一个对象 用于提供定义死的数据
+```js
+provide: {
+  key: value
+}
+```
+
+- 2. 函数写法:
+- 将provide写成一个函数 函数内部reture一个对象
+- 用于传递组件实例上的数据
+```js
+provide() {
+  return {
+    todoLength: this.todos.length
+  }
+},
+```
+
+- inject
+- 子组件用来接收和使用数据
+
+- 使用方式
+- 父组件: 在实例中 使用 "provide" 配置项来定义要提供的数据
+- 子组件: 在实例中 使用 "inject" 来接收数据
+
+```js
+// 父组件
+export default {
+  name: "App",
+  data() {
+    return { }
+  },
+
+  // 使用 provide 提供数据
+  provide: {
+    username: "sam"
+  }
+}
+
+// 子组件
+export default {
+  name: "Child",
+
+  // 使用inject接收数据
+  inject: ["username"],
+}
+```
+
+**注意:**
+> 1. provide的对象写法不用用于传递实例上定义的属性 会导致报错
+- `Cannot read property 'length' of undefined`
+
+```js
+data() {
+  return {
+    todos: ['Feed a cat', 'Buy tickets']
+  }
+},
+provide: {
+  // 我们传递data中的属性是不行的
+  todoLength: this.todos.length 
+},
+```
+- 上述情况要使用provide的函数形式的写法
+
+> 2. provide中定义的数据 我们通过this访问不到
+```js
+// 定义一个方法尝试方式provide中的数据
+methods: {
+  handleClick() {
+    // 未定义
+    console.log(this.username)
+  }
+},
+
+// provide定义的数据
+provide: {
+  username: "sam"
+},
+
+provide() {
+  return {
+    username: "sam",
+    num: this.books.length
+  }
+}
+```
+
+> 3. 使用provide / inject这种方式 传递的数据不是响应式的
+- 我们尝试在父组件中修改provide传递过去的值 发现子组件并没有做出响应式
+```js
+
+// 父组件
+provide() {
+  return {
+    num: this.books.length
+  }
+}
+
+
+methods: {
+handleClick() {
+  // 删除数组中的元素后 子组件并没有做出相应
+  this.books.pop()
+}
+},
+
+```
+
+- 处理响应式的解决方法
+- 在上面的例子中，如果我们更改了 todos 的列表，这个变化并不会反映在 inject 的 todoLength property 中。
+- *这是因为默认情况下，provide/inject 绑定并不是响应式的*。
+
+- 我们可以通过传递一个 ref property 或 reactive 对象给 provide 来改变这种行为。
+
+- 在我们的例子中，如果我们想对祖先组件中的更改做出响应，我们需要为 provide 的 todoLength 分配一个组合式 API computed property：
+
+```js
+app.component('todo-list', {
+  // ...
+  provide() {
+    return {
+      todoLength: Vue.computed(() => this.todos.length)
+    }
+  }
+})
+
+app.component('todo-list-statistics', {
+  inject: ['todoLength'],
+  created() {
+    console.log(`Injected property: ${this.todoLength.value}`) // > 注入的 property: 5
+  }
+})
+```
+
+
+> 组合式API
+
+> setup 组件选项
+- 要点:
+- 1. setup中不要使用this 因为找不到组件实例
+- 因为setup在data computed methods等之前 比beforeCreate都早 所以没办法获取到this
+
+> 配置项setup接收两个参数
+- setup(props, context) {
+
+ }
+
+```js
+export default {
+  components: { RepositoriesFilters, RepositoriesSortBy, RepositoriesList },
+
+  // props规则的定制
+  props: {
+    user: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
+    console.log(props)
+
+    return {}
+  }
+  // 组件的“其余部分”
+}
+```
+
+> 参数 props
+- setup 函数中的 props 是响应式的，当传入新的 prop 时，它将被更新。
+```js
+export default {
+  props: {
+    title: String
+  },
+  setup(props) {
+    console.log(props.title)
+  }
+}
+```
+
+**注意:**
+- 但是，因为 *props* 是响应式的，你*不能使用 ES6 解构*，它会消除 prop 的响应性。
+
+
+- 如果需要解构 prop，可以在 setup 函数中使用 toRefs 函数来完成此操作：
+```js
+import { toRefs } from 'vue'
+
+setup(props) {
+  const { title } = toRefs(props)
+
+  console.log(title.value)
+}
+```
+
+
+> 参数 Context
+- 传递给 setup 函数的第二个参数是 context。
+- context 是一个普通 JavaScript 对象，暴露了其它可能在 setup 中有用的值：
+```js
+export default {
+  setup(props, context) {
+    // Attribute (非响应式对象，等同于 $attrs)
+    console.log(context.attrs)
+
+    // 插槽 (非响应式对象，等同于 $slots)
+    console.log(context.slots)
+
+    // 触发事件 (方法，等同于 $emit)
+    console.log(context.emit)
+
+    // 暴露公共 property (函数)
+    console.log(context.expose)
+  }
+}
+```
+
+- context 是一个普通的 JavaScript 对象，也就是说，它不是响应式的，这意味着你可以安全地对 context 使用 ES6 解构。
+```js
+export default {
+  setup(props, { attrs, slots, emit, expose }) {
+    ...
+  }
+}
+```
