@@ -16918,6 +16918,12 @@ finally 无论是否发生异常
 - ctrl + n
   - 重写 构造器等
 
+- ctrl + alt + u
+  - 查看类的继承树
+
+- control + h
+  - 查看子类
+
 ----------------------------
 
 ### java多线程篇
@@ -25028,7 +25034,7 @@ System.out.println(coll.isEmpty());   // true
 - *判断的是内容 不是地址*
 
 - 要求：
-- 向Collection接口的实现类的对象中添加数据obj时 要求obj所在类要重写equals()方法
+- 向Collection接口的实现类的对象中添加数据obj时 *要求obj所在类要重写equals()方法*
 <!-- 
   我们往形参里面放的都是obj类型 肯定都有自己所在的类
  -->
@@ -25095,6 +25101,9 @@ coll.contains(123);
 > 实现类对象.containsAll(Collection coll2)
 - 判断形参coll2集合中的所有数据是不是都存在于当前coll1集合中
 - 都在返回true 有一个不在就是false
+
+- 要求:
+- *要求obj所在类要重写equals()方法*
 
 - 返回值:
 - boolean
@@ -25221,6 +25230,10 @@ System.out.println(coll);
 > 实现类对象.removeAll(Collection coll1)
 - 从当前集合中移除coll1中所有的元素
 - 内部也调用形参所在类的equals()了
+
+- 要求:
+- *要求obj所在类要重写equals()方法*
+
 <!-- 
   移除的是 coll 和 coll1 中公有的元素
   也就是交集的元素
@@ -25239,9 +25252,12 @@ coll.removeAll(coll1)
 
 
 > 交集操作
-> 实现类对象.retainAll(Collection coll1)
+> 实现类对象.retainsAll(Collection coll1)
 - 获取当前集合和coll1集合的交集 将结果重新赋值给了coll(相当于直接修改了coll)
 - 也就是说只保留两个集合中相同的元素 删除不一样的元素
+
+- 要求:
+- *要求obj所在类要重写equals()方法*
 
 - 返回值
 - boolean
@@ -25274,6 +25290,9 @@ System.out.println(coll);   // 2
 <!-- 
   该方法内部是一个一个对象去进行比较的
  -->
+
+- 要求:
+- *要求obj所在类要重写equals()方法*
 
 - 如果右侧声明的是ArrayList(有序)的时候 那么元素的顺序在两个集合中也要相同
 
@@ -25358,7 +25377,9 @@ System.out.println(Arrays.toString(arr));
 
 
 > 数组 --> 集合
-> Arrays.asList(可变形参)
+> Arrays.asList(可变形参直接写数据就可以)
+- List arr = Arrays.asList(123， 456);
+
 - 调用Arrays类的静态方法 asList()
 - 参数是可变形参 相当于数组类型
 
@@ -25715,6 +25736,19 @@ for(String s: arr) {
     - 不会修改原有数组中的元素
 ```
 
+
+> 扩展 forEach遍历
+- 这里使用了lamda表达式 后面再讲
+```java
+Collection coll = new ArrayList();
+coll.add(123);
+coll.add(456);
+coll.add(789);
+
+// java8.0里的新特性
+coll.forEach(System.out.println);
+```
+
 ----------------------------
 
 ### List接口 - Collection子接口之一
@@ -25733,15 +25767,19 @@ for(String s: arr) {
 
 > List常用的实现类
 - jdk api中*List接口的实现类常用的有*: 
-    ArrayList LinkedList Vector
+  - ArrayList 
+  - LinkedList 
+  - Vector
 
 
 > 对比 ArrayList LinkedList Vector
-- 面试题 ArrayList LinkedList Vector 三者的异同
+- 面试题:
+- ArrayList LinkedList Vector 三者的异同
+
 - 相同点:
 - 三个类都实现了List接口 存储的特点相同 元素有序，且可重复的数据
 
-- 异同点:
+- 异同点: 如下
 
 > ArrayList
 - 作为List接口的主要实现类
@@ -25846,6 +25884,24 @@ private static Node<E> {
 
 - 底层
 - 底层使用Object[]进行存储(这点和ArrayList一样)
+
+> 扩展: Stack栈 是 Vector的子类
+- 我们点击 control+h 查看下Vector类之间的关系 我们能看到 Vector有一个子类 Stack(栈)
+
+- 栈：
+- 也是一种数据结构 它典型的特点就是*先进后出*
+- 像我们往数组里面存数据 我们想往哪个位置放元素就往哪个位置放
+
+- stack不一样 我们要放里面放入元素只能在后面放 不能往前面放
+
+- 普通的数组结构我们要删除可以删除任意位置的元素
+
+- stack不一样 我们要删除只能删除尾部的元素
+- 整体表现出来的就是先进后出的特点 相当于对原有数组更加严格的控制
+
+- stack继承vector vector底层结构是数据 stack也一样是用数组存的 只不过在数组上控制操作数组的数据 只能从尾部添加 只能从尾部删除
+
+
 
 ----------------------------
 
@@ -26462,7 +26518,7 @@ private static void updateList(List list) {
   | - TreeSet       实现类
 
 
-> 对比 HashSet LinkedHashSet TreeSet
+- 对比 HashSet LinkedHashSet TreeSet
 
 > HashSet - 主要实现类
 - HashSet作为Set接口的主要实现类
@@ -26481,7 +26537,7 @@ private static void updateList(List list) {
 
 - 言外之意它在HashSet的基础上加了指针 
 
-- 效果:
+- 特点:
 - 让它看上去是有序的 当我们遍历LinkedHashSet的时候 可以按照添加的顺序进行遍历
 
 
@@ -26679,6 +26735,7 @@ Person{name='Tom', age=12}
 
 - 不可重复性就是我们上面说的过程
 
+
 > 总结：
 - 我们向HashSet中添加元素A 首先调用元素A所在类的hashCode()方法
 - 计算元素A的哈希值 此哈希值接着通过某种算法计算出在hashSet底层数组中存放的位置 判断数组此位置上是否已经有元素
@@ -26690,7 +26747,7 @@ Person{name='Tom', age=12}
 - 如果哈希值相同 进而需要调用元素a的所在类的equals(b) 根据equals的返回值 true则添加失败 false则添加成功
 
 
-- HashSet的扩容方式:
+> HashSet的扩容方式:
 - 底层也是数组 初始容量为16 当如果使用率超过0.75 (16*0.75=12)
 - 就会扩大容量为原来的2倍(16扩容为32 依次64 128...)
 
@@ -26817,6 +26874,774 @@ public int hashCode() {
 - 也就是说 我们在hashCode()方法里面用到的属性 我们也在equals()中用一下
 
 - 反过来也一样 equals()里面的属性 在 hashCode()里面也用一下
+
+
+> HashSet的底层实现是HashMap
+- 当我们new一个 HashSet 的时候 源码中里面 其实又new了一个 HashMap
+
+- 我们向HashSet中添加数据 我们发现实际上是把数据添加到HashMap当中了
+
+- 上面我们所讲的也相当于在讲HashMap的底层实现
+
+----------------------------
+
+### LinkedHashSet的使用
+- 通用代码
+```java
+Set set = new LinkedHashSet();
+set.add(456);
+set.add(123);
+set.add("AA");
+set.add("CC");
+set.add(new Person("Tom", 12));
+set.add(new Person("Tom", 12));
+set.add(129);
+
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+- 上面我们发现 我们遍历出来的顺序和添加的顺序一样
+- 虽然遍历的顺序和添加的顺序一样 但是LinkedHashSet还是无序的
+<!-- 
+  LinkedHashSet在存储数据的时候 它是HashSet的子类存储的结构没有变
+  仍然是先有一个数组 还是利用hash值去得到在数组中的存储位置
+
+  添加的时候存放的位置不是一个挨一个放的 这就是无序性
+ -->
+
+- 它按照添加的顺序是遍历的原因是 它在原有的HashSet的基础之上 又给元素额外的提供了一对*双向链表 来记录添加的先后顺序*
+<!-- 
+  A   C   B
+  □ □ □ □ □ 
+
+  LinkedHashSet在添加元素的时候 同时 也给 ABC 添加了链表形式
+
+  prev A next
+  prev B next
+  prev C next
+
+  A是先添加进去的 null A next 而next指向 B的 prev
+
+  B和C也会有这样的关系
+ -->
+
+- 总结：
+- LinkedHashSet作为HashSet的子类 在添加数据的同时 还给每个数据维护了两个引用 记录了此数据的前一个数据和后一个数据
+
+- 目的(优点)：
+- 对于频繁的遍历操作 LinkedHashSet效率高于HashSet
+
+----------------------------
+
+### TreeSet的自然排序
+- 它可以按照对象的指定属性进行排序
+
+```java
+TreeSet set = new TreeSet();
+// 不能添加不同类的对象 失败了
+// set.add(456);
+// set.add("AA");
+// set.add(new Person("Tom", 12));
+
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+
+```
+
+- 上面我们遍历set的时候发现报错了
+- *java.lang.ClassCastException异常*
+
+- 原因：
+- 我们说TreeSet可以按照对象的指定属性进行排序 TreeSet的意义就是提供了排序 我们按照对象的指定属性来排序 那就是说指定属性大家都要有 也就是说这个对象不能是不同类造的对象
+
+- 比如上面 123 AA 一个是int型 一个是string型 不同的类型 可能就没有共同的属性了
+
+> 要点:
+- 1. 向TreeSet中添加的数据 要求是*相同类的对象*
+<!-- 只有是相同类的对象才能去比较大小 -->
+
+```java
+set.add(1);
+set.add(2);
+set.add(8);
+set.add(-4);
+set.add(99);
+
+// 遍历结果是 从小到大 排序的
+-4
+1
+2
+8
+99
+```
+
+- 2. TreeSet的两种排序方式 自然排序 和 定制排序
+- 我们向TreeSet中添加了几个对象 接下来我们要对它们进行下排序
+
+```java
+set.add(new Person("sam", 36));
+set.add(new Person("erin", 33));
+set.add(new Person("nn", 5));
+set.add(new Person("niuniu", 0));
+
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+> TreeSet的自然排序
+- 自然排序中 比较两个对象是否相同的标准为 compareTo()返回0 *不再是equals()方法*
+<!-- 
+  返回0代表一样 则表示添加不成功
+ -->
+
+- TreeSet底层结构:
+- 底层是树形结构 比34大的往右放 比34小的往左放 然后依次 比12大的往12的右侧放 比12小的往12的左侧放 
+
+- 整个是一个顺序的状态
+
+<!-- 
+          34
+      12     64
+    1   13
+ -->
+
+- TreeSet和后面要讲的TreeMap采用的红黑树的存储结构
+- 特点: 
+- 1. 有序 查询速度比list快
+- 2. 在树形结构中 不能放相同的数据(2叉树小的放左边大的放右边 没有中间)
+
+
+
+- 1. 让Person类实现Comparable接口
+```java
+public class Person implements Comparable { }
+```
+
+- 2. 重写 compareTo抽象方法 指明排序规则
+- 比如按照姓名从小到大排序
+```java
+// 重写方法 指明排序规则
+@Override
+public int compareTo(Object o) {
+  if(o instanceof Person) {
+    Person p = (Person)o;
+    return this.name.compareTo((p.name));
+  } else {
+    throw new RuntimeException("输入的类型不匹配");
+  }
+}
+```
+
+- 3. 遍历TreeSet
+```java
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+
+- 要点:
+```java
+set.add(new Person("sam", 36));
+set.add(new Person("sam", 23));
+
+set.add(new Person("erin", 33));
+set.add(new Person("nn", 5));
+set.add(new Person("niuniu", 0));
+```
+
+- 按照前面的说法 当有两个sam的时候 因为年龄不一样 所以我们都会添加成功
+
+- 但实际上 我们只添加了一个sam的对象 也就是说 我们按照compareTo方法比较 发现它们是一样的 相当于在重写的compareTo方法中return了一个0
+
+> 总结：
+- 在TreeSet中判断两个元素是否相同 不再是equals()
+- 而是按照 compareTo 的标准去比较 如果返回0 就认为一样 就不会添加成功
+<!-- 
+  上面我们只在重写方法中比较了name 所以两个sam对象一样
+ -->
+
+- 如果我们希望下述情况下的sam对象也进来 *就要指定二级排序* 先看name是不是一样的
+```java
+set.add(new Person("sam", 36));
+set.add(new Person("sam", 23));
+
+@Override
+public int compareTo(Object o) {
+  if(o instanceof Person) {
+    Person p = (Person)o;
+
+    // 获取比较结果 0是一样
+    int compare = this.name.compareTo((p.name));
+    // 如果不等于0 就将name的排序结果返回
+    if(compare != 0) {
+      return compare;
+      // 如果等于0 则比较年龄
+    } else {
+      return Integer.compare(this.age, p.age);
+    }
+  } else {
+    throw new RuntimeException("输入的类型不匹配");
+  }
+}
+
+```
+
+----------------------------
+
+### TreeSet的定制排序
+- 定制排序要跟Comparator接口相关
+
+> TreeSet的自然排序
+- 在定制排序中 比较两个对象是否相同的标准为 compare()方法 不再是equals()
+<!-- 
+  添加数据如此
+  调用remove contains等方法也是一样 根据compare()等方法来做判断
+ -->
+
+> 步骤:
+- 1. 创建 Comparator 对象 并重写compare方法 并指定排序规则
+
+- 2. 将 com对象 new TreeSet(com); 构造器中
+```java
+@Test
+public void test1() {
+  // 创建 Comparator 对象 按照年龄从小到大
+  Comparator com = new Comparator() {
+    @Override
+      public int compare(Object o1, Object o2) {
+        if(o1 instanceof Person && o2 instanceof Person) {
+          Person p1 = (Person) o1;
+          Person p2 = (Person) o2;
+
+          return Integer.compare(p1.getAge(), p2.getAge());
+        } else {
+          throw new RuntimeException("输入的数据类型不匹配");
+        }
+      }
+  };
+
+  // 如果不加参数会按照自然排序的方式 如果加上Comparator对象的参数了 就按照Comparator的排序规则来
+  TreeSet set = new TreeSet(com);
+
+  set.add(new Person("sam", 36));
+  set.add(new Person("erin", 33));
+  set.add(new Person("nn", 5));
+  set.add(new Person("niuniu", 0));
+
+  Iterator iterator = set.iterator();
+  while(iterator.hasNext()) {
+    System.out.println(iterator.next());
+  }
+}
+```
+
+----------------------------
+
+### 阶段性总结
+> 1. 集合Collection中存储的如果是自定义类的对象 需要自定义重写哪个方法？
+
+- 回答：
+- equals()
+  - 原因 contais remove retainsAll等方法 需要判断指定元素 所以要重写equals
+
+  - 另外因为collection没有提供直接的实现类 我们主要讲的是list和set的实现类
+
+- 如下我们会发现List和Set都需要重写equals()所以说Collection都需要重写equals
+
+- List: 
+  - list实现类也需要重写equals()
+  - 虽说list可以放入重复的数据 比如add的时候没有校验放入的数据是否相等 但是remove contains等方法的时候就需要用到equals()了
+
+- Set:
+  - HashSet LinkedHashSet
+  - 需要重写两个方法 equals() 和 hashCode()
+
+  - TreeSet
+  - 它比较特别 它不用去重写equals() 和 hashCode()
+  - 我们关心的是排序的时候的compare 和 compareTo
+
+----------------------------
+
+### TreeSet的练习
+- 1. 按照 name 排序
+- 2. 按照生日日期的先后顺序排序
+
+
+> 自然排序：
+
+```java
+@Test
+public void test() {
+  // TreeSet 并往里面添加5个对象
+  TreeSet set = new TreeSet();
+  Employee e1 = new Employee("sam", 33, new MyDate(1985, 10, 2));
+  Employee e2 = new Employee("erin", 32, new MyDate(1986, 10, 22));
+  Employee e3 = new Employee("nn", 5, new MyDate(2016, 10, 1));
+  Employee e4 = new Employee("laoye", 55, new MyDate(1975, 10, 12));
+  set.add(e1);
+  set.add(e2);
+  set.add(e3);
+  set.add(e4);
+
+  // TreeSet在存储数据的时候 因为它是红黑树所以要知道存储的对象谁大谁小 好放左右两边 如果直接存储执行 会报错 所以我们必须要重写CompareTo方法
+
+  // 要重写compareTo方法!!!
+
+  // 遍历
+  Iterator iterator = set.iterator();
+  while(iterator.hasNext()) {
+    System.out.println(iterator.next());
+  }
+}
+
+
+
+// Empolyee类要重写 compareTo方法
+@Override
+public int compareTo(Object o) {
+  if(o instanceof Employee) {
+    Employee e = (Employee) o;
+    return this.name.compareTo(e.getName());
+  } else {
+    throw new RuntimeException("传入的参数格式不符合");
+    // return 0 也可以 就意味这条数据加不进来
+  }
+}
+
+// 如果我们写的是中文的话 默认是按照utf-8编码集来计算谁大谁小
+```
+
+
+> 按照生日排序
+```java
+@Test
+public void test() {
+
+  Comparator com = new Comparator() {
+    @Override
+    public int compare(Object o1, Object o2) {
+      if(o1 instanceof Employee && o2 instanceof Employee) {
+        Employee e1 = (Employee) o1;
+        Employee e2 = (Employee) o2;
+
+        // 数小的就小 先看年 年一样再看月 月一样再看日
+        MyDate b1 = e1.getBirthday();
+        MyDate b2 = e2.getBirthday();
+
+        // 先比较年
+        int minusYear = b1.getYear() - b2.getYear();
+        if(minusYear != 0) {
+          // 说明年不一样 那么得到的结果不是正数就是负数 直接return
+          return minusYear;
+        }
+        // 比较月
+        int minusMonth = b1.getMonth() - b2.getMonth();
+        if(minusMonth != 0) {
+          return minusMonth;
+        }
+
+        // 直接return日就可以了
+        return b1.getDay() - b2.getDay();
+
+      } else {
+        return 0;
+      }
+    }
+  };
+
+  // TreeSet 并往里面添加5个对象
+  TreeSet set = new TreeSet(com);
+  Employee e1 = new Employee("sam", 33, new MyDate(1985, 10, 2));
+  Employee e2 = new Employee("erin", 32, new MyDate(1986, 10, 22));
+  Employee e3 = new Employee("nn", 5, new MyDate(2016, 10, 1));
+  Employee e4 = new Employee("laoye", 55, new MyDate(1975, 10, 12));
+  set.add(e1);
+  set.add(e2);
+  set.add(e3);
+  set.add(e4);
+
+  // TreeSet在存储数据的时候 因为它是红黑树所以要知道存储的对象谁大谁小 好放左右两边 如果直接存储执行 会报错 所以我们必须要重写CompareTo方法
+  // 要重写compareTo方法
+
+  // 遍历
+  Iterator iterator = set.iterator();
+  while(iterator.hasNext()) {
+    System.out.println(iterator.next());
+  }
+}
+```
+----------------------------
+
+### Set面试题
+> 1. 在List内去除重复数字值 要求尽量简单
+- 比如 list 里面可能存了10000条数据
+- 现在我们要让list中相同的数据留一个
+
+- 这里我们使用set来过滤
+
+```java
+public static List duplicateList(List list) {
+  HashSet set = new HashSet();
+  set.addAll(list);
+  return new ArrayList(set);
+}
+
+public static void main(String[] args) {
+  // 1. 创建了一个list 添加了很多的数据
+  List list = new ArrayList();
+  list.add(new Integer(1));
+  list.add(new Integer(2));
+  list.add(new Integer(2));
+  list.add(new Integer(4));
+  list.add(new Integer(4));
+
+  // 2. 然后我们创建了一个set 把list放入里面 这样重复的数据就添加不进去了
+  List list2 = duplicateList(list);
+
+  // 遍历
+  for(Object integer: list2) {
+    System.out.println(integer);
+  }
+}
+```
+
+
+> 2. 看下方的输出是什么？
+```java
+HashSet set = new HashSet();
+Person p1 = new Person(1001, "AA");
+Person p2 = new Person(1002, "BB");
+
+set.add(p1);
+set.add(p2);
+System.out.println(set);
+    // new Person(1001, "AA");
+    // new Person(1002, "CC");
+
+
+p1.name = "CC";
+set.remove(p1);
+System.out.println(set);
+    // new Person(1001, "CC");
+    // new Person(1002, "BB");
+- p1 p2在数组中的位置 是根据两个对象中的属性计算哈希值得到的
+
+    p1    p2
+    □ □ □ □ □ □ 
+    c     b
+
+- 然后set.remove(p1) 首先我们还是能找到p1的位置 但是里面的属性时 1001 CC 了 然后在set中remove 需要先判断有没有 
+
+- 判断有没有 它要先看哈希值 所以它会先看1001 CC 的哈希值 然后通过一种算法计算哈希值 得到数据中的一个位置
+
+- 然后得到的位置不是p1原来的位置 因为p1的位置是按照1001 AA计算出来的 它找就找到另外的位置了
+
+set.add(new Person(1001, "CC"));
+System.out.println(set);
+    // new Person(1002, "BB");
+    // new Person(1001, "CC");
+    // new Person(1001, "CC");
+
+- 这时候我们是拿1001 CC来计算位置 这个位置上是空的 空的就添加进去了
+
+
+set.add(new Person(1001, "AA"));
+System.out.println(set);
+    // new Person(1002, "BB");
+    // new Person(1001, "CC");
+    // new Person(1001, "CC");
+    // new Person(1001, "AA");
+
+- 能加进去 先计算哈希值得到的p1的位置 equals()发现内容不一样 所以还是能加进去的
+```
+
+> 总结:
+- 对于HashSet一定是先hashCode然后再equals
+- 跟List不一样
+
+----------------------------
+
+### Map接口
+- 它是并列与Collection(单列数据)的一个接口 用来存储双列数据
+- 存储key-value对的数据
+
+<!-- 
+                  Map
+
+  (实现类)       (实现类)         (Map子类口)
+  Hashtable     HashMap         SortedMap
+
+  (实现类)       (实现类)         (先实现SortedMap接口)
+  Properites    LinkedHashMap   TreeMap(实现类)
+ -->
+
+> 结构
+    | -- Map
+        | -- HashMap
+            | -- LinkedHashMap
+        | -- TreeMap
+        | -- Hashtable
+            | -- Properites
+
+
+> Map的实现类
+- HashMap(*主要实现类*)
+<!-- 没有特殊情况我们就使用HashMap -->
+- LinkedHashMap
+
+- TreeMap(先实现SortedMap接口 SortedMap又是Map的子类口)
+
+- Hashtable(*古老的实现类*)
+- Properites
+
+
+> HashMap 和 Hashtable
+- 它们之间的关系有些像ArrayList和Vecter 
+
+
+> 简介
+- 在jdk1.0的时候开始出现的 用来存储键值对类型的数据 在jdk1.2的时候不想用了 此时出现了Map接口 用Map接口来规范存储键值对特点的数据 然后提供了Map接口的主要实现类HashMap 同时存储有序的键值对有了TreeMap(如果不需要有序通常都用HashMap)
+
+- 然后我们在遍历操作的时候发现HashMap的效率稍微低一些 于是在jdk1.4的时候出现了LinkedHashMap
+
+- 在jdk1.2之后Hashtable就不怎么用了 原因还是在于同步的问题
+- HashMap线程不安全 但是效率高
+- Hashtable线程安全 但是效率低
+
+
+> HashMap 和 Hashtable 对比
+- HashMap:
+- 可以存储null的key和value
+<!-- key是null或者是value是null都是ok的 -->
+
+- Hashtable:
+- 是不能存储null的key和value
+- 会报NullPointerException异常
+<!-- 
+  基于这点 它的健壮性不太好 比如 用户没有填入key value的值 我们可以认为是个null
+
+  null的时候往Hashtable当中放不进去
+  比如注册表单 我们会输入很多的表单项 我们点击按钮数据就会保存在map当中
+
+  map中的保存形式是:
+  username: xxx
+  password: yyy
+
+  当用户没有填写的时候 后台拿到的就是null值 如果我们往hashtable里面放 就会报空指针异常的信息
+-->
+
+```java
+HashMap map = new HashMap();
+// 往Map中添加数据的方法 实现类对象.put(key, value)
+map.put(null, null);
+
+Hashtable hashtable = new Hashtable();
+// 在Hashtable上put null的key value的时候会报异常的错误
+hashtable.put(null, null);
+```
+
+- 底层：
+- HashMap的底层
+  - (jdk7之前): 数组+链表
+  - (jdk8): 数组+链表+红黑树
+
+ 
+> LinkedHashMap
+- 它是HashMap的子类 在原有的基础上加了一对指针 形成了链表结构
+
+- 特点：
+- 保证在遍历map元素时 可以按照添加的顺序实现遍历 原因 在原有的HashMap底层结构基础上 添加了一对指针 指向前一个和后一个元素
+
+- 场景：
+- 对于频繁的遍历操作 此类执行效率高于HashMap 也就是当有频繁的遍历操作的时候 我们使用LinkedHashMap
+
+
+> TreeMap
+- 保证按照添加的key-value进行排序 实现排序遍历
+
+- 注意:
+- TreeMap是按照key来排序的 所以我们要考虑key的自然排序或者定制排序
+
+- 底层:
+- 使用的是红黑树
+
+- 使用的场景有限
+
+
+> Properites
+- 常用来处理配置文件 它作为 Hashtable 的子类
+- 它的key 和 value都是String类型
+
+
+> 面试题
+- 1. HashMap的底层的实现原理
+- 2. HashMap和Hashtable的异同
+- 3. CurrentHashMap和Hashtable的异同(暂时不讲)
+<!-- 
+  在多线程访问Map的时候 HashMap是线程不安全的 Hashtable是线程安全的
+
+  这时候我们有很多个线程要访问Map 不管怎么处理线程安全问题都是同步机制 也就是说在同步代码块中 是一个单线程的问题
+
+  多导致多线程操作共享数据的时候效率偏差 为了在高并发的场景下 操作Map的执行效率更高 这就引入了一个新的结构 CurrentHashMap
+
+  它能实现分段锁的技术
+
+  原来是
+
+  ↓  ↓  ↓  ↓  ↓  ↓  
+  -----------------
+        ↓
+  -----------------
+
+
+  现在是
+
+  ↓  ↓  ↓  ↓  ↓  ↓  
+  -----------------
+        ↓
+  -----------------
+
+      ↙     ↓     ↘
+
+  ----    ----    ----
+
+  ----    ----    ----
+
+  这样实现了类似于同一时间段多个线程都在进行操作共享数据
+ -->
+
+----------------------------
+
+### Map中存储的key-value的特点 (Map结构的理解)
+-  我们往Map里面put了4个键值对
+- 比如key是学生 右侧是成绩
+- 我们发现不同的学生是可以考相同的分数的 言外之意value是可以重复的 为了保证效率高 key不能重复且无序的
+<!-- 
+  双列数据
+
+      key         value
+    -------      -------
+      AA            90
+      BB            90      Entry对象
+      CC            56
+      DD            78
+
+  key的部分相当于用Set去存储
+    用set存保证所有的key无序
+
+  value是可以重复的 也是无序的 相当于用Collection存的
+    因为key是无序的 key对应着一个value
+ -->
+
+- 当我们往Map中put数据的时候 我们前面说是双列数据
+- 但是我们往Map中放的数据还是一个一个的
+
+- 比如上面我们就往Map中放个4个元素 每一个元素我们可以叫做一个Entry 而每一个Entry当中有两个属性
+
+- 一个叫做key
+- 一个叫做value
+
+- 而我们put的时候 put的都是一个个的entry 也就是我们在put key value的时候 在源码中 会帮我们把key value装成一个entry
+
+
+> Entry的特点
+- 1. 无序的
+- 2. 不可重复
+- Entry可以理解为用Set来承装
+
+
+> Map的结构的理解
+- Map中的key: 无序的 不可重复的 使用Set存储所有的key
+- Map中的value: 无序的 可重复的 使用Collection存储所有的value
+
+- 一个键值对: key-value构成了一个Entry对象
+- Map中的entry: 无序的 不可重复的 使用Set存储所有的entry
+
+
+**注意:**
+- Map的结构要求 *key*所在的类要*重写equals()和hashCode()* 
+- Map的结构要求 *value*所在的类要*重写equals()* 
+<!-- 
+  这里是以hashMap为例的 如果是TreeMap的话 又涉及到了自然排序和定制排序的问题
+ -->
+
+----------------------------
+
+### HashMap的底层实现原理 (jdk7)
+> 过程讲述：
+- 1. 
+- 使用空参构造器 创建 HashMap 对象 然后看看底层做了什么事情
+- HashMap map = new HashMap();
+
+- 在实例化以后 底层创建了长度是16的一维数组 数组的类型是Entry类型的数组
+- Entry[] table
+
+
+- 2. 
+- ... 已经执行过多次put了
+- map.put("key1", "value1");
+
+- 现在我们要把key1 value1放到数组中
+- 我们要知道放在数组中的哪个位置 首先调用key1所在类的hashCode()计算key1的哈希值 此哈希值经过某种算法计算以后 得到在Entry数组中的存放位置(我们是拿Entry中的key看看存哪而已)
+
+- 如果此位置上的数据为空 k1v1就直接添加成功(实际上是entry1添加成功) -- *情况1*
+
+- 如果此位置上的数据不为空(意味着此位置上存在一个或多个数据 以链表的形式存在) 我们需要比较当前k1和以存在的一个或多个数据的这些key的哈希值
+
+- 如果key1的哈希值与已经存在的数据的哈希值都不相同 此时k1-v1就能够添加成功 -- *情况2*
+
+- 如果key1的哈希值与已经存在的数据的某一个数据(key2-value2)的哈希值相同 此时继续比较 调用key1所在类的equals()方法 把那个相同的key放入equals(key2)的参数中 比较
+
+- 如果equals返回false 意味着不一样 k1v1添加成功 -- *情况3*
+
+- 如果equals返回true  意味key是一样的 *使用value1替换相同key的value2值*
+<!-- 
+  这时候我们的put方法 相当于有修改的功能了
+
+  put ("Tom", 23)
+  put ("Tom", 45)
+
+  我们存的会是Tom 45相当于把上面的覆盖掉了
+ -->
+
+
+- 关于情况2 和 情况3
+- 情况2 和 情况3 都是数组的这个位置已经有数据了 那么就会以链表的形式来存储 就又涉及到了 谁指向谁的问题
+
+- 此时key1-value1和原来的数据链表的方式存储
+
+
+> 扩容
+- 在不断的添加的过程中 会涉及到扩容的问题 默认的扩容方式 扩容为原谅的容量的2倍 并将原有的数据复制过来
+
+
+----------------------------
+
+### HashMap的底层实现原理 (jdk8)
+- 讲述:
+- jdk8相较于jdk7在底层实现方面的不同：
+- 1. 
+- new HashMap();
+- jdk8中底层没有创建一个长度为16的数组 
+- jdk8中底层的数组是: Node[] 而非Entry[]
+
+- 2. 
+- 首次调用put()方法时 底层创建长度16的数组
+
+- 3. 
+- jdk7底层结构只有 数据 + 链表
+- jdk8底层结构只有 数据 + 链表 + 红黑树
+- 当数组的某一个索引位置上的元素以链表的形式存在的数据个数 > 8 且 当前数组的长度 > 64时 此时此索引位置上的所有数据改为使用红黑树进行存储
+- 查找的效率高 因为红黑树将结果再次的分支
 
 ----------------------------
 
