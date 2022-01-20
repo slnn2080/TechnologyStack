@@ -27621,7 +27621,7 @@ hashtable.put(null, null);
 
 
 > 扩容
-- 在不断的添加的过程中 会涉及到扩容的问题 默认的扩容方式 扩容为原谅的容量的2倍 并将原有的数据复制过来
+- 在不断的添加的过程中 会涉及到扩容的问题 当超出临界值(且要存放的位置非空)默认的扩容方式 扩容为原谅的容量的2倍 并将原有的数据复制过来
 
 
 ----------------------------
@@ -27642,6 +27642,472 @@ hashtable.put(null, null);
 - jdk8底层结构只有 数据 + 链表 + 红黑树
 - 当数组的某一个索引位置上的元素以链表的形式存在的数据个数 > 8 且 当前数组的长度 > 64时 此时此索引位置上的所有数据改为使用红黑树进行存储
 - 查找的效率高 因为红黑树将结果再次的分支
+
+----------------------------
+
+### HashMap源码分析 (jdk7)
+- HashMap在jdk7跟8当中还是有区别的 我们看看jdk7的源码分析
+
+> 面试题
+- 谈谈你对HashMap中put get方法的认知？
+- 如果了解再谈谈 HashMap 的扩容机制？
+- 默认大小是多少？
+- 什么是负载因子（或填充比）?
+- 什么是吞吐临界值 (或阈值 threshold)?
+
+- 我们先来看看常量 和 变量代表什么意思
+
+> DEFAULT_INITAL_CAPACITY:
+  - HashMap的*默认容量*: 16
+
+- MAXIMUM_CAPACITY:
+  - HashMap的最大支持容量, 2^30
+
+> DEFAULT_LOAD_FACTOR:
+  - HashMap的默认*加载因子* 默认是0.75
+  - 提前扩容的原因：
+  - 因为它不是一个挨一个放的 而通过计算哈希值计算出来的位置 可能很多都是以链表形式存的了 而数组中的位置还有可能是空的
+  - 可利用加载因子的原因就是想让数组中出现链表的情况尽量减少 
+  
+- TREEIFY_THRESHOLD:
+  - Bucket中链表长度大于该默认值 转化为红黑树 默认值是8
+
+- UNTREEIFY_THRESHOLD:
+  - Bucket中红黑树存储的Node小于该默认值 转化为链表
+
+- MIN_TREEIFY_CAPACITY:
+  - 默认值是64
+  - 桶中的Node被树化时最小的hash表容量(当桶中Node的数量大到需要变红黑树时，若hash表容量小于MIN_TREEIFY_CAPACITY时 此时应执行resize扩容操作这个MIN_TREEIFY_CAPACITY的值至少是TREEIFY_THRESHOLD的4倍)
+
+
+- table:
+  - 存储元素的数组 总是2的n次幂
+
+- entrySet:
+  - 存储具体元素的集
+
+- size:
+  - HashMap中存储的键值对的数量
+
+- modCount:
+  - HashMap扩容和结构改变的次数
+
+> threshold:
+  - 扩容的*临界值* = 容量 x 加载因子 
+
+> loadFactor:
+  - 填充因子
+  
+
+> 从空参构造器开始
+```java
+public HashMap() {
+  // 调用同类中的带参构造器
+  this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+}
+```
+- DEFAULT_INITIAL_CAPACITY:
+    - 默认的初始化容量 值为16 
+    - 它决定我们在底层创建数组的长度
+
+
+- DEFAULT_LOAD_FACTOR:
+    - 加载因子： 默认为0.75f
+
+
+> 带参构造器
+```java
+public HashMap(int initialCapacity, float loadFactor) {
+  if (initialCapacity < 0)
+    throw new IllegalArgumentException("Illegal initial capacity: " + initialCapacity);
+  if (initialCapacity > MAXIMUM_CAPACITY)
+      initialCapacity = MAXIMUM_CAPACITY;
+  if (loadFactor <= 0 || Float.isNaN(loadFactor))
+      throw new IllegalArgumentException("Illegal load factor: " + loadFactor);
+
+  ... 接下面
+}
+```
+
+- 当我们new HashMap()的时候 我们写的是new HashMap(15) 我们以为底层创建的数组的长度可能是15 但其实不是 还是16
+
+- 我们传递的15就是initialCapacity
+```java
+int capacity = 1;
+// capacity < 我们传入的15 那capacity就扩大2倍 16就比15大
+while(capacity < initialCapacity) capacity << 1;
+
+... 接下面
+```
+
+- capacity决定底层我们数组的长度 它始终都是2的几次幂的形式 如果我们制定传入15但是底层的数组的长度不一定是我们传入的数字
+
+- 接下来 我们传入的loadFactor 0.75就给了 this.loadFactor 当前对象的loadFactor 
+
+
+- loadFactor就是加载因子 默认是15 而上面的capacity是16
+```java
+// this.loadFactor就是0.75了
+this.loadFactor = loadFactor;
+
+// threshold是临界值 = 12
+// 我们传入的是15 capacity会扩至16 也就是16x0.75=12
+threshold = (int)Math.min(capacity * loadFactor, MAXIMUM_CAPACITY + 1)
+
+// 我们创建了一个entry数组 长度就是16 table就是HashMap的底层结构
+table = new Entry[capacity]
+
+useAltHashing = sun.misc.VM.isBooted() && (capacity >= Holder.ALTERNATIVE_HASHING_THRESHOLD)
+init()
+```
+
+- threshold是临界值12影响的是扩容的时候
+- 我们的数组是16 什么时候扩容呢？ 不是我们存入17的时候 而是不到16的时候就开始扩容了 我们就是拿临界值判断的 当超过临界值12的时候就开始扩容
+
+- table
+- 就是HashMap当中的底层结构 HashMap底层使用的是一个数组Entry[] table
+
+
+> put数据的时候
+```java
+// 我们要把key 和 value放到HashMap当中
+public V put(K key, V value) {
+
+  // 首先看看这个key是不是null 是null的话 也往里面放了
+  if(key = null) {
+    return putForNullKey(value)
+  }
+
+  // 计算当前key的哈希值
+  int hash = hash(key); 
+  // 上面得到了hash值 我们说经过某种算法得到元素在数组中的位置 就是indexFor() 
+  int i = indexFor(hash, table.length)
+
+  /*
+    ↑
+
+    indexFor()
+    static int indexFor(int h, int length) {
+      return h & (length-1)
+
+      - 我们前面说 哈希值 % 16 能够得到0-15之间的值
+      - 这里不是取模 而是 & 也就是 
+
+      - 哈希值 & 15
+      - 15前面都是0 后面是1111
+
+      - &符号保证上下都是1的时候结果才是1 所以只有后4位是有值的
+      - 那就是0-15之间的随机值
+
+      - 比取模的效率高 因为取模要一个劲的除这个数
+    }
+  */
+
+  // 上面得到了我们在数组中的存放位置后 我们就要关系该位置上有没有数据
+  // e = table[i] 我们取出当前table i位置上的数据
+  for(Entry<K, V> e = table[i]; e != null; e = e.next) {
+    // 如果数组的该位置上有值就会进入这个逻辑
+    Object k
+
+    // 已经在该位置的哈希值和要放进来的哈希值看看它们是不是 ==
+    // e.hash == hash
+    // 然后判断key是不是相等 或者 内容相等不相等
+    if(e.hash == hash && ((k = e.key) == key || key.equals(k))) {
+      // 7上8下 那新的value替换原有的value
+      V oldValue = e.value
+      e.value = value
+      e.recordAccess(this)
+      return oldValue
+    }
+  }
+
+  modCount++;
+  // 如果table i的位置上没有元素就可以添加成功
+  addEntry(hash, key, value, i)
+  return null
+}
+```
+
+- hash() 计算哈希值的方法
+```java
+// useAltHashing的初始值 false
+transient boolean useAltHashing; 
+
+final int hash(Object k) {
+  int h = 0;
+  if(useAltHashing) {
+    if(k instanceof String) {
+      return sun.misc.Hashing.stringHash32((String) k);
+    }
+    h = hashSeed;
+  }
+
+  // useAltHashing是false 所以会到这里
+  h ^= k.hashCode();
+
+  h ^= (h>>>20) ^ (h >>>12)
+  return h ^ (h>>>7) ^ (h>>>4)
+}
+```
+
+- addEntry(hash, key, value, i);
+```java
+void addEntry(int hash, K key, V value, int bucketIndex) {
+  // size >= 12 size是我们已经存了几个了 
+  // null != table[bucketIndex] 要放得位置是不是也有元素
+  // 我们上面说size的长度大于12就会扩容 严格上扩容的话还有一个条件 就是null != table[bucketIndex] 看看要放的位置空不空 空的话就放进去就不用扩容了 不空就扩容
+  if((size >= threshold) && (null != table[bucketIndex])) {
+
+    // 进入resize的条件是大于12 并且该位置还不空 扩容为全部table的长度x2 扩容2倍
+    resize(2 * table.length)
+    hash = (null != key) ? hash(key) : 0;
+    bucketIndex = indexFor(hash, table.length)
+  }
+
+  // 不需要扩容的话 就是直接添加
+  createEntry(hash, key, value, bucketIndex)
+}
+```
+
+- createEntry()
+```java
+void createEntry(int hash, K key, V value, int bucketIndex) {
+  // 先把原有位置上的元素取出来？
+  Entry<K, V> e = table[bucketIndex]
+  // 然后new一个新的Entry 就是我们要放的kv 把新造的Entry放在数组上 e就是数组上原有的元素 现在作为新Entry的next
+  table[bucketIndex] = new Entry<>(hash, key, value, e)
+  size++
+} 
+```
+
+- new Entry
+```java
+Entry(int h, K km V v, Entry<K, V> n) {
+  value = v
+
+  // 把原有数组上的位置上的元素 作为新Entry的next出现了 n 就是上面传递过来的e
+  next = n
+
+  key = k
+  hash = h
+}
+```
+
+----------------------------
+
+### HashMap源码分析 (jdk8)
+- 看第二遍的时候补吧
+- 后面听不懂了
+- https://www.bilibili.com/video/BV1Kb411W75N?p=553&spm_id_from=pageDriver
+
+
+- 1. 从空参构造器开始
+```java
+public HashMap() {
+  // 只是给loadFactor赋值为0.75
+  this.loadFactor = DEFAULT_LOAD_FACTOR; 
+    // all other fields defaulted
+}
+```
+
+- jdk8并没有像jdk7那样一上来就帮我们造一个数组 里面只写了一个简单的属性赋值 给加载因子赋值为0.75
+- 赋值完后没干别的 所以jdk8底层没有创建一个长度为16的数组
+
+
+- 2. 从put方法开始
+- 我们现在需要将一个kv放在HashMap里面了
+```java
+public V put(K key, V value) {
+
+  // hash(key) 算出哈希值 传入 k v 后面的两个不用关注
+  return putVal(hash(key), key, value, false, true);
+}
+```
+
+- putVal(hash(key), key, value, false, true);
+```java
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
+
+  // 首次添加kv 首先声明tab为Node类型
+  Node<K,V>[] tab; Node<K,V> p; int n, i;
+
+  // 如果不是首次添加 下面的逻辑就不用考虑了
+  // table 还没有对它进行初始化 这时候它是null 然后将 table赋值给tab 所以 null = null 成立 是true后面就不用管了
+  if ((tab = table) == null || (n = tab.length) == 0)
+
+      // true的时候 也就是当前的table是null的时候 将数组造好 也就是说首次的时候才会进入resize 如果当前的table已经有具体的数组了
+      // 将tab resize下 resize就是扩容
+      n = (tab = resize()).length;
+
+
+  // (n - 1) & hash 判断我们在新的数组当中的哪个位置 看看当前的位置上是不是null
+  if ((p = tab[i = (n - 1) & hash]) == null)
+      // 如果当前数组上的位置 也就是我们要存放的位置上是null 直接存在这里就可以了
+      tab[i] = newNode(hash, key, value, null);
+
+  // 当不是null的时候 进入eles的逻辑 不是null说明该位置上就有值
+  else {
+      Node<K,V> e; K k;
+
+      // p就是数组上的元素 看看它的哈希值和传进来的key的哈希值是不是相等 如果相等
+      if (p.hash == hash &&
+          // 如果相等就看看key是不是equals的
+          ((k = p.key) == key || (key != null && key.equals(k))))
+          // 把当前数组里面的元素存到e中
+          e = p;
+      else if (p instanceof TreeNode)
+          e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+
+      // 如果数组上的元素的哈希值和传入的key的哈希值不相等 会进入下面的逻辑
+      else {
+
+          // 如果要存放到数组中的元素的哈希值和数组中该位置上的哈希值不等 那么就看看该位置链表上的元素 
+          for (int binCount = 0; ; ++binCount) {
+              // 先取出p的next 先看看p的next是不是null 如果p的next是null 那就说明该位置就一个元素 就是p
+              if ((e = p.next) == null) {
+
+                  // 新造了一个Node 就是我们要放的kv 把我们新造的kv作为p的next 这就是7上8下的下
+                  p.next = newNode(hash, key, value, null);
+                  if (binCount >= TREEIFY_THRESHOLD - 1)
+
+                      // 当链表的长度超过8的时候 就会变成tree的结构了
+                      treeifyBin(tab, hash);
+                  break;
+              }
+
+              // 如果p的next不是null 会进入下面的逻辑
+              if (e.hash == hash &&
+                  ((k = e.key) == key || (key != null && key.equals(k))))
+                  break;
+              p = e;
+          }
+      }
+
+      // e被赋值为p了 如果我们发现要放的元素和已有的元素的哈希值是一样的 内容通过equals判断也一样 那我们就做了一个替换 因为8下
+      if (e != null) { 
+          V oldValue = e.value;
+          if (!onlyIfAbsent || oldValue == null)
+              // 将要放的value替换原有的value 替换的逻辑
+              e.value = value;
+          afterNodeAccess(e);
+          return oldValue;
+      }
+  }
+  ++modCount;
+  if (++size > threshold)
+      resize();
+  afterNodeInsertion(evict);
+  return null;
+}
+```
+
+- resize()
+- 扩容方法resize 底层造数组的事儿就是在这里面做的
+```java
+final Node<K,V>[] resize() {
+
+  // 当前的table是null
+  Node<K,V>[] oldTab = table;
+
+  // 因为开始是null oldCap就是0
+  int oldCap = (oldTab == null) ? 0 : oldTab.length;
+
+  // 临界值还没有被赋值过 所以也就是0
+  int oldThr = threshold;
+
+  int newCap, newThr = 0;
+
+  // 最开始的时候oldCap是0 所以不进去
+  if (oldCap > 0) {
+      if (oldCap >= MAXIMUM_CAPACITY) {
+          threshold = Integer.MAX_VALUE;
+          return oldTab;
+      }
+      else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+                oldCap >= DEFAULT_INITIAL_CAPACITY)
+          newThr = oldThr << 1; // double threshold
+  }
+  else if (oldThr > 0) // initial capacity was placed in threshold
+      newCap = oldThr;
+
+  // 1. 最开始的时候 都是初始化 走这里的逻辑
+  else {
+      // newCap是16了
+      newCap = DEFAULT_INITIAL_CAPACITY;
+
+      // newThr是12了 16x0.75
+      newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+  }
+
+  // newThr是12了 进不来
+  if (newThr == 0) {
+      float ft = (float)newCap * loadFactor;
+      newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
+                (int)ft : Integer.MAX_VALUE);
+  }
+
+  // 将12赋值给了threshold 临界值的赋值
+  threshold = newThr;
+
+
+  @SuppressWarnings({"rawtypes","unchecked"})
+
+  // new了一个Node 意味着数组出现了 newCap是16 造了一个长度为16的数组
+  Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+
+  // 将造好的数组给了table
+  table = newTab;
+
+  if (oldTab != null) {
+      for (int j = 0; j < oldCap; ++j) {
+          Node<K,V> e;
+          if ((e = oldTab[j]) != null) {
+              oldTab[j] = null;
+              if (e.next == null)
+                  newTab[e.hash & (newCap - 1)] = e;
+              else if (e instanceof TreeNode)
+                  ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+              else { // preserve order
+                  Node<K,V> loHead = null, loTail = null;
+                  Node<K,V> hiHead = null, hiTail = null;
+                  Node<K,V> next;
+                  do {
+                      next = e.next;
+                      if ((e.hash & oldCap) == 0) {
+                          if (loTail == null)
+                              loHead = e;
+                          else
+                              loTail.next = e;
+                          loTail = e;
+                      }
+                      else {
+                          if (hiTail == null)
+                              hiHead = e;
+                          else
+                              hiTail.next = e;
+                          hiTail = e;
+                      }
+                  } while ((e = next) != null);
+                  if (loTail != null) {
+                      loTail.next = null;
+                      newTab[j] = loHead;
+                  }
+                  if (hiTail != null) {
+                      hiTail.next = null;
+                      newTab[j + oldCap] = hiHead;
+                  }
+              }
+          }
+      }
+  }
+  return newTab;
+}
+```
+
+----------------------------
+
+### LinkedHashMap源码分析
+- 
 
 ----------------------------
 
