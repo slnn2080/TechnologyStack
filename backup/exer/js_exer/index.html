@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <style>
+    .box {
+      width: 300px;
+      height: 200px;
+      border: 1px solid black;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    span {
+      /* position: absolute;
+      bottom: 0; */
+    }
+  </style>
+</head>
+<body id="body">
+
+
+  <button>click</button>
+  <script src="js/jquery.js"></script>
+  <script>
+
+    let url = "?name=sam&age=54&na=dd"
+    
+    // let obj = {}
+    // url.match(/\w+=\w+/ig).forEach(item => {
+    //   let arr = item.split("=")
+    //   obj[arr[0]] = arr[1]
+    // })
+    
+    // let arr = []
+    // url.match(/\w+=\w+/ig).map(item => {
+    //   return arr.push(item.split("="))
+    // })
+
+    // let obj = Object.fromEntries(arr)
+    // console.log(obj);
+
+
+    // console.log(obj);
+    // console.log(res);
+
+
+    // let arr2 = [['name', 'sam']]
+    // let res = Object.fromEntries(arr2)
+    // console.log(res)
+
+
+
+    // function backDay() {
+    //   var year = prompt("请输入年份")
+    //   if(isRunYear(year)) {
+    //     alert("29day")
+    //   } else {
+    //     alert("28day")
+    //   }
+    // }
+
+    // backDay()
+
+    // function isRunYear(year) {
+    //   var flag = false
+    //   if(year%4==0 && year%100!=0 || year % 400 == 0) {
+    //     flag = true
+    //   }
+    //   return flag
+    // }
+    // console.log(0 == -1)
+    // document.removeEventListener
+
+    
+    // let btn = document.querySelector("button")
+    // btn.onclick = function() {
+
+    //   let data = {
+    //     name: "sam"
+    //   }
+
+    //   $.ajax({
+    //     url: "http://localhost:3333/login",
+    //     type: "post",
+    //     data,
+    //     success: (data) => {
+    //       console.log(data);
+    //     }
+    //   })
+      // let form = document.querySelector("#test")
+      // let formData = new FormData(form)
+      
+      // let xhr = new XMLHttpRequest()
+      // xhr.open("post", "http://localhost:3333/login")
+      // // xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+      
+      
+      // // for(values of formData.values()) {
+      // //   console.log(values)
+      // // }
+
+      // // for(key of formData.keys()) {
+      // //   console.log(key)
+      // // }
+      // let data = {
+      //   name: "nn"
+      // }
+      // xhr.send(data)
+
+      // xhr.onreadystatechange = function() {
+      //   if(xhr.readyState === 4) {
+      //     if(xhr.status >= 200 && xhr.status < 300) {
+      //       console.log(xhr.response)
+      //     }
+      //   }
+      // }
+    // }
+
+    // let date = new Date(2020, 9, 8)
+    // console.log(date);
+    // let begin = document.querySelector("#begin")
+    // let end = document.querySelector("#end")
+    // let begin2 = document.querySelector("#begin2")
+    // let end2 = document.querySelector("#end2")
+
+    // end.addEventListener("change", () => {
+    //   begin2.value = end.value
+    //   end2.value = (Number(end.value) + 2) + ""
+    // })
+
+    // let data = {
+    //   username: "xxx",
+    //   password: "xxx",
+    // }
+
+    // axios({
+    //   url: "xxx",
+    //   method: "post",
+    //   data
+    // })
+
+
+    // let num = 25080
+    // console.log(num)
+    // console.log(num.toLocaleString());
+
+    // let a = true
+    // let b = false
+    
+    // let btn = document.querySelector("button")
+    // let man = document.querySelector("[type=checkbox]")
+    
+    // let flag = a ^ b;
+    // console.log(flag)
+
+    // btn.addEventListener("click", function() {
+    //   console.log(flag);
+    //   man.setAttribute("checked", flag)
+    // })
+    
+
+
+    // let form = document.querySelector("#loginForm")
+    
+
+    // let submit = document.querySelector("#sub")
+    // form.onsubmit = function(e) {
+    //   e.preventDefault();
+    //   console.log(1)
+    // }
+
+    // let selector = document.querySelector("#selector")
+    // let body = document.querySelector("#body")
+
+    // selector.addEventListener("change", function() {
+    //   // body.style.zoom = this.value
+    //   console.log(window.devicePixelRatio);
+    //   console.log(body.style.zoom);
+    // })
+    
+
+
+// const list = [1, 2, 3]
+// const square = num => {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       resolve(num * num)
+//     }, 1000)
+//   })
+// }
+
+// function test() {
+//   return list.reduce((p, item) => {
+//     return p.then(() => {
+//       return new Promise(async resolve => {
+//         await square(item)
+//         resolve()
+//       })
+//     })
+//   }, Promise.resolve())
+// }
+// test().then((data) => {
+//   console.log(data)
+// })
+
+
+
+// const list = [1, 2, 3]
+// const square = num => {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       console.log(num * num)
+//       resolve(num * num)
+//     }, 1000)
+//   })
+// }
+
+// function test() {
+//   return list.reduce((pre, item) => {
+//     return pre.then(() => {
+//       return square(item)
+//     })
+//   }, Promise.resolve())
+// }
+// test()
+
+// let ret = list.reduce((pre, item) => {
+//   return pre.then(() => {
+//     return square(item)
+//   })
+// }, Promise.resolve())
+
+// ret.then((d) => {
+//   console.log("ok")
+// })
+
+// const square = num => {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       resolve(num * num)
+//     }, 1000)
+//   })
+// }
+
+// function square(num) {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       console.log(num * num)
+//       resolve()
+//     }, 1000)
+//   })
+// }
+
+// let ret = list.reduce((pre, item) => {
+//   return pre.then(() => {
+//     return square(item)
+//   })
+// }, Promise.resolve())
+
+// ret.then((d) => {
+//   console.log("ok")
+// })
+
+// function testPromise(time) {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       console.log(`Processing ${time}`);
+//       resolve(time);
+//     }, time);
+//   });
+// }
+
+// let result = [3000,2000,1000, 4000].reduce( (accumulatorPromise, nextID) => {
+//   return accumulatorPromise.then(() => {
+//     return testPromise(nextID);
+//   });
+// }, Promise.resolve());
+
+// result.then(e => {
+//   console.log("All Promises Resolved !!✨")
+// });
+
+
+    // class SaleCampaign {
+    //   static sale = {
+    //     "100_10": price => price -= 10,
+    //     "200_25": price => price -= 25,
+    //     "80%": price => price *= 0.8,
+    //   }
+
+    //   static add(type, fn) {
+    //     if(SaleCampaign.sale[type]) return "该折扣已存在"
+    //     SaleCampaign.sale[type] = fn
+    //     console.log("折扣添加成功")
+    //   }
+
+    //   static del(type) {
+    //     delete SaleCampaign[type]
+    //   }
+
+    //   static showCampaign() {
+    //     console.log(SaleCampaign.sale)
+    //   }
+
+    //   calc(price, type) {
+    //     if(!SaleCampaign.sale[type]) {
+    //       console.log("没有这个折扣")
+    //       return
+    //     }
+
+    //     return SaleCampaign.sale[type](price)
+    //   }
+    // }
+
+    // // SaleCampaign.add("70%", price => price *= 0.7)
+    // // SaleCampaign.showCampaign()
+    
+    // const instance = new SaleCampaign()
+    // let res = instance.calc(320, "100_10")
+    // console.log(res);
+    
+
+
+
+    // const calcPrice = (function() {
+
+    //   const sale = {
+    //     "100_10": price => price -= 10,
+    //     "200_25": price => price -= 25,
+    //     "80%": price => price *= 0.8,
+    //   }
+
+    //   function calcPrice(price, type) {
+    //     if(!sale[type]) return '没有这个折扣'
+    //     return sale[type](price)
+    //   }
+
+    //   // 把函数当做一个对象 向里面添加一些成员
+    //   // 专门添加折扣的方法 使用的时候 calcPrice.add("70%", (price) => {return price *= 0.7})
+    //   calcPrice.add = function(type, fn) {
+    //     // 判断折扣是否存在
+    //     if(sale[type]) return "该折扣已存在"
+
+    //     // 代码来到这里 表示折扣不存在 因为是闭包 数据会存在这里面
+    //     sale[type] = fn
+    //     return "添加成功"
+    //   }
+
+    //   calcPrice.del = function(type) {
+    //     // 把对应的折扣删除调
+    //     delete this[type]
+    //   }
+
+    //   return calcPrice
+    // })()
+
+    // const res = calcPrice(320, "100_10")
+    
+
+
+
+
+
+    // class Observer {
+    //   constructor() {
+    //     this.message = {}
+    //   }
+
+    //   on(type, fn) {
+    //     if(!this.message[type]) {
+    //       this.message[type] = []
+    //       // this.message[type].push(fn)
+    //     } 
+    //     // else {
+    //     //   // this.message[type] = []
+    //     //   this.message[type].push(fn)
+    //     // }
+
+    //     this.message[type].push(fn)
+    //   }
+    // }
+
+    // let o = new Observer()
+    // function fn1() {
+    //   console.log("fn1")
+    // }
+
+    // function fn2() {
+    //   console.log("fn2")
+    // }
+
+
+    // o.on("click", fn1)
+    // o.on("click", fn2)
+
+    // console.dir(o);
+
+
+
+
+    // let btn = $("button")
+    // let a = $("a")
+
+    // btn.addEventListener("click", function() {
+    //   let url = this.dataset.url
+    //   a.href = url
+    // })
+
+    // function $(el) {
+    //   return document.querySelector(el)
+    // }
+
+    
+
+
+
+    // let arr = ["test.js", "index.html", "file.ts"]
+    // arr = arr.filter(item => item.endsWith("js"))
+    // console.log(arr);
+
+
+
+    // let inp = document.querySelector("#id")
+    // inp.onchange = function(e) {
+    //   let file = e.target.files[0]
+    //   console.log(file);
+    // }
+    // // let arr = [
+    //   {id:1, name: "1"},
+    //   {id:2, name: "2"},
+    //   {id:3, name: "3"},
+    // ]
+
+    // let [item1, item2, item3] = arr
+    // let newArr = [item3, item1, item2]
+
+    // console.dir(newArr);
+    
+
+    
+    
+    
+    
+    
+    
+    // console.log(item1, item2, item3);
+    // arr = [item1, item3, item2]
+    // console.log(arr);
+
+    /**
+     * @id: 根据id找出要移动的元素
+     * @delIndex: 将要 要移动的元素删除
+     * @targetIndex: 将目标元素 移动到哪个元素的前面
+     * @arr: 要操作的数组
+    */
+    // function changeEl(id, delIndex, targetIndex, arr) {
+    //   let obj = arr.find((item) => {
+    //     return item.id == id
+    //   })
+
+    //   arr.splice(delIndex, 1)
+    //   arr.splice(1, 0, obj)
+    //   return arr
+    // }
+
+    // changeEl(3, 2, 1, arr)
+    // console.table(arr);
+    
+  </script>
+</body>
+</html>

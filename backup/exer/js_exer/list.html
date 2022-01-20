@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    html {
+      perspective: 800px;
+    }
+
+    .circle {
+      width: 200px;
+      height: 200px;
+      background-color: gold;
+
+      transform-style: preserve-3d;
+      transition: 3s all;
+    }
+
+    
+    div > a {
+      color: red;
+    }
+
+    .active {
+      width: 200px;
+      height: 40px;
+      border: none;
+      outline: none;
+      border-radius: 5px;
+      background: rgb(238,174,202);
+      background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(216,177,210,1) 86%, rgba(183,182,221,1) 100%, rgba(148,187,233,1) 100%);
+    } 
+  </style>
+</head>
+<body>
+  <table>
+    <tbody >
+      <tr>
+        <td>
+          书名
+        </td>
+        <td>
+          价格
+        </td>
+        <td>
+          数量
+        </td>
+        <td>
+           统计
+        </td>
+      </tr>
+      <tr>
+        <td>
+          js
+        </td>
+        <td>
+          200
+        </td>
+        <td class="count">
+          0
+        </td>
+        <td class="price">
+           200
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+
+    let message = {}
+
+    function test(type, fn) {
+      if(message[type]) {
+        message[type].push(fn)
+      } else {
+        console.log(1)
+        message[type] = []
+        console.log(message)
+      }
+
+      // if(!message[type]) {
+      //   message[type] = []
+      // } 
+
+      // message[type].push(fn)
+    }
+
+    test("click", test2)
+    // test("click", test3)
+
+    function test3() {
+      console.log("test")
+    }
+
+    function test2() {
+      console.log("test2");
+    }
+
+    // // 观察者构造函数
+    // class Observer {
+
+    //   // name 观察者的身份, fn技能 默认这为空函数 不至于调用的时候报错
+    //   constructor(name, fn = () => {}) {
+    //     this.name = name
+    //     this.fn = fn
+    //   }
+    // }
+  
+    // // 创建一个观察者
+    // const bzr = new Observer("班主任", (state) => {
+    //   console.log("因为" + state + "把你爸找来")
+    // })
+
+    // // 创建被观察者
+    // /*
+    //   观察者需要什么
+    //   1. 属性 和 自己的状态 自己的状态改变后需要触发技能
+    //   2. 队列 记录都有谁观察着自己 比如观察我的只有班主任一个 那么状态改变的时候只触发班主任的技能 数组对象
+    //   3. 方法 能设置自己的状态 当我需要改变的时候 要触发这个方法改变状态 状态一旦改变就会触发技能
+    //   4. 方法 添加观察者 队列是空的 需要让队列里面添加谁在观察着我们
+    //   5. 方法 删除观察者 不再观察我们了 我们改变状态就不会触发观察者的事件
+    // */
+    // class Subject {
+    //   constructor(state) {
+    //     // 记录自己的状态
+    //     this.state = state
+
+    //     // 这个数组用来保存观察着我们的人
+    //     this.observers = []
+    //   }
+
+    //   // 设置自己的状态
+    //   setState(state) {
+    //     this.state = state
+
+    //     // 一旦状态改变 那么我们就触发所有观察者的技能 遍历this.oobservers 依次触发技能
+    //     this.observers.forEach(item => {
+
+    //       // 并且把我改变的状态传回去 告诉他我改变了什么状态
+    //       item.fn(this.state)
+    //     })
+    //   }
+
+    //   // 添加观察者
+    //   addObserver(obs) {
+    //     // some只要有一个是true就返回true
+    //     const res = this.observers.some(item => item == obs)
+    //     if(!res) {
+    //       this.observers.push(obs)
+    //     }
+    //   }
+
+    //   delObservere(obs) {
+    //     // 把obs观察者删除就可以了
+    //     this.observers = this.observers.filter(item => item !== obs)
+    //   }
+    // }
+
+    // const sam = new Subject("我正在学习")
+    // console.dir(s);
+
+    // // 给sam添加一个观察者
+    // // 班主任有一个技能 一但我们改变状态的时候 就触发班主任的技能
+    // sam.addObserver(bzr)
+
+
+      // class Person {
+      //   static instance = new Person()
+      //   static createInstance() {
+      //     return Person.instance
+      //   }
+      // }
+
+      // const p1 = Person.createInstance()
+      // const p2 = Person.createInstance()
+
+      // console.log(p1 == p2)
+
+
+
+
+
+      
+    // let div = document.createElement("button")
+    // div.innerHTML = "click"
+    // div.setAttribute("class", "active")
+    // document.body.appendChild(div)
+
+    // const once = (() => {
+    //   let instance = null
+    //   return (fn) => {
+    //     if(!instance) {
+    //       instance = fn
+    //       return instance
+    //     }
+    //   }
+    // })()
+
+    // let fn = once(() => {
+    //   console.log("我被触发了")
+    //   console.log(123)
+    // })
+
+
+    // const once = (fn, ...name) => {
+    //   let flag = true
+      
+    //   return () => {
+    //     if(flag) {
+    //       flag = false
+    //       fn.apply(this, name)
+    //     }
+    //   }
+    // }
+
+    // let fn = (name) => {
+    //   console.log(name)
+    // }
+    // btn.onclick = once(fn, "sam")
+
+
+    // const doSomeing = (args) => {
+    //   console.log("学习 == 养家", args)
+    // }
+
+    // function once(fn, ...args) {
+    //   let flag = true
+
+    //   return () => {
+    //     if(flag) {
+    //       flag = false
+    //       fn.apply(this, args)
+    //     }
+    //   }
+    // }
+
+    // btn.onclick = once(doSomeing, "加油 你现在唯有学习")
+
+
+
+    // const once = (fn) => {
+    //   let flag = true
+    //   return () => {
+    //     let res;
+    //     if(flag) {
+    //       flag = false
+    //       res = fn
+    //     }
+
+    //     return res
+    //   }
+    // }
+
+    // let testFn = () => {
+    //   console.log(123)
+    // }
+
+    // function once(fn) {
+    //   let flag = true
+    //   let res;
+    //   return () => {
+    //     if(flag) {
+    //       flag = false
+    //       res = fn
+    //     }
+
+    //     return res
+    //   }
+    // }
+
+    // let fun = once(testFn)
+    // let ret = fun()
+    // ret()
+  </script>
+</body>
+</html>

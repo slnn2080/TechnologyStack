@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./css/swiper.min.css">
+  <title>Document</title>
+
+  <style>
+
+    
+    .swiper-wrapper {
+      width: 100%;
+      height: 400px;
+    }
+
+    .swiper-slide img {
+      width: 100%;
+      height: auto;
+    }
+
+    .test {
+      color: red;
+    }
+
+    .swiper-pagination-bullet {
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="swiper-container">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide">
+        <img src="./images/nature-1.jpg" alt="">
+      </div>
+      <div class="swiper-slide">
+        <img src="./images/nature-2.jpg" alt="">
+      </div>
+      <div class="swiper-slide">
+        <img src="./images/nature-3.jpg" alt="">
+      </div>
+    </div>
+    <!-- 如果需要分页器 -->
+    <div class="swiper-pagination"></div>
+    
+    <!-- 如果需要导航按钮 -->
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+    
+    <!-- 如果需要滚动条 -->
+    <div class="swiper-scrollbar"></div>
+  </div>
+  <script src="js/swiper.min.js"></script>
+  <script>
+    var mySwiper = new Swiper ('.swiper-container', {
+
+      pagination: {
+        // el指定分页器的容器
+        el: ".swiper-pagination",
+      }
+    })        
+  </script>
+</body>
+</html>

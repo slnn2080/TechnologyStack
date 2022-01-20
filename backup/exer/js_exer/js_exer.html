@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        * {
+            padding:0;
+            margin: 0;
+        }
+
+        .wrap {
+            /* background: url(./img/51636690825_.pic_hd.jpg) no-repeat top center; */
+            background-size: contain;
+            /* height: 1000px; */
+        }
+
+        /* .content {
+            max-width: 800px;
+            padding: 24px;
+            box-sizing: border-box;
+            background-color: pink;
+            margin: 0 auto;
+        }
+
+        .line {
+            width:800px;
+            height:2px;
+            background-color: black;
+        }
+
+        .item {
+            background-color: blueviolet;
+        }
+
+        .item h3 {
+            font-size:20px;
+            text-align: center;
+            padding: 5px 10px;
+            background-color: aqua;
+        }
+
+        .item .img-wrap{
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .item .test {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .item .img-wrap {
+            order: 1
+        }
+
+        .item .img-wrap img {
+            width: 100%;
+            height: auto;
+            vertical-align: bottom;
+        }
+
+        .title-area {
+            background-color: #eee;
+            margin-top: 100px;
+        }
+
+        h3 {
+            text-align: center;
+            display: flex;
+            align-items: center;
+        }
+
+        h3 span {
+            padding: 0 20px;
+        }
+        h3::before {
+            content:"";
+            width: 100%;
+            height: 1px;
+            background-color: black;
+            display: block;
+        }
+        h3::after {
+            content:"";
+            width: 100%;
+            height: 1px;
+            background-color: pink;
+            display: block;
+        }
+
+        @media (min-width: 600px) {
+            
+        }
+
+        .line-test {
+            display: flex;
+            position: relative;
+            background: linear-gradient(rgba(236, 201, 144, 0) 0%, #cba571 47.29%, #ba9260 77.34%, rgba(186, 146, 96, 0) 100%);
+        }
+        span {
+            border: 1px solid red;
+        } */
+
+        .box {
+            width: 300px;
+            height: 200px;
+            border: 1px solid black;
+            position: absolute;
+        }
+
+        a:nth-child(3) {
+            background-color: red;
+        }
+
+        .test-br {
+            width:100px;
+            background-color: red;
+            height: 100px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div style="width: 200px; height: 200px; border: 1px solid black"></div>
+    <script>
+
+
+let colorStr = "0123456789abcdefg"
+let getStr = (colorStr) => colorStr.charAt(Math.round(Math.random()*colorStr.length-1))
+
+let div = document.querySelector("div")
+let changeColor = (time) => {
+    setInterval(() => {
+        let color = `#${getStr(colorStr) + getStr(colorStr) + getStr(colorStr)}`
+        div.style.background = color
+    }, time)
+}
+
+
+        // let str = "abc"
+
+        // let reg = /(.*)/igs
+
+        // let ers = reg.exec(str)
+        // console.log(ers);
+
+
+        // let flag = true
+        // function searchImg(url) {
+        //     return new Promise((resolve, reject) => {
+        //         let img = new Image()
+        //         img.src = url
+        //         img.onload = resolve(img)
+        //         img.onerror = reject(err)
+        //     })
+        // }
+
+        // searchImg("./img/12.png").then((img) => {
+        //     console.log("ok", img)
+        //     document.body.appendChild(img)
+        //     console.log(img.complete)
+        //     flag = true
+        // })
+
+        // console.log(flag)
+
+        // location.hash = "aaa"
+        // history.pushState({}, '', 'home')
+        // for(let i=0; i<3; i++) {
+        //     setTimeout(() => {
+        //         console.log("%c ",`
+        //             font-size: 150px;
+        //             padding-left: 1000px;
+        //             background: url(./img/51636690825_.pic_hd.jpg) no-repeat;
+        //             background-size: 60px;
+        //             background-position: ${i} % 50%;
+        //         `)
+        //     }, i*100)
+        // }
+        
+        // let a = "aaaa"
+        // console.log(typeof a)
+
+        // let a = 10;
+        // let b = 20;
+        // console.log(a, b)
+        // // let temp = a;
+        // // a = b;
+        // // b = temp;
+        // swap(a, b);
+        // console.log(a, b)
+
+        // function swap(a, b) {
+        //     let temp = a;
+        //     a = b;
+        //     b = temp;
+        // }
+    
+
+
+
+        // let img = "ssss"
+        // if(img) {
+        //     console.log(img)
+        // }
+
+        // let o = {
+        //     text: "haha",
+        //     // info: {
+        //     //     test: "hello"
+        //     // }
+        // }   
+        // let res = Object.keys(o.info)?.length
+        // console.log(res)
+        
+        // let res = getRandomString(48)
+        // console.log(res)
+        // console.log(res.length)
+
+        // let ret = Math.random().toString(36)
+        // console.log(ret)
+
+        // function getRandomString(n) {
+        // let str = '';
+        // while (str.length < n) {
+        //     str += Math.random().toString(36).substr(2);
+        // }
+
+        // return str.substr(str.length - n);
+        // }
+
+        // let arr = [1, 2, 3]
+        // let arr2 = []
+
+        // arr2 = arr
+        // console.log(arr2)
+
+        // arr2[0] = 10;
+
+        // console.log("arr", arr)
+        // console.log("arr2", arr2)
+        // let obj = {
+        //     name: "sam"
+        // }
+
+        // let res = JSON.stringify(obj)
+        // console.log(res);
+
+        // res = JSON.parse(res)
+        // console.log(res);
+        // console.log(res.name);
+
+        // let div = $(".box")
+        // let bgColor = ["red", "orange", "yellow", "green"]
+        // let index = 0;
+        
+        // setInterval(function() {
+        //     div.style.background = bgColor[index]
+        //     index++
+        //     index %= bgColor.length
+        // }, 1000)
+
+
+        // function $(el) {
+        //     return document.querySelector(el)
+        // }
+        
+        // let a = 1
+        // let g = 1
+        // let u = a++
+        // console.log(u)  //1
+        // console.log(a)
+
+        // let u1 = a + ++a 
+        // console.log(u1)
+
+        // let u2 = ++a
+        // console.log(u2)
+
+        // let x = 0
+        // let y = ++x
+        // console.log(y)
+
+        
+        
+
+
+        // let serverURL = "ws://localhost:8800/"
+        // let ws = new WebSocket(serverURL)
+        // console.log(ws.readyState)
+
+        // ws.onopen = function(e) {
+        //     if(e) console.log("open", e)
+        //     let data = {msg: "我是客户端的数据呀"}
+
+        //     // 该方法用于向服务器发送数据
+        //     ws.send(data)
+        // }
+
+        // ws.onclose = function(e) {
+        //     if(e) console.log("close", e)
+        // }
+
+        // ws.onmessage = function(e) {
+        //     if(e) console.log("message", e)
+        //     console.log("onmessage, 这里能收到来自服务器的数据")
+        // }
+
+        // function delay(time=0) {
+        //     return new Promise(resolve => {
+        //         let timer = setTimeout(() => {
+        //             clearTimeout(timer)
+        //             resolve()
+        //         }, time)
+        //     })
+        // }
+
+
+
+        // let observer = new IntersectionObserver((entries, observer) => {
+        //     entries.forEach((entry) => {
+        //         if(entry.isIntersecting) {
+        //             console.log("我是元素")
+        //             entry.target.style.background = "pink"
+        //             observer.unobserve(entry.target)
+        //         } else {
+        //             entry.target.style.background = ""
+        //         }
+
+                
+        //     })
+        // }, {threshold: [0.25]})
+
+        // observer.observe($(".box")[0])
+
+
+
+
+        // let o = {
+        //     name: "sam"
+        // }
+
+        // let res = Object.assign(o, {link: "erin"})
+        // console.log(res)
+        
+        // function ajax(url) {
+
+        //     $("body")[0].style.background = "pink"
+
+        //     return new Promise((resolve, reject) => {
+        //         let xhr = new XMLHttpRequest()
+        //         xhr.open("get", url)
+        //         xhr.send()
+        //         xhr.onload = function() {
+        //             if(this.status == 200) {
+
+        //                 // 模拟请求数据的时间较长
+        //                 setTimeout(() => {
+        //                     resolve(this.response)
+        //                 }, 1000)
+        //             } else {
+        //                 reject("加载失败")
+        //             }
+        //         }
+        //     })
+            
+        // }
+
+        // ajax("./img/51636690825_.pic_hd.jpg").then(res => {
+        //     console.log("读取图片")
+        //     console.log(res)
+        // }).finally(() => {
+        //     console.log("finally")
+        //     $("body")[0].style.background = "blue"
+        // })
+        
+        
+        
+
+
+
+
+
+
+
+        // 定义一个处理逻辑的函数
+        // function color() {
+        //     let r = Math.floor(Math.random()*255);
+        //     let g = Math.floor(Math.random()*255);
+        //     let b = Math.floor(Math.random()*255);
+        //     console.log(1)
+        //     $("body")[0].style.backgroundColor = `rgb(${r}, ${g}, ${b})`
+        // }
+
+        // window.addEventListener("resize", throttle(color, 1000))
+        
+        // function throttle(fn, delay, ...args) {
+        //     let timer;
+        //     return function() {
+        //         if(timer) { return }
+        //         timer = setTimeout(() => {
+        //             fn.apply(this, args)
+        //             timer = null
+        //         }, delay)
+        //     }
+        // } 
+
+        // let btn = $("button")[0]
+        // btn.addEventListener("click", debounce(action, 1000, "sam"))
+
+        // function action(args) {
+        //     console.log("this", this)
+        //     console.log("args", args)
+        // }
+
+        // function debounce(fn, delay, ...args) {
+        //     let timer = null
+
+        //     return function() {
+        //         if(timer) clearTimeout(timer)
+        //         setTimeout(() => {
+        //             fn.apply(this, args)
+        //         }, delay)
+        //     }
+        // }
+
+
+        // let arr = [1,2,3]
+        // arr[3] = "sam"
+        // console.log(arr[4])
+        // for(let i=0; i<10; i++) {
+        //     if(i == 4) {
+        //         return
+        //     }
+        //     console.log(i)
+        // }
+
+// let lis = $("li")
+// for(let i=0; i<lis.length / 3; i++) {
+//     console.log(lis[3*i])
+//     lis[3*i].classList.add("highlight")
+// }
+
+function $(el) {
+    return document.querySelectorAll(el)
+}
+
+// let flag = true
+// for(let i=2; i<=100; i++) {
+//     for(let j=2; j<i; j++) {
+//         if(i % j == 0) {
+//             flag = false
+//         }
+//     }
+
+//     if(flag) {
+//         console.log(i)
+//     }
+// }
+
+
+
+
+// for(let i=0; i<30; i++) {
+    
+    
+// }
+
+       /*
+        4*i+3
+            0 0
+            1 2
+            2 4
+
+       */
+
+        
+
+
+    </script>
+</body>
+</html>
