@@ -28217,6 +28217,7 @@ final Node<K,V>[] resize() {
 
 
 ### Oracle密码
+- love.nn.linlin@gmail.com
 - Xl5467426/
 
 ```js
@@ -28224,8 +28225,12 @@ https://login.oracle.com/mysso/signon.jsp
 
 /Library/Java/JavaVirtualMachines/jdk-11.0.13.jdk/Contents/Home/
 /Library/Java/JavaVirtualMachines/jdk1.8.0_311.jdk/Contents/Home/
-
 /Library/Java/JavaVirtualMachines/jdk-11.0.13.jdk/Contents/Home
+
+
+
+/Library/Java/JavaVirtualMachines/jdk-11.0.14.jdk/Contents/Home
+/Library/Java/JavaVirtualMachines/jdk1.8.0_321.jdk/Contents/Home
 ```
 
 > 环境变量
@@ -28240,15 +28245,16 @@ export CLASSPATH
 
 - 多版本jdk切换
 ```js 
-  export JAVA_8_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_311.jdk/Contents/Home
-  export JAVA_11_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.13.jdk/Contents/Home
+export JAVA_8_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_321.jdk/Contents/Home
+export JAVA_11_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.14.jdk/Contents/Home
 
-  export JAVA_HOME=$JAVA_8_HOME
+export JAVA_HOME=$JAVA_8_HOME
 
-  alias jdk8="export JAVA_HOME=$JAVA_8_HOME"
-  alias jdk11="export JAVA_HOME=$JAVA_11_HOME"
+alias jdk8="export JAVA_HOME=$JAVA_8_HOME"
+alias jdk11="export JAVA_HOME=$JAVA_11_HOME"
 
-  export PATH=$PATH:$JAVA_HOME/bin:$GRADLE_HOME/bin
+// 我把这个注释掉 就可以通过 jdk8 或者 jdk11 进行多版本的切换了
+export PATH=$PATH:$JAVA_HOME/bin:$GRADLE_HOME/bin
 ```
 
 - sudo -i vi /etc/.bash_profile

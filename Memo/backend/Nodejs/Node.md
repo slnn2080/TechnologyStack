@@ -100,6 +100,14 @@ md rd hello.txt d: dir rm
     是由于不同的项目node版本也不同，有的是5.0.1， 有的是6.3.2。 如果node出现版本不对，运行 某个应用时，很可能就会遇到各种莫名其妙的问题 。
  -->
 
+> 安装:
+- curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
+
+
+> m1的情况下如何安装14版本的node
+- https://mako-note.com/ja/install-node14-on-m1-mac/
+
+
 > 配置nvm
 - 配置为国内淘宝的镜像 速度和查询会更快一些 因为服务器在国内
 - 在安装nvm的目录下打开settings.txt文件
@@ -109,8 +117,10 @@ md rd hello.txt d: dir rm
     npm_mirror: https://npm.taobao.org/mirrors/npm/
  -->
 
+
 > nvm list
 - 当前机器上装了哪些node的版本
+
 
 > nvm install 版本号[架构]
 - 安装指定版本的node.js
@@ -121,8 +131,10 @@ md rd hello.txt d: dir rm
     nvm install latest
  -->
  
+
 > nvm uninstall 版本号
 - 卸载
+
 
 > nvm use 版本号
 <!-- 
