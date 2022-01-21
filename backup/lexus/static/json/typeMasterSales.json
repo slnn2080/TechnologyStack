@@ -1,0 +1,28 @@
+[
+  {
+    "type": "現行型／旧型",
+    "idName": "now",
+    "priority": 2,
+    "selectOption": [
+      {
+        "selectKey": "model",
+        "selectValue": [
+          "現行型／旧型"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "新型（先行受注）",
+    "idName": "new",
+    "priority": 2,
+    "selectOption": [
+      {
+        "selectKey": "model",
+        "selectValue": [
+          "新型（先行受注）"
+        ]
+      }
+    ]
+  }
+]

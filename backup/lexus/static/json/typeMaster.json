@@ -1,0 +1,95 @@
+[
+  {
+    "type": "モリゾウセレクション",
+    "idName": "morizo-selection",
+    "priority": 1,
+    "selectOption": [
+      {
+        "selectKey": "brand",
+        "selectValue": [
+          "モリゾウセレクション"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "コンパクト",
+    "idName": "compact",
+    "priority": 2,
+    "selectOption": [
+      {
+        "selectKey": "type",
+        "selectValue": [
+          "コンパクト"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "SUV",
+    "idName": "suv",
+    "priority": 2,
+    "selectOption": [
+      {
+        "selectKey": "type",
+        "selectValue": [
+          "SUV"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "ミニバン",
+    "idName": "minivan",
+    "priority": 2,
+    "selectOption": [
+      {
+        "selectKey": "type",
+        "selectValue": [
+          "ミニバン"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "セダン・ワゴン・クーペ",
+    "idName": "sedan-wagon-coupe",
+    "priority": 2,
+    "selectOption": [
+      {
+        "selectKey": "type",
+        "selectValue": [
+          "セダン",
+          "ワゴン",
+          "クーペ"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "乗降サポート機能(シート回転タイプ)",
+    "idName": "care",
+    "priority": 1,
+    "selectOption": [
+      {
+        "selectKey": "sort_care",
+        "selectValue": [
+          "1"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "モデリスタ・GRパーツ装着仕様",
+    "idName": "gr-modellista",
+    "priority": 1,
+    "selectOption": [
+      {
+        "selectKey": "sort_modellista",
+        "selectValue": [
+          "1"
+        ]
+      }
+    ]
+  }
+]
