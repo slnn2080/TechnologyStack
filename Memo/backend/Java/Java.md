@@ -28107,7 +28107,456 @@ final Node<K,V>[] resize() {
 ----------------------------
 
 ### LinkedHashMap源码分析
-- 
+- 它是HashMap的子类
+- 意味着它的底层存储还是用得HashMap定义的数组去做
+- 它能够按照我们添加的顺序进行遍历
+```java
+@Test
+public void test() {
+  map = new LinkedHashMap();
+
+  map.put(123, "AA");
+  map.put(345, "BB");
+  map.put(567, "CC");
+  
+  // 我们发现LinkedHashMap的结果是按照我们添加元素的顺序来得
+  System.out.println(map);
+}
+```
+
+> 从空参构造器开始分析代码
+```java
+public LinkedHashMap() {
+  super();
+  accessOrder = false;
+}
+```
+
+> 从put()开始分析
+- 我们在LinkedHashMap中查找put()方法发现没有 那就相当于我们调用的是LinkedHashMap父类的put()
+- 我们调用的还是父类中的这个put
+```java
+public V put(K key, V value) {
+  return putVal(hash(key), key, value, false, true)
+}
+```
+
+- 而父类中的put内部调用了putVal()方法
+```java
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
+
+  ...
+
+  // 如果p是null 我们就会进入下面的逻辑 往里添加元素 而里面调用了 newNode() 方法
+  if ((p = tab[i = (n - 1) & hash]) == null)
+    tab[i] = newNode(hash, key, value, null);
+
+```
+
+- newNode()
+- 我们发现在 LinkedHashMap 中 它把newNode()重写了
+- 就是说我们一开始通过LinkedHashMap的实例 调用的put方法调用的是父类中的 put又调用了putVal还是父类的
+
+- 但是在newNode(也就是new一个具体的元素的时候) 调用的旧是LinkedHashMap中重写的newNode方法
+```java
+Node<K,V> newNode(int hash, K key, V value, Node<K,V> e) {
+
+  // 
+  LinkedHashMap.Entry<K,V> p =
+    new LinkedHashMap.Entry<>(hash, key, value, e);
+
+  linkNodeLast(p);
+  return p;
+}
+```
+
+
+> 简单的说明
+- HashMap中的内部类: Node
+```java
+static class Node<K, V> implements Map.Entry<K, V> {
+  finale int hash;
+  final K key;
+  V value;
+
+  // Node中的next 数组中的链表就是由它决定的
+  Node<K, V> next;
+}
+```
+
+- LinkedHashMap中的内部类: Entry
+- 它集成了hashmap中的Node
+```java
+static class Entry<K, V> extends HashMap.Node<K, V> {
+  // 在集成了上面Node类中的属性的同时 又多定义了两个变量 before after
+  // 用来记录添加这个Entry的前一个是谁和下一个是谁
+  Entry<K, V> before, after;
+
+  Entry(int hash, K key, V value, Node<K, v> next) {
+    super(hash, key, value, next)
+  }
+}
+```
+
+- 所以我们就可以按照添加的顺序进行遍历
+
+> 总结：
+- 对于频繁的遍历HashMap的述求 我们就可以考虑使用LinkedHashMap替换HashMap
+
+
+> HashSet回顾
+- 我们new HashSet() 其实底层帮我们new HashMap()
+```java
+public HashSet() {
+  map = new HashMap();
+}
+```
+
+- 当我们往HashSet中add元素的时候 相当于我们将元素放到map中了
+```java
+public boolean add(E e) {
+  return map.put(e, PRESENT) == null
+}
+```
+
+- 我们放到Set当中的数据 相当于Map中的谁呢？
+- map.put(e, PRESENT)
+- 相当于map中的key 
+
+- 我们说set里面放的是一个个元素 我们其实是将一个个的元素放到map中的key的位置上了
+
+- 那value是谁呢？
+- map.put(e, PRESENT)
+- value就是PRESENT
+- value的值不是null 而是这个PRESENT常量
+
+- PRESENT常量
+```java
+private static final Object PRESENT = new Object()
+```
+
+- 我们发现就是一个new Object() 其实也没有什么实际意义 就是为了避免是一个null 担心空指针 况且在Hashtable中也没有办法放null 所以就定义了一个空对象
+
+- 而且是该对象是用private static final修饰的
+- 说明我们在HashSet中存的值是存在了HashMap的key中 而value的值仅仅是为了避免null创建的一个空对象 没有实际的意义
+
+- 所以我们将这个空对象用private static final来修饰
+- 这样value位置上都会指向这一个空对象
+
+----------------------------
+
+### Map中的常用方法
+- Map接口中定义的方法：
+- Map是一个接口它当中的方法都是抽象方法 所以我们从它的实现类HashMap上看看这些方法应该怎么使用
+
+> 添加 删除 修改操作
+- 添加 和 修改 都用put()方法来体现
+
+> 实现类对象.put(Object key, Object value)
+- 作用：
+- 添加 和 修改
+- 当map中没有key的时候  -- 就是添加
+- 当map中对已有的key进行put的时候 -- 就是修改
+
+- 参数:
+- Object 可以是任意类型
+- 如果是基本数据类型的话 那就是以包装类的方法呈现
+
+- 如果有重复key的时候 只能添加进去一个 同时原有的key对应的value值会被后添加的value值*覆盖*
+<!-- 
+  ！！！ 这对应的就是 修改 的操作
+ -->
+
+```java
+Map map = new HashMap();
+map.put("AA", 123);
+    - 这体现的是添加的操作
+
+// 我们写了两个AA 看看AA可以添加进去几个
+map.put("AA", 87);
+    - 这体现的是修改的操作
+
+// value可以重复
+map.put(45, 123);
+
+System.out.println(map);
+    // {AA=87, 45=123} AA值添加进去一个
+    // 且, value值被替换成87了
+```
+
+
+> 实现类对象.putAll(Map m)
+- 作用:
+- 将一个形参集合中的数据添加到调用者的集合里
+
+```java
+Map map = new HashMap();
+map.put("AA", 123);
+map.put(45, 123);
+map.put("AA", 87);
+
+Map map2 = new HashMap();
+map2.put("CC", 123);
+map2.put("DD", 123);
+
+map.putAll(map2);
+```
+
+
+> 实现类对象.remove(Object key)
+- 作用
+- 按照指定的key移除数据
+
+- 返回值
+- Object类型 
+- 返回的是 给定的key所对应的value
+
+- 如果给定的key不存在 则返回 null
+
+```java
+map.remove("CC");
+
+or
+
+// 返回得是key对应的value
+Object value = map.remove("CC")
+```
+
+
+> 实现类对象.remove(Object key, Object value)
+- 作用
+- 删除给定的键值对
+
+- 返回值
+- boolean
+
+- 如果给定的键值对不存在则返回false
+
+```java
+boolean flag = map.remove("AA", 123);
+System.out.println(flag);
+    // false
+```
+
+
+
+> 实现类对象.clear()
+- 作用
+- 清空map(清空集合中的数据)
+
+- 无返回值
+
+- 清空后 map就是一个{} (并不是将map赋值为null 只是清空数据)
+<!-- 
+  清空后 堆结构中还是有集合的 也就是new的对象还存在 只是清空的集合数据
+ -->
+
+```java
+map.clear();
+map.size();   // 并不会是空指针异常 而是0
+```
+
+
+> 元素查询的操作
+> 实现类对象.get(Object key)
+- 作用
+- 获取给定key对应的value值
+
+- 返回值
+- Object类型
+
+- 如果给定的key不存在 则返回null
+
+```java
+Object num = map.get("AA");
+```
+
+
+> 实现类对象.containsKey(Object key)
+> 实现类对象.containsValue(Object value)
+- 作用:
+- 判断当前的集合中是否包含给定的key
+- 判断当前的集合中是否包含给定的value
+
+- 返回值：
+- boolean
+
+- 注意：
+- 1. 它是根据哈希值找数组中的位置 然后根据equals()看看内容是否相同
+- 2. containsValue()当给定的value有重复的时候 只要找到一个就不会再继续往下找了
+
+```java
+boolean flag = map.containsKey("AA")
+```
+
+
+> 实现类对象.size()
+- 获取集合中的kv对的个数
+
+- 返回值
+- int
+
+
+> 实现类对象.isEmpty()
+- 判断集合是否为空
+
+- 返回值
+- boolean
+
+
+> 实现类对象.equals(Object obj)
+- 判断两个集合是否是相同
+
+- 返回值
+- boolean
+
+- 要点：
+- 要想两个对象能进行判断 形参Object也必须是一个map类型的 同时里面存的数据也得一样
+<!-- 
+  造两个HashMap kv都一样 去调用这个方法试试
+ -->
+
+
+> 元试图操作的方法
+- 这个部分的方法涉及到如果遍历集合中的key 及 value 及 key value
+
+- 这个部分就是专门讲遍历的事儿
+<!-- 
+  前面我们说Collection可以使用迭代器 
+  map中就没有迭代器了
+ -->
+
+- 但是我们说 map 中的结构是：
+- 所有的key是一个     Set结构
+- 所有的value是一个   Collection结构
+- 键值对是一个        Set结构
+
+- 那我们就可以
+- 拿到所有的key(也就是Set) 拿Set调用iterator
+- 拿到所有的value(也就是Coll) 拿Coll调用iterator
+- 拿到所有的Entry构成的Set 调用iterator
+
+
+> 实例对象.keySet()
+- 将map中的所有key返回
+
+- 返回值
+- Set类型
+
+- 应用
+- 遍历map中的所有key值时可以调用该方法 通过返回得Set结构调用iterator来遍历
+
+```java
+Map map = new HashMap();
+map.put("AA", 123);
+map.put(45, 123);
+map.put("BB", 87);
+
+Set set = map.keySet();
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+
+> 实例对象.values()
+- 将map中的所有value返回
+
+- 返回值
+- Collection
+```java
+Collection coll = map.values();
+Iterator iterator = coll.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+
+> 实例对象.entrySet()
+- 将map中的所有kv返回
+- 返回得set中放着很多的Entry
+
+- 返回值
+- Set
+```java
+Set set = map.entrySet();
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  // obj就是Entry 
+  Object obj = iterator.next()
+
+  // 我们给它强转成Map里面的Entry
+  Map.Entry entry = (Map.Entry) obj
+
+}
+
+// AA=123 BB=87 45=123
+```
+
+> 强转 entry
+- entrySet集合中的元素都是entry
+- 所以我们可以对它进行强转
+- Map.Entry entry = (Map.Entry) obj
+
+- 既然我们强转成entry对象了 这时我们想看看entry中的key 和 value 可以调用对应的方法
+
+> entry.getKey()
+- 获得entry中的key
+
+- 返回值:
+- Object
+
+> entry.getValue()
+- 获得entry中的value
+
+- 返回值:
+- Object
+
+```java
+Set set = map.entrySet();
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  // 获取每一个entry
+  Object obj = iterator.next();
+
+  // 将obj强转为entry后 通过调用entry的方法 输出key value
+  Map.Entry entry = (Map.Entry) obj;
+  Object key = entry.getKey();
+  Object value = entry.getValue();
+  System.out.println(key + ": " + value);
+}
+```
+
+> 扩展
+> Map.Entry
+- 是Map中的定义的Map.Entry接口
+
+
+> 诶？ 前面的set coll都是数组 只是特性不一样 而map相当于对象呀
+
+> 总结: 常用方法
+- 添加:
+    - put()
+
+- 删除: 
+    - remove()
+
+- 修改:
+    - put()
+
+- 查询:
+    - get()
+
+- 插入:
+    - 没有插入的方法 因为无序 往哪插呀
+
+- 长度:
+    - size()
+
+- 遍历:
+    - keySet() values() entrySet()
 
 ----------------------------
 

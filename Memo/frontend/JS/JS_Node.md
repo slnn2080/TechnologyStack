@@ -14914,43 +14914,63 @@ var onmessage = function(event){
 
 -----------------------------------------
 
-### 本地存储
+### 本地存储 (localStorage, sessionStorage)
 - 随着互联网的快速发展, 基于网页的应用越来越普通, 同时也变的越来越复杂, 为了满足各种各样的需求, 会经常性在本地存储大量的数据, HTML5规范提出了相关解决方案
 <!-- 
     以前我们会把数据放在数据库里, 还要去服务器里面取过来再拿来使用 
     也有些东西根本就没有必要放在数据库里面
  -->
 
-> 查看
+
+> 位置查看
 - F12 --- Application --- 左侧 Storage Session Storage
+
 
 > 本地存储的特性
 - 1. 数据存储在用户浏览器中
 - 2. 设置, 读取方便, 甚至页面刷新都不会丢失数据
-- 3. 容量较大, sessionStorage约5M, localStorage约20M
-- 4. 只能存储字符串, 可以将对象JSON.stringify() 编码后存储
+- 3. 容量较大
+    - sessionStorage    约5M
+    - localStorage      约20M
+
+- 4. 只能*存储字符串*, 可以*将对象JSON.stringify()*编码后存储
+
+
+> 5M的单位
+- 10M字节空间。
+- 而根据 UTF-16编码规则，要么2个字节，要么四个字节，所以不如说是 10M 的字节数，更为合理。
+
+```js
+"a".length      // 1
+"人".length     // 1
+"𠮷".length     // 2
+```
+
+- key的长度也会占用空间
+
 
 > window.sessionStorage
 - 生命周期为关闭浏览器窗口
 - 在同一个窗口(页面)下数据可以共享
 - 以键值对的形式存储使用的
 
->> sessionStorage.setItem(key, value);
+>sessionStorage.setItem(key, value);
 - 存储数据
 - 把数据存储在浏览器里 不关闭页面数据会一直存在
 
 - 修改数据
 - 在原来的数据上再次存储就是修改呗
 
->> sessionStorage.getItem(key);
+
+> sessionStorage.getItem(key);
 - 获取数据
 
->> sessionStorage.removeItem(key);
+> sessionStorage.removeItem(key);
 - 删除数据
 
->> sessionStorage.clear();
+> sessionStorage.clear();
 - 清空数据
-<!-- 
+```js 
     let set = document.querySelector('.set');
     let get = document.querySelector('.get');
     let remove = document.querySelector('.remove');
@@ -14960,7 +14980,9 @@ var onmessage = function(event){
     set.addEventListener('click', function(){
         // 当我们点击了之后, 就可以把表单里面的值存储起来
         let val = text.value;
+
         sessionStorage.setItem('uname', val);
+
         // 点击一次存到uname中 再点击一次存到pwd中
         sessionStorage.setItem('pwd', val);
         console.log(val);
@@ -14979,11 +15001,13 @@ var onmessage = function(event){
     del.addEventListener('click', function(){
         sessionStorage.clear()
     })
- -->
+```
+
+---
 
 > window.localStorage
 - 声明周期永久生效, 除非手动删除 否则关闭页面也会存在
-- 可以多窗口(页面)共享, 同一浏览器都可以使用这个数据
+- 可以*多窗口(页面)共享*, 同一浏览器都可以使用这个数据
 - 以键值对的形式存储使用
 
 >> localStorage.setItem(key, value);
@@ -14992,13 +15016,13 @@ var onmessage = function(event){
 - 修改数据
 - 在原来的数据上再次存储就是修改呗
 
->> localStorage.getItem(key);
+> localStorage.getItem(key);
 - 获取数据
 
->> localStorage.removeItem(key);
+> localStorage.removeItem(key);
 - 删除数据
 
->> localStorage.clear();
+> localStorage.clear();
 - 清空数据
 
 -----------------------------------------

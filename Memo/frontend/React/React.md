@@ -4197,14 +4197,12 @@ force = () => {
 
 - 我们把接收到的props return出去 return的是状态对象 相当于我们将父组件传入的props当状态用了 也就是我从props中得到了一个状态 不是我们自己写的状态 而是从props中得到的 这就是一个派生的状态
 
-- 该函数横跨挂载和更新两个阶段 一旦开启该钩子所有的事情都要听props的
-<!-- 
-  也就是像我们这么写
-
+- 该函数横跨挂载和更新两个阶段 一旦开启该钩子所有的事情都要听props的 也就是像我们这么写
+```js
     static getDerivedStateFromProps(props) {
       return props
     }
- -->
+```
 
 - 那么就是说 我们的状态值在任何时候都取决于props 无论我们的初始化和修改都是不起作用的 完全听props的指挥 但是官方说 派生状态会导致代码冗余 并使组件难以维护
 
@@ -4226,7 +4224,7 @@ force = () => {
 -  在组件发生更改之前从DOM中捕获一些信息(例如 滚动位置) 
   
 - 此生命周期的任何返回值将作为参数传递给componentDidUpdate()
-
+```js
   getSnapshotBeforeUpdate() {
     return height
   }
@@ -4234,7 +4232,7 @@ force = () => {
   componentDidUpdate(preProps, preState, height) {
     // 第三个参数就是 getSnapshotBeforeUpdate 返回的参数
   }
-
+```
 
 
 > componentDidUpdate(preProps, preState, height)
@@ -4344,13 +4342,11 @@ force = () => {
     
     
     //为了保持鼠标滚动滚动到一定位置 就不要继续滚动了 这样我能看到我们自己滚动到的位置的信息 新的新闻也在返回但是不要打断我正在看的新闻12
-
     // 这种效果的实现就可以利用 getSnapshotBeforeUpdate钩子
 
     getSnapshotBeforeUpdate() {
 
       // 在这里获取内容区的高度, 我要知道新的新闻返回之前 内容区有多高 我们给节点打上ref
-
       // 这个周期中的返回值 会作为参数传递给componentDidUpdate()
       return this.refs.list.scrollHeight
     }
@@ -4364,7 +4360,6 @@ force = () => {
       this.refs.list.scrollTop += this.refs.list.scrollHeight - height
 
         // 这个差值永远是30px 因为一条新闻 渲染前 和 渲染后 如果我们要让滚动条真的停在一个问题 就必须是+= 不能是= +=的意思是持续的有新的新闻回来  那滚动条的位置就持续的往上串
-
         // 这样完成的效果就是 会停在一个位置 而新返回来的位置 会往下增加, 不会应该我们滚动到的位置
     }
 
@@ -4442,19 +4437,16 @@ force = () => {
 
 > 三个重要的钩子
 - 1. render
-<!-- 
-  初始化渲染 或 更新渲染调用
- -->
+- 初始化渲染 或 更新渲染调用
+
 
 - 2. componentDidMount
-<!-- 
-  开启监听 发送ajax请求
- -->
+- 开启监听 发送ajax请求
+
 
 - 3. componentWillUnmount
-<!-- 
-  做一些收尾工作 如 清除定时器
- -->
+- 做一些收尾工作 如 清除定时器
+
 
 
 > 即将废弃的钩子
@@ -4522,11 +4514,11 @@ force = () => {
 - 2 调用setState的时候 会重新渲染
 
 - 3 调用forceUpdate的时候 会重新渲染 只要调用它不管状态有没有更新都会重新渲染的
-<!-- 
+```js 
   handleClick = () => {
     this.forceUpdate()
   }
- -->
+```
 
 
 > 更新阶段 钩子函数的执行顺序
@@ -4543,23 +4535,26 @@ force = () => {
 - 1 发送网络请求
 - 2 dom操作 
 - 注意: 如果在这个函数中进行setState操作 必须放在一个if条件中
-<!--
-    componentDidUpdate(prevProps) {
-        这里可以获取渲染后的最新dom
+```js
+componentDidUpdate(prevProps) {
+  /*
+    这里可以获取渲染后的最新dom
 
-        网络请求
-        如果要调用setState更新状态 必须放在一个if条件中 不然会栈溢出 死循环
-        在这里我们一般判断一下更新前后的props是否相同 来决定是否调用setState更新组件
-        当前的props 可以通过this.props获取到
-        如果上一次的props 和 这一次的props不同 我再调用setState来更新状态
-        if(prevProps.count !== this.props.count) { 
-            this.setState 
-
-            发送网络请求也写在if判断里面
-            既然要发送请求就是为了拿数据 拿数据就会有渲染数据的逻辑 这里也会有setState的操作
-        }
+    网络请求
+    如果要调用setState更新状态 必须放在一个if条件中 不然会栈溢出 死循环
+    在这里我们一般判断一下更新前后的props是否相同 来决定是否调用setState更新组件
+    当前的props 可以通过this.props获取到
+    如果上一次的props 和 这一次的props不同 我再调用setState来更新状态
+  */
+    if(prevProps.count !== this.props.count) { 
+        this.setState 
+    /*
+      发送网络请求也写在if判断里面
+      既然要发送请求就是为了拿数据 拿数据就会有渲染数据的逻辑 这里也会有setState的操作
+    */
     }
- -->
+}
+```
 
 
 > 卸载时(卸载阶段)
@@ -4569,7 +4564,7 @@ force = () => {
 - 作用：
 - 执行清理工作 比如 清理定时器等
 
-<!-- 
+```js
   // 没什么关联的功能 就是想记录下 三元表达式 的结构渲染
   return (
     <div>
@@ -4588,7 +4583,7 @@ force = () => {
   componentWillUnmount() {
     clearInterval(this.id)
   }
- -->
+```
 
  > 不常用的生命周期函数
  - 在旧版的生命周期中 有即将要废弃的生命周期函数
@@ -4605,10 +4600,6 @@ force = () => {
 
 ----------------------------
 
-### 书签
-
-----------------------------
-
 ### 组件的复用 -- render-props 和 高阶组件(HOC) 
 
 > react组件复用概述
@@ -4617,17 +4608,18 @@ force = () => {
 - 一个A页面中 随着鼠标的移动 页面上会打印 鼠标的坐标
 - 一个B页面中 随着鼠标的移动 小猫图片会跟着鼠标一起走
 
+- 思考：
 - 这两个页面中有共通的部分 我们复用的时候 需要复用什么呢？
 - 复用鼠标的坐标
 - 鼠标的坐标在react中的体现就是一个状态 而且这个状态还会发生变化 还有操作状态的方法
 
-- 1. 复用状态 
+- 1. 复用状态
 - 2. 复用操作state的方法
 
 - 那在react中怎么进行组件逻辑的复用呢？
 - 我们可以通过 render props 和 高阶组件的模式
 
-- 注意
+- 注意：
 - 这两种方式不是新的api 而是利用react自身特点的编码技巧 演化而成的固定模式(写法)
 <!-- 
   本来是没有这种方式的但是前人发现这种写法很好用 所以总结出来的
@@ -4638,8 +4630,8 @@ force = () => {
 
 > render props 模式  循环一圈半
 - 要点：
-- 1. 子组件利用形参将子组件内部的数据传回去(父组件)
-- 2. 子组件利用返回值渲染结构
+- 1. 子组件利用实参将子组件内部的数据传回去(父组件)
+- 2. 子组件利用父组件props过来的函数的返回值来渲染页面结构
 - 3. 父组件拿到数据 创建返回值
 <!-- 
       函数props
@@ -4652,7 +4644,7 @@ force = () => {
                           ↘ 3 利用返回值渲染结构
 
                       子组件
-              (利用形参传回数据 -- 利用返回值渲染结构)
+              (利用实参传回数据 -- 利用父组件props过来的返回值渲染结构)
  -->
 
 
@@ -4660,7 +4652,8 @@ force = () => {
 - 将要复用的state和操作state的方法封装到一个组件中 
 - 假设 我们封装好了一个组件 <Mouse /> 这里面有鼠标的状态 和 操作鼠标的方法
 
-- 我们要在B页面中使用A页面关于鼠标状态(位置信息)和操作state的方式，然后我们将A页面中的关于鼠标的逻辑封装成了一个组件
+- 我们要在view页面中使用鼠标组件关于鼠标状态(位置信息)和操作state的方式，
+- 然后我们将关于鼠标的逻辑封装成了一个组件
 <!-- 
   原生js中 想要达到复用是不是也是将相同的逻辑封装函数 然后在别的页面调用
 
@@ -4671,27 +4664,27 @@ force = () => {
 
 
 > 1. 如何拿到该组件中复用的state
-> 传递函数prop 通过形参接收 组件内部的state
+> 父组件传递函数props 函数通过形参接收子组件内部的state(状态)
 <!-- 
   状态是存在组件内部的 那么我们要使用这个 <Mouse /> 内部的状态 怎么办？
   也就是在外部拿到内部的state
  -->
 
  - 思路：
- - 在使用组件的时候 添加一个值为函数的prop 通过函数参数 来获取(需要组件内部实现)
+ - 在使用组件的时候 在标签属性中添加一个值为函数的prop 通过函数的行参来获取state状态(需要组件内部实现)
  <!-- 
   也就是父组件传递函数通过形参接收子组件的state
   -->
 
 
 > 2. 如何渲染任意的ui结构？
-> 传递函数prop 通过该函数的返回值 来决定要渲染的ui结构
+> 传递函数prop 子组件通过父组件props过来的函数的返回值 来决定要渲染的ui结构
 - 我们拿到核心功能后 怎么使用核心功能来渲染不同的ui结构呢？
 - 使用该函数的返回值 作为要渲染的ui内容(需要组件内部实现)
 
 <!-- 
-  A组件中的ui结构是 文本信息： 当前鼠标坐标为：x y
-  B组件中的ui结构是 小猫图片
+  view1组件中的ui结构是 文本信息： 当前鼠标坐标为：x y
+  view2组件中的ui结构是 小猫图片
 
   怎么渲染指定的ui呢？
 
@@ -4715,11 +4708,14 @@ force = () => {
  -->
 
 > 呃 react中插槽的综合应用么？ 相当于作用域插槽
+- 数据在子组件 我们通过函数props的方式传到父组件 父组件根据数据来决定渲染什么样的结构
 
 - 接下来我们看看代码部分
+
+
 > 实现步骤
 - 1. 创建Mouse组件 在组件中提供复用的状态逻辑代码(1状态 2操作状态的方法)
-<!-- 
+```js 
   import React, {Component} from "react"
   export default class Mouse extends Component {
 
@@ -4747,17 +4743,43 @@ force = () => {
       return this.props.render(this.state)
     }
   }
- -->
+```
+
+> 对上的要点:
+- 1. 父组件传递过来得prop函数返回得是一个结构 所以这里我们直接return this.props.函数
+```js
+// 这是正确的写法
+render() {
+  return this.props.renderDom(this.state)
+}
 
 
-- 2. 将要复用的状态作为 props.render(state)方法的参数 暴露到组件外部
-- 在Mouse组件内部 render函数里面 return 后面的位置 调用 父组件传递进来的 prop函数
-- 要点
-  - 1. 我们可以将Mouse组件中的state通过父组件传递进来的 prop函数 通过实参 将state暴露出去
-  - 2. 写在render的后面 就可以让父组件决定 Mouse 组件来渲染什么样的ui结构
-  - 3. 使用 props.render()的返回值作为要渲染的内容
+
+// 这是错误的写法!!!!!!!!
+render() {
+  return (
+    {
+      // 这样写各种报错 
+      this.props.renderDom(this.state)
+
+      // 解答这么报错的原因是 外层没有套div
+    }
+  )
+}
+```
+
+
+- 2. 将要复用的状态(子组件中的数据)作为父组件props过来的函数的实参 暴露到组件外部
+```js
+return this.props.render(this.state)
+```
+
+> 要点
+  - 1. 我们可以将Mouse组件中的state通过父组件props过来函数 通过实参 将state数据返回给父组件
+
+  - 2. 使用 this.props.render() 的返回值作为要渲染的内容(父组件props过来得函数)
   - 要渲染什么内容由父组件的prop函数的返回值决定
-<!-- 
+```js 
   class Mouse extends Component {
     // ... 省略state和操作state的方法
 
@@ -4765,9 +4787,11 @@ force = () => {
       return this.props.render(this.state)
     }
   }
- -->
+```
 
-<!-- 
+
+- 父组件的代码
+```js 
   // app组件 在html结构中的render函数 的返回值 决定 Mouse组件渲染什么ui结构
 
   import React, {Component} from "react"
@@ -4792,7 +4816,7 @@ force = () => {
     render() {
       return (
         <div className="app-wrap">
-
+          {/* 直接在标签属性里面定义的函数 和 结构 */}
           {/* 文本展示 */}
           <Mouse render={mouse => {
             return (
@@ -4817,18 +4841,19 @@ force = () => {
       )
     }
   }
- -->
+```
 
 
-- 上面我们通过父组件向子组件传递函数 通过形参接收数据 通过返回值确定ui结构的方式来实现的
+- 上面我们通过父组件向子组件传递函数 父组件通过形参接收数据 根据数据通过返回值确定ui结构的方式来实现的
 
 - 但是 并不是该模式叫render props 就必须使用名为render的prop 实际上可以使用任意的prop
 
 - 上面是把prop是一个函数 并且告诉组件要渲染什么内容的技术 叫做 render porps模式
 
 
-> children 代替 render 属性 --- 推荐
-<!-- 
+> props.children 代替 标签属性传递函数的方式 --- 推荐
+- 我们可以在标签体中写函数 这样子组件能通过this.props.children() 来调用
+```js 
   <Mouse>
     {
       // 这个位置是函数的返回值 是一个结构 所以要加上括号
@@ -4838,12 +4863,12 @@ force = () => {
 
   // Mouse组件内部：
   this.props.children(this.state)
- -->
+```
 
-> 代码部分：
-<!-- 
+
+> 完整的代码部分：
+```js 
   // Mouse组件
-
   render() {
     return (
       <div>
@@ -4854,7 +4879,6 @@ force = () => {
       </div>
     )
   }
-
 
 
   // App组件
@@ -4874,32 +4898,32 @@ force = () => {
       </Mouse>
     </div>
   )
- -->
+```
 
 - 这里我们在联想一下 context 中用法 这里其实也是使用的render props模式 并且使用的是children的模式
-<!-- 
+```js 
   <Consumer>
     {
       data => <span>data表示接收到的数据</span>
     }
   </Consumer>
- -->
+```
 
 
 > render props 模式的 优化
 - 1. 给 render props 模式添加 props 校验
-<!-- 
+```js 
   Mouse.propTypes = {
     children: PropTypes.func.isRequired
   }
- -->
+```
 
 - 2. 应该在组件卸载的时候 接触 mousemove 事件绑定
-<!-- 
+```js 
   componentWillUnmount() {
     window.removeEventListener("mousemove", this.handleMouseMove)
   }
- -->
+```
 
 ----------------------------
 
@@ -4907,44 +4931,73 @@ force = () => {
 - 目的：
 - 实现状态逻辑复用，采用 包装(装饰)模式 比如说：手机壳 
 
-- 手机：为了获取保护功能
-- 手机壳：提供保护功能
-- 包装之后 手机就具备了原来手机所不具备的功能
+- 手机：
+    为了获取 - "保护"功能 也就是想获取扩展的功能
 
+- 手机壳：
+    提供"保护"功能 也就是提供的扩展的功能
+
+- 包装之后 手机就具备了原来手机所不具备的功能 也就是拥有了扩展的功能
 - 高阶组件就相当于手机壳 通过包装组件 增强组件功能 
 
+- 总结:
+- 高阶组件是一个函数 参数是UI结构组件 内部类给UI结构组件提供数据
+- 最后返回UI组件 这样我们创建变量接收的组件就是增强功能后的高阶组件
+
+
 > 思路分析：
-- 高阶组件(HOC hgiher-order component)是一个函数 它的返回值为增强功能后的全新组件
+- 高阶组件(HOC higher-order component)是一个函数 它的返回值为增强功能后的全新组件
+
+- 全新的组件可以在任意组件内被调用
+
 - 高阶组件函数内部需要：
-    + 形参(UI组件) 
-    + 函数内部类(提供可复用的逻辑 比如鼠标位置 state数据)
-    + 在内部类中的render函数里面 调用 UI组件 并传入 state数据
+    + 1. 形参(UI组件) 
+        (提供UI结构)
+```js
+import React, {Component} from "react"
+export default class Position extends Component {
 
-<!-- 
-  EnhanceComponent为返回的增强功能后的组件
-  const EnhanceComponent = withHoc(WrappedComponent)
- -->
+  render() {
+    return (
+      <div>
+        鼠标当前位置: x: ${this.props.x}, y: ${this.props.y}
+      </div>
+    )
+  }
+}
+```
 
-- 高阶组件的内部创建一个类组件 在这个类组件中提供复用的状态逻辑 通过prop将复用的状态传递给被UI组件 WrappedComponent
+- 要点:
+- UI组件没有自己的状态 *它只是用来渲染html结构* 内部使用的是UI组件被调用的时候传递过来的state状态数据
 
-<!-- 
-  const EnhanceComponent = withHoc(WrappedComponent)
 
-  function withHoc(WrappedComponent) {
+    + 2. 函数内部类 用于提供数据和操作数据的方法
+        (提供可复用的逻辑 比如鼠标位置 state数据)
+
+    + 3. 在内部类中的render函数里面 使用UI组件(以组件标签的形式调佣该UI组件) 并在标签属性上通过props的形式传入 state数据
+
+
+
+- 高阶组件的内部创建一个类组件 在这个类组件中提供复用的状态逻辑(提供数据和操作数据的方法) 通过prop将复用的状态传递给被UI组件 UIComponent
+
+```js 
+  const HocComponent = withHoc(UIComponent)
+
+  function withHoc(UIComponent) {
 
     - 这个组件 只是为了提供可复用的逻辑代码 自身不渲染ui结构
-    - 负责渲染 ui结构的还是 WrappedComponent 组件
+    - 负责渲染 ui结构的还是 UIComponent 组件
     class Mouse extends React.Component {
       render() {
 
         // 这样 WrappedComponent 就能拿到 x y 的坐标了
-        return <WrappedComponent {...this.state}>
+        return <UIComponent {...this.state}>
       }
     }
   }
 
   withHoc(UI组件 or html结构组件)
- -->
+```
 
 
 > 总结下思路
@@ -4956,7 +5009,7 @@ force = () => {
     该类的作用是提供复用的逻辑 比如鼠标位置 state数据
     最后将创建的类return出去
 
-    在该类的渲染结构的 render函数中 调用 UI类(传入的形参组件) 并将state数据传入到UI组件中
+    在该类的渲染结构的 render函数中 调用 UI组件 并将state数据传入到UI组件中
     UI组件内部利用数据（父组件state中的数据是实时更新的） 渲染UI结构
 
   
@@ -4966,41 +5019,110 @@ force = () => {
 
 
 > 使用步骤
-- 1. 创建一个函数， 名称约定以with开头
-<!-- 
-  该函数就是一个壳，用来返回内部类组件的
+- 1. 定义UI组件
+- 该组件用来渲染结构 UI页面
+```js
+// UIComponent
+import React, {Component} from "react"
+export default class UIComponent extends Component {
 
-  假如我们起名为widthXxx 那么该函数内部就创建一个Xxx的类组件
- -->
+  render() {
+    // 主要就是渲染结构 内部用了外壳函数的内部类中props过来的数据
+    return (
+      <div className="uicomponent-wrap">
+        <ul>
+          {
+            // 利用数据来渲染的结构
+            this.props.data 
+              ? (
+                <p>x: {this.props.data.x}, y: {this.props.data.y}</p>
+              )
+              : (
+                <h3>没有数据...</h3>
+              )
+          }
+        </ul>
+      </div>
+    )
+  }
+}
+```
 
-- 2. 指定函数参数，参数应该以大写字母开头(作为要渲染的组件)
-<!-- 
-  这个参数是要被渲染出来的 组件就要以大写字母开头
- -->
+- 2. 创建一个函数(外壳函数)， 名称约定以with开头
+- 该函数就是一个壳，内部类提供给UI组件的数据 扩展UI组件的功能
+- 要点: 
+- 形参UI组件的 形参名必须是大写(作为要渲染的组件)
 
-- 3. 在函数内部创建一个类组件，提供复用的状态逻辑代码 并返回
-- 这步是在组件的上面创建的一个函数 比如我们要在app组件中 渲染一个状态可复用的ui结构组件
+- 3. 在函数内部创建一个内部类，用于提供复用的状态逻辑代码 并在内部类的render函数中 使用传进来的UI组件来渲染结构 在UI组件标签里面我们可以通过props传递数据给UI组件 最后return 内部类组件
+```js
+// 用于给UI组件扩展功能的函数
+import React, {Component} from "react"
+const withHoc = (UIComponent) => {
 
-- 那么我们就将高阶组件和app写在一个文件里
-<!-- 
-  function withMouse(WrappedComponent) {
-
-    class Mouse extends Component {
-      ....
+  // 创建内部类用来提供数据 和 操作数据的方法 对UI组件来说就是给它扩充功能
+  class extendedFuncComponent extends Component {
+    state = {
+      x: 0,
+      y: 0
     }
 
-    return Mouse
+    savePointer = (e) => {
+      this.setState({
+        x: e.clientX,
+        y: e.clientY
+      })
+    }
+
+    componentDidMount() {
+      window.addEventListener("mousemove", this.savePointer)
+    }
+
+    // 使用UI组件渲染结构
+    render() {
+      return (
+        <>
+          {/* 传递数据 */}
+          <UIComponent data={this.state}/>
+        </> 
+      )
+    }
   }
- -->
 
-- 4. 在该组件中，渲染参数组件 同时将状态通过prop传递给参数组件
-<!-- 
-  Mouse组件中 render方法里
-  return <WrappedCompent {...this.state}>
- -->
+  // 最后我们将加工好的UI组件暴露出去
+  return extendedFuncComponent
+}
 
-- 5. 调用该高阶组件 传入要增强的组件(要使用复用逻辑带ui结构的组件) 通过返回值拿到增强后的组件 并将其渲染到页面中
-<!-- 
+// 暴露 该函数
+export default withHoc
+
+```
+
+- 4. 在想使用该高阶组件的地方 调用该高阶组件 传入要扩展功能的组件(UIComponent) 返回值是增强后的组件 并将其渲染到页面中
+```js
+// App组件内
+// 导入外壳函数
+import EFComponent from "./components/HocComponent"
+// 导入UI组件
+import UIComponent from "./components/UIComponent"
+
+// 将UI组件传入 得到扩展功能后的高阶组件
+const TestComponent = EFComponent(UIComponent)
+
+
+export default class App extends Component {
+  render() {
+    return (
+      <div>
+        // 调用高阶组件
+        <TestComponent />
+      </div>
+    )
+  }
+}
+```
+
+> 示例2: 
+```js
   // App组件内部的逻辑
   import React, {Component} from "react"
 
@@ -5068,7 +5190,6 @@ force = () => {
 
 
 
-
   // ui结构组件 
   也就是我们将这个组件作为实参传递进去它就会接收到 上面传递进来的props
 
@@ -5095,12 +5216,14 @@ force = () => {
     }}>
   )
 
-  这个组件自身是没有状态和操作状态的逻辑的 鼠标的逻辑代码封装在高阶组件里面了
- -->
+  - 这个组件自身是没有状态和操作状态的逻辑的 鼠标的逻辑代码封装在高阶组件里面了
+```
 
+
+> 使用高阶组件存在的问题：
 > 设置displayName
-- 使用高阶组件存在的问题：
-- 得到的两个组件名称是相同的
+
+- 我们使用高阶组件多次的话 每次的组件名称是相同的
 <!-- 
   假如我们多次通过高阶组件来返回新组件的话 它们的名字都会是同一个
   因为高阶组件函数的返回值 是同一个 需要参数不一样
@@ -5120,71 +5243,55 @@ force = () => {
 
  
 > 设置方式
-- 在高阶组件函数 return前设置
-<!-- 
-  Mouse.displayName = `withMouse${getDisplayName(WrappedComponent)}`
+- 1. 定义预定义函数 用于得到组件名
+```js
+function getDisplayName(UIComponent) {
+  return UIComponent.displayName || UIComponent.name || "Component"
+}
+```
 
-  function getDisplayName(WrappedComponent) {
-    return WrappedComponent.displayName || WrappedComponent.name || "Component"
+- 2. 在外壳函数 return前 设置
+```js 
+  内部类.displayName = `withMouse${getDisplayName(UI组件)}`
+
+  function getDisplayName(UI组件) {
+    return UI组件.displayName || UI组件.name || "Component"
   }
- -->
+```
 
-<!-- 
+```js 
   // App组件
   // 创建高阶组件
-  function withMouse(WrappedComponent) {
-
+  function withMouse(UIComponent) {
+    
+    // 内部类名 Mouse
     class Mouse extends Component {
-      state = { x: 0, y: 0 }
-
-      handleMouseMove = (e) => {
-        this.setState({
-          x: e.clientX,
-          y: e.clientY
-        })
-      }
-
-      componentDidMount() {
-        window.addEventListener("mousemove", this.handleMouseMove)
-      }
-
-      componentWillUnmount() {
-        window.removeEventListener("mousemove", this.handleMouseMove)
-      }
+      
+      ...state和操作state的方法
 
       render() {
         return (
-          <WrappedComponent {...this.state}></WrappedComponent>
+          <UIComponent {...this.state}></UIComponent>
         )
       }
     }
+    
+    // 设置displayName 
+    - 注意 WithMouse 是大写 !!!!!!!!!!
+    - 因为它要作为组件的名称在开发者工具中呈现
 
-    // 设置displayName 注意 WithMouse 是大写 因为它要作为组件的名称在开发者工具中呈现
-    Mouse.displayName = `WithMouse${getDisplayName(WrappedComponent)}`
+    Mouse.displayName = `WithMouse${getDisplayName(UIComponent)}`
     return Mouse
   }
 
   // 预定义的函数
-  function getDisplayName(WrappedComponent) {
-    return WrappedComponent.displayName || WrappedComponent.name || "Component"
+  function getDisplayName(UIComponent) {
+    return UIComponent.displayName || UIComponent.name || "Component"
   }
-
-  // 获取增强后的组件
-  let MousePosition = withMouse(MouseUI)
-
-  export default class App extends Component {
-    render() {
-      return (
-        <div className="app-wrap">
-          <MousePosition />
-        </div>
-      )
-    }
-  }
- -->
+```
 
 
-> 高阶组件 向高阶组件(我们封装后的组件 MousePosition)传递props
+> 高阶组件 向扩展功能后的高阶组件传递props的问题
 - 问题：props丢失
 - 我们向 MousePosition 高阶组件 传递了 props
 - MousePosition其实是 withMouse 的返回值 它的返回值是 Mouse
@@ -5193,7 +5300,7 @@ force = () => {
 - 也就是说我们给 Mouse 传递了 a="1" 的props
 - 但是 Mouse 并没有再将 prop 传递给 它的WrappedComponent组件
 
-<!-- 
+```js 
   let MousePosition = withMouse(MouseUI)
 
   export default class App extends Component {
@@ -5205,45 +5312,36 @@ force = () => {
       )
     }
   }
- -->
+```
 
-- 那我们要想向高阶组件传递 prop 的时候怎么办？
+> 那我们要想向高阶组件传递 prop 的时候怎么办？
 - 解决方式：
-- 渲染 WrappedComponent 时 将state 和 this.props 一起传递给组件
-<!-- 
-  <WrappedComponent {...this.state} {...this.props}>
+- 渲染 UIComponent 时 将state 和 this.props 一起传递给组件
+- <UIComponent {...this.state} {...this.props} />
+
+```js 
+  <UIComponent {...this.state} {...this.props}>
 
 
-  function withMouse(WrappedComponent) {
+  function withMouse(UIComponent) {
 
-    class Mouse extends Component {
-      state = { x: 0, y: 0 }
+    ... 
 
-      handleMouseMove = (e) => {
-        this.setState({
-          x: e.clientX,
-          y: e.clientY
-        })
-      }
-
-      componentDidMount() {
-        window.addEventListener("mousemove", this.handleMouseMove)
-      }
-
-      componentWillUnmount() {
-        window.removeEventListener("mousemove", this.handleMouseMove)
-      }
-
-      render() {
-        return (
-          <WrappedComponent {...this.state} {...this.props}>
-        )
-      }
+    render() {
+      return (
+        <WrappedComponent {...this.state} {...this.props}>
+      )
     }
- -->
+  }
+```
+
 
 **在使用高阶组件的时候**
 - 不仅仅要传递 state 再传递个 props
+
+----------------------------
+
+### 书签
 
 ----------------------------
 
