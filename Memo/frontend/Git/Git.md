@@ -1,5 +1,12 @@
 ### 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
 
+### 静态页面托管到github
+- 1. 创建仓库
+- 2. 创建 gh-pages 分支
+- 3. 写index.html 推送到 github 该分支上
+- 4. 然后去仓库的pages选项卡里面
+- 5. https://github.com/slnn2080/TestRepositories/settings/pages
+- 6. 在source的位置上选择 gh-pages 点击save
 
 
 ### Git的使用技巧

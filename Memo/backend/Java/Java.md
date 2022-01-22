@@ -28560,6 +28560,488 @@ while(iterator.hasNext()) {
 
 ----------------------------
 
+### TreeMap 两种添加方式的使用
+- TreeMap是通过key来进行排序的 所以要求key得是同一个类的对象
+
+- 要求:
+- 1. 向TreeMap中添加key-value 要求key必须是由同一个类创建的对象 
+
+- 因为我们要按照key进行排序, 排序方式:
+    - 自然排序
+    - 定制排序
+
+
+> TreeMap map = new TreeMap();
+- 空参构造器
+
+- 如果是自然排序的话 我们可以直接调用空参的构造器 但是key如果我们放的是一个对象的话
+
+- 那么就要要求:
+- 1. key是同一个类创建的对象
+- 2. 该类中要实现 Comparable 接口 重写compareTo()方法 并指定排序的规则
+
+> 自然排序
+```java
+// 对于自然排序来讲我们可以直接调用空参的构造器
+TreeMap map = new TreeMap();
+
+Person p1 = new Person("sam", 18);
+Person p2 = new Person("erin", 19);
+Person p3 = new Person("nn", 5);
+Person p4 = new Person("laoye", 50);
+
+// key是一个人的对象，value是期末成绩
+map.put(p1, 98);
+map.put(p2, 60);
+map.put(p3, 0);
+map.put(p4, 40);
+
+// 遍历结果是 按照key所在类的compareTo()方法进行排序的
+Set set = map.entrySet();
+Iterator iterator = set.iterator();
+while(iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+```
+
+- 要点:
+- 我们在key的位置上放了一个对象 人的对象
+- value的位置上放了 该人的期末成绩
+
+
+
+> 定制排序
+- 要点在 new TreeMap() 传入Comparator 并重写compare方法
+
+```java
+TreeMap map = new TreeMap(new Comparator() {
+  @Override
+  public int compare(Object o1, Object o2) {
+    if(o1 instanceof Person && o2 instanceof Person) {
+      Person p1 = (Person) o1;
+      Person p2 = (Person) o2;
+
+      return Integer.compare(p1.getAge(), p2.getAge());
+    }
+    throw new RuntimeException("传入的数据格式不匹配");
+  }
+});
+
+Person p1 = new Person("sam", 18);
+Person p2 = new Person("erin", 19);
+Person p3 = new Person("nn", 5);
+Person p4 = new Person("laoye", 50);
+
+map.put(p1, 98);
+map.put(p2, 60);
+map.put(p3, 0);
+map.put(p4, 40);
+
+// 遍历
+```
+
+----------------------------
+
+### Properties处理文件属性
+- Properties类是Hashtable的子类 该对象用于处理属性文件
+- 长得不像一个map但是它底层是一个map
+
+
+- 由于属性文件里的key value都是字符串类型 所以*Properties里面的key和value都是字符串类型*
+
+> 应用场景:
+- Properties是用来处理配置文件 
+- 配置文件就是物理上存放的文件 我们要把配置文件里面的数据读到内存当中 
+<!-- 
+  比如idea的配置文件 
+  我们在配置文件修改的内容 idea读取该配置文件后 会修改idea里面的配置
+-->
+
+> 配置文件的创建 及 规则
+- 配置文件的创建有两种方式
+- 1. 在java的根目录下 
+- 右键 -- new -- file 
+  -- 创建文件名 -- 补全.properties后缀
+<!-- 
+  config.properties
+ -->
+
+- 2. 在java的根目录下
+- 右键 -- Resource Bundle 
+  -- 该选项会自动帮我们添加后缀
+
+- 3. 规则
+  - 不要留空格
+
+- 4. idea配置中 file encodings 里 transparent native-to-ascii conversion 前面要打上对号 才能在配置文件中写中文 我们才能正常的读取
+<!-- 
+  // 配置文件
+  name=Tom
+  password=abc123
+ -->
+
+
+- 下面我们看看怎么读取配置文件中的信息
+
+> 1. 创建文件流对象 读取文件内的 内容
+> new FileInputStream("根目录下的文件名")
+- 该方法会抛出异常 使用try catch finally 处理下
+
+```java
+FileInputStream fs = new FileInputStream("config.properites");
+```
+
+- 注意:
+- fs最后要close(); 在finally里面关闭
+- fs.close();
+- fs.close();本身还会抛异常
+
+
+> 2. 创建Properties实例对象 用于读取配置内容
+> Properties prop = new Properties();
+- 实例化prop
+
+> prop.load(传入fs)
+
+
+> 3. 调用prop对象的方法读取属性
+> prop.getProperty("属性名");
+- 返回值类型: String
+```java
+String name = prop.getProperty("name");
+```
+
+
+> 简单的示例演示:
+```java
+@Test
+public void test() {
+
+  // 先定义个变量下面要用
+  FileInputStream fs = null;
+
+  // 使用try catch fanilly结构 关闭fs
+  try {
+    fs = new FileInputStream("config.properites");
+    prop.load(fs);
+
+    Properties prop = new Properties();
+
+    String name = prop.getProperty("name");
+    String password = prop.getProperty("password");
+
+    System.out.println(name + ":" + password);
+
+  } catch (IOException e) {
+    e.printStackTrace();
+
+  } finally {
+    if(fs != null) {
+
+      // fs.close(); 还会抛异常 我们使用try catch处理
+      try {
+        fs.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
+```
+
+> 存取数据时，建议使用
+- setProperty(String key, String value)
+- getProperty(String key)
+
+----------------------------
+
+### Collections工具类 常用方法
+- 我们前面讲完了数组 之后就讲了Arrays 它是操作数组的工具类
+
+- 现在我们讲了Map Collection 现在说说Collections工具类
+
+- 它是*操作Collection 和 Map的工具类*
+
+- 既然是一个工具类 以为里面的方法一般都是静态的方法了
+
+> 介绍:
+- Collections是一个操作*Set* *List* *Map*等集合的工具类
+
+- Collections中提供了一系列*静态的方法*对集合元素进行排序, 查询和修改等操作, 对集合对象设置不可变, 对集合对象实现同步控制等方法
+ 
+> 共同代码部分:
+```java
+List list = new ArrayList();
+list.add(123);
+list.add(33);
+list.add(-3);
+list.add(66);
+list.add(1);
+```
+
+> 排序相关的操作
+> Collections.reverse(List)
+- *反转*给定List中元素的顺序
+
+- 返回值
+- 无 意味着修改的是原List
+
+```java
+Collections.reverse(list);
+
+// 结果:
+[123, 33, -3, 66, 1]
+******
+[1, 66, -3, 33, 123]
+```
+
+
+> Collections.shuffle(List)
+- 对给定 List 集合元素进行随机排序
+
+- 返回值
+- 无 意味着修改的是原List
+
+```java
+Collections.shuffle(list);
+```
+
+
+> Collections.sort(List)
+- 根据元素的自然顺序对指定 List 集合元素按升序排序
+
+- 比如:
+- 我们上面集合中的数据都是123 那它就会按照Integer里面的compareTo()
+
+- 要求:
+- 传入的List中的对象 可能得是同一个类造的 同时该类实现了Comparable接口 和 重写了compareTo方法
+
+- 返回值
+- 无 意味着修改的是原List
+
+```java
+Collections.sort(list);
+```
+
+
+> Collections.sort(List, Comparator)
+- 根据指定的Comparator产生的顺序(定制排序) 对 List 集合元素进行排序
+
+- 返回值
+- 无 意味着修改的是原List
+
+
+> Collections.swap(List, int, int)
+- 交换给定List中 给定索引位置上的两个元素的位置
+
+- 返回值
+- 无 意味着修改的是原List
+
+```java
+Collections.swap(list, 0, 2);
+
+// 结果:
+[123, 33, -3, 66, 1]
+******
+[-3, 33, 123, 66, 1]
+```
+
+
+> Collections.max(Collection)
+- 根据元素的自然排序 返回给定集合中的最大元素
+- 右边的最大
+
+- 返回值
+- Object
+
+> Collections.max(Collection, Comparator)
+- 根据Comparator指定的顺序 返回给定集合中的最大元素
+
+- 返回值
+- Object
+
+> Collections.min(Collection)
+> Collections.min(Collection, Comparator)
+
+
+> Collections.frequency(Collection, Object)
+- 返回指定集合中指定元素的出现次数
+
+- 返回值
+- int型
+
+```java
+int i = Collections.frequency(list, 33);
+```
+
+---
+
+> Collections.copy(List dest, List src)
+- 将src中的内容复制到dest(目的地的意思)中
+ 
+**注意：**
+- 该方法必须 在创建dest的时候指定和src的长度一样才可以
+- 否则报错Source does not fit in dest
+
+```java
+// 使用这种方式创建List
+List dest = Arrays.asList(new Object[src.size()]);
+```
+
+- 返回值
+- void 
+
+
+> 错误的用法演示
+```java
+// 创建一个dest
+List dest = new ArrayList();
+
+// 将list中的数据copy到dest中
+Collections.copy(dest, list);
+
+// 报错： Source does not fit in dest
+System.out.println(dest);
+```
+- 如果按照测试1中的逻辑写会报错
+- Source does not fit in dest
+- 原因:
+- copy方法底层源码中是判断两个List中元素的个数
+- 如果源中元素的个数要大于目标List中元素的个数 就会报这样的异常
+```java
+ if (src.size() > dest.size())
+  throw new IndexOutOfBoundsException("Source does not fit in dest");
+```
+
+- 也就是说 我们在创建dest List的时候要将它的内部元素的个数撑起来
+
+- 那我们可以这么做么？
+```java
+// 不行 这样dest.size()还是0
+List dest = new ArrayList(list.size());
+```
+
+> 标准写法:
+```java
+List list = new ArrayList();
+list.add(123);
+list.add(33);
+list.add(33);
+list.add(-3);
+list.add(66);
+list.add(1);
+
+System.out.println(list);
+System.out.println("******");
+
+
+// 我们使用这种方式 有list长度的元素 元素是null
+List dest = Arrays.asList(new Object[list.size()]);
+
+// 这时候 dest.size() == list.size()
+
+Collections.copy(dest, list);
+System.out.println(dest);
+```
+
+---
+
+
+> Collections.replaceAll(List list, Objecet oldVal, Object newVal)
+- 将给定List中的 给定旧值全部替换为新值
+
+- 返回值:
+- boolean 用来看看替换成功与否吧
+
+```java
+boolean b = Collections.replaceAll(list, 33, 66);
+System.out.println(list);
+System.out.println(b);
+
+// 结果:
+[123, 33, 33, -3, 66, 1]
+******
+[123, 66, 66, -3, 66, 1]
+true
+```
+
+---
+
+> 解决线程安全的问题：
+- Collections类中提供了多个 synchronizedXxx()方法
+- 该方法可以使指定集合包装成线程同步的集合 从而可以解决多线程并发访问集合时的线程安全问题
+
+- 我们前面说了 ArrayList 和 HashMap 他们的线程都不安全
+
+- 如果我们在使用这两个类的时候涉及到了线程安全问题的时候
+
+> Collections.synchronizedCollection(Collection)
+
+> Collections.synchronizedList(List)
+> Collections.synchronizedMap(Map)
+> Collections.synchronizedSet(Set)
+
+> Collections.synchronizedSortedMap(SortedMap)
+> Collections.synchronizedSortedSet(SortedSet)
+
+- 上面返回得对应结构就是线程安全的
+
+```java
+List list = new ArrayList();
+list.add(123);
+list.add(33);
+
+// 这个list1就是线程安全的
+List list1 = Collections.synchronizedList(list);
+```
+
+---
+
+> 练习:
+- 1. 请从键盘随机输入10个整数保存到List中 并按倒序 从大到小的顺序显示出来
+
+
+- 2. 请把学生名与考试分数录入到集合中 并按分数显示前三名成绩学员的名字
+<!-- 
+  - TreeSet(Student(name, score, id)) 
+-->
+
+
+- 3. 姓名统计
+- 一个文本文件中存储着北京所有高校在校生的姓名 
+- 格式如下:
+
+- 每行一个名字 姓与名以空格分隔
+- 张 三
+- 李 四
+- 王 小五
+
+- 现在想统计所有的姓氏在文件中出现的次数 请描述一下你的解决方法
+
+
+- 4. 对一个java源文件中的关键字进行计数
+- 提示:
+- java源文件中的每一个单词 需要确定该单词是否是一个关键字 
+- 为了高校处理这个问题 将所有的关键字保存在HashSet中 
+- 用contains()来测试
+
+```java
+File file = new File("Test.java")
+Scanner scanner = new Scanner(file)
+while(scanner.hasNext()) {
+
+  // scanner通过它 可以取出一个个的单词
+  String word = scanner.next()
+  Sout(word)
+}
+```
+
+----------------------------
+
+### Java版的数据结构简述
+
+----------------------------
+
 ### 书签
 
 ----------------------------
