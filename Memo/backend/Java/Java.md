@@ -27643,6 +27643,27 @@ hashtable.put(null, null);
 - 当数组的某一个索引位置上的元素以链表的形式存在的数据个数 > 8 且 当前数组的长度 > 64时 此时此索引位置上的所有数据改为使用红黑树进行存储
 - 查找的效率高 因为红黑树将结果再次的分支
 
+
+- 虽然jdk8中底层数组的名字发生了变化 但是里面包含的信息还是一样的
+
+- 对于一个Node来讲 它包含的信息就是
+<!-- 
+    ---------------------------
+    |  hash  |  key   |  next |
+    |        |  value |       |
+    ---------------------------
+ -->
+
+- 因为在HashMap中形成链表的时候 某一个元素需要指向下一个元素 所以它必须有指向下一个元素的能力 我们得有一个属性叫做next
+<!-- 
+    □ □ □ □ □ □ □ 
+      ↓
+      □
+      ↓
+      □
+ -->
+
+
 ----------------------------
 
 ### HashMap源码分析 (jdk7)
@@ -29039,6 +29060,662 @@ while(scanner.hasNext()) {
 ----------------------------
 
 ### Java版的数据结构简述
+- 数据结构涉及到的内容包含
+- 1. 数据的逻辑关系
+- 2. 数据的存储结构
+- 3. 排序算法
+- 4. 查找 搜索 等
+
+- 简单来说：
+- 数据结构 就是一种程序涉及优化的方法 目的是加快程序的执行速度 减少内存的占用空间
+
+> 数据之间的逻辑结构
+- 1. 集合
+    - 数据元素之间只有'同属于一个集合'的关系
+
+- 2. 线性关系
+    - 数据元素之间存在一个对一个的关系(前面的一个元素指向后面的一个元素)
+    - 对应java中的线性表: 顺序表 链表 栈 队列
+
+- 3. 树形结构
+    - 数据元素之间存在一个对多个的关系
+    - 对应java中的树: 二叉树
+
+- 4. 网状结构(或图状结构)
+    - 数据元素之间存在多个对多个的关系
+    - 对应java中的图
+
+
+> 数据的存储结构(物理结构)
+- 1. 真实结构
+- 最基本的存储结构 在内存中就是有这些结构的
+
+- 1. 线性表之顺序表(或静态数据结构)
+- 数组Array ArrayList
+<!-- 
+  顺序表: 
+  顺着一个挨一个的去存
+  -->
+
+> 顺序表的特点:
+- 1. 使用连续分配的内存空间
+- 2. 一次申请一大段连续的空间 需要事先声明最大可能要占用的固定内存空间
+
+- 优点：
+- 涉及简单 读取与修改表中任意一个元素的时间都是固定的
+
+- 缺点：
+- 1. 容易造成内存的浪费
+- 2. 删除或插入数据需要移动大量的数据
+
+
+> 2. 线性表之链表(动态数据结构)
+- LinkedList
+
+- 特点：
+- 1. 使用不连续的内存空间
+- 2. 不需要提前声明好指定大小的内存空间 一次申请一小块内存 按需申请
+
+- 优点：
+- 1. 充分节省内存空间
+- 2. 数据的插入和删除方便 不需要移动大量数据
+
+- 缺点：
+- 1. 设计此数据结构较为麻烦
+- 2. 查找数据必须按顺序找到该数据位置
+
+--- 
+
+- 2. 抽象结构
+- 1. 栈
+- 2. 队列
+- 3. 树
+- 4. 图
+- 5. 其他
+
+----------------------------
+
+### 泛型 (Generic)
+- 泛型：
+- 我们首先可以把泛型理解成一对标签
+
+- 比如：
+- 中药店 每个抽屉外面贴着标签
+<!-- 
+  这个抽屉也相当于一个容器 就像java中的集合一样
+  抽屉上贴着标签 不用打开 我们也能知道它里面放的是什么东西
+
+  我们要是找的话 通过标签就能知道里面是什么
+
+  ---
+
+  我们前面说的ArrayList 比如我们往里面添加数据会调用add(Object o)
+
+  add()的参数是Object类型也就是说我们什么都能往里面丢 这其实是一种弊端
+
+  严格是一件好事 比如原生数组 一个数组中只能放一种类型的数据 这样是好事 能避免漏洞
+
+  ArrayList这时候什么都能放了 但是控制起来就不严格了
+  比如我们想往ArrayList中装学生的成绩 但是因为太灵活就可能往里面装入别的类型数据了
+
+  jdk5.0之前什么类型都可以往里面装 没有什么类型的限制
+
+  jdk5.0之后 我们加入了泛型的概念 再往里面添加数据的时候限制它的类型
+
+  就相当于我们给集合添加了一个标签 我们可以集合添加了 <大黄> 的标签后 里面就不能放别的东西
+ -->
+
+> 泛型的概念
+- 把元素的类型设计成一个参数 这个类型参数叫做泛型
+- 所谓泛型 就是允许在定义类, 接口时通过一个标识表示类中某个属性的类型或者某个方法的返回值及参数类型
+
+- 这个类型参数将在使用时确定
+<!-- 
+  使用时:
+  继承或实现这个接口 用这个类型声明变量 创建对象
+
+  确定时
+  即传入实际的类型参数 也成为类型实参
+ -->
+
+
+> 没有泛型的引发的问题
+- 没有泛型之前的情况演示:
+- 需求：
+- 我们要将学生的成绩放入集合中 然后取出放入到变量里面
+```java
+ArrayList list = new ArrayList();
+
+// 存放学生考试成绩
+list.add(78);
+list.add(88);
+list.add(98);
+
+// 问题1: 类型不安全 混进入了其它类型的数据
+list.add("Tom");
+```
+
+- 由于ArrayList没有类型限制在往集合中放数据的时候 可能会放入其它类型的元素
+
+- *问题1*: 
+- 类型不安全
+
+- 接下来我们要遍历集合 把元素取出来装入变量中
+- 我们前面也知道 我们该集合中存的都是学生的成绩
+- 所以 很自然的就会将成绩装入到 int型的变量中
+
+```java
+for(Object score: list) {
+
+  // 要点: 这里要将Object类型向下转型为int
+  int studentScore = (int) score;
+  System.out.println(studentScore);
+}
+```
+
+- *问题2*: 
+- 强转时有可能出现ClassCastException
+- 上面的代码就会出现异常:
+- ClassCastException
+<!-- 
+  因为一开始对存放的数据类型没有要求 有一个字符串 在转换的过程中 报转换异常的错误
+ -->
+
+- 为了避免上述的情况发生 我们要在往集合中填入元素的时候 做一下类型的检查
+
+- 这个类型的检查就是泛型
+
+
+> 集合中泛型的简单使用
+- 我们可以在类的方法中 或者属性中 和 构造器中 我们可以定义泛型
+```java
+public interator Iterator<E> { ... }
+```
+
+- 当我们实例化类或者接口的时候 凡是类中用到泛型的位置都是我们实例化时指定的类型
+
+- 也就是我们声明类结构的时候 声明有泛型了 以后我们使用调用的时候才能用泛型 结构里面没有使用泛型 外面也没办法指明泛型的类型
+
+
+**注意:**
+- 我们指定的泛型的类型不能是基本数据类型
+- 基本数据类型的情况下 我们可以使用它的包装类
+```java
+// 对
+new ArrayList<Integer>();
+
+// 错
+new ArrayList<int>();
+```
+
+> 格式：
+> new ArrayList<泛型类型>
+- 然后下面用到该类型的地方都要使用这个标签
+- 使用该<泛型>的地方只能使用该类型了 不然编译期就会报错
+
+> ArrayList的演示
+```java
+// 这里我们不能指定泛型为int 因为我们往集合里面添加的类型都是对象
+ArrayList<Integer> list = 
+    new ArrayList<Integer>();
+
+// 存放学生考试成绩
+list.add(78);
+list.add(88);
+list.add(98);
+
+// 编译时就会进行类型检查 保证数据的安全
+// list.add("Tom");
+
+
+// 因为我们使用泛型指定类型了 所以这里可以直接写Integer
+for(Integer score: list) {
+  // 避免了强转操作 不会出现类型转换异常的信息
+  int studentScore = score;
+  System.out.println(studentScore);
+}
+
+
+// 迭代器
+- Iterator<Integer>这里能加 是因为定义该结构的时候 这个位置就有泛型
+- public interface Iterator<E>
+
+Iterator<Integer> iterator = list.iterator();
+while (iterator.hasNext()) {
+  System.out.println(iterator.next());
+}
+
+```
+
+> HashMap的演示:
+- 要点1:
+- 我们使用的是HashMap Map类型有k v, 指明泛型的是时候我们要传入两个
+
+- new HashMap<String, Integer>();
+<!-- 
+  能写几个泛型 完全是根据 该类在内部定义的时候 定义了几个
+ -->
+
+- 要点2:
+- 泛型的嵌套
+- 我们发现当我们调用 map.entrySet(); 方法的时候它的返回得结果这如下的
+
+- Set<Map.Entry<String, Integer>>
+
+- 解析:
+- 首先我们调用 map.entrySet() 返回得类型是 Set
+
+- 指明泛型 也就是Set里面装的是什么
+- Set<Map.Entry>
+
+- 然后也需要指明 Map.Entry 里面装的是什么
+- Set<Map.Entry<String, Integer>>
+
+<!-- 
+  Map.Entry
+  为什么要这么写
+
+  因为Entry是Map里面定义的一个内部类 所以我们要想调用它的时候要通过父类.的形式
+ -->
+
+```java
+// Map中涉及到kv 所以泛型中就有两个
+Map<String, Integer> map = new HashMap<String, Integer>();
+
+// 存放学生考试成绩
+map.put("sam", 99);
+map.put("erin", 98);
+
+// 使用map.entrySet()方法 来进行遍历 我们获取entry
+Set<Map.Entry<String, Integer>> entry = map.entrySet();
+
+// Iterator<> 里面放的要遍历的类型首先是Map.Entry Entry也有泛型<String, Integer> 这里就是泛型的嵌套
+Iterator<Map.Entry<String, Integer>> iterator = entry.iterator();
+
+while (iterator.hasNext()) {
+
+  Map.Entry<String, Integer> e = iterator.next();
+
+  String key = e.getKey();
+  Integer value = e.getValue();
+
+  System.out.println(key + ": " + value);
+}
+```
+
+> 总结: 在集合中使用泛型
+- 1. 集合接口或集合类在jdk5.0时 都修改为带泛型的结构了
+
+- 2. 在实例化集合类时 指明泛型类型 我们<>放的是类型
+
+- 3. 指明完后 在集合类或接口中凡是定义类或接口时 内部结构使用到类的泛型的位置 都指定为实例化时泛型的类型
+
+- 内部结构:
+- 方法 构造器 属性等等
+<!-- 
+  // 类中声明的时候
+  add(E e)
+
+  // 实例化调用的时候
+  add(Integer e)
+ -->
+
+ - 4. 注意:
+ - 泛型的类型必须是类 不能是基本数据类型 需要用到基本数据类型的地方 需要拿包装类去替换
+
+ - 5. 如果实例化时 没有指明泛型的类型 默认类型为Object类型
+
+
+ > 泛型当中的新特性 -- 简写
+ - jdk7中 可以简写
+ - 标准写法:
+ - Map<String, Integer> map = new HashMap<String, Integer>();
+
+ - 简写形式: (省略掉后面的)
+ - Map<String, Integer> map = new HashMap<>();
+ 
+
+ > 练习
+ - 我们将以前做过的EmployeeTest中 涉及到泛型的地方 我们做下修改
+
+ - 对比一下改之前之后的区别点是什么？
+ ```java
+ TrssSet<Employee> set = new TreeSet<Employee>();
+ ```
+
+
+- Comparable接口也带泛型
+- 该泛型可以导致我们的compareTo()方法传入的对象是什么类型
+
+- 我们想比较谁就写谁 我们需要比较的是Employee的大小 所以就将泛型的类型声明为Employee
+```java
+public class Employee implements Comprable<Employee> {
+
+  @Override
+  public int compareTp(Employee o) {
+    reture this.name.compareTo(o.name);
+  }
+}
+```
+
+----------------------------
+
+### 自定义泛型类(自定义泛型结构)
+- 泛型类
+- 泛型接口
+
+- 泛型方法
+
+> 泛型类的定义和使用
+- 我们自定义类的时候 有些属性的类型我们是可以确认的 比如下面那样
+```java
+public class Demo {
+  String name;
+  int age;
+} 
+```
+
+- 但是有的时候 类中的属性 我们没有办法确认它的类型 这时候我们就可以给该类 贴个"标签"(上个泛型)
+<!-- 
+  我们给类声明一个泛型的时候 并不是说该类的类型是T
+
+  而是 泛型相当于我们给类 传递了一个类型参数
+  这样类中的结构就可以使用该类型参数
+
+  当类实例化的时候 我们就能给这个泛型T 一个确切的类型
+
+  这样类中使用泛型T的地方自动会变成给定类型
+ -->
+
+- 常用的泛型变量有
+- 1. K V 通常代表key value
+- 2. T E等
+
+- 要点:
+- 1. 当我们定义完泛型类 但是实例化的时候不指明泛型的类型 默认就是Object类型的
+
+```java
+package com.sam.exer;
+
+// 给类传递一个 T类型
+public class Order<T> {
+
+  // 当属性可以确定类型的时候
+  String orderName;
+  int orderId;
+
+  // 当属性不能确定类型的时候 我们可以使用泛型
+  T orderAttr;
+
+  public Order() {}
+
+  public Order(String orderName, int orderId, T orderAttr) {
+     this.orderName = orderName;
+     this.orderId = orderId;
+     this.orderAttr = orderAttr;
+  } 
+
+  // 返回得类型是T
+  public T getOrderAttr() {
+    return this.orderAttr;
+  }
+
+  // 形参的类型也是T
+  public void setOrderAttr(T orderAttr) {
+    this.orderAttr = orderAttr;
+  }
+}
+```
+
+> 泛型自定义类的实例化
+- 要点:
+- 1. 如果定义了泛型类 但是实例化没有指明类的泛型类型 则认为此泛型类型为Object类型的
+
+- 2. 如果定义类是带泛型的 建议实例化的时候要指明类的泛型类型
+
+```java
+    // 没有指明泛型类型的情况 --- 不推荐
+    Order order = new Order();
+
+    // 我们可以给orderAttr设置为任意值
+    order.setOrderAttr("ABC");
+    order.setOrderAttr(123);
+
+
+    // 指明泛型的类型为String
+    Order<String> order = new Order<>();
+    order.setOrderAttr("BBB");
+
+    // 下面的因为我们上面已经指明了泛型的类型是String 所以就不能存123
+    // order.setOrderAttr(123);   // 报错
+```
+
+
+> 泛型类的子类如何处理泛型
+- 上面我们定义了一个Order的泛型类，现在SubOrder要继承于Order 看看我们怎么写
+
+> 情况1:
+- 子类在继承泛型父类的同时 指明了泛型类型
+- 那么该类就是一个普通的类了 实例化的时候 不用再指明泛型类型
+
+```java
+// 父类
+public class Order<T> { ... }
+
+
+// 子类
+// 子类在继承泛型父类的同时指明了 泛型为 Integer
+public class SubOrder extends Order<Integer> {
+
+}
+
+
+// 测试类
+// 因为子类在继承的同时已经指明了泛型的类型 所以在new的时候就不用再指明了
+SubOrder sub = new SubOrder();
+sub.setOrderAttr(12);
+```
+
+> 情况2:
+- 子类继承父类的同时 没有指明泛型类型 沿用了<T>
+- 先关注下写法 子类类名 和 父类类名的后面都要写<T> 类似沿用的意思吧
+
+- 这种情况下 子类仍然是一个泛型类 就意味着子类在实例化的时候需要指明泛型的类型
+```java
+public class SubOrder<T> extends Order<T> {
+
+}
+```
+
+
+> 自定义泛型类和泛型接口的注意点
+- 1. 泛型类的泛型可能有多个参数 此时应将多个参数一起放在尖括号内
+<!-- 
+  <T1, T2, T3>
+ -->
+
+
+- 2. 泛型类的*构造器*如下
+- public GenericClass() {}
+<!-- 
+  // 错误的写法:
+  public GenericClass<T>() {}
+
+  - 泛型参数是使用在 class 类名<> 这里
+ -->
+
+
+- 3. 实例化后 操作原来泛型位置的结构必须与指定的泛型类型一致
+
+
+- 4. 泛型不同的引用不能相互复制
+- 尽管在编译时ArrayList<String> 和 ArrayList<Integer>是两种类型 但是 在运行时只有一个ArrayList被加载到jvm中
+
+```java
+ArrayList<String> list1 = null;
+ArrayList<Integer> list2 = null;
+
+// 原来的时候list1 和 list2 都是List类型的 那么 list1 = list2 list2可以赋值给list1
+list1 = list2;  // 报错
+
+// 现在list1 list2虽然都是ArrayList 但是此时它们之间不能相互赋值
+```
+
+
+- 5. 泛型如果不指定 将被擦除 泛型对应的类型均按照Object处理 但不等价于Object(还是有一些区别 在继承方面)
+<!-- 
+  经验:
+  泛型要使用一路都用 要不用 一路都不要用
+ -->
+
+
+- 6. 如果泛型结构时一个*接口或抽象类* 则不可创建泛型类的对象
+
+
+- 7. jdk1.7 泛型的简化操作
+- ArrayList<Fruit> flist = new ArrayList<>()
+
+
+- 8. 泛型的指定中不能使用基本数据类型 可以使用包装类替换
+
+
+- 9. 在泛型接口 和 泛型类时 *在静态方法中不能使用类的泛型*(不能使用泛型修饰的结构)
+- 
+<!-- 
+  在类/接口上声明的泛型 在本类或本接口中即代表某种类型
+
+  可以作为
+      非静态属性的类型
+      非静态方法的参数类型
+      非静态方法的返回值类型
+
+  但是静态方法中不能使用类的泛型!!!
+ -->
+
+```java
+public class Order<T> {
+
+  String orderName;
+  int orderId;
+  
+  // 泛型修饰的结构
+  T orderAttr;
+
+  // 成员方法
+  // 可以正常使用 泛型修饰的变量 orderAttr
+  public void show() {
+    System.out.println(orderAttr);
+  }
+
+  // 静态方法
+  // 静态方法中使用 泛型修饰的变量 就会报错
+  public static void show() {
+    System.out.println(orderAttr);
+  }
+}
+
+```
+
+- 原因:
+- 类的泛型是在实例化的时候才会指定
+- 而静态的结构在类加载的时候就会被指定 静态结构早于对象的创建 相当于 你的类型还没指定呢 我这边就要用了
+
+
+- 10. 异常类不能是泛型的
+```java
+// Exception是一个异常体系 我们让MyException是异常体现下面的结构 -- 会报错
+public class MyException<T> extends Exception {}
+```
+
+- 11. 不能使用new E[]
+- 但是可以: E[] elements = (E[]) new Object[capacity]
+- 参考:
+- ArrayList源码中声明: Object[] elementData 而非泛型类型数组
+
+```java
+// 我们想声明一个T类型的数组 怎么写呢？
+// 写法错误 
+T[] arr = new T[10];    // 编译不通过
+// 原因
+// 只有具体的东西才能new来操作 而我们的T还是属于一个变量 是一个参数
+
+// 正确写法:
+T[] arr = (T[]) new Object[10];
+// 我们可以这么做 new一个Object类型的 然后指定长度 然后强转成泛型数组
+
+// 我们在往数组里面装数据的时候必须是new的T或者是T的子类对象
+```
+
+
+- 12. 父类有泛型 子类可以选择保留泛型也可以选择指定泛型类型
+
+- 子类不保留父类的泛型: (子类继承的时候指明)
+  - 没有类型 -- 擦除
+  - 具体类型
+
+- 子类保留父类的泛型: 泛型子类
+  - 全部保留
+  - 部分保留
+
+- 结论:
+- 子类必须是"富二代" 子类除了指定或保留父类的泛型 还可以增加自己的泛型
+
+```java
+// 泛型父类
+class Father<T1, T2> { ... }
+
+
+// 子类不保留父类的泛型
+// 1. 没有类型 -- 擦除 
+class Son extends Father { ... }
+
+// 2. 具体类型
+class Son extends Father<Integer, String>
+
+
+
+// 子类保留父类的泛型
+// 1. 全部保留
+class Son<T1, T2> extends Father<T1, T2>
+
+// 2. 部分保留
+class Son<T2> extends Father<Integer, T2>
+```
+
+
+- 更复杂的一些情况
+```java
+// 泛型父类
+class Father<T1, T2> { ... }
+
+// 子类不保留父类的泛型
+// 1. 没有类型 -- 擦除
+class Son<A, B> extends Father { ... }
+  // 但子类自己定义了新的泛型
+
+
+// 2. 子类指定了父类的泛型参数 自己额外又定义了两个泛型参数
+class Son<A, B> extends Father<Integer, String>
+
+
+// 子类保留父类的泛型 和 部分保留
+class Son<T1, T2, A, B> extends Father<T1, T2>
+
+class Son<T2, A, B> extends Father<Integer, T2>
+```
+
+----------------------------
+
+### 泛型方法
+- 上面我们介绍了泛型类 泛型接口 这里我们说说泛型方法
+
+- 泛型方法并不是说类中的方法中使用泛型就叫做泛型方法
+- 比如
+- Collection接口 会有下面的方法 但这不是泛型方法
+```java
+boolean add(E e);
+```
+
 
 ----------------------------
 
