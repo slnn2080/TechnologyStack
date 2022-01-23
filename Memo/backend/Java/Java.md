@@ -29716,6 +29716,593 @@ class Son<T2, A, B> extends Father<Integer, T2>
 boolean add(E e);
 ```
 
+- 我们看看什么是泛型方法
+```java
+<T> T[] toArray(T[] a) { ... }
+```
+
+- 我们泛型类定义的泛型参数是<E>的话 那么类中使用E的地方肯定不是泛型方法
+
+> 泛型方法的应用场景
+- 方法的返回值的类型不确定 我们才考虑使用泛型方法
+
+
+> 泛型方法:
+- 在类中的方法中出现了泛型的结构 方法的泛型参数与类的泛型参数没有任何关系 泛型方法所属的类时不是泛型类都没有关系(泛型方法属于独立的)
+<!-- 
+  - 泛型方法是额外的有一个新的标识了 跟类的泛型参数<E>没关系
+
+  - 或者换个说法 泛型方法所属的类或者接口是不是带泛型的没有关系 无所谓
+ -->
+
+- 泛型方法中的泛型类型参数的确定 是通过我们调用方法传入一个具体类型的实参的时候 决定的
+
+- 举例说明:
+- 需求:
+- 我们创建一个方法 通过形参将传递进来的数组中的每一个元素复制到List中
+
+```java
+public List ListcopyFromArrayToList(arr);
+```
+
+- 这时候就有一个问题 数组是什么类型呢？ 它可以是int String boolean都可以 什么类型都可以
+
+- 这时我就想把数组定义成泛型 那形参数组定义成泛型 那该方法的返回值的类型也应该是泛型
+```java
+public List<E> ListcopyFromArrayToList(E[] arr);
+```
+
+- 但是还是会报错，编译器不会把你认为是一个泛型参数 它会认为E[]是一个类型 跟String没区别 编译器会认为你有一个类就叫做E 其实不是 我们的E是一个变量 回头我们调的时候才确定类型
+
+- 所以 就想我们要使用变量要先声明一样
+- 我们要在最前面声明一个<E> 这样后面才能用该泛型参数
+```java
+public <E> List<E> copyFromArrayToList(E[] arr) { ... }
+```
+
+> 完整的方法
+```java
+// 泛型方法 要在最开始先声明泛型
+public <E> List<E> copyFromArrayToList(E[] arr) {
+  // 创建一个list 指明泛型结构
+  ArrayList<E> list = new ArrayList<>();
+
+  // E类型的item
+  for(E e: list) {
+    list.add(e);
+  }
+  return list;
+}
+```
+
+- 使用:
+```java
+public void test() {
+  Order<String> order = new Order<>();
+  // 创建一个数组
+  Integer[] arr = new Integer[] {1, 2, 3, 4 ,5};
+
+  // 返回得就是Integer类型的List 这个Integer是由我们让入的arr决定的
+  List<Integer> list = order.copyFromArrayToList(arr);
+}
+```
+
+> 总结：
+- 1. 泛型方法在调用时 指明泛型参数的类型
+
+- 2. 泛型方法的声明泛型参数要*放在方法返回值类型的前面* public等修饰符的后面
+
+- 3. 前面说了类中的方法如果声明为static 那就不能在该方法里面使用类的泛型结构
+
+- 泛型方法可以被声明为静态的 原因泛型参数是在调用方法的时候确定的 并非在实例化类时才确定
+```java
+public static <E> List<E> copy(E[] arr)
+```
+- 原因：
+- 因为泛型方法中的泛型参数跟类没有关系 *泛型方法的确定是在方法被调用的时候确定的*
+
+----------------------------
+
+### 泛型类 和 泛型方法 的使用场景
+- 什么时候我们需要用到泛型类 和 泛型方法？
+
+> 泛型类
+- 泛泛的说下后期慢慢的总结:
+- 当类不知道是针对什么创建的对应结构的时候 我们考虑使用 泛型类
+
+- 举例：
+- 数据库中的每一张表会对应着java层面的一个类 
+<!-- 
+  比如:
+    数据库中的 Customer 表 就对应着 java中 Customer 类
+ -->
+
+- 我们通过类来对数据库中的表进行增删改查等操作
+<!-- 
+  比如:
+    向表中添加一条记录就是造这个类的一个对象
+    向表中删除一条记录就是删除这个类的对象...
+ -->
+
+- 在完成对数据库表的操作的时候 我们使用下面的逻辑 逻辑中就体现了泛型的概念
+
+
+> 结构:
+
+    | -- DAO  (封装着对数据库表的 通用的 增删改查等操作)
+        | -- XxxDAO  (继承DAO操作具体的某一张表 如CustomerDAO)
+    
+    | -- Customer  (该类用于映射数据库中的一张表 如Customer)
+
+
+> DAO：
+- data(base) access object 数据访问对象
+
+- DAO相当于一个base 用来封装通用的操作 使用的时候我们造DAO的子类来操作具体的某一张表 怎么才能体现操作某一张表呢？ 继承父类的同时指定泛型参数类型
+
+
+
+> DAO类中为什么要使用泛型:
+- 既然我们要定义DAO这样的一个基本结构 里面封装对表的增删改查等操作
+- 那我们到底要操作哪一张表呢？ 确定所以我们要使用泛型
+
+
+> 具体解析:
+- 1. Customer类
+    - 该类用于映射数据库中的一个表 类中的属性可以参照数据库表中的字段
+
+
+- 2. DAO类
+    - 1. 该类用于封装操作数据表的通用操作
+    - 2. 该类要使用泛型 继承该类的子类 指明泛型类型 这样在后续的添加 修改等操作 会是对指定的表进行操作
+
+```java
+// 我们指明了泛型 这样添加等操作 只能对指定类型进行操作
+public class DAO<T> {
+
+  // 添加一条记录
+  public void add(T t) {
+    System.out.println("添加逻辑");
+  }
+
+  // 删除一条记录
+  public boolean remove(int index) {
+    System.out.println("删除逻辑");
+    return true;
+  }
+
+  // 修改一条记录
+  public void update(int index) {
+    System.out.println("修改逻辑");
+  }
+
+  // 查询一条记录
+  public T get(int index) {
+    System.out.println("查找逻辑");
+    return null;
+  }
+
+  // 查询多条记录
+  public List<T> getAll(int index) {
+    System.out.println("查找小于index的所有数据");
+    return null;
+  }
+}
+```
+
+- 3. CustomerDAO类
+- 继承DAO类的同时 指定泛型类型 那么通过该类的实例对象调用的方法 只能操作指定的类型
+```java
+public class CustomerDAO extends DAO<Customer> {
+  // 由于我们这个类是继承DAO的 那么DAO中那些通用的操作数据库的方法 就会被继承过来
+}
+```
+
+- 4. 测试类
+```java
+@Test
+public void test() {
+
+  // 我们造一个CustomerDAO 用于专门操作数据库的某一张表
+  CustomerDAO customerDAO = new CustomerDAO();
+
+  // 这时候我们add(Customer t) 只能添加Customer 也就是说这个customerDAO 只是用来操作Customer的
+  customerDAO.add(new Customer());
+
+  // 得到List也是Customer类型的List
+  List<Customer> list = customerDAO.getAll(2);
+
+  // 得到的一个对象也是 Customer 类型的对象
+  Customer customer = customerDAO.get(1);
+}
+```
+
+- 比如我们还要操作student表 那么首先我们就创建一个student的类 类中的属性就参照数据库中表的字段 然后我们创建一个StudentDAO 继承 DAO的同时 指明泛型参数的类型 就是Student 这样我们创建StudentDAO的对象 然后调用方法的时候 只能操作student表了
+
+- 后续我们有必要把一个类设计成泛型的 因为有不确定性
+
+
+> 泛型方法:
+- 首先泛型方法的泛型参数跟类的泛型没有关系
+- 因为方法的返回值的类型不确定 所以方法才定义成一个泛型方法
+
+- 举例: 
+- 泛型方法因为有不确定性 因为不确定性我们才写成M的 那就意味着调用的时候可能有多种情况
+
+- 比如 我们要获取表中一种有多少条记录 -- long
+- 比如 获取最大的员工的入职时间 -- Date
+
+```java
+public <M> M getValue() {
+  return null;
+}
+```
+
+----------------------------
+
+### 泛型在继承方面的体现
+- 回顾:
+
+- 继承的特点:
+- 正因为子类是继承父类的 子类的对象赋值给父类的引用
+
+```java
+Object obj = null;
+String str = null;
+
+// 这时候是可以相互赋值的 因为String是子类 Object是父类
+// 我们可以把子类的对象赋值给父类的引用 -- 多态的体现
+obj = str;
+
+---
+
+// 数组也是这样
+Object[] arr1 = null;
+String[] arr2 = null;
+
+// 这样也是对的
+arr1 = arr2;
+```
+
+- 如果我们看到一个方法 方法的形参是Object类型的数组 那么这时候我们也可以把String[]也放进去 这也是多态的体现
+
+
+- 情况1:
+- 现在有这样的一个情况 这样可以么？
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+
+list1 = list2;    // 不行
+
+// 这样相当于下面 我们将一个date类型的赋值给str类型
+Stirng str = new Date();
+```
+
+- 情况1的报错原因:
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+```
+- list1和list2 是完全没有子父类关系的 是完全并列的关系
+- String确实是Object的子类但是List<String>类和List<Object>类 本身是没子父类关系的
+
+
+> 反证法
+- 假设 list1 = list2 是可以的
+```java
+List<Object> list1 = null;
+List<String> list2 = new ArrayList<String>();
+
+// 如果下面的情况是可以的
+list1 = list2
+
+list1.add(123);  // 导致混入给String类型的数据
+```
+
+- 那就会发生这样的问题
+- list2是在堆空间中有一个实体 是String[]
+- 如果我们将list2赋值给list1 list1就可以往数组中添加元素 但是list1是Object类型的 也可以添加个123进去 
+
+- 这样就混进去了不同类型的元素 所以不行
+
+- 我们看看下面的这种情况
+```java
+// 如果我们这定义方法 方法的通用性不会很好
+public void show(List<Object> list) {
+
+}
+
+
+// 因为这里只能传入List<Object>类型的list
+show(list1);
+
+---
+
+// 如果我们还想往里放list2 那就必须另外创建一个方法
+public void show2(List<String> list) {
+
+}
+show2(list2);
+```
+
+
+- 类本身是子父类关系的时候 两者之间是可以相互赋值的
+```java
+List<String> list1 = null;
+ArrayList<String> list2 = null
+
+// 这时候是可以的
+list1 = list2
+```
+
+> 总结:
+- 虽然 类A 是 类B 的父类 但是G<A> 和 G<B> 二者不具备子父类元素 二者属于并列关系
+
+- 类A 是 类B 的父类 A<G> 是 B<G>的父类
+
+- 能不能赋值我们看的是<>外面的部分 是不是子父类的关系 而不是<>里面的部分
+
+
+
+
+----------------------------
+
+### 通配符的使用
+- 上面我们说了 下面这种情况 他们之间是没有子父类关系的
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+
+public void show(List<Object> list) {
+
+}
+public void show2(List<String> list) {
+
+}
+```
+
+- 那可能就会导致在开发中具有不便性
+- 比如上面的show方法 内部就是相对List的遍历 可以上面还需要造两个方法show show2 因为传参的时候只能传指定类型的参数
+
+- show只能传递Object类型的list
+- show2只能传递String类型的list
+
+- 现在的list1 和 list2没有子父类关系了 也就是没有多态的特性的(子类可以直接丢进去) 
+
+- 如果没有多态就会导致我们要写很多重载的方法
+
+- 上面就是泛型的部分不一样 那能不能通用下？
+- 或者我们想想多态的使用 形参如果定义为父类型 那么子类都可以丢进到形参里面
+
+- 也就是说 我们如果找到 下面list1 和 list2的共同父类 用通过父类作为形参 那么list1 和 list2都能丢到形参里面去
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+```
+
+- 这样定义的方法更具有通用性
+
+
+> 这里我们就要使用 -- 通配符 <?>
+- 泛型<Object> 泛型<String> 的共同父类 <?>
+
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+
+// 那是不是说我们要先定义这样的一个结构
+List<?> list = null;
+
+// 相当于List<?>就是list1 和 list2的共同父类了
+list = list1;
+list = list2;
+
+
+// 这时我们就可以定义一个通用的方法
+public void show(List<?> list) {
+
+  // 遍历的类型就是 <?> 
+  Iterator<?> iterator = list.iterator()
+  while(iterator.hasNext()) {
+
+    // 返回的元素的类型定义成 ? 不行 但是我们可以定义成Object
+    Object obj = iterator.next();
+  }
+}
+```
+
+> 总结:
+- 类A 是 类B是父类 G<A>和G<B>是没有关系的 二者共同的父类时 G<?>
+
+----------------------------
+
+### 使用 通配符后数据的读取和写入要求
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+
+public void show(List<Object> list) { ... }
+public void show(List<String> list) { ... }
+```
+
+- 
+- 在上一节中 我们遇到上面的情况 只能定义很多重载的方法
+- 所以我们想定义一个方法 想让这个方法更加的通用 能够让给这个方法传入不同的泛型类型
+
+- show(A类型<T>)
+- show(A类型<B>)
+- show(A类型<E>)
+
+- 为了能使用同一个show方法 传入不同的泛型类型
+- 找到了 A类型<T> A类型<B> A类型<E> 的父泛型 --> A类型<?>
+
+- 我们将形参定义为 List<?> 这样这个方法就可以传递任意泛型了
+- public void show(List<?> list) { ... }
+
+- 但是当我们定义了 List<?> list 后
+- 我们通过list对象调用方法的时候 会有要求
+
+> 要求1:
+- List<?> list
+
+- 添加(写入) 
+- 1. 我们通过 list 存储/添加/写入 的时候 会报错
+
+- 获取(读取)
+- 2. w哦们通过 list 读取 的时候 可以 读取到的数据类型为Object
+
+```java
+List<Object> list1 = null;
+List<String> list2 = null;
+
+// 创建一个父泛型 这样说可以么？
+List<?> list = null;
+
+// 堆空间中有了一个ArrayList
+List<String> list3 = new ArrayList<>();
+
+// 想ArrayList中添加数据
+list3.add("AA");
+list3.add("BB");
+list3.add("CC");
+
+// 这样相当于list也指向了堆空间中的ArrayList(list3也指向它)
+list = list3;
+
+// 思考： 
+// 我们可以通过 list(父泛型对象) 想ArrayList中添加数据么？
+list.add("DD"); 
+    // 报错 说你现在是个？ 不能添加String类型的数据
+```
+
+- 总结:
+- 我们使用通配符的情况下 List<?> list 就不能通过list对象向堆空间的结构里面添加数据了
+
+- list.add(null) 唯一可以添加null
+
+
+- 
+- 获取(读取) 允许读取数据 读取的数据类型为Object
+```java
+// 思考:
+// 我们可以通过 list 获取数据么？
+Object o = list.get(0);
+System.out.println(o);
+```
+
+- 总结：
+- 可以获取数据 获取的数据类型为Object
+
+
+> 总结通配符的使用
+- 使用类型 通配符: ?
+<!-- 
+  比如: List<?>  Map<?>
+
+  List<?>是List<String> List<Object>等各种泛型List的父类
+ -->
+
+
+> 有限制条件的通配符
+- <?> 允许所有泛型的引用调用
+
+- 作用:
+- *用来规定 ? 类型的范围*
+
+
+> 通配符指定 上限
+- 上限extends:
+- 使用时指定的类型必须是继承某个类 或者实现某个接口
+- *即 ?类型 <= XXX*
+
+
+> 通配符指定 下限
+- 下限super:
+- 使用时指定的类型不能小于操作的类
+- *即 ? >= XXX*
+
+
+> 举例:
+- <? extends Number>    (无穷小, Number]
+- 只允许泛型为Number以及Number *子类* 的引用调用
+
+- <? super Number>      [Number, 无穷大)
+- 只允许泛型为Number以及Number *父类* 的引用调用
+
+- <? extends Comparable>
+- 只允许泛型为实现Comparable接口的 *实现类* 的引用调用
+
+
+> 记忆技巧
+- ? 可以看做数学中的 负无穷 和 正无穷
+- 小到任何一个非常小的子类 大到没有界限 
+
+
+- <? extends Person>
+- ? 是一个不确定的 
+- extends 说明 ? 可以是 Person 子类
+- 或者 将extends看做是 <=
+- ? <= Person
+
+> <? extends Person> 读取数据的时候
+```java
+List<? extends Person> list1 = null;
+```
+- 当我们通过list1.get(0)读取索引位置的数据的时候 得到的结果 我们可以使用 Person/Object来接收
+```java
+Object p = list1.get(0);
+Person p = list1.get(0);
+```
+- 因为 ? extends Person 相当于
+- ? <= Person
+- ?类型的范围不能大于Person 所以我们拿Person和Object来接收都可以
+
+
+- <? super Person>
+- 将super看做是 >=
+- ? >= Person
+
+
+> <? extends Person> 写入数据的时候
+```java
+List<? extends Person> list = null;
+list.add(new Student());  // 会报错
+```
+- 不可以 编译不通过
+
+- 原因：
+- ?表示 (-负无穷, Person]
+
+- 因为 ? 表示负无穷 它可能无限小 如果?代表的是比Student还小的
+- 子类B 子类A Student Person
+
+- 万一我们？代表的是子类A 而我们传递了一个Student 传递了一个父类 这样就不对了 右边的不能赋值给左边的
+
+
+> <? super Person> 读取数据的时候
+```java
+List<? super Person> list1 = null;
+```
+
+- 当我们通过list1.get(0)读取索引位置的数据的时候 得到的结果 只能用Object来接收 Person也不行 因为Person是最小的一种情况
+```java
+Object p = list1.get(0);
+```
+
+> <? super Person> 写入数据的时候
+- 写入是ok的 不能超过Person的都可以
+- 有个底儿 底是Person 或者是Person的子类都可以
+
+```java
+List<? super Person> list = null;
+list.add(new Student());  // 可以
+list.add(new Person());   // 可以
+```
+
+----------------------------
+
+### 自定义泛型类的练习
 
 ----------------------------
 

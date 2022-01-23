@@ -7448,7 +7448,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > 2. 将db文件夹(里面有db.js文件)放入到项目的根目录
 - 在这里配置下链接数据库的基本信息
 - 用户名 地址 密码 数据库名称等
-<!-- 
+```js 
     db.js代码如下:
     let mysql = require('mysql');
 
@@ -7480,7 +7480,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
     callback中也是两个参数
     err 和 rows(就是数据库中的每一条记录)
- -->
+```
 
 > 3. 在入口js文件中, 引入db.js文件
 <!-- 
