@@ -1,3 +1,182 @@
+### 整理Kinto响应式手册
+
+### 整理要点:
+- 1. 给mixin上添加class的格式
+```js
++m-txt(...)(class="xxx")
+```
+
+
+
+### 按钮相关
+- 按钮她封装了一个mixin 
+- 可以给mixin添加class样式 (class="hoge") 如下
+
+> 格式:
+
+- 按钮1
+- 按钮2
+- 按钮3
+
+
+- 按钮类型1:
+- 效果：
+- 蓝绿色背景 文字后面有 icon
+
+```js
+// 普通格式: icon是箭头
++m-btn("/","プライマリーボタン")
+
+// 新窗口打开格式: icon是新窗口的图标
++m-btn("/","プライマリーボタン")(target="_blank")(class="hoge")
+
+// 别窗口打开格式: icon是pdf图标
++m-btn("hoge.pdf","プライマリーボタン")(target="_blank")
+```
+
+
+- 按钮类型2:
+- 效果：
+- icon都是箭头 但是颜色不一样
+
+```js
+// 白色按钮
++m-btn-w("/","プライマリーボタン")
+
+// 红色按钮
++m-btn-r("/","プライマリーボタン")
+
+// 禁用了的按钮
++m-btn-disable("/","プライマリーボタン")
+```
+
+
+> 格式:
+- 一排两列的按钮格式
+
+- 按钮1 按钮2
+
+```js
++m-btn-2col("/","プライマリーボタン","/","プライマリーボタン")
+```
+
+
+> 格式:
+- 一排三列的按钮格式
+
+- 按钮1 按钮2 按钮3
+
+```js
++m-btn-3col("/","プライマリーボタン","/","プライマリーボタン","/","プライマリーボタン")
+```
+
+----------------
+
+### 見出し相关
+- 見出し一共有4种类型
+
+- 区别:
+- 在于字号
+
+- 1. +m-hdg-01("見出し01234 + ABCDEFG")
+- 1. +m-hdg-02("見出し01234 + ABCDEFG")
+- 1. +m-hdg-03("見出し01234 + ABCDEFG")
+- 1. +m-hdg-04("見出し01234 + ABCDEFG")
+
+> +m-hdg-01
+```css
+{
+  font-family: "Noto Sans JP", sans-serif;
+  font-weight: bold;
+  font-size: 2.8rem;
+  margin-bottom: 4.8rem;
+  line-height: 1.5;
+}
+```
+
+> +m-hdg-02
+```css
+{
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 2.4rem;
+}
+```
+
+> +m-hdg-03
+```css
+{
+  font-size: 2rem;
+}
+```
+
+> +m-hdg-04
+```css
+{
+  font-size: 1.6rem;
+}
+```
+
+
+> ヒーロー見出し
+- 这个应该是一个满屏 背景色是浅灰的一个效果
+
+- 格式1:
+- 只有大标题
+
+```js
++m-hero-heading("見出し01234 + ABCDEFG")
+```
+
+
+- 格式2:
+- 大标题 和 caption
+
+```js
++m-hero-heading-caption("見出し01234 + ABCDEFG","テキスト01234 + ABCDEFG")
+```
+
+----------------
+
+### 正文相关
+- 普通文本的字号都是14px
+- 强调文本的字号都是16px
+
+- 文本的对象方式 是通过类名来控制的
+
+> 普通文本14号
+
+
+
+> 流式布局
+> layout-container:fluid
+- 流式布局 宽度是100%
+```css
+{
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+```
+
+- 有一margin-bottom
+```css
+{
+  margin-bottom: calc(24px * 3);
+}
+```
+
+
+> layout-bgcolor:gray
+- 这个可能是可以指定容器的颜色
+
+
+
+
+
+
+
 ### nuxt化
 - 1. http://store.kinto-jp.com/
 - 3. http://store.kinto-jp.com/lexus/

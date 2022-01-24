@@ -30303,6 +30303,343 @@ list.add(new Person());   // 可以
 ----------------------------
 
 ### 自定义泛型类的练习
+> 1. 定义个泛型类DAO<T> 
+- 在其中定义一个Map成员变量 Map的键为String类型 值为T类型
+
+- 分别创建以下方法
+- public void save(String id, T entity):
+- 保存T类型的对象到Map成员变量中
+
+- public T get(String id)
+- 从map中获取id对应的对象
+
+- public void update(String id, T entity)
+- 替换map中key为id的内容 改为entity对象
+
+- public void delete(Stirng id)
+- 删除指定id对象
+
+```java
+// 定义DAO泛型类 传入泛型参数
+public class DAO<T> {
+
+  // 成员变量中使用类的泛型key:String value:T
+  private Map<String, T> map;
+
+  // 保存T类型的对象到Map成员变量中
+  public void save(String id, T entity) {
+    map.put(id, entity);
+  }
+
+  // 从 map 中获取id对应的对象
+  public T get(String id) {
+    // 没找到的话本身会返回null
+    return map.get(id);
+  }
+
+  // 替换map中key为id的内容 改为entity对象
+  public void update(String id, T entity) {
+    // 这么写稍微差点意思 逻辑不完整
+    // map.put(id, entity);
+
+    if(map.containsKey(id)) {
+      map.put(id, entity);
+    }
+  }
+
+  // 返回 map 中存放的所有T对象
+  public List<T> list() {
+    // 我们把所有的value取出来
+
+    // 下面这种写法可以么? 不行！！
+    // Collection<T> values = map.values();
+    // return (List<T>) values;
+
+
+    // 正确的将values取到后遍历下 装到一个List中
+    // ArrayList<T> list = new ArrayList<>(); 这样也行 没什么区别
+    List<T> list = new ArrayList<>();
+    Collection<T> values = map.values();
+
+    for(T t: values) {
+      list.add(t);
+    }
+    return list;
+  }
+
+  // 删除指定id对象
+  public void delete(String id) {
+    map.remove(id);
+  }
+}
+```
+
+> 对上要点:
+- 强转中发现的关键点： 强转要先上(多态)后下(强转)
+- 不能直接从上直接转到下 需要一个过程
+
+- 在上面的 public List<T> list() 方法中 我们要将所有的T对象装到一个List中然后返回 我们可能会定义下面的方法
+
+```java
+public List<T> list() {
+  // 这样是错误的写法
+  Collection<T> values = map.values();
+  return (List<T>) values;
+}
+```
+
+- 强转操作:
+- 比如本身是A类型 我们要先升成B类型(多态上去了) 
+- 然后我们才可以强转下来 -- 强转要先上后下 
+<!-- 
+  比如:
+    我们造的就是一个Object 然后我们需要一个Person 
+    然后我们把Object强转成Person 这样是肯定错的 
+    
+    这里也是一样values()返回得就是Collection 
+    不是说values()返回得是List 我们把List又赋值给Collection了 
+    
+    然后Collection强转成List 如果真是这样那ok 
+    
+    但现在我们values()返回得就是一个Collection 我们非要把它强转成List 肯定不对
+
+
+  另外我们还可以这样理解:
+    map中的values是无序的 可重复的 我们直接转成一个List List是有序的
+ -->
+
+
+> 2. 定义一个User类
+- 该类包含:
+- private成员变量(int 类型) id age name
+
+```java
+// 一会实例化DAO的时候 我们就会将T认为是User了 由于T是存放在map当中了 通常User需要提供equals()
+@Override
+public boolean equals(Object o) {
+  if (this == o) return true;
+  if (o == null || getClass() != o.getClass()) return false;
+
+  User user = (User) o;
+
+  if (id != user.id) return false;
+  if (age != user.age) return false;
+  return name != null ? name.equals(user.name) : user.name == null;
+}
+
+@Override
+public int hashCode() {
+  int result = id;
+  result = 31 * result + age;
+  result = 31 * result + (name != null ? name.hashCode() : 0);
+  return result;
+}
+```
+
+
+> 测试类
+```java
+public class DAOTest {
+  public static void main(String[] args) {
+    // 因为是泛型类 首先要指明泛型参数
+    DAO<User> dao = new DAO<>();
+
+    // 我们调用save()的之前要确保map实例化了 不然会报空指针 因为我们要将User放入map里面但是 Map还没有实例化
+    dao.save("1001", new User(1001, 33, "周杰伦"));
+    dao.save("1002", new User(1002, 22, "周杰"));
+    dao.save("1003", new User(1003, 11, "周华健"));
+
+    // 修改
+    dao.update("1003", new User(1003, 55, "方文山"));
+
+    
+    // 调用list()
+    List<User> list = dao.list();
+    // java8 新特性来遍历
+    list.forEach(System.out::println);
+  }
+}
+```
+
+----------------------------
+
+### IO流
+- I: input 输入
+- O: output 输出
+
+- 这章里面涉及到的主要问题就是文件的传输 数据的持久化 那就需要我们将内存中的数据存储到硬盘上 以txt jpg avi等格式存储起来 
+<!-- 
+  上面涉及到的知识点都是将数据存储在内存中 jvm或者电脑关闭后 数据就没了
+ -->
+
+- 站在内存层面谈
+- 内存层面 - 写入到 - 具体文件(持久化层面): 叫做 输出
+- 具体文件 - 读取到 - 内存层面: 叫做 输入
+
+- 因为输入输出分很多种情况(操作数据的特点不一样) 每种情况可能要对应一种流 所以这章里面会涉及到很多的流
+
+- 在介绍各种流之前 我们要先说一个 File类
+<!-- 
+  比如:
+     A                 B
+    -------           -------
+    内 存               .txt
+
+    我们要将
+    内存中的数据 写到 文件中    或者
+    将文件中的数据 读到 内存里
+
+    - 这时候我们要有一个端点(.txt) 从哪读进来 或者 写出到哪
+
+    - 这个端点是一个文件 在java层面就是一个对象 这个文件在java内存层面要拿一个类的对象去充当 这个对象就是File类型的
+
+    .txt文件我们就用一个File类的对象去充当
+
+
+    - File类的对象不光能充当文件 还可以表示一个文件目录
+ -->
+
+----------------------------
+
+### File类
+- File类的一个对象 代表一个 *文件* 或 *文件目录(文件夹)*
+- File类声明在java.io包下
+
+
+> 创建File类实例
+- 创建实例肯定要调用File类的构造器 我们先看看有哪些构造器
+```java
+public File(String filePath)
+
+public File(String parentPath, String childPath)
+
+public File(File parent, String child)
+
+public File(URI uri)
+```
+
+- 当我们调用该构造器后 相当于在内存层面拥有了一个file对象 不需要有实体文件
+
+
+> 实例化方式1
+> File file = new File(文件 或 文件所在路径);
+```java
+// 即使文件目录中没有hello.txt和hi.txt也不会报错
+// 此时只是在内存层面创建了一个对象
+File file1 = new File("hello.txt");
+File file2 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/Java/hi.txt");
+
+System.out.println(file1);
+// 相当于调用了file1的toString() 会输出文件所在的路径
+```
+
+- 相对路径:
+- 相较于某个路径下 指明的路径
+```java
+// 相对路径
+File file = new File("hello.txt");
+
+// file1结果:
+// hello.txt
+```
+
+- 上述的写法就是相对路径 相对于idea Module 在Module下
+<!-- 
+  比如我们的Module是day08
+
+  | - day08
+    | - src
+ -->
+
+
+- 绝对路径:
+- 包含盘符在内的文件或文件目录的路径
+- D:/开始到文件的路径
+```java
+// 绝对路径
+File file = new File("/Users/LIUCHUNSHAN/Desktop/Sam/Java/hi.txt");
+
+// file2结果:
+// /Users/LIUCHUNSHAN/Desktop/Sam/Java/hi.txt
+```
+
+
+**注意:**
+- 路径分隔符和系统有关
+- Windows和Dos系统默认使用 "\" 来表示
+<!-- 
+  windows里面的绝对路径 我们需要 \\java\\day08 
+  也支持 "/"
+-->
+
+- Unix和URL使用 "/" 来表示
+
+> File.separator常量 相当于 通用的 / 分隔符
+- 为了避免还会记和使用麻烦 File类提供了一个常量 *separator*
+
+- 优点：
+- 在不同的平台下 该代码都不会有问题 就是繁琐 但是通用
+
+```java
+public static final String separator
+```
+
+- 作用:
+- 根据操作系统 动态的提供分隔符
+
+```java
+// 示例:
+new File("d" + File.separator + "sam" + File.separator + "test.js")
+```
+
+
+
+> 实例化方式2
+> File file = new File(上一层路径, 目标文件或路径);
+```java
+// 在/Users/LIUCHUNSHAN/Desktop/Sam/目录下 的 Java目录
+File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
+
+// file3结果:
+// /Users/LIUCHUNSHAN/Desktop/Sam/Java
+```
+
+
+> 实例化方式3
+> File file = new File(File, "hi.txt");
+```java
+File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
+
+// file3结果:
+// /Users/LIUCHUNSHAN/Desktop/Sam/Java
+
+
+// 参数1的位置需要放以个File类型的 我们将file3 放进去
+File file4 = new File(file3, "he.txt");
+
+    // file3 输出的时候就是一条路径 相当于我们往参数1的位置上放了一条路径
+
+// file4结果:
+// /Users/LIUCHUNSHAN/Desktop/Sam/Java/he.txt
+```
+
+
+
+
+- File 能新建 删除 重命名文件和目录 但
+- File不能访问文件内容本身
+
+- 如果需要访问文件内容本身 则需要使用输入/输出 流
+
+- 想要在java程序中表示一个真实存在的文件或目录 那么必须有一个File对象
+- 但是java程序中的一个File对象 可能没有一个真实存在的文件或目录
+
+- File对象可以作为参数传递给流的构造器
+
+
+> File类的创建功能
+
+
 
 ----------------------------
 
