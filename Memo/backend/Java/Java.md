@@ -29135,7 +29135,7 @@ while(scanner.hasNext()) {
 
 ----------------------------
 
-### 泛型 (Generic)
+### 泛型 (Generic) jdk5.0后的新特性
 - 泛型：
 - 我们首先可以把泛型理解成一对标签
 
@@ -29164,6 +29164,7 @@ while(scanner.hasNext()) {
 
   就相当于我们给集合添加了一个标签 我们可以集合添加了 <大黄> 的标签后 里面就不能放别的东西
  -->
+
 
 > 泛型的概念
 - 把元素的类型设计成一个参数 这个类型参数叫做泛型
@@ -29224,6 +29225,10 @@ for(Object score: list) {
 - 为了避免上述的情况发生 我们要在往集合中填入元素的时候 做一下类型的检查
 
 - 这个类型的检查就是泛型
+
+
+> 总结:
+- 没有泛型后续的操作中就要涉及到强转，有泛型后就可以避免强转
 
 
 > 集合中泛型的简单使用
@@ -29709,6 +29714,10 @@ class Son<T2, A, B> extends Father<Integer, T2>
 ### 泛型方法
 - 上面我们介绍了泛型类 泛型接口 这里我们说说泛型方法
 
+- 应用场景
+- 在方法中有不确定的类型 我们调用方法的时候再指明类型是什么 就使用泛型方法
+
+
 - 泛型方法并不是说类中的方法中使用泛型就叫做泛型方法
 - 比如
 - Collection接口 会有下面的方法 但这不是泛型方法
@@ -30041,7 +30050,8 @@ list1 = list2
 
 - 类A 是 类B 的父类 A<G> 是 B<G>的父类
 
-- 能不能赋值我们看的是<>外面的部分 是不是子父类的关系 而不是<>里面的部分
+- 能不能赋值我们看的是<>外面的部分, 是不是子父类的关系 
+- 而不是看泛型部分 <>里面
 
 
 
@@ -30513,16 +30523,21 @@ public File(String filePath)
 
 public File(String parentPath, String childPath)
 
-public File(File parent, String child)
+public File(File parentPath, String childPath)
 
 public File(URI uri)
 ```
 
-- 当我们调用该构造器后 相当于在内存层面拥有了一个file对象 不需要有实体文件
+- 当我们调用该构造器后 相当于在内存层面拥有了一个file对象 不是必须一定要有实体文件
 
 
 > 实例化方式1
-> File file = new File(文件 或 文件所在路径);
+> File file = new File(文件名 或 文件所在路径);
+- public File(String filePath)
+
+- 我们在传入参数的时候 并不是说一定要有这个实体文件
+- 没有实体文件的话 相当于我们在内存层面创建了一个文件的对象
+
 ```java
 // 即使文件目录中没有hello.txt和hi.txt也不会报错
 // 此时只是在内存层面创建了一个对象
@@ -30530,11 +30545,44 @@ File file1 = new File("hello.txt");
 File file2 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/Java/hi.txt");
 
 System.out.println(file1);
-// 相当于调用了file1的toString() 会输出文件所在的路径
+// 相当于调用了file1的toString() 相对路径会输出传递进入的文件名 绝对路径会输出文件所在的路径
 ```
 
-- 相对路径:
-- 相较于某个路径下 指明的路径
+> 相对路径:
+- 1. idea中是相较于Module 如果没有Module就是相较于项目根目录下
+<!-- 
+  // 有module的情况
+  | - Day08   -- module
+    - 默认文件在这  -- file
+
+    | - src
+      - 包
+
+  一般我们的文件都是在一个module的src的包下
+  如果我们在包下的java文件中使用了相对路径
+  那么意味着 文件会在 Day08下
+
+
+  // 没有module的情况下
+  | - 根目录
+    - 默认文件在这  -- file
+ -->
+
+- 2. 看复习中大大总结的是：
+- 如果我们是在main()方法中 那么相对于当前工程下 也就是跟目录下
+- 如果是测试方法 那就相较于module下
+- 原因:
+- 我们要看方法的调用者是谁
+- main() 是程序的入口 - 所以是根目录下
+- test() 我们是在module下导包进来的 所以module下
+<!-- 
+  eclipse 不分test main 都是相较于一个个的工程下
+ -->
+
+
+- 我们可以使用文件对象.getAbsolutePath()输出绝对路径看看
+
+
 ```java
 // 相对路径
 File file = new File("hello.txt");
@@ -30543,16 +30591,8 @@ File file = new File("hello.txt");
 // hello.txt
 ```
 
-- 上述的写法就是相对路径 相对于idea Module 在Module下
-<!-- 
-  比如我们的Module是day08
 
-  | - day08
-    | - src
- -->
-
-
-- 绝对路径:
+> 绝对路径:
 - 包含盘符在内的文件或文件目录的路径
 - D:/开始到文件的路径
 ```java
@@ -30596,6 +30636,8 @@ new File("d" + File.separator + "sam" + File.separator + "test.js")
 
 > 实例化方式2
 > File file = new File(上一层路径, 目标文件或路径);
+- public File(String parentPath, String childPath)
+
 ```java
 // 在/Users/LIUCHUNSHAN/Desktop/Sam/目录下 的 Java目录
 File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
@@ -30607,6 +30649,8 @@ File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
 
 > 实例化方式3
 > File file = new File(File, "hi.txt");
+- public File(File parent, String child)
+
 ```java
 File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
 
@@ -30624,22 +30668,583 @@ File file4 = new File(file3, "he.txt");
 ```
 
 
-
-
-- File 能新建 删除 重命名文件和目录 但
-- File不能访问文件内容本身
+> 要点:
+- File 能新建 删除 重命名文件和目录 但 File不能访问文件内容本身
 
 - 如果需要访问文件内容本身 则需要使用输入/输出 流
 
 - 想要在java程序中表示一个真实存在的文件或目录 那么必须有一个File对象
+
 - 但是java程序中的一个File对象 可能没有一个真实存在的文件或目录
 
 - File对象可以作为参数传递给流的构造器
 
+- 文件存在与否 是否可读可写 长度是多少 文件最近的修改日期是多少 File本身就能做这些
 
-> File类的创建功能
+----------------------------
+
+### File类常用方法
+
+> 通用代码
+```java
+// 相对路径: 没有真实文件
+File file1 = new File("hello.txt");
+
+// 绝对路径: 真实文件
+File file2 = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/hi.txt");
+```
+
+> 文件对象.getAbsolutePath();
+- 获取绝对路径
+
+- 返回值:
+- String
 
 
+> 文件对象.getPath()
+- 获取路径
+
+- 返回值:
+- String
+
+
+> 文件对象.getName()
+- 获取名称
+
+- 返回值:
+- String
+
+
+> 文件对象.getParent()
+- 获取上层文件目录路径 若无 返回null
+
+- 比如：
+- /Users/LIUCHUNSHAN/Desktop/ioTest/hi.txt
+- getParent() -- /Users/LIUCHUNSHAN/Desktop/ioTest
+<!-- 
+  最后没有 /
+ -->
+
+- 返回值:
+- String
+
+- 默认值: null
+
+- 要点:
+- 如果写成相对路径的话 就是null
+- 因为我们传入的只是 "hello.txt" 没有上一级吧
+
+```java
+// 没有真实的文件
+File file1 = new File("hello.txt");
+System.out.println(file1.getParent());
+// null
+```
+
+
+> 文件对象.length()
+- 获取文件长度(字节数) 不能获取目录的长度
+
+- 返回值:
+- long
+
+- 默认值: 0
+
+
+> 文件对象.lastModified()
+- 获取最后一次的修改时间 毫秒值
+
+- 返回值:
+- long
+
+- 默认值: 0
+
+------
+
+- 下面的两个方法适用于文件目录 也就是file对象必须是new File(文件夹路径) new出来的
+
+- 两个方法做的事儿差不多 就是返回值类型不一样 都是获取目录下的子目录 或者 文件
+
+> 文件对象.list()
+- 我们new File()的时候传入了一个文件夹 通过该文件夹对象调用的list()方法 或得到当前文件目录下的所有文件 和 文件夹
+
+- 获取file文件所在目录下的所有文件或者文件目录的*名称数组*
+
+- 特点:
+- 如果是文件会有.后缀名
+- 如果是文件夹则没有.后缀名
+<!-- 
+  package-lock.json   -- 文件
+  vue2_local_pro      -- 文件夹
+ -->  
+
+- 要点:
+- 该文件目录必须要存在 否则会报错
+
+- 返回值:
+- String[]
+
+```java
+// 我们拿Sam文件夹试试
+File file = new File("/Users/LIUCHUNSHAN/Desktop/Sam");
+
+// 调用list()
+String[] list = file.list();
+
+for(String name: list) {
+  System.out.println(name);
+}
+
+// 结果：
+TypeSctipt
+vue2_local_pro
+Javascript_pro
+react-local-pro
+vue3-local-pro
+nuxt_local_pro
+
+package-lock.json -- 文件
+```
+
+
+> 文件对象.listFiles()
+- 获取指定目录下的所有文件或者文件目录的*File数组*
+
+- 返回值:
+- File[]
+
+- 特点：
+- 结果会以绝对路径的方式展现
+
+```java
+File file = new File("/Users/LIUCHUNSHAN/Desktop/Sam");
+
+File[] files = file.listFiles();
+
+for(File f: files) {
+  System.out.println(f);
+}
+
+// 结果
+/Users/LIUCHUNSHAN/Desktop/Sam/TestRepositories
+/Users/LIUCHUNSHAN/Desktop/Sam/.DS_Store
+/Users/LIUCHUNSHAN/Desktop/Sam/node_local-pro
+```
+
+
+> 文件对象.renameTo(File dest)
+- 把文件重命名为指定的文件路径
+
+- 返回值
+- boolean
+
+- 要点：
+- 文件对象要在硬盘中存在
+- dest对象不能在硬盘中存在
+
+- 效果：
+- 好像剪切粘贴啊
+- 将文件对象 剪切到 指定的路径
+
+```java
+// file1在硬盘中是存在的
+File file1 = new File("hello.txt");
+
+// 该目录下没有hello.txt文件
+File file2 = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/hello.txt");
+
+// 返回值类型是boolean
+boolean isRes = file1.renameTo(file2);
+System.out.println(isRes);
+
+// 效果
+- 跟目录下的hello.txt没有了 在Desktop/ioTest/ 路径下出现了
+```
+
+----------------
+
+### File类的判断功能
+- File对象既可以表示一个文件 也可以表示为一个文件目录
+
+> 文件对象.isDirectory()
+- 判断是否是文件目录
+
+- 返回值:
+- boolean
+
+
+> 文件对象.isFile()
+- 判断是否是文件
+
+- 返回值:
+- boolean
+
+
+> 文件对象.exists()
+- 判断当前对象是否在硬盘中存在对应的文件 或 文件目录
+
+- 返回值:
+- boolean
+
+
+> 文件对象.canRead()
+- 判断是否可读
+
+- 返回值:
+- boolean
+
+
+> 文件对象.canWrite()
+- 判断是否可写
+
+- 返回值:
+- boolean
+
+
+> 文件对象.isHidden()
+- 判断是否隐藏
+
+- 返回值:
+- boolean
+
+
+> 示例:
+```java
+
+// 针对于真实文件的情况
+File file = new File("hello.txt");
+File file = new File("/Users/LIUCHUNSHAN/Desktop/ioTest");
+
+
+System.out.println(file.isDirectory());
+System.out.println(file.isFile());
+System.out.println(file.exists());
+
+// 正常文件存在就是可读可写的状态
+System.out.println(file.canRead());
+System.out.println(file.canWrite());
+
+System.out.println(file.isHidden());
+
+// 真实文件的结果:
+false
+true
+true
+true
+true
+false
+
+
+//  真实目录的结果
+true
+false
+true
+true
+true
+false
+```
+
+> 技巧：
+- 我们在调用这个部分的方法的时候 要尽可能的先调用
+- file.exists() 看看文件是不是真的存在后 再进行其他的操作
+
+> 总结
+- 当硬盘中真有一个真实的文件或目录存在的时候 创建File对象时 各个属性会有值
+
+- 当硬盘中没有真实的文件或目录对应时 创建File对象时 各个属性会有都是默认值 false null 0
+
+----------------------------
+
+### File类的创建 删除功能
+- 这部分的功能是*真正的在硬盘中*创建文件或文件目录
+
+> 文件对象.craeteNewFile()
+- 创建文件 
+- 若文件存在 则不创建 返回false
+
+- 异常:
+- IOException
+
+- 返回值:
+- boolean
+
+- 前提
+- 我们通过构造器 指定了一个内存中的对象
+
+```java
+// 创建了一个文件对象 目前 test.txt 并不存在 只是在内存中
+File file = new File("test.txt");
+
+// 先判断下文件是否存在
+if(!file.exists()) file.createNewFile();
+System.out.println("创建成功");
+```
+
+<!-- 
+  相当于 我们右键 - 新建 - 文本文档
+ -->
+
+
+> 文件对象.mkdir()
+- 创建文件目录 
+- 若此文件目录存在 则不创建
+- 若此文件目录的上层目录不存在 则不创建
+
+- 返回值:
+- boolean
+
+```java
+// ioTest存在
+// 我们要在 ioTest -> 下 创建io1文件夹
+File file = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/io1");
+
+// 如果上层木库 /Users/LIUCHUNSHAN/Desktop/ioTest存在的时候 mkdir()和mkdirs()是一样的
+file.mkdir();
+file.mkdirs();
+
+-- 
+
+// ioTest存在
+// 我们要在 ioTest -> io1下 创建 io3 但是io2文件夹并不存在
+  File file = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/io2/io3");
+
+  boolean mkdir = file.mkdirs();
+  if(mkdir) {
+    System.out.println("创建成功");
+  } else {
+    System.out.println("创建失败");
+  }
+
+  // 创建失败 因为 io3 的 上层目录 io2 不存在 所以创建失败
+  // 但是如果是 mkdirs() 方法 则没有问题可以创建成功
+```
+
+
+> 文件对象.mkdirs()
+- 创建文件目录
+- 如果上层文件目录不存在 连带上层目录一起创建 
+
+- 返回值:
+- boolean
+
+**注意:**
+- 如果你创建文件或文件目录没有写盘符路径
+- 那么默认在项目路径下
+
+
+- mkdir() 和 mkdirs() 的区别就是 对于上层目录应该怎么处理
+
+
+> 文件对象.delete()
+- 删除文件或者文件夹
+
+- 返回值:
+- boolean
+
+- 前提
+- 我们通过构造器 指定了一个内存中的对象
+
+**注意:**
+- 1. java中要删除不走回收站
+- 2. 要删除一个文件目录 *请注意该文件目录内不能包含文件或者文件目录*
+
+
+> 总结:
+- File类中涉及到文件或文件目录的创建 删除 重命名 修改时间 文件大小等方法 并未涉及到写入或读取文件内容的操作
+
+- 如果需要读取或写入文件内容 必须使用io流来完成
+
+<!-- 
+    - 我们将
+      内存中的数据写入硬盘文件中
+      硬盘文件中的数据读取到内存中
+
+    就需要 流 操作
+    
+    -----------             -----------
+                    →
+    硬盘中的文件     io流         内存
+                    ←
+    -----------             -----------
+
+
+    - 如果不需要 读取 和 写入 操作
+    - 我们只是看看文件名 文件大小 修改时间 上层目录等对文件的简单操作的话 我们使用File类就可以了
+ -->
+
+- 后续File类的对象常会作为参数传递到流的构造器中 指明读取或写入的"终点(从哪里读 写到哪里)"
+
+
+
+> 练习
+- 1. 利用File构造器 new一个文件目录file
+  - 在其中创建多个文件和目录
+  - 编写方法 实现删除flie中指定文件的操作
+
+```java
+File file = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/hello.txt");
+
+// 创建一个与file同目录下的另外一个文件 文件名为: haha.txt
+File destFile = new File(file.getParent(), "haha.txt");
+
+boolean newFile = destFile.createNewFile();
+if(newFile) { 
+  System.out.println("创建成功");
+}
+```
+
+
+- 2. 判断指定目录下是否有后缀名为.jpg的文件 如果有 就输出该文件名称
+```java
+public class FindJPGFileTest {
+
+	@Test
+	public void test1(){
+		File srcFile = new File("d:\\code");
+		
+		String[] fileNames = srcFile.list();
+		for(String fileName : fileNames){
+			if(fileName.endsWith(".jpg")){
+				System.out.println(fileName);
+			}
+		}
+	}
+	@Test
+	public void test2(){
+		File srcFile = new File("d:\\code");
+		
+		File[] listFiles = srcFile.listFiles();
+		for(File file : listFiles){
+			if(file.getName().endsWith(".jpg")){
+				System.out.println(file.getAbsolutePath());
+			}
+		}
+	}
+	/*
+	 * File类提供了两个文件过滤器方法
+	 * public String[] list(FilenameFilter filter)
+	 * public File[] listFiles(FileFilter filter)
+
+	 */
+	@Test
+	public void test3(){
+		File srcFile = new File("d:\\code");
+		
+		File[] subFiles = srcFile.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".jpg");
+			}
+		});
+		
+		for(File file : subFiles){
+			System.out.println(file.getAbsolutePath());
+		}
+	}
+	
+}
+
+```
+
+- 3. 遍历指定目录所有文件名称 包括子文件目录中的文件
+  - 拓展1: 并计算指定目录占用空间的大小
+  - 扩展2: 删除指定文件目录及其下的所有文件
+
+```java
+public class ListFilesTest {
+
+	public static void main(String[] args) {
+		// 递归:文件目录
+		/** 打印出指定目录所有文件名称，包括子文件目录中的文件 */
+
+		// 1.创建目录对象
+		File dir = new File("E:\\teach\\01_javaSE\\_尚硅谷Java编程语言\\3_软件");
+
+		// 2.打印目录的子文件
+		printSubFile(dir);
+	}
+
+	public static void printSubFile(File dir) {
+		// 打印目录的子文件
+		File[] subfiles = dir.listFiles();
+
+		for (File f : subfiles) {
+			if (f.isDirectory()) {// 文件目录
+				printSubFile(f);
+			} else {// 文件
+				System.out.println(f.getAbsolutePath());
+			}
+		}
+	}
+
+	// 方式二：循环实现
+	// 列出file目录的下级内容，仅列出一级的话
+	// 使用File类的String[] list()比较简单
+	public void listSubFiles(File file) {
+		if (file.isDirectory()) {
+			String[] all = file.list();
+			for (String s : all) {
+				System.out.println(s);
+			}
+		} else {
+			System.out.println(file + "是文件！");
+		}
+	}
+
+	// 列出file目录的下级，如果它的下级还是目录，接着列出下级的下级，依次类推
+	// 建议使用File类的File[] listFiles()
+	public void listAllSubFiles(File file) {
+		if (file.isFile()) {
+			System.out.println(file);
+		} else {
+			File[] all = file.listFiles();
+			// 如果all[i]是文件，直接打印
+			// 如果all[i]是目录，接着再获取它的下一级
+			for (File f : all) {
+				listAllSubFiles(f);// 递归调用：自己调用自己就叫递归
+			}
+		}
+	}
+
+	// 拓展1：求指定目录所在空间的大小
+	// 求任意一个目录的总大小
+	public long getDirectorySize(File file) {
+		// file是文件，那么直接返回file.length()
+		// file是目录，把它的下一级的所有大小加起来就是它的总大小
+		long size = 0;
+		if (file.isFile()) {
+			size += file.length();
+		} else {
+			File[] all = file.listFiles();// 获取file的下一级
+			// 累加all[i]的大小
+			for (File f : all) {
+				size += getDirectorySize(f);// f的大小;
+			}
+		}
+		return size;
+	}
+
+	// 拓展2：删除指定的目录
+	public void deleteDirectory(File file) {
+		// 如果file是文件，直接delete
+		// 如果file是目录，先把它的下一级干掉，然后删除自己
+		if (file.isDirectory()) {
+			File[] all = file.listFiles();
+			// 循环删除的是file的下一级
+			for (File f : all) {// f代表file的每一个下级
+				deleteDirectory(f);
+			}
+		}
+		// 删除自己
+		file.delete();
+	}
+}
+```
+
+----------------------------
+
+### 
 
 ----------------------------
 
