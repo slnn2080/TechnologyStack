@@ -1425,7 +1425,7 @@ background-attachment: ;
 - 可以把背景相关的属性都用background来书写，而且没有顺序要求
 background:red url('') center center ....
 
-- 注意：
+**注意：**
 - 如果有background-size属性的话 要写在position的后面 用 / 隔开
 - eg：
     background:red url('') center center/cover ....
@@ -1434,6 +1434,21 @@ background:red url('') center center ....
     background-origin必须在前面
 -eg：
     background:red url('') center center/cover border-box content-box
+
+
+background: [background-color] [background-image] [background-repeat]
+            [background-attachment] [background-position] / [ background-size]
+            [background-origin] [background-clip];
+
+```css
+.example {
+  background: aquamarine url(img.png)
+              no-repeat
+              scroll
+              center center / 50%
+              content-box content-box;
+}
+```
 
 --------------------------------------
 

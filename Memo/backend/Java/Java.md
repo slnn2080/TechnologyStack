@@ -30591,6 +30591,34 @@ File file = new File("hello.txt");
 // hello.txt
 ```
 
+> 技巧:
+- 使用相对路径的时候:
+- 我们的文件创建在 module 下 但是我们还是想使用main()方法该怎么处理?
+<!-- 
+  
+  new File("Hello.txt")
+  因为main()会在 项目根目录下找 指定文件 可我们的文件在module下 就会出现问题
+
+  但是我们可以这么解决
+  new File("Day08/Hello.txt")
+
+  在文件前面我们把缺失的路径补上不就可以了么
+ -->
+
+```java
+@Test
+public void testFileReader() {
+  File file = new File("Hello.txt");
+
+}
+
+public static void main(String[] args) {
+  // 在前面补上 根目录 到 文件中缺失的路径部分
+  File file = new File("Day01/Hello.txt");
+  System.out.println(file.getAbsolutePath());
+}
+```
+
 
 > 绝对路径:
 - 包含盘符在内的文件或文件目录的路径
@@ -31244,7 +31272,1007 @@ public class ListFilesTest {
 
 ----------------------------
 
-### 
+### IO流的原理 与 流的分类
+- IO是input和output的缩写 IO技术是非常使用的机刷 用于*处理设备之间的数据传输*
+
+- 如读/写文件 网络通讯等
+
+- java程序中 对于数据的输入/输出操作以"流(stream)"的方式进行
+
+- java.io包下提供了各种"流"类和接口 用以获取不同种类的数据 并通过 标准的方法 输入或输出数据
+
+- input output是一个相对的概念
+- 我们要站位在内存的角度看输入还是输出
+
+> 输入input
+- 读取外部数据(磁盘 光盘等存储设备的数据)到程序(内存)中
+
+
+> 输出output
+- 将程序(内存)数据输出到磁盘 光盘等存储设备中
+
+
+> 流的分类
+- 1. 按照数据流的*流向*不同分为: 
+    输入流 和 输出流
+<!-- 站在内存的角度 -->
+
+- 2. 按操作*数据单位*不同不同为: 
+    字节流(8bit) 和 字符流(16bit)
+<!-- 
+  字节流的基本单位就是一个个的bit(01) 8bit是1个字节
+  字符流就是2个字节 一个个char的方式存储的
+
+  字符流
+    更适合存储文本数据 比如一个txt文件 都是一个个文件 那么我们就可以使用字符的方式去存储
+
+  字节流
+    图片 视频等2进制数据的时候 也就是非文本的数据 我们希望使用字节流
+ -->
+
+- 3. 按照流的*角色*不同分为:
+    节点流 和 处理流
+<!-- 
+    把文件中的数据加载到内存层面
+
+    节点流:
+    我们造 一个直接作用在文件上的流 称为节点流
+
+
+    处理流:
+    我们在节点流的基础上又包了一层流 
+    也就是节点流的对象 作为外部流的构造器中的参数 传入 也就是节点流作为外部流的属性出现了
+
+    外面包着这层流就是处理流
+
+    =======处理流(参数: 节点流)=========
+        -----------
+        节点流 →
+        -----------
+    =======处理流(参数: 节点流)=========
+
+    处理流可以有很多层 凡是在已有流的基础上进行包裹的都是处理流
+
+  
+
+    
+    处理流有很多种 作用就不一样
+    比如：
+    在现有的流上包裹了一层处理流后可以加快流的传输速度
+ -->
+
+
+> IO流的体系结构
+- InputStream OutoutStream Reader Writer是类
+- 它们是抽象基类(不能实例化)
+
+<!-- 
+    抽象基类     字节流       字符流
+    输入流    InputStream   Reader   
+    输出流    OutoutStream  Writer
+
+    // 按照数据单位
+    InputStream OutoutStream是处理字节的
+    Reader Writer是处理字符的
+
+    // 按照流向
+    InputStream OutoutStream 是 输入流
+    Reader Writer 是 输出流
+ -->
+
+
+- 分类  
+  字节输入流  
+  字节输出流  
+  字符输入流  
+  字符输出流
+
+- 下面标绿的是我们需要额外关注的
+
+> 抽象基类
+  InputStream   (字节输入流)
+  OutputStream  (字节输出流)
+  Reader  (字符输入流)
+  Writer  (字符输出流)
+
+- 我们把 抽象基类 分成了4行
+- 下面每一个分类中的每一行对应着抽象基类的每一行
+
+- 比如 下面的分类中的：
+- 第一行 *都继承于* 抽象基类中的 *InputStream基类*
+- 第二行 *都继承于* 抽象基类中的 *OutputStream基类*
+- 第三行 *都继承于* 抽象基类中的 *Reader基类*
+- 第四行 *都继承于* 抽象基类中的 *Writer基类*
+
+
+
+> 访问文件 -- *典型的节点流* 也叫做文件流
+  FileInputStream   (字节输入流)
+  FileOutputStream  (字节输出流)
+  FileReader  (字符输入流)
+  FileWrite   (字符输出流)
+<!-- 
+  第一档
+  这四个流可以 直接 操作 file
+ -->
+
+
+- 访问数组 (处理流)
+  ByteArrayInputStream    (字节输入流)
+  ByteArrayOutputStream   (字节输出流)
+  CharArrayReader   (字符输入流)
+  CharArrayWriter   (字符输出流)
+
+
+- 访问管道 (处理流)
+  PipedInputStream    (字节输入流)
+  PipedOutputStream   (字节输出流)
+  PipedReader   (字符输入流)
+  PipedWriter   (字符输出流)
+
+- 访问字符串 (处理流)
+  空    (字节输入流)
+  空    (字节输出流)
+  StringReader    (字符输入流)
+  StringWriter    (字符输出流)
+
+> 缓冲流 (处理流)
+  BufferedInputStream   (字节输入流)
+  bufferedOutputStream  (字节输出流)
+  BufferedReader  (字符输入流)
+  BufferedWriter  (字符输出流)
+<!-- 
+  第一档
+  处理流的一种
+ -->
+
+> 转换流 (处理流)
+  空  (字节输入流)
+  空  (字节输出流)
+  InputStreamReader   (字符输入流)
+  OutputStreamWriter  (字符输出流)
+<!-- 
+  第一档
+ -->  
+
+
+> 对象流
+  ObjectInputStream   (字节输入流)
+  ObjectOutputStream  (字节输出流)
+  空  (字符输入流)
+  空  (字符输出流)
+<!-- 
+  第一档
+ -->  
+
+  FilterInputStream   (字节输入流)
+  FilterOutputStream  (字节输出流)
+  FilterReader  (字符输入流)
+  FilterWriter  (字符输出流)
+
+- 打印流
+  空  (字节输入流)
+  PrintStream   (字节输出流)
+  空  (字符输入流)
+  PrintWriter   (字符输出流)
+
+- 推回输入流
+  PushbackInputStream (字节输入流)
+  空  (字节输出流)
+  PushbackReader  (字符输入流)
+  空  (字符输出流)
+
+- 特殊流
+  DataInputStream   (字节输入流)
+  DataOutputStream  (字节输出流)
+  空  (字符输入流)
+  空  (字符输出流)
+
+
+- 我们要具备一种能力 就是一个流往这一放我们就要知道它是输入还是输出 是字节还是字符  
+
+> 后缀: InputStream OutputStream
+- 都是用来处理字节的
+
+> 后缀: Reader Writer
+- 都是用来处理字符的
+
+---
+
+- 1. java的io流共涉及40多个类 实际上非常规则 都是从如下4个抽象基类派生的
+
+- 2. 由这四个类派生出来的子类名称都是以其父类名作为子类名后缀
+
+----------------------------
+
+### 节点流
+- 从这里开始我们关注下 直接操作文件的 4个流
+- 分别是:
+
+- 操作字节的 
+  FileInputStream & FileOutputStream
+
+- 操作字符的
+  FileReader & FileWriter
+
+- 我们从操作字符的流开始:
+- 为了测试的方便 我们在【Day01】module下创建了Hello.txt文件
+<!-- 
+  注意:
+    我们在 module 下创建的 hello.txt 文件
+    如果我们要使用 相对路径 的话 
+      那我们就要用 @Test 不能使用 main()
+
+    因为main()的相对的 项目下根目录
+ -->
+
+----------------------------
+
+### FileReader读入数据的操作
+
+> FileReader实例化
+> FileReader fr = new FileReader(file);
+- 创建读取文件数据的流(字符流)
+
+- 构造器参数:
+- 1. file对象
+- 2. 具体的路径
+
+- 异常:
+- FileNotFoundException  文件找不到的异常
+
+```java
+public void testFileReader() throws IOException {
+  // 需求: 将day01下的hello.txt文件内容读入内存(程序)中 并输出到控制台
+
+  // 1. 实例化File类的对象 指明我们要操作文件
+  File file = new File("Hello.txt");
+}
+```
+
+> fr.close() !!!
+- 流的关闭操作 一定不要忘记 
+- 因为:
+- 垃圾回收机制会把没用的东西都回收掉 但是对于其他物理连接 比如数据库连接 输入流输出流 socket连接 无能为力
+
+- 我们需要手动关闭 否则会导致内存泄漏等问题
+
+- 异常
+- IOException
+
+
+> 使用 fr.read() 空参读取文件数据
+> fr.read()
+- 用于读取文件的数据
+- 它是一个重载的方法 参数不同读取的内容也就不同
+<!-- 
+  read()
+  read(char[] cbuf)
+  read(CharBuffer target)
+  read(char[] cbuf, int offset, int length)
+ -->
+
+- 异常:
+- IOException
+
+- 返回值:
+- int
+
+- fr.read()
+- 返回的是读入的一个字符(读入了一个字符char类型的)
+<!-- 
+  但是我们返回得是int类型
+  每一个char都会对应着一个int
+  a - > 97
+
+  这里相当于用int型的方式存的a
+ -->
+
+- 我们读取文件的时候都是使用循环的方式读取文件中的数据
+
+- 如果达到文件末尾了 返回-1 (当该方法返回-1的时候 代表文件读取完毕)
+
+- 如果文件里面是空的 那么上来就是-1 所以在读取文件的时候都会用while循环 条件就是判断是不是-1
+
+- 需求: 将day01下的hello.txt文件内容读入内存(程序)中 并输出到控制台
+
+```java
+@Test
+public void testFileReader() throws IOException {
+  // 1. 实例化File类的对象 指明我们要操作文件
+  File file = new File("Hello.txt");
+
+  // 2. 提供具体的流
+  // new FileReader(指定路径 或者 file对象)
+  FileReader fr = new FileReader(file);
+
+  // 3. 方式1: 数据的读入  
+  // 当读到-1的时候 代表结束
+  int data = fr.read();
+  while(data != -1) {
+    // 强转成char 我们才能看懂
+    System.out.println((char)data);
+
+    // 将读到的内容在赋值给data 直到data为-1的时候会退出循环
+    data = fr.read();
+  }
+
+  --- 
+
+  // 3. 方式2: 数据的读入  
+  // 语法上针对于方式1的修改
+  int data;
+  while(data = fr.read() != -1) {
+    System.out.println((char)data);
+  }
+
+  // 4. 流的关闭操作 !!!!!
+  fr.close();
+}
+```
+
+- 上面的例子中 不管是 new FileReader() 还是 fr.read() 都会抛出异常
+<!-- 
+   new FileReader() -- 文件找不到的异常
+ -->
+
+- 上面的例子中我们是使用 throws的方式 将异常抛到了外层方法上 这种方式并不好
+
+- 那我们到底选择try catch finally 还是 throws 呢
+
+```java
+// 去掉 throws IOException 
+@Test
+public void testFileReader() {
+
+  
+  File file = new File("Hello.txt");
+
+  - 1. ！！！异常处 - new File()
+  FileReader fr = new FileReader(file);
+
+  int data;
+
+  - 2. ！！！异常处 - fr.read()
+  while(data = fr.read() != -1) {
+    System.out.println((char)data);
+  }
+
+
+  - 3. ！！！异常处 - fr.close()
+  fr.close();
+}
+```
+
+> 异常处理:
+- 为了保证流资源一定可以执行关闭操作 需要使用try-catch-finally来处理
+
+- 上面的代码中 如果1的位置没有抛异常 就意味着 fr 可以正常的被创建
+```java
+FileReader fr = new FileReader(file);
+```
+
+- 然后就会继续的往下走 到2的位置
+- 在我们调用read()的时候 有时候可能有阻塞的出现 始终数据读取不到 它就会抛出一个IOException
+
+- 一旦出现异常就会在2的位置创建一个exception对象 该对象默认的情况下就会抛出去 相当于2位置后面的代码就不执行了
+
+- 也就是我们创建的流 始终不会被关闭 资源浪费存在泄漏的问题
+
+- 我们期望的是 我们创建好fr(创建好流)以后 即使2的位置出现了异常 我们也要保证流能够正常的被关闭
+
+- 所以一定能执行的操作 我们最好*使用try catch finally*
+
+```java
+@Test
+public void testFileReader() {
+
+  // 将它提取出来 因为fr要在多个{ }用
+  FileReader fr = null;
+
+  try {
+    // 1. 实例化File类的对象 指明我们要操作文件
+    File file = new File("Hello.txt");
+
+    // 2. 提供具体的流
+    fr = new FileReader(file);
+
+    // 3. 数据的读入
+    int data = fr.read();
+    while(data != -1) {
+      System.out.println((char)data);
+      data = fr.read();
+    }
+  } catch (IOException e) {
+    e.printStackTrace();
+  } finally {
+    // 4. 流的关闭操作 fr.close(); 本身也会抛异常所以也要try catch处理
+    try {
+
+      // 要点1: 
+      if(fr != null) fr.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+- 要点1: 
+- 因为我们将 FileReader fr = null; 提到try { } 结构的外侧了 但是极有可能我们在 new File() 的时候就出现异常
+
+- 如果1的步骤中出现异常 后面的代码就不会跑 但是 finally中的逻辑就会执行 所以 如果直接 fr.close(); 就会报空指针异常 因为fr是null
+
+- 所以我们要在这里进行判断下 if(fr != null) fr.close();
+
+
+**注意:**
+- 在*读取操作*的时候 *文件必须要存在！！！*
+- 不存在的话 FileReader fr = new FileReader(file); 就会报文件找不到的异常(FileNotFoundException)
+
+
+> 读取文件数据的步骤:
+- 我们是读入操作 所以首先要在硬盘中有这个文件
+
+- 1. File类的实例化
+- 2. 流的实例化(上面使用的是FileReader)
+- 3. 读入的操作
+- 4. 资源的关闭
+
+------
+
+> 思考:
+- Hello.txt文件中只有[helloworld123]
+
+- 上面我们在读取文件数据的操作时 使用的是 read() 方法
+- 但是该方法 每次只能读到一个字符 如果文件中的数据很多的时候 需要用循环来不断的和硬盘进行交互 效率很差
+<!-- 
+  比如 送快递也一样
+  快递员不会每次给我们送一个快递 然后就回公司去取新的
+  然后再送一个再取
+
+  快递一般都有一个小车 快递员会装一车(放一波) 送完这波回去再取一波
+ -->
+
+- 所以read()也一样 每次读一个太慢了
+
+- 下面还是读取Hello.txt文件里面的数据 但是这次我们对read()方法的操作升级 使用read的重载方法
+
+
+> read(char[] cbuf)
+- 该方法会将文件数据读入到 我们准备好的 char[] cbuf中
+<!-- 
+  所以在使用之前要先创建 char[] cbuf 数组
+
+  char[]数组就是一个容器 意味着我们可以一次读多个
+  既然要用数组 那么我们就要提前造出来 
+
+  // 比如 我们可以设置为5 相当于快递小车就能装5个
+  char[] cbuf = new char[5];
+ -->
+
+- 返回值
+- int  
+- 返回每次读入char[] chuf数组中的字符的个数
+- 如果达到文件末尾 则返回-1
+
+- 参数:
+- char[]
+- 读取字符 char[]
+- 读取字节 byte[]
+
+- 异常
+- IOException
+
+```java
+@Test
+public void testFileReader2() {
+  FileReader fr = null;
+  try {
+    // 1. File类的实例化
+    File file = new File("Hello.txt");
+
+    // 2. FileReader流的实例化
+    fr = new FileReader(file);
+
+    // 3. 读取的操作
+    // char[]相当于快递小哥的小货车 这个小货车只能装5个快递
+    char[] cbuf = new char[5];
+
+    // len为read(char[] cbuf)的返回值 为 读到的字符个数
+    int len;
+    while((len = fr.read(cbuf)) != -1 ) {
+
+      // 错误的写法
+      for(int i=0; i<cbuf.length; i++) {
+        System.out.print(cbuf[i]);
+        // helloworld123ld
+      }
+    }
+  } catch (IOException e) {
+    e.printStackTrace();
+  } finally {
+    try {
+      // 4. 资源的关闭
+      if(fr != null) fr.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+- 问题1:
+- 为什么会输出 helloworld123ld?
+- ld是哪来得？
+
+- 解释:
+- char[] cbuf相当于一个小车 有5个位置
+- 第一轮 小车里面装的是
+- h e l l o
+
+- 第二轮 小车的每一个位置被替换成
+- w o r l d
+
+- 第三轮 小车的位置是规定的 但第三轮只有3个数 数组中只有前3个被覆盖了 后两个没有被覆盖 所以
+- 1 2 3 l d
+
+- 如果我们for循环里面写的终止条件是
+  i<cbuf.length 
+  那么就会将最后的两个也输出 我们不应该输出最后两个
+
+- 所以我们不应该写i<cbuf.length 而是len就可以
+- 第一轮读到5个 read(char[] cbuf) 会返回5
+- 第二轮读到5个 read(char[] cbuf) 会返回5
+- 第三轮读到3个 read(char[] cbuf) 会返回3
+
+- 我们就不会输出ld 也就是每次读进去几个 我们就遍历几个
+
+
+> 正确的写法:
+- 我们拿下核心的代码
+
+```java
+// 1. File类的实例化
+File file = new File("Hello.txt");
+
+// 2. FileReader流的实例化
+fr = new FileReader(file);
+
+// 3. 读取的操作
+char[] cbuf = new char[5];
+
+// len为read(char[] cbuf) 每次读到的个数
+int len;
+
+while((len = fr.read(cbuf)) != -1 ) {
+  // 方式1:
+  for(int i=0; i<len; i++) {
+    System.out.print(cbuf[i]);
+  }
+
+  // 方式2: 我们将char[]转换为String
+  // 每次从头开始取 取len个
+  String str = new String(cbuf, 0, len);
+  System.out.print(str);
+
+  // 方式2: 错误的写法
+  String str = new String(cbuf);
+  System.out.print(str);
+  // helloworld123ld
+}
+```
+
+
+> read(char[] cbuf, int off, int len)
+- 创建一个小车
+- char[] cbuf = new char[5]
+
+- 使用这个重载方法
+- fr.read(cbuf, 0, 3)
+
+- 小车本来有5个位置 但是我们指定小车只能装3个
+- 从头装 小车装几个
+
+- 一般不会调用这个方法 一般都是能写满就写满
+
+----------------------------
+
+### FileWriter写出数据的操作
+- 从内存中将数据写出到硬盘文件中
+
+> 写出的步骤
+- 1. 提供File类的对象，指明写出到的文件
+```java
+File file = new File("Hello2.txt");
+```
+- 2. 提供FileWriter的对象 用于数据的写出
+- 也就是说指明写出的端点
+```java
+FileWriter fw = new FileWriter(file);
+```
+
+- 3. 写出的操作
+- 4. 流资源的关闭
+
+
+> 文件输出流的对象实例化
+> FileWriter fw = new FileWriter(file, [true / false]);
+- 提供FileWriter的对象 用于数据的写出 指明写出的端点
+
+- 参数:
+- 1. file对象
+- 2. 是否在源文件上追加内容 
+  false: 对原有文件的覆盖 -- 默认值
+  true:  在原有文件上追加
+
+- 异常:
+- IOException
+
+
+> fw.write(内容)
+- 我们可以将数据写到哪个文件里面去
+- 我们可以写出一个char[]
+- 我们可以写出一个String str
+
+- *参数类型: 都有用*
+<!-- 
+  // 以下5种都很常用
+  fw.write(int c)
+  fw.write(String str)
+  fw.write(char[] cbuf)
+  fw.write(String str, int off, int len)
+  fw.write(char[] cbuf, int off, int len)
+ -->
+
+```java
+while((len = fis.read(buf)) != -1) {
+  System.out.println("len: " + len);
+  // 读到多少写入多少
+  fw.write(cbuf, 0, len);
+}
+```
+
+- 比如我们写出一个字符串
+```java
+// 写出一个字符串
+fw.write("i have a dream!");  
+
+// 写出一个char[]
+fw.write("i have a dream!".toCharArray());  
+```
+
+- 如果想写多条数据 多次调用write()
+```java
+// 换行
+fw.write("i have a dream!\n");
+fw.write("you need to have a dream");
+```
+
+**注意:**
+- 1. 输出操作, 对应的File可以不存在 如果不存在 在输出的过程中 会自动创建此文件 并不会报异常
+<!-- 
+  // 当我们创建的File对象 在硬盘中并不存在的时候
+  File file = new File("Hello2.txt");
+
+  我们调用
+  fw.write()方法 会将自动创建该文件
+-->
+
+- 2. 如果对应的File存在 我们传递了第二个参数 false / true
+  - true: 在原有文件上*追加*
+  - false: 对原有文件进行*覆盖*
+
+
+
+> 练习: 
+- 使用FileReader 和 FileWrite实现文本文件的复制
+
+```java
+@Test
+public void testCopy() {
+  FileReader fr = null;
+  FileWriter fw = null;
+  try {
+    // 1. 创建File类的对象指明读取哪个文件到内存中 和 将读到的数据写到哪个文件里面去
+    File srcFile = new File("Hello.txt");
+    File destFile = new File("Hello_copy.txt");
+
+    // 2. 创建输入流和输出流的对象
+    // 对于输入流来讲 文件是必须存在的
+    fr = new FileReader(srcFile);
+    // 对于输出来讲 文件不是必须存在的
+    fw = new FileWriter(destFile);
+
+    // 数据的读入和写出操作
+    char[] cbuf = new char[5];
+    // 记录每次读入到cbuf数组中的字符的个数
+    int len;
+    // 不是-1就代表还有数据
+    while((len = fr.read(cbuf)) != -1) {
+      // 每次读到几个 我就写出去几个 每次读到len个就写出去len个
+      fw.write(cbuf, 0, len);
+    }
+  } catch (IOException e) {
+    e.printStackTrace();
+  } finally {
+
+    // 4. 关闭流资源
+    // 分开写： 关闭fr
+    try {
+      fr.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // 分开写： 关闭fw
+    try {
+      fw.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+
+> 字符流处理图片文件的测试 -- 不能
+- 上面我们是使用FileReader FileWriter两个类做了文本文件的复制的例子 那这两个可以复制图片么？
+
+- 我们把这个位置 换成了一张图片
+```java
+File srcFile = new File("图片1.txt");
+File destFile = new File("图片1_copy.txt");
+```
+
+- 发现没有报错 也真生成了一张新图片 但是该图片打不开
+- 这里相当于我们使用字符流 去处理 2进制的字节文件 是不对的
+
+- 我们要处理二进制文件 只需要使用对应的处理2进制文件的流就可以
+- FileReader  转换成  FileInputStream
+- FileWriter  转换成  FileOutputStream
+
+- 把上面例子中使用的 char[]
+- 转换为 byte[]
+
+---
+
+> FileInputStream fis = new FileInputStream(参数);
+- 二进制读取流
+
+> FileOutputStream fis = new FileOutputStream(参数);
+- 二进制写出流
+
+- 使用方式和 FileReader 和 FileWriter 一样
+
+---
+
+> 字节流处理文本文件的测试 -- 可能会出现乱码
+- 这里的代码 就相当于使用FileInputStream的方式
+
+```java
+// 测试使用 FileInputStream来处理 文本文件(字符文件)
+FileInputStream fis = null;
+try {
+  // 1. 造文件
+  File textFile = new File("hello.txt");
+
+  // 2. 造流
+  fis = new FileInputStream(textFile);
+
+  // 3. 读数据
+  // 创建一个字节流的数组
+  byte[] buf = new byte[5];
+
+  // 记录每次读取的字节的个数
+  int len;
+
+  // fis.read(buf)) 将数据读取到buf当中
+  while((len = fis.read(buf)) != -1) {
+    // 将读到的数据展示在控制台 将buf转换为字符串
+    String str = new String(buf, 0, len);
+    System.out.print(str);
+  }
+} catch (IOException e) {
+  e.printStackTrace();
+} finally {
+  try {
+    // 4. 关闭资源
+    if(fis != null) fis.close();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+}
+}
+```
+
+- 我们发现：
+- 如果文本文件是 英文或者数字 使用 FileInputStream 流 也能处理文本文件
+
+- 如果文本文件是 中文 使用 FileInputStream 流 处理文本文件会出现乱码的
+
+- 文本是英文数字的情况:
+- 如果我们的文本内容是 英文数字等 比如我们的Hello.txt
+- 它的内容就是: helloworld123
+- utf-8也好 还是gbk也好 英文字符的话 一个字符还是使用一个字节来存的
+<!-- 
+  ASCⅡ码中用8位去存 能有256种情况 它只用了 128
+  比如 a = 97
+  我们用byte也可以存的下 因为byte是 -127~128
+
+  英文中的abcd 一个字节就存下了
+ -->
+
+
+- 文本是中文的情况:
+- 因为中文是汉字 我们再让这个汉字使用byte去存就装不下了 因为在utf-8中一个汉字是用3个字节来存的
+<!-- 
+  文本内容:
+  helloworld123中国人
+
+  utf-8中 “中” 占3个字节
+
+  比如上面的代码中 
+  byte[] buf = new byte[5]
+
+  byte[]的长度是5 装
+  第一轮 h e l l o
+  第二轮 w o r l d
+
+  中占3个字节 但是我们就剩2个位置了 难道还能把中劈成两半么 因为匹成两半了 所以出乱码了
+  第三轮 1 2 3 □ □
+
+  第三轮 1 2 3 中1 中2
+
+  第四轮 中3 国1 国2 国3 人1
+
+  第五轮 人2 人3
+
+  结果就是中 人是乱码 因为匹成两半了
+ -->
+
+> 总结:
+- 1. 对于文本文件 使用*字符流*来处理
+<!-- 
+  .txt
+  .java
+  .c
+  .cpp
+
+  .doc(它不算文本文件)
+ -->
+
+- 2. 对于非文本文件 使用*字节流*来处理
+<!-- 
+  .jpg
+  .mp3
+  .avi
+  .doc
+  .ppt
+ -->
+
+
+**byte[] 的长度一般定义为1024**
+
+----------------------------
+
+### 使用 FileInputStream FileOutputStream 读写二进制文件
+- 因为 FileInputStream 和 FileOutputStream 的使用方式和 FileReader 和 FileWriter 一样
+
+- 这里我们直接从需求入手看看 FileInputStream FileOutputStream 的使用方式
+- 需求：
+- 实现对图片的复制
+
+```java
+@Test
+public void testFileIOTest() {
+  // 1. 创建File类对象
+  FileInputStream fis = null;
+  FileOutputStream fos = null;
+
+  try {
+    File srcFile = new File("pic_safety_001.jpg");
+    File destFile = new File("pic_safety_001_copy.jpg");
+
+    // 2. 创建流
+    fis = new FileInputStream(srcFile);
+    fos = new FileOutputStream(destFile);
+
+    // 读写数据(复制过程)
+    byte[] buf = new byte[5];
+    int len;
+    while((len = fis.read(buf)) != -1) {
+      // 读到多少写入多少
+      fos.write(buf, 0, len);
+    }
+
+  } catch (IOException e) {
+    e.printStackTrace();
+
+  } finally {
+
+    try {
+      fis.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      fos.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+
+> 封装一个复制文件的方法
+- 要点:
+- 我们在定义byte[]的长度的时候 一般定义为1024
+<!-- 
+  我们本意是想用1000 底层我们都是使用2进制 1024是2^10
+  它是最接近1000的一个数
+ -->
+
+```java
+// 定义一个方法 实现指定位置下的文件复制的方法
+public void copyFile(String srcPath, String destPath) {
+  // 1. 创建File类对象
+  FileInputStream fis = null;
+  FileOutputStream fos = null;
+  try {
+    // 其实我们就修改了这里
+    File srcFile = new File(srcPath);
+    File destFile = new File(destPath);
+
+    // 2. 创建流
+    fis = new FileInputStream(srcFile);
+    fos = new FileOutputStream(destFile);
+
+    // 读写数据(复制过程) byte数组的长度一般都是1024
+    byte[] buf = new byte[1024];
+    int len;
+    while((len = fis.read(buf)) != -1) {
+      // 读到多少写入多少
+      fos.write(buf, 0, len);
+    }
+  } catch (IOException e) {
+    e.printStackTrace();
+  } finally {
+    try {
+      fis.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    try {
+      fos.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+
+@Test
+public void testCopyFile() {
+  long start = System.currentTimeMillis();
+
+  copyFile("pic_safety_001.jpg", "pic_safety_001_copy2.jpg");
+
+  long end = System.currentTimeMillis();
+
+  System.out.println("复制操作花费的时间为: " + (end - start) + " 毫秒");
+}
+```
+
+
+**扩展:**
+- FileInputStream FileOutputStream 也可以用来实现对文本文件的复制操作
+<!-- 
+  这时候的它们就相当于搬运工 但是不能在内存读
+  仅仅是复制操作的时候 是不会出现乱码的 
+ -->
 
 ----------------------------
 
