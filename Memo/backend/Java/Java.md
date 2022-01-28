@@ -32209,7 +32209,8 @@ public void testFileIOTest() {
 
 > 封装一个复制文件的方法
 - 要点:
-- 我们在定义byte[]的长度的时候 一般定义为1024
+- 数据小的时候: 我们定义byte[]的长度为 10
+- 数据大的时候: 我们定义byte[]的长度为 1024
 <!-- 
   我们本意是想用1000 底层我们都是使用2进制 1024是2^10
   它是最接近1000的一个数
@@ -32273,6 +32274,1012 @@ public void testCopyFile() {
   这时候的它们就相当于搬运工 但是不能在内存读
   仅仅是复制操作的时候 是不会出现乱码的 
  -->
+
+----------------------------
+
+### 处理流
+- 使用方式:
+- "套接"在已有的流的基础上
+
+### 缓冲流
+- 缓冲流是处理流的一种
+- BufferedInputStream   字节
+- BufferedOutputStream  字节
+- BufferedReader  字符
+- BufferedWriter  字符
+
+- 这四个处理流分别在前一个基础上进行包装(处理流就是对已有流进行包装)
+- File..Stream  - BufferedInputStream
+- File..Stream  - BufferedOutputStream
+- File..Reader  - BufferedReader
+- File..Writer  - BufferedWriter 
+
+- 包装完之后我们就用右边的流进行处理(Buffer...)
+
+
+> 缓冲流的作用:
+- 缓冲流是处理流的一种 它主要的作用就是提高文件的读写效率
+<!-- 
+  开发的时候我们不会直接用 节点流那4个的(File...) 因为它们是比较基本的几个流 效率上稍微差一些 我们要用得话 也会考虑使用缓冲流(Buffer...) 
+-->
+
+
+> 缓冲流的使用：
+- 使用方式和节点流几乎一样
+
+- 要点1:
+- 缓冲流不能直接作用在文件上 它只能作用在节点流的上面 所以在使用缓冲流的前提就是先创建节点流
+
+- 然后把节点流对象当做参数传递到缓冲流的构造器中
+
+- 要点2:
+- 流的关闭:
+- 我们一共创建了4个流 那就是说要关四个
+
+-  关闭的顺序: 
+- 先关闭外层的流 再关闭内层的流
+<!-- 
+  理解技巧:
+    我们先创建的节点流 后创建的处理流
+    关闭的时候 要
+    先关闭处理流 再关闭节点流
+
+    这点和穿脱衣服一样 穿的时候先穿内衣 脱的时候先脱外衣
+  
+
+  关闭的书写技巧:
+    从下往上看 先看到哪个就关哪个 
+-->
+
+**注意:**
+- 关闭外层的流的同时 会自动将内层的流进行关闭 关于内层流的关闭可以省略
+
+
+> BufferedInputStream bis = new BufferedInputStream(fis);
+- 将节点流对象传进去
+
+> BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+
+> 缓冲流(字节型)对图片的复制
+> 需求
+- 对图片进行复制：
+```java
+@Test
+  public void BufferedStreamTest() {
+
+    BufferedInputStream bis = null;
+    BufferedOutputStream bos = null;
+
+    try {
+      // 1 造文件
+      File srcFile = new File("pic_safety_001.jpg");
+
+      // 目标在哪
+      File destFile = new File("pic_safety_001_copy.jpg");
+
+
+      // 2 造流
+      // 我们要使用缓冲流 但是缓冲流不能直接作用在文件上 它只能作用在节点流的上面 体现在代码层面
+
+      // 创建节点流
+      FileInputStream fis = new FileInputStream(srcFile);
+
+      FileOutputStream fos = new FileOutputStream(destFile);
+
+      // 造缓冲流 - 处理流
+      // 将fis丢进去
+      bis = new BufferedInputStream(fis);
+      bos = new BufferedOutputStream(fos);
+
+
+      // 3 复制的细节 读取 和 写入
+      // 图片小点 不用太大
+      byte[] buf = new byte[10];
+      int len;
+      while((len = bis.read(buf)) != -1) {
+        bos.write(buf, 0, len);
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+
+    } finally {
+      try {
+        if(bos != null) bos.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try {
+        if(bis != null) bis.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+```
+
+
+> 缓冲流复制视频 对比 节点流复制视频
+- 缓冲流的速度明显要比节点流的速度快
+
+- 缓冲流能提高读写速度的 原因:
+- 内部提供了一个缓冲区
+
+- 我们点开 BufferedInputStream 源码查看
+- 能够看到一个常量 
+```java
+private static int DEFAULT_BUFFER_SIZE = 8192;
+```
+
+- 我们能看到8192 8192/1024是8 是1024的8倍
+- 8192就是内部提供的缓冲区 可以存放的字节数
+
+- 在读取数据的时候 先会把数据读到buf缓冲区的里面缓存着 当达到指定大小之后自动的一次性的写出(flush出去 flush就是把缓冲区清空 把数据写出去)
+
+
+> bos.flush()
+- BufferedOutputStream实例对象.flush()
+
+- 刷新缓冲区 主动清空缓冲区 写出数据
+
+- 在bos.write()方法的源码中看到 调用该方法会自动flush()缓冲区 没有必要显式的调用
+
+
+
+> 缓冲流(字符型)对文本文件的复制
+- 通过这个例子我们了解下 BufferReader 和 BufferWriter 的使用
+
+
+> BufferedReader br = new BufferedReader(节点流对象)
+
+> BufferedWriter bw =  new BufferedWriter(节点流对象)
+
+- 需求:
+- 使用 BufferedReader和BufferedWriter实现文本文件的复制
+
+
+> br.readLine()
+- 作用:
+- 也是读数据 但是一次读一行
+- 如果数据有很多行的话 要使用循环
+- 该方法要么返回当前行的数据 要么是null 也就是当读到最后的时候返回值是null
+
+- 注意：
+- 该方法不会包含换成符 需要自行添加
+
+- 添加换行符的方式1:
+- bw.write(data + "\n");
+
+- 添加换行符的方式2:
+- bw.newLine();
+- 该方法就是添加换行符
+
+- 返回值
+- String
+
+```java
+// readLine()会将数据读到这里
+String data;
+
+while((data = br.readLine()) != null) {
+  bw.write(data);
+}
+```
+- 上面没有声明char[]而是声明了String 用来接收readLine()方法的返回值
+- 再用bw将数据写出去
+
+
+
+- 下面我们采用了连续匿名的方式创建的文件和流
+```java
+// 1. 造文件 + 造流
+BufferedReader br = null;
+BufferedWriter bw = null;
+
+try {
+
+  // 使用方式和上面讲的一样 但这里 我们采用的是匿名的方式
+  br = new BufferedReader(new FileReader(new File("Hello.txt")));
+
+  bw = new BufferedWriter(new FileWriter(new File("Hello_copy.txt")));
+
+
+
+
+  // 2. 读写操作 复制的过程
+  // 方式1:
+  char[] cbuf = new char[1024];
+  int len;
+  while ((len = br.read(cbuf)) != -1) {
+    bw.write(cbuf, 0, len);
+  }
+
+
+
+  // 方式2:
+  // readLine()会将数据读到这里
+  String data;
+  while((data = br.readLine()) != null) {
+    System.out.println(data);
+
+    // 写出的data中不包含换行符
+    bw.write(data);
+    bw.write(data + "\n");
+
+    bw.write(data);
+    bw.newLine();
+  }
+  
+
+
+} catch (IOException e) {
+  e.printStackTrace();
+
+} finally {
+  // 3. 关闭资源
+  try {
+    bw.close();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+  try {
+    br.close();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+}
+```
+
+
+> 总结
+
+> FileReader
+- 我们使用的是 read(char[] cbuf)
+
+> FileWriter
+- 我们使用的是 write(cbuf, 0, len)
+
+> FileInputStream
+- 我们使用的是 read(byte[] buf)
+
+> FileOutputStream
+- 我们使用的是 write(buf, 0, len)
+
+--- 
+
+> BufferedInputStream
+- 我们使用的是 read(byte[] buf)
+
+> BufferedOutputStream
+- 我们使用的是 write(buf, 0, len)
+
+> BufferedReader
+- 我们使用的是 read(byte[] buf) 或者
+- readLine()
+
+> BufferedWriter
+- 我们使用的是 write(buf, 0, len)
+
+
+> 关于处理流
+- 处理流式作用在现有流的基础上 像输出的对象 都会有一个flush()方法 每次调用该方法的时候不管缓冲区有多少 都会将数据写出去 然后刷新缓冲区
+
+
+> 练习 1. 实现图片加密操作
+- 效果:
+- 加密后文件双击打不开
+
+
+- 提示:
+```java
+int b = 0;
+while(( b = fis.read()) != -1) {
+  fos.write(b ^ 5);
+}
+```
+
+- 要点:
+- 1. new FileInputStream(文件路径)
+- 字节型的节点流不仅仅能传入文件对象 还可以传入文件路径
+
+- FileInputStream fis = new FileInputStream("pic_safety_001.jpg");
+
+- 内部也会包装成一个文件对象的 本质还是一样的
+
+
+- 2. 对文件的加密处理
+- 我们可以将读到的每一个字节 进行 ^ 5 的运算 这个过程就是简单的加密
+
+```java
+byte[] buf = new byte[20];
+int len;
+while ((len = fis.read(buf)) != -1) {
+  
+  // 对字节数据进行修改 完成加密操作 buf中有多个字节 一个个的改就要使用循环了
+
+
+  // 错误的写法
+  for(byte b: buf) {
+    b = (byte) (b ^ 5);
+  }  // 这样是把buf数组中的数据取出来进行了修改 buf数据并没有变
+    
+
+
+  // 正确的
+  // 对buf字节数组中的每一个字节进行了修改
+  for(int i=0; i<len; i++) {
+    buf[i] = (byte) (buf[i] ^ 5);
+  }
+
+  // 将处理好的数据 写出去
+  fos.write(buf, 0, len);
+}
+```
+
+- 加密操作的代码
+```java
+@Test
+public void test() throws IOException {
+  // new FileInputStream(文件路径)
+  FileInputStream fis = new FileInputStream("pic_safety_001.jpg");
+
+  FileOutputStream fos = new FileOutputStream("pic_safety_001_copy.jpg");
+
+  byte[] buf = new byte[20];
+  int len;
+  while ((len = fis.read(buf)) != -1) {
+
+    // 对字节数据进行修改 完成加密操作 buf中有多个字节 一个个的改就要使用循环了
+
+    // 对buf字节数组中的每一个字节进行了修改
+    for(int i=0; i<len; i++) {
+      buf[i] = (byte) (buf[i] ^ 5);
+    }
+
+    fos.write(buf, 0, len);
+  }
+
+  fos.close();
+  fis.close();
+}
+```
+
+- 解密的操作
+```java
+@Test
+public void test() throws IOException {
+  // new FileInputStream(文件路径)
+  FileInputStream fis = new FileInputStream("pic_safety_001_copy.jpg");
+
+  FileOutputStream fos = new FileOutputStream("解密后的图片.jpg");
+
+  byte[] buf = new byte[20];
+  int len;
+  while ((len = fis.read(buf)) != -1) {
+
+    // 解密还是这样写 原因如下
+    for(int i=0; i<len; i++) {
+      buf[i] = (byte) (buf[i] ^ 5);
+    }
+
+    fos.write(buf, 0, len);
+  }
+
+  fos.close();
+  fis.close();
+}
+```
+
+- 解密代码没改的原因:
+- m = 12
+- n = 5
+- 交换他俩的值
+
+- m ^ n ^ n = m
+- 一样的 上面加密^5 得到的结果^5 就回去了
+
+
+> 练习 2. 获取文本上每个字符出现的次数
+- 提示:
+- 遍历文本的每一个字符 字符一样的话就累加 不一样的话 重新在创建一个属性
+```js
+// 我觉得是这个意思
+obj = {
+  h: 1,
+  e: 0
+}
+```
+
+- 字符以及出现的次数保存在Map中 key放字符的位置 value的位置 先map.contains 看看有没有这个字符 没有put()的时候写1 再有就++
+
+- map中的数据时内存中的不保险 我们将Map中的数据写入文件
+
+```java
+/**
+ * 练习3:获取文本上字符出现的次数,把数据写入文件
+ *
+ * 思路：
+ * 1.遍历文本每一个字符
+ * 2.字符出现的次数存在Map中
+ *
+ * Map<Character,Integer> map = new HashMap<Character,Integer>();
+ * map.put('a',18);
+ * map.put('你',2);
+ *
+ * 3.把map中的数据写入文件
+ *
+ * @author shkstart
+ * @create 2019 下午 3:47
+ */
+public class WordCount {
+/*
+说明：
+如果使用单元测试，文件相对路径为当前module
+如果使用main()测试，文件相对路径为当前工程
+*/
+@Test
+public void testWordCount() {
+
+  FileReader fr = null;
+  BufferedWriter bw = null;
+
+  try {
+    //1.创建Map集合
+    Map<Character, Integer> map = new HashMap<Character, Integer>();
+
+    //2.遍历每一个字符,每一个字符出现的次数放到map中
+    fr = new FileReader("dbcp.txt");
+
+    int c = 0;
+    while ((c = fr.read()) != -1) {
+      //int 还原 char
+      char ch = (char) c;
+
+      // 判断char是否在map中第一次出现
+      if (map.get(ch) == null) {
+        map.put(ch, 1);
+      } else {
+        map.put(ch, map.get(ch) + 1);
+      }
+    }
+
+    //3.把map中数据存在文件count.txt
+    //3.1 创建Writer
+    bw = new BufferedWriter(new FileWriter("wordcount.txt"));
+
+    //3.2 遍历map,再写入数据
+    Set<Map.Entry<Character, Integer>> entrySet = map.entrySet();
+
+    for (Map.Entry<Character, Integer> entry : entrySet) {
+
+    switch (entry.getKey()) {
+      case ' ':
+      bw.write("空格=" + entry.getValue());
+      break;
+
+      case '\t'://\t表示tab 键字符
+      bw.write("tab键=" + entry.getValue());
+      break;
+
+      case '\r'://
+      bw.write("回车=" + entry.getValue());
+      break;
+
+      case '\n'://
+      bw.write("换行=" + entry.getValue());
+      break;
+
+      default:
+      bw.write(entry.getKey() + "=" + entry.getValue());
+      break;
+
+    }
+
+    bw.newLine();
+  }
+  } catch (IOException e) {
+    e.printStackTrace();
+  } finally {
+    //4.关流
+    if (fr != null) {
+      try {
+        fr.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+  }
+    if (bw != null) {
+      try {
+        bw.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
+}
+```
+
+----------------------------
+
+### 转换流
+- 转换流也是处理流的一种
+- 转换流提供了在 字节流 和字 符流 之间的转换
+<!-- 
+  文本文件utf8.txt
+    正常我们要操作这个文件一般都会使用 字符流
+    但是 现在在这个文件上使用的是 字节流
+
+      这时候我们就可以只用 转换流 将字节流转换为字符流
+
+
+  也就是将输入的 字节流 转换为输入的 字符流
+ -->
+
+> java API提供了两个 -转换流-
+> InputStreamReader:  处理输入的流 Reader-char
+- 输入的转换流 将一个个byte *转换为 一个个char*
+<!--          
+                  程序
+                  ↗
+              字符流  char
+              ↗
+      InputStreamReader
+          ↗
+      字节流  byte
+      ↗
+  文件.txt
+ -->
+
+
+> OutputStreamWriter:  处理输出的流 Writer-byte
+- 输出的转换流 将一个个char *转换为 一个个byte*
+<!--          
+假如我们内存层面操作的一个个char(一个个字符) 我们可以使用 OutputStreamWriter 将一个个char转换为一个个byte
+
+
+        程序
+          ↘
+          字符流  char
+            ↘
+            OutputStreamWriter(gbk)
+              ↘
+              字节流  btye
+                ↘
+                gbk.txt
+ -->
+
+- 字节流中的数据都是字符时 转成字符流操作更高效
+- 很多时候我们使用转换流处理文件乱码问题 *实现编码和解码的功能*
+
+
+<!-- > 转换流的使用要点
+- 1. InputStreamReader OutputStreamWriter
+  - 它们要包裹在 Readerer Writer基类(实现类) 的外层
+
+- 2. 它们操作的是char[]
+<!-- 
+  如果它们可以包裹在 FileInputStream 和 FileOutputStream (字节流)的外层的话 那它们操作的应该是byte[]
+
+  可惜不是
+ --> -->
+
+> 作用:
+- 提供字节流与字符流之间的转换
+
+- InputStreamReader:  将一个 字节的输入流 转换为 字符的输入流 - 解码
+- OutputStreamWriter: 将一个 字符的输出流 转换为 字节的输出流 - 编码
+
+
+> 转换流的实例化
+> InputStreamReader isr = new InputStreamReader(字节流输入对象, "UTF-8")
+> OutputStreamWriter osw = new OutputStreamWriter(字节流输出对象, "GBK")
+- 如果不传递参数2就是使用系统默认的字符集
+<!-- 
+  比如idea中我们设置成utf-8了
+ -->
+
+- 异常:
+- UnsupportedEncodingException
+
+- 参数1:
+- 输入字节流对象
+- 因为InputStreamReader是将 byte -> char 所以我们要包在字节流对象外层
+
+- 参数2:
+- 指定字符集
+- 底层都是字节 现在我需要将字节转换为字符 你得指定按照什么解码集(字符集)来转
+- 该字符集根据 txt文件当初存用什么字符集保存的 我们这里就用什么字符集去读
+<!-- 这是一个解码的过程注意 -->
+
+```java
+// 创建输入字节流
+FileInputStream fis = new FileInputStream("Hello.txt");
+
+// 创建输入转换流 传入 字节流对象
+InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
+```
+
+- 注意：
+- 我们转换流设置后 就是要将数据读到内存中 这时候就是char了 我们要使用char[]
+
+
+- 需求:
+- 我们将Hello.txt文件使用字节流读取到控制台上 正常会出现乱码但现在我们可以使用转换流转换之后 再输出到控制台
+
+```java
+@Test
+public void test() throws IOException {
+  // 我们将Hello.txt文件使用字节流读取到控制台上 正常会出现乱码但现在我们可以使用转换流转换之后 再输出到控制台
+
+  FileInputStream fis = new FileInputStream("Hello.txt");
+  InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
+
+  // 将字节流 -> 字符流 我们要准备个char[]将读到的数据保存在里面
+  char[] cbuf = new char[20];
+  int len;
+  while ((len = isr.read(cbuf)) != -1) {
+
+    // 输出方式1:
+    String str = new String(cbuf);
+    System.out.print(str);
+
+    // 输出方式2:
+    for(char c: cbuf) {
+      System.out.print(c);
+    }
+
+    // 输出方式3:
+    for(int i=0; i<len; i++) {
+      System.out.print(cbuf[i]);
+    }
+  }
+
+  // 关闭流
+  isr.close();
+
+  // 我们要使用try catch finally 不要忘记
+}
+```
+
+
+- 需求:
+- 目标文件是utf-8存的txt文件 我们综合使用 InputStreamReader 和 OutputStreamWriter 对utf-8存的txt文件转成gbk格式的txt文件 实现一个解码再另编码的过程
+
+```java
+@Test
+public void testDecode() throws IOException {
+  File srcFile = new File("Hello.txt");
+  File destFile = new File("Hello_gbk.txt");
+
+  // 创建输入字节流
+  FileInputStream fis = new FileInputStream(srcFile);
+  // 创建输出字节流
+  FileOutputStream fos = new FileOutputStream(destFile);
+
+  // 创建输入转换流
+  InputStreamReader isr = new InputStreamReader(fis, "utf-8");
+
+  // 创建输出转换流 指定编码的字符集
+  OutputStreamWriter osw = new OutputStreamWriter(fos, "gbk");
+
+  // 读写过程
+  char[] cbuf = new char[20];
+  int len;
+  while((len = isr.read(cbuf)) != -1) {
+    osw.write(cbuf, 0, len);
+  }
+
+  // 关闭资源
+  osw.close();
+  isr.close();
+}
+```
+
+----------------------------
+
+### 多种字符编码集的说明
+- 计算机只能识别二进制数据 早起由来是电信号
+- 为了方便应用计算机 让它可以识别各个国家的文字 就将各个国家的文字用数字来表示
+<!-- a - 97 -->
+- 并一一对应 形成一张表 这就是编码表
+
+> 常见的字符集
+- 1. ASCⅡ:
+- 美国标准信息交换吗 *用一个字节的7位可以表示*
+<!-- 
+  一个字节有8位 它有一个没有用 也就是只能表示128种情况 美国就够用
+  一个字节就是8bit 最大是 1111 1111 可以表示256
+
+  分成正负的话 也就是 -128 ~ 127
+ -->
+
+- 2. ISO8859-1:
+- 拉丁码表 欧洲码表 *用一个字节的8位表示*
+
+- 3. GB2312:
+- 中国的中文编码表 *最多两个字节编码所有字符*
+<!-- 
+  每一个汉字都会对应一个数 一个汉字用两个字节来表示
+  两个字节最大的范围是 65535
+  分成正负的话 也就是 -32768~32767
+
+  let num = 0b1111111111111111
+  console.log(num.toString(10))   // 65535
+ -->
+
+- 4. GBK:
+- 中国的中文编码表升级 融合了更多的中文文字符号 *最多两个字节编码*
+<!-- 
+  那 GBK 和 GB2312 最多用两个字节来表示
+
+  那底层假如有两个字节 那这两个字节是表示一个字符还是两个字符？
+
+  我们看首位 如果首位是0 该字节就是代表一个字符 下面两个字节就各代表一个字符
+  --------  --------
+  0         
+
+
+  如果首位是1 就代表该字符一个字节表示不全 这时两个字节代表一个字符
+  --------  --------
+  1         
+ -->
+
+- 5. Unicode:
+- 国际标准码 融合了目前人类使用的所有字符 为每个字符分配唯一的字符码
+- *所有的文件都用两个字节表示*
+<!-- 
+  国家非常的多 不能一个国家整一个表 万一一个文件中有多国的文字 用谁读啊？
+  所以我们创建了世界共用的一张表 哪个国家的一个字符都会对应着一个数
+ -->
+
+- 6. UTF-8
+- 变长的编码方式
+- *可用1-4个字节来表示一个字符*
+<!-- 
+  unicode有问题 内存层面存一个数是可以的 具体我们存在底层的文件上的时候就有问题的
+
+  unicode是用两个字节去存 那也会出现跟GBK GB2312同样的问题
+  两个字节是存一个字符还是两个字符
+
+  --------  --------
+
+  原来是2^16次方 但是如果使用首位标记01标记方法的话 那就剩2^15次方了
+  就不够用了 
+
+  2^16 -- 65535
+  2^15 -- 32767
+
+  所以就不能标记两个字节到底是存一个字符还是两个字符
+ -->
+
+- utf-8  就是每次8个位去传递数据
+- utf-16 就是每次16个位去传输数据
+
+- 什么意思呢？
+- 上面说了2个字节 如果想采用和GBK GB2312首位01标识的方式标记两个字节代表一个字符还是两个字符的方式 不行
+
+- 会导致表数范围不够 那我们就想 我们可以用3个字节来表示 这样不就够了么？
+- 又多带来一个问题
+- 我们看首位 
+- 如果首位是0 那就是想用一个字节
+- 如果首位是1 那就是想用二个字节
+
+- 二进制不是0就是1 那怎么表示三个字节的情况呢？
+
+- 我们以utf-8为例
+- 现在有一个数是用unicode表示的 该数是占一个字节？二个字节？三个字节？ 我们使用下面的方式来标记
+
+- 如果是占用一个字节 那首位为0来标记      - 1个byte充当一个字符
+<!-- 
+  --------
+  0
+ -->
+
+- 如果是占用二个字节 那前面用110来标记    - 2个byte充当一个字符
+<!-- 
+  --------  --------
+  110       10
+ -->
+
+- 如果是占用三个字节 那前面用110来标记    - 3个byte充当一个字符
+<!-- 
+  --------  --------  --------
+  1110      10        10
+ -->
+
+- 如果是占用三个字节 那前面用110来标记    - 4个byte充当一个字符
+<!-- 
+  --------  --------  --------  --------
+  11110     10        10        10
+ -->
+
+- 后续的每一个字节的前面都有10作为填充位
+
+> 举例：
+- 尚
+- 对应的unicode: 23578
+- 十六进制: 5C1A
+- 二进制: 0101 1100 0001 1010
+
+- 现在我们这个数要存在底层的磁盘中 中文在utf-8中是3个字节存一个
+- 尚的二进制： 0101 1100 0001 1010
+
+- 我们要使用下面这种情况存储
+
+  --------  --------  --------
+  1110      10        10
+
+- 所以我们就将 尚 的二进制 放在 1110的后面一个字节占满 把剩余的位数放在后一个字节的里面
+
+  1110      10        10
+  --------  --------  --------
+      0101    110000    011010
+
+- 相当于我们把尚对应的2进制数截成了3部分塞到了 utf-8对应的三个字节的规律空位上
+- 底层看到首位1110 就知道将1110 10 10去掉剩下位置的数字提取出来拼接 就是 "尚"
+
+
+**注意:**
+- 在标准的utf-8编码中 超出基本多语言范围的字符 会4个字节表示
+- 在后续的修正中可能使用6个字节
+
+- unicode仅是字符集 该字符集定义了一个字符会对应一个编码 但是真正落地往底层去存的时候 读的时候 一个字符是一个字节还是二个字节还是三个字节
+
+- 我们落地的 unicode的编码实现 我们提供了utf-8 utf-16 utf-32
+<!-- 
+  utf-32
+    用固定的长度是存字符 不用utf-8的规律 就用4个字节存一个字符
+
+
+  utf-16
+    使用2或4个字节进行存储
+ -->
+
+----------------------------
+
+### 标准的输入 输出流
+- System类有3个属性
+> 属性:
+  - System.err
+      标准的错误输出流
+
+  - System.in
+      标准的输入流(默认从键盘输入)
+      它就是键盘输入
+
+  - System.out
+      标准的输出流(默认从控制台输出)
+      它就是控制台输出
+
+> 
+- 既然是属性的话就会有类型 比如 String name
+
+- System.err的类型: PrintStream
+- System.in的类型:  InputStream(IO体系中输入流的基类)
+- System.out的类型: PrintStream
+
+- 既然是属性的话也会有 set方法
+
+> public static void setIn(InputStream in)
+> public static void setOut(PrintStream out)
+- 用来修改默认输入 和 默认输出
+<!-- 
+  重新指定输入和输出的位置
+ -->
+
+
+
+
+> 练习
+- 练习System.in的操作
+- 从键盘输入字符串 要求将读取到的整行字符串转成大写输出
+- 然后继续进行输入操作 直至输入"e"或者"exit"时 退出程序
+
+- 思考:
+- 以前我们完成上述的操作是使用 Scanner 来完成的 现在我们使用System.in来完成
+- 我们需要读到用户输入的一行数据 这里我们可以使用 readLine()方法 该方法相当于Scanner中的next()
+
+- 那怎么才能从 System.in 到 readLine()呢？
+
+- System.in 返回的是 InputStream 字节流
+    - 我们需要的是字符流 所以我们要将 字节流 转成 字符流 就要用到 转换流
+
+- 因为键盘输入 得到的是字节流 所以我们要用转换流InputStreamReader 将读到的结果转成char
+
+- 转换流InputStreamReader需要的参数是输入字节流 而System.in的类型就是输入字节流的类型 所以我们可以传递进去
+
+```java
+// InputStreamReader是转换流 
+// 它需要的参数就是InputStream输入字节流 而我们的System.in就是输入字节流类型, 同时System.in也代表从键盘输入
+InputStreamReader isr = new InputStreamReader(System.in); // 终点不再是具体的file了 而是键盘输入
+
+
+// InputStreamReader是Reader的子类 isr的类型就是Reader
+// new BufferedReader()里面需要传递一个Reader isr就是
+BufferedReader br = new BufferedReader(isr);
+
+while (true) {
+  System.out.println("请输入字符串: ");
+  // 读到了一行数据
+  String data = br.readLine();
+  // 在忽略大小写的情况下 我们看看用户输入的是不是e 或者 exit
+  if(data.equalsIgnoreCase("e")) {
+    System.out.println("程序结束");
+    break;
+  }
+
+  // 转成大写后输出
+  System.out.println(data.toUpperCase());
+}
+
+// 关闭流
+br.close();
+```
+
+----------------------------
+
+### 打印流
+- 实现将*基本数据类型*的数据格式转化为*字符串*输出
+- 可以输出各种类型的数据
+
+> 打印流
+- 我们前面接触到的所有流都是成对的出现 一个输入一个输出
+- 但是打印流不是 它两个都是输出
+
+> PrintStream - 字节输出流
+<!-- 
+  System.out 就是一个 PrintStream
+ -->
+
+> PrintWriter - 字符输出流
+
+
+> 特点
+- 1. 提供了一系列重载的print()和println()方法 用于多种数据类型的输出
+
+- 2. PrintStream和PrintWriter的输出不会抛出IOException异常
+- 3. PrintStream和PrintWriter有自动flush功能
+- 4. PrintStream打印的所有字符都使用平台的默认字符编码转换为字节 
+- 5. 在需要写入字符而不是写入字节的情况下 应该使用PrintWriter类
+
+- 5. System.out返回得是PrintStream的实例
+
+
+
+> 利用System.setOut(); 将原本输出在控制台的内容输出到文件里面
+- 保存我们原本在控制台输出的数据
+
+```java
+PrintStream ps = null; 
+try {
+  // 创建打印输出流,设置为自动刷新模式(写入换行符或字节 '\n' 时都会刷新输出缓冲区) ps = new PrintStream(fos, true);
+  FileOutputStream fos = new FileOutputStream(new File("D:\\IO\\text.txt")); 
+
+  ps = new PrintStream(fos, true);
+
+  if (ps != null) {
+    // 修改输出的位置 输出到文件 因为我们修改了输出的位置 下面再调用print方法就不会再在控制台输出了
+    System.setOut(ps); 
+  }
+
+  // 输出ASCII字符 0-255 转成char输出 看看数字对应什么字符
+  for (int i = 0; i <= 255; i++) { 
+    System.out.print((char) i);
+
+    if (i % 50 == 0) { // 每50个数据一行
+      System.out.println(); // 换行 
+    }
+  }
+  
+  } catch (FileNotFoundException e) {
+    e.printStackTrace(); 
+  } finally {
+    if (ps != null) { ps.close();
+  }
+  
+```
+
 
 ----------------------------
 

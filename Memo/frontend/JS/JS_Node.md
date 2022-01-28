@@ -1,10 +1,768 @@
 ### 待看前端的设计模式
+- FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
+
+
 
 ### 番外篇
 
+### ArrayBuffer对象
+- ArrayBuffer 对象表示一段二进制数据，用来模拟内存里面的数据。
+- 可以通过'视图'进行操作(TypedArray, DataView), 视图内部署了数组的接口 这意味着可以用数组的方法操作内存
+- 也就是说它不能直接读写 只能通过视图才操作 视图的作用是以指定的格式解读二进制数据
+
+- 它是以数组的语法处理二进制数据 所以统称为二进制数组
+<!-- 
+    ArrayBuffer对象
+    TypedArray视图
+    DataView视图
+
+    它们是操作二进制数据的一个接口
+ -->
+
+- 上述接口出现原因:
+- 为了满足js与显卡之间大量的数据实时交换 它们之间的数据必须是二进制的 而不能是传统的文本格式
+- 文本格式传递一个32位整数 两端的js脚本和显卡都要进行格式化的转化 将非常的耗时
+- 所以我们需要一个能够直接操作字节 将4个字节的32位整数 以二进制形式原封不动地送入显卡
+
+
+> TypedArray 和 DataView 视图支持的数据类型:
+- 一共9种(DataView视图支持除Uint8C以外的其他 8 种)
+<!-- 
+    数据类型	字节长度	含义	                对应的 C 语言类型
+    Int8	    1	    8 位带符号整数	                signed char
+    Uint8	    1	    8 位不带符号整数	            unsigned char
+    Uint8C	    1	    8 位不带符号整数（自动过滤溢出）    unsigned char       -- DataView不支持
+    Int16	    2	    16 位带符号整数	                short
+    Uint16	    2	    16 位不带符号整数	            unsigned short
+    Int32	    4	    32 位带符号整数	                int
+    Uint32	    4	    32 位不带符号的整数	             unsigned int
+    Float32	    4	    32 位浮点数	                   float
+    Float64	    8	    64 位浮点数	                   double
+ -->
+
+
+> ArrayBuffer实例化
+> let buf = new ArrayBuffer(整数)
+- 作用
+- 用来分配一段可以存放数据的连续内存区域(表示这段二进制数据占用多少字节)
+
+- 默认值:
+- 每一个字节的默认值是0
+
+- 参数
+- 整数 
+
+```js
+let buf = new ArrayBuffer(8)
+
+// 结果:  buf占用了8个字节
+byteLength: 8
+[[Prototype]]: ArrayBuffer
+[[Int8Array]]: Int8Array(8)
+[[Uint8Array]]: Uint8Array(8)
+[[Int16Array]]: Int16Array(4)
+[[Int32Array]]: Int32Array(2)
+[[ArrayBufferByteLength]]: 8
+[[ArrayBufferData]]: 2
+```
+
+> buf.byteLenth
+- 表示当前实例占用的内存长度(字节)
+
+
+> buf.slice(startIndex, endIndex)
+- 用来*复制*一部分内存
+- 拷贝生成一个新的ArrayBuffer对象。
+
+- 包括开始不包括结束
+- 如果省略第二个参数 则表示一直复制到结束
+```js
+const buffer = new ArrayBuffer(8);
+const newBuffer = buffer.slice(0, 3);
+```
+
+> buf.isView()
+- ArrayBuffer有一个静态方法isView，返回一个布尔值，表示参数是否为ArrayBuffer的视图实例。这个方法大致相当于判断参数，是否为TypedArray实例或DataView实例。
+```js
+const buffer = new ArrayBuffer(8);
+ArrayBuffer.isView(buffer) // false
+
+const v = new Int32Array(buffer);
+ArrayBuffer.isView(v) // true
+```
+
+------
+
+> 视图
+- 我们创建buf对象后 通过视图构造器将buf转换为我们可以操作的数组 
+- 接下来就是以数组的形式操作二进制buf
+
+- ArrayBuffer对象作为内存区域，可以存放多种类型的数据。
+- 同一段内存，不同数据有不同的解读方式，这就叫做“视图”（view）。
+
+- ArrayBuffer有两种视图，
+- 1. TypedArray视图 - 同类型数据
+- 2. DataView视图   - 可以是不同类型数据
+
+- 前者的数组成员都是同一个数据类型，后者的数组成员可以是不同的数据类型。
+
+- 目前，TypedArray视图一共包括 9 种类型，每一种视图都是一种构造函数。
+
+Int8Array：     8 位有符号整数，    长度 1 个字节。
+Uint8Array：    8 位无符号整数，    长度 1 个字节。
+Uint8ClampedArray：8 位无符号整数， 长度 1 个字节，溢出处理不同。
+Int16Array：    16 位有符号整数，   长度 2 个字节。
+Uint16Array：   16 位无符号整数，   长度 2 个字节。
+Int32Array：    32 位有符号整数，   长度 4 个字节。
+Uint32Array：   32 位无符号整数，   长度 4 个字节。
+Float32Array：  32 位浮点数，       长度 4 个字节。
+Float64Array：  64 位浮点数，       长度 8 个字节。
+
+
+- 特点:
+- 这 9 个构造函数生成的数组，统称为TypedArray视图。
+- 它们很像普通数组，都有length属性，都能用方括号运算符（[]）获取单个元素，所有数组的方法，在它们上面都能使用。
+
+- 与普通数组的区别:
+- 1. TypedArray 数组的所有成员，都是同一种类型。
+- 2. TypedArray 数组的成员是连续的，不会有空位。
+- 3. TypedArray 数组成员的默认值为 0。比如，new Array(10)返回一个普通数组，里面没有任何成员，只是 10 个空位；new Uint8Array(10)返回一个 TypedArray 数组，里面 10 个成员都是 0。
+- 4. TypedArray *数组只是一层视图，本身不储存数据*，它的数据都储存在底层的ArrayBuffer对象之中，要获取底层对象必须使用buffer属性。
+
+
+> DataView视图
+> new DataView(buf)
+- DataView视图用来操作ArrayBuffer对象
+- 当创建好ArrayBuffer独享之后 需要为该buf对选哪个指定视图
+```js
+const buf = new ArrayBuffer(32)
+const dataView = new DataView(buf)
+
+// 以不带符号的8位整数格式 从头读取8位二进制数据 得到0
+dataView.getUint8(0)    // 0
+```
+
+
+> TypedArray视图
+- 该视图与DataView视图的区别 TypedArray不是一个构造函数 而是一组构造函数 代表不同的数据格式
+```js
+const buf = new ArrayBuffer(32)
+
+const x1 = new Int32Array(buffer);
+x1[0] = 1;
+
+
+const x2 = new Uint8Array(buffer);
+x2[0]  = 2;
+
+x1[0] // 2
+```
+- 上面代码对同一段内存，分别建立两种视图：32 位带符号整数（Int32Array构造函数）和 8 位不带符号整数（Uint8Array构造函数）。由于两个视图对应的是同一段内存，一个视图修改底层内存，会影响到另一个视图。
+
+- TypedArray视图的构造函数，除了接受ArrayBuffer实例作为参数，还可以接受普通数组作为参数，直接分配内存生成底层的ArrayBuffer实例，并同时完成对这段内存的赋值。
+
+```js
+const typedArray = new Uint8Array([0,1,2]);
+typedArray.length // 3
+
+typedArray[0] = 5;
+typedArray // [5, 1, 2]
+```
+
+- 上面代码使用TypedArray视图的Uint8Array构造函数，新建一个不带符号的 8 位整数视图。可以看到，Uint8Array直接使用普通数组作为参数，对底层内存的赋值同时完成。
+
+
+> 二进制数组的应用
+- 大量的 Web API 用到了ArrayBuffer对象和它的视图对象。
+
+> 1. AJAX
+- 传统上，服务器通过 AJAX 操作只能返回文本数据，即responseType属性默认为text。
+- XMLHttpRequest第二版XHR2允许服务器返回二进制数据，这时分成两种情况。
+    - 1. 如果明确知道返回的二进制数据类型，可以把返回类型（responseType）设为arraybuffer；
+    - 2. 如果不知道，就设为blob。
+```js
+let xhr = new XMLHttpRequest();
+xhr.open('GET', someUrl);
+xhr.responseType = 'arraybuffer';
+
+xhr.onload = function () {
+  let arrayBuffer = xhr.response;
+  // ···
+};
+
+xhr.send();
+```
+
+- 如果知道传回来的是 32 位整数，可以像下面这样处理。
+```js
+xhr.onreadystatechange = function () {
+  if (req.readyState === 4 ) {
+    const arrayResponse = xhr.response;
+    const dataView = new DataView(arrayResponse);
+    const ints = new Uint32Array(dataView.byteLength / 4);
+
+    xhrDiv.style.backgroundColor = "#00FF00";
+    xhrDiv.innerText = "Array is " + ints.length + "uints long";
+  }
+}
+```
+
+
+> 2. File API
+- 如果知道一个文件的二进制数据类型，也可以将这个文件读取为ArrayBuffer对象。
+```js
+// 获取节点 并获取文件 
+const fileInput = document.getElementById('fileInput');
+const file = fileInput.files[0];
+
+// 使用reader读成2进制数据
+const reader = new FileReader();
+reader.readAsArrayBuffer(file);
+
+// 不光能从e.target上获取 也可以直接从this.result reader.result上获取
+reader.onload = function () {
+  const arrayBuffer = reader.result;
+  // ···
+};
+```
+
+- 下面以处理 bmp 文件为例。假定file变量是一个指向 bmp 文件的文件对象，首先读取文件。
+```js
+const reader = new FileReader();
+reader.addEventListener("load", processimage, false);
+reader.readAsArrayBuffer(file);
+```
+
+- 然后，定义处理图像的回调函数：
+- 1. 先在二进制数据之上建立一个DataView视图，
+- 2. 再建立一个bitmap对象，用于存放处理后的数据，最后将图像展示在Canvas元素之中。
+```js
+function processimage(e) {
+  const buffer = e.target.result;
+  const datav = new DataView(buffer);
+  const bitmap = {};
+  // 具体的处理步骤
+}
+```
+- https://www.wangdoc.com/es6/arraybuffer.html
+- 太多了 没看完 我觉得自己用不到呢
+
+
+### Blob对象
+- Blob 对象表示一个二进制文件的数据内容，比如一个图片文件的内容就可以通过 Blob 对象读写。
+- 它通常用来读写文件，它的名字是 Binary Large Object （二进制大型对象）的缩写。
+
+- Blob对象 与 ArrayBuffer 的区别在于:
+- Blob对象 用于操作二进制文件
+- ArrayBuffer 用于操作内存。
+
+> Blob对象的实例化
+> new Blob(array [, options])
+- 参数
+- 1. 数组
+- 成员是字符串或二进制对象，表示新生成的Blob实例对象的内容
+
+- 2. 配置对象
+- 参数类型是对象 对象属性type 它的值是一个字符串
+- 表示数据的 MIME 类型，默认是空字符串。
+```js
+var htmlFragment = ['<a id="a"><b id="b">hey!</b></a>'];
+var myBlob = new Blob(htmlFragment, {type : 'text/html'});
+```
+
+```js
+var obj = { hello: 'world' };
+var blob = new Blob([ JSON.stringify(obj) ], {type : 'application/json'});
+```
+
+> 实例对象.size
+> 实例对象.type
+- 分别返回数据的大小和类型。
+```js
+var htmlFragment = ['<a id="a"><b id="b">hey!</b></a>'];
+var myBlob = new Blob(htmlFragment, {type : 'text/html'});
+
+myBlob.size // 32
+myBlob.type // "text/html"
+```
+
+> 实例对象.slice(start, end, contentType)
+- 用来拷贝原来的数据，返回的也是一个Blob实例。
+
+- 参数: 三个参数，都是可选的。
+- contentType : 新实例的数据类型（默认为空字符串）。
+
+
+> 获取文件信息
+- 文件选择器<input type="file">用来让用户选取文件。出于安全考虑，浏览器不允许脚本自行设置这个控件的value属性，即文件必须是用户手动选取的，不能是脚本指定的。一旦用户选好了文件，脚本就可以读取这个文件。
+
+- 文件选择器返回一个 FileList 对象，该对象是一个类似数组的成员，每个成员都是一个 File 实例对象。(inp.files)
+
+- File 实例对象是一个特殊的 Blob 实例，增加了name和lastModifiedDate属性。
+```js
+// HTML 代码如下
+// <input type="file" accept="image/*" multiple onchange="fileinfo(this.files)"/>
+
+function fileinfo(files) {
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    console.log(
+      f.name, // 文件名，不含路径
+      f.size, // 文件大小，Blob 实例属性
+      f.type, // 文件类型，Blob 实例属性
+      f.lastModifiedDate // 文件的最后修改时间
+    );
+  }
+}
+```
+
+
+> 下载文件
+- AJAX 请求时，如果指定responseType属性为blob，下载下来的就是一个 Blob 对象
+```js
+function getBlob(url, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url);
+  xhr.responseType = 'blob';
+  xhr.onload = function () {
+    callback(xhr.response);
+  }
+  xhr.send(null);
+}
+
+// 上面代码中，xhr.response拿到的就是一个 Blob 对象。
+```
+
+
+> 生成 URL
+- 浏览器允许使用URL.createObjectURL()方法，针对 Blob 对象生成一个临时 URL，以便于某些 API 使用。
+
+- 这个 URL 以blob://开头，表明对应一个 Blob 对象，协议头后面是一个识别符，用来唯一对应内存里面的 Blob 对象。
+
+```js
+var droptarget = document.getElementById('droptarget');
+
+droptarget.ondrop = function (e) {
+  var files = e.dataTransfer.files;
+  for (var i = 0; i < files.length; i++) {
+    var type = files[i].type;
+    if (type.substring(0,6) !== 'image/')
+      continue;
+
+    var img = document.createElement('img');
+
+    // 将文件对象转成url 方便其他地方使用
+    img.src = URL.createObjectURL(files[i]);
+
+    img.onload = function () {
+      this.width = 100;
+      document.body.appendChild(this);
+      URL.revokeObjectURL(this.src);
+    }
+  }
+}
+```
+
+- 上面代码通过为拖放的图片文件生成一个 URL，产生它们的缩略图，从而使得用户可以预览选择的文件。
+
+- 浏览器处理 Blob URL 就跟普通的 URL 一样，如果 Blob 对象不存在，返回404状态码；如果跨域请求，返回403状态码。Blob URL 只对 GET 请求有效，如果请求成功，返回200状态码。由于 Blob URL 就是普通 URL，因此可以下载。
+
+
+> 读取文件
+- 取得 Blob 对象以后，可以通过FileReader对象，读取 Blob 对象的内容，即文件内容。
+
+- FileReader 对象提供四个方法，处理 Blob 对象。Blob 对象作为参数传入这些方法，然后以指定的格式返回。
+
+> FileReader.readAsText()：
+- 返回文本，需要指定文本编码，默认为 UTF-8。
+
+> FileReader.readAsArrayBuffer()：
+- 返回 ArrayBuffer 对象。
+
+> FileReader.readAsDataURL()：
+- 返回 Data URL。
+
+> FileReader.readAsBinaryString()：
+- 返回原始的二进制字符串。
+
+
+> 例子:
+- FileReader.readAsText()方法的例子，用来读取文本文件。
+
+```js
+// HTML 代码如下
+<input type="file" onchange="readfile(this.files[0])"></input>
+<pre id="output"></pre>
+
+function readfile(f) {
+  var reader = new FileReader();
+  reader.readAsText(f);
+
+  reader.onload = function () {
+    var text = reader.result;
+
+    var out = document.getElementById('output');
+    out.innerHTML = '';
+    out.appendChild(document.createTextNode(text));
+
+  }
+  reader.onerror = function(e) {
+    console.log('Error', e);
+  };
+}
+```
+
+- 上面代码中，通过指定 FileReader 实例对象的onload监听函数，在实例的result属性上拿到文件内容。
+
+
+> 例子:
+- FileReader.readAsArrayBuffer()方法的例子，用于读取二进制文件。
+
+```js
+// HTML 代码如下
+<input type="file" onchange="typefile(this.files[0])"></input>
+
+
+function typefile(file) {
+  // 文件开头的四个字节，生成一个 Blob 对象
+  var slice = file.slice(0, 4);
+  var reader = new FileReader();
+
+  // 读取这四个字节
+  reader.readAsArrayBuffer(slice);
+
+  reader.onload = function (e) {
+    var buffer = reader.result;
+
+    // 将这四个字节的内容，视作一个32位整数
+    var view = new DataView(buffer);
+    var magic = view.getUint32(0, false);
+
+    // 根据文件的前四个字节，判断它的类型
+    switch(magic) {
+      case 0x89504E47: file.verified_type = 'image/png'; break;
+      case 0x47494638: file.verified_type = 'image/gif'; break;
+      case 0x25504446: file.verified_type = 'application/pdf'; break;
+      case 0x504b0304: file.verified_type = 'application/zip'; break;
+    }
+
+    console.log(file.name, file.verified_type);
+  };
+}
+```
+
+
+### URL
+- 网页的 URL 只能包含合法的字符。合法字符分成两类。
+- URL 元字符：
+- 分号（;），逗号（,），斜杠（/），问号（?），冒号（:），at（@），&，等号（=），加号（+），美元符号（$），井号（#）
+
+
+- 语义字符：
+- a-z，A-Z，0-9，连词号（-），下划线（_），点（.），感叹号（!），波浪线（~），星号（*），单引号（'），圆括号（()）
+
+- 除了以上字符，其他字符出现在 URL 之中都必须转义，规则是根据操作系统的默认编码，将每个字节转为百分号（%）加上两个大写的十六进制字母。
+
+- JavaScript 提供四个 URL 的编码/解码方法。
+
+<!-- 
+  比如，UTF-8 的操作系统上，http://www.example.com/q=春节这个 URL 之中，汉字“春节”不是 URL 的合法字符，所以被浏览器自动转成
+
+  http://www.example.com/q=%E6%98%A5%E8%8A%82。其中，“春”转成了%E6%98%A5，“节”转成了%E8%8A%82。这是因为“春”和“节”的 UTF-8 编码分别是E6 98 A5和E8 8A 82，将每个字节前面加上百分号，就构成了 URL 编码。
+ -->
+
+> 编码
+> encodeURI("url字符串")
+- 用于转码整个 URL。
+- 它的参数是一个字符串，代表整个 URL。它会将元字符和语义字符之外的字符，都进行转义。
+
+  encodeURI('http://www.example.com/q=春节')
+  // "http://www.example.com/q=%E6%98%A5%E8%8A%82"
+
+
+> encodeURIComponent("春节")
+- 该方法适用于转码url上的某一个部分
+
+
+> 解码
+> decodeURI()
+- 用于整个 URL 的解码。它是encodeURI()方法的逆运算。它接受一个参数，就是转码后的 URL。
+
+  decodeURI('http://www.example.com/q=%E6%98%A5%E8%8A%82')
+  // "http://www.example.com/q=春节"
+
+
+> decodeURIComponent('%E6%98%A5%E8%8A%82')
+- 解码一个片段
+
+
+### url构造函数
+- 用来构造、解析和编码 URL。一般情况下，通过window.URL可以拿到这个构造函数。
+
+> new URL()
+- new URL()作为构造函数，可以生成 URL 实例。
+
+- 参数:
+- 它接受一个表示 URL 的字符串作为参数。如果参数不是合法的 URL，会报错。
+
+```js
+  var url = new URL('http://www.example.com/index.html');
+  url.href       // "http://www.example.com/index.html"
+```
+
+- 如果 URL 字符串是一个相对路径，那么需要表示绝对路径的第二个参数，作为计算基准。
+```js
+var url1 = new URL('index.html', 'http://example.com');
+url1.href
+// "http://example.com/index.html"
+```
+
+
+> 实例属性
+- URL.href：返回整个 URL
+- URL.protocol：返回协议，以冒号:结尾
+- URL.hostname：返回域名
+- URL.host：返回域名与端口，包含:号，默认的80和443端口会省略
+- URL.port：返回端口
+- URL.origin：返回协议、域名和端口
+
+> URL.pathname：返回路径，以斜杠/开头
+
+> URL.search：返回查询字符串，以问号?开头
+
+> URL.searchParams：返回一个URLSearchParams实例，该属性是Location对象没有的
+
+- URL.hash：返回片段识别符，以井号#开头
+- URL.password：返回域名前面的密码
+- URL.username：返回域名前面的用户名
+
+
+> 静态方法
+> URL.createObjectURL()
+- 用来为上传/下载的文件、流媒体文件生成一个 URL 字符串。这个字符串代表了File对象或Blob对象的 URL。
+
+```js
+  // HTML 代码如下
+  <div id="display"/>
+  <input
+    type="file"
+    id="fileElem"
+    multiple
+    accept="image/*"
+    onchange="handleFiles(this.files)"
+   >
+
+  var div = document.getElementById('display');
+  let inp = document.querySelector("#inp")
+  inp.addEventListener("change", handleFile)
+
+  function handleFile(e) {
+    let file = e.target.files[0]
+
+    let img = document.createElement("img")
+
+    let imgSrc = window.URL.createObjectURL(file)
+
+    img.src = imgSrc
+    document.querySelector("#wrap").appendChild(img)
+  }
+```
+
+- URL.createObjectURL()方法用来为上传的文件生成一个 URL 字符串，作为<img>元素的图片来源。
+
+**注意:**
+- 每次使用URL.createObjectURL()方法，都会在内存里面生成一个 URL 实例。如果不再需要该方法生成的 URL 字符串，为了节省内存，可以使用URL.revokeObjectURL()方法释放这个实例。
+
+
+> URL.revokeObjectURL()
+- 用来释放URL.createObjectURL()方法生成的 URL 实例。它的参数就是URL.createObjectURL()方法返回的 URL 字符串
+- 一旦图片加载成功以后，为本地文件生成的 URL 字符串就没用了，于是可以在img.onload回调函数里面，通过URL.revokeObjectURL()方法卸载这个 URL 实例。
+
+```js
+  // 当图片加载完成后 我们释放这个url对象
+  var div = document.getElementById('display');
+
+  function handleFiles(files) {
+    for (var i = 0; i < files.length; i++) {
+      var img = document.createElement('img');
+
+      img.src = window.URL.createObjectURL(files[i]);
+
+      div.appendChild(img);
+      img.onload = function() {
+        window.URL.revokeObjectURL(this.src);
+      }
+    }
+  }
+```
+  
+> new URLSearchParams(search参数)
+- 是浏览器的原生对象，用来构造、解析和处理 URL 的查询字符串（即 URL 问号后面的部分）。
+
+- 它本身也是一个构造函数，可以生成实例。参数可以为查询字符串，起首的问号?有没有都行，也可以是对应查询字符串的数组或对象。
+
+> 方法一：传入字符串
+```js
+  var params = new URLSearchParams('?foo=1&bar=2');
+  // 等同于
+  var params = new URLSearchParams(document.location.search);
+```
+
+> 方法二：传入数组
+```js
+  var params = new URLSearchParams([['foo', 1], ['bar', 2]]);
+```
+  
+> 方法三：传入对象
+```js
+  var params = new URLSearchParams({'foo' : 1 , 'bar' : 2});
+```
+
+- URLSearchParams会对查询字符串自动编码。
+```js
+var params = new URLSearchParams({'foo': '你好'});
+params.toString() // "foo=%E4%BD%A0%E5%A5%BD"
+```
+
+
+> URLSearchParams.toString()
+- toString方法返回实例的字符串形式。
+- 返回得是去掉? 的字符串形式
+- 该方法通过实例对象来调用
+
+```js
+var url = new URL('https://example.com?foo=1&bar=2');
+var params = new URLSearchParams(url.search);
+params.toString() // "foo=1&bar=2'
+```
+  
+
+
+> URLSearchParams.append()
+- 用来追加一个查询参数。它接受两个参数，第一个为键名，第二个为键值，没有返回值。
+```js
+  var params = new URLSearchParams({'foo': 1 , 'bar': 2});
+  params.append('baz', 3);
+  params.toString() // "foo=1&bar=2&baz=3"
+```
+
+> URLSearchParams.delete()
+- 用来删除指定的查询参数。它接受键名作为参数
+```js
+  var params = new URLSearchParams({'foo': 1 , 'bar': 2});
+  params.delete('bar');
+  params.toString() // "foo=1"
+```
+
+> URLSearchParams.has()
+- 返回一个布尔值，表示查询字符串是否包含指定的键名。
+```js
+  var params = new URLSearchParams({'foo': 1 , 'bar': 2});
+  params.has('bar') // true
+  params.has('baz') // false
+```
+
+> URLSearchParams.set()
+- set()方法用来设置查询字符串的键值
+```js
+  var params = new URLSearchParams('?foo=1');
+  params.set('foo', 2);
+  params.toString() // "foo=2"
+```
+
+> URLSearchParams.get()
+- 用来读取查询字符串里面的指定键。它接受键名作为参数。
+```js
+  var params = new URLSearchParams('?foo=1');
+  params.get('foo') // "1"
+```
+
+> URLSearchParams.sort()
+- 对查询字符串里面的键进行排序，规则是按照 Unicode 码点从小到大排列。
+
+
+
+### File 对象
+- File 对象代表一个文件，用来读写文件信息。它继承了 Blob 对象，或者说是一种特殊的 Blob 对象，所有可以使用 Blob 对象的场合都可以使用它。
+
+- 最常见的使用场合是表单的文件上传控件（<input type="file">），用户选中文件以后，浏览器就会生成一个数组，里面是每一个用户选中的文件，它们都是 File 实例对象。
+
+- https://www.wangdoc.com/javascript/bom/file.html
+
+> FileReader
+- FileReader 对象用于读取 File 对象或 Blob 对象所包含的文件内容
+- 浏览器原生提供一个FileReader构造函数，用来生成 FileReader 实例。
+```js
+var reader = new FileReader();
+```
+
+> reader.error
+- 读取文件时产生的错误对象
+
+
+> reader.readyState
+- 整数，表示读取文件时的当前状态。一共有三种可能的状态
+- 0表示尚未加载任何数据
+- 1表示数据正在加载
+- 2表示加载完成。
+<!-- 
+    终止读取操作，readyState属性将变成2。
+ -->
+
+
+> reader.result
+- 读取完成后的文件内容，有可能是字符串，也可能是一个 ArrayBuffer 实例。
+
+
+> 事件:
+> reader.onabort
+- abort事件（用户终止读取操作）的监听函数。
+
+
+> reader.onerror
+- error事件（读取错误）的监听函数。
+
+
+> reader.onload
+- load事件（读取操作完成）的监听函数，通常在这个函数里面使用result属性，拿到文件内容。
+
+
+> reader.onloadstart
+- loadstart事件（读取操作开始）的监听函数。
+
+
+> reader.onloadend
+- loadend事件（读取操作结束）的监听函数。
+
+
+> reader.onprogress
+- progress事件（读取操作进行中）的监听函数。
+
+
+> 读取方式:
+> reader.readAsText()：
+- 读取完成后，result属性将返回文件内容的文本字符串。该方法的第一个参数是代表文件的 Blob 实例，第二个参数是可选的，表示文本编码，默认为 UTF-8。
+
+
+> reader.readAsArrayBuffer()：
+- 以 ArrayBuffer 的格式读取文件，读取完成后result属性将返回一个 ArrayBuffer 实例。
+
+
+> reader.readAsDataURL()：
+- result属性将返回一个 Data URL 格式（Base64 编码）的字符串，代表文件内容。对于图片文件，这个字符串可以用于<img>元素的src属性。注意，这个字符串不能直接进行 Base64 解码，必须把前缀data:*/*;base64,从字符串里删除以后，再进行解码。
+
+
+> reader.readAsBinaryString()：
+- result属性将返回原始的二进制字符串。
+
+
+
+### 
+
+
+
 ### js获取输入光标的位置
 - https://cloud.tencent.com/developer/article/1753347?from=15425
-
 
 > <p contenteditable="true">
 - 我们给一个标签添加上 contenteditable 属性则该标签的内部元素则变为可编辑状态
@@ -1010,6 +1768,16 @@ lcEvent.on("fileSuccess", (data) => {
 
 
 ### formData对象
+- 用户点击“提交”按钮，每一个控件都会生成一个键值对，键名是控件的name属性，键值是控件的value属性，
+
+- 所有的键值对都会提交到服务器。但是，提交的数据格式跟<form>元素的method属性有关。该属性指定了提交数据的 HTTP 方法。如果是 GET 方法，所有键值对会以 URL 的查询字符串形式，提交到服务器，比如/handling-page?user_name=张三
+
+- 如果是 POST 方法，所有键值对会连接成一行，作为 HTTP 请求的数据体发送到服务器，比如user_name=张三&user_passwd=123&submit_button=提交。下面就是 POST 请求的头信息。
+
+- 注意:
+- 实际提交的时候，只要键值不是 URL 的合法字符（比如汉字“张三”和“提交”），浏览器会自动对其进行编码。
+
+
 > new FormData(form)
 - 原生当中根据form自动收集表单数据到 formData 对象中
 <!-- 

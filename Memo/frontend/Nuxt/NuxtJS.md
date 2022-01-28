@@ -1,3 +1,11 @@
+### 技巧
+> 在nuxt下使用window
+```js
+if(process.browser) console.log(winodw)
+```
+- https://www.cnblogs.com/goloving/p/11397285.html
+
+
 > 总结问题
 - 1. 后端使用什么语言为主 一般是使用nodejs 但是使用别的语言可以么
 <!-- 
