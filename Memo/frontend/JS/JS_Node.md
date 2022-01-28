@@ -2399,6 +2399,10 @@ observer.observe(video);
 > 元素对象.setCapture()
 - 针对鼠标按下事件
 - 设置btn01对鼠标按下的相关的事件进行捕获 不管点击谁都显示元素对象身上的事件
+<!-- 
+    该方法是针对鼠标按下事件的一种解决方案
+    不管点击谁 都会触发元素对象身上的事件(点击事件)
+ -->
 - 只有ie支持，但是在火狐中调用时不会报错, 而如果在chrome调用 会报错
 
 - 使用的时候要先进行判断
@@ -2432,6 +2436,19 @@ observer.observe(video);
 
     因为btn02的事件被btn01捕获了, 更横的是 不光点按钮，鼠标进行的点击相关所有事件都被btn01抢过来显示1了 
 -->
+
+- 因为setCapture是针对鼠标点击 按下等事件 解决ie浏览器的默认行为的现象
+- 那我们可以在鼠标抬起的时候解绑setCapture
+```js 
+    document.onmouseup = function(){
+        document.onmousemove = null;
+
+        // 当鼠标抬起的时候 两种方式都可以
+        document.releaseCapture?
+        canvas
+        document.releaseCapture && document.releaseCapture();
+    };
+```
 
 > confirm()
 - 用于弹出一个带有确认和取消按钮的提示框，需要一个字符串作为参数
