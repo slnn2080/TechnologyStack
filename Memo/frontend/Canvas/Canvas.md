@@ -710,79 +710,259 @@ ctx.restore();
 
 ----------------
 
-### https://www.wangdoc.com/webapi/canvas.html 文本
+### 文本
+- 以下的方法和属性用于绘制文本
+
+> 属性:
+> ctx.font
+- 指定"[字型] + 大小 + 字体，默认值为10px sans-serif
+<!-- 
+    必须同时有字号字体，且 字体只支持 sans-serif 系列
+ -->
+
+- 字形可以不写 但是 大小和字体一定要写
+
+```js
+ctx.font = 'Bold 20px Arial';
+```
+
+> ctx.textAlign
+- 文本的对齐方式，默认值为start。
+- left: 
+    文本的左边靠到 x 的位置
+
+- right: 
+    文本的右边靠到 x 的位置
+
+- center: 
+    文本的中间位置 在 x 的位置上 也就是说文本一半在 x 的左边，一半在 x 的右边
+
+- start
+- end
+
+> ctx.direction
+- 文本的方向，默认值为inherit。
+- ltr
+- rtl
+
+> ctx.textBaseline
+- 文本的垂直位置，默认值为alphabetic。
+- top
+    文本基线在文本块的顶部。
+
+- middle
+    文本基线在文本块的中间
+
+- bottom
+    文本基线在文本块的底部。按基线对齐
+
+
+> 方法:
+> ctx.fillText("文本", x, y, [maxWidth])
+- 在指定位置绘制实心字符。
+
+- 参数:
+- 文本
+- 文本位置
+- 文本的最大像素宽度。该参数可选，如果省略，则表示宽度没有限制。如果文本实际长度超过这个参数指定的值，那么浏览器将尝试用较小的字体填充。
+
+**注意:**
+- 不支持文本断行，所有文本一定出现在一行内。如果要生成多行文本，只有调用多次fillText()方法。
+
+
+> ctx.strokeText()
+- 在指定位置绘制空心字符。
+- 参数和fillText()一致
+
+
+> ctx.measureText("字符串")
+- 返回一个 TextMetrics 对象。
+- 方法接受一个字符串作为参数，返回一个 TextMetrics 对象，可以从这个对象上面获取参数字符串的信息，*目前主要是文本渲染后的宽度（width）*
+```js
+ctx.fillText('今天天气真不错',0,0);
+
+// ctx.strokeText('今天天气真不错',50,50);
+let info = ctx.measureText('今天天气真不错');
+// tinfo 能返回 这个字符串 在我画布上的一个宽度 210
+info.width
+```
+
+- 示例:
+- 文本的水平 垂直 居中 这点就用到了 上面的 ctx.measureText('字符串')功能
+- 实现文字水平垂直方向居中
+
+```js
+ctx.font = '60px ss';
+// 设置文本垂直方向居中对齐
+ctx.textBaseline = 'middle';
+
+// 获取文本的宽度
+let textWidth = ctx.measureText('找工作').width;
+
+ctx.fillText('加油',(canvas.width - textWidth)/2, (canvas.height - 60)/2);
+```
+
+> ctx.strokeText()
+- 在指定位置绘制空心字符。
+
+> ctx.strokeText()
+- 在指定位置绘制空心字符。
+
+> ctx.strokeText()
+- 在指定位置绘制空心字符。
+
+> ctx.strokeText()
+- 在指定位置绘制空心字符。
 
 ----------------
 
 ### canvas 中的变换
 - 变换是让画布里的图像进行变换，画布里的图像没办法通过 css 和 绑定事件来添加效果 canvas 里的变换要用 canvas 里自己的 api
 
+
 > ctx.translate(x, y) 累加
+- 图像平移
 - 移动 canvas 的 原点 到一个不同的位置。
-- 在 canvas 中 translate 是累加的
+
+- 书写位置:
+- 跟设置样式是一起的 是先设置 后绘制图形
 
 - 参数:
 - x 是左右偏移量，y 是上下偏移量
 
-比如之前画的矩形 画线都是参考画布左上角的原点 translate()就是动这个原点
-eg:
+- 注意：
+- 在 canvas 中 translate 是累加的
+- 也就是多次调用translate(x, y)方法 位置是累加的
+
+- 比如:
+- 之前画的矩形 画线都是参考画布左上角的原点 translate()就是*动这个原点*
+
+```js
+ctx.save()
 ctx.fillStyle = '#C2185B'; //深粉
+
 // translate() 也属于样式，先写再说上面
 ctx.translate(50,50);
+
 // 还可以写多次，是累加的 原点再次移动 50 50 到 100 100 了
 ctx.translate(50,50);
 
 ctx.beginPath();
+
 // 这时候绘制的正方形原点是参考 50 50 了
 ctx.fillRect(0,0,100,100);
 ctx.stroke();
+```
 
-rotate(60*Math.PI/180) 累加
-旋转多少度：radians（弧度）=(Math.PI/180)*degrees。
-这个方法只接受一个参数：旋转的角度(angle)，它是顺时针方向的，以弧度为单位的值。
-旋转的中心点始终是 canvas 的原点，如果要改变它，我们需要用到 translate 方法
-eg：
+
+> ctx.rotate(60*Math.PI/180) 累加
+- 图像旋转。它接受一个弧度值作为参数，表示顺时针旋转的度数。
+
+- 旋转多少度：radians（弧度）=(Math.PI/180)*degrees。
+
+- 这个方法只接受一个参数：旋转的角度(angle)，它是顺时针方向的，以弧度为单位的值。
+
+- 旋转的中心点始终是 canvas 的原点，如果要改变它，我们需要用到 translate 方法
+
+- 书写位置:
+- 跟设置样式是一起的 是先设置 后绘制图形
+
+```js
 ctx.fillStyle = '#C2185B'; //深粉
+
+// 也属于样式，先写再说上面
 ctx.translate(200,200);
-// rotate() 也属于样式，先写再说上面
-// ctx.rotate(45);
 ctx.rotate(45\*Math.PI/180);
+
+
+// 假如写成这样 和 上面的效果是不一样的 canvas 是同步思想，从上向下 这样是先转，再移动，上面是先移动再转
+ctx.rotate(45\*Math.PI/180);
+ctx.translate(200,200);
+
+
+
+// 样式设置完后我们再绘制图形
 ctx.fillRect(0,0,100,100);
 ctx.fill();
+```
 
-// ctx.rotate(45\*Math.PI/180);
-// ctx.translate(200,200);
-// 假如写成这样 和 上面的效果是不一样的 canvas 是同步思想，从上向下
-// 这样是先转，再移动，上面是先移动再转
 
-scale(x, y) 累加
-scale 方法接受两个参数。x,y 分别是横轴和纵轴的缩放因子，它们都必须是正值。
-值比 1.0 小 表示缩小，比 1.0 大 则表示放大，值为 1.0 时什么效果都没有。
-缩放一般我们用它来增减图形在 canvas 中的像素数目，对形状，位图进行缩小或者放大。
-在 canvas 中 scale 是累称的
+> ctx.scale(x, y) 累加
+- 用于缩放图像。
 
-放大：
-放大的是整个画布区域，所以位置也会发生变化
-css 像素的面积，不是增加 css 像素的数量，而是把单个 css 像素增大了，区域内 css 像素的个数变少
+- scale 方法接受两个参数。x,y 分别是横轴和纵轴的缩放因子，它们都必须是正值。
+<!-- 
+    比如缩放因子0.5表示将大小缩小为原来的50%，缩放因子10表示放大十倍
+ -->
 
-缩小：
-缩小 css 像素的面积，区域内 css 像素的个数变多，占据的实际尺寸变小了
+- 值比 1.0 小 表示缩小，
+- 值比 1.0 大 则表示放大，
+- 值为 1.0 时什么效果都没有。
+<!-- 
+    如果缩放因子为1，就表示图像没有任何缩放。如果为-1，则表示方向翻转。ctx.scale(-1, 1)为水平翻转，ctx.scale(1, -1)表示垂直翻转。
+ -->
+
+- 缩放一般我们用它来增减图形在 canvas 中的像素数目，对形状，位图进行缩小或者放大。
+在 canvas 中 scale 是累加的
+
+- 注意:
+- 放大：
+- 放大的是整个画布区域，所以位置也会发生变化
+- css 像素的面积，不是增加 css 像素的数量，而是把单个 css 像素增大了，区域内 css 像素的个数变少
+
+- 缩小：
+- 缩小 css 像素的面积，区域内 css 像素的个数变多，占据的实际尺寸变小了
 
 @感觉就是画布大小没变，里面的东西本身高度宽度和位置整体扩大或缩小
 
-eg：
+```js
 ctx.fillStyle = '#C2185B'; //深粉
 ctx.scale(2,1);
 ctx.fillRect(100,100,100,100);
 ctx.fill();
+```
 
----
+
+> ctx.transform()
+- 接受一个变换矩阵的六个元素作为参数，完成缩放、旋转、移动和倾斜等变形。
+<!-- 
+    ctx.transform(a, b, c, d, e, f);
+    a:水平缩放(默认值1，单位倍数)
+    b:水平倾斜(默认值0，单位弧度)
+    c:垂直倾斜(默认值0，单位弧度)
+    d:垂直缩放(默认值1，单位倍数)
+    e:水平位移(默认值0，单位像素)
+    f:垂直位移(默认值0，单位像素)
+ -->    
+
+```js
+var canvas = document.getElementById('myCanvas');
+var ctx = canvas.getContext('2d');
+
+ctx.transform(2, 0, 0, 1, 50, 50);
+ctx.fillRect(0, 0, 100, 100);
+```
+
+> ctx.setTransform()
+- 取消前面的图形变换，将画布恢复到该方法指定的状态。该方法的参数与transform()方法完全一致。
+```js
+var canvas = document.getElementById('myCanvas');
+var ctx = canvas.getContext('2d');
+
+ctx.translate(50, 50);
+ctx.fillRect(0, 0, 100, 100);
+
+ctx.setTransform(1, 0, 0, 1, 0, 0);
+ctx.fillRect(0, 0, 100, 100);
+```
+
+----------------
 
 ### 变换的相关练习
+- 要点：
+- 怎么让一个系数 不断的增加到指定值 和 缩小到指定值?
 
-要点：
-怎么让一个系数 不断的增加到指定值 和 缩小到指定值
-
+```js
 let ctx;
 // 定义一个角度 并赋初始值；
 let deg = 0;
@@ -795,18 +975,22 @@ let canvas = document.getElementById('test');
 if(canvas.getContext){
 ctx = canvas.getContext('2d');
 
-## 下面的部分都不用要，老师的思路太不清晰了
+```
 
-    // 有样式就save 和 restore一下 形成个块级作用域
-    ctx.save();
-    // 设置原点为 元素的中心点，先设置元素左上角的原点为画布的中心点
-    ctx.translate(250,250);
-    ctx.beginPath();
-    // 上面原点移动到画布的中心点了，然后元素x y各减去一半的高度 和 宽度，让原点为元素的中心点
-    ctx.fillRect(-75,-75,150,150);
-    ctx.restore();
+- 下面的部分都不用要，老师的思路太不清晰了
+```js
+// 有样式就save 和 restore一下 形成个块级作用域
+ctx.save();
 
----
+// 设置原点为 元素的中心点，先设置元素左上角的原点为画布的中心点
+ctx.translate(250,250);
+
+ctx.beginPath();
+// 上面原点移动到画布的中心点了，然后元素x y各减去一半的高度 和 宽度，让原点为元素的中心点
+ctx.fillRect(-75,-75,150,150);
+
+ctx.restore();
+
 
 // 开启定时器 用来进行旋转
 let timer = setInterval(function(){
@@ -830,8 +1014,10 @@ let timer = setInterval(function(){
     }else if(scale == 0){
         maxScale = 1;
     }
+
     // 每次使值自增 和 自减，如何自增 正数自增，如何自减 负数自减
     scale += maxScale;
+
     // 系数范围太大了 除以50 0.02-2之间不断变化
     ctx.scale(scale/50,scale/50);
 
@@ -840,16 +1026,18 @@ let timer = setInterval(function(){
     ctx.restore();
 
 },1000/60)
-}
 
-- 自己做的作业：
-  let ctx;
-  // 定义度数
-  let deg = 0;
-  // 定义缩放系数
-  let scale = 0;
-  // 定义缩放系数的最大值
-  let maxScale = 0;
+```
+
+> 自己做的作业：
+```js
+let ctx;
+// 定义度数
+let deg = 0;
+// 定义缩放系数
+let scale = 0;
+// 定义缩放系数的最大值
+let maxScale = 0;
 
 let canvas = document.getElementById('canvas');
 if(canvas.getContext){
@@ -860,8 +1048,10 @@ ctx = canvas.getContext('2d');
 
         // 使单个图形发生变化 清楚掉前一个图形 清空画布
         ctx.clearRect(0,0,canvas.width, canvas.height);
+
         // 创建图形
         ctx.save();
+
         // 样式相关
         ctx.fillStyle = '#C2185B';
         // 使原点在元素的中心点
@@ -887,70 +1077,69 @@ ctx = canvas.getContext('2d');
         ctx.fillRect(-75,-75,150,150);
         ctx.restore();
     },1000/60);
-
 }
+```
 
----
+----------------
 
 ### 练习 --- 时钟
 
-总结：
-1、区域 1 中放初始化设置 也就是共通设置
-ctx.save(); -- 区域 1
+- 总结：
+- 1. 区域 1 中放初始化设置 也就是共通设置
+<!-- 
+    ctx.save(); -- 区域 1
+    ...
+    ctx.restore(); -- 区域 1
+ -->
 
-ctx.restore(); -- 区域 1
-
-2、在区域 1 里 每画一次图形可以创建一个 save 作用域
-区域 2 中可以继承区域 1 中的样式，想要单独设定的话 在区域 2 中再次设定
+- 2.在区域 1 里 每画一次图形可以创建一个 save 作用域
+- *区域 2 中可以继承区域 1 中的样式，想要单独设定的话 在区域 2 中再次设定*
+<!-- 
 ctx.save(); -- 区域 1
-ctx.save(); -- 区域 2
+    ctx.save();     -- 区域2
 
     ctx.restore();  -- 区域2
 
 ctx.restore(); -- 区域 1
+ -->
 
----
+- 3. 画完一个路径后 可以用 for 循环来创建多个，如果需要 for 循环的部分不需要把 save restore 放进 for 循环里
 
-画完一个路径后 可以用 for 循环来创建多个，如果需要 for 循环的部分不需要把 save restore 放进 for 循环里
+- 4. 钟表练习中 关于画分针刻度的问题，假如我不喜欢 时针刻度的位置上 有分针刻度 我想想法是 switch 和 continue
 
-钟表练习中 关于画分针刻度的问题，假如我不喜欢 时针刻度的位置上 有分针刻度
-我想想法是 switch 和 continue
-它的想法是
+- 老师的想法是
+```js
 for(let i=0; i<60; i++){
-if(i%5 != 0){
-ctx.beginPath();
-ctx.moveTo(0,-114);
-ctx.lineTo(0,-110);
-ctx.stroke();
+    if(i%5 != 0){
+        ctx.beginPath();
+        ctx.moveTo(0,-114);
+        ctx.lineTo(0,-110);
+        ctx.stroke();
+    }
+//放在上面会串一个 那就放在下面 等它们画完了再转
+ctx.rotate(6*Math.PI/180); 
 }
-ctx.rotate(6\*Math.PI/180); //放在上面会串一个 那就放在下面 等它们画完了再转
-}
+```
 
-当 0 5 10 15 20 25 30 35 40 45 50 55 的时候不要画
-i%5
-0%5 0
-1%5 1
-2%5 2
-3%5 3
-4%5 4
-5%5 0
-6%5 1
-7%5 2
-8%5 3
-9%5 4
-10%5 0
-每隔 5 怎么样 可以选择 i%5
+- 5. 当 0 5 10 15 20 25 30 35 40 45 50 55 的时候不要画
 
-@取得时间
-let date = new Date();
-获取 秒
-let s = date.getSeconds();
-获取 分
-let m = date.getMinutes();
-获取 时
-let h = date.getHours();
-console.log(s,m,h);
+    i%5
 
+    0%5 0
+    1%5 1
+    2%5 2
+    3%5 3
+    4%5 4
+    5%5 0
+    6%5 1
+    7%5 2
+    8%5 3
+    9%5 4
+    10%5 0
+
+- 技巧: 每隔 5 怎么样 可以选择 i%5
+
+```js
 let date = new Date();
 // 获取 秒
 let s = date.getSeconds();
@@ -960,27 +1149,30 @@ let m = date.getMinutes()+s/60;
 let h = date.getHours()+m/60; //现在的 h 是 24 小时制
 h = h>12?h-12:h;
 
-@ 用 canvas 写动画就是覆盖 每次画不一样的帧上去 把上一次的清掉
+
+@用canvas写动画就是覆盖每次画不一样的帧上去把上一次的清掉
 
 let canvas = document.getElementById('clock');
 let ctx;
 if(canvas.getContext){
 ctx = canvas.getContext('2d');
-
+    
     setInterval(function(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
-    },1000);  //相当于这个move函数 1秒执行一次
+    },1000);  
 
+    //相当于这个move函数 1秒执行一次
     move();
-    function move(){
+
+function move(){
     ctx.save();     // 区域1
+
     // 调整 原点 到中心位置
     ctx.translate(200,200);
     // 设置表盘的样式
     ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#212121';
-
 
     // 绘制外层空心圆盘
     ctx.save();     // 区域2
@@ -992,7 +1184,6 @@ ctx = canvas.getContext('2d');
     ctx.stroke();
     ctx.restore();  // 区域2
 
-
     // 绘制外层圆盘的修饰环
     ctx.save();
     ctx.strokeStyle = '#FF5252';
@@ -1001,7 +1192,6 @@ ctx = canvas.getContext('2d');
     ctx.arc(0,0,132,0,360*Math.PI/180);
     ctx.stroke();
     ctx.restore();
-
 
     // 时针刻度
     ctx.save();
@@ -1017,7 +1207,6 @@ ctx = canvas.getContext('2d');
         ctx.stroke();
     }
     ctx.restore();
-
 
     // 分针刻度
     ctx.save();
@@ -1113,45 +1302,23 @@ ctx = canvas.getContext('2d');
     };
 
 }
+```
 
-// 区域 1 的 save 和 restore 是用来做初始化工作
-// 区域 2 的 save 和 restore 是用来画空心圆盘的 区域 2 中有样式不用改的 就会继承区域 1 的部分
+----------------
 
----
+### 图像处理
+- Canvas API 允许将图像文件写入画布，
 
-### 使用图片 & 设置背景
-- canvas 操作图片时，必须要等图片加载完才能操作
-
-
-### 引入图片：
-- Canvas API 允许将图像文件写入画布，做法是读取图片后，使用drawImage()方法将这张图片放上画布
-
-> ctx.drawImage(img, cx, cy)
-- 参数:
-- cx:
-    - 画布内部的横坐标，用于放置图像的左上角
-
-- cy:
-    - 画布内部的纵坐标，用于放置图像的右上角
-
-
-> ctx.drawImage(img, cx, cy, cw, ch)
-- 参数:
-- cx:
-    - 画布内部的横坐标，用于放置图像的左上角
-
-- cy:
-    - 画布内部的纵坐标，用于放置图像的右上角
-
-- cw:
-    - 图像在画布内部的宽度，会产生缩放效果。
-
-- ch
-    - 图像在画布内部的高度，会产生缩放效果。
+- 要点:
+- 使用 new image()方法 当onload加载成功后 在内部调用drawImage()
 
 
 > ctx.drawImage(img, 0, 0, img.width, img.height);
 - 在 canvas 中插入图片需要 image 对象
+- img.width 和 img.height是可选的
+- 当我们不指定的时候 图像将是原始大小
+
+
 ```js
 // 创建 image 对象
 let img = new Image();
@@ -1167,7 +1334,7 @@ img.onload = function(){
 if(canvas.getContext){
 ctx = canvas.getContext('2d');
 
-let img = new Image();
+let img = new Image(20， 20);
 img.src = './links/1.jpg';
 img.onload = function(){
     draw();
@@ -1179,485 +1346,196 @@ function draw(){
 };
 ```
 
---
+----------------
 
-### 设置背景
+### 像素读写
+> ctx.getImageData(x,y,w,h)
+- 用来读取<canvas>的内容，返回一个 ImageData 对象，包含了每个像素的信息。
 
-ctx.createPattern(image, repetition)
-它具有返回值，一般情况下，我们都会将 createPattern 返回的对象作为 fillstyle 的值
-image:图像源
-repetition:
-"repeat"
-"repeat-x"
-"repeat-y"
-"no-repeat"
-背景和图片有关系 所以必须等图片加载成功
+- 参数:
+- x y:
+    读取区域的左上角坐标
 
-eg:
-if(canvas.getContext){
-ctx = canvas.getContext('2d');
+- w h
+    读取区域的宽度和高度
 
-let img = new Image();
-img.src = './links/1.jpg';
-img.onload = function(){
+- 返回值:
+- imageData对象 该对象有三个属性。
+- 1. data:
+    一个一维数组。里面放的是每一个像素点的 
 
-    // 为了避免在这里写太多的代码，可以使用函数
-    draw();
+    rgba 信息 所以是 10000 个 x 4
+    包含着 RGBA 格式的整型数据，范围在 0 至 255 之间（包括 255）
+    R:0 --> 255(黑色到白色)
+    G:0 --> 255(黑色到白色)
+    B:0 --> 255(黑色到白色)
+    A:0 --> 255(透明到不透明)
 
-};
-// 其实就是把上面的代码抽到这里
-function draw(){
+- 2. width
+    横向上像素点的个数 图片宽度，单位是像素
 
-    // 先画一个框体 背景得在这个框体里
-    // 正常来讲 填充背景色就是背景了吧，那现在我是不是让颜色值等于背景图片就行了
-    // ctx.fillStyle = '#C2185B';
-    // ctx.fillRect(20,20,200,200);
+- 3. height
+    纵向上像素点的个数 图片高度，单位是像素
 
-    // 创建变量接收 设置背景方法的返回值 用来给 fillStyle
-    let pattern = ctx.createPattern(img, 'repeat');
-    ctx.fillStyle = pattern;
-    ctx.fillRect(20,20,200,200);
+```js
+var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+```
 
-};
-}
+> ctx.putImageData(imgData, x, y)
+- 将ImageData对象的像素绘制在<canvas>画布上
 
-### 渐变
+- 参数:
+- 1. imagedata
+    包含像素信息的 ImageData 对象。
 
-线性渐变：
+- 2. x
+    元素内部的横坐标，用于放置 ImageData 图像的左上角。
 
-// 设置方向：
-let 渐变对象 = ctx.createLinearGradient(x1, y1, x2, y2)
-创建渐变对象，用来下一步操作 x y 表示渐变的起点 (x1,y1) 与终点 (x2,y2)
-这两个点还控制了纯色的分布区域
-1 --- 1 --- 0
-1 到 1 是渐变的两个点 后面的 1 到 0 就是纯色部分
+- 3. y
+    元素内部的纵坐标，用于放置 ImageData 图像的左上角。
 
-// 设置渐变条上的锚点 和 颜色
-渐变对象.addColorStop(position, color)
-position：渐变条上的锚点，表示渐变中颜色所在的相对位置 取值 0.0 - 1.0
-color：颜色 如 #FFF， rgba(0,0,0,1)
 
-// 将渐变对象 传递给 fillStyle
+> ctx.createImageData()
+- 用于生成一个空的ImageData对象，所有像素都是透明的黑色（即每个值都是0）。该方法有两种使用格式。
+```js
+ctx.createImageData(width, height)
+ctx.createImageData(imagedata)
+```
 
-let gradient = ctx.createLinearGradient(0,0,200,200);
-eg：
-// 设置渐变方向
-let gradient = ctx.createLinearGradient(0,0,200,200);
-// 设置锚点 和 颜色
-gradient.addColorStop(0, '#C2185B');
-gradient.addColorStop(.5, '#FF4081');
-gradient.addColorStop(1, '#BDBDBD');
-ctx.fillStyle = gradient;
-ctx.fillRect(20,20,200,200);
+- 比如:
+- 比如我现在画好了一个矩形，然后我想复制一份怎么办？
+<!-- 
+    目标矩形：ctx.fillRect(0,0,100,100);
 
-径向渐变：
-createRadialGradient(x1, y1, r1, x2, y2, r2)
-前三个参数则定义另一个以(x1,y1) 为原点，半径为 r1 的圆，
-后三个参数则定义另一个以 (x2,y2) 为原点，半径为 r2 的圆。
-渐变范围：
-大圆 - 小圆 剩下的部分 是渐变范围
-eg：
-let gradient = ctx.createRadialGradient(100,100,100, 150,150,200);
-// 设置锚点 和 颜色
-gradient.addColorStop(0, '#C2185B');
-// gradient.addColorStop(1, '#FF4081');
-gradient.addColorStop(1, '#BDBDBD');
-ctx.fillStyle = gradient;
-ctx.fillRect(20,20,350,350);
+    我可以把这个目标矩形的每一个点的像素信息拿到，怎么拿？
+    
+    canvas 给我们提供了一个方法 可以获取 指定 起点（x y）， 范围（100，100）内的所有信息
+ -->
 
----
-
-### 练习 --- 飞鸟
-
-要点：
-两个作用域之间 对象看不见 可以用 this 来传递
-draw(this);
-function draw(img){}
-
-让画布大小等于视口的大小
-canvas.width = document.documentElement.clientWidth;
-canvas.height = document.documentElement.clientHeight;
-
-做 canvas 的动画就是清楚 加载的反复
-
-++ 慢， += 快
-
-let canvas = document.getElementById('canvas');
-// 让画布的大小等于视口的大小
-canvas.width = document.documentElement.clientWidth;
-canvas.height = document.documentElement.clientHeight;
-let ctx;
-if(canvas.getContext){
-ctx = canvas.getContext('2d');
-
-    // 制作飞鸟的话 肯定是要拿到图片的 怎么拿呢？一堆呢
-    // 创建 变量
-    let flag = 0;
-
-    // 为了改变引入图片的位置 创建一个变量让它不断改变 x 的值
-    let site = 0;
-
-    setInterval(function(){
-
-        // 没进循环定时器后 清楚一次
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-
-        // 为了拿到图片让flag自增
-        flag++;
-        // 判断图片
-        if(flag == 9){
-            flag = 1;
-        }
-
-        // 改变图片 x 的位置
-        site += 15;
-
-        // 每次进到这里 建立img对象 引入图片
-        let img = new Image();
-        img.src = './links/q_r'+(flag)+'.jpg';
-        // 等图片加载完毕操作图片
-        img.onload = function(){
-
-            draw(this);     //这里的this是img 为了解决两个作用域img对象传递不过去的问题
-        };
-
-        // 怎么让鸟往前走，我们做canvas的动画主要就是覆盖 那就是不断的改变 图片的导入位置，
-        // ctx.drawImage()中的x y就是图片的位置，改变它就可以了不是么
-    },100);
-
-    // 把图片的相关操作写在外面
-    function draw(img){
-        // 引入图片, 这有个问题，第一个参数要传递图片对象，但是图片对象是在定时器的函数中，我现在是在draw的函数中
-        // 两个作用域了 传不过来
-        // 上面用哪个this传递进来了
-        ctx.drawImage(img,site,0)
-    };
-
-}
-
----
-
-### 文本相关
-
-文本的 x y 0 0 的位置 默认是文字底部的基线 并不是理解的文本框的左上角
-
-// 绘制文本
-文本也是 canvas 画到画布上去的
-
-// 在指定的(x,y)位置 文本是正常文字效果 填充
-ctx.fillText(text, x, y)
-
-// 在指定的(x,y)位置 文本只有描边
-ctx.strokeText(text, x, y)
-
-// 文本样式
-
-// 设置 字号 字体
-ctx.font = '10px 字体名'
-必须同时有字号字体，且 字体只支持 sans-serif 系列
-
-// 设置文本水平对齐的方式
-ctx.textAlign = 'left right center'
-
-left： 文本的左边靠到 x 的位置
-right： 文本的右边靠到 x 的位置
-center： 文本的中间位置 在 x 的位置上
-也就是说文本一半在 x 的左边，一半在 x 的右边
-
-// 设置文本垂直对齐的方式
-ctx.textBaseline = 'top middle bottom'
-top 文本基线在文本块的顶部。
-middle 文本基线在文本块的中间。
-bottom 文本基线在文本块的底部。
-按基线对齐
-
-// 获取 文本尺寸的信息
-ctx.measureText()
-返回一个 TextMetrics 对象，包含关于文本尺寸的信息（例如文本的宽度）
-eg：
-ctx.fillText('今天天气真不错',0,0);
-// ctx.strokeText('今天天气真不错',50,50);
-debugger;
-let tinfo = ctx.measureText('今天天气真不错');
-// tinfo 能返回 这个字符串 在我画布上的一个宽度 210
-所以我们还能写:
-tinfo.width
-
-// 文本的水平 垂直 居中
-这点就用到了 上面的 ctx.measureText('字符串')功能
-// 实现文字水平垂直方向居中
-ctx.font = '60px ss';
-// 设置文本垂直方向居中对齐
-ctx.textBaseline = 'middle';
-// 获取文本的宽度
-let textWidth = ctx.measureText('找工作').width;
-ctx.fillText('找工作',(canvas.width - textWidth)/2, (canvas.height - 60)/2);
-
-// 文本阴影 盒模型阴影
-shadowOffsetX = float
-shadowOffsetX 和 shadowOffsetY 用来设定阴影在 X 和 Y 轴的延伸距离，
-它们默认都为 0。
-
-shadowOffsetY = float
-shadowOffsetX 和 shadowOffsetY 用来设定阴影在 X 和 Y 轴的延伸距离，
-它们默认都为 0。
-
-shadowBlur = float
-shadowBlur 用于设定阴影的模糊程度，其数值并不跟像素数量挂钩，也不受变换矩阵的影响，默认为 0。
-
-shadowColor = color(必需项)
-shadowColor 是标准的 CSS 颜色值，用于设定阴影颜色效果，默认是全透明的黑色。
-
-eg:
-ctx = canvas.getContext('2d');
-ctx.fillStyle = '#C2185B';
-ctx.strokeStyle = 6;
-
-// 设置阴影
-ctx.shadowOffsetX = 5;
-ctx.shadowOffsetY = 5;
-ctx.shadowBlur = 10;
-ctx.shadowColor = 'black';
-
-ctx.rect(100,100,200,200);
-ctx.fill();
-
----
-
-### 像素操作
-
-总结：
-通过
-ctx.getImageData(0,0,100,100) 获取 img 对象
-
-然后
-img 对象中有 3 个属性，width height data（0-255 rgba 的信息）
-
-最后还有一个
-ctx.putImageData(imgData,x,y);
-
-引入
-比如我现在画好了一个矩形，然后我想复制一份怎么办？ 不要 ctrl+c 哈，因为有的情况是
-我对这个图形进行了 n 多操作，现在我想 100%的复制一份 那应该怎么办？
-目标矩形：ctx.fillRect(0,0,100,100);
-
-我可以把这个目标矩形的每一个点的像素信息拿到，怎么拿？canvas 给我们提供了一个方法
-可以获取 指定 起点（x y）， 范围（100，100）内的所有信息
-
-eg:
+```js
 ctx.fillRect(0,0,100,100);
 
+// 获取从 0 0 位置开始 100 - 100 范围内的所有数据
 let imgData = ctx.getImageData(0,0,100,100);
-获取从 0 0 位置开始 100 - 100 范围内的所有数据
+```
 
-// 得到场景像素数据
-ctx.getImageData()
-获得一个包含画布场景像素数据的 ImageData 对像,它代表了画布区域的对象数据
+- 举例:
+- 假如我想画一个带有透明度的矩形
 
-let imgData = ctx.getImageData(0,0,100,100);
-imgData 中有几个属性：
-width： 横向上像素点的个数 图片宽度，单位是像素
-height：纵向上像素点的个数 图片高度，单位是像素
-data： 数组 里面放的是每一个像素点的 rgba 信息 所以是 10000 个 x 4
-包含着 RGBA 格式的整型数据，范围在 0 至 255 之间（包括 255）
-R:0 --> 255(黑色到白色)
-G:0 --> 255(黑色到白色)
-B:0 --> 255(黑色到白色)
-A:0 --> 255(透明到不透明)
-
-假如我想画一个带有透明度的矩形
-1、我可以 ctx.fillStyle = 'rgba(x,x,x,x)';
-
-另外一种方式：
-因为 getImageData 获取的是 每一个像素点的 rgba 的信息
-[r, g, b, a,r, g, b, a,r, g, b, a]
-也就是我要获取 3，7，11，5.....
+- 思路:
+- 因为 getImageData 获取的是 每一个像素点的 rgba 的信息
+- [r, g, b, a,r, g, b, a,r, g, b, a]
+- 也就是我要获取 3，7，11，5.....
 修改数组中 a 的值
+```js
 for(let i=0; i<imgData.data.length; i++){
-imgData.data[4*i+3] = 100;
+    imgData.data[4*i+3] = 100;
 }
+```
 
-// 在场景中写入像素数据
-ctx.putImageData(获取到的 imgData, dx, dy)
-dx 和 dy 参数表示你希望在场景内左上角绘制的像素数据所得到的设备坐标
-
-// 创建一个 ImageData 对象
-ctx.createImageData(width, height);
-width : ImageData 新对象的宽度。
-height: ImageData 新对象的高度。
-
-默认创建出来的是透明的
-
-创建完的修改后 还可以通过 putImageData 添加到其他地方
-
----
-
-### 单像素的操作
-
-### 获取 拿这个
-
+> 技巧:
+- 获取
+```js
 function getPxInfo(imgData,x,y){
-
     let colorInfo = [];
     let data = imgData.data;
     let w = imgData.width;
     let h = imgData.height;
+
+    // 目标(3,3)取得这个点的信息
+    // 这个点 前面有多少个像素点 xw+y
+    // r
     colorInfo[0] = data[(y*w+x)*4]
+    // g
     colorInfo[1] = data[(y*w+x)*4+1]
+    // b
     colorInfo[2] = data[(y*w+x)*4+2]
+    // a
     colorInfo[3] = data[(y*w+x)*4+3]
     return colorInfo;
-
 }
+```
 
-### 设置 拿这个
-
+- 设置:
+```js
 function setPxInfo(imgData,x,y,color){
-let data = imgData.data;
-let w = imgData.width;
-let h = imgData.height;
-data[(y*w+x)*4] = color[0]
-data[(y*w+x)*4+1] = color[1]
-data[(y*w+x)*4+2] = color[2]
-data[(y*w+x)*4+3] = color[3]
+    let data = imgData.data;
+    let w = imgData.width;
+    let h = imgData.height;
+    data[(y*w+x)*4] = color[0]
+    data[(y*w+x)*4+1] = color[1]
+    data[(y*w+x)*4+2] = color[2]
+    data[(y*w+x)*4+3] = color[3]
 }
+```
 
-上面我们了解了 怎么取得一块区域的像素信息，那么怎么拿到一个点的像素信息呢？
-我们自己定义一个方法
+> 解析定义方法中数据
+> getPxInfo(imgData,x,y)
+- 参数:
+- imgData:
+    获取的哪块区域的信息
+- x: 
+    不是偏移量中的 x 而是一行中从 0 开始到 x 个
+- y: 
+    不是偏移量中的 y 而是几行的意思
 
-注意：我那取的是画布上的图像的像素点信息，假如取到画布背景的话 那就是黑色 即使我们画布的背景是别的颜色
-那只是 css 里设置的背景色，我们画布的背景 默认是 黑色 透明
-
-// imgData: 整个像素点的信息
-
-### 解析定义方法中数据
-
-getPxInfo(imgData,x,y)
-
-imgData：
-获取的哪块区域的信息
-x：不是偏移量中的 x 而是一行中从 0 开始到 x 个
-y：不是偏移量中的 y 而是几行的意思
 
 □□□□□□
 □□□□□□
-□□□■□□ 　 y\*w + x 2 行 X 6 + 3（黑色方框前面的 3 个）
+□□□■□□ 　 y*w + x 2 行 X 6 + 3（黑色方框前面的 3 个）
 
-setPxInfo(imgData,x,y,color)
-
-// 获取 画布上某个像素上图像的像素信息
-function getPxInfo(imgData,x,y){
-
-let colorInfo = [];
-let data = imgData.data;
-let w = imgData.width;
-let h = imgData.height;
-
-// 目标(3,3)取得这个点的信息
-// 这个点 前面有多少个像素点 xw+y
-// r
-colorInfo[0] = data[(y*w+x)*4]
-// g
-colorInfo[1] = data[(y*w+x)*4+1]
-// b
-colorInfo[2] = data[(y*w+x)*4+2]
-// a
-colorInfo[3] = data[(y*w+x)*4+3]
-
-return colorInfo;
-// 试验下 看看能不能直接返回个 rgba 好直接使用，但好像不行呢咋
-return 'rgba('+ colorInfo[0]+', '+colorInfo[1]+', '+colorInfo[2]+', '+colorInfo[3] +')';
-
-}
-
-// 假如我要拿到区域内一个像素点 比如（3，3） 怎么拿到？
-// （3，3） 前面有多少个像素点 y _ width(区域的宽度) + x 个像素点
-// y _ width(区域的宽度) + x y 为多少行 x 为第几个像素点 w 为一行像素点的个数(拿到的 imgData 区域的宽度)
-// 那 yw+x 个像素点占 data 中的多少位 X4 吧一个像素点的信息就是 rgba4 个 位数 那这 4 个位数就是这个点的 rgba 的信息
-
-eg:
-if(canvas.getContext){
-ctx = canvas.getContext('2d');
-
-ctx.save();
-ctx.fillStyle = '#7B1FA2'
-ctx.beginPath();
-ctx.fillRect(50,50,100,100);
-ctx.restore();
-
-let imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
-let targetColor = getPxInfo(imgData,49,49);
-console.log(targetColor);
-}
-
-// 设置
-// 参数 color: 是一个数组
-function setPxInfo(imgData,x,y,color){
-let data = imgData.data;
-let w = imgData.width;
-let h = imgData.height;
-
-// r
-data[(y*w+x)*4] = color[0]
-// g
-data[(y*w+x)*4+1] = color[1]
-// b
-data[(y*w+x)*4+2] = color[2]
-// a
-data[(y*w+x)*4+3] = color[3]
-}
-设置完后不要忘记再 putImageData 进去 放到跟获取区域一样的位置
-setPxInfo(imgData,49,49,[0,0,0,255]);
-ctx.putImageData(imgData,0,0);
-
-// 修改某一个行上的所有信息
-
-□□□□□□
-□□□□□□
-□□□■□□ 　 y\*w + x 2 行 X 6 + 3（黑色方框前面的 3 个）
-
+```js
 for(let i=0; i<imgData.width; i++){
-// 我要修改某一行上的所有像素点，seiPxInfo 中的 x y 并不是偏移量要记住
-// 我们看看偏移量 x 和 y 代表着什么 x 肯定是我们要变的 i y 正常应该是代表着哪行
-setPxInfo(imgData,i,50,[0,0,0,255]);
-}
+    // 我要修改某一行上的所有像素点，seiPxInfo 中的 x y 并不是偏移量要记住
 
----
+    // 我们看看偏移量 x 和 y 代表着什么 x 肯定是我们要变的 i y 正常应该是代表着哪行
+    setPxInfo(imgData,i,50,[0,0,0,255]);
+}
+```
+
+----------------
 
 ### 练习 --- 马赛克
+- 思路：
+- 两幅图
+- 正常 and 马赛克图
 
-思路：
-两幅图
+- 1. 我拿到正常图的所有像素点 就能对这些像素点进行操作 最终再把它放回去 变成一个马赛克图
 
-正常 ---- 马赛克图
+- 2. 定义一个马赛克矩形 矩形的尺寸随意 5 x 5 | 4 x 4 都可以， 把这个矩形当中的所有像素点 随机挑一个出来 让其它的像素点都跟这个像素点一模一样 最后就是马赛克
 
-1、我拿到正常图的所有像素点 就能对这些像素点进行操作 最终再把它放回去 变成一个马赛克图
-怎么操作？
-2、定义一个马赛克矩形 矩形的尺寸随意 5 x 5 | 4 x 4 都可以， 把这个矩形当中的所有像素点 随机挑一个出来
-让其它的像素点都跟这个像素点一模一样 最后就是马赛克
+<!-- 
+    比如现在有 100 _ 100 的矩形图片，我们要把这张图片变成马赛克
 
-比如现在有 100 _ 100 的矩形图片，我们要把这张图片变成马赛克
-1、先定义一个 矩形 5 _ 5 然后 把 100*100 分成 横向 20 个 5*5 矩形 纵向 20 个 5*5 矩形
-2、在原图中横向 20 个 5*5 矩形中的第一个 5*5 矩形中 随机抽出来一个像素点的信息 rgba
-3、将这个 5*5 矩形中的所有颜色统一设置成随机抽出来的那个像素点的信息 rgba，并放入新照片的横向 20 个中的第一个上
-4、以此类推 横向操作 20 次，纵向操作 20 次
+    1、先定义一个 矩形 5 _ 5 然后 把 100*100 分成 横向 20 个 5*5 矩形 纵向 20 个 5*5 矩形
 
-要点：
+    2、在原图中横向 20 个 5*5 矩形中的第一个 5*5 矩形中 随机抽出来一个像素点的信息 rgba
 
-随堂作业：
+    3、将这个 5*5 矩形中的所有颜色统一设置成随机抽出来的那个像素点的信息 rgba，并放入新照片的横向 20 个中的第一个上
+
+    4、以此类推 横向操作 20 次，纵向操作 20 次
+ -->
+
+```js
 // 画布的宽度 最好动态设置 因为是图片的 2 倍
 let canvas = document.getElementById('canvas');
+
 let ctx;
+
 if(canvas.getContext){
-ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('2d');
 
     // 引入图片
     let img = new Image();
+
     img.src = './links/5.jpg';
+
     // 等图片加载完成后 操作图片
     img.onload = function(){
+
         // 图片加载完成后 修改画布的高度和宽度
         canvas.width = img.width * 2;
+
         canvas.height = img.height;
 
         // 定义一个方法 操作图片
@@ -1681,7 +1559,9 @@ ctx = canvas.getContext('2d');
         // 马赛克
         // 思路：
         // 1、选区一个马赛克矩形
+
         // 2、从马赛克矩形中随机抽出一个像素点的信息rgba
+
         // 3、将整个马赛克矩形中的像素点信息统一调成随机抽出的那个
 
         // 1、选区一个马赛克矩形
@@ -1738,180 +1618,431 @@ ctx = canvas.getContext('2d');
         // 最后 把新的对象放到画布上
         ctx.putImageData(newImgData,img.width,0)
     };
+```
 
+> 全局透明度的设置
+> ctx.globalAlpha = 0.0 -1.0
 
-    // 获取
-    function getPxInfo(imgData,x,y){
-
-        let colorInfo = [];
-        let data = imgData.data;
-        let w = imgData.width;
-        let h = imgData.height;
-        colorInfo[0] = data[(y*w+x)*4]
-        colorInfo[1] = data[(y*w+x)*4+1]
-        colorInfo[2] = data[(y*w+x)*4+2]
-        colorInfo[3] = data[(y*w+x)*4+3]
-        return colorInfo;
-    }
-
-    // 设置
-    function setPxInfo(imgData,x,y,color){
-        let data = imgData.data;
-        let w = imgData.width;
-        let h = imgData.height;
-        data[(y*w+x)*4] = color[0]
-        data[(y*w+x)*4+1] = color[1]
-        data[(y*w+x)*4+2] = color[2]
-        data[(y*w+x)*4+3] = color[3]
-    }
-
-}
-
----
-
-### 全局透明度的设置
-
-ctx.globalAlpha = 0.0 -1.0
-这个属性影响到 canvas 里所有图形的透明度 从完全透明 - 完全不透明
-eg:
+- 这个属性影响到 canvas 里所有图形的透明度 从完全透明 - 完全不透明
+```js
 ctx = canvas.getContext('2d');
 ctx.globalAlpha = 0.5;
 ctx.fillStyle = '#7B1FA2';
 ctx.fillRect(0,0,100,100);
 // 想让上面的矩形透明 有很多方式 1、设置颜色 rgba；2、像素操作；
 // 如果全局就一个对象要透明 还可以用 globalAlpha 0-1
+```
+
+----------------
 
 ### 合成
+- 是多张图片图片叠在一起的时候 怎么去展现
+- 下面的功能有点像 ai 里的路径查找器 形状模式那
 
-是多张图片图片叠在一起的时候 怎么去展现
+- source:   (源) 
+    - 新的图像
+    - 新的图像指的是在代码上最后画的 也就是屏幕上最上面的
 
-下面的功能有点像 ai 里的路径查找器 形状模式那
 
-source:新的图像(源)  
- 新的图像指的是在代码上最后画的 也就是屏幕上最上面的
+- destination:  (目标)
+    - 已经绘制过的图形
+    - 已经绘制过的图像指的是在代码上之前画的 也就是屏幕上被压着的
 
-destination:已经绘制过的图形(目标)
-已经绘制过的图像指的是在代码上之前画的 也就是屏幕上被压着的
+> 属性:
+> ctx.globalCompositeOperation
+- 以源为中心 进行 图片之间的相切 交集 减去顶层等操作
 
-ctx.globalCompositeOperation
-// 以源为中心 进行 图片之间的相切 交集 减去顶层等操作
-source-over(默认值):源在上面,新的图像层级比较高  
- source-in :只留下源与目标的重叠部分(源的那一部分) 交集
-source-out :只留下源超过目标的部分  
- source-atop:砍掉源溢出的部分
+- 属性值:
+- 1. source-over(默认值)
+    源在上面,新的图像层级比较高
 
-    // 以绘制过的图形为中心 进行 图片之间的相切 交集 减去顶层等操作
-    destination-over:目标在上面,旧的图像层级比较高
-    destination-in:只留下源与目标的重叠部分(目标的那一部分)
-    destination-out:只留下目标超过源的部分
-    destination-atop:砍掉目标溢出的部分
+- 2. source-in
+    只留下源与目标的重叠部分(源的那一部分) 交集
 
-ctx.globalCompositeOperation = ''
-要注意在代码中的位置
+- 3. source-out
+    只留下源超过目标的部分
 
----
+- 4. source-atop
+    砍掉源溢出的部分
 
+
+- 以绘制过的图形为中心 进行 图片之间的相切 交集 减去顶层等操作
+- 属性值:
+- 1. destination-over:
+    目标在上面,旧的图像层级比较高
+
+- 2. destination-in:
+    只留下源与目标的重叠部分(目标的那一部分)
+
+- 3. destination-out:
+    只留下目标超过源的部分
+
+- 4. destination-atop:
+    砍掉目标溢出的部分
+
+```js
 // 下面的就是：destination
 ctx.fillStyle = '#7B1FA2'; 这部分相当于 目标
 ctx.fillRect(0,0,100,100);
 
-### ctx.globalCompositeOperation = 'source-in' 留下源与目标重叠的部分，下面的是源 上面的是目标
+--- 我们的代码写在这里
+ctx.globalCompositeOperation = 'source-in'
+---
 
 // 下面的就是：source
 ctx.fillStyle = '#9C27B0'; 这部分是 源
 ctx.fillRect(50,50,100,100);
+```
+----------------
 
----
+### 练习: 刮刮卡
+- 要点:
+- 1. 让图片和视口宽度 高度一样大
+- background-size:100% 100%;
 
----
-
-### 刮刮卡
-
-要点：
-1、移动端的话 这行代码一定要写
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-2、让图片和视口宽度 高度一样大
-background-size:100% 100%;
-
-3、动态更改画布尺寸 跟视口一样
+- 2. 动态更改画布尺寸 跟视口一样
 canvas.width = document.documentElement.clientWidth;
 canvas.height = document.documentElement.clientHeight;
 
-4、移动端没有 mouse 和 click 事件的 点击事件 使用 touchstart 事件 相当于 onmousedown
-移动端手指点上去的事件
+- 3. 移动端没有 mouse 和 click 事件的 点击事件 使用 touchstart 事件 相当于 onmousedown 移动端手指点上去的事件
 
-5、当画布不是和视口一样时，在画布上点击的位置应该是：
+- 4. 当画布不是和视口一样时，在画布上点击的位置应该是：
 手指距离视口的距离 - canvas 画布的偏移量
 
-6、移动端对额事件不要用 onlick 没用的
+- 5. 移动端对额事件不要用 onlick 没用的
 
-7、当过渡执行完毕后触发事件 transitionend 事件
+- 6. 当过渡执行完毕后触发事件 
+```js
+// transitionend 事件
 canvas.addEventListener('transitionend', function(){
 this.remove()
 });
+```
 
-8、dom 也有.remove()方法
+- 7. 移动端 必须要 先 touchstart 然后才能 touchmove 而 pc 端可以直接使用 onmousemove 事件
 
-9、移动端 必须要 先 touchstart 然后才能 touchmove 而 pc 端可以直接使用 onmousemove 事件
+- 思路:
+- 刮刮卡的效果 是 2 层 上面一层是 canvas 下面一层是图片 canvas 这层把图片盖住了 每次刮的时候 手指和图片是有重叠区域的 只留下目标溢出那一部分就可以来了
 
-思路：
-刮刮卡的效果 是 2 层 上面一层是 canvas 下面一层是图片 canvas 这层把图片盖住了
-每次刮的时候 手指和图片是有重叠区域的 只留下目标溢出那一部分就可以来了
+----------------
 
-看下文件夹里的联系 我觉得我记得很详细
+### 渐变和图像填充
 
----
+> ctx.createPattern(image, repetition)
+- 定义图像填充样式。在指定方向上不断重复该图像，填充指定的区域。
 
-###将画布导出为图像 canvas 元素上的方法
-canvas.toDataURL(注意是 canvas 元素接口上的方法)
+- 参数:
+- image:
+    <img>
+    <canvas>
+    Blob
 
+- 字符串:
+    "repeat"
+    "repeat-x"
+    "repeat-y"
+    "no-repeat"
+
+
+- 应用方式:
+- 它具有返回值，一般情况下，我们都会将 createPattern 返回的对象作为 fillstyle 的值
+
+- 背景和图片有关系 所以必须等图片加载成功
+
+```js
+if(canvas.getContext){
+ctx = canvas.getContext('2d');
+
+let img = new Image();
+img.src = './links/1.jpg';
+img.onload = function(){
+
+    draw();
+};
+
+function draw(){
+
+    // 1. 先画一个框体 背景得在这个框体里
+    // 正常来讲 填充背景色就是背景了吧，那现在我是不是让颜色值等于背景图片就行了
+
+    // 创建变量接收 设置背景方法的返回值 用来给 fillStyle
+    let pattern = ctx.createPattern(img, 'repeat');
+
+    ctx.fillStyle = pattern;
+    
+    ctx.fillRect(20,20,200,200);
+}
+```
+
+
+> 渐变
+> 线性渐变：
+> ctx.createLinearGradient(x0, y0, x1, y1)
+- 定义线性渐变样式。
+- 参数:
+- x0 y0: 是起点的横坐标和纵坐标
+- x1 y1: 是终点的横坐标和纵坐标。
+
+- 返回值:
+- CanvasGradient对象
+
+> 返回值对象.addColorStop(num, "color")
+- 该对象只有一个addColorStop()方向，用来指定渐变点的颜色。
+<!-- 
+    addColorStop()方法接受两个参数，
+    
+    第一个参数是0到1之间的一个位置量，
+    0表示起点，
+    1表示终点，
+    
+    第二个参数是一个字符串，表示 CSS 颜色
+ -->
+
+- 使用方式:
+- let 渐变对象 = ctx.createLinearGradient(x1, y1, x2, y2)
+
+- 创建渐变对象，用来下一步操作 
+- x y 表示渐变的起点 (x1,y1) 与终点 (x2,y2)
+
+- 渐变对象.addColorStop(position, color)
+- position：
+    渐变条上的锚点，表示渐变中颜色所在的相对位置 取值 0.0 - 1.0
+- color：
+    颜色 如 #FFF， rgba(0,0,0,1)
+
+```js
+// 设置渐变方向
+let gradient = ctx.createLinearGradient(0,0,200,200);
+
+// 设置锚点 和 颜色
+gradient.addColorStop(0, '#C2185B');
+gradient.addColorStop(.5, '#FF4081');
+gradient.addColorStop(1, '#BDBDBD');
+
+ctx.fillStyle = gradient;
+ctx.fillRect(20,20,200,200);
+```
+
+> ctx.createRadialGradient(x1, y1, r1, x2, y2, r2)
+- 径向渐变 需要指定两个圆。
+
+- 参数:
+- 前三个参数则定义另一个以(x1,y1) 为原点，半径为 r1 的圆，
+- 后三个参数则定义另一个以 (x2,y2) 为原点，半径为 r2 的圆。
+
+- 渐变范围：
+大圆 - 小圆 剩下的部分 是渐变范围
+
+```js
+let gradient = ctx.createRadialGradient(100,100,100, 150,150,200);
+
+// 设置锚点 和 颜色
+gradient.addColorStop(0, '#C2185B');
+// gradient.addColorStop(1, '#FF4081');
+gradient.addColorStop(1, '#BDBDBD');
+ctx.fillStyle = gradient;
+ctx.fillRect(20,20,350,350);
+```
+
+----------------
+
+### 练习 --- 飞鸟
+- 要点：
+- 1. 两个作用域之间 对象看不见 可以用 this 来传递
+    draw(this);
+    function draw(img){}
+
+- 2. 让画布大小等于视口的大小
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+
+- 3. 做 canvas 的动画就是清除 加载的反复
+```js
 let canvas = document.getElementById('canvas');
-let result = canvas.toDataURL();
-console.log(result); //是一个保存 canvas 图片的网址 可以在网页上打开
 
-注意 canvas 是同步思想 保存导出图片链接 要在图片完成后
+// 让画布的大小等于视口的大小
+canvas.width = document.documentElement.clientWidth;
+canvas.height = document.documentElement.clientHeight;
 
-正常来讲的话 在浏览器上右键 保存图片就可以
-移动端的话没办法右键
+let ctx;
+if(canvas.getContext){
+ctx = canvas.getContext('2d');
+
+    // 制作飞鸟的话 肯定是要拿到图片的 怎么拿呢？一堆呢
+    let flag = 0;
+
+    // 为了改变引入图片的位置 创建一个变量让它不断改变 x 的值
+    let site = 0;
+
+    setInterval(function(){
+
+        // 没进循环定时器后 清楚一次
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        // 为了拿到图片让flag自增
+        flag++;
+        // 判断图片
+        if(flag == 9){
+            flag = 1;
+        }
+
+        // 改变图片 x 的位置
+        site += 15;
+
+        // 每次进到这里 建立img对象 引入图片
+        let img = new Image();
+        img.src = './links/q_r'+(flag)+'.jpg';
+        // 等图片加载完毕操作图片
+        img.onload = function(){
+            //这里的this是img 为了解决两个作用域img对象传递不过去的问题
+            draw(this);     
+        };
+
+        // 怎么让鸟往前走，我们做canvas的动画主要就是覆盖 那就是不断的改变 图片的导入位置，
+
+        // ctx.drawImage()中的x y就是图片的位置，改变它就可以了不是么
+    },100);
+
+    // 把图片的相关操作写在外面
+    function draw(img){
+        // 引入图片, 这有个问题，第一个参数要传递图片对象，但是图片对象是在定时器的函数中，我现在是在draw的函数中
+
+        // 两个作用域了 传不过来
+        // 上面用哪个this传递进来了
+        ctx.drawImage(img,site,0)
+    };
+
+}
+```
+
+----------------
+
+### 阴影
+- 以下属性用于设置阴影。
+> ctx.shadowBlur
+- 阴影的模糊程度，默认为0。
+
+> ctx.shadowColor(必需项)
+- 阴影的颜色，默认为black。
+- shadowColor 是标准的 CSS 颜色值，用于设定阴影颜色效果，默认是全透明的黑色。
+
+> ctx.shadowOffsetX
+- 阴影的水平位移，默认为0。
+
+> ctx.shadowOffsetY
+- 阴影的垂直位移，默认为0。
+
+```js
+ctx.shadowOffsetX = 10;
+ctx.shadowOffsetY = 10;
+ctx.shadowBlur = 5;
+ctx.shadowColor = 'rgba(0,0,0,0.5)';
+
+ctx.fillStyle = 'green';
+ctx.fillRect(10, 10, 100, 100);
+```
+
+----------------
+
+### 将画布导出为图像
+> canvas 元素上的方法
+> canvas.toDataURL(type, quality)
+- 可以将 Canvas 数据转为 Data URI 格式的图像。
+
+- 参数:
+- type:
+    字符串，表示图像的格式。默认为image/png，另一个可用的值是image/jpeg，Chrome 浏览器还可以使用image/webp。
+
+- quality:
+    0到1之间，表示 JPEG 和 WebP 图像的质量系数，默认值为0.92。
+
+- 返回值:
+- Data URI 格式的字符串。
+
+- 注意:
+- canvas 是同步思想 保存导出图片链接 要在图片完成后
+
+```js
+function convertCanvasToImage(canvas) {
+  var image = new Image();
+  image.src = canvas.toDataURL('image/png');
+  return image;
+}
+
+var fullQuality = canvas.toDataURL('image/jpeg', 0.9);
+var mediumQuality = canvas.toDataURL('image/jpeg', 0.6);
+var lowQuality = canvas.toDataURL('image/jpeg', 0.3);
+
+// 上面代码将<canvas>元素转成高画质、中画质、低画质三种 JPEG 图像。
+```
+
+
+> canvas.toBlob(callback, mimeType, quality)
+- 用于将<canvas>图像转成一个 Blob 对象，默认类型是image/png
+
+- callback:
+- 回调函数。它接受生成的 Blob 对象作为参数。
+
+- mimeType:
+- 字符串，图像的 MIMEType 类型，默认是image/png。
+
+- quality
+- 浮点数，0到1之间，表示图像的质量，只对image/jpeg和image/webp类型的图像有效。
+```js
+var canvas = document.getElementById('myCanvas');
+
+function blobToImg(blob) {
+  var newImg = document.createElement('img');
+
+  var url = URL.createObjectURL(blob);
+
+  newImg.onload = function () {
+    // 使用完毕，释放 URL 对象
+    URL.revokeObjectURL(url);
+  };
+
+  newImg.src = url;
+  document.body.appendChild(newImg);
+}
+
+canvas.toBlob(blobToImg);
+```
+
+----------------
 
 ### 事件操作
+> ctx.isPointInPath(x, y)
+- 判断在当前路径中是否包含检测点 也就是说 这个 x y 的点是不是在这条路径上
 
-ctx.isPointInPath(x, y)
-判断在当前路径中是否包含检测点 也就是说 这个 x y 的点是不是在这条路径上
 x:检测点的 X 坐标
 y:检测点的 Y 坐标
 
-注意，此方法只作用于最新画出的 canvas 图像
+- 注意
+- 此方法只作用于最新画出的 canvas 图像
 
-canvas 的图形能不能有事件 能 所以推出了上面的 api
-
-给 canvas 的图像加事件是很难的
-
-另外 点一个图形弹出 123 点另一个图形弹出 456 也是可以的 好像需要利用原型
-
+```js
 if(canvas.getContext){
 ctx = canvas.getContext('2d');
 // 情况一：单独的一个图形 可以触发下面事件
-// ctx.fillStyle = 'pink';
-// ctx.rect(0,0,100,100);
-// ctx.fill();
+ctx.fillStyle = 'pink';
+ctx.rect(0,0,100,100);
+ctx.fill();
 
 // 情况二：虽然我画了两个图形 但是因为没有清空 path 所以相当于再画第二个图形时，连带第一个也重新画了一次
 // 所以两个图形都会触发事件
-// ctx.fillStyle = 'pink';
-// ctx.rect(0,0,100,100);
-// ctx.fill();
-// ctx.rect(100,00,100,100);
-// ctx.fill();
+ctx.fillStyle = 'pink';
+ctx.rect(0,0,100,100);
+ctx.fill();
+ctx.rect(100,00,100,100);
+ctx.fill();
 
 // 情况三：我们用 save restore 加上 beginPath 的话 只有最新的才会有事件的触发
-// ctx.fillStyle = 'pink';
-// ctx.rect(0,0,100,100);
-// ctx.fill();
-// ctx.beginPath();
-// ctx.rect(100,00,100,100);
-// ctx.fill();
+ctx.fillStyle = 'pink';
+ctx.rect(0,0,100,100);
+ctx.fill();
+ctx.beginPath();
+ctx.rect(100,00,100,100);
+ctx.fill();
 
 // 为图形绑定事件
 canvas.onclick = function(event){
@@ -1925,15 +2056,10 @@ let y = event.clientY - canvas.offsetTop;
     }
 
     // 其实点canvas内也触发click了 只是没有进入判断去弹框而已
-
 };
+```
 
-    }
-
----
-
-\*/
-
+```js
 window.onload = function(){
 
     // 荧幕
@@ -1951,258 +2077,23 @@ window.onload = function(){
         // 跟导入图片的方式一样
         ctx.drawImage(video,0,0,canvas.width,canvas.height);
         // 如果没导入进来的话 可以加载事件 比如第一帧事件
-
-
-
-
     }
-
 };
-</script>
-<style>
+```
 
-        html, body{
-            height:100%;
-            overflow:hidden;
-        }
-
-        body {
-            background:#BDBDBD;
-        }
-
-        #test {
-            background:#FFC107;
-            position:absolute;
-            left:0;
-            right:0;
-            top:0;
-            bottom:0;
-            margin:auto;
-        }
-
-
-    </style>
-
-</head>
-<body>
-    <canvas id='test' width='500' height='500'>
-        <span>您的浏览器不支持画布元素</span>
-    </canvas>
-    
-</body>
-</html>
-
+----------------
 
 ### 复习：
 
-// 注意点：
-canvas 图像的渲染 有别于 html 图像的渲染
-canvas 的渲染极快 不会出现代码覆盖后延迟渲染的问题
-写 canvas 代码的时候要具有同步思想
+> 注意点：
+- 1. canvas 图像的渲染 有别于 html 图像的渲染
+- 2. canvas 的渲染极快 不会出现代码覆盖后延迟渲染的问题
 
-// 获取上下文的时候要判断 获取画笔的时候
+- 3. 写 canvas 代码的时候要具有同步思想
 
-// 画布高宽的问题：
-一定要使用内联样式来设置画布的宽高通过 css 的形式 会缩放画布内的图像
+- 4. 画布高宽的问题：一定要使用内联样式来设置画布的宽高通过 css 的形式 会缩放画布内的图像
 
-// 绘制矩形的问题：
-边框的宽度是在偏移量处 上下 各渲染一半 会出现小数边框 会向上取整
-canvas 的 api 只支持一种图形的原生直接渲染：矩形
+- 5. 绘制矩形的问题：
+- 边框的宽度是在偏移量处 上下 各渲染一半 会出现小数边框 会向上取整
 
-2、
-画布上的 API
-canvas.getContext('2d');
-canvas.width; 画布在横向上 css 像素的个数
-canvas.height;
-canvas.toDataURL(); 拿到 canvas 图像的地址
-
-3、
-// 上下文的 API（画笔的方法）
-// 绘制填充矩形：
-ctx.fillRect(w,y,w,h);
-// 绘制描边矩形
-ctx.strokeRect(w,y,w,h);
-
-// 清除画布，注意原点的位置
-ctx.clearRect(0,0,c.width,c.height)
-
-// 样式：
-ctx.fillStyle = '';
-背景：fillstyle 的值 可以是 createPattern(image, repetition)返回的对象
-渐变：fillstyle 的值 可以是 线性 和 径向
-
-ctx.strokeStyle = '';
-ctx.linewidth = 数字;
-ctx.lineCap = '';
-ctx.lineJoin = '';
-
-// 路径：
-将画笔抬起点到 x y 处
-ctx.moveTo(x,y)
-将画笔移动 x y 处
-ctx.lineTo(x,y)
-
-// 绘制矩形路径
-ctx.rect(x,y,w,h);
-
-// 绘制圆形路径
-ctx.arc(x,y,r,s,deg,boolean)
-deg:0-360\*Math.PI/180
-
-// 绘制弧形
-ctx.arcTo(cpx1,cpy1,x,y， r)
-第一个点是 moveTo(x,y)
-第二个点是控制弧度的，
-第三个点形成夹角
-肯定会经过 cpx1 cpy1
-
-// 二次贝塞尔曲线
-quadraticCurveTo(cp1x, cp1y, x, y)
-起点为 moveTo
-cp1x,cp1y 为一个控制点，x,y 为结束点。
-终点为 x y
-cp1 cp2 用来控制弧度 必须经过起点 和 终点
-
-// 三次贝塞尔曲线
-bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)
-起始点为 moveto 时指定的点
-cp1x,cp1y 为控制点一，cp2x,cp2y 为控制点二，x,y 为结束点。
-cp 为控制圆弧的点
-
-// 清除路径容器：
-ctx.beginPath();
-闭合路径
-ctx.closePath();
-fill() 为自动闭合
-stroke() 得手动闭合
-
-// ctx.save()
-将画布的当前的状态押入到样式栈中，包括样式相关 和 变换相关
-// ctx.restore()
-将样式栈中栈顶的元素弹到样式容器里
-图像最终渲染 依赖样式容器
-
-// 将原点按当前坐标轴位移到指定位置
-ctx.translate(x,y);
-
-// 将坐标轴按顺时针方向旋转
-ctx.rotate(deg);
-
-// 放大 或 缩小
-ctx.scale(因子，因子)
-
-// 引入图片
-ctx.drawImage(img,x,y,w,h);
-在 canvas 引入图片 一定要在图片加载完成后再去操作
-
-// 得到文本的宽度
-ctx.measureText('文本');
-返回持有文本渲染宽度的对象
-
-ctx.fillText()
-ctx.strokeText()
-ctx.font
-ctx.textAlign
-ctx.textBaseline
-shadowOffsetX = float
-shadowOffsetY = float
-shadowBlur = float
-shadowColor = color(必需项)
-
-// 像素操作
-ctx.getImageData(x,y,w,h)
-ImageData 对象
-width：选中区域在横向上 css 像素的个数
-height：选中区域在纵向上 css 像素的个数
-data:数组
-选中区域所有像素点的 rgba 信息，rgba 的取值从 0 到 255
-
-ctx.createImageData(w,h)
-返回的是 imgdata 对象 默认像素点的信息是 rgba(0,0,0,0)
-
-ctx.putImageData(imgdata,x,y)
-
-ctx.globalAlpha
-取值为 0 到 1
-ctx.globalCompositeOperation
-source-over(默认值):源在上面,新的图像层级比较高
-source-in :只留下源与目标的重叠部分(源的那一部分)
-source-out :只留下源超过目标的部分
-source-atop:砍掉源溢出的部分
-
-    destination-over:目标在上面,旧的图像层级比较高
-    destination-in:只留下源与目标的重叠部分(目标的那一部分)
-    destination-out:只留下目标超过源的部分
-    destination-atop:砍掉目标溢出的部分
-
-ctx.ispointinpath(x,y)
-x,y 这个点是否在路径上
-
-4.实例
-时钟动画：结合了所有基础 api
-飞鸟动画：结合图片创建动画
-马赛克：像素操作
-刮刮卡：合成+像素操作
-
----
-
-### 笔记：
-
-// canvas 中的透明度是 0-255
-
-// 怎么用 debugger 测试
-1、打上断点
-2、在 sources console 的旁边 找到断点行
-3、右侧 watch 栏里是监听
-4、在代码上右键 能把代码对象 加入监听
-
-// canvas 修改 透明度
-
-4*i+3 = 3，7，11，15，19
-4*i+1 = 1，5，9，13，17
-隔 4 个数字 从 1 开始
-
-难道是隔几个数字 从几开始？
-
-let imgData = ctx.getImageData(0,0,150,150);
-假如我想画一个带有透明度的矩形
-1、我可以 ctx.fillStyle = 'rgba(x,x,x,x)';
-
-另外一种方式：
-因为 getImageData 获取的是 每一个像素点的 rgba 的信息
-[r, g, b, a, r, g, b, a, r, g, b, a]
-也就是我要获取 3，7，11，5.....
-修改数组中 a 的值
-for(let i=0; i<imgData.data.length; i++){
-imgData.data[4*i+3] = 100;
-}
-
-// 设置缩放 让它在 0-2 之间变化 使最小值和最大值各乘以 50 0 - 100
-// 当系数为 0 时，自增到 100，当到 100 时开始自减
-if(scale == 0){
-maxScale = 1;
-}else if(scale == 100){
-maxScale = -1;
-}
-// 自增 自减的单位为 1
-scale += maxScale;
-// 条件完成后开始设置放大缩小
-ctx.scale(scale/50,scale/50);
-
----
-
-let num = 0;
-// 定义增长系数
-let num_coe = 0;
-
-let test = setInterval(function(){
-if(num == 100){
-// 当到 100 的时候开始自减 系数为 1
-num_coe = -1;
-}else if(num == 0){
-// 当到 0 的时候开始自增 系数为 1
-num_coe = 1;
-}
-num += num_coe;
-console.log(num);
-},100);
+- canvas 的 api 只支持一种图形的原生直接渲染：矩形

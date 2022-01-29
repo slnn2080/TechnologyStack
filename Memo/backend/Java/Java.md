@@ -31506,6 +31506,10 @@ public class ListFilesTest {
     因为main()的相对的 项目下根目录
  -->
 
+
+> 节点流中的端点的含义
+- 下面提到的端点的意思 都是直接包一个文件
+
 ----------------------------
 
 ### FileReader读入数据的操作
@@ -33280,6 +33284,615 @@ try {
   
 ```
 
+----------------------------
+
+### 数据流
+- DataInputStream
+- DataOutputStream
+- 分别"套接"在InputStream OutputStream子类的流上面
+
+- 作用:
+- 用于读取或写出基本数据类型的变量或字符串
+<!-- 
+  调用对应的方法可以将内存中的基本数据类型和String写入到文件当中 保存起来
+
+  也可以把写出去的文件还原到内存的层面
+ -->
+
+
+> DataInputStream中的方法
+- 通过实例对象来调用
+- boolean readBoolean()
+- byte readByte()
+- char readChar()
+- short readShort()
+- int readInt()
+- float readFloat()
+- double readDouble()
+- long readLong()
+
+- String readUTF()
+<!-- 读字符串 -->
+void readFully(byte[] b)
+<!-- 读byte[] -->
+
+> DataOutputStream中的方法
+- 通过实例对象来调用
+- write(int b)
+- write(byte[] b, int offset, int len)
+- write(byte[] b)
+
+- writeInt(int v)
+- writeLong(long v)
+- writeBoolean(boolean v)
+- writeByte(int v)
+- writeBytes(String s)
+- writeChar(int v)
+- writeChars(String s)
+- writeShort(int v)
+- writeDouble(double v)
+- writeFloat(float v)
+
+- writeUTF(String str)
+
+
+> DataOutputStream的实例化
+> DataOutputStream dos = new DataOutputStream(节点流);
+```java
+DataOutputStream dos = new DataOutputStream(new FileOutputStream("data.txt"));
+
+// 参数 是节点流
+```
+- 生成的文件不是让我们双击打开的方式读的 而是通过DataInputStream的方式读取的
+- 双击打开有乱码的情况
+
+
+> DataInputStream实例化
+> DataInputStream dis = new DataInputStream(节点流);
+- 将文件中存储的基本数据类型和字符串读到到内容中 保存在变量中
+
+- 注意:
+- 读取不同类型的数据的顺序要与当初写入文件时 保存的数据的顺序一致 不按顺序读取会报异常
+
+```java
+DataInputStream dis = new DataInputStream(new FileInputStream("data.txt"));
+```
+
+
+> 基本使用
+- 将内存中的字符串 基本数据类型的变量写出到文件中
+- 处理异常的话 仍然使用try catch finally
+```java
+DataOutputStream dos = new DataOutputStream(new FileOutputStream("data.txt"));
+
+dos.writeUTF("sam");
+// 每次写完可以显式的刷新缓冲区 写出去
+dos.flush();
+
+dos.writeInt(23);
+dos.flush();
+
+dos.writeBoolean(true);
+dos.flush();
+
+// 关闭
+dos.close();
+```
+
+
+- 读取写出去的文件
+- 要点:
+- 写出的时候要按顺序写出 读的时候也要按照写出的顺序读取
+
+```java
+DataInputStream dis = new DataInputStream(new FileInputStream("data.txt"));
+
+// 我们写的时候有顺序 从第一行到最后一行 我们读的时候也要按照这个顺序 写的时候最先是String 读的时候也要最先读String
+String name = dis.readUTF();
+int age = dis.readInt();
+boolean sex = dis.readBoolean();
+
+System.out.println(name + " " + age + " " + sex);
+
+dis.close();
+```
+
+----------------------------
+
+### 对象流
+- 上面介绍了数据流 它只是对基本数据类型和字符串的读写操作 引用类型还不行 要想对对象进行持久化 我们就需要接触对象流
+
+- ObjecctInputStream
+- ObjectOutputStream
+- 用于存储和读取*基本数据类型*数据或*对象*的处理流
+- 比如:
+- 我们的new Person new Student把类似这样的对象进行传输
+<!-- 
+  DataInputStream
+  DataOutputStream 可以是用来处理基本类型数据
+
+  ObjecctInputStream
+  ObjectOutputStream 也可以处理基本数据类型 主要是处理对象的
+
+  它的强大之处就是可以把java中的对象写入数据源中 也能把对象从数据源中还原回来
+ -->
+
+> 序列化:   -- 保存
+- 用*ObjectOutputStream*类*保存*基本类型数据或对象的机制
+<!-- 
+  序列化就是将对象写入到文件里
+ -->
+
+> 反序列化:  -- 读取
+- 用*ObjectInputStream*类*读取*基本类型数据或对象的机制
+<!-- 
+  反序列化就是将写入文件的数据再读回到内存里
+ -->
+
+
+> 对象的序列化机制
+- 序列化的过程:
+- 该机制允许把内存中的java对象转换成平台无关的二进制流 从而允许把这种二进制流持久地保存在磁盘上 或通过网络将这种二进制流传输到另一个网络节点 
+
+- 反序列化的过程:
+- 当其它程序读取了这种二进制流 就可以恢复成原来的java对象
+
+- 序列化的好处在于将任何实现了Serializable接口的对象转化为字节数据 使其在保存和传输时可被还原
+
+<!-- 
+  序列化是RMI(Remote Method Invoke - 远程方法调用) 过程的参数和返回值必须实现的机制 而RMI是Java EE的基础  
+-->
+
+
+> 可序列化的前提:
+- *如果需要让某个对象支持序列化机制* 则必须让对象所属的类及其属性是可序列化的 为了让某个类是可序列化的 *该类必须实现*如下的*两个接口之一*, 否则会抛出*NotSerializableException*异常
+
+- *Serializable*
+- Extemalizable
+<!-- 
+  Serializable接口在io包下
+ -->
+
+- 注意:
+- ObjectOutputStream 和 ObjectInputStream 不能序列化static和transient修饰的成员变量
+<!-- 
+  在我们序列化 自定义类的时候 如果自定义类的属性是
+  static
+  transient 
+  修饰的话
+
+  当我们序列化后 再进行反序列化的时候 
+  static
+  transient 
+  修饰的变量 的结果都是默认值
+ -->
+
+```java
+private static String name;
+private transient int age;
+
+// 这两个属性不能被序列化 其余的可以
+```
+
+> transient 关键字
+- 如果有属性不想序列化的时候 我们可以拿它来进行修饰
+- 作用:
+- 不用被修饰的属性进行序列化
+
+----------------------------
+
+### 对象流(序列化反序列化操作字符串 / 自定义类)
+- 序列化的过程: 
+  - 将内存中的java对象保存到磁盘中 或 通过网络传输出去
+  - 使用 ObjectOutputStream 实现
+
+
+> ObjectOutputStream 实例化
+> ObjectOutputStream oos = new ObjectOutputStream(节点流)
+- 序列化的过程: 
+- 将内存中的java对象保存到磁盘中 或 通过网络传输出去
+
+- 下面的例子中我们选择用 .dat 文件来存储
+
+> oos.writeObject(Object obj)
+- write一系列的方法和数据流的差不多 但是多了一个它
+```js
+// 我们将一个字符串存储到.data文件中
+oos.writeObject(new String("我是数据"));
+```
+
+- 注意:
+- 需要显式的调用 flush()
+
+- 基本使用:
+```java
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("object.dat"));
+
+oos.writeObject(new String("我是数据"));
+
+// 需要显式的flush() 可以连续调用 持久化多个对象
+oos.flush();
+
+// 关闭流
+oos.close();
+
+// try catch finally 处理异常
+```
+
+
+> ObjectOutputStream 实例化
+> ObjectInputStream ois = new ObjectInputStream(节点流);
+- 反序列化的过程
+- 将磁盘文件中的对象还原为内存中的一个java对象
+- 使用 ObjectInputStream 实现
+
+> ois.readObject()
+- 读一个对象
+
+- 返回值: 对象
+
+```java
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream("object.dat"));
+
+Object obj = ois.readObject();
+// 我们知道它是一个字符串 所以我们可以强转
+String str = (String) obj;
+System.out.println(str);
+ois.close();
+```
+
+
+> 自定义类实现序列化与反序列化操作
+- 这个部分我们将创建好的Person对象进行持久化到磁盘中 和 读到内存层面
+
+- 自定义类(java对象)序列化的要点:
+- 1. 自定义类需要实现 Serializable 接口 实现此接口后的自定义类都会被标识为可序列化的
+- 没有具体的方法需要实现 因为接口中什么也没有 所以它也叫*标识接口*
+```java 
+  public class Person implements Serializable { ... }
+```
+
+- 2. 自定义类中必须声明一个 配置好的属性 全局常量
+- public/private static final long serialVersionUID = 42L;
+- 值我们自己指定 序列版本号 权限随意
+<!-- 
+  给该对象贴上标识 还原的时候不会出现问题
+ -->
+
+- 3. 除了当前Person类需要实现serializable接口之外 还必须保证其内容*所有属性也必须是可序列化*的 (默认情况下 基本数据类型是可序列化的)
+<!-- 
+  但是 如果 Person类中 定义了别的类的对象 
+  那么这个类也要实现 Serializable 接口 和 提供 UID
+
+  private Account acct;
+ -->
+
+```java
+public class Person implements Serializable {
+  // 必须
+  public static final long serialVersionUID = 66212252345L;
+
+  private String name;
+  private int age;
+}
+```
+
+- 异常:
+- NotSerializableException (如果没有实现该接口会报错)
+
+
+- 要点:
+- 在反序列化的时候 我们要注意 先写出的什么 我们就要先读什么
+
+```java
+// 序列化
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("object.dat"));
+
+oos.writeObject(new String("我是数据"));
+oos.flush();
+
+// 输出自定义类
+oos.writeObject(new Person("sam", 18));
+oos.flush();
+
+// 关闭流
+oos.close();
+
+
+
+// 反序列化:
+// 反序列化的过程: 指明要读进来的文件
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream("object.dat"));
+
+// 读取的时候也是有顺序的 先写什么就要先读什么
+Object obj = ois.readObject();
+String str = (String) obj;
+
+// 读上面写入的对象
+Object obj2 = ois.readObject();
+// 强转为Person
+Person p = (Person)obj2;
+
+System.out.println(p.getName());
+ois.close();
+
+
+
+// 自定义类中的配置
+public class Person implements Serializable {
+
+  public static final long serialVersionUID = 66212252345L;
+}
+```
+
+
+> serialVersionUID 的理解
+- serialVersionUID是用来表明类的不同版本间的兼容性
+- 简言之 其目的是以序列化对象进行版本控制 有关各版本反序列化时是否兼容
+
+- 如果类中没有显示定义这个静态常量 它的值是java运行时环境根据类的内部细节自动生成的 *若类的实例变量做了修改* serialVersionUID可能发生变化 *所以要显式声明*
+
+- 简单的来说 java的序列化机制是通过在运行时判断类的serialVersionUID来验证版本的一致性
+
+- 在进行反序列化的时候 jvm会把传来的字节流中的serialVersionUID与本地相应实体类的serialVersionUID进行比较 如果相同就认为是一致的 可以序列化 
+
+- 否则就会出现序列化版本不一致的异常(InvalidCastException)
+
+
+> 简单的说
+- 如果我们没有显式的定义UID那么java会自动生成 但是自动生成的UID会根据自定义类中的属性的变化发生变化
+
+- 会导致序列化时 和 反序列化时的UID不一致 导致无法正常的还原
+
+----------------------------
+
+### RandomAccessFile - 随机存取文件流
+- 该类既可以作为输入流 也可以做为 输出流
+
+- 它不是继承于我们上面的4个基类流 而是*直接继承于Object类*
+- RandomAccessFile *实现了DataInput DataOutput接口*
+
+- 因为继承了上面的两个接口 *所以这个流既可以做为输入流 又可以作为输出流*
+<!-- 
+  虽然RandomAccessFile既可以做为输入流 又可以作为输出流
+  但是
+  还是需要通过它造两个对象 一个对象是输出 一个对象管输入
+ -->
+
+
+> 特点:
+- 写文件的时候 如果这个文件不存在可以帮我们创建文件
+- 如果文件存在了 我们通过RandomAccessFile流去写数据的时候
+
+- RandomAccessFile作为输出流出现时 写出到的文件如果不存在则在执行过程中自动创建
+- 如果写出到的文件存在 则会对已存在的文件的内容 *从头开始进行覆盖操作, 能覆盖多少算多少*
+
+
+**注意:**
+- 从头开始进行覆盖操作 不是对文件的覆盖 也是从内容的开头位置 对原有文件内容进行覆盖
+<!-- 
+  源文件:
+  abcdef
+
+  // write("xyz".getBytes()) 后
+  xyzdef
+ -->
+
+
+> 实例化 RandomAccessFile
+> RandomAccessFile raf = new RandomAccessFile(file / "文件名", String mode)
+- 参数:
+- mode:
+- 该参数指定 RandomAccessFile 的访问模式
+- 1. r:   只可以读入 (作为输入流可以指定r)
+- 2. rw:  既可以读入 也可以写出 (作为输出流指定rw)
+
+- 3. rwd: 打开以便读取和写入 同步文件内容的更新
+- 4. rws: 打开以便读取和写入 同步文件内容和元数据的更新
+
+- 如果是r 则不会创建文件 而是读取一个已经存在的文件 如果读取的文件不存在则会出现异常
+
+- 如果是rw 如果文件不存在则会去创建文件 如果存在则不会创建
+
+<!-- 
+  jdk1.6中上面写的每次write数据时
+  rw模式 数据不会立即写到硬盘中
+  rwd迷失 数据会被立即写入硬盘
+
+  如果写数据过程发生异常 
+  rwd模式中已被write的数据被保存到硬盘
+  rw则全部丢失
+ -->
+
+- 基本使用:
+```java
+// 作为 输入流 出现的时候 传入读进来的位置 和 r
+RandomAccessFile raf1 = new RandomAccessFile(new File("Hello.txt"), "r");
+
+// 作为 输出流 出现的时候 输出的位置 和 rw
+RandomAccessFile raf2 = new RandomAccessFile(new File("Hello_2.txt"), "rw");
+
+byte[] buf = new byte[1024];
+int len;
+while((len = raf1.read(buf)) != -1) {
+  raf2.write(buf, 0, len);
+}
+
+raf1.close();
+raf2.close();
+```
+
+
+- 使用RandomAccessFile流进行写入操作的时候 是将目标文件的内容 从头开始进行覆盖操作
+
+- 要点:
+> "xyz".getBytes() 将字符串转换为byte[]
+```java
+// 创建一个作为写入的流
+RandomAccessFile raf1 = new RandomAccessFile(new File("Hello.txt"), "rw");
+
+// write()方法 比如要传入一个byte[] 我们可以将内容xyz转换为一个byte[]
+raf.write("xyz".getBytes())
+raf.close()
+
+// 结果:
+// 原来的abcdefg 变成 xyzdefg
+```
+
+
+> 注意:
+- 该流流中的 write() 方法是一个覆盖操作 从头或指定位置开始能覆盖多少算多少的操作
+
+----------------------------
+
+### RandomAccessFile 实现数据的插入
+- 原文件: abcdefg
+- 需求:
+- 我们想在abc的后面插入xyz
+
+- RandomAccessFile对象 包含一个记录指针 用来标示当前读写处的位置
+- 默认指针的位置是0: (首索引的位置是0)
+- 代表在文件开头 
+
+
+> RandomAccessFile实例对象.seek(long pos)
+- 将文件记录指针定位到pos位置
+- 从哪开始了 默认的位置是0
+<!-- 
+  当我们指定raf.write操作的时候 就代表从pos开始 执行能覆盖多少算多少的操作 
+-->
+
+- 返回值: 没有
+
+
+> RandomAccessFile实例对象.getFilePointer()
+- 获取文件记录指针的当前位置
+
+- 返回值
+- long
+
+
+- 基本使用:
+```java
+// 我们在abc的后面插入xyz 索引从0开始的话 那目标所以就是3
+  RandomAccessFile raf = new RandomAccessFile("Hello.txt", "rw");
+
+  // 修改下指针的位置(相当于我们把光标插入哪里了吧)
+  // 将指针调到角标为3的位置
+  raf.seek(3);
+  raf.write("xyz".getBytes());
+  raf.close();
+}
+
+// 但是有个问题 raf.write() 是一个从指定位置开始 能覆盖多少算多少的操作 所以结果是 abcxyzg - 将def覆盖掉了
+```
+
+> 使用 RandomAccessFile 实现插入的效果
+- raf.write()是一个从头或者指定指针位置开始的 能覆盖多少算多少的操作
+
+- 所以当我们像上面那样操作后发现
+- abc*def*g
+- abc*xyz*g
+
+- 也就是我们从指定指针位置开始覆盖了 那怎么才能做到插入的操作呢？
+
+- 思路:
+- 1. 我们要将目标插入位置后面的数据保存起来 也就是 defg
+- 2. 注意当我们保存的过程中 指针也会移动 保存后的指针位置在文件的内容的最后
+<!-- 
+    a b c d e f g
+          ↑
+
+    // 复制完毕后 我们指针的位置是在最后
+    a b c d e f g
+                ↑
+
+    // 调整指针的位置
+    a b c d e f g
+          ↑
+ -->
+
+- 3. 然后我们正常的执行raf.write()方法 此时指针的位置会自动在z的后面
+<!-- 
+  // 执行完后的效果
+  abcxyzg
+ -->
+
+- 4. 将xyz后面的内容替换成 我们上面复制的内容
+
+
+```java
+// 我们在abc的后面插入xyz 索引从0开始的话 那目标所以就是3
+RandomAccessFile raf = new RandomAccessFile("Hello.txt", "rw");
+
+// 先调整指针的位置 到插入的目标位置
+raf.seek(3);
+
+// 因为目标位置后面的数据可能会很多 所以我们要使用循环来处理
+byte[] buf = new byte[20];
+int len;
+
+// 为了避免StringBuilder再次扩容我们最好指定一个长度
+StringBuilder builder = new StringBuilder((int) new File("Hello.txt").length());
+while((len = raf.read(buf)) != -1) {
+  // 将要复制的数据保存到字符串里面 将buf转成str
+  // 这里就完成了将3后面的数据都保存在 builder 中了
+  builder.append(new String(buf, 0, len));
+}
+
+// 因为上面的操作后 指针就跑到最后了 所以我们要将指针调整回来
+System.out.println(raf.getFilePointer());
+raf.seek(3);
+
+// 写出去之后 指针就会在z的后面
+raf.write("xyz".getBytes());
+
+// 将builder中的数据进行写入
+raf.write(builder.toString().getBytes());
+raf.close();
+```
+
+
+> 方式2: ByteArrayOutputStream 流
+
+> ByteArrayOutputStream实例化
+> ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+- 参数: 无
+- 剩下我们自己研究下
+
+- 插入消耗资源 通常我们都喜欢做追加而不是插入
+- 上面我们使用了 StringBuilder 我们还可以使用 StringBuilder底层造一个数组
+
+- ByteArrayOutputStream流来完成逻辑
+<!-- 
+  ByteArrayOutputStream也是一个输出流 但是我们看下面的代码中 我们没有在构造器中传入参数
+
+  该流中也提供了一个数组
+ -->
+```java
+ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+byte[] buf = new byte[10];
+int len;
+while((len = fis.read(buf)) != -1) {
+  // 这里我们会write到ByteArrayOutputStream流中的数组里面
+  baos.write(buf, 0, len);
+}
+```
+
+
+> RandomAccessFile 多线程断点续传
+- 我们可以使用RandomAccessFile类来实现一个多线程断点下载的功能 我们下载工具都会在下载前建立两个临时文件 
+
+- 一个是与被下载文件大小相同的空文件
+<!-- 
+  比如我们要下载一个1G文件 就会先创建一个空的1G文件
+  然后将1G纷争4个部分 多线程 每一个线程将指针调整到每一个部分的开头
+ -->
+- 一个是记录文件指针的位置文件
+
+- 每次暂停的时候都会保存上一次的指针 然后断点下载的时候 会继续从上一次的地方下载 从而实现断点下载或上传的功能
 
 ----------------------------
 
