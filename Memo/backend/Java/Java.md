@@ -33896,6 +33896,1149 @@ while((len = fis.read(buf)) != -1) {
 
 ----------------------------
 
+### NIO
+- 从1.4版本开始引入的一套新的IO API可以代替标准的java io api
+- nio与原来的io有同样的作用和目的 但是使用的方式完全不同 *nio支持面向缓冲区的*(io是面向流的) 基于通道的io操作
+
+- *NIO将以更加高效的方式进行文件的读写操作*
+
+- java api中提供了两套NIO :
+  一套是针对标准输入输出NIO 
+  一套就是网络编程NIO
+
+- NIO中传输用的不是流 而是channel(通道)
+ 
+| -- java.nio.channels.Channel
+
+  | -- FileChannel: 处理本地文件
+
+  | -- ScoketChannel: TCP网络编程的客户端的Channel
+  | -- serverSocketChannel: TCP网络编程的服务器端的Channel
+  | -- DatagramChannel: UDP网络编程中发送端和接收端的Channel
+
+
+- nio2是jdk7中发布的 对nio进行了极大的扩展
+
+
+> Path Paths Files核心的API
+- 早期的java只提供了一个File类来访问文件系统 但File类的功能比较有限 所提供的方法性能也不高 而且 大多数方法在出错时仅返回失败 并不会提供异常信息
+
+- NIO2为了弥补这种不足 引入了*Path接口* 代表一个平台无关的平台路径 描述了目录结构中文件的位置
+
+> Path
+- Path可以理解为NIO2中提供的一个类 *Path类就是用来替换原有的File*
+
+- *Path可以看成File类的升级版本* 实际引用的资源也可以不存在
+<!-- 
+  在以前IO操作都是这样写:
+  File file = new File("index.html")
+
+  但是在java7中 我们可以这么写
+  Path path = Paths.get("index.html")
+ -->
+
+- NIO2在java.nio.file包下提供了Files Paths工具类
+- *Files*包含了大量*静态的工具方法来操作文件*
+- *Paths*包含了两个*返回Path的静态工厂方法*
+
+
+> Paths
+- Paths是工具类 作用是创建Path的对象的(实例化)
+- 我们通过调用 get() 方法来获取实例 -- Path对象
+
+
+> Paths实例对象的方法
+
+> 实例对象.toString()
+- 返回调用Path对象的字符串表示形式
+
+- 返回值:
+- String
+
+
+> 实例对象.startsWith(String path)
+- 判断是否以path路径开始
+
+- 返回值:
+- boolean
+
+
+> 实例对象.endsWith(String path)
+- 判断是否以path路径结束
+
+- 返回值:
+- boolean
+
+
+> 实例对象.getParent()
+- 返回Path对象包含整个路径 不包含Path对象指定的文件路径
+
+- 返回值:
+- Path
+
+
+> 实例对象.getRoot()
+- 返回调用Path对象的根路径
+
+- 返回值:
+- Path
+
+
+> 实例对象.getFileName()
+- 返回与调用PAth对象关联的文件名
+
+- 返回值:
+- Path
+
+
+> 实例对象.getNameCount()
+- 返回path跟目录后面元素的数量
+
+- 返回值:
+- int
+
+
+> 实例对象.getName(int idx)
+- 返回指定索引位置idx的路径名称
+
+- 返回值:
+- Path
+
+
+> 实例对象.toAbsolutePath()
+- 作为绝对路径返回调用Path对象
+
+- 返回值:
+- Path
+
+
+> 实例对象.resolve(Path p)
+- 合并两个路径 返回合并后的路径对应的path对象
+
+- 返回值:
+- Path
+
+
+> 实例对象.toFile()
+- 将Path转化为File了的对象
+
+- 返回值:
+- File
+
+
+------
+
+> Files类
+- 用于操作文件或目录的工具类
+
+> Path copy(Path src, Path dest, CopyOption ... how)
+- 文件的复制
+
+
+> Path createDirectory(Path path, FileAttribute<?> ... attr)
+- 创建一个目录
+
+
+> Path createFile(Path path, FileAttribute<?> ... arr)
+- 创建一个文件
+
+
+> void delete(Path path)
+- 删除一个文件/目录 如果不存在 执行报错
+
+
+> void deletelfExists(Path path)
+- Path对应的文件/目录如果存在 执行删除
+
+
+> Path move(Path src, Path dest, CopyOption ... how)
+- 将src移动到dest位置
+
+
+> long size(Path path)
+- 返回path指定文件的大小
+
+
+> 用于判断的方法
+> boolean exists(Path path, LinkOption ... opts)
+- 判断文件是否存在
+
+
+> boolean isDirectory(Path path, LinkOption ... opts)
+- 判断是否是目录
+
+
+> boolean isRegularFile(Path path, LinkOption ... opts)
+- 判断是否是文件
+
+
+> boolean isHidden(Path path)
+- 判断是否是隐藏文件
+
+
+> boolean isReadable(Path path)
+- 判断文件是否可读
+
+
+> boolwan isWritable(Path path)
+- 判断文件是否可写
+
+
+> boolean noExists(Path path, LinkOption ... opts)
+- 判断文件是否不存在
+
+
+> 用于操作内容
+> SeekableByteChannel newByteChannel(Path path, OpenOption ... how)
+- 获取与指定文件的连接 how指定打开方式
+
+> DirectoryStream<Path> new DirectoryStream(Path path)
+- 打开path指定的目录
+
+> InputStream newInputStream(Path path, OpenOption ... how)
+- 获取InputStream对象
+
+> OutputStream newOutputStream(Path path, OpenOption ... how)
+- 获取OutputStream对象 
+
+
+
+> 常用方法的测试 Paths
+```java
+public class PathTest {
+
+  //如何使用Paths实例化Path
+  @Test
+  public void test1() {
+    //new File(String filepath)
+    Path path1 = Paths.get("d:\\nio\\hello.txt");
+
+    //new File(String parent,String filename);
+    Path path2 = Paths.get("d:\\", "nio\\hello.txt");
+
+    Path path3 = Paths.get("d:\\", "nio");
+  }
+
+
+  //Path中的常用方法
+  @Test
+  public void test2() {
+
+    Path path1 = Paths.get("d:\\", "nio\\nio1\\nio2\\hello.txt");
+
+    Path path2 = Paths.get("hello.txt");
+
+    // String toString() ： 返回调用 Path 对象的字符串表示形式
+    System.out.println(path1);
+
+
+    // boolean startsWith(String path) : 判断是否以 path 路径开始
+    System.out.println(path1.startsWith("d:\\nio"));
+
+
+    // boolean endsWith(String path) : 判断是否以 path 路径结束
+    System.out.println(path1.endsWith("hello.txt"));
+
+
+    // boolean isAbsolute() : 判断是否是绝对路径
+    System.out.println(path1.isAbsolute() + "~");
+    System.out.println(path2.isAbsolute() + "~");
+
+
+    // Path getParent() ：返回Path对象包含整个路径，不包含 Path 对象指定的文件路径
+    System.out.println(path1.getParent());
+    System.out.println(path2.getParent());
+
+
+    // Path getRoot() ：返回调用 Path 对象的根路径
+    System.out.println(path1.getRoot());
+    System.out.println(path2.getRoot());
+
+
+    // Path getFileName() : 返回与调用 Path 对象关联的文件名
+    System.out.println(path1.getFileName() + "~");
+    System.out.println(path2.getFileName() + "~");
+
+
+    // int getNameCount() : 返回Path 根目录后面元素的数量
+    // Path getName(int idx) : 返回指定索引位置 idx 的路径名称
+    for (int i = 0; i < path1.getNameCount(); i++) {
+      System.out.println(path1.getName(i) + "*****");
+    }
+
+
+    // Path toAbsolutePath() : 作为绝对路径返回调用 Path 对象
+    System.out.println(path1.toAbsolutePath());
+    System.out.println(path2.toAbsolutePath());
+
+
+    // Path resolve(Path p) :合并两个路径，返回合并后的路径对应的Path对象
+    Path path3 = Paths.get("d:\\", "nio");
+    Path path4 = Paths.get("nioo\\hi.txt");
+    path3 = path3.resolve(path4);
+    System.out.println(path3);
+
+    // File toFile(): 将Path转化为File类的对象
+
+    //Path--->File的转换
+    File file = path1.toFile();
+    //File--->Path的转换
+    Path newPath = file.toPath();
+  }
+}
+```
+
+
+> 常用方法的测试 Files
+```java
+@Test
+public void test1() throws IOException{
+
+  Path path1 = Paths.get("d:\\nio", "hello.txt");
+  Path path2 = Paths.get("atguigu.txt");
+		
+  // Path copy(Path src, Path dest, CopyOption … how) : 文件的复制
+
+  //要想复制成功，要求path1对应的物理上的文件存在。path1对应的文件没有要求。
+
+  Files.copy(path1, path2, StandardCopyOption.REPLACE_EXISTING);
+		
+  // Path createDirectory(Path path, FileAttribute<?> … attr) : 创建一个目录
+  //要想执行成功，要求path对应的物理上的文件目录不存在。一旦存在，抛出异常。
+  Path path3 = Paths.get("d:\\nio\\nio1");
+  Files.createDirectory(path3);
+		
+  // Path createFile(Path path, FileAttribute<?> … arr) : 创建一个文件
+  //要想执行成功，要求path对应的物理上的文件不存在。一旦存在，抛出异常。
+  Path path4 = Paths.get("d:\\nio\\hi.txt");
+  Files.createFile(path4);
+		
+  // void delete(Path path) : 删除一个文件/目录，如果不存在，执行报错
+  Files.delete(path4);
+		
+  // void deleteIfExists(Path path) : Path对应的文件/目录如果存在，执行删除.如果不存在，正常执行结束
+  Files.deleteIfExists(path3);
+		
+  // Path move(Path src, Path dest, CopyOption…how) : 将 src 移动到 dest 位置
+  //要想执行成功，src对应的物理上的文件需要存在，dest对应的文件没有要求。
+  Files.move(path1, path2, StandardCopyOption.ATOMIC_MOVE);
+		
+  // long size(Path path) : 返回 path 指定文件的大小
+  long size = Files.size(path2);
+  System.out.println(size);
+
+}
+
+@Test
+public void test2() throws IOException{
+  Path path1 = Paths.get("d:\\nio", "hello.txt");
+  Path path2 = Paths.get("atguigu.txt");
+  // boolean exists(Path path, LinkOption … opts) : 判断文件是否存在
+  System.out.println(Files.exists(path2, LinkOption.NOFOLLOW_LINKS));
+
+  // boolean isDirectory(Path path, LinkOption … opts) : 判断是否是目录
+  //不要求此path对应的物理文件存在。
+  System.out.println(Files.isDirectory(path1, LinkOption.NOFOLLOW_LINKS));
+
+  // boolean isRegularFile(Path path, LinkOption … opts) : 判断是否是文件
+
+  // boolean isHidden(Path path) : 判断是否是隐藏文件
+  //要求此path对应的物理上的文件需要存在。才可判断是否隐藏。否则，抛异常。
+  System.out.println(Files.isHidden(path1));
+
+  // boolean isReadable(Path path) : 判断文件是否可读
+  System.out.println(Files.isReadable(path1));
+  // boolean isWritable(Path path) : 判断文件是否可写
+  System.out.println(Files.isWritable(path1));
+  // boolean notExists(Path path, LinkOption … opts) : 判断文件是否不存在
+  System.out.println(Files.notExists(path1, LinkOption.NOFOLLOW_LINKS));
+}
+
+/**
+  * StandardOpenOption.READ:表示对应的Channel是可读的。
+  * StandardOpenOption.WRITE：表示对应的Channel是可写的。
+  * StandardOpenOption.CREATE：如果要写出的文件不存在，则创建。如果存在，忽略
+  * StandardOpenOption.CREATE_NEW：如果要写出的文件不存在，则创建。如果存在，抛异常
+  *
+  * @author shkstart 邮箱：shkstart@126.com
+  * @throws IOException
+  */
+@Test
+public void test3() throws IOException{
+  Path path1 = Paths.get("d:\\nio", "hello.txt");
+
+  // InputStream newInputStream(Path path, OpenOption…how):获取 InputStream 对象
+  InputStream inputStream = Files.newInputStream(path1, StandardOpenOption.READ);
+
+  // OutputStream newOutputStream(Path path, OpenOption…how) : 获取 OutputStream 对象
+  OutputStream outputStream = Files.newOutputStream(path1, StandardOpenOption.WRITE,StandardOpenOption.CREATE);
+
+
+  // SeekableByteChannel newByteChannel(Path path, OpenOption…how) : 获取与指定文件的连接，how 指定打开方式。
+  SeekableByteChannel channel = Files.newByteChannel(path1, StandardOpenOption.READ,StandardOpenOption.WRITE,StandardOpenOption.CREATE);
+
+  // DirectoryStream<Path>  newDirectoryStream(Path path) : 打开 path 指定的目录
+  Path path2 = Paths.get("e:\\teach");
+  DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path2);
+  Iterator<Path> iterator = directoryStream.iterator();
+  while(iterator.hasNext()){
+    System.out.println(iterator.next());
+  } 
+}
+```
+
+----------------------------
+
+### jar包的使用
+- jar相当于一个js包 项目中引入jar包后 就可以使用jar对应的api
+- 使用方式:
+- 在module下创建libs文件夹 将jar包放进去 然后在jar文件上右键 - add as library
+
+> FileUtils测试
+- 我们引入了老师提供的jar 这个FileUtils就在这个jar包下面
+
+- 比如我们想实现一个复制文件的功能 在开发中一般都会调用第三方的jar包来实现 一般不用自己写
+
+```java
+public static void main(String[] args) throws IOException {
+  // 复制一个文件 main方法的路径要注意一下
+  File srcFile = new File("Hello.txt");
+  File destFile = new File("Hello2.txt");
+  FileUtils.copyFile(srcFile, destFile);
+}
+```
+
+----------------------------
+
+### 网络编程概述
+> 计算机网络
+- 把分布在不同地理区域的计算机与专门的外部设备用通信线路连城一个规模大 功能强的网络系统 从而使众多的计算机可以方便地互相传递信息 共享硬件 软件 数据信息等资源
+
+
+> 网络编程的目的
+- 直接或间接地通过网络协议与其他计算机实现数据交换 进行通讯
+
+
+> 网络编程中两个主要的问题
+- 1. 如何准确地定位网络上一台或多台主机 定位主机上的特定的应用
+- 2. 找到主机后如何可靠高效地进行数据传输
+
+
+> IP和端口号
+- IP:
+  网络中唯一的一台主机
+
+- 端口号:
+  用来区分一个主机上的不同的应用程序
+
+- 安全可靠的传输的规则:
+- 规则: 网络通信协议(有两台参考模型)
+
+- 1. OSI参考模型:
+  模型过于理想化 未能在因特网上进行广泛推广
+
+- 2. TCP/IP参考模型(TCP/IP协议) 
+  事实上是国际标准
+
+
+> 通信协议
+- 计算机网络中实现通信必须有一些约定 即*通信协议， 对速率 传输代码 代码结构 传输控制步骤 出错控制等指定标准*
+
+
+> 问题:
+- 网络协议太复杂 计算机网络通信涉及内容很多 比如指定源地址和目标地址 加密解密 压缩解压缩 差错控制 流量控制路由控制 如何实现如此复杂的网络协议？
+
+
+> 通信协议分层的思想
+- 在制定协议时 把复杂成分分解成一些简单的成分 再将它们复合起来 最常用的复合方式是层次方式
+- 即*同层间可以通信 上一层可以调用下一层 而与再下一层不发生关系* 各层互不影响 利于系统的开发和扩展
+
+
+> 图解
+<!-- 
+    OSI参考模型     TCP/IP参考模型    TCP/IP参考模型
+                                    各层对应协议
+    ---------       ---------      ---------
+    应用层                           HTTP FTP
+    ---------
+    表示层            应用层          DNS Telnet
+    ---------
+    会话层
+    ---------       ---------      ---------
+    传输层            传输层          TCP UDP
+    ---------       ---------      ---------
+    网络层            网络层          IP ICMP ARP
+    ---------       ---------      ---------
+    数据链路层
+    ---------       物理+链路        Link
+    物理层
+    ---------       ---------      ---------
+ -->
+
+- OSI参考模型将网络一共分成了7层 但是它划分的有些太细了 在实施的过程中有一些困难 在实际落地层面我们都是执行的 TCP/IP参考模型划分了4层
+
+- 它们当中上一层和下一层之间是可以进行数据传输的
+
+- 数据的传输的过程
+- 我们的数据封装后开始传输从应用层开始层层封装 到物理层后开始进行传输出去 
+- 然后在另一端从物理层开始拆封 层层拆封后到应用层再次的做展现
+<!-- 
+  像从淘宝购物 卖家把杯子打包 杯子易碎在里面加了泡沫 这就是封装的过程
+
+  买家拿到快递后拆封就是数据拆封的过程
+ -->
+
+> 网络编程中的两个要素
+- 1. 提供 IP和端口号
+- 2. 提供 网络通信协议(TCP/IP参考模型 应 传 网 物+链)
+
+
+> IP地址 (InetAddress类)
+- InetAddress
+- IP地址用来标识互联网上的一台计算机(通信实体)
+<!-- 
+  比如我们想进行本地文件的读入 我们需要对应一个file
+  这个file就对应着真实的硬盘中的一个文件
+
+  IP地址就是我们进行网络传输的一个终点 或者叫做节点 节点就叫做IP
+
+  在java中我们要考虑使用一个类来表示IP 就像用File类的对象表示真实存在的一个文件一样 
+  这里我们就要用到一个类 -- InetAddress类
+ -->
+
+
+> InetAddress类
+- 在java中使用InetAddress类代表具体的IP
+- 相当于一个InetAddress类的实例对象 就代表一个IP地址
+
+
+> IP地址的分类方式1:
+- 分为 *IPV4 和 IPV6*
+
+- IPV4:
+- 四个字节组成, 4个0-255
+<!-- 
+  IP地址分成4个部分
+  每个部分为0-255
+
+  0-255 . 0-255 . 0-255 . 0-255
+
+  大概有42亿个数量 30亿都在北美 亚洲4亿 2011年初ipv4已经用尽 以点分十进制标识 未来就要倒向ipv6了
+ -->
+- IPV4的写法如 *192.168.0.1*
+
+
+- IPV6:
+- IPV6使用16进制来表示
+- 128位(16个字节) 写成8个无符号整数
+<!-- 
+  ipv4分成4个部分 ipv6分成8个部分 每个部分有4位 用16进制表示
+  每个整数用4个16进制位表示 数之间用冒号(:)
+ -->
+
+- IPV6的写法如：
+  *3ffe:3201:1401:1280:c8ff:fe4d:db39:1984*
+
+<!-- 
+  也许以后我们能给生活中的任何一个物件 可以给它分配个ip地址 实现万物互联 真正的物联网 但是ipv4已经用尽了肯定做不到
+
+  现在我们表示一个ip的话还是习惯用ipv4的方式
+ -->
+
+
+> IP地址分类方式2:
+- 分为 *公网地址(万维网使用)* 和 *私有地址(局域网使用)*
+- 192.168.开头的就是私有地址 
+  范围即为192.168.0.0 - 192.168.255.255 专门为组织机构内部使用
+
+- 特点: 不易记忆
+
+
+> 域名
+- IP地址比较抽象不容易记忆 我们通过域名的方式也能访问一个IP地址
+
+- 通过域名访问IP地址的方式:
+- 1. 地址栏键入 www.baidu.com
+- 2. 将域名发送给dns域名解析服务器 它会帮我们将域名解析出来 域名的ip地址对应多少
+- 3. 拿着解析后的IP地址访问对应的服务器 请求资源
+<!-- 
+  我们电脑里面有一个hosts文件 里面也是域名和IP地址的对应关系
+  先在本地找 本地没有再发送给dns服务器
+
+  先找本机hosts 是否有输入的域名地址 没有的话 再通过dns服务器 找主机
+ -->
+
+
+> 本地回路地址(hostAddress): 127.0.0.1
+- 表示本机地址
+- 127.0.0.1 - localhost
+<!-- 
+  比如我们后面接触到的数据库 
+  我们在本机上装了一个mysql的数据库服务器
+  然后我们还会在本机上装一个mysql的客户端 然后我们使用客户端软件访问自己主机的数据库服务器 我们会看到ip地址那写的就是localhost
+ -->
+
+
+> InetAddress的基本使用
+- InetAddress类的构造器被私有化了 当我们调用它的静态方法会帮我们返回一个InetAddress实例
+
+> InetAddress实例化方式1:
+> InetAddress.getAllByName(String host)
+- 参数:
+- host: 主机名 或者 我们可以写具体的IP
+
+- 返回值:
+- InetAddress类型
+
+- 异常:
+- UnknownHostException
+
+> InetAddress实例化方式2:
+> InetAddress.getAllByName(String 域名)
+
+```java
+// 参数的方法1:
+InetAddress inet1 = InetAddress.getByName("192.168.0.66");
+System.out.println(inet1);
+// /192.168.0.66
+
+// 参数的方法2:
+InetAddress inet2 = InetAddress.getByName("www.baidu.com");
+System.out.println(inet2);
+// www.baidu.com/119.63.197.139
+```
+
+
+> InetAddress.getLocalHost()
+- 获取本机的ip地址
+
+```java
+InetAddress inet3 = InetAddress.getLocalHost();
+System.out.println(inet4);
+// orannoMacBook-Pro.local/192.168.3.10
+
+// 我们在局域网内 表示成这样的一个IP了 local/192.168.3.10 还是我本机
+
+// 实例对象.getHostName() 我们可以通过这个拿到127.0.0.1
+```
+
+
+> 实例对象.getHostName()
+- 获取域名
+
+- 返回值:
+- String
+
+```java
+InetAddress inet3 = InetAddress.getByName("localhost");
+String hostName = inet3.getHostName();
+System.out.println("hostName: " + hostName);
+// hostName: localhost
+```
+
+
+> 实例对象.getHostAddress()
+- 获取主机ip地址
+
+- 返回值:
+- String
+
+```java
+InetAddress inet3 = InetAddress.getByName("localhost");
+String hostAddress = inet3.getHostAddress();
+System.out.println(hostAddress);
+// 127.0.0.1
+```
+
+
+> 实例对象.getAddress()
+- 或者ip地址的byte[]
+- 返回得是byte[] ip地址的每一部分就是其中的一个元素
+<!-- 
+  {127, 0, 0, 1}
+ -->
+
+- 返回值:
+- byte[]
+
+```java
+InetAddress inet3 = InetAddress.getByName("127.0.0.1");
+byte[] address = inet3.getAddress();
+System.out.println(address.length); // 4
+
+// 输出需要遍历
+```
+
+
+> 端口号
+- 端口号标识正在计算机上运行的进程(程序)
+- 不同的进程有不同的端口号 被规定为一个16位的整数 0~65535
+<!-- 
+  每一个进程都有对应的一个端口号 我们可以通过IP地址定位到主机
+  我们到底要跟哪一个进程进行通信 也要是明确的才可以 
+
+  不同的进程对应不同的端口号
+ -->
+
+
+> 端口分类
+- 1. 公认端口:
+  0~1023: 被预先定义的服务通信占用
+  (比如: HTTP占用80端口, FTP占用21端口, Telnet占用23端口)
+
+- 2. 注册端口:
+  1024-49151: 分配给用户进程或应用程序
+  (比如: Tomcat占用8080端口, mysql占用3306端口, Oracle占用1521端口)
+
+- 3. 动态 / 私有端口:
+  49152~65535
+
+- 端口号与IP地址的组合得出一个网络套接字: Socket
+<!-- 
+  IP地址和端口号相当于组成了一个节点 这个节点就可以叫做socket
+  我们传输要用得就是一个socket
+
+  网络通信 通常也叫做 socket通信 也叫socket编程
+ -->
+
+----------------------------
+
+### 网路协议
+### TCP UDP 网络通讯协议的对比
+- 我们知道对方的主机和端口号 还要知道怎么去传 有什么样的规则 这个规则就是协议
+<!-- 
+  在传输中遵循的规则就是协议 但实际上因为协议太复杂了 所以我们进行了分层
+  一层层的去说明 每一层解决每一层的问题
+ -->
+
+- 在传输层中有两个非常重要的协议
+- 1. 传输控制协议TCP
+- 2. 用户数据报协议UDP
+
+> TCP/IP以及两个主要协议
+- *传输控制协议(TCP)*和*网络互联协议(IP)*而得名 实际上是一组协议 包括多个具有不同功能且互为关联的协议
+
+- IP协议时网络层的主要协议 支持网间互联的数据通信
+- TCP/IP协议模型从更实用的角度触发 形成了高效的四层体系结构 即物理链路层 IP层 传输层 和 应用层
+
+
+> TCP和UDP
+- 它们虽然都是传输层的协议但是规则不一样
+
+> TCP协议:
+- 使用TCP协议前 *须先建立TCP连接* *先形成传输数据通道*
+- 传输前采用 3次握手 方式 点对点通信 *可靠的*
+<!-- 
+  客户端发送数据到服务端 
+  发送前先进行一次握手 通过握手确定对方在了 我们再发送数据
+
+  三次握手
+
+  1
+      ↘
+            2
+      ↙
+  3
+
+  
+  我是sam
+
+        ↘
+
+          我知道你是sam 
+          我是马云
+
+        ↙
+
+  我知道 
+  你知道我是sam 你是马云
+  我是sam
+ -->
+
+- TCP协议进行通信的两个应用进程: 客户端 服务端
+- 在连接中可*进行大数据的传输*
+- 传输完毕 需*释放已建立的连接* 效率低(相对于UDP)
+<!-- 
+  释放连接的时候需要进行4次挥手
+  客户端和服务器都可以主动的进行挥手(想断开连接)
+  在socket编程中 任何一方执行close()操作即可产生挥手操作
+
+   
+  1 
+
+            2
+
+            3
+
+  4
+
+
+  客户端: 
+  我想断开连接了
+
+
+          服务端: 我接到你想断开连接的信息了
+          服务端: 我现在已经断开连接了
+
+
+  客户端: 
+  再次发送消息 验证看看服务端能否接收到
+  能接到就说明没断开
+  发出去后没有后话了 就是真断开了
+ -->
+
+
+> UDP协议:
+- 将  数据 源 目的地 封装成数据包 *不需要建立连接*
+- 每个数据报的大小限制在64k内
+<!-- 
+  数据多的时候需要发送很多的数据包
+ -->
+
+- 发送不管对方是否准备好 接收方收到也不确认 故是
+*不可靠的*
+<!-- 没有握手一顿发 -->
+- 可以广播发送
+- 发送数据结束时*无需释放资源 开销小 速度快*
+
+
+> UDP的应用场景
+- 看网络视频 正常播放就是 丢几桢也没关系
+
+
+- TCP相当于打电话
+- UDP相当于发短信
+
+----------------------------
+
+### TCP的网络编程
+- 这节里面我们看看TCP网络编程在代码层面的体现
+
+- 实现TCP网络编程一般都会有两个角色: 
+- 1. 客户端
+- 2. 服务器
+
+- 下面的代码中 我们利用两个 @Test 来充当客户端和服务器
+- 来完成 客户端发送一句话给服务端 服务端将数据显式在控制台上 的逻辑
+
+> 思考:
+- 客户端需要发送数据 之前我们需要先指明一个文件 现在我们不指明文件 直接在内存层面写一句话 然后通过流去输出
+
+- 1. 客户端的逻辑:
+- 我们是要给服务器发送的 那就要知道服务端是哪个IP和端口号 上面我们说了IP和端口号会封装为一个socket
+
+- 所以我们要先创建一个scoket 里面就包含了具体的IP和端口号了 指明我们要往哪个目的地发送数据
+- 通过scoket对象我们能获取输入输出流
+- 然后我们通过输出流来写数据
+- 最后关闭资源 流 和 socket都是资源 都需要关闭
+
+
+- 2. 客户端的逻辑
+- 首先我们要创建服务器端的socket对象
+- 通过服务器端的socket对象 调用accept() 开始监听 当有连接接过来的时候 accept()就会将接收到的数据包装成socket对象返回
+
+- 我们通过调用socket获取输入流来读客户端发送过来的数据
+
+
+> 客户端 Socket的实例化
+> Socket socket = new Socket(InetAddress address, int port)
+- 作用:
+- 实例化socket对象 指明服务器的IP地址和端口号
+
+- 参数:
+- IP地址
+- 端口号
+
+```java
+InetAddress inet = InetAddress.getByName("127.0.0.1");
+// 
+Socket socket = new Socket(inet, 8899);
+```
+
+
+> 客户端实例对象.getOutputStream();
+- 获取字节输出流 用来发送数据
+- 返回值:
+- OutputStream
+```java
+OutputStream os = socket.getOutputStream();
+os.write("你好, 我是客户端MM".getBytes());
+```
+<!-- 
+  客户端实例对象.getInputStream()
+  - 获取字节输入流对象 用来接收数据
+
+  - 返回值:
+  - InputStream
+ -->
+
+
+> 服务端 Socket的实例化
+> ServerSocket ss = new ServerSocket(int port);
+- 创建服务器的socket对象 并指明自己的端口号
+
+- 参数:
+- port
+- 对于服务器来说 只需要指明服务器的端口号就可以
+<!-- 
+  服务器指明服务器的端口号为8899
+  客户端就可以向8899发送数据
+
+  也就是说 服务器说 我就是8899 来吧
+  其实是先有服务器的ss 然后才有客户端的socket对象
+ -->
+
+
+> 服务器对象.accept();
+- 相当于开始监听 监听客户端发送的socket 一旦接收到 将数据包装成socket对象返回
+
+- 返回值
+- socket
+
+
+> socket.getInputStream();
+- 返回字节输入流对象
+- 这个是服务端accept()方法返回得socket对象 里面有接收到客户端的数据
+<!-- 
+  socket.getOutputStream();
+  - 返回字节输出流对象
+  - 可以给客户端发送数据
+ -->
+
+> 总结下
+- 客户端和服务端都有socket对象 socket对象身上有两个方法
+- getInputStream()
+- getOutputStream()
+- 分别能获取字节输入流 字节输出流用于客户端和服务端互相发送数据
+
+
+
+> socket.shutdownOutput();
+> socket.shutdownInput();
+- 当传输完毕后 我们要调用该方法表示 数据输入/输出结束 关闭输入/输出的操作
+<!-- 
+  read()方法是一个阻塞方法
+  在两端互传输数据的时候 比如我们的例子中会往服务器端传输一张图片
+  当我们传输完毕的时候 我们要显式的调用
+  socket.shutdownOutput(); 表示传输结束 这样服务端才能走下去
+
+
+
+  while ((len = fis.read(buf)) != -1) {
+    os.write(buf, 0, len);
+  }
+
+  // 当客户端将数据传完以后 关闭数据的输出
+  socket.shutdownOutput();
+ -->
+
+
+
+> ByteArrayOutputStream baos = new ByteArrayOutputStream();
+- 它是处理流中的一种 字节输出流
+- 该流内部会有一个自动扩容的数组 我们使用该流可以将数据先读到这个流对象内部 然后统一输出
+<!-- 
+- 访问数组 (处理流)
+  ByteArrayInputStream    (字节输入流)
+  ByteArrayOutputStream   (字节输出流)
+  CharArrayReader   (字符输入流)
+  CharArrayWriter   (字符输出流)
+ -->
+
+- 参数: 无
+
+
+
+> 代码部分
+```java
+// 客户端
+// 创建客户端Socket对象 指明服务器端的IP和端口号
+InetAddress inet = InetAddress.getByName("127.0.0.1");
+Socket socket = new Socket(inet, 8899);
+
+// 返回输出流对象 获取一个输出流 用于输出数据
+OutputStream os = socket.getOutputStream();
+// 因为是字节流 写出数据的操作
+os.write("你好, 我是客户端MM".getBytes());
+
+// 流和socket都是资源都需要关闭
+os.close();
+socket.close();
+
+
+
+// 客户端
+// 创建服务器端的socket ServerSocket 指明自己的端口号(服务器)
+ServerSocket ss = new ServerSocket(8899);
+
+// 监听客户端发送过来的socket 表示我们可以接收来自客户端的socket
+Socket socket = ss.accept();
+// socket.getInputStream(); 返回输入流 获取输入流
+InputStream is = socket.getInputStream();
+
+
+// 读取数据方式1:  不建议使用该方式
+byte[] buf = new byte[5];
+int len;
+while((len = is.read(buf)) != -1) {
+  String str = new String(buf, 0, len);
+  System.out.print(str);
+}
+
+- 不建议方式1:
+- 因为客户端发送的文本有中文: 你好呀 我是客户端...
+- 如果我们的buf的长度是5 utf-8一个汉字是3 那么就会有汉字被拆成一半的现象发生 也就是会有乱码
+- 解决方式: 可以将buf的长度加长 但是加多长没办法确定
+- 所以我们推荐使用 ByteArrayOutputStream
+
+
+// 读取数据方式2: ByteArrayOutputStream
+ByteArrayOutputStream baos = new ByteArrayOutputStream();
+// 不用管长度的问题
+byte[] buf = new byte[5];
+int len;
+while((len = is.read(buf)) != -1) {
+  // 会将buf中的数据写入baos类中的一个数组里面 只管往里面写就可以 不够的话会自动扩
+  baos.write(buf, 0, len);
+}
+
+
+// 将里面的字节数组 转换为字符串了
+System.out.println(baos.toString());
+
+
+// 查看客户端的IP地址
+System.out.println(socket.getInetAddress().getHostAddress());
+baos.close();
+is.close();
+socket.close();
+
+// 如果不需要连接的话就关闭 如果需要一直连接就不要关闭
+ss.close();
+```
+
+- 理解下整个流程:
+- 我们有两个岛(客户端岛A 和 服务端岛B)
+- 现在A岛要将产品送往B岛进行买卖 两个岛之间我们需要用船来运输
+- 这个小船就相当于(socket) 小船里面装产品(数据)
+
+- A岛的小船需要知道要送往哪个岛的哪个港口(IP和端口号)
+- 比如B岛要指明港口(端口号) 该港口一旦接收到小船后就获取小船中的产品(数据)
+
+
+
+> TCP的网络编程 练习2
+- 客户端发送文件给服务端 服务端将文件保存在本地
+```java
+// 客户端
+@Test
+public void client() throws IOException {
+  // 创建客户端socket对象 指明服务器的地址和端口号
+  Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), 8899);
+  // 传输数据造一个字节输出流
+  OutputStream os = socket.getOutputStream();
+  // 传输文件 先获取一个输入流将文件读到内存的层面
+  FileInputStream fis = new FileInputStream("pic_safety_001.jpg");
+  byte[] buf = new byte[1024];
+  int len;
+  while ((len = fis.read(buf)) != -1) {
+    os.write(buf, 0, len);
+  }
+
+  os.close();
+  fis.close();
+  socket.close();
+}
+
+
+// 服务端
+@Test
+public void server() throws IOException {
+  // 创建服务端的socket对象 指明端口号
+  ServerSocket ss = new ServerSocket(8899);
+  Socket socket = ss.accept();
+  // 获取输入流is
+  InputStream is = socket.getInputStream();
+
+  // 将获取图片的流保存到本地中 获取输出流fos
+  FileOutputStream fos = new FileOutputStream("test.jpg");
+  byte[] buf = new byte[1024];
+  int len;
+  while ((len = is.read(buf)) != -1) {
+    fos.write(buf, 0, len);
+  }
+
+  fos.close();
+  is.close();
+  socket.close();
+}
+```
+
+
+> TCP的网络编程 练习3
+- 从客户端发送文件给服务端 服务端保存到本地 并返回"发送成功" 给客户端 客户端将信息显示在控制台上 并关闭相应的连接
+```java
+@Test
+public void client() throws IOException {
+  Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), 8899);
+  OutputStream os = socket.getOutputStream();
+  FileInputStream fis = new FileInputStream("pic_safety_001.jpg");
+  byte[] buf = new byte[1024];
+  int len;
+  while ((len = fis.read(buf)) != -1) {
+    os.write(buf, 0, len);
+  }
+  // read() 该方法是一个阻塞时的方法 我们现在是两端 也就是客户端和服务端 而read是一个阻塞的方法 也就是说我们要明确的指出数据输入或输出完成 服务端才知道客户端输出完毕 我可以接收了
+
+  // 当客户端将数据传完以后 关闭数据的输出
+  socket.shutdownOutput();
+
+  // 接收来自于服务器端的数据 并显示到控制台上
+  InputStream is = socket.getInputStream();
+  // 要想在控制台上输出服务端发送过来的数据而不出现乱码 我们还是要使用
+  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  byte[] buffer = new byte[5];
+  int len2;
+  while ((len2 = is.read(buffer)) != -1) {
+    baos.write(buffer, 0, len2);
+  }
+
+  System.out.println(baos.toString());
+
+  os.close();
+  fis.close();
+  socket.close();
+  baos.close();
+}
+
+@Test
+public void server() throws IOException {
+  ServerSocket ss = new ServerSocket(8899);
+  Socket socket = ss.accept();
+  InputStream is = socket.getInputStream();
+
+  FileOutputStream fos = new FileOutputStream("test.jpg");
+  byte[] buf = new byte[1024];
+  int len;
+  while ((len = is.read(buf)) != -1) {
+    fos.write(buf, 0, len);
+  }
+
+  // 服务器端给予客户端反馈
+  // 通过 Socket socket = ss.accept(); 返回的socket对象 调用getOutputStream()向客户端发送数据
+  OutputStream os = socket.getOutputStream();
+  os.write("你好, 照片已收到".getBytes());
+
+
+  fos.close();
+  is.close();
+  socket.close();
+  os.close();
+}
+```
+
+----------------------------
+
 ### 书签
 
 ----------------------------
