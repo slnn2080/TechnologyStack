@@ -33417,6 +33417,9 @@ dis.close();
   它的强大之处就是可以把java中的对象写入数据源中 也能把对象从数据源中还原回来
  -->
 
+- 客户的两个进程之间 浏览器和服务器之间要想传输数据 这个数据得是可序列化的
+
+
 > 序列化:   -- 保存
 - 用*ObjectOutputStream*类*保存*基本类型数据或对象的机制
 <!-- 
@@ -33431,6 +33434,7 @@ dis.close();
 
 
 > 对象的序列化机制
+
 - 序列化的过程:
 - 该机制允许把内存中的java对象转换成平台无关的二进制流 从而允许把这种二进制流持久地保存在磁盘上 或通过网络将这种二进制流传输到另一个网络节点 
 
@@ -33646,10 +33650,12 @@ public class Person implements Serializable {
 
 ----------------------------
 
-### RandomAccessFile - 随机存取文件流
+### RandomAccessFile - 任意存取文件流
 - 该类既可以作为输入流 也可以做为 输出流
+- 可读可写
 
 - 它不是继承于我们上面的4个基类流 而是*直接继承于Object类*
+
 - RandomAccessFile *实现了DataInput DataOutput接口*
 
 - 因为继承了上面的两个接口 *所以这个流既可以做为输入流 又可以作为输出流*
@@ -33725,7 +33731,7 @@ raf2.close();
 
 - 使用RandomAccessFile流进行写入操作的时候 是将目标文件的内容 从头开始进行覆盖操作
 
-- 要点:
+> 要点:
 > "xyz".getBytes() 将字符串转换为byte[]
 ```java
 // 创建一个作为写入的流
@@ -35034,6 +35040,282 @@ public void server() throws IOException {
   is.close();
   socket.close();
   os.close();
+}
+```
+
+----------------------------
+
+### UDP网络编程
+- 类 DatagramScoket 和 DatagramPacket 实现了基于UDP协议网络程序
+- UDP数据报通过数据报套接字DatagramSocket发送和接收, *系统不保证UDP数据报一定能够安全送到目的地 也不能确定什么时候可以抵达*
+<!-- 
+  它就只管发 它可以发送很多个DatagramPacket数据包(报) 
+  DatagramPacket里面封装了数据
+ -->
+
+- DatagramPacket对象封装了UDP数据报 在数据报中包含了发送端的IP地址和端口号以及接收端的IP地址和端口号
+
+- UDP协议中每个数据报都给出了完整的地址信息 因此无须建立发送方和接收方的连接如同发快递包裹一样
+
+- 在UDP网络编程中的两个角色 习惯成为发送端和接收端
+
+
+> 发送方的逻辑
+> DatagramScoket实例化 socket对象
+> DatagramSocket socket = new DatagramSocket()
+- 我们调用空参的构造器 实例化socket对象
+<!-- 
+  因为我们不会把从哪来的 目的地 数据放到DatagramSocket里面 
+  我们主要都放在 DatagramPacket数据报 里面
+ -->
+
+
+> DatagramPacket实例化 packet对象
+- 用于存储数据报 指明接收方的IP地址和端口号
+
+> DatagramPacket packet = new DatagramPacket(byte[] buf, int offset, int len, InetAddress address, int port)
+- 参数:
+- byte[] buf, int offset, int len 可以指明数据是不是要都发 或者 指明发送哪一段的数据
+
+```java
+// 封装数据报
+String str = "我是UDP方式发送的数据";  // 变成字节数组
+byte[] data = str.getBytes();
+InetAddress inet = InetAddress.getByName("localhost");
+
+DatagramPacket packet = new DatagramPacket(data,0,data.length,inet,9090);
+```
+
+> socket对象.send(packet数据报)
+- 用来发送数据报
+```java
+socket.send(packet);
+```
+
+
+> 接收端
+- 它用的也是DatagramSocket实例化socket对象 但是要在构造器中指明接收端的端口号
+
+> DatagramSocket socket = new DatagramSocket(int port)
+- 接收端实例化socket对象的时候要指明端口号
+
+> DatagramPacket packet = new DatagramPacket(byte[] buf, int offset, int lenth);
+- 接收端也需要实例化packet对象 用于指明接收的数据放在哪里
+
+
+> socket.receive(packet数据报)
+- 该方法用来接收数据
+
+> packet.getData()
+- 用于获取封装在packet数据报中的数据
+
+> packet.getLength()
+- 用于获取封装在packet数据报中的数据的长度
+
+
+> 代码部分
+- 发送方:
+```java
+@Test
+public void sender() throws IOException {
+  // 使用 DatagramSocket 实例化 socket 我们使用空参的构造器就可以 
+  // 因为我们不会把从哪来的 目的地 数据放到DatagramSocket里面 我们主要都放在DatagramPacket数据报里面
+  DatagramSocket socket = new DatagramSocket();
+
+
+  // 实例化packet 参数 byte[] buf, int offset, int len, InetAddress address, int port
+  // 封装数据报
+  String str = "我是UDP方式发送的数据";  // 变成字节数组
+  byte[] data = str.getBytes();
+  InetAddress inet = InetAddress.getByName("localhost");
+  DatagramPacket packet = new DatagramPacket(data,0,data.length,inet,9090);
+
+
+  // 通过socket对象发送数据报
+  socket.send(packet);
+
+  // 关闭socket
+  socket.close();
+}
+```
+
+
+- 接收端:
+```java
+@Test
+public void receiver() throws IOException {
+  DatagramSocket socket = new DatagramSocket(9090);
+
+  // 创建接收数据的数据报
+  byte[] buf = new byte[100]; // 要考虑容量的问题 造小了 byte[]接收不完
+  // 把数据都封装在packet里面
+  DatagramPacket packet = new DatagramPacket(buf,0,buf.length);
+  // 接收数据到packet里面
+  socket.receive(packet);
+
+  // 我们将二进制数据输出到控制台
+  // 调用packet中的方法获取数据
+  String str = new String(packet.getData(), 0, packet.getLength());
+
+  // 输出到控制台
+  System.out.println(str);
+
+  // 关闭资源
+  socket.close(); 
+}
+```
+
+- 注意:
+- 这个部分的异常处理还是需要使用 try catch finally
+
+----------------------------
+
+### URL类的理解与实例化
+- URL: 统一资源定位符 它表示internet上某一个资源的地址
+
+- 它是一种具体的URI 即URL可以用来标识一个资源 而且还指明了如何locate这个资源
+
+- 通过URL我们可以访问internet上的各种网络资源
+- 比如 最常见的www, ftp站点 浏览器通过解析给定的URL可以在网络上查找相应的文件或其他资源
+
+> URL的基本结构由5部分组成
+
+  <传输协议>://<主机名>:<端口号>/<文件名>#片段名?参数列表
+
+- 例如:
+- http:192.168.1.100:8080/helloworld/index.jsp#a?username=shkstart
+
+- #片段名: 即锚点, 例如看小说 直接定位到张杰
+- 参数列表格式:
+    参数名=参数值&参数名=参数值
+
+
+> URL的实例化
+- java.net.URL
+
+> URL url = new URL(String url);
+- 将给定的url解读成资源 方便我们通过各种方法调用
+- 一个URL对象生成后 其属性是不能被改变的 但是可以通过它给定的方法来获取这些属性
+
+```java
+URL url = new URL("http://www.baidu.com?username=Sam");
+```
+
+
+> url对象的常用方法
+> url.getProtocol()
+- 获取该URL的协议名
+
+- 返回值:
+- String
+
+
+> url.getHost()
+- 获取该URL的主机名
+
+- 返回值:
+- String
+
+
+> url.getPort()
+- 获取该URL的端口号
+
+- 返回值:
+- String
+
+
+> url.getPath()
+- 获取该URL的文件路径
+
+- 返回值:
+- String
+
+
+> url.getFile()
+- 获取该URL的文件名
+
+- 返回值:
+- String
+
+
+> url.getQuery()
+- 获取该URL的查询明
+
+- 返回值:
+- String
+
+
+- http://www.baidu.com?username=Sam
+```java
+System.out.println(url.getProtocol());
+// http
+System.out.println(url.getHost());
+System.out.println(url.getPort());
+System.out.println(url.getPath());
+System.out.println(url.getFile());
+// 端口号开始后面的都算 ?username=Sam
+System.out.println(url.getQuery());
+// ?后面的部分 username=Sam
+```
+
+----------------------------
+
+### URL网络编程实现Tomcat服务端数据下载
+- 这部分内容不涉及Tomcat服务器的相关知识 我们假定服务器已经开启
+- 然后我们要将服务器中的资源下载下来
+- http://localhost:8080/examples/test.jpg
+
+
+> url.openConnection();
+- 获取与服务器连接对象
+<!-- 
+  获取服务器的连接 我们获取的其实是HttpURLConnection 它是urlConnection的子类 所以我们通过强转得到HttpURLConnection类型的对象
+
+  URLConnection urlConnection = url.openConnection();
+ -->
+
+- 返回值:
+- urlConnection类
+
+```java
+HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+```
+
+> urlConnection.connect();
+- 获取与服务器的连接
+
+> urlConnection.disconnect();
+- 关闭与服务器的连接
+
+
+> 代码部分
+```java
+// 传入我们要下载的资源url 该资源在Tomcat服务器上
+  URL url = new URL("http://localhost:8080/examples/test.jpg");
+
+  // 下载服务端中对应的test.jpg图片资源 我们还是以流的方式来操作
+  // 获取服务器的连接 我们获取的其实是HttpURLConnection 它是urlConnection
+  // URLConnection urlConnection = url.openConnection();
+  HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+  // 调用connect()获取连接
+  urlConnection.connect();
+
+  // 获取输入流 将服务器的资源读到内存中
+  InputStream is = urlConnection.getInputStream();
+  // 将文件保存到本地
+  FileOutputStream fos = new FileOutputStream("本地文件,jpg");
+  byte[] buf = new byte[1024];
+  int len;
+  while ((len = is.read(buf)) != -1) {
+    fos.write(buf, 0, len);
+  }
+
+  // 关闭资源
+  is.close();
+  fos.close();
+  // 断开连接
+  urlConnection.disconnect();
 }
 ```
 
