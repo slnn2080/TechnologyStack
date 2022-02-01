@@ -239,7 +239,7 @@ history.replaceState方法的参数同上，区别说它修改浏览器历史中
     })
  -->
 
-- location.search       返回参数
+> location.search       返回参数
 
 - location.host         返回主机 域名
 - location.port         返回端口号 如果未写返回空字符串
@@ -321,23 +321,55 @@ history.replaceState方法的参数同上，区别说它修改浏览器历史中
     注意 表单里 有name才能提交
  -->
 
-<!-- 当前页面为login.html
-    <form action='index.html'>
-        <!-- 表单有name属性才能提交 >
-        用户名:<input type='text' name='uname'> <input type='submit' value='登录'>
-    </form>
+```html
+// 当前页面为login.html
+<form action='index.html'>
+    <!-- 表单有name属性才能提交 -->
+    用户名:<input type='text' name='uname'> <input type='submit' value='登录'>
+</form>
+```
+```js
+// 这是在index.html里面的操作 来获取index.html传递过来的参数
+console.log(location.search);   // ?uname=ANDY
 
-    // 这是在index.html里面的操作 来获取index.html传递过来的参数
-    console.log(location.search);   // ?uname=ANDY
+// 只写一个参数代表 从1开始截取到最后
+let str = location.search.substr(1); // uname=ANDY
 
-    // 只写一个参数代表 从1开始截取到最后
-    let str = location.search.substr(1); // uname=ANDY
+// str.split() 会把一个字符串分割为数组
+let arr = str.split('=');           // ['uname', 'ANDY'];
 
-    // str.split() 会把一个字符串分割为数组
-    let arr = str.split('=');           // ['uname', 'ANDY'];
+let div = document.querySelector('div');
+div.innerHTML = arr[1];
+```
 
-    let div = document.querySelector('div');
-    div.innerHTML = arr[1];
+
+> 将location.search转换为对象
+- 自己定义的方法:
+```js
+let query = "?uname=ANDY&age=18"
+
+function getQuery(query) {
+  let res = query.substr(1).split("&").map(item => {
+    return item.split("=")
+  })
+  
+  // 将二维数组转换为对象
+  return Object.fromEntries(res)
+}
+
+let res = getQuery(query)
+console.log(res);
+```
+
+
+> 将一维数组转换为二维数组 然后将二维数组转换为对象
+- 一维数组 -> 二维数组
+<!-- 
+    res为一维数组 利用map将其转换为2维
+    let map = new Map([res])
+
+    // 将二维数组转换为对象
+    return Object.fromEntries(map)
  -->
 
 
