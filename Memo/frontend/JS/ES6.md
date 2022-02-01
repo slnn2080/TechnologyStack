@@ -20,25 +20,27 @@
 
 ### let
 - let用来声明变量, 作用和var一样
+```js
 let a, b, c;
 let e = 100, h = [], g = 'abc';
+```
 
 ### 特性:
 > 变量不能重复声明, 防止变量污染
-<!-- 
+```js
     let a = 1;
     let a = 2;
- -->
+```
 
 > 块级作用域(全局, 函数, eval, 块级作用域)
 - 代码块还包括:   if  else  while  for 在这里let声明的变量也是块级作用域
-<!-- 
+```js 
     {
         变量只在代码块内部有效, 出去无效
         let a = 10;
     }
     console.log(a);     //a未定义   报错
- -->
+```
 
 > 不存在变量提升
 > 使用let声明时不影响作用域链
@@ -49,13 +51,14 @@ let e = 100, h = [], g = 'abc';
 - 之前我们使用var进行for循环绑定监听, 更改样式内部使用的都是this, 因为使用items[i]会报错, 因为for循环跑完后i的值为3
 
 - 因为使用的是var, 存在这变量提升, var是在全局里保存的, 每次var的值会被上一次的结果覆盖掉
-<!-- 
+```js 
     for(var i=0; i<items.length; i++){
         items[i].onclick = function(){
             // this.sytle.background = 'pink';
             items[i].style.background = 'pink';
         };
     }
+
     {
         var i = 0;
     }
@@ -71,13 +74,13 @@ let e = 100, h = [], g = 'abc';
     }
 
     // 最终全局只有一个i的值
---> 
+``` 
 
 -----
 
 - 使用let的时候, 因为是块级作用域, 点击items时回调函数中没有i 会向上一级找i, 找到了i=0, 相当于在let的各自的作用域下运行, 所以它们会使用当前的作用域内的let值
 
-<!--
+```js
     for(let i=0; i<items.length; i++){
         items[i].onclick = function(){
             // this.sytle.background = 'pink';
@@ -105,7 +108,7 @@ let e = 100, h = [], g = 'abc';
             items[i].style.background = 'pink';
         };
     }
- -->
+```
 
 -------------------------------
 
@@ -121,27 +124,28 @@ let e = 100, h = [], g = 'abc';
 - 一定要赋初始值
 <!-- const a;    // 报错 -->
 
-- 一般常量使用大写
+- 1. 一般常量使用大写
 
-- 常量的值不能修改
+- 2. 常量的值不能修改
 
-- 它也是块级作用域
-<!-- 
+- 3. 它也是块级作用域
+```js 
     {
         const PLAYER = 'uzi';
     }
     console.log(PLAYER);    // 外部输出会报错
- -->
+```
 
-- 对于数组和对象的元素修改, 不算做对常量的修改, 不会报错
-<!-- 
+- 对于*数组和对象的元素修改*, 不算做对常量的修改, 不会报错
+```js
     const TEAM = ['uzi', 'ming'];
     TEAM.push('Meiko');
 
     // 不会报错, 因为常量所指向的地址没有发生改变
- -->
+```
 
-> 以后声明数组 和 对象的时候用const声明比较好, 避免误操作修改了数组 和 对象的地址值, 造成一些问题
+**注意:**
+- 以后声明数组 和 对象的时候用const声明比较好, 避免误操作修改了数组 和 对象的地址值, 造成一些问题
 
 -------------------------------
 
@@ -151,8 +155,8 @@ let e = 100, h = [], g = 'abc';
 - 右边必须是个东西 左边是数组 右边也要是数组, 左边是对象 右边也要是对象
 - 声明和赋值不能分开(必须在一句话里面)
 
-- 左边{变量名} 只能是目标的属性名
-- 左边{变量名} 的顺序没有要求
+- 左边: {变量名} 只能是目标的属性名
+- 左边: {变量名} 的顺序没有要求
 
 - 所谓的解构赋值 是 解构 + 赋默认值
 
@@ -229,26 +233,25 @@ let e = 100, h = [], g = 'abc';
 
 > 成分复杂的数组解构
 - 要点是一一对应的关系
-<!-- 
+```js 
     [{a:12, b:5}, [12,5,8], 'cs', 8]
 
-    我们可以这样
-
+    // 我们可以这样
     let [{a, b}, [n1, n2, n3], str, num] = [{a:12, b:5}, [12,5,8], 'cs', 8]
     console.log(a,b,n1,n2,n3,str,num)
 
-    还可以这样 只要是结构一样就可以
+    // 还可以这样 只要是结构一样就可以
     let right = [{a:12, b:5}, [12,5,8], 'cs', 8]
     console.log(a,b,n1,n2,n3,str,num);
 
     let [json, arr, num, str] = right;
- -->
+```
 
 
 > 对象单独解构:
 - 声明的变量名 和 目标对象中变量名一致, 就能提取出对应的元素
 - 如果只想获取部分属性, 只写这个属性名就可以
-<!-- 
+```js 
     const OBJ = {
         name:'sam',
         age:35,
@@ -261,7 +264,7 @@ let e = 100, h = [], g = 'abc';
     let {sayName} = OBJ;
     console.log(sayName);
     sayName();
- -->
+```
 
 
 > 对象解构时的默认值
@@ -281,7 +284,7 @@ let e = 100, h = [], g = 'abc';
 > 函数参数的解构
 - 当实参的类型是一个对象的时候, 我们可以使用解构的方式定义形参
 - 函数中的形参也可以用解构的方式的书写, 当想使用对象中的数据的时候, 可以使用对象解构的方式传入形参的位置
-<!-- 
+```js 
     let obj = {
         name: 'nodejs',
         age: 11,
@@ -289,44 +292,42 @@ let e = 100, h = [], g = 'abc';
     };
 
     function fn({name, age}) {
-        通过形参的结构 我们可以直接拿到变量名 不用再
-        obj.name, obj.age 了
+        // 通过形参的结构 我们可以直接拿到变量名 不用再 obj.name, obj.age 了
 
-        我们可以直接使用 name age 了
+        // 我们可以直接使用 name age 了
         console.log(name, age);
     }
 
-    fn(obj);
-    调用这个函数的时候, 传进来的对象必须有name age属性, 如果没有值为undefined
- -->
+    // fn(obj);
+```
+- 调用这个函数的时候, 传进来的对象必须有name age属性, 如果没有值为undefined
+
 
 - 传入空对象不会报错
-<!-- 
-    当调用fn() 函数时, 如果不传递参数 相当于传递了null进去 结果会报错
-    我们可以传入fn({})空对象 相当于传递了undefined 不会报错
- -->
+- 当调用fn() 函数时, 如果*不传递参数 相当于传递了null*进去 结果会*报错* 我们可以*传入fn({})空对象* 相当于传递了undefined *不会报错*
+
 
 - 函数参数中解构的初始值
-<!-- 
+```js
     function fn({name, age}) {
         console.log(name, age);
     }
 
     fn();
-    如果调用参数时没有传递实参 这种情况下会报错
+    // 如果调用参数时没有传递实参 这种情况下会报错
 
 
     function fn({name, age}={}) {
         console.log(name, age);
     }
-    我们可以通过给解构形参赋初始值的方式 传入默认值{}
+    // 我们可以通过给解构形参赋初始值的方式 传入默认值{}
 
 
     function fn({name='sam', age=1}={}) {
         console.log(name, age);
     }
-    我们还可以给形参中的name和age赋初始值
- -->
+    // 我们还可以给形参中的name和age赋初始值
+```
 
 -------------------------------
 
@@ -337,6 +338,7 @@ let e = 100, h = [], g = 'abc';
 > 新增的方法：
 > 字符串.includes("字符串", [从哪个位置开始查找])
 - 返回布尔值，表示是否找到了参数字符串
+
 
 > 字符串.startsWith("字符串", [从哪个位置开始查找])
 - 返回布尔值，看看参数字符串是否在原字符串的头部
@@ -360,6 +362,9 @@ let e = 100, h = [], g = 'abc';
 
 - 提示字符串格式。
 - '12'.padStart(10, 'YYYY-MM-DD')
+
+- 返回值:
+- 新的str
 
 
 > 字符串.trimStart()
@@ -391,7 +396,7 @@ let e = 100, h = [], g = 'abc';
   $n：匹配成功的第n组内容，n是从1开始的自然数。这个参数生效的前提是，第一个参数必须是正则表达式。
   $$：指代美元符号$。
 
-<!--
+```js
   // $& 表示匹配的字符串，即`b`本身
   // 所以返回结果与原字符串一致
   'abbc'.replaceAll('b', '$&')    // 'abbc'
@@ -416,7 +421,7 @@ let e = 100, h = [], g = 'abc';
   // $$ 指代 $
   'abc'.replaceAll('b', '$$')
   // 'a$c'
--->
+```
 
 -------------------------------
 
@@ -433,28 +438,31 @@ let e = 100, h = [], g = 'abc';
 - 对数组里每一个元素进行变化的时候就可以使用map函数
 - 映射
 
-- map函数 会取出数组中的每一个元素 来进行回调 将return的结果给一个新数组, 所以要创建一个新数组用来接收
+- map函数 会取出数组中的每一个元素 来进行回调 *将return的结果给一个新数组, 所以要创建一个新数组用来接收*
 
 > 小例子:
 - 需求: 让上面的数组里面元素 变成2倍
+```js
     let arr = [12,5,8];
-<!-- 
-    上面每一个数组里面的东西都会在function里面走一遭 
--->
+    // 上面每一个数组里面的东西都会在function里面走一遭 
     let result = arr.map(function(value, index){
+
+        // map里的return是返回处理后的值 将处理后的值给新数组中的每一个元素位
         return value * 2
     })
     console.log(result)
+```
 
 > 小例子2:
-
+```js
     let arr = [12,90,8];
 
     let result = arr.map(value=>value>60 ?'及格':'不及格')
     console.log(result)
 
-    结果:
+    // 结果:
     result = ["不及格", "及格", "不及格"]
+```
 
 
 > reduce()
@@ -462,7 +470,7 @@ let e = 100, h = [], g = 'abc';
 - 一堆出来一个, 算个总数 比如两张银行卡 一张10 一张20 一共多少
 - 对数组中所有的内容进行汇总的 要么全部相乘 要么全部相加
 
-> 对于数组里面是对象的结构来说, 它遍历出来就是对象, reduce遍历的跟for of一样都是属性值
+- 对于数组里面是对象的结构来说, 它遍历出来就是对象, reduce遍历的跟for of一样都是属性值
 
 - reduce又叫做归纳函数, 累加器函数
 
@@ -477,10 +485,10 @@ let e = 100, h = [], g = 'abc';
 
 > 没有初始值的情况
 - reduce会拿数组中的第一个元素作为初始值, 从第二个元素开始循环
-<!-- 
-  [0,1,2,3,4,5].reduce((pre, item, index, arr) => {}, 没有初始值的情况)
-  pre是 0
-  从1开始循环
+```js 
+  [0,1,2,3,4,5].reduce(
+      (pre, item, index, arr) => {}, 没有初始值的情况)
+  // pre是 0 从1开始循环
 
   let arr = [0,1,2,3,4]
   let res = arr.reduce((pre, item) => {
@@ -488,7 +496,7 @@ let e = 100, h = [], g = 'abc';
   })
   console.log(res)
 
-  没有初始值 那pre就会拿数组的第一个元素作为pre 从第二个元素开始循环, 也就是pre为0, 第一轮从1开始循环
+  // 没有初始值 那pre就会拿数组的第一个元素作为pre 从第二个元素开始循环, 也就是pre为0, 第一轮从1开始循环
 
   0 + 1
   1 + 2
@@ -496,10 +504,10 @@ let e = 100, h = [], g = 'abc';
   6 + 4
   10
 
-  数组里面的元素依次相加 求和
- -->
+  // 数组里面的元素依次相加 求和
+```
 
-- reduce需要累加一个值出来 也就是说return一个值出来 不像其他的方法需要return一个true或者false, 返回的这个值作为下一个循环的累加器的结果
+- *reduce需要累加一个值出来 也就是说return一个值出来* 不像其他的方法需要return一个true或者false, 返回的这个值作为下一个循环的累加器的结果
 
 - 累加器的结果会覆盖上一次累加器的结果
 
@@ -508,14 +516,14 @@ let e = 100, h = [], g = 'abc';
 - 这个初始值, 会作为pre的值
 - 如果指定了初始值, 那么第一轮循环会从数组中第一个元素开始
 
-<!-- 
+```js 
   let arr = [0,1,2,3,4]
   let res = arr.reduce((pre, item) => {
       return pre + item
   }, 10)
   console.log(res)
 
-  因为有初始值 pre为10, 第一轮的循环从数组的第一个元素0开始
+  // 因为有初始值 pre为10, 第一轮的循环从数组的第一个元素0开始
   
   10 + 0
   10 + 1
@@ -524,8 +532,8 @@ let e = 100, h = [], g = 'abc';
   16 + 4
   20
 
-  初始值 + 数组中的每一个元素相加的结果
- -->
+  // 初始值 + 数组中的每一个元素相加的结果
+```
 
 
 > reduce的核心功能
@@ -533,13 +541,13 @@ let e = 100, h = [], g = 'abc';
 
 - 案例:
 - [{x:1}, {x:2}, {x:3}] 这是一个数组, 我们希望x的值进行累加
-<!-- 
-  如果是以前的我们需要进行for循环 拿到每一项x的值
+```js 
+  // 如果是以前的我们需要进行for循环 拿到每一项x的值
   let x = 0
   sum.forEach((item) => {
     x += item.x
   })
-  这样不好的地方在于 x是一个临时变量 参与完成后我们根本不需要它
+  // 这样不好的地方在于 x是一个临时变量 参与完成后我们根本不需要它
 
 
   // reduce
@@ -550,15 +558,15 @@ let e = 100, h = [], g = 'abc';
 
   console.log(sum)
 
-  初始值 + 对象中每一个x的值
- -->
+  // 初始值 + 对象中每一个x的值
+```
 
 
 - 案例:
 - 将data中每一个对象的值, 放入到一个新数组中
 - 要点:
 - 初始值可以设置[], {}, 代表把pre设置成一个数组或者对象类型 
-<!-- 
+```js 
   let data = [
     { course: 'cc' },
     { course: 'dc' }
@@ -573,14 +581,13 @@ let e = 100, h = [], g = 'abc';
   }, [])
 
   console.log(newArr)
- -->
+```
 
 
 - 案例:
 - 将二维数组转换为一维数组 [[0, 1],[2, 3],[4, 5]]
-<!-- 
 
-  先复习一波 数组 concat方法 可以拼接数组
+- 先复习一波 数组 concat方法 可以拼接数组
   1. 可以追加元素到数组中
   let arr= [1,2]
   arr = arr.concat(3, 4)        // [1, 2, 3, 4]
@@ -591,14 +598,9 @@ let e = 100, h = [], g = 'abc';
   let res = arr.concat(brr)   // [1, 2, 3, 4]
 
 
-
+```js
   // 使用reduce
-
-  pre是一个数组, 里面使用的concat的方法
-  第一次pre里面是1 2
-  第二次往pre里面拼接了3 4
-
-
+  // pre是一个数组, 里面使用的concat的方法 第一次pre里面是1 2 第二次往pre里面拼接了3 4
   let arr = [[0, 1],[2, 3],[4, 5]]
 
   arr = arr.reduce((pre, item) => {
@@ -620,12 +622,12 @@ let e = 100, h = [], g = 'abc';
       newArr.push(...item)
   })
   console.log(newArr)
- -->
+```
 
 
 - 案例:
 - 计算数组总每个元素出现的次数
-<!-- 
+```js 
   let names = ['sam', 'erin', 'nn', 'sam']
   let res = names.reduce((pre, item) => {
 
@@ -638,12 +640,12 @@ let e = 100, h = [], g = 'abc';
 
     return pre
   }, {})
- -->
+```
 
 
 - 案例:
 - 数组去重
-<!-- 
+```js
   let arr = ['a', 'b', 'a', 'b', 'c', 'e', 'e', 'c', 'd', 'd', 'd', 'd']
 
   let res = arr.reduce((pre, item) => {
@@ -655,16 +657,16 @@ let e = 100, h = [], g = 'abc';
   }, [])
 
   console.log(res)
- -->
+```
 
 
 - 案例:
 - [{value: '1,2'}, {value: '3'}, {value: '4'}] 将里面的value对应的值提取成一个数组
 
 - 初始值我们还是给pre一个[], 这样能确定它的类型
-<!-- 
+```js 
     // 先复习一波 split()
-    注意: 即使不符合split()中的拆分条件, 也可以拆 拆成前面的
+    // 注意: 即使不符合split()中的拆分条件, 也可以拆 拆成前面的
 
     let str = '3'
     let test = str.split(',')
@@ -689,7 +691,7 @@ let e = 100, h = [], g = 'abc';
     }, [])
 
     console.log(res)
- -->
+```
 
 -------
 
@@ -702,7 +704,7 @@ let e = 100, h = [], g = 'abc';
 - 如果为false 函数内部会过滤掉这次的value
 
 - 每遍历一次数字就会执行一次这个回调函数
-<!-- 
+```js 
     let arr = [12,5,8,99,27,36,75];
     let result = arr.filter(function(value){
         if(value % 3 == 0) {
@@ -711,7 +713,7 @@ let e = 100, h = [], g = 'abc';
     })
     console.log(result);
 
-    注意 value % 3 == 0 这个部分本身就是一个布尔值所以可以这样写
+    // 注意 value % 3 == 0 这个部分本身就是一个布尔值所以可以这样写
 
     let arr = [12,5,8,99,27,36,75];
     let result = arr.filter(function(value){
@@ -730,7 +732,7 @@ let e = 100, h = [], g = 'abc';
     
     let result = arr.filter(json => json.price >= 10000);
     console.log(result);
- -->
+```
 
 
 > forEach()
@@ -745,7 +747,7 @@ let e = 100, h = [], g = 'abc';
 - 以....开头
 - 返回的是布尔值
 
-<!-- 
+```js
     // 判断下字符串是否以xx开头
     let str = 'adsadfasga';
 
@@ -759,35 +761,33 @@ let e = 100, h = [], g = 'abc';
     } else if (str.startsWith('https://')) {
         alert('加密网址');
     }
- -->
+```
 
 > endWith
 - 以....结尾
 - 返回的是布尔值
-<!-- 
+```js
     // 判断文件类型
     if(str.endWith('.txt')) {
         alert('这是一个文本文件');
     }
-
- -->
+```
 
 -------------------------------
 
-### 模板字符串 [``]
+### 模板字符串 ``
 let str = `我也是一个字符串`;
 
 > 内容中可以直接出现换行符
 - '' ""内部是不允许出现换行符的
-<!-- 
+```js 
     let str = '<ul><li>沈腾</li><li>马冬梅</li></ul>' 
--->
-<!-- 
+ 
     let str = `<ul>
                 <li>沈腾</li>
                 <li>马冬梅</li>
                </ul>`
--->
+```
 
 
 > 变量拼接 使用 `${变量名}另一个变量的内容` 
@@ -812,7 +812,7 @@ let prevstr = '你是我的'
 - 一般面向对象的语言里面都有雷, 实例对象这些概念, 我们通过实例化类, 得到实例对象
 
 - 我们先来看看老版的面向对象的写法 和 继承
-<!-- 
+```js 
     function Father(name, age) {
         this.name = name;
         this.age = age;
@@ -844,7 +844,7 @@ let prevstr = '你是我的'
 
     // 让子类的constructor指回自己
     Son.prototype.constructor = Son
- -->
+```
 
 
 > ES6中定义一个类 使用 class 关键字
@@ -860,12 +860,12 @@ let prevstr = '你是我的'
 
 > ES6中的静态属性 在类的外面定义
 
-> super - 超类 = 父类
+> super and 超类 = 父类
 - 我们平时叫父类和子类 更专业点的叫法是超类
 - 继承父类的方法,相当于 call()
 
 > 定义一个类
-<!-- 
+```js
     class Father {
 
         // 属性放在 constructor 构造器 中 实例属性
@@ -893,7 +893,7 @@ let prevstr = '你是我的'
 
     // 调用静态方法
     Father.like();
- -->
+```
 
 > 上面的要点:
 - 1. constructor什么时候执行? 实例化对象的时候自动执行, 只要有new了 就会执行constructor里面的代码 new多少次就会执行多少次(创建多少次实例对象就会执行多少次constructor)
@@ -911,7 +911,7 @@ let prevstr = '你是我的'
 
 
 > 类的继承
-<!-- 
+```js 
     class Father {
         constructor(name) {
             this.name = name;
@@ -954,7 +954,7 @@ let prevstr = '你是我的'
 
     // 通过子类名调用父类中的静态方法
     Son.showAge();
- -->
+```
 
 > 上面的要点:
 - 1. 父类的静态方法也可通过 子类名.父类中的静态方法名() 调用
@@ -973,7 +973,7 @@ let prevstr = '你是我的'
 - 4. 子类中的this, 在调用super()之后才起作用, 子类的对象是在super之后才起作用在super()方法之前使用this会报错
 
 > 再写一个继承的例子
-<!-- 
+```js 
     class User {
         constructor(name, pass) {
             this.name = name;
@@ -1006,7 +1006,7 @@ let prevstr = '你是我的'
             alert(this.name);
         }
     }
- -->
+```
 
 -------------------------------
 
@@ -1027,8 +1027,7 @@ let prevstr = '你是我的'
  -->
 
 > 把json变成字符串 
-
-    JSON.stringify(json);
+> JSON.stringify(json);
 
 
 > encodeURIComponent(uri)
@@ -1041,7 +1040,7 @@ let prevstr = '你是我的'
 
     
 
-<!-- 
+```js 
     let json = {a:12, b:5}
 
     // 我想把json拼到里面去
@@ -1054,22 +1053,21 @@ let prevstr = '你是我的'
 
     // 但是上面还是没办法用 所以我们需要这样
     let str = 'http://it.kaikeba.com/path/user?data=' + encodeURIComponent(JSON.stringify(json));
- -->
+```
 
 
 > 把字符串变为json
-
-    JSON.parse()
-<!-- 
+> JSON.parse()
+```js 
     let str = '{"a":12, "b":5, "c":"abc"}'
     let json = JSON.parse(str);
- -->
+```
 
 
 
 > JSON 或者叫 对象的简写
 - 名字一样的话可以简写, 当名字和值一样的时候 我们可以只写一个
-<!-- 
+```js 
     let a = 12;
     let b = 5;
 
@@ -1078,10 +1076,10 @@ let prevstr = '你是我的'
 
     // json的简写
     let json = {a, b};
- -->
+```
 
 - 方法可以简写, 省略function
-<!-- 
+```js 
     let json = {
         a:12,
         show: function() {
@@ -1096,7 +1094,7 @@ let prevstr = '你是我的'
             alert(this.a);
         }
     }
- -->
+```
 
 -------------------------------
 
@@ -1134,11 +1132,13 @@ const SCHOOL = {                const SCHOOL = {
     let fn = function(){  };
  -->
 > 箭头函数的书写格式:
-> let fn = (a, b) => {  }     使用箭头链接形参 和 函数体  省略了function
+> let fn = (a, b) => {  }     
+- 使用箭头链接形参 和 函数体  省略了function
+
 
 > 箭头函数的简写:
->   > 省略小括号, 当形参有且只有一个的时候 可以省略
-<!--
+- 省略小括号, 当形参有且只有一个的时候 可以省略
+```js
     let add = (n) => {      
         return n + n;
     }
@@ -1146,25 +1146,27 @@ const SCHOOL = {                const SCHOOL = {
     简写成:
     
     let add = n => {} 
--->
->   > 省略花括号, 当代码体只有一条语句的时候, 可以省略花括号, 此时return也必须省略, 而且语句的执行结果就是函数的返回值
-<!-- 
+```
+
+- 省略花括号, 当代码体只有一条语句的时候, 可以省略花括号, 此时return也必须省略, 而且语句的执行结果就是函数的返回值
+```js 
     let pow = (n)=>{
         return n*n;
     }
     console.log(pow(9));
 
-    简写成:
+    // 简写成:
     
     let pow = n => n * n
- -->
-<!-- 
+
+---
+
     const arr = [1, 6, 9, 10, 100, 22];
     const result = arr.filter(item => item % 2 === 0)
     console.log(result);
 
-    一个参数可以省略小括号, 里面只有一条语句, 省略花括号和return, 函数体直接就是返回值
- -->
+   //  一个参数可以省略小括号, 里面只有一条语句, 省略花括号和return, 函数体直接就是返回值
+```
 
 
 ### 箭头函数中的this
@@ -1174,10 +1176,11 @@ const SCHOOL = {                const SCHOOL = {
 - 下面的例子中, 如果在setTimeout中输出 this.name 会出现 this丢失(输出空白或者undefined)的情况
 - 原因就是 setTimeout中的function有自己的作用域, 它里面的this找不到
 - 以前的解决方法就是把外层的this保存 然后里面使用_this
-<!-- 
+```js 
     function People(name, age) {
         this.name = name;
         this.age = age;
+
         this.say = function() {
             console.log(this.name);
             // 保存this的指向
@@ -1185,31 +1188,32 @@ const SCHOOL = {                const SCHOOL = {
 
             setTimeout(function() {
                 //function有自己的作用域, 这个作用和上面的say的function是两个不同的作用域
-
                 console.log(_this.name);
-                输出是空白 有人说this的指向丢失    
+                // 输出是空白 有人说this的指向丢失    
             }, 1000)
         }
     };
 
     let p1 = new People('sam', 18);
     p1.say();
- -->
+```
+
+- *function有自己的作用域* 这个作用和上面的say的function是两个不同的作用域
 
 - 如果上面使用箭头函数也就可以办到的, 因为箭头函数没有自己的作用域, 和外层的一样
-<!-- 
+```js
     this.say = function() {
         setTimeout(() => {
             console.log(this.name)  这里是能正常输出的
         })
     }
- -->
+```
 
 
 > 理解2:
 - this是静态的, this始终指向函数声明时所在作用域下的this的值, this是不会变的
 - 和上面的一样
-<!-- 
+```js 
     window.name = '我是全局中的name';
 
     const SCHOOL = {
@@ -1238,10 +1242,10 @@ const SCHOOL = {                const SCHOOL = {
     // call方法调用
     getName.call(SCHOOL);   // 我是对象中的name
     getName2.call(SCHOOL);  // 我是全局中的name 
--->
+```
 
 > ↓ 这里的this指向的也是div, 因为它是在 'click' function(){}里声明
-<!-- 
+```js 
     let box = document.getElementById('ad');
     box.addEventListener('click', function(){
 
@@ -1255,39 +1259,43 @@ const SCHOOL = {                const SCHOOL = {
             this.style.background = 'pink';   
         }, 2000);
     });
- -->
+```
 
 > 不能作为构造实例化对象
-<!-- 
-    let Person =  (name, age)=>{
+```js 
+    let Person =  (name, age) => {
         this.name = name;
         this.age = age;
     };
 
     let me = new Person('xiao', 30);     // 报错
- -->
+```
 
 > 箭头函数里不能使用arguments变量
 
-### ↑ 箭头函数适合与this无关的回调, 定时器, 数组的方法回调, 不适合与this有关的回调, 比如dom元素的事件回调, 对象的方法
+**注意:**
+-  ↑ 箭头函数适合与this无关的回调, 定时器, 数组的方法回调, 不适合与this有关的回调, 比如dom元素的事件回调, 对象的方法
 
 
 > 箭头函数不适合对象方法
+```js
 {
     name: 'sam',
     getName:function(){
         this.name
-    }                       这时候this指向的是 sam
+    }                       // 这时候this指向的是 sam
 }
 {
     name: 'sam',
     getName:()=>{
         this.name
-    }                       这时候this指向的是 外层 this, 与我们的意思就有偏差了
+    }                       
+    // 这时候this指向的是 外层 this, 与我们的意思就有偏差了
 }
+```
 
 
-### 箭头函数的使用场景
+> 箭头函数的使用场景
 - 当我们想把函数作为参数传递到另一个函数里面去的时候 用函数最多的
 <!-- 
     setTimeout(function() {}, 100)
@@ -1298,32 +1306,32 @@ const SCHOOL = {                const SCHOOL = {
 
 ### ES6中 函数 形参的初始值
 > 具有默认值的参数, 一般位置要靠后
-<!-- 
+```js 
     function add(a, b, c){
         return a+b+c;
     }
     let result = add(1,2,3);
     console.log(result);    //6
--->
+```
 
 - 如果c的值没有传递, 那就是undefined, 那就是1+2+undefined, 那就是NaN的结果
-<!-- 
+```js 
     let result = add(1,2);
     console.log(result);    //NaN
--->
+```
 
 - 我们给函数形参赋初始值, c=10, 这时c的默认值就是10, 如果我们不传递第3个实参会使用默认值
-<!-- 
+```js 
     function add(a, b, c=10){
         return a+b+c;
     }
     let result = add(1,2);
     console.log(result);    //13
- -->
+```
 
 > 与解构赋值结合使用
 - 将形参中的变量 和 对象中的属性名 起一样的, 这样就可以使用对象中的对应属性值
-<!-- 
+```js 
     function connect(obj){
         // 每次这么写 都要写obj 有重复的部分
         let host = obj.host;
@@ -1344,7 +1352,7 @@ const SCHOOL = {                const SCHOOL = {
         password:'root',
         port:3306
     });
- -->
+```
 
 -------------------------------
 
@@ -1359,18 +1367,18 @@ const SCHOOL = {                const SCHOOL = {
 - 比如: filter, some, every, map
 
 > ES5:
-<!-- 
+```js 
     function date(){
 
         // arguments是一个对象
         console.log(arguments);     
     };
     date(1,2,3);        
- -->
+```
 
 > ES6:
 - 使用rest参数时, 必须在形参中传递 ...args 变量
-<!-- 
+```js
     function date(...args){
 
         // args是一个数组, 是数组的话就可以使用一切API的方法
@@ -1378,27 +1386,27 @@ const SCHOOL = {                const SCHOOL = {
         console.log(args);          
     };
     date(1,2,3);       
- -->
+```
 
 - rest参数必须放在参数的最后
-<!-- 
+```js
     function fn(a,b, ...args){
         console.log(a);
         console.log(b);
         console.log(...args);
     }
     fn(1,2,3,4,5,6);
- -->
+```
 
 > 剩余参数 必须是最后一个参数
 - 比如 有些时候函数里的形参定义了a b两个 但是我不知道会传递几个实参进来, 就可以这么写
 - 收集剩余的参数, 前有有几个你就用几个 剩下的都装我这里
-<!-- 
+```js 
     function test(a, b, ...args) {
 
     }
     fn(1,2,3,4,5,6);
- -->
+```
 
 -------------------------------
 
@@ -1409,12 +1417,13 @@ const SCHOOL = {                const SCHOOL = {
 - 尾调用：
 - 之所以与其他调用不同 就在于它的特殊的调用位置
 - 函数调用会在内存形成一个 调用记录 又叫做调用帧 保存调用位置和内部变量等信息
+
 - 如果在函数A的内部调用函数B 那么A的调用帧上方 还会形成一个B的调用帧 等到B运行结束 将结果返回到A
 - B的调用帧才会消失，如果函数B的内部还调用函数C 那么就还又一个C的调用帧，以此类推 所有的调用帧 就形成一个 调用栈
 
 - 尾调用由于是函数的最后一步操作，所以不需要保留外层函数的调用帧 取代外层函数的调用帧就可以了
 
-<!--
+```js
   function f() {
     let m = 1;
     let n = 2;
@@ -1430,7 +1439,7 @@ const SCHOOL = {                const SCHOOL = {
   
   // 等同于
   g(3);
--->
+```
 
 -------------------------------
 
@@ -1439,11 +1448,11 @@ const SCHOOL = {                const SCHOOL = {
 ### 扩展运算符 ...
 - 展开数组
 - 相当于把数组里面的元素拿出来直接放那(去掉[])
-<!-- 
+```js 
     let arr = [1,2,3];
     ...arr;
 
-    1,2,3 相当于把数组里的东西掏出来往这一放
+    // 1,2,3 相当于把数组里的东西掏出来往这一放
 
     function show(a,b,c) {
         alert(a)
@@ -1451,41 +1460,42 @@ const SCHOOL = {                const SCHOOL = {
         alert(c)
     }
     show(...arr)
- -->
+```
 
 - ... 扩展运算符能将 数组 转换为 逗号分隔的 参数序列
 > let arr = [];   fn(...arr);
-<!-- 
-    const tfboys = ['易烊千玺', '王俊凯'];    ... 将这个数组转换为了一个参数序列
+```js 
+    const tfboys = ['易烊千玺', '王俊凯'];   
+    // ... 将这个数组转换为了一个参数序列
 
     function chunwan() {
         console.log(arguments);
     }
+
     // 这样打印出来 有1个 arguments里只有一个参数 是一个数组
     chunwan(tfboys);     
     // 这样打印出来 有3个    
     chunwan(...tfboys);    =>  相当于  chunwan('易烊千玺', '王俊凯')
- -->
+```
 
 > 还能展开字符串
 
 
 > 扩展运算符还可以配合表达式
 - 使用圆括号将表达式包裹起来 ...()
-<!--
+```js
     const arr = [
         ...(x > 0 ? ['a'] : []),
         'b',
     ]
--->
+```
 
 
-> 注意：
-- 1 只有函数调用时才可以把 扩展运算符放在圆括号中
+**注意：**
+- 只有函数调用时才可以把 扩展运算符放在圆括号中
 
 
 > 应用：
-
 > 复制数组：
 - 在es5中 我们是通过这种方式 克隆数组
 - const a1 = [1, 2];
@@ -1506,10 +1516,13 @@ const SCHOOL = {                const SCHOOL = {
 > 将伪数组转为真正的数组
 - let nodeList = document.querySelectorAll('div');
   let array = [...nodeList];
+<!-- 
+    该方式只能创建一个变量进行接收 不然会报错
+    [...nodeList].forEach       // 报错
+ -->
 
 
 > 数组中新增的方法
-
 > Array.from()
 - 1 将类数组对象
 - 2 将可遍历的对象 包括set map
@@ -1517,7 +1530,6 @@ const SCHOOL = {                const SCHOOL = {
 - 
 - 把以上的形式转为真正的数组
 - 如果参数是一个真正的数组 则会返回一个一模一样的新数组
-
 
 <!--
     类数组对象的定义：
@@ -1535,15 +1547,17 @@ const SCHOOL = {                const SCHOOL = {
     let arr = [].slice.call(arrayLike)
 -->
 
-- Array.from(伪数组, callback)
+> Array.from(伪数组, callback)
+- 参数
 - callback的用法和其他数组的回调一样 用来对每个元素进行处理，将处理后的值放入返回的数组里面
+
 - Array.from(arrayLike, x => x * x);
   // 等同于
   Array.from(arrayLike).map(x => x * x);
 
 > 应用场景:
 - 以使用这个语法将元素节点 变成数组
-<!-- 
+```js 
   let divs = document.querySelectorAll('div')
 
   Array.from(div).map(item => {
@@ -1551,8 +1565,7 @@ const SCHOOL = {                const SCHOOL = {
   })
 
   [...divs].map
- -->
-
+```
 
 
 > Array.of()
@@ -1563,27 +1576,26 @@ const SCHOOL = {                const SCHOOL = {
 > 数组.copyWithin(target, [start], [end])
 - 它会改变当前数组
 - 它会将指定位置的元素复制到其他位置(会覆盖原有成员) 然后返回当前数组
-<!--
-    let arr = [0, 1, 2, 3, 4, 5]
-    arr.copyWithin(0, 1, 3)
-    console.log(arr)
 
-
-    要点：
+- 要点：
     数组的长度不会变 
     start是开始的位置 包括开始
     end是结束的位置 不包括结束
     target 它会提取start-end的数据放到0的位置 会覆盖
--->
+```js
+    let arr = [0, 1, 2, 3, 4, 5]
+    arr.copyWithin(0, 1, 3)
+    console.log(arr)
+```
 
 
 > 数组.find()
 > 数组.findIndex()
-- 用于找出第一个符合条件的数组成员 参数是 callback
-- 所有数组成员依次执行该回调函数，直到找出第一个返回值为true的成员，
-- 然后返回该成员。如果没有符合条件的成员，则返回undefined。
+- 用于找出第一个符合条件的*数组成员* 参数是 callback
 
-- 根据回调中的return true 来找到该成员 找不到就是undefind
+- 所有数组成员依次执行该回调函数，*直到找出第一个返回值为true的成员* 然后返回该成员。如果没有符合条件的成员，则返回undefined。
+
+- 根据回调中的return true 来找到该成员 *找不到就是undefind*
 - 它找到的是 真的元素
 - 找不到的是 undefined
 
@@ -1602,29 +1614,28 @@ const SCHOOL = {                const SCHOOL = {
 
 
 > find()方法适合查找引用类型
-<!-- 
+```js 
   let lesson = [{name: 'js'}, {name: 'css'}]
 
   // 不能这样 即使长的一样也不行, 因为在查找引用类型的值的时候 我们查找的是内存地址
   lesson.includes({name: 'css'})    
 
-
-  这种情况下 我们可以使用find()
+  // 这种情况下 我们可以使用find()
   let res = lessons.find(function(item) {
     return item.name === 'css'        // 将{name: 'css'}这个对象找出来了
   })
- -->
+```
 
 
 > 数组.fill(给定值, [start], [end])
 - 使用给定值，填充一个数组。
-- fill方法用于空数组的初始化非常方便。数组中已有的元素，会被全部抹去。
+- *fill方法用于空数组的初始化非常方便*。数组中已有的元素，会被全部抹去。
 
 
 > 数组.entries()
 > 数组.keys()
 > 数组.values()
-- 该方法用于遍历数组，它们都返回一个遍历器对象 可以用 for...of循环来进行遍历
+- 该方法用于遍历数组，它们都*返回一个遍历器对象* 可以用 for...of循环来进行遍历
 - keys()是对键名的遍历
 - values()是对键值的遍历
 - entries()是对键值对的遍历
@@ -1663,39 +1674,39 @@ const SCHOOL = {                const SCHOOL = {
 -->
 
 > 注意：
-<!--
-    另外，Map 和 Set 数据结构有一个has方法，需要注意与includes区分。
-    Map 结构的has方法，是用来查找键名的，
-    比如Map.prototype.has(key)、WeakMap.prototype.has(key)
+- 另外，Map 和 Set 数据结构有一个has方法，需要注意与includes区分。
+- Map 结构的*has方法，是用来查找键名的*
+    - 比如Map.prototype.has(key)、WeakMap.prototype.has(key)
 
-    Set 结构的has方法，是用来查找值的，
-    比如Set.prototype.has(value)、WeakSet.prototype.has(value)。
--->
+- Set 结构的*has方法，是用来查找值的*
+    - 比如Set.prototype.has(value)、WeakSet.prototype.has(value)。
+
 
 > 扩展:
 - 数组中查找元素   
 
+
 > indexOf()
 - 我们写的参数是严格匹配, 查找到返回的是元素第一个出现的索引 否则为-1
-<!-- 
+```js 
   let arr = [1,2,3,4,5]
   if(arr.indexOf(1) != -1) {
     console.log('找到了');
   }
- -->
+```
 
 > includes()
 - 这个方法也是查找数组中的元素, 但返回的是boolean
-<!-- 
+```js 
   let arr = [1,2,3,4,5]
   if(arr.includes(1)) {
     console.log('找到了');
   }
- -->
+```
 
 
 > includes查找的原理
-<!-- 
+```js
   let arr = [1,2,3,4,5]
     
   function includes(arr, find) {
@@ -1707,21 +1718,24 @@ const SCHOOL = {                const SCHOOL = {
       }
     }
   }
- -->
+```
 
 
 > 数组.flat(num)
-> 数组.flatMap()
+> 数组.flatMap(callback)
 - 转化为1维数组
 - 它返回的是一个新数组 对原数组没有影响
+
 - flat()方法默认拉平一层数组，如果想拉平两层传入参数2
+
 - 不管多少层都转换为一维数组 可以传入 Infinity
 - 如果原数组有空位，flat()方法会跳过空位。
-<!--
+
+```js
     let arr = [1,2,3,4,[6,7,8]]
     let res = arr.flat()
     console.log(res)
--->
+```
 
 - flatMap()只能展开一层数组。
 - 它需要传入一个回调函数 相当于内部执行了 map() 方法
@@ -1751,11 +1765,11 @@ const SCHOOL = {                const SCHOOL = {
 > 对象的方法
 > 
 > Object.keys(目标对象)
-- 将目标对象中的key遍历取出放到一个数组中 需要用变量接收
+- 将目标对象中的key遍历取出放到一个*数组*中 需要用变量接收
 
 > Object.values()
-- 将目标对象中的value遍历取出放到一个数组中 需要用变量接收
-<!-- 
+- 将目标对象中的value遍历取出放到一个*数组*中 需要用变量接收
+```js 
     let obj = {
         name:'sam',
         age:19
@@ -1763,7 +1777,7 @@ const SCHOOL = {                const SCHOOL = {
 
     let res = Object.values(obj)
     console.log(res)        //  ["sam", 19]
- -->
+```
 
 > Object.entries()
 - 将目标对象中的 kv组合 放到一个数组中 最终是一个二维数组
@@ -1771,14 +1785,16 @@ const SCHOOL = {                const SCHOOL = {
 
 
 > Object.fromEntries()
-- 该方法是 Object.entries() 逆操作 用于将一个键值对数组为元素的数组转为对象 
-
-- [["name", "sam"], ["age", "18"]]
-- Object.fromEntries([
-      ['foo', 'bar'],
-      ['baz', 42]
-  ])
-  // { foo: "bar", baz: 42 }
+- 该方法是 Object.entries() 逆操作 *用于将一个键值对数组(二维数组)转为对象*
+```js
+[["name", "sam"], ["age", "18"]]
+Object.fromEntries([
+    ['foo', 'bar'],
+    ['baz', 42]
+])
+// { foo: "bar", baz: 42 }
+```
+  
 - 该方法的主要目的，是将键值对的数据结构还原为对象，因此特别适合将 Map 结构转为对象。
 
 
@@ -1797,6 +1813,7 @@ const SCHOOL = {                const SCHOOL = {
 > Object.is()
 - 用来判断 a b 两个值是否一致
 - Object.is(+0, -0)
+- 不会隐式转换
 
 
 > Object.assign(target, 要复制的对象)
@@ -1807,6 +1824,7 @@ const SCHOOL = {                const SCHOOL = {
 
 - 注意：
 - 如果目标对象与源对象有同名属性 或多个源对象有同名属性 则后面的属性会覆盖前面的属性
+
 - 如果只有一个参数 会直接返回该参数
 - 如果该参数不是对象 则会先转成对象 然后返回 undefined 和 null违法转成对象
 
@@ -1849,10 +1867,12 @@ const SCHOOL = {                const SCHOOL = {
 ------------------------------
 
 ### Set
-- es6提供了新的数据结果set(集合), 它的类型是object但类似于数组, 但成员的值都是唯一的(有去重的效果)
+- es6提供了新的数据结果set(集合), 它的类型是object但*类似于数组*, 但成员的值都是唯一的(有去重的效果)
+
 - 集合实现了iterator接口, 所以可以使用[扩展运算符] 和 for...of进行遍历
 
 - 它跟map很像 但是没有键值对的概念只有一个value
+
 
 > 集合的属性和方法
 - 1. size   返回集合的个数
@@ -1860,24 +1880,28 @@ const SCHOOL = {                const SCHOOL = {
 - 3. delete 删除元素, 返回boolean值
 - 4. has    检查集合中是否包含某个元素, 返回boolean值
 
+
 > 创建一个集合
 - 和数学中的集合很像
 - 通过new Set()来创建一个集合, 它的类型是 object
     let s = new Set()
 
+
 > Set的初始化
 - 我们可以传递一个数组(可迭代数据)
     let s2 = new Set([1,2,3,4,5])
     console.log(s2)         // Set(5) {1, 2, 3, 4, 5}
-
+    
 - 集合中的元素都是唯一的, 所以有去重的效果
     let s2 = new Set([1,1,2,2,3,3,4,5])
     console.log(s2)         // Set(5) {1, 2, 3, 4, 5}
+
 
 > Set的个数    .size
 - 我们使用size属性, 来获得元素的个数
 - 数组叫length
     console.log(s2.size);   //5
+
 
 > 添加元素    .add()
     s2.add(10);
@@ -1953,7 +1977,7 @@ console.log(set2)
 - 1. 我们利用 集合 把arr的元素进行去重, 然后利用filter方法 保留相同元素
 - 2. 在filter方法中我们判断 arr中的元素在不在arr2中, 我们利用了集合的方式同时去重
 - 3. 使用.has()方法
-<!-- 
+```js 
     let arr = [1, 1, 2, 2, 3, 3, 4, 5]
     let arr2 = [1, 2, 2,4, 4, 5, 4, 7]
 
@@ -1971,26 +1995,26 @@ console.log(set2)
         }
     })
 
-    console.log(newArr)         (4) [1, 2, 4, 5]
--->
+    console.log(newArr)         // (4) [1, 2, 4, 5]
+```
 
 - 3. 并集(合并一起的意思)
 - 思路:
 - 1. 我们利用... 将两个数组合并在一起, 但是有重复的元素
 - 2. 我们利用set的特性进行数组去重
 - 3. 将去重后的set利用...展开 放到数组里
-<!-- 
+```js 
     let arr = [1, 1, 2, 2, 3, 3, 4, 5]
     let arr2 = [1, 2, 2,4, 4, 5, 4, 7]
 
     let result = [...new Set([...arr, ...arr2])]
     console.log(result)
- -->
+```
 
 - 4. 差集
 - 找两个集合做对比, 找没有的部分, 比如集合1(123) 集合2(345) 集合1为主做差集 结果就是1 2
 - 就是上面交集的取反
-<!-- 
+```js
     let newArr = [...new Set(arr)].filter(item => {
         let s2 = new Set(arr2);
         
@@ -2001,7 +2025,7 @@ console.log(set2)
             return false
         }
     })
- -->
+```
 
 -------------------------------
 
@@ -2013,13 +2037,14 @@ console.log(set2)
 
 - Map也实现了iterator接口, 所以可以使用 [扩展运算符] 和 [for...of] 进行遍历
 
-- Map就是一个升级版的对象
+- *Map就是一个升级版的对象*
 
 - 我们在往map里面添加数据的时候 如果map里面key则添加 如果已经有key了 则更新对应的值
 
 > map的创建
 let m = new Map()
 - map对象中可以保存键值对
+
 
 > Map的属性和方法
 - 1. size:  返回Map的元素个数
@@ -2119,7 +2144,7 @@ for(let entries of map.entries()) {
 ### 扩展运算符的应用
 > 数组的合并    const arr = [...arr1, ...arr2]
 - 其实就是把单个数组转为 参数的序列 并排放一个数组里
-<!-- 
+```js
     const kuaizi = ['王太利', '小杨'];
     const fenghuang = ['曾毅', '领花'];
     
@@ -2129,32 +2154,34 @@ for(let entries of map.entries()) {
     // 使用扩展运算符 
     const zuixuanxiaopingguo = [...kuaizi, ...fenghuang];
     console.log(zuixuanxiaopingguo);
- -->
+```
 
 > 数组的克隆    let arr = [...arr1]
-<!-- 
+```js 
     const sanzhihua = ['E', 'G', 'M'];
     // 我想复制上面的数组
     const sanyecao =  [...sanzhihua];
     console.log(sanyecao);   //['E', 'G', 'M']
- -->
+```
 
 > 将伪数组 转为 真正的数组
-<!-- 
+```js 
     const divs = document.querySelectorAll('div');
-    console.log(divs);       //NodeList(3) [div, div, div]   Object
+    console.log(divs);       
+    // NodeList(3) [div, div, div]   Object
     // 把上面的对象集合divs 转换为一个数组
 
     const divArr = [...divs];
-    console.log(divArr);      // (3) [div, div, div]     Array
- -->
+    console.log(divArr);      
+    // (3) [div, div, div]     Array
+```
 
 > 合并对象
 - ...对象的形式 拆解出来的是键值对
 - 如果有重复的属性, 后面的会覆盖掉前面的
 
 - 不能单独使用...obj, 好像只能合并的时候使用
-<!-- 
+```js 
     let obj1 = {
         name:'sam',
         age:1
@@ -2166,9 +2193,7 @@ for(let entries of map.entries()) {
 
     let obj3 = {...obj1, ...obj2}
     console.log(obj3)
- -->
-
-> 
+```
 
 -------------------------------
 
@@ -2189,24 +2214,24 @@ for(let entries of map.entries()) {
 - 但是随着皇帝的私生子越来越多 有些私生子是同一个母亲生的 为了弄清这些私生子是同一个母亲生的 于是就在symbol的基础上使用了symbol.for()来进行表示
 
 - symbol类型需要注意的核心点就在这个例子里面了
-<!-- 
+```js 
     // 比如 一个皇帝有 公主们和皇子们 我们可以这么表达
     let emperor = {
       prince: ["prince1", "prince2", "prince3"],
       princess: ["princess1", "princess2", "princess3"]
 
-      当我们还想用 prince 来表达私生子的时候 就会出现 私生子会覆盖掉上面的 皇子数组
+      //当我们还想用 prince 来表达私生子的时候 就会出现 私生子会覆盖掉上面的 皇子数组
       prince: "bastard"
     }
 
-    这个时候就需要用symbol了 我们在外面定义 symbol 然后将这个属性添加给皇帝
-    symbol接收一个字符串做为参数 这个参数是一段描述是为了方便代码的阅读和后期的调试用的 如果不加描述的话 symbol() symbol() symbol()
-    就会出现这种情况
+    // 这个时候就需要用symbol了 我们在外面定义 symbol 然后将这个属性添加给皇帝
+    //symbol接收一个字符串做为参数 这个参数是一段描述是为了方便代码的阅读和后期的调试用的 如果不加描述的话 symbol() symbol() symbol() 就会出现这种情况
     const prince = Symbol("bastard")
     emperor[prince] = "bastard"
- -->
+```
 
 - 上面说了很多方法都查询不到symbol的属性，那么怎么才能查询到呢？
+
 > Object.getOwnPropertySymbols(对象)
 - 这个方法返回目标对象中的所有 symbol 属性 它是一个symbol数组
 <!-- 
@@ -2493,46 +2518,53 @@ for(let entries of map.entries()) {
 - f) TypedArray
 - g) NodeList
 
-### 可以遍历的原理
+
+> 遍历的原理
 - a) 创建一个指针对象，指向当前数据结构的起始位置
 - b) 第一次调用对象的 next 方法，指针自动指向数据结构的第一个成员
 - c) 接下来不断调用 next 方法，指针一直往后移动，直到指向最后一个成员
 - d) 每调用 next 方法返回一个包含 value 和 done 属性的对象
 
-<!-- 
-    原理: 先创建了一个指针对象, 通过调用对象的next方法, 不断的指向下一个元素
+```js 
+    // 原理: 先创建了一个指针对象, 通过调用对象的next方法, 不断的指向下一个元素
 
     const xiyou = ['唐僧', '孙悟空', '猪八戒'];
 
+
     - 创建一个指针对象，指向当前数据结构的起始位置
     - 获取指针对象:
+
     let iterator = xiyou[Symbol.iterator]();
+
     console.log(iterator);
             // 结果: Array Iterator {},   __proto__: Array Iterator  next: ƒ next()
 
-    - 创建完的指针对象里有next(), 指针自动指向数据结构的第一个成员
+    - 创建完的指针对象里有next(), 
+    - 指针自动指向数据结构的第一个成员
+
     console.log(iterator.next());   
             // 结果: {value: "唐僧", done: false} 
 
     - 接下来不断调用 next 方法，指针一直往后移动，直到指向最后一个成员
+
     console.log(iterator.next());   // {value: "唐僧", done: false} 
     console.log(iterator.next());   // {value: "孙悟空", done: false} 
     console.log(iterator.next());   // {value: "猪八戒", done: false} 
     console.log(iterator.next());   // {value: undefined, done: true}
 
     - done代表完成时  true代表循环完成 false代表循环未完成
- -->
+```
 
 -------------------------------
 
 ### 迭代器的应用
 - 迭代器用来自定义遍历数据, 按照我们自己的意愿遍历数据
 
-<!-- 
-
+```js 
 /* 
-迭代器用来自定义遍历数据, 按照我们自己的意愿遍历数据
-需求:
+    迭代器用来自定义遍历数据, 按照我们自己的意愿遍历数据
+
+    需求:
     遍历下面的对象, 每次返回的结果是数组里的成员
 */
 
@@ -2545,9 +2577,7 @@ const banji = {
         'xiaohong'
     ],
 
-/* 
-    添加iterator接口, 并在内部自定义遍历内容
-*/
+    // 添加iterator接口, 并在内部自定义遍历内容
     [Symbol.iterator](){
         // 3 声明一个索引变量, 让它不断指向下一个成员
         let index = 0;
@@ -2588,8 +2618,7 @@ const banji = {
         //TypeError: banji is not iterable banji这个变量不能迭代(遍历), 因为没有iterator接口
         // 那我们就在上面的班级里(要遍历的对象里添加接口)
     }
-
- -->
+```
 
 -------------------------------
 
@@ -2678,7 +2707,7 @@ const banji = {
     }
  -->
 
-> 生成器函数和普通的函数并没有太大的区别, 也是能取名字能传递参数, 它最大的特点就是能走走停停, 如果普通函数涉及到异步的操作我们只能用回调的方式
+- 生成器函数和普通的函数并没有太大的区别, 也是能取名字能传递参数, 它最大的特点就是能走走停停, 如果普通函数涉及到异步的操作我们只能用回调的方式
 
 
 > 它是怎么做到走走停停的?
@@ -2713,6 +2742,7 @@ const banji = {
         alert("c");
     }
     show();
+
 <!-- 
     现在我的需求是 a 运行完后不要走等一下 停一会再出现b
     function * show 这种书写方式就是生成器函数
@@ -2746,8 +2776,11 @@ const banji = {
 
     next();的含义就是踹一脚走一步
 -->
-    genObj.next();  // 踹了一脚 打印了一个a 它是执行了之后碰见yield 放弃了执行
-    genObj.next();  // 又踹了一脚到b了 
+    genObj.next();  
+    // 踹了一脚 打印了一个a 它是执行了之后碰见yield 放弃了执行
+
+    genObj.next();  
+    // 又踹了一脚到b了 
 
 
 
@@ -2757,7 +2790,8 @@ const banji = {
 
 > yield传参
 - 给yield传参需要在next()方法中传递, yiled需要创建变量来接受传递的参数
-- 对于传参来说, 通过yield来传参的时候, 第一个next里面的参数是废的
+
+- 对于传参来说, 通过yield来传参的时候, *第一个next里面的参数是废的*
 
     function * show() {
         console.log(1);
@@ -2926,34 +2960,37 @@ const banji = {
 
 -------------------------------
 
-### 案例 
+### 生成年期函数的应用案例 
 - 先准备两个文件
     1.txt   [12,5,8]
     2.txt   ["a":12, "b":5]
     3.txt   [{"name":"sam", age:18}, {"name":"erin", age:20}]
 
 - 我们看下生成器函数在数据读取操作中怎么应用
-<!-- 
+```js 
     runner(function * () {
         let data1 = yield $.ajax({url:'data/1.txt', dataType:'json'});
+
         let data2 = yield $.ajax({url:'data/2.txt', dataType:'json'});
+
         let data3 = yield $.ajax({url:'data/3.txt', dataType:'json'});
 
         console.log(data1, data2, data3);
-        能打印出3个文件中的json对象
+        // 能打印出3个文件中的json对象
+```
 
-    解析下:
+- 解析下:
     $.ajax({url:'data/1.txt', dataType:'json'}); 会返回一个promise对象
-    然后
-    把这个promise对象 yield出去 yield给runner(因为是runner在执行生成器函数)
-    然后
-    这个函数暂停了 因为遇到yield的了嘛
+
+    然后把这个promise对象 yield出去 yield给runner(因为是runner在执行生成器函数)
+
+    然后 这个函数暂停了 因为遇到yield的了嘛
+
     然后
     runner就会执行promise的结果(数据请求), 等到它执行完了 控制权再还给生成器函数 就回到了 data1
 
     下面也一样, 读完了给data2, 读完了给data3
-    })
- -->
+
 - 它的好处就在于可以像同步一样 写异步的操作
 
 > 当我们面对异步的操作有几种写法
@@ -3062,7 +3099,7 @@ const banji = {
 2. generator
 - 这里就能看出来生成器函数在处理带逻辑的数据读取的优势
 - 当有了逻辑后就非常的方便
-<!-- 
+```js 
     runner(function * () {
         let userData = yield $.ajax({url:'generator', dataType:'json'});
 
@@ -3074,13 +3111,11 @@ const banji = {
     })
 
     // 生成....
- -->
+```
 
 > 总结:
 - Promise适合一次读一堆
 - generator适合夹杂着逻辑性判断的东西, 我有可能读这个 有可能读那个
-
-
 
 -------------------------------
 
