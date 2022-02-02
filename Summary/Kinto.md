@@ -1,3 +1,114 @@
+### 注释:
+- 在wiki上看到的文档中的写法:
+
+    Array型
+    @type {Array.<number>}
+
+    変数・定数の@type
+    @desc ○○の価格
+    @type {number}
+
+    descriptionタグ
+    @desc ○○の価格を取得して□□する
+
+
+- 参考java中的xiefa:
+
+    @param 形参名 形参类型 形参说明
+    @param args String[] 命令行参数
+    @return 返回值类型 返回值说明
+
+> 长野的方式
+- 1. 在每一个props的前面都加上了注释
+ props: {
+    /**
+     * @type {String} 車種日本語名
+     */
+    carName: {
+      type: String,
+      required: true,
+    },
+
+- 2. 在html结构中也添加了注释
+<!-- 
+  <!-- コスト表 ->
+ -->
+
+- 3. 对对象中的每一个属性后面都追加了注释
+<!-- 
+  price: "41,261",     // バッテリー代
+ -->
+
+- 如果有形参的情况下 使用了下面的方式 添加注释
+- @desc 文字列をspanで囲む
+  @param {String} str
+
+
+> 岗安的注释方式
+- Refactor: components コメント追加 #4159
+
+- 1. 每一个props上都添加了注释
+- 如果props属性是一个数组的话 她写的方式就是 @type {Array.<object>} 数组里面是什么就写的什么
+<!-- 
+  /**
+  * 表示件数の母数を格納する
+  * @type {Function}
+  */
+
+  setAllCount: {
+    type: Function,
+    default: null,
+    require: false,
+  },
+
+
+  /**
+  * 表示するカードの情報リスト
+  * @type {Array.<object>}
+  */
+  list: {
+    type: Array,
+    default: () => {
+
+
+  /**
+    * ブランド
+    * @type {string}
+    */
+  brandType: {
+    type: String,
+    default: "",
+  },
+ -->
+
+- 2. 她给data中的每一个属性 也添加了注释
+<!-- 
+  data() {
+    return {
+      /**
+       * セレクタがOPEN（すべての選択肢を表示）状態にあるか
+       * @type {Boolean}
+       */
+      isOpen: false,
+      /**
+       * 選択されたセレクタ
+       * @type {Object}
+       */
+      selected: this.options[0]
+    }
+  },
+ -->
+
+- 形参
+<!-- 
+  /**
+    * いずれかの選択肢が選択された際の処理
+    * ・親componentで定義された関数を実行する
+    * ・セレクタのOPEN/CLOSEをトグル
+    * @param {Object} val 選択されたセレクタ
+    */
+ -->
+
 ### 整理Kinto响应式手册
 
 

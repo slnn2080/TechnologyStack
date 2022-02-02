@@ -35321,9 +35321,288 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
 ----------------------------
 
+### java反射机制概述
+- Reflection(反射) 是被视为*动态语言*的关键
+- 反射机制允许程序在执行期(javac解析运行)*借助与Reflection API取得任何类的内部信息 并能直接操作任意对象的内部属性以及方法*
+<!-- 
+  java程序分为两个过程 先编译 后运行
+  编译的时候 我们不能确定 我们要造哪个类的对象 只有运行的时候我们才能确定下来 这种特性就是动态的特性
+ -->
+
+- *加载完类之后*(我们在java命令后就开始加载类) *在堆内存的方法区中就产生了一个Class类型的对象*(一个类只有一个Class对象) *这个对象就包含了完整的类的结构信息*
+
+- 我们可以通过这个对象看到类的结构
+- 这个对象就像一面镜子 *通过这个镜子看到类的结构 所以我们形象的称之为: 反射*
+
+
+> 扩展: 动态语言 vs 静态语言
+- 1. 动态语言 (弱类型语言)
+- 动态语言是在运行时确定数据类型的语言 变量使用之前不需要类型声明 通常变量的类型 是 被赋值的那个值的类型
+
+- 是一类在运行时可以改变其结构的语言
+- 例如:
+- 新的函数 对象 甚至代码可以被引进
+- 已有的函数可以被删除或是其他结构上的变化
+- *通俗点说就是运行时代码可以根据某些条件改变自身的结构*
+<!-- 
+  主要的动态语言(下面都是解释型语言 或叫 脚本语言)
+  Object-C C# Javascript PHP Python Eriang
+ -->
+
+- 2. 静态语言 (强类型语言)
+- 静态语言是在编译时变量的数据类型即可确定的语言 多数静态类型语言要求在使用变量之前必须声明数据类型
+- 与动态语言相应而言, 运行时结构不可变的语言就是静态语言
+<!-- 
+  主要的静态语言
+  Java C C++
+
+  java不是动态语言 但java可以称之为"准动态语言"
+  即java有一定的动态性 我们可以利用反射机制 字节码操作获得类似动态语言的特性
+
+  java的动态性让编程的时候更加的灵活
+
+  也就是说我们利用反射 可以让java在运行的时候再确定造的哪个类的对象 调用的是哪一个方法 在运行的时候再定下来
+ -->
+
+
+> 反射的理解
+- 我们可以想想 光的反射
+<!-- 
+      1       2
+        ↘ | ↗
+        -----
+ -->
+
+- 1. 原来的时候(正常方式)
+- 我们是先有的包 包下我们声明的类 通过类我们造的对象
+
+  引入需要的"包类"名称 -> 通过new实例化 -> 取得实例化对象
+
+
+- 2. 反射方式的时候
+- 我们通过类的对象 我们就知道该对象是哪个类造的找到了所在的类 通过所在类的声明 我们又知道是哪个包下造的 
+
+  实例化对象 -> getClass()方法 -> 得到完整的"包类"名称
+
+
+> 反射机制的应用
+- 通过反射的API我们可以都做些什么？
+
+- 在运行时 判断任意一个对象所属的类
+- 在运行时 构造任意一个类的对象
+- 在运行时 判断任意一个类所具有的成员变量和方法
+- 在运行时 获取泛型的信息
+- 在运行时 调用任意一个对象的成员变量和方法
+- 在运行时 处理注解
+- 生成动态代理
+
+
+>反射相关的主要API
+- java.lang.Class: 代表一个类
+<!-- 
+  Class类是在lang包下定义 这个Class不是class关键字
+  java是严格区分大小写的 Class 和 关键字class 是两个东西
+
+  Class类表示通用的类 通用的用来描述其它类的结构信息的
+  也就是说 类似Person Dog这样的类 又是以Class类的实例出现读到
+
+  Class类是用来描述类的类
+ -->
+
+- java.lang.reflect.Method: 代表类的方法
+- java.lang.reflect.Field: 代表类的成员变量
+- java.lang.reflect.Constructor: 代表类的构造器
+
+----------------------------
+
+### 反射之前/之后等 类的实例化等操作
+- 我们定义了一个Person类 我们看看在反射之间我们可以对Person类做哪些事情
+```java
+package com.sam.reflect;
+
+// Person类的操作
+public class Person {
+  // 私有权限
+  private String name;
+  public int age;
+
+  public Person() {
+  }
+
+  public Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  // 私有权限
+  private Person(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public int getAge() {
+    return age;
+  }
+
+  public void setAge(int age) {
+    this.age = age;
+  }
+
+  @Override
+  public String toString() {
+    return "Person{" +
+        "name='" + name + '\'' +
+        ", age=" + age +
+        '}';
+  }
+
+  public void show() {
+    System.out.println("我是一个人");
+  }
+
+  // 私有权限
+  private String showNation(String nation) {
+    System.out.println("我得国籍是: " + nation);
+    return nation;
+  }
+}
+
+```
+
+- 反射之前我们能对Person类做的事情
+```java
+@Test
+public void test1() {
+  // 1. 创建Person类对象 Person实例化
+  Person p1 = new Person("Sam", 16);
+
+  // 2. 通过对象调用内部的属性和方法
+  p1.age = 10;
+  System.out.println(p1.toString());
+  p1.show();
+
+
+  // 注意:
+  // 在Person外部 不可以通过p1对象调用Person类中private的结构的 如 name, showNation() 以及私有的构造器
+}
+```
+
+
+> 使用反射 实现同上的操作
+- 下面的反射的API我们都没有讲 先感觉下代码
+```java
+@Test
+public void test2() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
+
+  // 通过反射 完成Person类的实例化
+  // Person类本身有一个属性是class Person.class 就是Class类的实例了
+  Class clazz = Person.class;
+
+  // 通过 clazz.getConstructor() 里面的参数我们可以看看Person中的构造器里面的参数是什么类型 我们获取了构造器
+  Constructor cons = clazz.getConstructor(String.class, int.class);
+
+  // 通过得到的构造器对象 来造对象(实例化) 得到的object类型 我们可以进行强转
+  Object p1 = cons.newInstance("Sam", 18);
+  Person p = (Person) p1;
+
+  // 通过反射 调用对象指定的属性 和 指定的方法
+  // 这样我们就能通过clazz对应的Person类里面age的属性
+  Field age = clazz.getDeclaredField("age");
+  // 修改age属性
+  age.set(p, 10);
+  System.out.println(p.toString());
+
+  // 通过反射来调用Person类中的方法
+  Method show = clazz.getDeclaredMethod("show");
+  // 调用p对象的show方法
+  show.invoke(p);
+}
+```
+
+
+> 使用反射完成 正常使用方式达不到的事情 - 调用私有结构
+- 我们使用正常的方法操作Person类的时候 在Person类外部 *不可以*通过Person类的对象*调用其内部私有结构*
+
+- 但是我们通过反射 可以调用Person类的私有结构 比如私有构造器 方法 属性 都可以
+
+```java
+// 通过反射 调用Person类内部的私有构造器
+Constructor constructor = clazz.getDeclaredConstructor(String.class);
+constructor.setAccessible(true);
+Object p2 = constructor.newInstance("Erin");
+Person erin = (Person) p2;
+System.out.println(erin.toString());
+
+// 调用私有的属性和方法
+Field name = clazz.getDeclaredField("name");
+name.setAccessible(true);
+name.set(erin,"nn");
+System.out.println(erin.toString());
+
+// 调用私有的方法
+Method showNation = clazz.getDeclaredMethod("showNation", String.class);
+showNation.setAccessible(true);
+// invoke就是调用的意思 以前是p1.showNation("中国") 以前是对象调用方法 现在是方法调用对象的感觉 记住是感觉
+// 接收方法的返回值 是如下的格式
+String nation = (String) showNation.invoke(erin, "中国");
+System.out.println(nation);
+```
+
+
+> 如何看待反射和封装性两个技术
+- 之前我们再说封装性的时候在外部调用的结构就权限开放 如果不想让结构在外部被调用就将其私有 而且我们以前还讲过单例模式 为了不让我们在外面造对象 在类内部将构造器私有了 我们在类内部将对象造好 给外部用
+
+- 可现在我们可以通过反射来调用类内部私有的结构 既然能调用私有的构造器了 我们也可以通过反射在类的外部造对象了
+
+> 疑问1:
+- 通过直接new的方式 和 反射的方式 都可以调用公用的结构 开发中到底用哪个
+
+- 解答:
+- 建议直接new的方式
+
+- 什么时候会使用反射的方式?
+- 反射的特征: 动态性
+- 也就是说在编译的时候我们不能确定要new谁(编译的时候不知道要造哪个类的对象) 如果出现这样的情况就使用反射的方式
+<!-- 
+  后台把代码都写好了 已经部署到服务器上跑起来了
+  现在通过浏览器去访问后台 前端可能是要登录或者是注册 不知道要干什么
+
+  现在有url /login 我们把这个url发送到后台 java层面就获取了这个url 我们解析完url后确定是想登录
+
+  但是我们的程序已经都跑起来了 这时候我们解析url后发现是想登录 我们才造login所对应的对象 这时候都是动态的
+ -->
+
+> 疑问2:
+- 反射机制与面向对象中的封装性是不是矛盾的? 如何看待两个技术
+
+- 解答:
+- 不矛盾。
+<!-- 
+  封装性的体现其实是通过private public等关键字 告诉我们 哪些结构我们其实用不到
+
+  比如private修饰的结构 可以已经在public中用过了 我们外部调用的时候不需要使用private的结构 直接public就可以了
+
+  反射是说能不能调用的事儿 private是说不用调了 但是你非调的话 你就调
+
+  封装性是建议你怎么调用的事儿
+ -->
+
+----------------------------
+
 ### 书签
 
 ----------------------------
+
+### 面试需要问的问题
+- 我要是过来的话 项目的架构是什么 哪一块是用什么技术来实现的
+
 
 ### 创建工程的流程
 > 1. 先创建 package
