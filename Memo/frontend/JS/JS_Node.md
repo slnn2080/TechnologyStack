@@ -127,6 +127,7 @@ Float64Array：  64 位浮点数，       长度 8 个字节。
 - 1. TypedArray 数组的所有成员，都是同一种类型。
 - 2. TypedArray 数组的成员是连续的，不会有空位。
 - 3. TypedArray 数组成员的默认值为 0。比如，new Array(10)返回一个普通数组，里面没有任何成员，只是 10 个空位；new Uint8Array(10)返回一个 TypedArray 数组，里面 10 个成员都是 0。
+
 - 4. TypedArray *数组只是一层视图，本身不储存数据*，它的数据都储存在底层的ArrayBuffer对象之中，要获取底层对象必须使用buffer属性。
 
 
@@ -259,7 +260,7 @@ function processimage(e) {
 > Blob对象的实例化
 > new Blob(array [, options])
 - 参数
-- 1. 数组
+- 1. *数组*
 - 成员是字符串或二进制对象，表示新生成的Blob实例对象的内容
 
 - 2. 配置对象
@@ -268,9 +269,11 @@ function processimage(e) {
 ```js
 var htmlFragment = ['<a id="a"><b id="b">hey!</b></a>'];
 var myBlob = new Blob(htmlFragment, {type : 'text/html'});
+        // Blob {size: 43, type: 'text/html'}
 ```
 
 ```js
+// 对象的话 我们要先序列化 然后装到数组里面作为参数
 var obj = { hello: 'world' };
 var blob = new Blob([ JSON.stringify(obj) ], {type : 'application/json'});
 ```
@@ -334,7 +337,7 @@ function getBlob(url, callback) {
 ```
 
 
-> 生成 URL
+> 生成 URL -- URL.createObjectURL()
 - 浏览器允许使用URL.createObjectURL()方法，针对 Blob 对象生成一个临时 URL，以便于某些 API 使用。
 
 - 这个 URL 以blob://开头，表明对应一个 Blob 对象，协议头后面是一个识别符，用来唯一对应内存里面的 Blob 对象。
@@ -371,18 +374,23 @@ droptarget.ondrop = function (e) {
 > 读取文件
 - 取得 Blob 对象以后，可以通过FileReader对象，读取 Blob 对象的内容，即文件内容。
 
+> FileReader实例化
+```js
+let reader = new FileReader()
+```
+
 - FileReader 对象提供四个方法，处理 Blob 对象。Blob 对象作为参数传入这些方法，然后以指定的格式返回。
 
-> FileReader.readAsText()：
+> FileReader.readAsText(目标)：
 - 返回文本，需要指定文本编码，默认为 UTF-8。
 
-> FileReader.readAsArrayBuffer()：
+> FileReader.readAsArrayBuffer(目标)：
 - 返回 ArrayBuffer 对象。
 
-> FileReader.readAsDataURL()：
+> FileReader.readAsDataURL(目标)：
 - 返回 Data URL。
 
-> FileReader.readAsBinaryString()：
+> FileReader.readAsBinaryString(目标)：
 - 返回原始的二进制字符串。
 
 
@@ -451,6 +459,9 @@ function typefile(file) {
 }
 ```
 
+- 读取的结构要在 onload的回调里面 通过this / reader / e.target 上的result属性身上获取
+
+
 
 ### URL
 - 网页的 URL 只能包含合法的字符。合法字符分成两类。
@@ -476,8 +487,17 @@ function typefile(file) {
 - 用于转码整个 URL。
 - 它的参数是一个字符串，代表整个 URL。它会将元字符和语义字符之外的字符，都进行转义。
 
+- 返回值
+- 编码后的字符串
+
+```js
   encodeURI('http://www.example.com/q=春节')
   // "http://www.example.com/q=%E6%98%A5%E8%8A%82"
+
+  let url = "www.baidu.com?name=杉"
+  let res = encodeURI(url)
+  console.log(res);
+```
 
 
 > encodeURIComponent("春节")
@@ -488,16 +508,25 @@ function typefile(file) {
 > decodeURI()
 - 用于整个 URL 的解码。它是encodeURI()方法的逆运算。它接受一个参数，就是转码后的 URL。
 
+```js
   decodeURI('http://www.example.com/q=%E6%98%A5%E8%8A%82')
   // "http://www.example.com/q=春节"
 
+
+  let url2 =`www.baidu.com?name=${encodeURIComponent("杉")}`
+  console.log(url2);
+  // www.baidu.com?name=%E6%9D%89
+```
 
 > decodeURIComponent('%E6%98%A5%E8%8A%82')
 - 解码一个片段
 
 
+
 ### url构造函数
 - 用来构造、解析和编码 URL。一般情况下，通过window.URL可以拿到这个构造函数。
+
+- 用于解析url相关的信息
 
 > new URL()
 - new URL()作为构造函数，可以生成 URL 实例。
@@ -507,7 +536,8 @@ function typefile(file) {
 
 ```js
   var url = new URL('http://www.example.com/index.html');
-  url.href       // "http://www.example.com/index.html"
+  url.href
+  // "http://www.example.com/index.html"
 ```
 
 - 如果 URL 字符串是一个相对路径，那么需要表示绝对路径的第二个参数，作为计算基准。
@@ -519,22 +549,56 @@ url1.href
 
 
 > 实例属性
-- URL.href：返回整个 URL
-- URL.protocol：返回协议，以冒号:结尾
-- URL.hostname：返回域名
-- URL.host：返回域名与端口，包含:号，默认的80和443端口会省略
-- URL.port：返回端口
-- URL.origin：返回协议、域名和端口
+- url.href：返回整个 URL
+```js
+let str = "http://www.baidu.com:80/?name=杉&age=16"
 
-> URL.pathname：返回路径，以斜杠/开头
+let url = new URL(str)
+console.log(url.href);
+// http://www.baidu.com/?name=%E6%9D%89&age=16
+```
 
-> URL.search：返回查询字符串，以问号?开头
+- url.protocol：返回协议，以冒号:结尾
+<!-- 
+    http:
+ -->
 
-> URL.searchParams：返回一个URLSearchParams实例，该属性是Location对象没有的
+- url.hostname：返回域名
+<!-- 
+    www.baidu.com
+ -->
+
+- url.host：返回域名与端口，包含:号，默认的80和443端口会省略
+<!-- 
+    www.baidu.com
+ -->
+- url.port：返回端口
+
+- url.origin：返回协议、域名和端口(没返回端口啊)
+<!-- 
+    http://www.baidu.com
+ -->
+
+> url.pathname：返回路径，以斜杠/开头
+<!-- 
+    /login
+ -->
+
+> url.search：返回查询字符串，以问号?开头
+<!-- 
+    ?name=%E6%9D%89&age=16
+ -->
+
+> url.searchParams：返回一个URLSearchParams实例，该属性是Location对象没有的
+- 该对象的相关方法在下面详细的给出
+```js
+let queryObj = url.searchParams
+```
 
 - URL.hash：返回片段识别符，以井号#开头
 - URL.password：返回域名前面的密码
 - URL.username：返回域名前面的用户名
+
 
 
 > 静态方法
@@ -551,7 +615,8 @@ url1.href
     accept="image/*"
     onchange="handleFiles(this.files)"
    >
-
+```
+```js
   var div = document.getElementById('display');
   let inp = document.querySelector("#inp")
   inp.addEventListener("change", handleFile)
@@ -595,8 +660,14 @@ url1.href
     }
   }
 ```
-  
+
+
 > new URLSearchParams(search参数)
+- 为了要处理参数部分 我们即可以通过 URL的实例对象
+- url.searchParams 属性获取
+
+- 还可以直接new URLSearchParams 实例化解析search参数
+
 - 是浏览器的原生对象，用来构造、解析和处理 URL 的查询字符串（即 URL 问号后面的部分）。
 
 - 它本身也是一个构造函数，可以生成实例。参数可以为查询字符串，起首的问号?有没有都行，也可以是对应查询字符串的数组或对象。
@@ -625,7 +696,7 @@ params.toString() // "foo=%E4%BD%A0%E5%A5%BD"
 ```
 
 
-> URLSearchParams.toString()
+> 实例对象.toString()
 - toString方法返回实例的字符串形式。
 - 返回得是去掉? 的字符串形式
 - 该方法通过实例对象来调用
@@ -638,7 +709,7 @@ params.toString() // "foo=1&bar=2'
   
 
 
-> URLSearchParams.append()
+> 实例对象.append()
 - 用来追加一个查询参数。它接受两个参数，第一个为键名，第二个为键值，没有返回值。
 ```js
   var params = new URLSearchParams({'foo': 1 , 'bar': 2});
@@ -646,7 +717,7 @@ params.toString() // "foo=1&bar=2'
   params.toString() // "foo=1&bar=2&baz=3"
 ```
 
-> URLSearchParams.delete()
+> 实例对象.delete()
 - 用来删除指定的查询参数。它接受键名作为参数
 ```js
   var params = new URLSearchParams({'foo': 1 , 'bar': 2});
@@ -654,7 +725,7 @@ params.toString() // "foo=1&bar=2'
   params.toString() // "foo=1"
 ```
 
-> URLSearchParams.has()
+> 实例对象.has()
 - 返回一个布尔值，表示查询字符串是否包含指定的键名。
 ```js
   var params = new URLSearchParams({'foo': 1 , 'bar': 2});
@@ -662,7 +733,7 @@ params.toString() // "foo=1&bar=2'
   params.has('baz') // false
 ```
 
-> URLSearchParams.set()
+> 实例对象.set()
 - set()方法用来设置查询字符串的键值
 ```js
   var params = new URLSearchParams('?foo=1');
@@ -670,12 +741,16 @@ params.toString() // "foo=1&bar=2'
   params.toString() // "foo=2"
 ```
 
-> URLSearchParams.get()
+> 实例对象.get()
 - 用来读取查询字符串里面的指定键。它接受键名作为参数。
 ```js
   var params = new URLSearchParams('?foo=1');
   params.get('foo') // "1"
 ```
+
+> 实例对象.getAll(指定属性名)
+- 会将获取的内容放到一个数组中返回
+
 
 > URLSearchParams.sort()
 - 对查询字符串里面的键进行排序，规则是按照 Unicode 码点从小到大排列。
@@ -688,6 +763,7 @@ params.toString() // "foo=1&bar=2'
 - 最常见的使用场合是表单的文件上传控件（<input type="file">），用户选中文件以后，浏览器就会生成一个数组，里面是每一个用户选中的文件，它们都是 File 实例对象。
 
 - https://www.wangdoc.com/javascript/bom/file.html
+
 
 > FileReader
 - FileReader 对象用于读取 File 对象或 Blob 对象所包含的文件内容
@@ -740,24 +816,20 @@ var reader = new FileReader();
 
 
 > 读取方式:
-> reader.readAsText()：
+> reader.readAsText(目标)：
 - 读取完成后，result属性将返回文件内容的文本字符串。该方法的第一个参数是代表文件的 Blob 实例，第二个参数是可选的，表示文本编码，默认为 UTF-8。
 
 
-> reader.readAsArrayBuffer()：
+> reader.readAsArrayBuffer(目标)：
 - 以 ArrayBuffer 的格式读取文件，读取完成后result属性将返回一个 ArrayBuffer 实例。
 
 
-> reader.readAsDataURL()：
+> reader.readAsDataURL(目标)：
 - result属性将返回一个 Data URL 格式（Base64 编码）的字符串，代表文件内容。对于图片文件，这个字符串可以用于<img>元素的src属性。注意，这个字符串不能直接进行 Base64 解码，必须把前缀data:*/*;base64,从字符串里删除以后，再进行解码。
 
 
-> reader.readAsBinaryString()：
+> reader.readAsBinaryString(目标)：
 - result属性将返回原始的二进制字符串。
-
-
-
-### 
 
 
 

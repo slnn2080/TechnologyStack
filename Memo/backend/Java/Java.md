@@ -35596,6 +35596,435 @@ System.out.println(nation);
 
 ----------------------------
 
+
+### Class的理解 
+- java.lang.Class类的理解
+
+- java语言编写完以后需要经过两个过程
+
+> 1. 编译过程:
+- 程序经过 javac.exe命令以后 会生成一个或多个字节码文件(.class) 
+
+> 2. 解释运行过程:
+- 接着我们使用java.exe命令对某个字节码文件进行解释运行 相当于将某个字节码文件加载到内存中(加载到内存中的过程就叫做类的加载)
+
+- 注意:
+- 类的加载不包括编译过程
+
+> 运行时类
+- 加载到内存中的类(类本身) 我们称为*运行时类* 此运行时类 就*作为Class实例*
+<!-- 
+  Person类 就是 Class的实例
+  但是
+  类本身 不能直接写 Person(这么写在java中相当于类型)
+  所以
+  后面接上了.class属性 整体来表示类本身(Person.class)
+
+  Class clazz = Person.class
+
+  以前我们说通过类去造对象 现在我们知道 类本身也是对象(Class的对象)
+
+  这也体现了万事万物皆对象
+ -->
+
+- 2. 换句话说 Class的实例对应着一个运行时类
+- 3. 加载到内存中的运行时类 会缓存一定的时间 在此时间之类 我们可以通过不同的方式来获取此运行时类
+
+----------------------------
+
+### Class实例的获取方式
+- 类加载到内存中的时候 就放在内存中了 如果我们要用到这个类本身了 我们可以把类本身赋值给一个变量 clazz 让它指向唯一存在的运行时类了
+
+- 下面就是几种获取运行时类的方式 它们获取的都是*同一个*运行时类
+
+> 方式1: 类本身.class
+- 调用运行时类的属性 .class
+- 返回的就是Class的实例对象 clazz
+
+- 泛型:
+- 类的类型
+- 加上泛型避免以后在后面需要进行强转了
+
+```java
+Class<Person> clazz1 = Person.class;
+
+// 我们输出下clazz1 发现就是当前类本身
+System.out.println(clazz1);
+// class com.sam.reflect.Person
+```
+
+
+> 方式2: 运行时类对象.getClass()
+- 类对象.getClass()
+- 任何一个类的对象 调用该方法都知道是哪个类造的
+- 返回得就是Class的实例对象 clazz
+
+- 泛型:
+- Class<? extends Person> clazz = p.getClass();
+
+```java
+// 1. Person类实例化
+Person p = new Person();  
+    // Person p 就是运行时类的对象
+
+// 2. 通过运行时类的对象p 调用getClass() 得到Class的实例
+Class<? extends Person> aClass = p.getClass();
+
+System.out.println(clazz2);
+// class com.sam.reflect.Person
+```
+
+
+> 方式3: 通过Class的静态方法 Class.forName(String 类的全类名)
+- 不管是我们自定义的类 还是API提供的类 类本身都可以作为Class的实例
+
+- 参数:
+- 类的全部类名
+
+- 异常
+- ClassNotFoundException
+
+- 返回得就是clazz实例对象
+
+```java
+Class<?> clazz3 = Class.forName("com.sam.reflect.Person");
+
+Class clazz3 = Class.forName("java.lang.String");
+```
+
+> 思考:
+- 上面我们通过3种方式 获取了clazz 那我们做下判断
+- clazz1 == clazz2  // true
+- clazz2 == clazz3  // true
+
+- 结果都是true 说明我们获取的是内存当中同一个运行时类
+- 也就是说 我们的运行时类一旦加载到内存中后 它会缓存一段时间
+- 我们上面的3种方式 只是通过不同的方式获取了内存中的运行时类 都是同一个
+
+
+
+> 了解
+> 方式4: 使用类的加载器: ClassLoader
+
+- 1. 先通过 当前类的Class实例对象 调用getClassLoader()方法
+
+> 当前类.class.getClassLoader()
+- 获取当前自定义类的 类加载器(ClassLoader)
+
+- 返回classLoader
+
+- 类型:
+- CLassLoader
+```java
+ClassLoader classLoader = ReflectionTest.class.getClassLoader();
+
+// 我们现在是ReflectionTest类
+```
+
+- 2. 通过classLoader对象的 loadClass("类的全路径") 方法 显示的加载一个类
+
+> classLoader.loadClass(String classPath)
+- 返回得就是指定类的全路径的指定类 的 clazz 对象
+```java
+ClassLoader classLoader = ReflectionTest.class.getClassLoader();
+
+Class<?> clazz4 = classLoader.loadClass("com.sam.reflect.Person");
+```
+
+- 相当于 我们先获取当前类的ClassLoader
+- 然后通过classLoader显示加载指定的类 得到的就是指定类的clazz对象
+
+- clazz1 == clazz4  // true
+
+
+> 总结:
+- 上面的4种方式中 方式3的使用频率是最多的
+- Class.forName(类的全类名)
+
+- 方式1 Person.class 
+- 这种方式在编译期就写死了 而我们反射更想体现的是动态性 编译期写死了 还咋动态
+
+- 方式3 在编译期不管类的全类名路径是否正确 都不会报错
+- Class clazz3 = Class.forName("com.sam.reflect.Person1")
+<!-- 
+  我们包下并没有Person1 
+  但也不会报错
+ -->
+
+- 不会报错的原因是 真正运行的时候才知道给定的类存在与否
+- 通过方式3能更好的体现动态性(反射最想体现的就是运行时的动态性 编译期的时候先不去确定)
+
+----------------------------
+
+### Class实例对应的结构的说明
+- 上面我们说 clazz对应一个运行时类 那除了类本身之外还有没有其他的结构可以作为Class的实例呢？
+
+- 只要有结构加载到内存中后 都看做成Class的实例了
+- Class相当于加载到内存中的所有结构 不光光是类
+
+
+- Class实例可以是哪些结构的说明:
+- 1. class
+- 外部类 成员(成员内部类 静态内部类) 局部内部类 匿名内部类
+
+- 2. 接口
+- 3. 数组
+- 4. 枚举
+- 5. 注解
+- 6. 基本数据类型
+- 7. void类型
+<!-- 
+  我们在方法中会写String int 而void也可以看做是一个类型
+ -->
+
+- 测试
+```java
+Class c1 = Object.class
+Class c2 = Comparable.class
+Class c3 = String[].class
+Class c4 = int[][].class
+Class c5 = ElementType.class    // 枚举类
+Class c6 = Override.class
+Class c7 = int.class
+Class c8 = void.class
+Class c9 = Class.class
+
+// 只要数组的元素类型与维度一样 就是同一个class
+int[] a = new int[10]
+int[] b = new int[100]
+Class c10 = a.getClass()
+Class c11 = b.getClass()
+c10 == c11    // true
+```
+
+----------------------------
+
+### ClassLoader的理解
+- 类的加载器帮我们把类加载到内存中
+<!-- 
+    源文件 .java文件
+
+        ↓ javac 编译器
+
+    字节码 .class
+
+        ↓ java 命令 加载到内存中
+
+    类装载器
+
+        ↓
+    
+    字节码校验器
+
+        ↓
+
+    解释器
+
+        ↓
+    
+    操作系统平台
+ -->
+
+> 类加载器的作用
+- 类加载的作用:
+- 将class文件字节码内容加载到内存中 并将这些静态数据*转换成方法区的运行时数据结构* 然后在堆中生成一个代表这个类的java.lang.Class对象 作为方法区中类数据的访问入口
+
+- 类缓存:
+- 标准的javase类加载器可以按要求查找类 但一旦某个类被加载到类加载器中 它将维持加载(缓存)一段时间 
+- 不过JVM垃圾回收机制可以回收这些Class对象
+
+
+> ClassLoader
+- 就是类的加载器
+- 类加载器作用是用来把类(class)装载进内存的
+
+- java虚拟机规范了如下的类的加载器
+- 1. 引导类加载器 (*无法获取*)
+- 负责java平台的核心库 用来装载核心类库 该加载器无法直接获取
+<!-- 
+  比如String类就是核心类 我们想要用它 也需要加载 就是引导类加载器加载的String
+ -->
+
+- 2. 扩展类加载器
+- 负责jre/ilb/ext目录下的jar包或 java.ext.dirs指定目录下的jar包装入工作库
+
+- 3. 系统类加载器 (*自定义类都是它加载的*)
+- 负责java-classpath 或 java.class.path所指的目录下的类与jar包装入工作 是最常用的加载器
+
+----------------------------
+
+### 理解类的加载过程
+- 上面我们说了 Class的实例对应着一个运行时类
+- 当程序主动使用某个类时 如果该类还未被加载到内存中 则系统会通过如下三个步骤来对该类进行初始化
+
+> 图解
+<!-- 
+    2.                      3.
+    将类的二进制数据           JVM负责对类进行初始化
+    合并到JRE中
+
+                ↖                     ↑
+
+    1.                2.              3.
+    --------          --------        --------
+    类的加载      →     类的连接    →    类的初始化
+    (Load)             (Link)         (initialize)
+
+      ↓
+
+    1. 
+    将类的class文件读取内存 并为之
+    创建一个java.lang.Class对象
+    此过程由类加载器完成
+ -->
+
+- 1. 加载:
+- 将class文件字节码内容加载到内存中 并将这些静态数据转换为方法区的运行时数据结构
+- 然后生成一个代表这个类的java.lang.Class对象 作为方法区中类数据的访问入口(即引用地址)
+- 所有需要访问和使用类数据只能通过这个Class对象 
+- 这个加载的过程需要类的加载器参与
+
+
+- 2. 链接:
+- 将java类的二进制代码合并到JVM的运行状态之中的过程
+- 验证: 确保加载的类信息符合JVM规范
+
+- 准备: 正式为类变量(static)分配内存并*设置类变量默认初始值*的阶段 这些内存都将在方法区中进行分配
+<!-- 
+  int n
+  在链接环节只会给n赋值为0
+
+  n = 0
+ -->
+
+- 解析: 虚拟机常量池内的符号引用(常量名) 替换为直接引用(地址)的过程
+
+- 3. 初始化:
+<!-- 
+  在初始化的环节才将n赋值为2 
+
+  n = 2
+-->
+- 执行类构造器<clinit>()方法的过程
+- *类构造器<clinit>()方法是由编译器自动收集类中所有类变量的复制动作和静态代码快中语句合并产生的*
+<!-- 
+  不是造对象的构造器
+ -->
+
+- 当初始化一个类的时候 如果发现其父类没有进行初始化 则需要先触发其父类的初始化
+
+- 虚拟机会保证一个类的<clinit>()方法在多线程环境中被正确加锁和同步
+
+
+> 代码部分
+```java
+public class ReflectionTest {
+  @Test
+  public void test() throws ClassNotFoundException {
+    // 自定义类都是系统类加载器帮我们加载的 比如ReflectionTest类就是它负责加载的
+
+    // 获取当前自定义类的 类加载器(ClassLoader)
+    ClassLoader classLoader = ReflectionTest.class.getClassLoader();
+
+    System.out.println(classLoader);
+    // jdk.internal.loader.ClassLoaders$AppClassLoader@2c13da15 它就是系统类加载器
+  }
+}
+```
+
+> classLoader.getParent()
+- 看看当前classLoader的上一层加载器是谁
+```java
+ClassLoader classLoader = ReflectionTest.class.getClassLoader();
+System.out.println(classLoader);
+
+// 通过getParent()方法查看当前加载器的上一层加载器
+ClassLoader parentClassLoader = classLoader.getParent();
+System.out.println(parentClassLoader);
+// jdk.internal.loader.ClassLoaders$PlatformClassLoader@64f6106c 扩展类加载器
+```
+
+
+> 代码部分
+```java
+@Test
+  public void test() throws ClassNotFoundException {
+    // 自定义类都是系统类加载器帮我们加载的 比如ReflectionTest类就是它负责加载的
+    // 获取当前自定义类的 类加载器(ClassLoader)
+    ClassLoader classLoader = ReflectionTest.class.getClassLoader();
+    System.out.println(classLoader);
+
+    // 调用系统类加载的getParent() 获取扩展类加载器
+    ClassLoader parentClassLoader = classLoader.getParent();
+    System.out.println(parentClassLoader);
+
+    // 调用扩展类加载器的getParent() 无法获取引导类加载器
+    // 引导类加载器主要负责加载java的核心类库 无法加载自定义类的
+    ClassLoader parent = parentClassLoader.getParent();
+    System.out.println(parent); // null
+  }
+```
+
+----------------------------
+
+### 使用ClassLoader加载配置文件
+- 我们在说集合的时候 提到过 Properties 它用来读取配置文件
+- 这里我们也可以用ClassLoader来加载配置文件
+
+> 方式1
+- 我们先看看 使用Properties读取配置文件的方式
+```java
+Properties props = new Properties();
+
+// 此时的文件默认在当前module下
+FileInputStream fis = new FileInputStream("jdbc.properties");
+props.load(fis);
+
+String user = props.getProperty("user");
+String password = props.getProperty("password");
+System.out.println(user + " " + password);
+```
+
+
+> 方式2
+- 接下来我们看看ClassLoader替换FileInputStream的方式读取配置文件的方式
+> classLoader.getResourceAsStream("文件路径");
+- 以流的方式获取资源
+
+- 注意:
+- 该方法的文件路径不以module为基准 而是module里面的*src*下
+
+- 返回值
+- InputStream
+
+```java
+Properties props = new Properties();
+
+// 获取类的加载器(获取的也是系统类加载器)
+ClassLoader classLoader = ReflectionTest.class.getClassLoader();
+
+// 以流的方式获取资源
+// 相对路径: 默认识别为当前module的src下
+InputStream is = classLoader.getResourceAsStream("jdbc.properties");
+props.load(is);
+
+// 后面的部分一样
+String user = props.getProperty("user");
+String password = props.getProperty("password");
+System.out.println(user + " " + password);
+```
+
+
+- 在开发中 我们是将配置文件写在module下还是src下？
+- 不建议写在module下 因为我们部署到tomcat服务器以后 module下的配置文件会缺失 我们要想保证它的存在 我们需要将配置文件放到src的下面
+
+- 如果我们使用的是方式1 那么我们在制定文件的路径的时候要加上src/
+```java
+FileInputStream fis = new FileInputStream("src/jdbc.properties");
+```
+
+----------------------------
+
 ### 书签
 
 ----------------------------
