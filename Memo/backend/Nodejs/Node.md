@@ -7505,7 +7505,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
         },
         RowDataPacket {
           id: 2,
-          name: '小月月',
+          name: '小月月',  
           age: 18,
           height: 180,
           gender: '女',

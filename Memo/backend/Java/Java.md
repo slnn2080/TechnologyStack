@@ -35598,7 +35598,7 @@ System.out.println(nation);
 
 
 ### Class的理解 
-- java.lang.Class类的理解
+- java.lang.Class类的理解 *反射的源头*
 
 - java语言编写完以后需要经过两个过程
 
@@ -35627,7 +35627,8 @@ System.out.println(nation);
   这也体现了万事万物皆对象
  -->
 
-- 2. 换句话说 Class的实例对应着一个运行时类
+- 2. 换句话说 Class的实例对应着一个运行时类(数组 接口等都可以 只要是加载到内存中的都是)
+
 - 3. 加载到内存中的运行时类 会缓存一定的时间 在此时间之类 我们可以通过不同的方式来获取此运行时类
 
 ----------------------------
@@ -36021,6 +36022,1077 @@ System.out.println(user + " " + password);
 - 如果我们使用的是方式1 那么我们在制定文件的路径的时候要加上src/
 ```java
 FileInputStream fis = new FileInputStream("src/jdbc.properties");
+```
+
+----------------------------
+
+### 通过反射创建运行时类的对象
+- 这节里面我们看看 当我们有了Class实例对象后 我们可以做什么事儿
+- 前面我们拿Person类举例子的 当我们把Person加载到内存中的时候 Person就是运行时类
+
+- 现在我们要创建Person类的对象(不是new+构造器的方式) 而是通过反射来操作
+
+- 下面我们通过反射创建对应的运行时类的对象
+<!-- 
+  Class对应的是哪个运行时类 那就只能创建那个类的对象
+ -->
+
+> clazz.newInstance()
+- 通过Class实例对象调用newInstance() 创建对应的运行时类的对象
+<!-- 
+  newInstance() 内部调用类中的空参构造器
+  所以要想用此方法 那么类中必须要提供空参构造器
+ -->
+- 我们也可以如下的添加泛型 这样类的泛型决定了newInstance()的返回值
+```java
+Class<Person> clazz = Person.class
+```
+
+- 返回值:
+- 对应的运行时类的对象
+<!-- 
+  newInstance() 
+  弃用了 弹幕说
+  clazz.getDeclaredConstructor().newInstance() 来代替
+
+  clazz.getDeclaredConstructor(String.class, int.class).newInstance()
+
+  Class clazz = Person.class;
+  Object o = clazz.getDeclaredConstructor().newInstance();
+  Person p = (Person) o;
+  System.out.println(p);
+ -->
+
+- 异常:
+- InstantiationException
+  实例化时异常: 当没有空参构造器的时候 抛出
+
+- IllegalAccessException
+  非法访问: 结构是私有的 我们非要访问的时候 抛出
+  (权限修饰符 权限不够的问题)
+
+
+- *注意*: 要想newInstance()正常的执行必须满足如下条件
+- 1. 运行时类必须提供空参的构造器
+- 2. 空参构造器的访问权限得够 通常设置为public
+<!-- 
+  在javabean中要求提供一个public的空参构造器 
+  1. 便于通过反射 创建运行时类的对象
+  2. 便于子类继承此运行时类时 默认调用super() 保证父类有此构造器
+ -->
+
+```java
+// 想通过反射创建Class的对象 那就要先有Class
+Class clazz = Person.class;
+
+// Object obj = clazz.newInstance();
+// 我们可以强转下
+Person p = (Person) clazz.newInstance();
+
+or
+
+// 这个方式没弃用提醒 上面的方式被弃用了
+clazz.getDeclaredConstructor().newInstance()
+```
+
+- 习惯是调用空参的构造器创建对象 而不是带参的 因为空参的构造器 更加的通用 符合的情况更多
+
+
+> 举例体会反射的动态性
+- 我们观察下如下的代码 在编译期间不能判断造的是哪个类的对象
+- 我们以前是通过new的方式造的对象 在编译期就能很明确的看出我们要造的是谁 比如 new Peron
+
+- 而我们通过反射的方式在编译期是不能确定我们要造的是哪个类的对象的
+
+- 具体的体会代码如下
+```java
+@Test
+public void test() throws Exception {
+
+  // 随机索取数字的方法 随机数的边界是3 返回得会是0 1 2
+  int num = new Random().nextInt(3);
+  String classPath = "";
+  switch (num) {
+    case 0:
+      classPath = "java.util.Date";
+      break;
+    case 1:
+      classPath = "java.lang.Object";
+      break;
+    case 2:
+      classPath = "com.sam.reflect.Person";
+      break;
+  }
+
+  // 根据clasPath创建类的对象
+  Object obj = getInstance(classPath);
+  System.out.println(obj);
+}
+
+
+// 创建一个指定类的对象 classPath: 指定类的全类名
+public Object getInstance(String classPath) throws Exception {
+  Class clazz = Class.forName(classPath);
+  return clazz.newInstance();
+}
+```
+
+----------------------------
+
+### 获取运行时类的完整结构
+
+> 提供结构丰富的Person类
+- 我们先提供一个结构丰富的Person类 便于测试怎么通过反射拿到类中的结构
+
+- 1. 我们提供了Person类的父类
+  - 父类有泛型
+  - 父类实现了 Serializable
+
+- 2. 我们定义了接口 和 注解
+
+- 3. Person类中继承了父类 实现了Comparable接口 和 自定义接口 使用了注解
+
+- 4. Person类中提供了不同权限的修饰符
+
+> 父类
+```java
+package com.sam.reflect;
+
+import java.io.Serializable;
+
+// Person类的父类 生物
+public class Creature<T> implements Serializable {
+  private char gender;
+  public double weight;
+
+  private void breath() {
+    System.out.println("生物呼吸");
+  }
+
+  public void eat() {
+    System.out.println("生物吃东西");
+  }
+}
+
+```
+
+
+> 自定义接口
+```java
+package com.sam.reflect;
+
+public interface MyInterface {
+  void info();
+}
+
+```
+
+
+> 自定义注解
+```java
+package com.sam.reflect;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
+
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE, MODULE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotation {
+  String value() default "hello";
+}
+
+```
+
+
+> Person类
+```java
+package com.sam.reflect;
+
+@MyAnnotation(value="Person")
+public class Person extends Creature<String> implements Comparable<String>, MyInterface{
+  private String name;
+  int age;
+  public int id;
+
+  // 接口中抽象方法的实现
+  @Override
+  public void info() {
+    System.out.println("我是一个人");
+  }
+
+  @Override
+  public int compareTo(String o) {
+    return 0;
+  }
+
+  public Person() {
+  }
+
+  @MyAnnotation(value="Person_Constructor")
+  private Person(String name) {
+    this.name = name;
+  }
+
+  Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  @MyAnnotation(value="Person_Method")
+  private String show(String nation) {
+    System.out.println("我的国籍是: " + nation);
+    return nation;
+  }
+
+  public String display(String interest) {
+    return interest;
+  }
+
+
+  @Override
+  public String toString() {
+    return "Person{" +
+        "name='" + name + '\'' +
+        ", age=" + age +
+        '}';
+  }
+}
+
+```
+
+------
+
+### 获取运行时类的属性结构及其内部的结构
+- 都是通过clazz.getXxxx的形式 调用类中的各个结构 有些见名知意
+
+
+> clazz.getFields()
+- 获取当前运行时类*及其父类中*声明为*public*访问权限的属性
+<!-- 
+  只能获取public的属性
+ -->
+
+- 返回值:
+- Field[]
+
+```java
+Class<Person> clazz = Person.class;
+
+// 2. 获取Person类中所有属性结构
+Field[] fields = clazz.getFields();
+
+for(Field field: fields) {
+  System.out.println(field);
+}
+// public int com.sam.reflect.Person.id
+// public double com.sam.reflect.Creature.weight
+```
+
+>  clazz.getField("属性名");
+- 获取当前运行时类*及其父类中*声明为*public*访问权限的*指定*属性
+```java
+Class clazz = Person.class;
+Field weight = clazz.getField("weight");
+System.out.println(weight);
+```
+
+
+> clazz.getDeclaredFields();
+- Declared 声明过的
+- 获取*当前运行时类中*声明的所有属性(不管什么权限, 不包含父类中声明的属性)
+
+- 返回值:
+- Field[]
+
+```java
+Field[] declaredFields = clazz.getDeclaredFields();
+
+for(Field field: declaredFields) {
+  System.out.println(field);
+}
+```
+
+> clazz.getDeclaredField("属性名");
+- 获取*当前运行时类中*声明的指定属性
+```java
+Field name = clazz.getDeclaredField("name");
+System.out.println(name);
+```
+
+------
+
+### 获取属性中的具体结构
+- 属性一般分为如下的几个部分:
+- 权限修饰符 数据类型 变量名 = 变量值
+<!-- 
+  能不能拿到变量值 要看是不是静态结构 是的话能拿到 不是的话拿不到
+  因为实例成员 得有对象之后才能拿到
+ -->
+
+- 我们通过上面的两个方法能拿到属性们 而我们还可以通过反射拿到每一个属性中的上面几个部分
+
+> 属性.getModifiers()
+- 获取属性的权限修饰符
+
+- 返回值
+- int
+<!-- 
+  在java.lang.reflect 中有一个Modifier类 里面定义了权限修饰符对应的数字
+
+  default     0
+  public      1
+  private     2
+  protected   4
+ -->
+
+```java
+Class<Person> clazz = Person.class;
+Field[] declaredFields = clazz.getDeclaredFields();
+for(Field field: declaredFields) {
+  // 获取每个属性的权限修饰符
+  int modifier = field.getModifiers();
+  // 2 0 1
+}
+```
+
+> Modifier.toString(modifier)
+- Modifier类的静态方法 用于将属性.getModifiers()返回得int值 翻译回对应的权限类型
+
+- 参数：
+- 属性.getModifiers()的返回int型值
+```java
+Class<Person> clazz = Person.class;
+Field[] declaredFields = clazz.getDeclaredFields();
+for(Field field: declaredFields) {
+  // 获取每个属性的权限修饰符
+  int modifier = field.getModifiers();
+  // 2 0 1
+
+  // 将2 0 1翻译回权限修饰符
+  System.out.println(Modifier.toString(modifier));
+  // private public
+}
+```
+
+
+> 属性.getType()
+- 反射形式获取属性的类型
+
+- 返回值
+- Class
+- 类型前面会保留java.lang 因为我们自己也可以定义为String
+- 分了区分会以全类名的方式显示
+
+```java
+Class<Person> clazz = Person.class;
+Field[] declaredFields = clazz.getDeclaredFields();
+
+for(Field field: declaredFields) {
+  Class type = field.getType();
+  System.out.println(type);
+    // class java.lang.String
+
+  System.out.println(type.getName());
+    // java.lang.String
+}
+```
+
+
+> 属性.getName()
+- 反射形式获取属性名
+
+- 返回值:
+- String
+
+```java
+Class<Person> clazz = Person.class;
+Field[] declaredFields = clazz.getDeclaredFields();
+
+for(Field field: declaredFields) {
+  String name = field.getName();
+  System.out.println(name);
+}
+```
+
+------
+
+### 获取运行时类的方法结构
+
+> clazz.getMethods();
+- 获取当前运行时类*及其所有父类*中声明为*public*类型的方法
+
+- 返回值:
+- Method[]
+
+```java
+Class clazz = Person.class;
+// 获取方法构成的数组
+Method[] methods = clazz.getMethods();
+
+// 遍历所有方法 好多好多Object类中的方法也会被打印
+for(Method m: methods) {
+  System.out.println("所有的方法: " + m);
+
+  System.out.println();
+}
+```
+
+> clazz.getMethod("方法名");
+- 获取当前运行时类*及其父类中*声明为*public*访问权限的*指定*方法
+
+- 返回值:
+- Method
+
+```java
+Class clazz = Person.class;
+// 获取方法构成的数组
+Method show = clazz.getMethod("eat");
+System.out.println(show);
+```
+
+> clazz.getDeclaredMethods()
+- 获取当前运行时类中声明的*所有方法*(不包含父类中声明的方法)
+
+- 返回值:
+- Method[]
+
+```java
+Class clazz = Person.class;
+
+// 获取方法构成的数组
+Method[] methods = clazz.getDeclaredMethods();
+for(Method m: methods) {
+  System.out.println("所有的方法: " + m);
+}
+```
+
+------
+
+### 获取运行时类的方法的内部结构
+- 上面我们获取了属性当中的各个结构 方法也可以这样获取方法中的各个内部结构
+
+> 方法中的结构:
+- @注解
+- 权限修饰符 返回值类型 方法名(参数类型1 形参名1, ...) throws 异常 {
+
+}
+
+
+> 获取方法声明的注解
+- 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后 
+- 通过 方法. 的形式 调用具体方法 获取注解
+- 获取注解是所有方法的
+
+> 方法.getAnnotations()
+- 通过反射获取方法上方的注解
+- 能获取到的注解 必须其声明周期为 RUNTIME
+
+- 返回值
+- Annotation[]
+
+```java
+Class clazz = Person.class;
+
+// 获取运行时类中的方法
+Method[] declaredMethods = clazz.getDeclaredMethods();
+
+// 遍历方法集合拿到每一个方法
+for(Method m: declaredMethods) {
+  // 通过每一个方法.getAnnotations() 得到方法上面的注解
+  Annotation[] annos = m.getAnnotations();
+  for(Annotation a: annos) {
+    System.out.println(a);
+    // @com.sam.reflect.MyAnnotation(value="Person_Method")
+  }
+}
+```
+
+
+> 获取方法中的权限修饰符
+- 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
+- 通过 方法. 的形式 调用具体方法 获取方法的权限修饰符
+
+> 方法.getModifiers()
+- 获取方法的权限修饰符
+
+- 返回值
+- int
+- 和属性的返回值一样
+
+```java
+Class clazz = Person.class;
+Method[] declaredMethods = clazz.getDeclaredMethods();
+
+
+for(Method m: declaredMethods) {
+
+  int modifiers = m.getModifiers();
+  System.out.println(Modifier.toString(modifiers));
+}
+```
+
+
+> 获取方法中的返回值类型
+- 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
+- 通过 方法. 的形式 调用具体方法 获取方法的返回值类型
+
+> 方法.getReturnType()
+- 获取方法的返回值类型
+
+- 返回值
+- Class
+
+```java
+Class clazz = Person.class;
+Method[] declaredMethods = clazz.getDeclaredMethods();
+
+for(Method m: declaredMethods) {
+  // 获取返回值的类型
+  Class returnType = m.getReturnType();
+  
+  // 再获取返回值类型的名字
+  String name = returnType.getName();
+  System.out.println(name);
+
+  System.out.println(m.getReturnType().getName());
+}
+```
+
+
+> 获取方法中的方法名
+- 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
+- 通过 方法. 的形式 调用具体方法 获取方法的返回方法名
+
+> 方法.getName()
+- 获取方法的方法名
+
+- 返回值
+- String
+
+```java
+Class clazz = Person.class;
+Method[] declaredMethods = clazz.getDeclaredMethods();
+
+for(Method m: declaredMethods) {
+
+  String name = m.getName();
+  System.out.println(name);
+}
+```
+
+
+> 获取方法中的形参列表
+- 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
+- 通过 方法. 的形式 调用具体方法 获取方法的返回形参列表
+
+- 我们没有办法获取到形参名 只能获取到形参的类型
+
+> m.getParameterTypes()
+- 获取方法的形参列表中的*参数类型*
+
+- 返回值
+- Class[]
+
+```java
+Class clazz = Person.class;
+Method[] declaredMethods = clazz.getDeclaredMethods();
+
+for(Method m: declaredMethods) {
+
+  // 获取参数类型
+  Class[] parameterTypes = m.getParameterTypes();
+
+  // 遍历Class[]
+  for(Class p: parameterTypes) {
+    System.out.println(p.getName());
+    // java.lang.String
+    // java.lang.String
+    // java.lang.Object
+    // java.lang.String
+  }
+}
+```
+
+
+> 获取方法中抛出的异常
+- 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
+- 通过 方法. 的形式 调用具体方法 获取方法的异常
+
+
+> m.getExceptionTypes()
+- 获取方法的*异常*
+
+- 返回值
+- Class[]
+
+```java
+Class clazz = Person.class;
+Method[] declaredMethods = clazz.getDeclaredMethods();
+for(Method m: declaredMethods) {
+
+  // 得到异常数组
+  Class[] exceptionTypes = m.getExceptionTypes();
+
+  // 判断是否有异常
+  if(exceptionTypes.length > 0) {
+
+    for (Class e: exceptionTypes) {
+      System.out.println("throws: " + e);
+    }
+
+    // 没有异常的时候
+  } else {
+    System.out.println("没有参数列表");
+  }
+}
+```
+
+------
+
+### 获取运行时类的构造器的结构
+
+> clazz.getConstructors()
+- *获取*当前运行时类当中 声明为*public的构造器*
+
+- 返回值
+- Constructor[]
+
+```java
+Class clazz = Person.class;
+Constructor[] constructors = clazz.getConstructors();
+
+for(Constructor c: constructors) {
+  System.out.println(c);
+  // public com.sam.reflect.Person(java.lang.String,int)
+  // public com.sam.reflect.Person()
+}
+```
+
+> clazz.getConstructor()
+- 获取当前运行时类的指定构造器
+
+- 参数：
+- 形参列表类型
+- *不传就是获取空参构造器*
+- String.class int.class
+
+```java
+Class clazz = Person.class;
+Constructor constructor = clazz.getConstructor(String.class, int.class);
+
+System.out.println(constructor);
+// public com.sam.reflect.Person(java.lang.String,int)
+```
+
+
+> clazz.getDeclaredConstructors()
+- 获取当前运行时类中的*所有构造器* (不分权限)
+
+- 返回值
+- Constructor[]
+
+```java
+Class clazz = Person.class;
+
+Constructor[] declaredConstructors = clazz.getDeclaredConstructors();
+```
+
+> clazz.getDeclaredConstructor()
+- 获取当前运行时类的指定构造器
+
+- 返回值
+- Constructor
+
+- 参数
+- *不传就是获取空参构造器*
+- String.class int.class
+
+------
+
+### 获取运行时类的父类以及父类的泛型  -- 重点
+- *这个还真有用到* 比上面的强
+
+> clazz.getSuperclass()
+- 获取运行时类的*父类*
+
+- 返回值
+- Class
+<!-- 
+  父类也是类 所以也是Class的实例
+ -->
+
+```java
+Class clazz = Person.class;
+
+Class superclass = clazz.getSuperclass();
+System.out.println(superclass);
+// class com.sam.reflect.Creature
+```
+
+
+> clazz.getGenericSuperclass()
+- 获取运行时类*带泛型的父类*
+
+- 返回值:
+- Type
+<!-- 
+  Type是一个接口 Class实现了这个接口
+ -->
+
+```java
+Class clazz = Person.class;
+
+Type genericSuperclass = clazz.getGenericSuperclass();
+System.out.println(genericSuperclass);
+// com.sam.reflect.Creature<java.lang.String>
+```
+
+
+> paramType.getActualTypeArguments();
+- 获取泛型参数(泛型类型)
+- 获取运行时类的带泛型的*父类的泛型*
+
+- 返回值:
+- Type[]
+
+- 1. 先获取带泛型的父类对象
+- Type genericSuperclass = clazz.getGenericSuperclass();
+
+- 2. 将 genericSuperclass *强转*成 ParameterizedType
+<!-- 
+  ParameterizedType: 带参数的类型
+ -->
+
+- 2. 通过 ParameterizedType*的对象* 调用方法 
+- *paramType.getActualTypeArguments()*
+
+```java
+Class clazz = Person.class;
+
+Type genericSuperclass = clazz.getGenericSuperclass();
+ParameterizedType paramType = (ParameterizedType)genericSuperclass;
+// 获取泛型参数
+Type[] actualTypeArguments = paramType.getActualTypeArguments();
+System.out.println(actualTypeArguments[0]);
+    // class java.lang.String
+
+System.out.println(actualTypeArguments[0].getTypeName());
+    // java.lang.String
+
+// Class才有getName()
+System.out.println((Class)actualTypeArguments[0].getName());
+    // java.lang.String
+```
+
+------
+
+### 获取运行时类的接口 所在包 注解等    -- 重点(接口)
+
+> clazz.getInterfaces()
+- 获取运行时类的*接口*(不包括父类的接口)
+
+- 返回值
+- Class[]
+
+```java
+Class clazz = Person.class;
+
+Class[] interfaces = clazz.getInterfaces();
+for(Class c: interfaces) {
+  System.out.println(c);
+    // interface java.lang.Comparable
+    // interface com.sam.reflect.MyInterface
+}
+
+
+// 获取运行时类父类实现的接口
+Class[] interfaces1 = clazz.getSuperclass().getInterfaces();
+```
+
+
+> clazz.getPackage()
+- 获取运行时类所在的*包*
+
+- 返回值
+- Package
+
+```java
+Class clazz = Person.class;
+
+Package pack = clazz.getPackage();
+System.out.println(pack);
+// package com.sam.reflect
+```
+
+>clazz.getAnnotations();
+- 获取运行类上方的*注解*
+
+- 返回值:
+-  Annotation[]
+
+```java
+Class clazz = Person.class;
+
+Annotation[] annotations = clazz.getAnnotations();
+
+for(Annotation a: annotations) {
+  System.out.println(a);
+  // @com.sam.reflect.MyAnnotation(value="Person")
+}
+```
+
+----------------------------
+
+### 调用运行时类中指定的结构  -- 需要掌握
+- 结构包括:
+- 属性 方法 构造器
+- 上面三个中我们通常调用的都是 方法
+
+------
+
+### 调用运行时类中的指定属性
+- 对于属性的调用我们分为两方面
+- 1. 得到属性的值
+- 2. 给属性赋值
+
+- 非静态属性：
+- 需要有运行时类的对象
+
+> clazz.getField("id"); -- *通常不采用此方式*
+- 获取运行时类指定的属性(只能获取public权限得属性)
+
+- 参数
+- String 属性名
+
+- 返回值
+- Field
+
+- 异常
+- NoSuchFieldException 没有给定的属性的时候的异常
+
+
+> 属性对象.set(参数1, 参数2)
+- 给属性赋值
+
+- 参数1:
+- Object obj
+- 指明设置哪个对象的属性
+
+- 参数2:
+- Object value
+- 将此属性设置为多少
+
+
+> 属性对象.get(参数1)
+- 获取哪个对象的属性
+- 获取当前属性的值
+
+- 参数
+- Object
+- 获取哪个对象的当前属性的值
+
+- 返回值
+- Object
+- 所以这里我们可以进行下强转
+
+```java
+Class clazz = Person.class;
+
+// 创建运行时类的对象 对象p是 set 和 get 方法需要的参数
+Person p = (Person)clazz.newInstance();
+
+// 获取指定的属性
+Field id = clazz.getField("id");
+
+// 设置当前属性的值
+id.set(p, 1001);
+
+// 得到的是Object类型 所以我们可以进行强转
+Object o = id.get(p);
+int pid = (int)o;
+System.out.println(pid);    // 1001
+```
+
+
+> 开发中常用 getDeclaredXxx() 方法获取指定的属性
+- 因为该方法可以获取运行时类的指定属性(不分权限)
+
+> clazz.getDeclaredField(String fieldName)
+- 获取指定变量名的属性(不分权限)
+
+> 属性对象.setAccessible(true);
+- 保证当前属性是可访问的
+<!-- 
+  当我们读取或设置的属性的权限是default 或者 private的时候
+  默认情况下是不允许我们访问的
+
+  这时候我们就要 调用 setAccessible(true) 方法
+  public的属性调用该方法也没事
+ -->
+
+```java
+Class clazz = Person.class;
+// 创建运行时类的对象
+Person p = (Person) clazz.newInstance();
+
+Field name = clazz.getDeclaredField("name");
+
+// 不加这句 会报非法访问的异常
+name.setAccessible(true);
+
+name.set(p, "Sam");
+System.out.println(name.get(p));
+```
+
+------
+
+### 调用运行时类中的指定方法
+
+> 非静态方法：
+- 需要运行时类的对象
+```java
+Class clazz = Person.class;
+Person p = (Person) clazz.newInstance();
+
+// 我们需要拿到对象 p 
+```
+
+> clazz.getDeclaredMethod(String methodName, ...parameterTypes)
+- 获取运行时类中的指定方法
+
+- 参数1:
+- String 指明要获取的方法的名称
+
+- 参数2:
+- 可变形参列表
+- 同名方法(方法的重载)可能很多 所以告诉想要哪个参数的方法
+- 参数名.class
+
+- 异常
+- NoSuchMethodException
+
+- 返回值:
+- Method
+
+> 方法的调用
+> 方法对象.invoke()
+- 通过invoke() 调用该方法(方法对象所表示的方法)
+
+- 参数1:
+- 方法的调用者
+- 用哪个对象去调，非静态方法使用运行时类的对象去调用
+
+- 参数2:
+- 传递实参
+
+- 异常:
+- InvocationTargetException
+
+- 非静态方法：
+- 参数1的位置要传递 运行时类的对象
+
+- 静态方法：
+- 参数1的位置要传递 Person.class / clazz
+<!-- 
+  其实静态方法的第一个参数 也可以传递null
+  在静态方法的时候 第一个参数不是那么重要 静态方法通过哪个对象调用都一样
+  
+  只有非静态方法才需要知道是哪个类的对象调用的
+ -->
+
+- 返回值:
+- invoke()的返回值即为"方法对象"所表示的方法的返回值
+
+- Object 返回值 = 方法对象.invoke()
+- 我们能看到返回值的类型是Object 所以我们以可以使用强转
+
+- 如果方法的返回值是void 那么我们从invoke()接收到的*返回值就是null*
+
+
+**注意:**
+- 如果我们调用的不是public权限得方法 还是要使用
+> 方法.setAccessible(true);
+- 保证当前的方法是可访问的
+
+
+```java
+@Test
+public void test() throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+  Class clazz = Person.class;
+  Person p = (Person) clazz.newInstance();
+
+  // 非静态方法的情况
+  // 获取指定的方法
+  Method show = clazz.getDeclaredMethod("show", String.class);
+
+  // 保证当前方法是可以访问的
+  show.setAccessible(true);
+
+  // 拿到方法对象的返回值
+  Object zh = show.invoke(p, "ZH");
+  System.out.println(zh);
+
+  System.out.println("*********");
+
+  // 静态方法的情况
+  Method showDesc = clazz.getDeclaredMethod("showDesc");
+  showDesc.setAccessible(true);
+
+  // 或者 Person.class / null
+  showDesc.invoke(clazz);
+}
+```
+
+------
+
+### 调用运行时类中的指定构造器
+- 我们通过反射调构造器肯定是想要造对象
+- 但是我们最常用的就是 clazz.newInstance() (调用的都是空参的构造器) 
+- 这个方法的使用量占到了99%
+
+- 只有针对具体的某个问题才会造一个指定的构造器 所以使用的情况不是很高
+
+
+> clazz.getDeclaredConstructor(指定参数列表);
+- 获取构造器对象 
+
+- 参数
+- 指定构造器的参数列表
+- 形参类型.class
+
+- 异常:
+- NoSuchMethodException
+
+- 返回值
+- Constructor
+
+> 构造器对象.setAccessible(true);
+- 保证构造器是可访问的
+
+> 构造器对象.newInstance(实参)
+- 创建实例对象 传递实际参数
+
+- 返回值
+- Object
+
+```java
+@Test
+public void test() throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+  Class clazz = Person.class;
+  Constructor constructor = clazz.getDeclaredConstructor(String.class);
+  // 保证此构造器是可访问的
+  constructor.setAccessible(true);
+
+  // 调用此构造器创建运行时类的对象
+  Object sam = constructor.newInstance("Sam");
+
+  // 这里我们还可以对sam对象进行强转
+  Person p = (Person) sam
+  System.out.println(p);
+}
 ```
 
 ----------------------------
