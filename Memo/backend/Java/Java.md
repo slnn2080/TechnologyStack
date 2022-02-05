@@ -37097,6 +37097,424 @@ public void test() throws InstantiationException, IllegalAccessException, NoSuch
 
 ----------------------------
 
+### 代理模式 和 动态代理
+- 动态代理可以看做是反射的应用
+
+> 代理设计模式的原理:
+- 使用一个代理将对象包装起来 然后用该代理对象取代原始对象
+- 任何对原始对象的调用要通过代理 代理对象决定是否以及何时将方法调用转换原始对象上
+<!-- 
+  这里说的是动态代理
+  前面我们说过静态代理 不管哪个都属于代理模式 只不过指的是代理是编译时候定下来的 还是在运行的时候动态创建的 原理是一样的
+
+
+                接口
+              -------
+          ↗           ↖
+
+  类A: 代理类         类B: 被代理类
+  ----------         ------------
+
+  两个类都实现了接口
+
+  比如 类B要租房子 那类B就要有找房子的功能 但是不是类B做的而是找了一个中介类A 中介代理类B做这件事
+
+  说白了就是我们想调用的被代理类的对象 调用被代理类的方法
+  但是类B的对象的创建和方法的执行 都是由代理类发起的 由代理类来决定要不要创建被代理类的对象 以及什么时候创建 和 方法何时调用 都是在代理类里面封装起来的
+ -->
+
+- 之前为大家讲解过代理机制的操作 属于静态代理 特征是代理类和目标对象的类都是在编译期间确定下来 不利于程序的扩展
+
+- 同时 每一个代理类只能为一个接口服务 这样一来程序开发中必然产生过多的代理 *最好可以通过一个代理类完成全部的代理功能*
+
+> 静态代理带来的问题 (动态代理产生的原因)
+- 买房的问题 会有买房人和中介 这一套代理和被代理
+- 唱歌的问题 会有歌星和经纪人 这一套代理和被代理
+- 官司的问题 会有被告人和律师 这一套代理和被代理
+
+- 上面的每种情况都会有代理类的出现 也就是说我们的程序里面就会创建多个代理类 产生过多的代理不太好
+- 而我们代理类的功能就一个 就是对被代理类功能上的封装(通过代理类调用方法本质上都是调用被代理类了)
+- 也就是说 代理类的功能都相同 那我们就会想能不能有一个通用得代理类 去完成这样的功能
+
+- 但是这个通用的代理类又不能在编译期间就能确定下来 我们只能在运行期间确定
+<!-- 
+  比如运行期间我们加载的是类B被代理类 那我就根据这个被代理类 帮助我们动态的创建一个代理类 得到一个代理类的对象
+
+  也就是我们需要在运行期间创建一个代理类(根据我们加载到内存中的被代理类是谁)
+
+  加载哪个类就创建这个类对应的代理类
+
+  而代理类和被代理类又要实现同一套接口 在运行期间根据加载到内存中的被代理类 我们看看它实现了哪些接口 然后我们创建代理类的时候也让它实现这些接口 这样就形成了上面的三角形的关系
+ -->
+
+- 动态代理是指客户通过代理类来调用其它对象的方法 并且是在程序运行时 根据需要动态创建目标类的代理对象
+
+- 动态代理使用场合: 
+- 1. 调试
+- 2. 远程方法调用
+
+- 动态代理相比于静态代理的优点: 
+- 抽象角色中(接口)声明的所有方法都被转移到调用处理器一个集中的方法中处理 这样我们可以更加灵活和统一的处理众多的方法
+
+----------------------------
+
+### 回顾静态代理
+- 我们先看看静态代理 也算是回顾一下
+
+> 静态代理的所需要的结构
+- 1. 接口
+- 作用:
+- 接口中会定义抽象方法 等代理类和被代理类来实现
+
+- 2. 代理类
+- 1. 定义接口类型的属性 是一个对象 该属性要通过 创建的被代理类对象来初始化
+
+- 作用:
+- 它有点像高阶组件那样 里面定义了除了 核心功能(被代理类中的功能) 之外的一些其他功能
+
+- 它也会重写接口中的方法 并在核心的位置 通过被代理类对象调用被代理类中的接口中的抽象方法
+```java
+  @Override
+  public void produceCloth() {
+    ... 其他功能
+
+        被代理对象.接口抽象方法()
+
+    ... 其他功能
+  }
+```
+
+- 3. 被代理类
+- 被代理类的对象会传入代理类的构造器中
+- 作用
+- 在重写接口中的抽象方法的方法体中 定义 核心功能
+
+> 代码部分:
+```java
+// 接口 
+// 接口也是一种类型
+interface ClothFactory {
+
+  // 衣服工厂就会有生产衣服的功能
+  void produceCloth();
+}
+
+
+--- 
+
+
+// 代理类
+class ProxyClothFactory implements ClothFactory {
+  // 定义类型为接口类型的属性 用被代理对象进行实例化
+  private ClothFactory factory;
+
+  // 构造器 提供参数对 factory 属性 进行初始化
+  public ProxyClothFactory(ClothFactory factory) {
+    this.factory = factory;
+  }
+
+  // 实现接口中的方法
+  @Override
+  public void produceCloth() {
+
+    System.out.println("代理工厂做一些准备工作");
+
+    // factory是被代理类 也就是代理类调用的produceCloth()方法的时候 它的内部其实是被代理类调用自己的produceCloth()方法
+    factory.produceCloth();
+
+    System.out.println("代理工厂做一些后续的收尾工作");
+  }
+}
+
+
+---
+
+
+// 被代理类 nick的衣服工厂
+class NickClothFactory implements ClothFactory {
+
+  @Override
+  public void produceCloth() {
+    System.out.println("Nick工厂生产一批运动服");
+  }
+}
+
+
+---
+
+
+// 测试方法
+public class StaticProxyTest {
+  public static void main(String[] args) {
+
+    // 1. 创建被代理类对象
+    // 我们要造代理类的对象 但是代理类对象里面又需要一个参数(被代理类对象) 所以我们先造一个被代理类对象
+
+    // 被代理类对象
+    NickClothFactory nike = new NickClothFactory();
+
+    // 2. 创建代理类对象 
+    // 代理类对象的类型写 ProxyClothFactory 还是ClothFactory(接口) 都可以
+    ClothFactory proxyClothFactory = new ProxyClothFactory(nike);
+
+
+    // ClothFactory接口中声明过produceCloth()方法 
+    // 这里就相当于是多态的形式一样 proxyClothFactory明明是代理类对象 
+    // 我们调用produceCloth()方法 在编译期间 会因为是接口中的produceCloth()方法 实际执行的都是代理对象里面重写后的方法
+    proxyClothFactory.produceCloth();
+
+  }
+}
+
+
+// 结果:
+- 代理工厂做一些准备工作
+- Nick工厂生产一批运动服
+- 代理工厂做一些后续的收尾工作
+```
+
+> 静态代理的特点
+- 静态代理 不管是代理类还是被代理类都写死了 也就是说*编译期间代理类和被代理类就确定下来了*
+
+----------------------------
+
+### 动态代理的举例
+- 动态代理也好 还是静态代理也好 都是代理模式 所以接口一定要有 被代理类要有 *只有代理类改成动态的了*
+
+- 动态代理的接口
+- 1. 接口
+- 2. 被代理类
+- 3. 代理类 (动态的创建的了)
+
+
+> 创建动态代理的核心的API
+- 创建动态代理 有Proxy类给我们提供的 newProxyInstance() 方法 专门用来 *创建动态的代理类对象*
+
+- Proxy类
+- 它是所有动态代理类的父类
+<!-- 
+  Proxy类时反射包下的一个一个类 直接使用就可以
+ -->
+
+> Proxy.newProxyInstance(参数1, 参数2, 参数3)
+- 该方法是通过Proxy类来调用 
+- 作用:
+- 创建动态代理对象 当我们*通过该对象*调用共同接口(代理类和被代理类的共同接口)的中方法的之后 *会自动调用被代理类中的同名方法*
+
+- 参数1:
+- 被代理类的加载器
+- 被代理类时哪个加载器加载的
+```java
+// obj为上层方法的形参 是被代理类对象
+obj.getClass().getClassLoader()
+```
+
+- 参数2:
+- Class[] 接口
+- 指明被代理类的接口然后创建代理类的时候 让其实现和被代理类一样的接口
+<!-- 
+  为什么要传递接口呢？ 我们要创建代理类对象 而代理类和被代理类要实现同样的接口 所以我们要看下被代理类对象所在的类实现了哪些接口 我就跟被代理类一样 也实现这些接口
+ -->
+
+```java
+// obj为上层方法的形参 是被代理类对象
+obj.getClass().getInterfaces()
+```
+
+- 参数3:
+- InvocationHandler h
+- InvocationHandler接口的实现类对象
+
+- 该实现类对象 更想是一个代理对象的配置对象 配置代理类调用的方法的时候调用的是被代理类的同名方法
+
+- 该实现类对象中要处理的逻辑:
+- 1. 声明被代理类对象
+- 2. 提供给被代理类对象初始化的方法(相当于set方法)
+- 3. 实现InvocationHandler接口中 invoke() 方法
+  - 该方法的作用:
+  - 当代理类调用被代理类和代理类中的抽象方法的时候 会自动调用被代理类中的同名方法
+
+> public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {...}
+- 作用:
+- 当通过代理类对象调用代理类和被代理类共同接口中的方法的时候
+- 通过该invoke()方法中的逻辑 会自动调用被代理类中的同名方法
+
+- 下面的参数不用我们创建传递
+
+- 参数1:
+- 代理类对象 也就是如下逻辑的时候返回得对象 
+- newProxyInstance()方法返回得就是动态代理对象
+```java
+return Proxy.newProxyInstance(obj.getClass().getClassLoader(), obj.getClass().getInterfaces(), handler);
+```
+
+- 参数2:
+- 代理类调用的代理类和被代理类共同接口中的方法是什么方法 这里method就是那个方法
+
+- 参数3:
+- 代理类和被代理类共同接口中的方法需要的参数
+- 就是方法中需要传递的实参
+
+
+```java
+// 创建 InvocationHandler接口的 实现类对象
+class MyInvocationHandler implements InvocationHandler {
+  /*
+    1. 声明被代理类对象
+      - 代理类对象的类型我们还是写Object这样更加的通用
+      - 虽然声明为object但是赋值的时候也需要使用被代理类对象进行赋值
+  */
+  private Object obj;
+
+
+  /*
+    2. 提供给被代理类对象初始化的方法(相当于set方法)
+      - 赋值的话 可以通过构造器 也可以通过方法给 obj进行赋值 这里我们提供一个方法
+  */
+  public void bind(Object obj) {
+    this.obj = obj;
+  }
+
+
+  /*
+    3. 实现invoke方法
+      - 作用 当我们通过代理类的对象调用代理类和被代理类的接口中的抽象方法的时候 会自动的走如下的invoke()方法中的逻辑
+
+      - invoke()方法中的逻辑: 
+      - 将被代理类要执行的方法a的功能 声明在invoke()方法中
+  */
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    
+    // obj是被代理类对象
+    Object returnVal = method.invoke(obj, args);
+
+    // 上述方法的返回值作为当前类中invoke()方法的返回值
+    return returnVal;
+  }
+}
+```
+
+
+> 代码部分
+- 思考:
+- 动态代理 
+- 根据加载到内存中的 被代理类是什么 我动态的创建一个跟被代理类实现接口一样的类
+
+- 要想实现动态代理 需要解决的问题:
+- 1. 如何根据加载到内存中的被代理类 动态的创建一个代理类及其对象
+- 2. 当通过代理类的对象调用方法时 如何动态的去调用被代理类中的同名方法
+
+
+
+- 1. 创建代理类:
+- 和被代理类的接口 内部声明了抽象方法 该抽象方法就是被代理类要执行的核心代码 也是代理类调用该方法的时候会执行被调用类中的同名方法
+
+```java
+// 人类 接口
+interface Human {
+  // 获取信仰
+  String getBelief();
+
+  // 吃
+  void eat(String food);
+}
+```
+
+- 2. 被代理类
+- 当通过代理类调用接口中的抽象方法的时候 会自动调用被代理类中的同名方法
+```java
+// 被代理类 (代理类要动态创建) 实现接口
+class SuperMan implements Human {
+
+  @Override
+  public String getBelief() {
+    return "我相信我能飞";
+  }
+
+  @Override
+  public void eat(String food) {
+    System.out.println("我喜欢吃: " + food);
+  }
+}
+```
+
+- 3. 创建专门生成代理类的工厂
+- 内部定义静态方法用于通过类名调用获取代理类对象
+- 也就是说我们的代理类是通过 代理类的工厂类 创建的
+```java
+class ProxyFactory {
+  /*
+    getProxyInstance(Object obj)方法:
+    - 作用
+      - 调用此静态方法 返回一个代理类对象 
+
+      - 为了解决问题1: 如何根据加载到内存中的被代理类 动态的创建一个代理类及其对象
+
+      - 前提就是告诉我 我此时创建的代理类是代理哪个被代理类的
+      - 所以要传递进来一个被代理类对象
+
+    - 参数obj:
+      - 被代理类对象
+    
+    - 返回值:
+      - Object 代理类的类型
+      - 我们不要写具体的一个类型 那样就写死了 我们可能代理别的 不管代理什么 肯定是Object的一个实例
+  */
+  public static Object getProxyInstance(Object obj) {
+
+    
+    // newProxyInstance参数3需要的yInvocationHandler接口的实现类对象
+    MyInvocationHandler handler = new MyInvocationHandler();
+
+    // 通过bind()方法 给被代理类进行赋值操作
+    // 我们要传递进来一个被代理类对象 而getProxyInstance方法的参数obj就是被代理类对象 我们丢进去
+    handler.bind(obj);
+
+    // 代理类对象
+    return Proxy.newProxyInstance(obj.getClass().getClassLoader(), obj.getClass().getInterfaces(), handler);
+
+    // 当我们通过代理类对象调用Human接口中的方法的时候 它就会自动的转成参数3handler对象中的invoke()方法
+  }
+}
+```
+
+- 4. 测试类
+```java
+public class ProxyTest {
+
+  public static void main(String[] args) {
+
+    // 1. 创建代理类对象 传递被代理类对象
+    SuperMan superMan = new SuperMan();
+
+    // 2. 通过ProxyFactory类的静态方法创建代理类对象
+    Human proxyInstance = (Human) ProxyFactory.getProxyInstance(superMan);
+    /*  
+      Object proxyInstance = ProxyFactory.getProxyInstance(superMan);
+
+      - 代理类对象的返回值:
+        - Object
+
+      - 我们可以可以它强转成Human 但是它不能定义为SuperMan因为SuperMan是被代理类对象的类型
+      
+      - 这个逻辑是我们创建了SuperMan类的对象 也就是被代理类的对象 然后传递到getProxyInstance()方法中
+
+      - 然后我们看看被代理类对象superMan实现了什么接口 我们造一个类(动态创建的代理类) 跟被代理类实现同一个接口
+
+      - 所以我们可以写成被代理类和代理类共同的接口 这里我们不用Object类型 可以设置为接口类型 所以上面进行了强转
+    */
+
+    // 当通过代理类对象调用方法时 会自动的调用被代理类中的同名方法
+    String belief = proxyInstance.getBelief();
+    System.out.println(belief);
+    proxyInstance.eat("四川麻辣烫");
+  }
+}
+```
+
+----------------------------
+
 ### 书签
 
 ----------------------------
