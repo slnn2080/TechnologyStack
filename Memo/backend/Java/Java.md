@@ -37515,6 +37515,901 @@ public class ProxyTest {
 
 ----------------------------
 
+### AOP(Aspect Orient Programming)与动态代理的举例
+- 前面介绍的Proxy和InvocationHandler 很难看出这种动态代理的优势 下面介绍一种更实用的动态代理机制
+
+- 比如:
+- 我们经常会遇到不同的代码段中 有着相同的代码段 而这些相同的代码在不同的代码段中出现会显得有些冗余
+
+<!-- 
+    代码段1             代码段2
+    ---------          ---------
+    相同的代码段         相同的代码段
+
+                  ↘       ↓
+
+    代码段3             方法A
+    ---------     ↗    ---------
+    相同的代码段         相同的代码段
+ -->
+
+- 所以我们会将这些相同的代码段抽离出来 抽成一个方法 方法造完以后我们就可以在代码段1 2 3中调用方法就可以了
+
+- 改进后:
+- 代码段1 2 3和相同的代码段分离了 但代码段1 2 3又和一个特定的方法A耦合了
+
+- 最理想的效果是:
+- 代码块1 2 3既可以执行方法A 又无须在程序中以硬编码的方式直接调用深色代码的方法
+
+- 那能不能这个方法动态起来 想调用方法A就调用方法A 想调用方法B就调用方法B 这里我们就可以用动态代理
+
+<!-- 
+    -------------------
+    动态代理增加的通用方法1 -- 固定[互换]
+
+            ← 回调目标对象的方法 -- 动态的[互换] 
+                                (想放哪个方法就放哪个方法)
+
+    动态代理增加的通用方法2 -- 固定[互换]
+    -------------------
+
+    固定和动态之间是可以互换的
+    上面是
+      固定
+        动态
+      固定
+
+    也可以看成
+      动态
+        固定
+      动态
+ -->
+
+- 上面的方式也叫做切片编程
+- 结合我们上面的动态代理的例子 我们也体会下 切片编程的方式
+- 在上面的动态代理中 我们已经实现了 方法的动态调用 现在我们加上固定逻辑的部分
+```java
+interface Human {
+  String getBelief();
+  void eat(String food);
+}
+
+class SuperMan implements Human {
+
+  @Override
+  public String getBelief() {
+    return "我相信我能飞";
+  }
+
+  @Override
+  public void eat(String food) {
+    System.out.println("我喜欢吃: " + food);
+  }
+}
+
+// 创建一个固定逻辑的工具类
+class HumanUtil {
+  public void method1() {
+    System.out.println("通用方法1+++++");
+  }
+
+  public void method2() {
+    System.out.println("通用方法2-----");
+  }
+}
+
+class ProxyFactory {
+  public static Object getProxyInstance(Object obj) {
+    MyInvocationHandler handler = new MyInvocationHandler();
+
+    handler.bind(obj);
+
+    return Proxy.newProxyInstance(obj.getClass().getClassLoader(), obj.getClass().getInterfaces(), handler);
+  }
+}
+
+class MyInvocationHandler implements InvocationHandler {
+
+  private Object obj;
+  public void bind(Object obj) {
+    this.obj = obj;
+  }
+
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+    HumanUtil util = new HumanUtil();
+    // 在这里调用 通用代码1
+    util.method1();
+
+    // 这里是动态的方法
+    Object returnVal = method.invoke(obj, args);
+
+    // 在这里调用 通用代码2
+    util.method2();
+
+    return returnVal;
+  }
+}
+
+public class ProxyTest {
+
+  public static void main(String[] args) {
+    SuperMan superMan = new SuperMan();
+
+    Human proxyInstance = (Human) ProxyFactory.getProxyInstance(superMan);
+
+    String belief = proxyInstance.getBelief();
+    System.out.println(belief);
+    proxyInstance.eat("四川麻辣烫");
+  }
+}
+```
+
+----------------------------
+
+### java8的新特性
+-java8是java5以来最具革命性的版本
+
+- 新特性:
+- 速度更快
+- 代码更少(增加了新的语法: Lambda表达式)
+- 强大的StreamAPI
+- 便于并行
+- 最大化减少空指针异常: Optional
+- Nashorn引擎, 允许在JVM上运行JS程序
+
+
+> 并行流 和 串行流
+> 并行流:
+- 就是把一个内容分成多个数据块 并用不同的线程分别处理每个数据块的流 相比较串行的流, *并行的流*可以很大程度上*提高程序的执行效率*
+
+- java8中将并行进行了优化 我们可以很容易的对数据进行并行操作
+- StreamAPI可以声明性的通过 parallel()与sequential()在并行流与顺序流之间进行切换
+
+----------------------------
+
+### Lambda表达式
+- Lambda是一个匿名函数 我们可以把Lambda表达式理解为是*一段可以传递的代码*(将代码像数据一样进行传递)
+
+- 使用它可以写出更简洁 更灵活的代码 作为一种更紧凑的代码风格 是Java的语言表达能力得到了提升
+<!-- 
+  说白了就是别的语言出现了这样的东西 挺好的然后java也加进来了
+  就是抄抄别人的东西 让自己的语言更具有生命力
+ -->
+
+> 体验下 Lambda 表达式的写法
+```java
+package com.sam.proxy;
+import org.junit.Test;
+import java.util.Comparator;
+
+public class Lambda1Test {
+  @Test
+  public void test1() {
+    // 创建一个实现Runnable接口的匿名实现类对象 - 多线程的时候用到的接口
+    Runnable r1 = new Runnable() {
+      @Override
+      public void run() {
+        System.out.println("我爱北京天安门");
+      }
+    };
+
+    // 就是普通的对象调用方法
+    r1.run();
+
+    System.out.println("******************:");
+
+    // 下面使用Lambda的方法进行重写
+    Runnable r2 = () -> System.out.println("我爱北京故宫");
+    r2.run();
+  }
+
+
+  @Test
+  public void test2() {
+    // 提供Comparator的匿名实现类对象
+    Comparator<Integer> com1 =new Comparator<Integer>() {
+      @Override
+      public int compare(Integer o1, Integer o2) {
+        return Integer.compare(o1, o2);
+      }
+    };
+
+    int compare1 = com1.compare(12, 21);
+    System.out.println(compare1);
+
+    System.out.println("******************:");
+
+    // Lambda表达式的写法 ->
+    Comparator<Integer> com2 = (o1, o2) -> Integer.compare(o1, o2);
+    int compare2 = com2.compare(21, 1);
+    System.out.println(compare2);
+
+    System.out.println("******************:");
+
+    // 方法引用 ::
+    Comparator<Integer> com3 = Integer :: compare;
+    int compare3 = com3.compare(21, 1);
+    System.out.println(compare3);
+  }
+}
+
+```
+
+----------------------------
+
+### Lambda表达式语言的使用1
+> 格式:
+- (o1, o2) -> Integer.compare(o1, o2);
+
+> ->
+  - Lambda操作符 或 箭头操作符
+  - 箭头左边: Lambda的形参列表
+    - 其实就是*接口中的抽象方法*的形参列表
+    - 当有泛型的时候 通过类型推断有的时候可以省略 形参的类型
+
+  - 箭头右边: Lambda体
+    - 其实就是重写抽象方法的方法体
+
+
+> Lambda表达式的使用:
+- Lambda表达式的使用分为6种情况
+
+> 语法格式1: 无参 无返回值 的情况
+- 下面的代码就符合 无参 无返回值的情况
+
+- 我们主要看下匿名实现类中的抽象方法:
+- 我们可以看下 下面的代码中 我们都需要在接口的匿名实现类中实现抽象run()方法
+
+- 使用Lambda表达式的方式的时候
+- 1. run()的形参列表是没有参数的
+- 2. run()也没有返回值 是void的
+
+- 没有形参列表的时候 箭头的左边就可以使用 ()
+- -> 的右边就是重写抽象方法的方法体
+
+```java
+@Test
+public void test1() {
+  // 之前重写接口中的抽象方法的方式:
+  Runnable r1 = new Runnable() {
+    @Override
+    // 形参列表中没有参数
+    public void run() {
+      System.out.println("我爱北京天安门");
+    }
+  };
+  r1.run();
+
+  System.out.println("***************");
+  
+
+  // Lambda表达式 重写接口中的抽象方法的方式:
+  Runnable r2 = () -> System.out.println("我爱北京故宫");
+  r2.run();
+}
+```
+
+- 以前的方式中 下面的代码作为 Runnable实现类的对象
+```java
+new Runnable() {
+  @Override
+  // 形参列表中没有参数
+  public void run() {
+    System.out.println("我爱北京天安门");
+  }
+};
+```
+
+- 现在使用Lambda表达式的时候 就由下面的代码替换了上面的代码 作为Runnable实现类的对象了
+```java
+() -> System.out.println("我爱北京故宫");
+```
+
+> Lambda表达式本质:
+- 在js和python中 Lambda表达式是一个匿名函数
+- 但在java的层面 它讲究万事万物皆对象 Lambda表达式不是一个匿名函数 而是一个对象 作为接口的对象
+<!-- 
+  Runnable r2 = () -> System.out.println("我爱北京故宫");
+  上面的Lambda表达式作为左边Runnable接口的对象
+ -->  
+
+- *Lambda表达式的本质作为接口的实例(接口具体实现类的对象)*
+<!-- 对象也叫做实例 -->
+
+- 也就是说*Lambda表达式* 没有接口就没有意义了 *它是借助于接口才存在的*
+
+
+> 语法格式2: Lambda需要一个参数 但是没有返回值
+- 既然Lambda表达式需要借助于接口才能存在 为了展示语法格式2 这里我们再拿Consumer接口来举例
+
+- 原来的写法:
+- 既然Consumer是个接口 那我们就需要提供一个接口的实现类对象 下面我们拿匿名实现类对象来举例
+```java
+Consumer<String> consumer = new Consumer<String>() {
+  @Override
+  // 之前重写接口中的抽象方法的方式: 这里有一个形参
+  public void accept(String s) {
+    System.out.println(s);
+  }
+};
+```
+
+- 使用 Lambda 表达式的写法:
+- 要点: 
+- 1. 下面并没有指明重写的是接口中的哪个方法呢 看起来重写默认的那个方法(接口中只有一个抽象方法)
+
+- 2. 当有泛型的时候 形参的类型可以省略
+- 3. 当方法体只有一句的时候 {}可以省略
+```java
+Consumer<String> consumer2 = (String s) -> {
+  System.out.println(s);
+};
+
+// 其实跟箭头函数的规则有些像
+Consumer<String> consumer2 = s -> System.out.println(s);
+
+// 当调用accept()的时候 就调用了上面的方法体
+consumer2.accept("不知道");
+```
+
+
+> 语法格式3: 数据类型可以省略 因为可由编译器推断得出 成为 "类型推断"
+- 我们基于上面格式2中的代码进行扩展说明
+
+```java
+Consumer<String> consumer2 = (String s) -> {
+  System.out.println(s);
+};
+
+// 优化如下:
+Consumer<String> consumer2 = (s) -> {
+  System.out.println(s);
+};
+```
+
+- 以前接触到的类型推断的例子
+```java
+ArrayList<String> list = new ArrayList<>();
+int[] arr = {1, 2, 3};
+```
+
+
+> 语法格式4: Lambda若只需要一个参数的时候 参数的小括号可以省略
+```java
+Consumer<String> consumer2 = s -> {
+  System.out.println(s);
+};
+```
+
+> 语法格式5: Lambda若有 两个或两个以上的参数 多条执行语句 并且可以有返回值的时候
+- 这里我们拿Comparator接口举例
+- 原来我们要是造Comparator接口的匿名实现类对象的时候
+```java
+Comparator<Integer> comparator = new Comparator<Integer>() {
+  @Override
+  public int compare(Integer o1, Integer o2) {
+    return o1.compareTo(o2);
+  }
+};
+```
+
+- Lambda表达式的话：
+```java
+Comparator<Integer> comparato2 = (o1, o2) -> {
+  System.out.println(o1);
+  System.out.println(o2);
+  return o1.compareTo(o2);
+};
+```
+
+
+> 语法格式6: 当Lambda体只有一条语句时, return与大括号 都可以省略
+```java
+Comparator<Integer> comparato2 = (o1, o2) -> o1.compareTo(o2);
+```
+
+
+> 总结:
+-> 左边:
+  - Lambda形参列表的参数类型可以省略
+  - 如果参数列表只有一个参数 ()可以省略
+  - 如果没有参数或有多个参数的时候 ()不可以省略
+
+-> 右边:
+  - Lambda体应该使用一对{}包裹
+  - 如果有Lambda体只有一条执行语句(可能是return) 可以省略{} 和 return关键字
+
+
+**注意:**
+- Lambda依托于接口 Lambda表达式相当于接口的实例对象 但是要求该接口内部只能有一个抽象方法
+- 只有一个抽象方法的接口叫做函数式接口
+
+----------------------------
+
+### 函数式接口的介绍
+- 上面的例子中我们发现Lambda表达式都是依托于接口 Lambda表达式相当是接口的实现类对象
+
+- 而我们对使用Lambda表达式的接口有要求 要求该接口中只能有一个抽象方法 所以我们在写Lambda表达式的Lambda体的时候就没必要指定抽象方法的方法名
+
+- 也就是说: *Lambda表达式的本质: 作为函数式接口的实例*
+
+
+> 函数式接口:
+- 如果一个接口中 只声明了一个抽象方法 则此接口就成为函数式接口
+```java
+// 我们看看 Runnable 接口 它就是一个函数式接口
+
+// 看这个注解 也体现了函数式接口
+@FunctionalInterface
+public interface Runnable {
+  public abstract void run();
+}
+```
+
+- 我们自己也可以定义函数式接口
+- @FunctionalInterface 使用与否 MyInterface 都是函数式接口 只不过我们如果使用了@FunctionalInterface注解 就会有校验功能
+```java
+@FunctionalInterface
+public interface MyInterface {
+  void method();
+}
+```
+
+- 如果是函数式接口后 我们就可以通过 Lambda表达式来创建该接口的对象(若Lambda表达式抛出一个受检异常(即: 非运行时异常), 那么该异常需要在目标接口的抽象方法上进行声明)
+
+- 我们可以在一个接口上使用 @FunctionalInterface 注解
+- 这样做可以检查它是否是一个函数式接口 同时javadoc也会包含一条声明 说明这个接口时一个函数式接口
+
+- 在java.util.function包下定义了java8的丰富的函数式接口
+
+> 以前用匿名实现类表示的, 现在都可以使用Lambda表达式来写
+
+----------------------------
+
+### Java内置的函数式接口介绍 以及 使用举例
+- java内置四大核心函数式接口
+
+> Consumer<T>
+- 消费型接口
+
+- 参数类型: T
+- 返回值类型: void
+
+- 用途:
+- 对类型为T的对象应用操作
+- 包含的方法: *void accept(T t)*
+<!-- 
+  void accept(T t) 抽象方法接收一个参数但是不返回
+  放一个参数 但是不返回
+
+  消费的理解 我们给它东西 它不往回返
+ -->
+
+
+> Supplier<T>
+- 供给型接口
+
+- 参数类型: 无
+- 返回值类型: T
+
+- 用途:
+- 返回类型为T的对象
+- 包含的方法: *T get()*
+<!-- 
+  供给的理解 不给它东西 它都往回返
+  参数是空的 但会返回一个值
+ -->
+
+
+> Function<T, R>
+- 函数型接口
+
+- 参数类型: T
+- 返回值类型: R
+
+- 用途:
+- 对类型为T的对象应用操作 并返回结果
+- 结果是R类型的对象
+- 包含方法: *R apply(T t)*
+<!-- 
+  我们放进去的东西 和 返回得东西可以不一样
+  放个T进去 我们返回一个R
+ -->
+
+
+> Predicate<T>
+- 断定型接口(判断型)
+
+- 参数类型: T
+- 返回值类型: boolean
+
+- 用途:
+- 确定类型为T的对象是否满足某约束 并返回boolean值
+- 包含方法: *boolean test(T t)*
+- 抽象方法中定义判断的规则
+
+
+> 总结:
+- 1. 当我们以后遇到的情景是 我们传递形参 但不返回得情况下 我们就可以使用 消费型接口
+- 也就是说 上面的4种接口相当于4种应用场景 当遇到对应的场景的时候 我们就可以使用这些接口 从而使用 Lambda表达式
+
+- 2. 后续我们能看到有些形参会出现这些接口 当出现这些接口 我们要做实例化的时候 我们就可以考虑用 Lambda表达式
+
+
+- 上面提到了 4种基本的函数式接口 除了上面的4中之外 还有其他的一些接口
+
+> BiFunction<T, U, R>
+- 参数类型: T U
+- 返回值类型: R
+
+- 用途: 
+- 对类型为T U参数应用操作 返回R类型的结果
+- 包含方法为: *R apply(T t, U u)*
+
+
+> UnaryOperator<T>
+- Function子接口
+
+- 参数类型: T
+- 返回值类型: T
+
+- 用途:
+- 对类型为T的对象进行一元运算 并返回T类型的结果
+- 包含方法为: *T apply(T t1, T t2)*
+<!-- 
+  放进去的是T类型 出来的还是T类型
+ -->
+
+
+> BinaryOperator<T>
+- BiFunction子接口
+
+- 参数类型: T T
+- 返回值类型: T
+
+- 用途:
+- 对类型为T的对象 进行二元运算 并返回T类型的结果
+- 包含方法为: T apply(T t1, T t2)
+
+
+> BiConsumer<T, U>
+- 参数类型: T U
+- 返回值类型: void
+
+- 用途:
+- 对类型为T, U参数应用操作
+- 包含方法为: void accept(T t, U u)
+
+
+> BiPredicate<T, U>
+- 参数类型: T U
+- 返回值类型: boolean
+
+- 用途:
+- 包含方法为: boolean test(T t, U u)
+
+
+> ToIntFunction<T>
+> ToLongFunction<T>
+> ToDoubleFunction<T>
+- 参数类型: T
+- 返回值类型: int long double
+
+- 用途:
+- 分别计算 int long double值的函数
+
+
+> IntFunction<R>
+> LongFunction<R>
+> DoubleFunction<R>
+- 参数类型: int long double
+- 返回值类型: R
+
+- 用途:
+- 参数分别为 int long double 类型的函数
+
+
+
+> 我们看看各个接口的示例:
+> Consumer接口的示例
+- 1. 我们定义了一个方法
+```java
+// 一个普通方法 第二个参数为Consumer接口的实现类对象
+public void happyTime(double money, Consumer<Double> con) {
+  con.accept(money);
+}
+```
+
+- 原来的方式调用
+```java
+@Test
+public void test1() {
+  // 第二个参数的位置要传递一个Consumer接口的实现类对象
+  happyTime(500, new Consumer<Double>() {
+    @Override
+    public void accept(Double aDouble) {
+      System.out.println("学习太累了 去天上人间买了水 价格为: " + aDouble);
+    }
+  });
+}
+```
+
+- Lambda表达式的方式
+- 因为我们发现 第二个参数的位置正好是函数式接口 所以我们就可以采用Lambda表达式来写
+```java
+// cmoney参数的使用 是根据Consumer接口内的抽象方法的参数决定的 抽象方法中就一个参数
+happyTime(500, money -> System.out.println("学习太累了 去天上人间买了水 价格为: " + money));
+```
+
+
+> Predicate接口的示例
+- Predicate的抽象方法test中 是定义判断的规则
+- 我们要将集合中的字符串进行过滤 将符合规则的字符串添加到新的List中
+
+- 原来的方法:
+```java
+// 定义一个过滤集合中字符串的方法 使用了Predicate接口
+public List<String> filterString(List<String> list, Predicate<String> pre) {
+  // 创建一个集合
+  ArrayList<String> filterList = new ArrayList<>();
+
+  // 遍历集合中的元素
+  for(String s: list) {
+
+    // 如果是true就加到 filterList 集合中
+    if(pre.test(s)) {
+      filterList.add(s);
+    }
+  }
+
+  return filterList;
+}
+
+
+- 返回值类型: List<String>
+- 参数1: List<String> list
+- 参数2: Predicate<String> pre 接口
+
+
+@Test
+public void test1() {
+  // 定义一个字符串
+  List<String> list = Arrays.asList("北京", "南京", "天津", "东京");
+
+  // 参数2的位置 传入Predicate接口的匿名实现类对象 内部重写抽象方法 并 指定判断规则
+  List<String> res = filterString(list, new Predicate<String>() {
+    @Override
+    public boolean test(String s) {
+      // 是否包含 京
+      return s.contains("京");
+    }
+  });
+
+  System.out.println(res);
+}
+```
+
+- Lambda表达式:
+- 这里唯一迷惑的地方就在于 我们不知道函数式接口中的抽象方法长什么样 什么样的参数
+
+- 所以在指定Lambda表达式的时候会有问题
+
+```java
+@Test
+  public void test1() {
+    List<String> list = Arrays.asList("北京", "南京", "天津", "东京");
+
+    List<String> res = filterString(list, s -> s.contains("京"));
+
+    System.out.println(res);
+  }
+```
+
+
+----------------------------
+
+### 方法引用与构造器引用
+- 方法引用与构造器引用是基于Lambda表达式的
+
+> 方法引用(Method References)
+- 当要传递给Lambda体的操作 已经有了实现的方法了 可以使用方法引用
+
+- 方法引用可以看做是Lambda表达式深层次的表达
+- 换句话说 *方法引用就是Lambda表达式 也就是函数式接口的一个实例*
+
+- 通过方法的名字来指向一个方法 可以认为是Lambda表达式的一个语法糖
+
+> 要求:
+- 实现接口的抽象方法的参数列表和返回值类型 必须与方法引用的方法的参数列表和返回值类型保持一致
+
+> 格式:
+- 使用操作符 "::" 将类(或对象) 与 方法名分隔开来
+
+- 如下三种主要使用情况:
+
+> 对象(或者类)::实例(或静态)方法名
+- ::前面相当于调用者
+- ::后面相当于调用的方法 是方法名 参数列表都不用写
+<!-- 
+  对象 :: 实例方法(非静态方法)
+
+  类 :: 静态方法
+
+  类 :: 非静态方法
+    - 这里类是可以调用非静态的方法的
+
+  通过对象或类调用对应的方法
+  我们看看是什么样的方法 然后选择前面用什么结构来调用
+ -->
+
+
+**注意:** 
+- 关于方法引用的测试 在Day06中
+
+
+> 方法引用的使用情景
+- 当要传递给Lambda体的操作 已经有了实现的方法了(比如API中现成的方法) 可以使用方法引用
+<!-- 
+  API中现成的方法的结构 和 函数式接口中的抽象方法的结构一样的时候
+
+  我们就可以使用API中现成的方法 来充当Lambda表达式的表达体部分
+ -->
+
+> 情况1: 对象 :: 实例方法
+> Consumer接口下的使用情景
+- 我们先看看 使用Lambda表达式的情景
+```java
+// 这里相当于我们创建了 Consumer接口的实现类对象 然后里面重写了accept()方法 方法体内容为System.out.println(str);
+Consumer<String> con1 = str -> System.out.println(str);
+
+// 
+con1.accept("北京");
+```
+
+- 然后我们再看看使用方法引用的情景:
+- 我们先观察下
+
+- Consumer接口中 的抽象方法为
+- void accept(T t)
+
+- 而 System.out.println() 方法
+- System.out为PrintStream打印流的对象 该对象有一个println()方法
+- void println(T t)
+
+- 这时候我们发现 Consumer接口中的抽象方法和现成的PrintStream打印流对象中的println(T t)是一样的
+
+- void accept(T t)
+- void println(T t)
+
+- 我们发现它们正好匹配上 都是一个参数无返回 这时候我们就可以考虑使用方法引用 使用现成的println(T t)方法来代替Lambda表达式的表达体部分
+
+- 方法引用替换的是 Lambda体的位置
+- 那是不是说 重写方法的内容就是 System.out.println()
+
+- 方法引用的实现
+- println(T t)是非静态方法 可以由对象来调用
+- 我们要使用 对象 :: 方法名 的结构 那我们就要提供一个对象
+
+- PrintStream ps = System.out;
+- ps :: println;
+
+```java
+PrintStream ps = System.out;
+
+// println这里没有写参数 因为我们调用Consumer里面的accept方法的时候 传递的参数也会进去 因为两个方法形参列表是一样的
+
+- void accept(T t)
+- void println(T t)
+
+Consumer<String> con2 = ps :: println;
+con2.accept("beijing");
+```
+
+
+> Supplier接口下的使用情景
+- 函数式接口 供给者
+
+- Supplier接口中的抽象方法 T get()
+- 自定义类中 String getName()
+<!-- 
+  public String getName() {
+		return name;
+	}
+
+  这个方法就像供给中抽象方法的形式 什么也不放但是返回String
+ -->
+
+- 这两个方法也能匹配上 我们也可以使用方法引用
+
+- Lambda表达式的写法:
+```java
+@Test
+public void test2() {
+  // 造一个员工的对象
+  Employee emp = new Employee(1001, "sam", 23, 5600);
+
+  // Lambda表达式来写
+  // Supplier接口中的抽象方法 T get() 没有参数 所以我们如下写法 返回一个员工的名字
+  Supplier<String> sup1 = () -> emp.getName();
+
+  // 这里我们调用 Supplier接口中的get()方法的时候 会执行我们实例对象(Lambda表达式就是实例对象)重写后的逻辑
+  System.out.println(sup1.get());
+}
+```
+
+- 方法引用的写法:
+```java
+// 方法引用的写法
+// 造一个员工的对象
+Employee emp = new Employee(1001, "sam", 23, 5600);
+
+// Employee类中的getName()方法是实例方法 要通过对象来调用 而 emp就是对象 方法的调用者 后面跟方法名
+Supplier<String> sup2 = emp :: getName;
+String name = sup2.get();
+System.out.println(name);
+```
+
+
+**方法引用使用的要求:**
+- 要求函数式接口中的抽象方法的形参列表和返回值类型 与 已有方法的形参列表和返回值类型一致时 才能使用方法引用
+
+
+> 情况2: 类 :: 静态方法 
+- 这里我们拿下面的两个举例说明
+- Comparator中的 int compare(T t1, T t2)
+- Integer中的 int compare(T t1, T t2)
+
+- Lambda表达式的写法:
+```java
+// 我们在写Lambda表达式的时候 只要记住接口中的抽象方法长什么样
+Comparator<Integer> com1 = (t1, t2) -> Integer.compare(t1, t2);
+
+System.out.println(com1.compare(12, 21));
+```
+
+- 方法引用:
+- 我们发现Comparator接口中的抽象方法int compare(T t1, T t2) 和
+- Integer类中的静态方法 int compare(T t1, T t2) 一致 所以这里我们也可以使用方法引用
+
+- 而 静态方法需要通过类来调用 对于静态方法的方法引用的结构为 类 :: 静态方法 所以如下
+
+```java
+// 方法引用
+Comparator<Integer> com2 = Integer :: compare;
+```
+
+> 我们在看看另外一个例子
+- Function<T, R>中的 R apply(T t)
+- Math中的 Long round(Double d)
+
+- 上面的结构又一样 我们看看怎么使用方法引用
+```java
+// 原始方法
+
+// Function接口要求泛型为两个 一个作为内部抽象方法apply方法的参数 另一个作为apply方法返回值的类型
+Function<Double, Long> fn = new Function<Double, Long>() {
+
+  @Override
+  public Long apply(Double d) {
+    return Math.round(d);
+  }
+};
+
+
+// Lambda表达式的写法
+
+// 这里表达体的参数 我们要参照接口中的抽象方法的参数定义
+Function<Double, Long> fn1 = d -> Math.round(d);
+
+
+// 方法引用:
+Function<Double, Long> fn2 = Math :: round;
+```
+
+----------------------------
+
 ### 书签
 
 ----------------------------
@@ -37606,6 +38501,9 @@ public class ProxyTest {
 
 - javadoc
   生成一个以网页形式的文档
+
+- jjs
+  用来在jvm上执行js程序
 
 
 > Java当中的多环境切换

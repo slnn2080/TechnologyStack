@@ -15185,3 +15185,7 @@ module.exports = router;
 - 2.var inputFile = files.inputFile[0];
 这行代码中，inputFile是form表单中的input组件的name值，这里要在postman中将请求参数调整成inputFile，否则就会报变量未定义的错误。
 
+
+
+> application/json 跨域问题
+- https://www.cnblogs.com/paul-xiao/p/14484798.html

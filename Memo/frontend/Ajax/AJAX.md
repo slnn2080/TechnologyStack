@@ -1,3 +1,16 @@
+### 新知识集锦
+- axios 使用 post 发送数据时，默认是直接把 json 放到请求体中提交到后端的
+
+- 也就是说
+- axios默认的请求头content-type类型: 
+-  application/json;charset=utf-8
+
+- 但是实际我们后端要求的 'Content-Type': 'application/x-www-form-urlencoded' 为多见
+
+
+
+
+
 ### 使用Ajax要先使用express框架 创建服务器 然后使用node来运行这个.js文件
 
 
