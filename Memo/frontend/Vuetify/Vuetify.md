@@ -145,6 +145,42 @@ new Vue({
 
 ---------------
 
+### Vuetify中的轮播
+- 我们先看看基本使用
+```html
+<template>
+  <v-carousel v-model="model">
+    <v-carousel-item
+      v-for="(color, i) in colors"
+      :key="color"
+    >
+      <v-sheet
+        :color="color"
+        height="100%"
+        tile
+      >
+        <v-row
+          class="fill-height"
+          align="center"
+          justify="center"
+        >
+          <div class="text-h2">
+            Slide {{ i + 1 }}
+          </div>
+        </v-row>
+      </v-sheet>
+    </v-carousel-item>
+  </v-carousel>
+</template>
+```
+
+
+> v-carousel 身上的属性
+- 
+
+
+---------------
+
 ### Vuetify中的栅格系统
 - 这里我们主要讲3个方面 布局 -- 表格 -- 表单
 
@@ -162,7 +198,7 @@ new Vue({
 
 > 栅格系统中主要的3个标签
 - 1. <v-container>
-- 表示一个容器 相当于table
+- 表示一个容器 可以想象成table
 - max-width:900px
 - 居中
 - 同时有padding:12px

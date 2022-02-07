@@ -373,6 +373,8 @@ div(class="l-content\:center")
 - 该div内容主要用来承装内容结构 通过类名来控制
 - div如果上了这个样式后 div内的内容 有各种的对齐方式
 
+> layout-content 相当于 行
+
 - .layout-content
     - x: *左对齐*
     - y: 上对齐

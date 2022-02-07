@@ -2158,6 +2158,14 @@ export default {
     一般服务端语言如 php、python 等 都内置了自动解析常见数据格式的功能
 -->
 
+> 为什么一般是给post请求设置content-type,get请求不需要设置吗？
+- content-type 是用来指定消息体的格式的
+- get 请求一般没有消息体 故，get 请求一般不用设置 content-type。
+
+- 一个 HTTP 报文通常报告两个部分：头部(head)和主体(body)，其中 body 可以为空，常见的 GET 请求就是这种情况。但当 body 不为空时，接收的一端需要知道它是什么类型的数据，采用什么编码，这时候就需要在 Content-Type 来指明 body 的人MIME 类型。是否需要指定 Content-Type 和 HTTP 方法没有多大关系，而和报文主体是否存在有关。GET 请求一般（标准）不包含主体，加 Content-Type 是没有意义的。
+
+
+
 
 > enctype属性
 - 规定在发送到服务器之前应该如何对表单数据进行编码，默认的表单数据会编码为 "application/x-www-form-urlencoded"

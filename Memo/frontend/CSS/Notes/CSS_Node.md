@@ -1399,7 +1399,7 @@ div.red and .red
 
 - 可选值：
 cover:      图片比例不变 将元素铺满 以框体为主
-contain：   图片比例不变 将图片在元素中完整显示 以图片为主
+contain:    图片比例不变 将图片在元素中完整显示 以图片为主
 
 
 > background-attachment: ;

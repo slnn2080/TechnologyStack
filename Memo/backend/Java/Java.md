@@ -38057,7 +38057,7 @@ public interface MyInterface {
 
 - 用途:
 - 对类型为T的对象进行一元运算 并返回T类型的结果
-- 包含方法为: *T apply(T t1, T t2)*
+- 包含方法为: *T apply(T t)*
 <!-- 
   放进去的是T类型 出来的还是T类型
  -->
@@ -38407,6 +38407,520 @@ Function<Double, Long> fn1 = d -> Math.round(d);
 // 方法引用:
 Function<Double, Long> fn2 = Math :: round;
 ```
+
+
+> 情况2: 类 :: 实例方法
+- 这里我们拿下面的两个例子说明
+- Comparator中的
+    int comapre(T t1,T t2)
+
+- String中的
+    int t1.compareTo(t2)
+
+- 其实我们观察上面两个方法的结构并不一样 也就是说他们好像不太匹配
+- 也就是说情况3 *类::实例方法* 这块*不适合用*上面的*规律*(要求接口中的抽象方法的形参列表和返回值类型与方法引用的方法的形参列表的返回值类型相同)
+
+- Comparator接口中要重写的抽象方法是: 
+  - int comapre(T t1,T t2)
+
+```java
+// Lambda表达式的写法
+Comparator<String> com1 = (s1, s2) -> s1.compareTo(s2);
+com1.compare("abc", "abd");
+
+// 方法引用
+// 参数1是作为compareTo()方法的调用者出现的时候 
+Comparator<String> com2 = String :: compareTo;
+
+// compareTo方法是通过String类来调用的 
+```
+
+> 我们再来看一个例子:
+- BiPredicate中的
+    boolean test(T t1, T t2);
+
+- String中的
+    boolean t1.equals(t2)
+
+```java
+// Lambda表达式的写法
+BiPredicate<String, String> pre1 = (s1, s2) -> s1.equals(s2);
+System.out.println(pre1.test("abc", "abc"));
+
+// 方法引用
+BiPredicate<String, String> pre2 = String :: equals;
+System.out.println(pre1.test("abc", "abc"));
+```
+
+
+> 我们再来看一个例子
+- 还是 函数式接口中的抽象方法 有两个参数
+- 参数1作为别的API的方法中的调用者了 这时候我们也能用方法引用
+
+- Function中的
+    R apply(T t)
+
+- Employee中的
+    String getName();
+<!-- 
+  这里t 是相当于Employee对象 调用getName()
+ -->
+
+```java
+// Lambda表达式的写法
+Employee employee = new Employee(1001, "sam", 23, 6666);
+Function<Employee, String> fn = e -> e.getName();
+// 方法直接完会得到name
+System.out.println(fn.apply(employee));
+
+// 方法引用
+Function<Employee, String> fn2 = Employee :: getName;
+fn2.apply(employee);
+```
+
+> 总结情况3中的规律:
+- 形参列表不对应了 但是函数式接口中的抽象方法的参数1作为其他API的方法的调用者的时候 我们也可以使用方法引用
+
+----------------------------
+
+### 构造器引用 数组引用
+- 构造器引用和数组引用跟方法引用类似 就是看匹配的情况
+
+- 函数式接口的抽象方法的形参列表和构造器的形参列表一致
+- 抽象方法的返回值类型即为构造器所属的类的类型
+
+- *也就是函数式接口中的返回得类型 就是 我们要造的对象的情况下 我们就可以同构造器跟抽象方法进行匹配*
+
+> 构造器引用
+- Supplier<T>中的接口中的抽象方法为：
+  T get()
+- 也就是Supplier接口的返回值类型是T
+- 也就是说抽象方法会返回一个值 比如我们会返回一个对象
+
+- 我们看看Supplier接口的实现类对象怎么创建
+```java
+Supplier<Employee> sup = new Supplier<Employee>() {
+  // 重写Supplier接口中的抽象方法 返回一个对象
+  @Override
+  public Employee get() {
+    return new Employee();
+  }
+};
+```
+
+- 我们看看Lambda表达式怎么用
+- 写Lambda表达式的时候需要记得函数式接口中的抽象方法的样子 参照着写
+- T get() --  无参 但要返回一个对象(T类型)
+
+```java
+Supplier<Employee> sup = () -> new Employee();
+// 调用抽象方法就能返回一个对象
+sup.get();
+```
+
+- 我们再看看 构造器引用
+- 上面说了 还是看匹配的情况
+- T get() -- 没有参数但有返回值
+- Employee()的空参构造器也是 没有参数 当我们new的时候 就相当于返回值
+- get()返回得是T 而Employee()在new的时候就造了一个对象 造的对象就相当于T
+
+- 当我们调用的是空参的构造器的时候 就可以写成 构造器引用的形式
+
+> 构造器 :: new
+
+```java
+Supplier<Employee> sup2 = Employee :: new;
+```
+
+
+> 我们再看看下面的例子
+- Function<T, R>接口中的
+    R apply(T t)
+
+- 该接口会返回R类型 传入T类型
+
+- 我们看看Lambda表达式的写法
+```java
+// Function<形参, 返回值类型>  id就是Integer
+Function<Integer, Employee> fn1 = id -> new Employee(id);
+Employee employee = fn1.apply(1001);
+System.out.println(employee);
+```
+
+- Function<T, R> - R apply(T t)
+- 我们传入参数T类型 返回R类型
+
+- 在看看 Empolyee(int id)的构造器 是不是匹配上了
+- 传入id new的时候返回一个对象
+
+- 上面的例子中空参构造器引用 我们用得 Employee :: new
+- 这里 带参数的构造器 我们还用 Employee :: new
+- 为什么?
+
+- 上面的例子用得是 Supplier<T> 接口 这个接口是返回T 但无参
+- 下面的例子用得是 Function<T, R> 接口 参数T 返回R 正好和 
+- public Empolyee(int id) 一样 参数id 返回对象
+```java
+// 构造器引用
+Function<Integer, Employee> fn2 = Employee :: new;
+Employee employee2 = fn2.apply(1002);
+System.out.println(employee2);
+```
+
+
+> 我们再看看下面的接口的例子
+- BiFunction<T, U, R>
+- 参数类型: T U
+- 返回值类型: R
+
+- R apply(T t,U u)
+
+- 那是不是说 我们可以匹配两个参数的构造器
+- public Employee(int id, String name)
+- id相当于T name相当于U 返回得对象相当于R
+
+```java
+// Lambda表达式的写法
+BiFunction<Integer, String, Employee> fn = (id, name) -> new Employee(id, name);
+
+Employee erin = fn.apply(1006, "erin");
+System.out.println(erin);
+
+
+// 构造器引用的写法
+BiFunction<Integer, String, Employee> fn2 = Employee :: new;
+Employee nn = fn2.apply(1008, "nn");
+System.out.println(nn);
+```
+
+
+> 数组引用
+- 上面的如果理解了的话 我们这里可以将数组也看做是类类型 这样就没有什么区别了
+
+- 大家可以把数组看做是一个特殊的类 则写法就跟构造器引用的方法一致了
+
+- 比如
+- Function<T, R>中的
+    R apply(T t)
+
+- 我们把数组也看做是类 那在new的时候都差不多
+
+```java
+// Lambda表达式的形式
+
+// 泛型不能用基本数据类型 如果用就要用包装类 返回String[] 
+// Integer是用来定义数组的长度的
+Function<Integer, String[]> fn = length -> new String[length];
+String[] arr = fn.apply(5);
+System.out.println(Arrays.toString(arr));
+
+
+// 数组引用
+Function<Integer, String[]> fn2 = String[] :: new;
+```
+
+----------------------------
+
+### Stream API
+- java8中有两大最为重要的改变
+- 1. Lambda表达式
+- 2. Stream API
+
+- Stream API(java.util.stream)把真正的函数式编程风格引入到了java中 这是目前为止对java类库最好的补充
+<!-- 
+  因为Stream API可以极大提高java程序员的生产力 让程序员写出高效率 干净 简洁的代码 
+-->
+
+- Stream是java8中处理集合的关键抽象概念 它可以指定你希望对集合进行的操作 可以执行非常复杂的查找 过滤 和 映射数据等操作
+
+- *使用Stream API对集合数据进行操作 就类似于使用sql执行的数据库查询*
+- 也可以使用Stream API来并行执行操作
+
+- 简言之 Stream API提供了一种高校且易于使用的处理数据的方式
+
+
+> 为什么要使用 Stream API
+- 实际开发中 项目中多数数据都来自于Mysql Oracle等 但现在数据源可以更多了 有MongoDB Radis等 而这些NoSql的数据就需要Java层面去处理
+<!-- 
+  sql型的数据当查询近3个月的数据的时候 我们搜索3个月的数据 这样的逻辑是直接在sql层面来处理的
+
+  但是对于非关系型数据库 这样的操作 就需要在java层面来处理
+  在java层面做这样的事儿就需要使用Stream API
+ -->
+
+- Stream和Collection集合的区别:
+- Collection是一种静态的内存数据结构(容器) 而Stream是有关计算的
+- 前者主要面向内存 存储在内存中 后者主要是面向CPU 通过CPU实现计算
+<!-- 
+  内存是用来存数据的 - Collection
+  CPU是用来计算的 - Stream API
+ -->
+
+> Stream到底是什么呢？
+- 是数据渠道 用于操作数据源(集合 数组等)所生成的元素序列
+- 集合讲的是数据
+- Stream讲的是计算
+
+> 1. 
+- Stream关注的是对数据的运算 与CPU打交道
+- 集合关注的是数据的存储 与内存打交道
+
+> 2. 
+  - 1. Stream自己不会存储元素
+  <!-- 
+    数据仍然在集合中 就像我们前面说的迭代器一样 迭代器是用来遍历集合的 迭代器本身它也不存数据 数据还是在集合里 Stream也一样
+  -->
+
+  - 2. Stream不会改变源对象 相反 他们会返回一个持有结果的新的Stream
+  <!-- 
+    Stream是不可变的特性 原本的对象不变
+  -->
+
+  - 3. Stream操作时延迟执行的 这意味着他们会等到需要结果的时候才执行
+
+> 3. Stream的操作的三个步骤
+- 比如当我们求个数 求最大最小等等 需要如下的3个步骤
+
+  - 1. 创建 Stream 对象 - Stream的实例化
+  - 一个数据源(如: 集合, 数组) 获取一个流
+
+  - 2. 中间操作
+  - 一个中间操作链 对数据源的数据进行处理
+
+  - 3. 终止操作(终端操作)
+  - 一旦执行终止操作, *就执行中间操作链* 并产生结果 之后 不会再被使用
+
+<!-- 
+  1                                 3
+  数据源 -> filter -> map -> ... -> 终止操作
+           |                  |
+           --------------------
+           2. 一系列 中间操作 形成的流水线
+
+
+  1. 根据某个集合创建一个对象
+  2. 然后我们有一系列的中间操作 比如过滤 映射等
+  3. 求个数 变量 归约等等的终止操作
+
+
+  什么是延迟的？
+  中间操作中 每一个操作代表一个方法 每次调用完后就.下
+  对于中间操作来讲 我们调用完后 只要我们没有调用终止操作
+
+  中间操作都不执行 只有我们调用了终止操作 才会去执行中间操作中的方法
+
+  一旦我们终止操作了 一系列就完成了 我们这个Stream对象就不能再进行.方法的操作了 因为已经终止了 就不可以被使用了
+ -->
+
+----------------------------
+
+### Stream的实例化
+- Stream的实例化有4种方式
+- Stream对象就是用来操作一个容器的 跟集合打交道
+
+> 创建Stream方式1: 通过集合
+- java8中的Collection接口被扩展 提供了两个获取Stream流(对象)的默认方法
+<!-- 
+  也就是说下面的两个方法 是Collection接口中定义的
+ -->
+
+- 也就是通过集合创建Stream对象的两种方法
+
+> 集合对象.stream():
+- default Stream<E> stream():
+- 通过集合对象来调用 list.stream()
+
+- 返回值类型: E
+- 返回一个顺序流
+
+- 顺序流:
+- 当我们执行中间操作的时候 会从集合中拿数据 拿数据的时候会按照我们添加的顺序来
+
+
+
+> 集合对象.parallelStream():
+- default Stream<E> parallelStream():
+- 通过集合对象来调用 list.parallelStream()
+
+- 返回值类型: E
+- 返回一个并行流
+
+- 并行流:
+- 当我们执行中间操作的时候 会从集合中拿数据 拿数据的时候会像多线程似的 类似有几个线程 同时去取数据 顺序就不一定是添加的顺序了
+
+
+- 上面的两个方法在集合中, Collection是一个接口 我们能看到上面都是接口中的默认方法
+
+- 接口中的默认方法 我们不能直接拿接口本身去.
+
+
+- 准备工作:
+- 我们在 EmployeeData 类中定义了一个 getEmployees()方法 用来返回一个集合
+```java
+public class EmployeeData {
+	
+	public static List<Employee> getEmployees(){
+		List<Employee> list = new ArrayList<>();
+		
+		list.add(new Employee(1001, "马化腾", 34, 6000.38));
+		list.add(new Employee(1002, "马云", 12, 9876.12));
+		list.add(new Employee(1003, "刘强东", 33, 3000.82));
+		list.add(new Employee(1004, "雷军", 26, 7657.37));
+		list.add(new Employee(1005, "李彦宏", 65, 5555.32));
+		list.add(new Employee(1006, "比尔盖茨", 42, 9500.43));
+		list.add(new Employee(1007, "任正非", 26, 4333.32));
+		list.add(new Employee(1008, "扎克伯格", 35, 2500.32));
+		
+		return list;
+	}
+}
+```
+
+> 通过集合的方式获取Stream对象的代码部分:
+```java
+@Test
+public void test() {
+
+  // 1. 先创建一个集合 里面是一个个的员工数据
+  List<Employee> list = EmployeeData.getEmployees();
+
+
+  // 2. 通过集合对象 调用stream() 返回得是顺序流Stream对象
+  Stream<Employee> stream = list.stream();
+
+
+  // 通过集合对象 调用parallelStream() 返回得是并行流Stream对象
+  Stream<Employee> parallelStream = list.parallelStream();
+}
+```
+
+
+> 创建Stream方式2: 通过数组
+- 集合时一种容器 数据也是容器 所以我们还可以通过数组的方式去创建Stream对象
+
+- java8中的Arrays的静态方法 stream()可以获取数组流
+
+> Arrays.stream(提供一个具体的数组)
+- 返回一个stream流对象
+<!-- 
+  参数: 
+    int[] arr
+    long[] arr
+    double[] arr
+
+    T[] arr   -- 自定义类型的数组
+ -->
+
+- 返回值:
+- 我们丢进去的是什么类型的数组 返回值的类型就是 数组的类型
+
+- static <T> Stream<T> stream(T[] array):
+- 如果我们传入的是自定义类型的数组 那么其返回值的类型是根据泛型T指定的 自定义数组是什么类型 返回得就是什么类型
+
+- 也就是说我们创建的stream对象的类型是通过泛型体现的
+
+- 重载形式, 能够处理对应基本类型的数组:
+- public static IntStream stream(int[] arr)
+- public static LongStream stream(long[] arr)
+- public static DoubleStream stream(double[] arr)
+
+```java
+int[] arr = {1, 2, 3};
+
+// 返回得是 IntStream
+IntStream intStream = Arrays.stream(arr);
+
+
+// 自定义的数组
+Employee e1 = new Employee(1001, "sam");
+Employee e2 = new Employee(1002, "erin");
+Employee[] arr1 = new Employee[]{e1, e2};
+
+
+// 返回得是Employee
+Stream<Employee> stream = Arrays.stream(arr1);
+```
+
+
+> 创建Stream方式3: 通过Stream的of()
+- 通过Stream类本身的静态方法 of() 也能创建一个stream对象
+- 它可以接收任意数量的参数
+
+> Stream.of(T ... values)
+- 通过Stream类来调用
+
+- 参数:
+- 传递多个数据 相当于对这多个数据 包装成了一个容器
+- 既然是T 那么就是泛型 那么就意味着传递的基本数据类型会被当做是包装类
+
+```java
+Stream<Integer> integerStream = Stream.of(1, 2, 3, 6);
+```
+
+
+> 创建Stream方式4: 创建无限流
+- 使用的情景少 作为了解
+- 可以使用静态方法 Stream.iterate() 和 Stream.generate() 创建无限流
+
+
+> Stream.iterate(参数1, 参数2)
+- 迭代
+- 不停的根据条件创建元素 可以理解为将创建的元素放入一个容器中 因为stream对象就是要操作容器的
+<!-- 
+  public static<T> Stream<T> iterate(final T seed, final UnaryOperator<T> f) 
+-->
+
+- 参数1:
+- seed: 种子 初始值
+
+- 参数2:
+- UnaryOperator<T>函数式接口 它是Function子接口
+- 参数类型: T
+- 返回值类型: T
+- 内部的抽象方法: T apply(T t)
+<!-- 
+  放进去的 和 返回得都是 T
+ -->
+- 既然是参数式接口 那么我们可以用Lambda表达式去写参数2
+
+- 参数2也可以是看做是迭代的规则是什么
+- 比如我们放入一个t 然后返回t+2 那么每次得到的新的值 会继续加2 周而复始
+
+- 因为是无限循环的操作 这里我们还需要借助两个以后讲的API
+- 1. forEach(Consumer接口实现类)
+- forEach()是终止操作 也是执行中间操作的必要环节
+- 参数:
+- 消费者接口 也就是我们要在里面传递一个Consumer接口实现类对象 内部会重写这个接口中的方法 该方法也作为终止操作的最后语句吧 先这么理解
+
+- 因为是函数式接口我们可以写成方法引用或Lambda表达式
+
+- 2. limit(10)
+- 中间操作的一个方法 代表取前10个
+
+```java
+Stream.iterate(0, t -> t + 2).limit(10).forEach(System.out :: println);
+```
+
+
+> Stream.generate()
+- 无限生成数据 帮我们去造数据
+<!-- 
+  - public static<T> Stream<T> generate(Supplier<T> s)
+ -->
+
+- 参数
+- Supplier接口的实现类对象 
+- T get() 无参但返回东西
+
+```java
+Stream.generate(Math :: random).limit(10).forEach(System.out :: println);
+```
+
+
+- 总结
+- 我们主要关注数据本身是以什么方式呈现的 集合就通过集合对象创建stream对象 数组就用Arrays 什么也没有现造出来一个就用of()
+
+- 无限流是特殊的情况下我们要造数据才用它
 
 ----------------------------
 

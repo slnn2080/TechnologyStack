@@ -1,3 +1,434 @@
+### Kinto index page
+- 翻做一下 index 页面 然后记录一下 翻做过程中的要点
+
+> xd取图相关:
+- 1. 从xd上取图的时候 如果图片*有形状型的遮罩*我们要把这层遮罩单独的拿下来
+- pc端和sp端各一个 然后我们要添加在 目标元素的外成容器的after伪元素上
+```css
+content: "";
+background: url(/assets/img/index/mainvisual/bg_semicircle_sp.svg) center top no-repeat;
+```
+
+- 2. 从xd上取图的时候 sp端取两倍图 pc端取1倍图 和 2倍图
+
+
+> 页面布局
+- 1. 首先引入了公共样式 然后 v-app上加了 <v-app class="p-index-container">
+```html
+<style lang="scss">
+@use "../mixin/style/_common.scss";
+@use "../mixin/style/_lineup.scss";
+
+.p-index-container {
+  overflow: hidden;
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+
+  * {
+    box-sizing: border-box;
+  }
+}
+</style>
+```
+
+- 2. 内部用了kinto自定的class类 layout-container 来定版心
+- class="layout-container" 最大的特色就是 <1240px 的时候 宽度是840px 居中
+- class="layout-container" 是用个wrap容器 内部的结构还需要使用 class="layout-content" 结构容器
+
+- 也就是说 class="layout-content" 相当于 row
+- 也就是说 class="layout-column"  相当于 col
+
+- 当我们给 ayout-column: 值 指定值的时候 不是说1就是各个断点占1列 而是不同的断点的时候 占的比例不同
+
+
+> 轮播相关
+- 轮播图它们自己封装了一个组件 叫做 MainVisual
+- MainVisual组件内部使用了 vuetify库里面的 v-carousel 和 v-carousel-item 组件
+
+- 该组件的整体结构
+  <div class="layout-container mainvisual-container">
+    <div class="layout-content:center">
+      <v-carousel>
+
+- 这里注意下 最外层的容器上面添加了 mainvisual-container class
+
+
+- 要点:
+- 1. 轮播图的图片 是使用了 Picture组件
+- 里面指定了sp pc retina断点时候的图片地址 同时设置了 图片的宽度和高度
+- 这里图片尺寸的指定应该是跟xd里面sp端的尺寸是一致的
+
+```html
+<Picture 
+  :sp-img="`${relativePath}kv_0${item.id}_sp.jpg`"
+  :pc-img="`${relativePath}kv_0${item.id}.jpg`"
+  :retina-img="`${relativePath}kv_0${item.id}@2x.jpg`"
+  :alt="item.alt"
+  width="375"
+  height="444"
+/>
+```
+
+- 轮播部分的简单应用:
+- 下面没有配置任何功能相关的控制项 只是基本的一个展示
+- 默认效果:
+- 下方有导航点 有前后点击按钮
+
+```html
+<v-carousel>
+  <v-carousel-item
+    v-for="(item, i) of carousel"
+    :key="i"
+  >
+    <Picture 
+      :sp-img="`${relativePath}kv_0${item.id}_sp.jpg`"
+      :pc-img="`${relativePath}kv_0${item.id}.jpg`"
+      :retina-img="`${relativePath}kv_0${item.id}@2x.jpg`"
+      :alt="item.alt"
+      width="375"
+      height="444"
+    />
+  </v-carousel-item>
+</v-carousel>
+```
+
+- <v-carousel> 的标签属性
+- v-model="visitedmodel"
+  - 可以绑定一个变量 该变量是当前显示的图片的索引
+
+- :cycle="true"
+  - 是否循环播放
+
+- :interval="1000"
+  - 循环播放的间隔时间
+
+- :show-arrows="false"
+  - 是否显示 上一张 下一章的按钮
+
+- transition="fade-transition"
+  - 没看到效果 应该是过渡
+
+- height="auto"
+  - 设置组件的高度
+
+- :hide-delimiter-background="true"
+  - 隐藏导航点区域的背景色
+
+- :hide-delimiters="true"
+  - 隐藏导航点
+
+
+- <v-carousel-item>当中的结构
+- div class="mainvisual-item"
+  - a class="link-block"
+    - Picture组件
+
+- 点击a标签的时候 会触发 @click="gaEvent(`top-kv-${item.id}`)"
+- gaEvent事件是一个混合 但是不知道是用来做什么的
+```js
+import GaEvent from "./GaEvent.vue"
+
+mixins: [GaEvent],
+
+export default {
+  methods: {
+    gaEvent(val) {
+      if (typeof window.dataLayer !== "undefined") {
+        window.dataLayer.push({
+          "event": "clickeventtrigger",
+          "event_category": "top",
+          "event_action": "click",
+          "event_label": val
+        })
+      }
+    },
+  },
+}
+```
+
+
+> 轮播的样式相关
+> 轮播整体区域部分
+- 首先我们要明白轮播图的组件的结构
+- <div class="layout-container mainvisual-container">
+    <div class="layout-content:center">
+      <v-carousel>
+
+- 也就是 整个轮播区域的组件都是通过 mainvisual-container 来控制的
+- 比如 wrap容器的padding margin等
+
+```scss
+.mainvisual-container {
+  position: relative;
+
+  // 默认的情况下 layout-container 左右会有12px的padding 我们这里取消下 确保图片能贴边
+  padding: 0;
+
+  // 默认情况下 layout-container 下面会有48px的外边距 我们这里做下清除
+  margin-bottom: 0;
+}
+```
+
+- 要点:
+- 1. 轮播区域的下方 有一个椭圆的遮罩
+- 我们把这个遮罩单独的从xd文件里面提取出来了 然后通过after伪元素来定义到具体的位置
+- 因为我们添加的是背景图片 所以我们要通过 padding-bottom 来把背景图片的区域露出来
+<!-- 
+  padding-bottom为0的时候 是整个图片填充着区域 是看不到背景的
+  但是 我们加大padding-bottom的值 就可以发现 我们把背景图片露出来了
+ -->
+
+```scss
+.mainvisual-container {
+  position: relative;
+  padding: 0;
+  margin-bottom: 0;
+
+  // 整个轮播区域下方的遮罩使用了after伪元素 和 配置的是配置图片
+  &::after {
+    content: "";
+    background: url(/assets/img/index/mainvisual/bg_semicircle_sp.svg) center top no-repeat;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    background-size: cover;
+    width: 100%;
+    height: auto;
+    padding-bottom: 5.25vw;
+  }
+}
+```
+
+
+> 轮播每一个item部分
+- 我们先看在每个item部分的html结构是什么样子的
+- <v-carousel-item>
+    <div class="mainvisual-item">
+      <a class="link-block" @click="gaEvent(`top-kv-${item.id}`)">
+        <Picture />
+
+- 每一个item的外层div是通过 class="mainvisual-item" 来控制的
+
+- 要点:
+- 1. 当我们移入图片的时候 要有过渡的效果 是透明度的效果 这个过渡效果 我们加在a元素上
+- 首先 我们让a元素的display设置为block 然后设置了 transition 属性
+
+- 2. 因为每一个item内部的img尺寸需要调整 而img又是在vuetifu组件的内部 所以这里 我们使用了 样式穿透
+- 样式穿透的格式
+- ::v-deep {
+    其他的样式或者元素
+  }
+
+```scss
+.mainvisual-item {
+  .link-block {
+    transition: .2s ease-out opacity;
+    display: block;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    ::v-deep {
+      img {
+        width: 100%;
+        height: auto;
+      }
+    }
+  }
+}
+```
+
+
+> 导航点区域的样式
+- 这部分的样式都是在vuetify组件里面的 所以我们要使用 ::v-deep 来进行设置
+- 整个导航点的区域都是在一个div里进行包裹 整个结构为
+- <div class="v-carousel__controls">
+    <div class="">
+
+- 下面的效果就是 导航点的背景没有了 导航点本身发生了写变化
+```scss
+::v-deep {
+  .v-carousel__controls {
+    // 用来控制导航点区域的背景色
+    background: none;
+
+    // 用来控制导航点区域的高度 如果设置为auto 那么它的高度就和小圆点一遍高 如果不设置 会是默认的高度50px
+    height: auto;
+
+    // 控制导航点区域和整个轮播区域之间的下面的位置空多少
+    bottom: 40px;
+  }
+
+  .v-btn--icon {
+    width: 10px;
+    height: 10px;
+  }
+  .v-btn {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    margin: 0 8px;
+    opacity: .7;
+    
+    &:after {
+      display: none;
+    }
+
+    &--active {
+      opacity: 1;
+      width: 40px;
+      border-radius: 10px;
+    }
+  }
+  .v-btn--icon.v-size--small {
+    width: 10px;
+    height: 10px;
+    &.v-btn--active {
+      // 激活小圆点的宽度吧
+      width: 40px;
+    }
+  }
+  .mdi-circle::before {
+    display: none;
+  }
+  .v-icon.v-icon::after {
+    display: none;
+  }
+}
+```
+
+> CarTouchPoint部分
+- 我发现 如果页面上有背景文件之类的东西的时候 他们比较喜欢使用 before after伪元素来设置
+
+- 整个部分分为4个大的部分
+- 1. 标题部分
+
+- 2. tabs 按钮的部分
+- 3. 展示车 点击左右可以切换的部分
+  - 展开说明
+  - 在大屏的时候 展示车是有透视效果的 前大后面的小
+  - 在小屏的时候 展示车是铺满全屏的
+
+- 4. 文件 + 按钮 区域的部分 
+  - 展开说明
+  - 在大屏的时候 文字区域 和 按钮区域是左右排列的
+  - 在小屏的时候 文字区域 和 按钮区域是上下排列的
+
+
+- 我们剖析一下原有的结构问题
+- <div class="cartouchpoint-container layout-container:fluid">
+    <div class="cartouchpoint-inner">
+      <div class="layout-content:center">
+        <h2 class="layout-column:12 heading:4:center">
+          ぴったりのマイカーを選ぼう
+        </h2>
+      </div>
+      <TabMenu />
+    </div>
+  </div> 
+
+- 首先每一个组件都会有一个外层的wrap 然后这个wrap使用了流式布局
+- <div class="cartouchpoint-container layout-container:fluid">
+
+- .layout-container:fluid 的特点就是 不管什么尺寸下都是全屏 所以它里面必须再嵌套一层div来对版心进行控制
+- <div class="cartouchpoint-container layout-container:fluid">
+    <div class="cartouchpoint-inner">
+      test
+    </div>
+  </div>
+
+- 但是我发现 版心的控制 并不是由<div class="cartouchpoint-inner">来完成的 
+- 而是在<div class="cartouchpoint-container layout-container:fluid">上通过.cartouchpoint-containerd的css属性控制的
+- 也就是说 当我们使用layout-container:fluid的时候 我们也可以通过css样式来控制版心是么？
+- *疑问:*: 为什么要给外围的容器上流式布局呢
+- 因为需要
+- 在pc端的时候 设计就是有在1440px内 宽度最大的设计
+
+- 所以外层的wrap设置了流式布局 然后版心通过wrap身上的css样式来控制
+
+```scss
+cartouchpoint-container {
+  // 要点1: 我们给一个max-width最大宽度
+  width: 100%;
+  max-width: g.$wd-lg;
+
+  // 有了最大宽度后 通过margin left right auto达到居中的目的
+  margin-left: auto;
+  margin-right: auto;
+
+  // 这个是用来调整这个模块和上一个模块之间的距离问题
+  position: relative;
+  top: 0vw;
+
+  // 这个是控制innerdiv内部元素的居中
+  .cartouchpoint-inner {
+    margin: 0 auto;
+    text-align: center;
+  }
+}
+```
+
+
+> 标题的部分
+- 结构
+- <div class="layout-content:center">
+    <h2 class="layout-column:12 heading:4:center">
+      ぴったりのマイカーを選ぼう
+    </h2>
+  </div>
+
+- 能看出 我们在定义一个标题的时候
+- 要点:
+- 1. 页面中的标题 他们使用的是 h2
+- 2. 页面中的标题不是只放一个 h2元素上去的 而是用了 layout-content 和 layout-column 也就是row col
+
+- layout-column:12
+- 用来指定 不管在什么屏幕尺寸下 都是满屏
+
+- heading:4:center
+- 用来指定 文字的大小 和 对齐方式
+- 大屏36px 小屏24px 还指定的对齐的方法
+
+- :center的用法总结:
+- 在复习的时候我们知道 :center可以用在
+  - layout-content:center
+  - layout-align:center
+  - text-align:center
+
+- 这里又可以总结一种 heading:4:center 那是不是说 只要是文本的样式后面都可以追加这种写法呢？
+
+```html
+<div class="cartouchpoint-container layout-container:fluid">
+  <div class="cartouchpoint-inner">
+    <div class="layout-content:center">
+      <h2 class="layout-column:12 heading:4:center">
+        ぴったりのマイカーを選ぼう
+      </h2>
+    </div>
+  </div>
+</div> 
+```
+
+- 上面我们又发现并不是说 layout-column:12 只能用在div上 还可以用在 其他的元素让应该使用在块级元素上
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### 注释:
 - 在wiki上看到的文档中的写法:
 
