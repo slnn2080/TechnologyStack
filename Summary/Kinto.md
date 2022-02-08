@@ -414,6 +414,35 @@ cartouchpoint-container {
 
 - 上面我们又发现并不是说 layout-column:12 只能用在div上 还可以用在 其他的元素让应该使用在块级元素上
 
+> 背景文字的部分
+- 我们发现这个页面还有背景文字 这个背景文字是作为整个这个区域部分的before伪元素出现的
+```scss
+&:before {
+  // before伪元素需要这个属性
+  content: "";
+
+  // 相当于把伪元素变成块状的结构
+  position: absolute;
+  top: 0;
+  left: 50%;
+
+  // 既然成为了块元素 那么就会有宽高
+  width: 53.6%;
+  min-height: 40px;
+  transform: translateX(-50%);
+
+  // 放入背景图片 然后以内容为主进行缩放
+  background: url(/assets/img/index/mainvisual/bg_lineup.svg) top center no-repeat;
+  background-size: contain;
+  
+  z-index: 0;
+  @include g.mq {
+    width: 500px;
+    height: 110px;
+  }
+}
+```
+
 
 
 

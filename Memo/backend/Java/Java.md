@@ -24980,6 +24980,7 @@ coll2.add(123);
 // 将集合2中的元素 添加到集合1中
 coll.addAll(coll2);
 System.out.println(coll.size());  // 6
+// [456, 123]
 ```
 
 
@@ -37987,6 +37988,8 @@ public interface MyInterface {
   消费的理解 我们给它东西 它不往回返
  -->
 
+- 应用场景 传参没有返回值的时候 我们就可以用消费者
+
 
 > Supplier<T>
 - 供给型接口
@@ -38029,6 +38032,22 @@ public interface MyInterface {
 - 确定类型为T的对象是否满足某约束 并返回boolean值
 - 包含方法: *boolean test(T t)*
 - 抽象方法中定义判断的规则
+
+
+> 应用场景总结
+- 1. Predicate<T> 
+- 传入一个参数 返回一个布尔值 可以根据布尔值进行过滤等
+- 可以当做回调来理解 (布尔类型的回调)
+
+- 2. js中很多数组方法的回调
+- Function<T, R> 当回调里面需要*有参数* *有返回值*的时候 我们传入的是Function接口的实现类对象
+
+- Supplier<T> 当回调里面需要 *无参数* *有返回值*的时候 我们传入的是Supplier接口的实现类对象
+
+- Consumer<T> 当回调里面需要 *有参数* *无返回值*的时候 我们传入的是Consumer接口的实现类对象
+
+- 其实我们直接当回调用可能就行了 不用考虑什么接口
+- 但是可能需要考虑接口内的方法
 
 
 > 总结:
@@ -38921,6 +38940,499 @@ Stream.generate(Math :: random).limit(10).forEach(System.out :: println);
 - 我们主要关注数据本身是以什么方式呈现的 集合就通过集合对象创建stream对象 数组就用Arrays 什么也没有现造出来一个就用of()
 
 - 无限流是特殊的情况下我们要造数据才用它
+
+----------------------------
+
+### Stream的中间操作
+- 多个中间操作可以连接起来形成一个流水线 除非流水线上触发终止操作 否则中间操作不会执行任何的处理 而在终止操作时一次性全部处理 称为"惰性求值"
+
+**每一个中间环节都能得到一个对应类型的Stream对象**
+```java
+// 我们既可以链式调用
+list.stream().limit(3).forEach(System.out :: println);
+
+// 也可以从某一个中间操作得到对应类型的stream对象
+Stream<Employee> employeeStream = list.stream().limit(3);
+    // 集合中每一个元素都是员工对象 我们得到的就是employeeStream
+
+// 通过这个对象我们在调用终止操作的方法
+employeeStream.forEach(System.out :: println);
+```
+
+> 通用操作
+- 先准备一个集合
+```java
+public class EmployeeData {
+	
+	public static List<Employee> getEmployees(){
+		List<Employee> list = new ArrayList<>();
+		
+		list.add(new Employee(1001, "马化腾", 34, 6000.38));
+		list.add(new Employee(1002, "马云", 12, 9876.12));
+		list.add(new Employee(1003, "刘强东", 33, 3000.82));
+		list.add(new Employee(1004, "雷军", 26, 7657.37));
+		list.add(new Employee(1005, "李彦宏", 65, 5555.32));
+		list.add(new Employee(1006, "比尔盖茨", 42, 9500.43));
+		list.add(new Employee(1007, "任正非", 26, 4333.32));
+		list.add(new Employee(1008, "扎克伯格", 35, 2500.32));
+		
+		return list;
+	}
+}
+```
+
+
+> 筛选 与 切片
+> filter(Predicate p)
+- 接收Lambda, 从流中排除某些元素 相当于过滤
+<!-- 
+> Predicate<T>
+- 断定型接口(判断型)
+
+- 传一个参数返回一个boolean
+- 包含方法: *boolean test(T t)*
+ -->
+
+- 参数:
+- Predicate接口的实现类对象 我们可以传递Lambda表达式
+- Predicate接口是传递一个参数 返回一个布尔值 *根据布尔值过滤集合中的元素*
+
+- 需求:
+- 查询员工表中工资大于7000的员工信息
+```java
+// 先准备一个集合
+List<Employee> list = EmployeeData.getEmployees();
+
+// 实例化stream对象
+Stream<Employee> stream = list.stream();
+
+// 我们传递一个Employee作为参数 也就是把每一个员工对象传递进去根据员工对象的属性 我们来进行排序
+stream.filter(e -> e.getSalary() > 7000).forEach(System.out :: print);
+
+// 注意: 上面已经进行了终止操作 下面就不能在通过stream对象调用中间操作了
+stream.limit(3).forEach(System.out :: println);
+```
+
+**注意:**
+- 如果我们已经调用的了终止操作forEach() 那么就代表该stream已经关闭了 后续不能在通过stream对象调用中间操作
+
+- 异常
+- java.lang.IllegalStateException: stream has already been operated upon or closed
+
+- 解放方案:
+- 重新生成一下
+```java
+// 先准备一个集合
+List<Employee> list = EmployeeData.getEmployees();
+
+Stream<Employee> stream = list.stream();
+stream.filter(e -> e.getSalary() > 7000).forEach(System.out :: print);
+
+// list.stream() 重新生成一个stream对象
+list.stream().limit(3).forEach(System.out :: println);
+```
+
+
+> distinct()
+- 筛选，通过流所生成元素的 hashCode() 和 equals() *去除重复元素*
+
+- 根据自定义类中的 hashCode() 和 equals() 方法来去重 比如我们Employee中定义的方式是 全部一样才算一样才会被去重 有一个属性不一样都会两个对象都保留
+
+```java
+list.stream().distinct().forEach(System.out :: println);
+```
+
+
+> limit(long maxSize)
+- 截断流，使其元素不超过给定数量
+- 截取集合中数据的前3个
+
+```java
+list.stream().limit(3).forEach(System.out :: println);
+```
+
+
+> skip(long n)
+- 跳过集合中指定的元素(数据)，比如过掉前3个数据 就从第4个开始
+
+- 返回一个扔掉了前 n 个元素的流。若流中元素不足 n 个，则返回一个空流。与 limit(n) 互补
+
+
+
+> 映射
+> map(Function f)
+- 接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素。(跟js里面的map差不多)
+<!-- 
+  > Function<T, R>
+  - 函数型接口
+
+  - 参数类型: T
+  - 返回值类型: R
+
+  - 包含方法: *R apply(T t)*
+ -->
+
+- 参数:
+- Function接口的实现类对象 我们可以使用Lambda表达式
+- R apply(T t)
+- 放入一个形参 返回一个值
+
+```java
+List<String> list = Arrays.asList("aa", "bb", "cc");
+
+list.stream().map(str -> str.toUpperCase()).forEach(System.out :: println);
+// AA  BB  CC
+```
+
+- 需求:
+- 获取员工姓名长度大于3的员工的姓名
+```java
+// 先获取员工的集合
+List<Employee> list = EmployeeData.getEmployees();
+
+// 通过stream对象调用对应的方法 -- map参数形式1
+Stream<String> nameStream = list1.stream().map(e -> e.getName()).filter(name -> name.length() > 3).forEach(System.out :: println);
+  - 映射:
+  - 函数会作用在每一个元素上
+  - 现在每一个元素都是 员工对象 然后每一个元素被修改为n员工的名字
+
+  - 我们返回得就是一个名字构成的stream对象 我们可以通过这个返回得对象 继续调用中间操作的方法 或者 终止操作
+
+
+// map参数形式2 -- 类 :: 实例方法
+Stream<String> nameStream = list1.stream().map(Employee::getName);
+
+nameStream.filter(name -> name.length() > 3).forEach(System.out :: println);
+```
+
+
+> flatMap(Function f)
+- 接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流
+
+> map(Function f) 和 flatMap(Function f)的*区别*
+- 如果map中的形参里面是一个流(stream对象) map方法会把整个的流(stream对象)当成一个元素
+<!-- 相当于[1, 2, 3, [4, 5, 6]] -->
+
+- 如果flatMap中的形参里面是一个流(stream对象) flatMap方法就会把流(stream对象)里面的东西取出来 当成是一个大的流(stream对象)
+<!-- 相当于[1, 2, 3, 4, 5, 6] -->
+
+- 对于*集合里面套集合*的情况 *优先考虑用flatMap*
+- 集合的扁平化
+
+> 代码部分的举例
+- 我们先创建一个方法 该方法会将字符串中的每一个字符取出来传入一个集合中 通过字符集合调用.stream()方法得到一个stream对象返回
+
+- 比如我们传入aa 那我们得到的就是集合['a', 'a'].stream()返回得stream对象
+
+```java
+/*
+  static:
+    将该方法设置为static 方便我们使用 方法引用
+
+  返回值 - Stream<Character>
+  - 也就是stream对象中每一个元素都是一个char
+*/
+public static Stream<Character> fromStringToStream(String str) {
+
+  // 集合中的每一个元素是一个char类型
+  // Character - char的包装类
+  ArrayList<Character> list = new ArrayList<>();
+
+  for(Character c: str.toCharArray()) {
+    list.add(c);
+  }
+
+  // Stream<Character> stream = list.stream();
+  return list.stream();
+}
+```
+
+- 先造一个集合
+- 集合中每一个元素都是一个字符串
+```java
+List<String> list = Arrays.asList("aa", "bb", "cc");
+```
+
+- 通过上面的字符串集合调用stream() 得到stream对象
+- 通过stream对象我们可以调用中间操作的一些方法 比如map() 或者 flatMap()
+
+- 我们先拿map()方法说明
+- map(Function f) 该参数Function会作用到每一个元素上 Function接口 有参数有返回值
+
+```java
+// 这里面list里面是一个个aa bb cc字符串 返回个什么呢？ 这里我们调用fromStringToStream方法 返回一个stream对象 [aa, bb, cc] -> [['a', 'a'], ['b', 'b'], ['c', 'c']] 也就是stream里面每一个元素又是一个stream 相当于一个二维数组
+Stream<Stream<Character>> streamStream = list.stream().map(str -> StreamAPITest::fromStringToStream)
+  // 我们从泛型那里也能看出来是一个二维数组的形式
+
+
+// 既然是一个二维数组的形式 那我们就不能向下面这样循环输出
+ streamStream.forEach(System.out :: println);
+/*
+  结果:
+  java.util.stream.ReferencePipeline$Head@7403c468
+
+  java.util.stream.ReferencePipeline$Head@43738a82
+
+  java.util.stream.ReferencePipeline$Head@c81cdd1
+*/
+
+
+// 那我们就这样操作 forEach(Consumer接口) Consumer接口有参数无返回值
+streamStream.forEach(s -> {
+  // 内部再来输出
+  s.forEach(System.out :: println);
+});
+```
+
+- 上面我们使用map()方式 用了类似双重for循环的操作
+- 当我们遇到二维数组的情况下我们可以考虑用 flatMap() 方法 它可以对二维数组进行扁平化处理
+```java
+// 这里从泛型也能看出来 flatMap 对集合做了扁平化的处理 [1, 2, 3, 4, 5, 6] 拆开了
+Stream<Character> characterStream = list.stream().flatMap(StreamAPITest::fromStringToStream);
+
+// 所以这里我们直接输出就可以了 不用双重for的结构
+characterStream.forEach(System.out :: println);
+```
+
+- 还有一些方法我们可以看看
+
+> mapToDouble(ToDoubleFunction f)
+- 接收一个函数作为参数，该函数会被应用到每个元 素上，产生一个新的 DoubleStream。
+
+> mapToInt(ToIntFunction f)
+- 接收一个函数作为参数，该函数会被应用到每个元 素上，产生一个新的 IntStream。
+
+> mapToLong(ToLongFunction f)
+- 接收一个函数作为参数，该函数会被应用到每个元 素上，产生一个新的 LongStream。
+
+
+
+> 排序
+- 要求:
+- 自定义类中要想comparable 和 comparator接口的问题
+
+> sorted()
+- 产生一个新流，就是*自然排序*
+- 会根据stream容器内的类型(对应的类内部) 自然排序
+- Stream<Integer> 可以从泛型看出来容器内元素的类型 该类型对应的类里面的自然排序规则 (从小到大的顺序)
+
+```java
+// 自然排序
+List<Integer> list = Arrays.asList(12, 33, 65, 88, 98);
+
+// 内部会调用Integer自然排序的方式
+Stream<Integer> integerStream = list.stream().sorted();
+
+integerStream.forEach(System.out :: println);
+
+
+// 报错:
+// 因为Employee类没有实现Comparable接口
+List<Employee> employees = EmployeeData.getEmployees();
+
+employees.stream().sorted().forEach(System.out :: println);
+```
+
+
+> sorted(Comparator com)
+- 产生一个新流，就是*定制排序*
+```java
+List<Employee> employees = EmployeeData.getEmployees();
+
+// sorted(传入Comparator接口的实现类对象)
+employees.stream().sorted((e1, e2) -> Integer.compare(e1.getAge(), e2.getAge())).forEach(System.out :: println);
+```
+
+----------------------------
+
+### Stream的中间操作
+- 终端操作会从流的流水线生成结果 其结果可以是任何不是流的值
+- 例如: List Integer void
+
+- 流进行了终止操作后 不能再次使用
+
+> 匹配与查找
+> allMatch(Predicate p)
+- 检查是否匹配所有元素
+
+> anyMatch(Predicate p)
+- 检查是否至少匹配一个元素
+
+> noneMatch(Predicate p)
+- 检查是否没有匹配所有元素
+
+> findFirst()
+- 返回第一个元素
+
+> findAny()
+- 返回当前流中的任意元素
+
+> count()
+- 返回流中元素总数
+
+> max(Comparator c)
+- 返回流中最大值
+
+> min(Comparator c)
+- 返回流中最小值
+
+> forEach(Consumer c)
+- 内部迭代
+<!-- 
+  使用 Collection 接口需要用户去做迭代 称为外部迭代。相反，Stream API 使用内部迭代——它帮你把迭代做了
+ -->
+
+
+> 归约
+> reduce(T iden, BinaryOperator b)
+- 可以将流中元素反复结合起来，得到一个值。返回 T
+
+> reduce(BinaryOperator b)
+- 可以将流中元素反复结合起来，得到一 个值。
+- 返回 Optional<T>
+
+<!-- 
+  备注:
+  map 和 reduce 的连接通常称为 map-reduce 模式，
+  因 Google 用它来进行网络搜索而出名。
+ -->
+
+
+> 收集
+> collect(Collector c)
+- 将流转换为其他形式。接收一个 Collector 接口的实现，用于给Stream中元素做汇总 的方法
+
+- Collector 接口中方法的实现决定了如何对流执行收集的操作(如收集到 List、Set、 Map)。
+
+
+
+- 另外， Collectors 实用类提供了很多静态方法，可以方便地创建常见收集器实例， 具体方法与实例如下表:
+
+> Collectors.toList()
+- 把流中元素收集到List
+
+- 返回值类型:
+- List<T>
+
+- List<Employee> emps= list.stream().collect(Collectors.toList());
+
+
+> Collectors.toSet()
+- 把流中元素收集到Set
+
+- 返回值类型:
+- Set<T>
+
+- Set<Employee> emps= list.stream().collect(Collectors.toSet());
+
+
+> Collectors.toCollection()
+- 把流中元素收集到创建的集合
+
+- 返回值类型:
+- Collection<T>
+
+- Collection<Employee> emps =list.stream().collect(Collectors.toCollection(ArrayList::new));
+
+
+> Collectors.counting()
+- 计算流中元素的个数
+
+- 返回值类型:
+- Long
+
+- long count = list.stream().collect(Collectors.counting());
+
+
+> Collectors.summingInt()
+- 对流中元素的整数属性求和
+
+- 返回值类型:
+- Integer
+
+- int total=list.stream().collect(Collectors.summingInt(Employee::getSalary));
+
+
+> Collectors.averagingInt()
+- 计算流中元素Integer属性的平均值
+
+- 返回值类型:
+- Double
+
+- double avg = list.stream().collect(Collectors.averagingInt(Employee::getSalary));
+
+
+> Collectors.summarizingInt()
+- IntSummaryStatistics
+收集流中Integer属性的统计值。如:平均值
+
+- 返回值类型:
+- IntSummaryStatistics
+
+- int SummaryStatisticsiss= list.stream().collect(Collectors.summarizingInt(Employee::getSalary))
+
+
+> Collectors.joining()
+- 连接流中每个字符串
+
+- 返回值类型:
+- String
+
+- String str= list.stream().map(Employee::getName).collect(Collectors.joining());
+
+
+> Collectors.maxBy()
+- 根据比较器选择最大值
+
+- 返回值类型:
+- Optional<T>
+
+- Optional<Emp>max= list.stream().collect(Collectors.maxBy(comparingInt(Employee::getSalary)));
+
+
+> Collectors.minBy()
+- 根据比较器选择最小值
+
+- 返回值类型:
+- Optional<T>
+
+- Optional<Emp> min = list.stream().collect(Collectors.minBy(comparingInt(Employee::getSalary)));
+
+
+> Collectors.reducing()
+- 从一个作为累加器的初始值开始， 利用BinaryOperator与流中元素逐 个结合，从而归约成单个值
+
+- 返回值类型:
+- 归约产生的类型
+
+- int total=list.stream().collect(Collectors.reducing(0, Employee::getSalar, Integer::sum));
+
+
+> Collectors.collectingAndThen()
+- 包裹另一个收集器，对其结果转换函数
+
+- 返回值类型:
+- 转换函数返回的类型
+
+- int how= list.stream().collect(Collectors.collectingAndThen(Collectors.toList(), List::size));
+
+
+> Collectors.groupingBy()
+- 根据某属性值对流分组，属性为K 结果为V
+
+- 返回值类型:
+- Map<K, List<T>>
+
+- Map<Emp.Status, List<Emp>> map= list.stream() .collect(Collectors.groupingBy(Employee::getStatus));
+
+
+> Collectors.partitioningBy()
+- 根据true或false进行分区
+
+- 返回值类型:
+- Map<Boolean, List<T>>
+
+- Map<Boolean,List<Emp>> vd = list.stream().collect(Collectors.partitioningBy(Employee::getManage));
 
 ----------------------------
 
