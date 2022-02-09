@@ -37274,15 +37274,46 @@ public class StaticProxyTest {
 - 代理工厂做一些后续的收尾工作
 ```
 
-> 静态代理的特点
-- 静态代理 不管是代理类还是被代理类都写死了 也就是说*编译期间代理类和被代理类就确定下来了*
+> 静态代理的特点 (缺点)
+- 1. 静态代理 不管是代理类还是被代理类都写死了 也就是说*编译期间代理类和被代理类就确定下来了*，不利于程序的扩展
+
+- 2. 每一个代理类只能为一个(一套)接口服务 这样程序开发中必定会产生过多的代理
+
+---
+
+> 静态代理的举例2:
+- 实现Runnable接口的方法创建多线程
+```java
+// 我们自己定义的类 实现了Runnable接口
+Class MyThread implements Runnable { ... }
+
+// 我们发现 Thread类 本身也实现了Runnable接口
+Class Thread implements Runnable { ... }
+```
+
+- 上面相当于有两个类 且这两个类都实现了Runnable接口
+```java
+main() {
+  MyThread t = new MyThread();
+  Thread thread = new Thread(t)
+
+  // 启动线程 调用线程的run() 调用的thread里面的run() 但是真正执行的时候 执行的是MyThread类里面的run()
+  thread.start();
+}
+```
+
 
 ----------------------------
 
 ### 动态代理的举例
 - 动态代理也好 还是静态代理也好 都是代理模式 所以接口一定要有 被代理类要有 *只有代理类改成动态的了*
 
-- 动态代理的接口
+- 动态代理的优点就是能解决静态代理的缺点
+
+- 动态代理的特点:
+- 动态代理是指客户通过代理类来调用其它对象的方法 并且是在程序运行时根据需要动态创建目标类的代理对象
+
+- 动态代理的接口:
 - 1. 接口
 - 2. 被代理类
 - 3. 代理类 (动态的创建的了)
@@ -37334,6 +37365,7 @@ obj.getClass().getInterfaces()
 - 3. 实现InvocationHandler接口中 invoke() 方法
   - 该方法的作用:
   - 当代理类调用被代理类和代理类中的抽象方法的时候 会自动调用被代理类中的同名方法
+
 
 > public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {...}
 - 作用:
@@ -37402,7 +37434,7 @@ class MyInvocationHandler implements InvocationHandler {
 - 动态代理 
 - 根据加载到内存中的 被代理类是什么 我动态的创建一个跟被代理类实现接口一样的类
 
-- 要想实现动态代理 需要解决的问题:
+> 要想实现动态代理 需要解决的问题:
 - 1. 如何根据加载到内存中的被代理类 动态的创建一个代理类及其对象
 - 2. 当通过代理类的对象调用方法时 如何动态的去调用被代理类中的同名方法
 
@@ -37925,7 +37957,8 @@ Comparator<Integer> comparato2 = (o1, o2) -> o1.compareTo(o2);
 
 **注意:**
 - Lambda依托于接口 Lambda表达式相当于接口的实例对象 但是要求该接口内部只能有一个抽象方法
-- 只有一个抽象方法的接口叫做函数式接口
+
+- *只有一个抽象方法的接口叫做函数式接口*
 
 ----------------------------
 
@@ -37934,11 +37967,18 @@ Comparator<Integer> comparato2 = (o1, o2) -> o1.compareTo(o2);
 
 - 而我们对使用Lambda表达式的接口有要求 要求该接口中只能有一个抽象方法 所以我们在写Lambda表达式的Lambda体的时候就没必要指定抽象方法的方法名
 
-- 也就是说: *Lambda表达式的本质: 作为函数式接口的实例*
+
+> 本质：
+- 也就是说: *Lambda表达式的本质: 作为函数式接口的实例对象*
+
+
+> Lambda表达式的应用场景
+- *只有*在*函数式接口进行实例化的时候* 我们才能用Lambda表达式
 
 
 > 函数式接口:
 - 如果一个接口中 只声明了一个抽象方法 则此接口就成为函数式接口
+
 ```java
 // 我们看看 Runnable 接口 它就是一个函数式接口
 
@@ -37971,6 +38011,15 @@ public interface MyInterface {
 
 ### Java内置的函数式接口介绍 以及 使用举例
 - java内置四大核心函数式接口
+- 这4个核心的函数式接口相当于 四种模板 当我们需要定义的接口和这4个模板一样的时候 我们直接可以使用该4个接口
+
+
+> 如何使用给定的函数式接口:
+- 比如我们想定义一个接口 恰好我们的接口里面只有一个抽象方法
+- 这个方法需要传递一个东西 *一个参数*就够 这个方法还*没有返回值* 以前的时候 我们可能就自己定义这个接口了
+
+- 现在的话 我们就可以看到 上述的内容很像消费型接口 既然这样我们就没有必要定义这样的接口了 我们直接用Consumer就可以了 如果和我们想定义的名字可能有些出路 但是没必要自己定义接口了 直接使用就可以了
+
 
 > Consumer<T>
 - 消费型接口
@@ -38007,10 +38056,12 @@ public interface MyInterface {
 
 
 > Function<T, R>
+> Function<T>
 - 函数型接口
 
 - 参数类型: T
 - 返回值类型: R
+- 返回值类型2: T
 
 - 用途:
 - 对类型为T的对象应用操作 并返回结果
@@ -38057,6 +38108,8 @@ public interface MyInterface {
 - 2. 后续我们能看到有些形参会出现这些接口 当出现这些接口 我们要做实例化的时候 我们就可以考虑用 Lambda表达式
 
 
+
+> 扩展的函数式接口
 - 上面提到了 4种基本的函数式接口 除了上面的4中之外 还有其他的一些接口
 
 > BiFunction<T, U, R>
@@ -38227,6 +38280,9 @@ public void test1() {
 ```
 
 
+> 函数式接口的使用场景
+- 如果我们开发中需要定义一个函数式接口 首先看看在已有的jdk提供的函数式接口中是否提供了能满足需求的函数式接口 如果有 则直接调用即可 不需要自己再自定义了
+
 ----------------------------
 
 ### 方法引用与构造器引用
@@ -38234,6 +38290,9 @@ public void test1() {
 
 > 方法引用(Method References)
 - 当要传递给Lambda体的操作 已经有了实现的方法了 可以使用方法引用
+<!-- 
+  我们在Lambda体中想写的方法 和 函数式接口中的抽象方法一致的时候 可以使用方法引用
+ -->
 
 - 方法引用可以看做是Lambda表达式深层次的表达
 - 换句话说 *方法引用就是Lambda表达式 也就是函数式接口的一个实例*
@@ -38246,16 +38305,16 @@ public void test1() {
 > 格式:
 - 使用操作符 "::" 将类(或对象) 与 方法名分隔开来
 
-- 如下三种主要使用情况:
+> 三种主要使用情况:
+> 对象 :: 静态方法名
+> 类 :: 静态方法名
 
-> 对象(或者类)::实例(或静态)方法名
+> 类 :: 非静态方法名  -- 有点难
 - ::前面相当于调用者
 - ::后面相当于调用的方法 是方法名 参数列表都不用写
 <!-- 
   对象 :: 实例方法(非静态方法)
-
   类 :: 静态方法
-
   类 :: 非静态方法
     - 这里类是可以调用非静态的方法的
 
@@ -38472,9 +38531,11 @@ System.out.println(pre1.test("abc", "abc"));
 ```
 
 
-> 我们再来看一个例子
+> 情况3: 类 :: 非静态方法
 - 还是 函数式接口中的抽象方法 有两个参数
 - 参数1作为别的API的方法中的调用者了 这时候我们也能用方法引用
+
+- 当函数式接口方法的第一个参数是需要引用方法的调用者 并且第二个参数是需要引用方法的参数(或无参数)时 ClassName :: methodName
 
 - Function中的
     R apply(T t)
@@ -38497,8 +38558,15 @@ Function<Employee, String> fn2 = Employee :: getName;
 fn2.apply(employee);
 ```
 
+
 > 总结情况3中的规律:
 - 形参列表不对应了 但是函数式接口中的抽象方法的参数1作为其他API的方法的调用者的时候 我们也可以使用方法引用
+
+
+> 使用建议:
+- 如果给函数式接口提供实例 恰好满足方法引用的使用情景 大家就可以考虑使用方法引用给函数式接口提供实例
+
+- 如果我们不熟悉方法引用 那么还可以使用Lambda表达式
 
 ----------------------------
 
@@ -38509,6 +38577,9 @@ fn2.apply(employee);
 - 抽象方法的返回值类型即为构造器所属的类的类型
 
 - *也就是函数式接口中的返回得类型 就是 我们要造的对象的情况下 我们就可以同构造器跟抽象方法进行匹配*
+
+> 构造器引用格式: 类名 :: new
+ 
 
 > 构造器引用
 - Supplier<T>中的接口中的抽象方法为：
@@ -38618,6 +38689,8 @@ System.out.println(nn);
 
 - 大家可以把数组看做是一个特殊的类 则写法就跟构造器引用的方法一致了
 
+> 数组引用的格式: 数组类型[] :: new
+
 - 比如
 - Function<T, R>中的
     R apply(T t)
@@ -38656,6 +38729,9 @@ Function<Integer, String[]> fn2 = String[] :: new;
 - 也可以使用Stream API来并行执行操作
 
 - 简言之 Stream API提供了一种高校且易于使用的处理数据的方式
+<!-- 
+  可以对内存中的数据进行过滤 排序 映射 归约等操作 类似于sql语言对数据库中表的相关操作
+ -->
 
 
 > 为什么要使用 Stream API
@@ -39245,7 +39321,7 @@ employees.stream().sorted((e1, e2) -> Integer.compare(e1.getAge(), e2.getAge()))
 
 ----------------------------
 
-### Stream的中间操作
+### Stream的终止操作
 - 终端操作会从流的流水线生成结果 其结果可以是任何不是流的值
 - 例如: List Integer void
 
@@ -39253,63 +39329,240 @@ employees.stream().sorted((e1, e2) -> Integer.compare(e1.getAge(), e2.getAge()))
 
 > 匹配与查找
 > allMatch(Predicate p)
-- 检查是否匹配所有元素
+- 检查是否匹配所有元素 
+- 所有的都是true 返回得才是true
+
+- 返回值:
+- boolean
+
+- 是否所有员工的年龄大于18岁 allMath(Predicate p)
+```java
+boolean allMatch = employees.stream().allMatch(e -> e.getAge() > 18);
+
+// 检查所有元素 有一个不符合 就是false
+System.out.println(allMatch);
+```
+
 
 > anyMatch(Predicate p)
 - 检查是否至少匹配一个元素
+- 只要有一个匹配上了 就是true
+
+- 返回值:
+- boolean
+
+- 是否存在员工的工资大于10000
+```java
+boolean anyMatch = employees.stream().anyMatch(e -> e.getSalary() > 10000);
+
+// 所有元素中 只要有一个匹配成功 就是true
+System.out.println(anyMatch);
+```
+
 
 > noneMatch(Predicate p)
 - 检查是否没有匹配所有元素
+- 没有一个匹配的 检查的是 是否没有！！！
+
+- 返回值:
+- boolean
+
+- 是否存在员工姓"刘"
+```java
+boolean noneMatch = employees.stream().noneMatch(e -> e.getName().startsWith("刘"));
+System.out.println(noneMatch);  // false 里面有姓刘的
+```
+
 
 > findFirst()
 - 返回第一个元素
 
+- 返回值:
+- Optional<T>
+- 返回得类型的泛型就是元素本身的类型
+
+```java
+Optional<Employee> employee = employees.stream().findFirst();
+
+System.out.println(employee);
+```
+
+
 > findAny()
 - 返回当前流中的任意元素
+
+```java
+Optional<Employee> any = employees.stream().findAny();
+
+// 每次的执行结果都不同
+System.out.println(any);
+```
+
 
 > count()
 - 返回流中元素总数
 
+- 返回值:
+- long
+
+```java
+long count = employees.stream().count();
+System.out.println(count);  // 8
+```
+
+
 > max(Comparator c)
 - 返回流中最大值
+- 通过Comparator接口 定义比较的原则
+
+- 返回值:
+- 
+
+- 返回最高的工资
+```java
+// 方式1:
+employees.stream().max(里面传入Comparator接口实现类对象 指定规则)
+
+// 方式2:
+// 先map下 将员工集合映射成工资的集合
+Stream<Double> doubleStream = employees.stream().map(e -> e.getSalary());
+    // 返回值的类型是Stream<Double>
+
+// 然后我们通过doubleStream(容器里都是一个个工资) 然后调用max方法 
+// Comparator需要传递两个参数返回一个int型的值 类 :: 静态方法
+Optional<Double> maxSalary = doubleStream.max(Double::compare);
+
+System.out.println(maxSalary);
+  // Optional[9876.12]
+```
+
 
 > min(Comparator c)
 - 返回流中最小值
+
+- 返回最低工资的员工
+```java
+Optional<Employee> min = employees.stream().min((e1, e2) -> Double.compare(e1.getSalary(), e2.getSalary()));
+
+System.out.println(min);
+```
+
 
 > forEach(Consumer c)
 - 内部迭代
 <!-- 
   使用 Collection 接口需要用户去做迭代 称为外部迭代。相反，Stream API 使用内部迭代——它帮你把迭代做了
+
+  外部迭代:
+    集合外面有一个指针 一点点往下移动取值
+
+  内部迭代:
+    集合内存 元素位置往下移动
  -->
+
+```java
+employees.stream().forEach(System.out :: println);
+
+// 下面是通过集合调用forEach 只是一个集合中的普通方法
+employees.forEach(System.out :: println);
+```
 
 
 > 归约
 > reduce(T iden, BinaryOperator b)
 - 可以将流中元素反复结合起来，得到一个值。返回 T
+<!-- 
+  map() 
+    做的是映射 该方法是针对stream容器中的每一个元素 做一个映射
+    比如我们将每一个员工对象 修改为工资属性
+
+  reduce()
+    我们可以将上面的工作属性做一个求和
+ -->
+
+- 参数1:
+- 初始化(跟js一样)
+
+- 参数2:
+- BinaryOperator<T>
+- 参数类型: T T
+- 返回值类型: T
+- T apply(T t1, T t2)
+- 我们传入t1 t2 然后t的结果
+
+- 需求：
+- 求 1-10 的和
+```java
+// 创建一个集合
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+// 参数1: 为初始值
+// 参数2: T apply(T t1, T t2)
+// 而Integer.sum(int a, int b) 能匹配上 所以 方法引用
+Integer reduce = list.stream().reduce(0, Integer::sum);
+
+// 55
+System.out.println(reduce);
+```
+
+- 需求:
+- 计算公司所有员工工资的总和
+```java
+List<Employee> employees = EmployeeData.getEmployees();
+
+// 我们得到是Double 所以用得 Double::sum
+Optional<Double> sumMoney = employees.stream().map(e -> e.getSalary()).reduce(Double::sum);
+
+// 这样写也行
+Optional<Double> sumMoney = employees.stream().map(Employee::getSalary).reduce(Double::sum);
+
+
+// 如果我们不知道 方法引用的方法 那就只能写Lambda表达式了
+Optional<Double> sumMoney = employees.stream().map(Employee::getSalary).reduce((d1, d2) -> d1 + d2);
+```
+
+
+
+
 
 > reduce(BinaryOperator b)
 - 可以将流中元素反复结合起来，得到一 个值。
 - 返回 Optional<T>
 
-<!-- 
-  备注:
+- 参数:
+- BinaryOperator<T>
+- 参数类型: T T
+- 返回值类型: T
+- T apply(T t1, T t2)
+- 我们传入t1 t2 然后t的结果
+
+```java
+Optional<Double> sumMoney = employees.stream().map(Employee::getSalary).reduce((d1, d2) -> d1 + d2);
+```
+
+- 备注:
   map 和 reduce 的连接通常称为 map-reduce 模式，
   因 Google 用它来进行网络搜索而出名。
- -->
+
+
 
 
 > 收集
+- 将我们处理后的数据 装到一个容器中 List Set等等
+
 > collect(Collector c)
 - 将流转换为其他形式。接收一个 Collector 接口的实现，用于给Stream中元素做汇总 的方法
 
 - Collector 接口中方法的实现决定了如何对流执行收集的操作(如收集到 List、Set、 Map)。
 
+- Collector接口的实现类对象 要通过Collectors实用类提供的静态方法来创建
+
+- 也就是说我们要用下面的方法 创建一个Collector接口的实现类对象然后填入到collect(*这里*)
 
 
-- 另外， Collectors 实用类提供了很多静态方法，可以方便地创建常见收集器实例， 具体方法与实例如下表:
-
+> Collector接口的实现类对象的创建方式：
 > Collectors.toList()
-- 把流中元素收集到List
+- 把流中元素收集到List中
 
 - 返回值类型:
 - List<T>
@@ -39318,16 +39571,33 @@ employees.stream().sorted((e1, e2) -> Integer.compare(e1.getAge(), e2.getAge()))
 
 
 > Collectors.toSet()
-- 把流中元素收集到Set
+- 把流中元素收集到Set中
 
 - 返回值类型:
 - Set<T>
 
 - Set<Employee> emps= list.stream().collect(Collectors.toSet());
 
+- 需求:
+- 查找工资大于6000的员工 结果返回一个List
+```java
+// 得到了一个员工对象的集合
+List<Employee> list = EmployeeData.getEmployees();
+
+// 先对stream容器中的元素进行过滤 然后装到一个对应的容器中
+// 得到一个List
+List<Employee> employeeList = list.stream().filter(e -> e.getSalary() > 6000).collect(Collectors.toList());
+
+// 通过List对象 调用List的forEach方法
+employeeList.forEach(System.out::println);
+```
+
 
 > Collectors.toCollection()
 - 把流中元素收集到创建的集合
+- 我们把数据放入到一个Collection中 但是没有指定是用List 还是用Set去装
+- 我们在创建的时候 指定用List还是Set
+- Collectors.toCollection(ArrayList::new)
 
 - 返回值类型:
 - Collection<T>
@@ -39433,6 +39703,297 @@ employees.stream().sorted((e1, e2) -> Integer.compare(e1.getAge(), e2.getAge()))
 - Map<Boolean, List<T>>
 
 - Map<Boolean,List<Emp>> vd = list.stream().collect(Collectors.partitioningBy(Employee::getManage));
+
+----------------------------
+
+### Optional类的介绍
+- java是面对对象的 我们读什么都是通过对象... 如果对象为null 那么就会是空指针了
+
+- *Optional<T>类*(java.util.Optional)*是一个容器类* 它可以保存类型T的值 代表这个值存在
+<!-- 
+  Optional类作为一个容器类能装的数据有限 它只装我们核心要的数据
+  就像 Integer 也算是个容器 就装 int
+
+  比如我们有一个Boy对象 我们就可以放入到Optional类中 该类就是一个容器
+  凡是对Boy对象的操作 都可以封装成对Optional的操作
+
+  就像包装类一样凡是对int的操作 都归结于对Integer的操作
+ -->
+
+- 或者仅仅保存null 表示这个值不存在 原来用null表示一个值不存在 现在Optional可以更好的表达这个概念 并且可以避免空指针异常
+
+- Optional类的Javadoc描述如下:
+- 这是一个可以为null的容器对象 如果值存在则isPresent()方法会返回true 调用get()方法会返回该对象
+
+- Optional提供很多有用的方法 这样我们就不用显式进行空值监测
+
+
+> 我们也可以把Optional理解成是一个容器
+- 这个容器中就放一个东西 就是实际上我们想保存的数据
+- 该数据的类型我们是通过泛型还体现的
+
+
+> 创建 Optional 类对象的方法:
+- 我们定义了两个类 
+    Boy(里面有girl对象作为属性) 
+    Girl(里面有name作为属性)
+
+
+> Optional.of(T t):
+- 创建一个Optional实例, *t必须非空*
+- 传入一个对象就能创建Optional实例 既然是非空Optional的容器里面的数据就一定会存在
+
+- 返回值:
+- Optional<T>
+
+```java
+Girl girl = new Girl();
+
+// 通过Optional类的静态方法of() 创建Optional类的对象 是个容器
+Optional<Girl> optionalGirl = Optional.of(girl);
+System.out.println(optionalGirl);
+    // Optional[Girl{name='null'}]
+
+// 当girl为空的时候 会抛出空指针异常
+```
+
+- 示例2:
+```java
+// Optional容器内只封装一个数据
+String str = "hello";
+Optional<String> op1 = Optional.of(str)
+```
+
+
+> Optional.empty():
+- 创建一个空的 Optional实例
+- 创建的Optional对象内部的value = null
+
+```java
+Optional<Object> op1 = Optional.empty();
+
+// 判断Optional封装的数据是否包含数据
+if(!op1.isPresent()) {
+  System.out.println("数据为空")
+}
+```
+
+
+> Optional.ofNullable(T t)
+- t可以为null
+
+```java
+Girl girl = new Girl();
+
+// girl非空的情况
+Optional<Girl> optionalGirl = Optional.ofNullable(girl);
+System.out.println(optionalGirl);
+    // Optional[Girl{name='null'}]
+
+
+
+// girl空的情况 
+girl = null;
+
+Optional<Girl> optionalGirl = Optional.ofNullable(girl);
+System.out.println(optionalGirl);
+    // Optional.empty  不会报异常
+```
+
+----------------------------
+
+### Optional类的使用举例
+- 为了在程序中避免出现空指针异常而创建的
+- 常用的方法:
+> ofNullable(T t)
+> orElse(T t)
+
+
+- 我们先定义两个类
+
+- Boy:
+- 内部有一个girl对象
+```java
+public class Boy {
+
+  // 定义了一个girl对象
+  private Girl girl;
+
+  public Boy() {
+  }
+
+  public Boy(Girl girl) {
+    this.girl = girl;
+  }
+
+  public Girl getGirl() {
+    return girl;
+  }
+
+  public void setGirl(Girl girl) {
+    this.girl = girl;
+  }
+
+  @Override
+  public String toString() {
+    return "Boy{" +
+        "girl=" + girl +
+        '}';
+  }
+}
+
+```
+
+- girl:
+- 内部就一个name属性 和 对应的方法
+```java
+public class Girl {
+  private String name;
+
+  public Girl(String name) {
+    this.name = name;
+  }
+
+  public Girl() {
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public String toString() {
+    return "Girl{" +
+        "name='" + name + '\'' +
+        '}';
+  }
+}
+```
+
+- 然后我们在测试类中定义一个获取girl name的方法
+- 下面的方法特别容易出现空指针
+- 1. 如果我们传入的boy为空 就会有空指针的问题
+- 2. 如果我们没有给girl赋值 那么girl就是null 也会出现空指针的问题
+```java
+public String getGirlName(Boy boy) {
+  // 这样的写法会出现空指针
+  return boy.getGirl().getName();
+}
+```
+
+- 没有Optional的时候的优化方法
+```java
+public String getGirlName(Boy boy) {
+  if(boy != null) {
+    Girl girl = boy.getGirl();
+    if(girl != null) {
+      return girl.getName();
+    }
+  }
+
+  return null;
+}
+```
+
+- 有了Optional以后 我们看看它的优化方式变成了什么样子
+```java
+public String getGirlName(Boy boy) {
+  // 将boy对象 包装在 Optional类的实例对象里面
+  Optional<Boy> boyOptional = Optional.ofNullable(boy);
+      - 这里我们没有使用 Optional.of() 方法 因为boy本身可能是null
+
+  // 我们通过调用 boyOptional 对象的 orElse()方法来解决问题
+  Boy boy1 = boyOptional.orElse(new Boy(new Girl("erin")));
+      - orElse(备胎参数)
+      - 该方法需要传递一个备胎参数 如果optional对象里面的元素为空的时候 就使用备胎对象
+
+      - 这样就能保证boy1一定是非空的
+
+
+  // 既然 boy1 一个非空 那他一定可以调用 getGirl();
+  Girl girl = boy1.getGirl();
+
+  // 我们要确保 girl 不为空 一定有值 (如果没给girl对象赋值就会是null) 所以我们还要对girl进行次包装
+  Girl girl1 = girlOptional.orElse(new Girl("刘博"));
+
+  return girl1.getName();
+}
+```
+
+
+> 判断Optional容器中是否包含对象
+> Optional实例对象.isPresent()
+- 判断Optional封装的数据是否包含数据
+
+- 返回值类型:
+- boolean
+
+
+> void ifPresent(Consumer<? super T> consumer)
+- 如果有值 就执行Consumer接口的实现代码 并且该值会作为参数传给它
+
+
+> 获取Optional容器的对象
+> Optional实例对象.get():
+- T get():
+- 如果Optional容器封装的数据value为空 则get()报错
+- 否则 value不为空 返回value
+
+- 获取Optional容器里面的核心数据
+
+
+**注意:**
+- 当我们调用get()方法的时候 一定要保证Optional容器内一定要有值不能为空(Optional<Double> 比如double必须要有值 不能是null)
+
+- get()方法通常和Optional.of()方法搭配使用
+
+- 异常:
+- 当Optional容器内的元素为null的时候
+- No value present
+
+```java
+// 我们经常得到的结果的类型是 Optional<Double>
+// 当我们想直接获取里面的值的时候 我们可以用 get()
+Optional<Double> sumMoney = employees.stream().map(Employee::getSalary).reduce((d1, d2) -> d1 + d2);
+
+sumMoney.get(); // 66666
+```
+
+- 为了要确保不为空的时候 可以用上面的
+- boolean isPresent() 来判断一下 然后在get()
+
+
+> Optional实例对象.orElse(T other) -- 备胎参数
+- 如果有值则将其返回 否则返回指定的other对象
+- 如果Optional容器中的对象不是null 那么我们就使用容器中的这个对象
+- 如果Optional容器中的对象是null 那么我们就使用形参的other(它像个备胎) 
+<!-- 
+  orElse(T t1):
+  如果当前的Optional内部封装的value是非空的 则返回内部的value
+  如果内部的value是空的 则返回orElse()方法中的参数t1
+ -->
+
+- orElse(T other)一般我们和ofNullable(T t)搭配使用
+- 没有的话用备胎充当下
+
+- 返回值:
+- T
+- T orElse(T other)
+
+
+> T orElseGet(Supplier<? extends T> other)
+- 如果有值则将其返回 否则返回由Supplier接口实现提供的对象
+
+> T orElseThrow(Supplier<? extends X> exceptionSupplier)
+- 如果有值则将其返回 否则抛出由Supplier接口实现提供的异常
+
+----------------------------
+
+### Java9新特性
 
 ----------------------------
 
