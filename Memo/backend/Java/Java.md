@@ -40638,10 +40638,67 @@ stream.flatMap(x -> x.stream()).forEach(System.out :: println);
 
 ----------------------------
 
-### 升级的Nashon js引擎
-- Nashorn项目在jdk9中得到改进 它为java提供轻量级的javascript运行时
+### Java10 新特性
+- 2018年3月21日，Oracle官方宣布Java10正式发布。
 
-- Jdk9包含一个用来解析Nashorn的ES语法树的API 这个API使得IDE和服务端框架不需要依赖Nashorn项目的内部实现类 就能够分析ES代码
+- 需要注意的是 Java9 和 Java10 都不是 LTS (Long-Term-Support) 版本。和过去的Java大版本升级不同，这两个只有半年左右的开发和维护期。而未 来的 Java 11，也就是 18.9 LTS，才是Java8之后第一个 LTS 版本。
+
+- JDK10一共定义了109个新特性，其中包含12个JEP(*对于程序员来讲，真正的新特性其实就一个*)，还有一些新API和JVM规范以及JAVA语言规范上的改动。
+
+- JDK10的12个JEP(JDK Enhancement Proposal特性加强提议)参阅官方 
+
+- 文档:http://openjdk.java.net/projects/jdk/10/
+
+
+- 我们主要就看下面的新特性(主打功能)：
+- Local-Variable Type Inference *局部变量类型推断*
+
+----------------------------
+
+### 局部变量的类型推断
+>产生背景 
+- 开发者经常抱怨Java中引用代码的程度。*局部变量的显示类型声明，常常被认为 是不必须的*，给一个好听的名字经常可以很清楚的表达出下面应该怎样继续。
+
+- 好处: 
+- 减少了啰嗦和形式的代码，避免了信息冗余，而且对齐了变量名，更容易阅读! 
+
+- 举例如下:
+>场景一: 类实例化时
+- 作为Java开发者，在声明一个变量时，我们总是习惯了敲打两次变量类型，第一次用于声明变量类型，第二次用于构造器。
+```java
+LinkedHashSet<Integer> set = new LinkedHashSet<>();
+```
+
+
+> 场景二: 返回值类型含复杂泛型结构
+- 变量的声明类型书写复杂且较长，尤其是加上泛型的使用
+```java
+Iterator<Map.Entry<Integer, Student>> iterator = set.iterator();
+```
+
+
+> 场景三: 
+- 我们也经常声明一种变量，它只会被使用一次，而且是用在下一行代码中，比如:
+```java
+URL url = new URL("http://www.atguigu.com"); 
+URLConnection connection = url.openConnection(); 
+
+Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+```
+
+- 尽管IDE可以帮我们自动完成这些代码，但当变量总是跳来跳去的时候，可读性还是会受到影响，因为变量类型的名称由各种不同长度的字符组成。而且，有时候开发人员会尽力避免声明中间变量，因为*太多的类型声明只会分散注意力，不会带来额外的好处。*
+
+
+适用于以下情况:
+//1.局部变量的初始化
+var list = new ArrayList<>(); //2.增强for循环中的索引 for(var v : list) {
+    System.out.println(v);
+}
+//3.传统for循环中
+for(var i = 0;i < 100;i++) {
+    System.out.println(i);
+}
+
 
 ----------------------------
 
