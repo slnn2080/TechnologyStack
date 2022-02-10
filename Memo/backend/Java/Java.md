@@ -39994,6 +39994,654 @@ sumMoney.get(); // 66666
 ----------------------------
 
 ### Java9新特性
+- 2017年9月21日发布 从java9开始 java的计划发布周期是6个月
+- 2018年3月份发布的java10 也就做18.3
+- 2018年9月份发布的java11 也就是18.9
+
+- LTS 长期支持版本 以3年为周期发布长期支持版本
+
+>  java9新特性:
+- 提供了超过150项新功能特性 包括备受期待的模块化系统 可以交互的REPL工作: jshell, JDK编译工具 Java公共API和私有代码 以及安全增强 扩展提升 性能管理改善等 可以说 java9是一个庞大的系统工程完全做了一个整体改变
+
+- 比较重要的的特性
+- 1. 模块化系统   *(重要)*
+- 2. jShell命令  *(重要)*
+- 3. 多版本兼容jar包
+- 4. 接口的私有化         *(语法层面的改变)*
+- 5. 钻石操作符的使用升级  *(语法层面的改变)*
+- 6. 语法改进: try语句    *(语法层面的改变)*
+- 7. String存储结构变更    *(API层面的改变)*
+<!-- 底层改为byte[] 不再是char[] -->
+
+- 8. 便利的集合特性: of()  *(API层面的改变)*
+- 9. 增强的Stream API     *(API层面的改变)*
+- 10. 全新的HTTP客户端API  *(API层面的改变)*
+- 11. Deprecated的相关API *(API层面的改变)*
+- 12. javadoc的HTML5支持
+- 13. javascript引擎升级: Nashorn
+- 14. java的动态编译器
+
+
+> java9 10 11的目录结构
+
+<!-- 
+                      JDK_HOME
+          
+    bin   conf    include   jmods   legal   lib
+
+    没有名为jre的子目录 将8中的jre目录打散了
+ -->
+
+- bin目录:
+  - 包含所有命令 在window平台上 它继续包含系统的运行时动态连接库
+
+- conf目录:
+  - 包含用户可编辑的配置文件 例如以前位于jre/lib目录中的 .properties和.policy文件
+
+- include目录:
+  - 包含要在以前编译本地代码时使用的C/C++头文件 它只存在JDK中
+
+- jmodes目录:
+  - 包含JMOD格式的平台模块 创建自定义运行时映像时需要它 它只存在于JDK中
+
+- legal目录:
+  - 包含法律声明
+
+- lib目录:
+  - 包含非Winodows平台上的动态连接本地库 其子目录和文件不应由开发人员直接编辑或使用
+
+----------------------------
+
+### Java9新特性: 模块化系统(Jigsaw -> Modularity)
+- 谈到 Java 9 大家往往第一个想到的就是 Jigsaw 项目。众所周知，Java 已经 发展超过 20 年(95 年最初发布)，Java 和相关生态在不断丰富的同时也越 来越暴露出一些问题:
+
+- 我们原来写一个项目就是整体一大块 比如我们需要把整体的API都加载进去(rt.jar) 现在我们希望将rt.jar打成一块块的 需要哪个用哪个 这就是模块化系统
+
+
+> Java 运行环境的膨胀和臃肿。
+- 每次JVM启动的时候，至少会有30~60MB的内存加载，主要原因是*JVM需要加载rt.jar*，不管其中的类是否被classloader加载，第 一步整个jar都会被JVM加载到内存当中去(而模块化可以根据模块的需要加载程 序运行需要的class)
+<!-- 
+  rt.jar:
+    我们要是想运行 整个环境rt.jar必须要加载进来(里面是定义好的类库) 不管我们是不是全都能用到 但是都加载进来了
+ -->
+
+>当代码库越来越大， 创建复杂， 盘根错节的“意大利面条式代码”的几率呈指数级的 增长。
+- 不同版本的类库交叉依赖导致让人头疼的问题，这些都阻碍了 Java 开发和 运行效率的提升。
+
+- 很难真正地对代码进行封装, 而系统并没有对不同部分(也就是 JAR 文件)之间 的依赖关系有个明确的概念。*每一个公共类都可以被类路径之下任何其它的公共 类所访问到，这样就会导致无意中使用了并不想被公开访问的 API*
+
+- *本质上讲*也就是说，用模块来管理各个package，通过声明某个package 暴露，*模块(module)的概念*，*其实就是package外再裹一层*，不声明默 认就是隐藏。因此，模块化使得代码组织上*更安全*，因为它可以*指定哪 些部分可以暴露，哪些部分隐藏。*
+
+
+> 实现目标
+- 模块化的主要目的在于减少内存的开销
+- 只须必要模块，而非全部jdk模块，可简化各种类库和大型应用的开
+发和维护
+- 改进 Java SE 平台，使其可以适应不同大小的计算设备
+- 改进其安全性，可维护性，提高性能
+
+
+> 模块化的使用方式
+- 1. 我们在ModuleA中定义了一个Person类 在ModuleB中调用ModuleA中的Person类造对象 这样是不行的
+
+- 2. 要想两个不同的Module中进行调用 我们可以
+- 在ModuleA的src上右键 创建 module-info.java
+- 在ModuleB的src上右键 创建 module-info.java
+
+> 暴露
+- 如果我们在ModuleA中想把Person类暴露出去 就在ModuleA下的module-info.java里面
+
+> 使用 exports 当前的package包名
+```java
+// 当前Module名为 java9test 暴露出去该Module在的哪个包
+module java9test {
+  exports com.sam.bean;
+}
+```
+
+> 引入 requires 暴露的模块名
+- 也是在module-info.java的文件内
+```java
+// 当前Module名为 Day06 引入指定的 Module名
+module Day06 {
+  requires java9test;
+
+  // 当使用这种方法的时候 要使用junit测试 则需要这样 相当于注册似的
+  requires junit;
+}
+```
+
+> 在测试类中 在指定的位置 alt+enter
+- Add dependency on module... 选中要引入的Module名
+```java
+import com.sam.bean.Person;
+
+public class ModuleTest {
+  public static void main(String[] args) {
+    Person person = new Person("sam", 12);
+  }
+}
+```
+
+- 如果没有使用requires注册的东西 就不会引入 相当于手动的按需引入？
+
+----------------------------
+
+### REPL工具 交互式编程环境
+- 比如我们要想在控制台输出一个hello world 以前我们要打开编辑器 然后创建.java文件 编译 运行 输出
+
+- 或者计算两个变量 也是通过文件来实现的
+
+> jshell命令 启动REPL界面
+- 也可以在里面定义方法
+- 也可以在里面定义类
+
+- 在jshell窗口下的命令：
+> /help
+- 查看命令
+
+> /edit
+- 打开一个编辑窗口
+- 定义错的代码 不会展示在编辑窗口里面
+
+> /imports
+- 显示已导入的包
+
+> /vars
+- 查看定义过的变量
+
+> /list
+- 查看定义过的数据的列表
+
+> /methods
+- 查看定义过的方法
+
+> /open 路径
+- 执行指定的java文件
+
+> /exit
+- 退出
+
+----------------------------
+
+### 接口中的私有方法
+- java8中规定接口中的方法除了抽象方法之外 还可以定义静态方法和默认方法 一定程度上 扩展了接口的功能 此时的接口更像是一个抽象类
+<!-- 
+  接口中不单单的是抽象方法 可以有方法体了
+  java8中有静态方法 和 默认方法(public) 这样接口越来越像类了 既然有方法体了 就代表可以直接使用 不用实现了
+ -->
+
+- 在java9中 接口更加的灵活和强大 *连方法的访问权限修饰符都可以声明为private的了* 此时方法将不会成为你对外暴露的API的一部分
+<!-- 
+  java9中在java8的基础上还可以有私有方法
+ -->
+
+
+> Java8中的接口示例:
+```java
+public interface MyInterface {
+  // 抽象方法 -- 没写权限默认是public
+  void methodAbstract();
+
+  // 静态方法 -- 没写权限默认是public
+  static void methodStatic() {
+    System.out.println("我是接口中的静态方法");
+  }
+
+  // 默认方法 -- 没写权限默认是public
+  default void methodDefault() {
+    System.out.println("我是接口中的默认方法");
+  }
+}
+```
+
+
+> Java9以上的接口示例:
+- jdk9中允许接口中定义私有的方法
+- 私有方法不能在接口外调用 是在接口内使用的方法
+
+```java
+public interface MyInterface {
+
+  // 默认方法 -- 没写权限默认是public
+  default void methodDefault() {
+    System.out.println("我是接口中的默认方法");
+
+    // 接口中的私有方法是接口内部自己调用的
+    methodPrivate();
+  }
+
+
+  // 私有方法
+  private void methodPrivate() {
+    System.out.println("我是接口中的私有方法");
+  }
+}
+```
+
+- 我们定义下接口的实现类
+```java
+public class MyInterfaceImpl implements MyInterface {
+
+  // 必须实现 - 接口中的抽象方法
+  @Override
+  public void methodAbstract() {
+    System.out.println("实现类重写抽象方法");
+  }
+
+  // 可以不实现 - 接口中的默认方法
+  @Override
+  public void methodDefault() {
+    System.out.println("实现类重写接口中的默认方法");
+  }
+
+
+  public static void main(String[] args) {
+    // 接口中的 静态方法 只能由接口自己调用
+    MyInterface.methodStatic();
+
+    // 创建一个 实现类对象 通过对象调用接口中的 默认方法
+    MyInterface impl = new MyInterfaceImpl();
+    impl.methodDefault();
+  }
+}
+
+```
+
+----------------------------
+
+### 钻石操作符的使用升级(泛型中的<>)
+- 钻石操作符和匿名实现类一起使用的时候 在Java8中是不可以的:
+```java
+Comparator<Object> com = new Comparator<> {
+  @Override
+  public int compare(Object o1, Object o2) {
+    return 0;
+  }
+}
+```
+
+- 编译报错信息:
+- Cannot use "<>" with anonymous inner classes
+
+- 但是在java9中就可以了
+
+----------------------------
+
+### try结构的语法升级
+- 我们之前处理异常 可以throws try catch fanilly
+- 有的时候我们必须要加上fanilly因为涉及到资源的关闭了
+
+- 这里我们对fanilly做了一些优化 当有要关闭的资源的时候 我们可以在try里进行关闭
+
+
+> Java8以前 处理资源关闭的方式 -- 资源需要手动关闭
+```java
+@Test
+public void test() {
+  InputStreamReader reader = null;
+  try {
+    reader = new InputStreamReader(System.in);
+    char[] buf = new char[20];
+    int len;
+    if((len = reader.read(buf)) != -1) {
+      String str = new String(buf, 0, len);
+      System.out.println(str);
+    }
+  } catch (IOException e) {
+    e.printStackTrace();
+  } finally {
+    if(reader != null) {
+      try {
+        reader.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
+```
+
+> Java8中 处理资源关闭的方式 -- 资源会自动关闭
+- java8中可以实现资源的*自动关闭* 但是要求要关闭的资源在try(这里进行初始化)
+<!-- 
+  要关闭的资源报错是完整的初始化 包括赋值操作
+    InputStreamReader reader = new InputStreamReader(System.in)
+ -->
+
+- 要点:
+- try(把要关闭的资源放这, 比如流) { }
+- try后面还可以加上() 我们将需要关闭的资源放入 () 中
+- 放进去的资源会自动的进行关闭
+
+```java
+// try后还可以接() try() 我们把流的实例话逻辑放进去
+try(InputStreamReader reader = new InputStreamReader(System.in)) {
+
+  // 这里放我们要通过流来做什么
+  char[] buf = new char[20];
+  int len;
+  if((len = reader.read(buf)) != -1) {
+    String str = new String(buf, 0, len);
+    System.out.println(str);
+  }
+} catch (IOException e) {
+  e.printStackTrace();
+}
+```
+
+
+> Java9中 处理资源关闭的方式 -- 资源会自动关闭
+- 和java8的处理方式大概都差不多 只不过我们在try的外部定义的流
+- 然后将流的实例化对象 放入了 try(这里流对象)
+
+```java
+// java9中的方式 和8的区别是 reader的初始化 没有放在try(里面)
+InputStreamReader reader = new InputStreamReader(System.in);
+
+// 我们直接将实例化对象放进来
+try(reader) {
+
+  char[] buf = new char[20];
+  int len;
+  if((len = reader.read(buf)) != -1) {
+    String str = new String(buf, 0, len);
+    System.out.println(str);
+  }
+} catch (IOException e) {
+  e.printStackTrace();
+}
+```
+
+**注意:**
+- 我们放入try(流) 这个流只能用 不能改 放进去的资源属性 reader就相当于是一个*常量*
+
+```java
+InputStreamReader reader = new InputStreamReader(System.in);
+
+try(reader) {
+
+  char[] buf = new char[20];
+  int len;
+  if((len = reader.read(buf)) != -1) {
+    String str = new String(buf, 0, len);
+    System.out.println(str);
+  }
+
+  // 这样会报错 因为reader不能改
+  reader = null;
+
+} catch (IOException e) {
+  e.printStackTrace();
+}
+```
+
+
+> 如果有多个流的情况
+- 在try(流1, 流2)
+```java
+InputStreamReader reader = new InputStreamReader(System.in)
+OutputStreamReader writer = new OutputStreamReader(System.out)
+
+try(reader, writer) {
+  // reader, writer 是final的 不可再被复制
+}
+```
+
+----------------------------
+
+### String存储结构变更
+- String类底层在存储字符串的时候使用的是char[]
+- 一个char占两个byte(16个bit) 
+- 但是里面都是用拉丁的字符集实现的 拉丁字符集只需要一个字符集就可以了 所以我们有一般的空间就浪费了
+
+- 在java9中将底层的utf-16的char[]数组转成了byte[]数组 同时加上了一个标识是哪种编码集的字段
+
+- 根据该字段就能知道是拉丁编码集还是utf-16编码集 要是拉丁的话就是一个字节 要是中文的就是两个字节
+<!-- 
+  如果是中文还是用byte[]数组存 只不过我们使用两个位置[][]
+ -->
+
+- 总结:
+- String再也不用char[]来存储啦 改成了byte[]加上编码标记 节约了一些空间
+
+```java
+private final byte[] value;
+```
+
+- 那StringBuffer和StringBuilder呢？
+- 跟String相关的也都变了
+
+----------------------------
+
+### 集合工厂方法: 快速创建只读集合(只能读不能变)
+- 要创建一个只读, 不可改变的集合 必须构造和分配它 然后添加元素 最后包装成一个不可修改的集合
+
+> Collections.unmodifiableList(List)
+- 通过Collections工具类的方法 创建一个只读集合
+
+```java
+// 这也是以前创建只读集合的方式(Java8中的方式)
+List<String> nameList = new ArrayList<>();
+nameList.add("Joe");
+nameList.add("Sam");
+nameList.add("Erin");
+
+// 返回得nameList只能读 不能改了
+nameList = Collections.unmodifiableList(nameList);
+System.out.println(nameList);
+
+// 当我们往里再次添加数据的时候会报错
+// UnsupportedOperationException 不支持的操作方式
+nameList.add("xx");
+```
+
+- 怎么完成的add()操作就会抛异常呢?底层是怎么实现的呢？
+```java
+public boolean add(E e) {
+  // 只要调用add 就抛异常
+  throw new UnsupportedOperationException();
+}
+```
+
+> Collections.unmodifiableMap(Map)
+> Collections.unmodifiableSet(Set)
+> Collections.unmodifiableCollection(Collection)
+
+
+> Arrays.asList(数据)
+- 该方法返回的集合也是*只读*集合
+```java
+// 这样创建的集合也是只读的
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+
+// 异常: UnsupportedOperationException
+list.add(6);
+```
+
+---
+
+> Java9中创建只读集合的方式
+> List.of(v)；
+```java
+List<Integer> list = List.of(1, 2);
+```
+
+> Map.of(k1, v1, k2, v2)；
+```java
+Map<String, String> map = Map.of("name", "sam", "name", "erin");
+
+// 方式2
+Map.ofEntries(Map.entry("Sam", 33), Map.entry("erin", 28))
+```
+
+> 
+
+> Set.of(v)；
+```java
+Set<String> set = Set.of("1", "2");
+```
+ 
+----------------------------
+
+### InputStream的加强
+- InputStream终于有了一个非常有用的方法
+
+> 输入流对象.transferTo(输出流对象)
+- 可以用来将数据直接传输到OutputStream 这是在处理原始数据流时非常场景的一种用法
+
+- 内部也是封装了建立数据 循环传输数据的操作
+
+```java
+ClassLoader c1 = this.getClass().getClassLoader();
+
+// 这里用了新的语法
+try(
+  InputStream is = c1.getResourceAsStream("hello.txt");
+  OutputStream os = new FileOutputStream("/src/hello.txt")
+) {
+
+  // 把输入流中的所有数据直接自动的复制到输出流中
+  is.transferTo(os);
+
+} catch(IOException e) {
+  e.printStackTrace();
+}
+```
+
+----------------------------
+
+### 增强的Stream API
+- Java的Stream API是Java标准库最好的改进之一 *让开发者能够快速元素 从而能够有效的利用数据并行计算*
+- Java8提供的Stream能够利用多核架构实现声明式的数据处理
+
+- 在Java9中 Stream API变得更好 Stream接口中添加了4个新的方法
+
+- takeWhile(Predicate)
+- dropWhile(Predicate)
+- ofNullable
+- iterate
+
+- 可以让你提供一个 (Predicate判断条件) 来指定什么时候结束迭代
+- 除了对Stream本身的扩展 Optional和Stream 之间的结合也得到了改进 现在可以通过 Optional的新方法Stream()将一个Optional对象转换为一个(可能是空的)Stream对象
+
+
+> 中间操作
+> stream对象.takeWhile(Predicate函数式接口)
+- 根据指定的规则 返回从头开始的尽量多的元素
+
+- 会遇到第一个不满足条件的停止 即使后续有满足条件的也不会返回
+- 下面就是返回满足 num < 60 *的元素*
+```java
+List<Integer> list = Arrays.asList(23, 22, 12, 35, 66, 77, 88, 12);
+
+// 最后的12就没有返回 应为遇到66就停止了
+list.stream().takeWhile(num -> num < 60).forEach(System.out::println);
+// 23 22 12 35
+```
+
+
+> 中间操作
+> stream对象.dropWhile(Predicate函数式接口)
+- 与takeWhile正好相反 返回剩余元素
+- 下面就是返回满足 num < 60 的*其他元素*
+
+```java
+list.stream().dropWhile(num -> num < 60).forEach(System.out::println);
+// 66 77 88 12
+```
+
+
+> ofNullable()
+- java8中Stream不能完全为null 否则会报空指针异常 而java9中的
+ofNullable方法允许我们创建一个单元素Stream 可以包含一个非空元素 也可以创建一个空Stream
+
+- 我们上面再讲Stream的时候说了4中创建stream的方式
+- 1. 通过集合
+- 2. 通过数组
+- 3. Stream.of(...元素)
+
+
+> Stream.of(...元素)
+- 该方法在创建stream对象的时候 可以填充多个值 多个值中可以有null值
+
+- *但是不能只存储单个null值*
+
+```java
+// 下面再java里面是允许的
+Stream<Integer> stream = Stream.of(1, 2, 3, null);
+stream.forEach(System.out :: println);
+
+
+// 下面的方式 下面只填写了null 会抛出空指针异常
+Stream<Object> stream1 = Stream.of(null);
+stream1.forEach(System.out :: println);
+```
+
+
+> Stream.ofNullable(只能填写一个参数)
+- 形参变量可以是null值的单个元素 不能放多个元素
+- 如果是null值 该容器中的个数为0 空元素
+
+```java
+Integer i = 10;
+i = null;
+Stream<Integer> stream2 = Stream.ofNullable(i);
+
+long count = stream2.count();
+System.out.println(count);    // 0
+```
+
+
+> Stream.iterate(初始值, Predicate循环条件, Predicate迭代条件)
+- 可以定义循环条件和迭代条件的无限流创建方式
+
+```java
+// java8中 无限流的创建方式
+Stream.iterate(0, x -> x + 1).limit(10).forEach(System.out :: println);
+
+
+// java9中Stream.iterate(参数1, 参数2, 参数3)的重载方法
+// 参数2: x -> x < 100 相当于循环条件
+// 参数3: x -> x + 1 相当于迭代条件 每次+1
+Stream.iterate(0, x -> x < 100, x -> x + 1).forEach(System.out :: println);
+```
+
+----------------------------
+
+### Optional获取Stream的方法
+- 在Java9中它提供了一个
+- stream()的方法
+
+- 因为Optional也是一个容器 我们在将stream的时候 说它就是对容器的一个操作(对集合, 数组等操作)
+
+- 而Optional也是一个容器 那按说Optional也可以获取一个stream对象 在java9中它也有了一个获取stream对象的方式
+
+
+> optional对象.stream()
+- 获取stream对象
+
+```java
+ArrayList<String> list = new ArrayList<>();
+list.add("AA");
+list.add("BB");
+list.add("CC");
+
+// Optional容器里面是个List List里面是一个String
+Optional<ArrayList<String>> optional = Optional.ofNullable(list);
+
+// 生成stream对象 变成Stream里面是个List List里面是一个String
+Stream<ArrayList<String>> stream = optional.stream();
+// x就是一个List 相当于List.stream()
+stream.flatMap(x -> x.stream()).forEach(System.out :: println);
+```
+
+----------------------------
+
+### 升级的Nashon js引擎
+- Nashorn项目在jdk9中得到改进 它为java提供轻量级的javascript运行时
+
+- Jdk9包含一个用来解析Nashorn的ES语法树的API 这个API使得IDE和服务端框架不需要依赖Nashorn项目的内部实现类 就能够分析ES代码
 
 ----------------------------
 
