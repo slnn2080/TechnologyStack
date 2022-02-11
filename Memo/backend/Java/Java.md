@@ -40475,7 +40475,6 @@ Map<String, String> map = Map.of("name", "sam", "name", "erin");
 Map.ofEntries(Map.entry("Sam", 33), Map.entry("erin", 28))
 ```
 
-> 
 
 > Set.of(v)；
 ```java
@@ -40662,17 +40661,22 @@ stream.flatMap(x -> x.stream()).forEach(System.out :: println);
 - 好处: 
 - 减少了啰嗦和形式的代码，避免了信息冗余，而且对齐了变量名，更容易阅读! 
 
-- 举例如下:
+- 我们看看类型有的时候是不需要的部分 都有什么样的情况 举例如下:
+
 >场景一: 类实例化时
 - 作为Java开发者，在声明一个变量时，我们总是习惯了敲打两次变量类型，第一次用于声明变量类型，第二次用于构造器。
 ```java
+// 比如我们右边 new LinkedHashSet<>() 左边要么写成LinkedHashSet 要么写成它的父类或是接口的方式
 LinkedHashSet<Integer> set = new LinkedHashSet<>();
+
+// 但是左边的部分有些多余 因为左边肯定是LinkedHashSet或者是它的父类或接口 所以左边的部分其实是可以忽略掉的 但是变量名不能忽略
 ```
 
 
 > 场景二: 返回值类型含复杂泛型结构
 - 变量的声明类型书写复杂且较长，尤其是加上泛型的使用
 ```java
+// set是map中的entry构成的set 当我们通过set调用iterator()方法的时候 返回得类型太长了Iterator<Map.Entry<Integer, Student>>  泛型里面调泛型 我们想想set.iterator()的方法也不能写别的啊
 Iterator<Map.Entry<Integer, Student>> iterator = set.iterator();
 ```
 
@@ -40680,7 +40684,10 @@ Iterator<Map.Entry<Integer, Student>> iterator = set.iterator();
 > 场景三: 
 - 我们也经常声明一种变量，它只会被使用一次，而且是用在下一行代码中，比如:
 ```java
+// 比如这里我们 new URL("http://www.atguigu.com");  它的类型只能是URL 它也写不了别的啊
 URL url = new URL("http://www.atguigu.com"); 
+
+// 类型URLConnection 也想省
 URLConnection connection = url.openConnection(); 
 
 Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -40688,17 +40695,489 @@ Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStre
 
 - 尽管IDE可以帮我们自动完成这些代码，但当变量总是跳来跳去的时候，可读性还是会受到影响，因为变量类型的名称由各种不同长度的字符组成。而且，有时候开发人员会尽力避免声明中间变量，因为*太多的类型声明只会分散注意力，不会带来额外的好处。*
 
+- 也就是说我们可以从右边的部分 去推断左边的类型
+- 这就是我们想说的局部变量的类型推断
 
-适用于以下情况:
-//1.局部变量的初始化
-var list = new ArrayList<>(); //2.增强for循环中的索引 for(var v : list) {
-    System.out.println(v);
-}
-//3.传统for循环中
-for(var i = 0;i < 100;i++) {
-    System.out.println(i);
+
+> 局部变量的时候 关键字 var
+- 我们使用var关键字 代替变量的类型部分
+- 声明变量时 根据所附的值 推断变量的类型
+<!-- 
+  赋值操作的时候 是由右边推断左边
+  方法操作的时候 是由里面决定外面
+ -->
+
+- 接下来我们看看使用的例子：
+```java
+// java10之前 我们定义一个变量必须写该变量的类型
+int num1 = 10;
+
+// java10之后 我们可以通过var关键字 从=的右边推断该值的类型
+var num2 = 10;
+
+---
+
+// java10之前 
+/*
+  我们会将 new ArrayList<>() 赋值给它的父类或者接口
+  但是父类也好 还是父接口也好 对我们来说 都无所谓
+  我们只想通过对象来调用方法
+*/
+ArrayList<String> list1 = new ArrayList<>();
+
+// java10里面 我们可以使用var关键字来代类型
+var list = new ArrayList<String>();
+list.add("AA");
+    // 但是集合中的元素类型 因为我们把左边干掉了 所以默认就是Object了 要想指定类型的话 就要在右边定义<String>
+
+
+
+// 遍历操作
+/*
+  for(元素类型: 元素的变量名: 集合)
+  也就是上来我们就要写元素的类型
+
+  -- 
+
+  java10之后的类型推断 
+  当我们要遍历集合中的元素的时候 我们都知道集合中添加的是什么类型 所以就没有必要写了 类型的地方用var来代替
+*/
+
+// java10之前
+for(String s: list) {
+  System.out.println(s);
 }
 
+// java10的时候
+for(var s: list) {
+  System.out.println(s);
+  // 获取该元素的类型 
+  
+  System.out.println(s.getClass().getName());
+      // java.lang.String
+}
+
+
+// 普通的遍历操作
+for(int i = 0; i < 100; i++)
+for(var i = 0; i < 100; i++)
+```
+
+
+> 局部变量中使用时 如下的情况不适用
+- 我们的类型推断是通过 = 的右边的值 推断其类型 首先不能出现的写法就是 
+
+- 1. 局部变量赋值 就不能实现类型推断
+```java
+var num;
+```
+
+- 2. 初始值为null
+```java
+var a = null;
+// 错误: 无法推断本地变量的类型 变量初始化程序为 null
+```
+
+- 3. 方法引用
+- Lambda表达式中不行了 方法引用也不行
+
+- 方法引用中 =左边的函数式接口不能声明为var
+```java
+Consumer<String> con = System.out :: println
+
+// 方法引用要求Consumer的中的抽象方法的形参列表和返回值类型要和=右边的一样 当我们省掉接口的类型后 我们就不知道它是什么样的结构了 里面连有没有抽象方法都不知道 完全推断不出来
+var con = System.out :: println
+// 错误: 无法推断本地变量的类型 方法引用需要显式目标类型
+```
+
+- 4. Lambda表达式
+- Lambda表达式只能赋值给函数式接口 我们下面var了就不明确后面的Lambda表达式到底匹配哪一个函数式接口 也就是说有多种情况但是没办法推断出来
+
+- Lambda表达式中 =左边的函数式接口不能声明为var
+
+```java
+// 供给型接口 没有参数 有返回值 返回一个随机数
+Supplier<Double> sup = () -> Math.random()
+
+// 那我们能不能将sup的类型省略掉? 不行
+var sup = () -> Math.random()
+// 错误: 无法推断本地变量的类型 Lambda表达式需要显式目标类型
+```
+
+- 5. 为数组静态初始化
+- 如下的情况也不可以
+
+```java
+int[] arr = new int[]{1,2,3,4}
+
+// 这样可以
+var arr = new int[]{1,2,3,4}
+
+//  省略掉=右边的new int[]省这样不行 这样不知道要分配什么类型的数组
+var arr = {1,2,3,4}
+// 错误: 无法推断本地变量的类型 数组初始化程序需要显式目标类型
+```
+
+> 总结:
+- 我们需要给数据一个明确的指示 局部变量的类型推断是根据右边推断左边 只要让右边不迷糊 不会出现歧义的情况 都可以实现
+
+
+> 局部变量的类型推断不适用于以下的结构中
+- 我们使用var的初衷是 让代码变得更简洁 而不是改变java的特性 java是静态语言 强类型
+
+- 1. 没有初始化的局部变量声明
+```java
+var num;
+```
+
+- 2. 方法的返回类型
+```java
+// 这样是没问题的
+public int method1() {
+  return 0;
+}
+
+// 这样不行
+public var method1() {
+  return 0;
+}
+
+- 正常我们是根据方法的返回值类型 判断的方法内部应该需要return什么
+- 如果我们写成var的话 var的思路是由return的内容决定方法的返回值 
+- 如果是这样的话 那相当于可以返回任意类型了 
+- 这样不对 方法是由方法的类型决定应该return什么
+```
+
+- 3. 方法的参数类型
+```java
+// 这样是可以的
+public void method2(int num) { }
+
+// 这样不行
+public void method2(var num) { }
+- 我们写int的时候 我们传递别的参数是不行的 
+- 当我们写成var的话 代表传递什么都可以 java本质就变了
+```
+
+- 4. 构造器的参数类型
+- 方法不行 构造器的参数也不行 和上面是一样的
+
+- 5. 属性
+- 我们说的是局部变量的类型推断
+- 属性因为有默认值
+```java
+// 属性是可以如下定义的
+int num;
+
+// 但是 这样不行
+var num;
+```
+
+- 6. catch块
+```java
+try {
+      
+  // 比如我知道你想抛什么样的异常 我这里写var 这样不行
+} catch(var e) {
+  e.printStackTrace();
+}
+```
+
+- 也就是说我可以用在 = 的时候 从右边能够推测左边的类型的时候 再使用
+
+
+> 工作原理 (由右边决定左边)
+- *在处理var时 编译器显示查看表达式右边部分* 并根据右边变量值的类型进行推断 作为左边变量的类型 然后*将该类型写入字节码当中*(最终的class文件中 还是带类型的 不是var 我们写var就是省事)
+
+> 注意:
+- 1. var不是一个关键字
+- 你不需要担心变量名或方法名会与var起冲突 因为var实际上并不是一个关键字 而是一个类型名 只有在编译期需要知道类型的地方才需要用到它 除此之外 *它就是一个普通合法的标识符* 也就是说 *除了不能用它作为类名 其他的都可以 但极少人会用它作为类名*
+
+- 2. 这步是js
+- 首先我要说明的是 *var并不会改变java是一个静态类型语言的事实*
+- 编译期负责推断出类型 并把结果写入字节码文件 就好像是开发人员自己巧茹类型一样 
+
+----------------------------
+
+### 集合新增创建不可变集合的方法
+- java9中 新增了创建只读集合的方法
+- List.of(v)；
+- Map.of(v)；
+- Set.of(v)；
+
+- 而java10中 也定义了创建只读集合的方法
+- List.copyOf()
+
+- 我们关注下下面的点
+
+> List.copyOf(C coll)
+- 如果参数coll本身就是一个只读集合 则copyOf()返回值即为当前的coll 
+
+- 如果参数coll本身不是一个只读集合 则copyOf()返回一个新的集合 这个集合是只读的
+
+```java
+@Test
+public void test() {
+  
+  // 示例1:
+  // 通过of()方法创建了一个只读的集合
+  var list1 = List.of("java", "python", "c");
+
+  // 这里使用了copyOf() 放入了创建好的list1 得到了一个新的copy1
+  var copy1 = List.copyOf(list1);
+
+  // true
+  System.out.println(list1 == copy1); // true
+
+
+  // 示例2：
+  var list2 = new ArrayList<String>();
+  var copy2 = List.copyOf(list2);
+  System.out.println(list2 == copy2); // false
+}
+```
+
+- 为什么上面的代码差不多 得到的结果却不是一个呢
+- 因为: copyOf()方法是返回一个只读的集合 如果集合本身就是只读的 那么通过copyOf方法得到的集合和之前的集合就是同一个 也就是 已经是只读了就没有必要再造一个只读的了 
+- 如果集合本身不是只读的调用copyOf()方法 相当于新建了一个只读集合
+
+
+----------------------------
+
+### java11的新特性
+- java11的主要的新特性就是引入两种新的GC 其中包括也许是划时代意义的ZGC
+
+> String系列增加了字符串处理的方法
+
+> 字符串.isBlank()
+- 判断字符串是否为空白(去除*空格/制表符/换行符*后看看是不是空白 就是空串)
+
+
+- 返回值:
+- boolean
+
+
+> 字符串.strip()
+- 去除首尾空白(去除*空格/制表符/换行符*)
+
+- 返回值:
+- String
+
+
+> 字符串.stripTrailing()
+- 去除尾部空白(去除*空格/制表符/换行符*)
+
+> 字符串.stripLeading()
+- 去除首部空白(去除*空格/制表符/换行符*)
+
+> 字符串.repeat(num)
+- 重复指定次数的字符串
+
+> 字符串.lines().count()
+- 行数统计 看看字符串有多少行数据
+
+----------------------------
+
+### Java11 Ootional加强
+- Optional也增加了几个非常酷的方法 现在可以很方便的将一个Optional转换成一个Stream 或者当一个空Optional时给它一个代替的
+
+
+> optional对象.isEmpty()
+- 判断value是否为空 
+- JDK11
+```java
+Optional<Object> op = Optional.empty();
+// 判断内部的value是否存在 存在为true 不存在为false
+System.out.println(op.isPresent()); 
+
+// 判断内部的value是否为空 为空就是true
+System.out.println(op.isEmpty());
+```
+
+
+> optional对象.ifPresentOrElse(Consumer action, Runnable emptyAction)
+- 参数1:
+- 消费者
+
+- 参数2:
+- Runnable 里面有一个run() 里面没有参数 没有返回值
+- 因为Consumer和Runnable接口都没有返回值 所以该方法也不用考虑返回值
+
+- 如果optional对象里面的value是非空的，执行参数1功能
+- 如果optional对象里面的value是空的，执行参数2功能
+- JDK9
+
+
+> optional对象.or(Supplier<?extends Optional<? extends T>> supplier)
+- 参数: 
+- Supplier供给者 供给者里面放的是Optional
+
+- 如果optional对象里面的value是非空的，返回对应的Optional; 
+- 如果optional对象里面的value是空的，返回形参封装的Optional
+- JDK9
+
+- 返回值:
+- Optional<T> 
+```java
+// or()方法的参数要放一个供给者 没参数返回东西 返回一个Optional对象
+Optional<String> op1 = Optional.of("hello");
+Optional<Object> op2 = op.or(() -> op1);
+System.out.println(op2);
+```
+
+
+> Stream<T> stream()
+- value非空，返回仅包含此value的 Stream;
+- 否则，返回一个空的Stream
+- JDK9
+
+
+> optional对象.orElseThrow()
+- 要是Optional里面本身有数据 就返回里面的数据 如果没有数据就抛出异常
+
+- value非空，返回value;
+- 否则抛异常 NoSuchElementException
+- JDK10
+
+```java
+Object o = op.orElseThrow();
+// 如果op里面的value非空 就返回具体的值
+System.out.println(o);
+```
+
+----------------------------
+
+### Java11中局部变量类型推断的升级
+- 局部变量类型推断是java10中引进来的 在java11中又做了升级
+
+- 在var上添加注解的语法格式 在jdk10中是不能实现的 在jdk11中假如了这样的语法
+
+- 当我们想用注解去修饰变量的时候 变量的类型必须要有
+- 但是我们又想省略变量的类型 所以在java11中可以这样鞋
+
+> @注解 var 变量
+
+```java
+// 错误的形式: 
+// 必须要有类型 可以加上var
+
+// 当回调中的参数只有一个参数的时候 该参数前面的类型是可以推断的
+// 现在我们想使用注解来修饰变量 以前是不可以的 变量必须要有类型
+Consumer<String> con = (@Deprecated t) -> System.out.println(t.toUpperCase());
+
+
+// 正确的形式
+// 使用var的好处是在使用Lambda表达式时给参数加上注解
+Consumer<String> con = (@Deprecated var t) -> System.out.println(t.toUpperCase());
+```
+
+----------------------------
+
+### 全新的HTTP客户端API
+- java11中引进来HttpClient
+- 它是用来替换HttpURLConnection
+<!-- 
+  HttpURLConnection我们在说网络编程的时候说过这个结构
+  通过它获取连接下载数据 后台是图片 还是html格式的文件 
+
+  后面我们会用HttpClient替换HttpURLConnection
+ -->
+
+- HTTP，用于传输网页的协议，早在1997年就被采用在目前的1.1版本中。直到2015年，HTTP2才成为标准
+
+- HTTP/1.1和HTTP/2的主要区别是*如何在客户端和服务器之间构建和传输数据*
+
+- HTTP/1.1 依赖于请求/响应周期。
+- HTTP/2 允许服务器“push”数据(允许服务器将数据推送到客户端上) 它可以发送比客户端请求更多的数据
+
+- 这使得它可以优先处理并发送对于首先加载 网页至关重要的数据。
+
+- 这是Java9开始引入的一个处理HTTP请求的的 HTTP Client API，该API支持同步和异步，而在Java11中已经为正式可用状态，你可以在 java.net包中找到这个API。
+
+- 它将替代仅适用于blocking模式的 HttpURLConnection (HttpURLConnection是在HTTP 1.0的时代创建的，并使用了协议无关的 方法)，并提供对WebSocket和HTTP/2的支持。
+
+
+```java
+// 同步的方式
+HttpClient client = HttpClient.newHttpClient();
+
+HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:8080/test/")).build(); 
+
+HttpResponse.BodyHandler<String> responseBodyHandler = HttpResponse.BodyHandlers.ofString(); 
+
+HttpResponse<String> response = client.send(request, responseBodyHandler); 
+
+String body = response.body();
+System.out.println(body);
+
+
+// 异步的方式
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:8080/test/")).build();
+
+HttpResponse.BodyHandler<String> responseBodyHandler = HttpResponse.BodyHandlers.ofString(); 
+
+CompletableFuture<HttpResponse<String>> sendAsync = client.sendAsync(request, responseBodyHandler);
+
+sendAsync.thenApply(t -> t.body()).thenAccept(System.out::println); 
+
+//HttpResponse<String> response = sendAsync.get();
+//String body = response.body();
+//System.out.println(body);
+```
+
+----------------------------
+
+### 更简化的编译运行程序
+```java
+// 编译
+javac javastack.java
+
+// 运行
+java javastack
+```
+
+- 在我们的认知里面 要运行一个java源代码必须先编译 再运行 两步执行动作 而在未来的java11中 通过一个java命令就直接搞定了
+
+- java javastack.java
+
+
+> 一个命令编译运行源代码的注意点:
+- 执行源文件的*第一个类* *第一个类必须包含主方法* 并且不可以使用其他源文件中的自定义类 本文件中的自定义类时可以使用的
+<!-- 
+  这种方式只会执行第一个类中的main方法
+ -->
+
+----------------------------
+
+### java11中的其他的新特性
+- JVM是java的两大利器之一 它不光能跑java程序 还可以跑别的程序
+- 另外一个就是GC
+
+- GC是java主要优势之一。然而, 当GC停顿太长, 就会开始影响应用的响应时间。消除或者减少GC停顿时长, java将对更广泛的应用场景是一个更有吸引力 的平台。此外, 现代系统中可用内存不断增长,用户和程序员希望JVM能够以高效的方式充分利用这些内存, 并且无需长时间的GC暂停时间。
+
+
+> ZGC
+- ZGC, A Scalable Low-Latency Garbage Collector(Experimental)
+ZGC, 这应该是JDK11最为瞩目的特性, 没有之一。 但是后面带了Experimental, 说明这还不建议用到生产环境。
+
+- ZGC是一个并发, 基于region, 压缩型的垃圾收集器, 只有root扫描阶段会 STW(stop the world), 因此GC停顿时间不会随着堆的增长和存活对象的增长 而变长。
+
+- 优势:
+- GC暂停时间不会超过10ms
+- 既能处理几百兆的小堆, 也能处理几个T的大堆(OMG)
+- 和G1相比, 应用吞吐能力不会下降超过15%
+- 为未来的GC功能和利用colord指针以及Load barriers优化奠定基础
+- 初始只支持64位系统
+
+- ZGC的设计目标是:支持TB级内存容量，暂停时间低(<10ms)，对整个 程序吞吐量的影响小于15%。 将来还可以扩展实现机制，以支持不少令人兴奋的功能，例如多层堆(即热对象置于DRAM和冷对象置于NVMe闪存)， 或压缩堆。
+
+----------------------------
+
+### 在当前JDK中看不到什么
+- 一个标准化和轻量级的JSON API
+- 新的货币API
+- 时间是我们处理比较繁琐的API 因为涉及到不同的时区 货币也是 不同的国家的货币也不用
 
 ----------------------------
 
