@@ -13,20 +13,22 @@ app.use(cors())
 
 app.post('/upload', multer({dest: 'upload'}).single('file'), (req, res) => {
   
-  fs.readFile(req.file.path, (err, data) => {
-    if(!err) {
-      let extname = req.file.mimetype.split('/')[1]
-      let filename = Date.now()
-      let fullName = filename + '.' + extname
-      fs.writeFile(path.join(__dirname, '/public/upload/'+fullName), data, (err) => {
-        if(!err) {
-          let test = path.join(__dirname, './public/upload/'+fullName)
-          console.log(test);
-          res.send({err: 0, msg: '上传成功', data:'/upload/' + fullName})
-        }
-      })
-    }
-  })
+  console.log(req.file)
+
+  // fs.readFile(req.file.path, (err, data) => {
+  //   if(!err) {
+  //     let extname = req.file.mimetype.split('/')[1]
+  //     let filename = Date.now()
+  //     let fullName = filename + '.' + extname
+  //     fs.writeFile(path.join(__dirname, '/public/upload/'+fullName), data, (err) => {
+  //       if(!err) {
+  //         let test = path.join(__dirname, './public/upload/'+fullName)
+  //         console.log(test);
+  //         res.send({err: 0, msg: '上传成功', data:'/upload/' + fullName})
+  //       }
+  //     })
+  //   }
+  // })
 
 })
 

@@ -7544,7 +7544,7 @@ allowed in .vue files - render functions are required elsewhere
       proxy: {
         // 一套配置
         '/api1': {
-          target: '<url>',
+          target: '<服务器地址url不用接具体接口>',
           pathRewrite: {'^/api1':''},
           ws: true,
           changeOrigin: true
