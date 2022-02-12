@@ -2,6 +2,1025 @@
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
 
+### 面向对象编程 - 后盾人
+- 我们先看下函数式编程 求平均成绩
+```js
+let name = "Sam"
+let grade = [
+    {
+        name: "js",
+        score: 99
+    },
+    {
+        name: "docker",
+        score: 76
+    }
+]
+
+function average(grade, name) {
+    let total = grade.reduce((pre, item) => pre + item.score, 0)
+    return `${name}: ${total / grade.length}`
+}
+
+console.log(average(grade, name))
+```
+
+- 上面我们将逻辑都暴露在全局 就会有函数名重复 覆盖等问题 也会让程序变得错综复杂
+
+- 上面这些都是对用户的操作 我们可以把它们变成对象
+
+- 我们可以将上面的逻辑放在对象中 对象中的属性可以存储不同的值
+```js
+let user = {
+    name: "Sam",
+    grade: [
+        {
+            name: "js",
+            score: 99
+        },
+        {
+            name: "docker",
+            score: 76
+        }
+    ],
+
+    // 这个函数就是方法 函数中需要的数据都在这个对象中 所以我们可以通过this来调用我们需要的属性 不用传递了
+    average: function() {
+        let total = this.grade.reduce((pre, item) => pre + item.score, 0)
+
+        return `${this.name}: ${total / this.grade.length}`
+    }
+}
+
+console.log(user.average())
+```
+
+
+> 技巧1:
+- 有一个场景 下面的upload函数 里面有一个config属性 我们调用函数的时候要求传递进去一个配置对象
+
+- 但要求是 如果我们只传递了type 那么只修改type 如果我们只传递了size 那么只修改size
+
+```js
+function upload(params) {
+    let config = {
+    type: ".jpeg",
+    size: 10000
+    }
+
+    // 我们利用对象的展开语法 同名属性会被覆盖
+    config = {...config, ...params}
+
+    console.log(config)
+        // {type: '.jpeg', size: 20000}
+}
+
+upload({size: 20000})
+
+```
+
+
+> 技巧2:
+- 情景: 
+- 当用户没有传递必要的参数的时候 报错
+
+```js
+function oss(config) {
+    if(config.hasOwnProperty("host")) {
+        throw new Error("必须设置主机地址")
+    }
+}
+
+oss({user: "sam"})
+```
+
+> 技巧3:
+- 修改数组对象的结构
+
+- 要点:
+- JSON.stringify(目标, 保留所有属性, 缩进2)
+
+```js
+const lessons = [
+    {
+        title: "媒体查询",
+        category: "css"
+    },
+    {
+        title: "Flex",
+        category: "css"
+    },
+    {
+        title: "Mysql",
+        category: "mysel"
+    },
+]
+
+// 我们要将上面的数组对象变为对象的形式 数组对象中的每一个对象元素作为value key为category的值就编号
+
+let res = lessons.reduce((obj, item, index) => {
+    obj[`${item["category"]} - ${index + 1}`] = item
+    console.log(obj)
+    return obj
+}, {})
+
+// JSON.stringify(目标, 保留所有属性, 缩进2)
+console.log(JSON.stringify(res, null, 2))
+```
+
+
+> 对象浅拷贝的多种赋值方式
+- 我们先回忆一下对象的深浅拷贝
+- 浅拷贝值得是目标对象中只有一层数据
+- 深拷贝值得是目标对象中有2层数据格式
+
+> 浅拷贝方式1: 循环赋值
+- 该方式适合将数据进行修改
+```js
+let hd = {name: "sam", url: "www.baidu.com"}
+
+let obj = {}
+// 这样取到的是值 存在了一个新对象obj里面 这样属于 深拷贝
+for (const key in hd) {
+    obj[key] = hd[key]
+}
+```
+
+> 浅拷贝方式2: 对象的结构赋值
+```js
+// 方式2 把hd中的值压入到了新对象中
+let obj = Object.assign({}, hd)
+```
+
+> 浅拷贝方式3: 
+```js
+// {} 相当于新开辟了一块空间
+let obj = {...hd}
+```
+
+
+
+> 对象的深拷贝
+> 情景1 对象中只有对象的情况:
+```js
+let obj = {
+    name: "sam",
+    user: {
+        name: "erin"
+    }
+}
+
+// 深拷贝的实现思路就是一层一层的处理
+// 递归
+function copy(obj) {
+    let res = {} 
+    for(let key in obj) {
+    // 这个操作也很骚啊
+    res[key] = typeof obj[key] == "object" ? copy(obj[key]) :obj[key]
+    }
+
+    return res
+} 
+let ret = copy(obj)
+console.log(JSON.stringify(ret, null, 2))
+console.log(JSON.stringify(obj, null, 2))
+```
+
+
+> 情景2: 对象中还有数组的情况
+- 数据情况:
+```js
+let obj = {
+    name: "sam",
+    user: {
+        name: "erin"
+    },
+    arr: []
+}
+```
+
+- 要点:
+- 1. 判断是对象还是数组 我们可以使用 instanceof 来进行判断
+```js
+{} instanceof Object  // true
+[] instanceof Array   // true
+```
+
+- 2. 我们将对象内部的元素 是数组也好 还是对象也好 都转成对数组的操作方式
+- 我们先看看下面的预习部分
+```js
+// 我们看看原始数据 使用Object.entries()方法后的样式
+let obj = {
+    name: "sam",
+    user: {
+        name: "erin"
+    },
+    arr: []
+}
+
+-- 
+
+console.log(JSON.stringify(Object.entries(obj), null, 2))
+[
+  [
+    "name",
+    "sam"
+  ],
+  [
+    "user",
+    {
+      "name": "erin"
+    }
+  ],
+  [
+    "arr",
+    []
+  ]
+]
+```
+- 我们发现 原本的数组对象变成了二维数组 Object.entries() 将一个对象的
+- key: value
+- ["key", value]
+
+- 比如 原始数据中的 user
+- ["user", {name: "erin"}]
+
+- 上面我们实现了不管原始数据中是对象也好 还是数组也好都转成 对数组的处理方式
+
+```js
+function copy(obj) {
+    // 判断 参数的形式是数组还是对象 在递归调用的时候obj的类型会改变
+    let res = obj instanceof Array ? [] : {}
+
+    // 这时候res就是跟原始数据一个类型
+    console.log(res)
+
+    // 我们将参数obj转为二维数组 通过数组的方式遍历元素
+    for(let [key, value] of Object.entries(obj)) {
+        console.log(key) // name user arr
+        console.log(value) // sam 对象 数组
+
+        // 当value的值为数组的时候 arr: []
+        // 当value的值为对象的时候 我们进行递归操作 对象会被再次的分解成["key", value]的形式 再到这个逻辑的时候 就是普通赋值
+        res[key] = typeof value == "object" ? copy(value) : value
+    }
+
+    return res
+}
+let ret = copy(obj)
+console.log("ret", ret)
+```
+
+> 技巧3: 闭包的特性也可以用来体现函数的封装性
+- 比如我们创建了下面的构造函数 但是发现 构造函数的外部是可以通过 user对象修改里面的属性的
+
+- 有的时候我们希望的是我们只向外暴露功能 并不希望它能够修改我们对象中的属性
+
+```js
+function User(name, age) {
+    this.name = name
+    this.age = age
+
+    this.show = function() {
+        console.log(this.name)
+    }
+
+    this.info = function() {
+        return this.age > 50 ? this.name + "老年人" : this.name + "年轻人"
+    }
+}
+
+let user = new User("Sam", 33)
+// 这时候在函数外部是可以
+user.name = "erin"
+user.show()
+```
+
+- 我们可以利用闭包的方式来解决问题
+```js
+function User(name, age) {
+
+    let data = {name, age}
+
+    let info = function() {
+        return age > 50 ? name + "老年人" : name + "年轻人"
+    }
+
+    this.show = function() {
+        console.log(data.name + info())
+    }
+}
+```
+
+
+> 对象的访问器
+- 使用场景：
+- 现在我们有一个对象
+```js
+const user = {
+    name: "sam"
+    age: 18
+}
+```
+
+- 上面这个对象中的年龄我在外面可以随便的改 我们可以在对象的外部 user.age = 进行随意的复制操作
+
+- 那这个数据很容器变的不稳定
+
+- 那怎么做呢
+- 方式1:
+```js
+const user = {
+    data: {name: "sam", age: 18},
+    setAge(value) {
+        if(typeof value != "number" || value < 10 || value > 100) {
+            throw new Error("年龄格式不匹配")
+        }
+    },
+    getAge() {
+
+    }
+}
+```
+
+- 上面方式有一个不好的地方 就是我们在给属性赋值的时候 需要调用的是 user.setAge(999) 方法
+
+- 那我们能不能直接通过 user.age = 999 的方式给对象设置属性呢？
+
+- 这时候我们就可以使用访问器 将属性写成计算属性函数的样式 前面用关键字set来修饰
+
+> set 属性() { ... }
+> get 属性() { ... }
+- 对象中的属性 通过这种方式设置的时候 当我们通过
+- obj.属性 = 赋值的时候 就会触发回调中的逻辑
+
+```js
+const user = {
+    data: {name: "sam", age: 18},
+    set age(value) {
+        if(typeof value != "number" || value < 10 || value > 100) {
+            throw new Error("年龄格式不匹配")
+        }
+
+        this.data.age = value
+    },
+    get age() {
+        return "abc"
+        return this.data.age
+    }
+}
+```
+
+- 这时候我们可以还通过 user.age = 999 的方式赋值
+
+
+> 访问器的应用 -- 计算属性
+- 我们希望 我们调用对象中的属性就能获取到总价格
+
+```js
+let lesson = {
+    lists: [
+        {name: "js", price: 100},
+        {name: "mysql", price: 212},
+        {name: "vue", price: 99},
+    ],
+    get total() {
+        return this.lists.reduce((pre, item) => {
+            return pre + item.price
+        }, 0)
+    }
+}
+
+console.log(lesson.total)
+```
+
+
+> 访问器的应用 - 批量设置属性 -- 骚操作
+- 下面有这样的一个对象
+```js
+const web = {
+    name: "sam",
+    url: "www.baidu.com"
+}
+```
+
+- 如果我们要设置里面的属性的话 都是
+- web.name = ""
+- web.url = ""
+
+- 那有没有一种方法 web.site = "erin, www.taobao.com"
+- 当我们这么设置的时候 可以一次搞定 name url 的赋值操作呢?
+
+- 可以 我们可以通过访问器
+```js
+const web = {
+    name: "sam",
+    url: "www.baidu.com",
+
+    set site(value) {
+        // 将解构出来的数据 直接通过this给name和url了
+        let [this.name, this.url] = value.split(",")
+    }
+}
+```
+
+
+> 访问器的应用 -- token的读写处理
+- 我们从后台获取的token需要存在本地 我们会使用到本地存储
+```js
+let Request = {
+    set token(content) {
+        localStorage.setItem("token", content)
+    },
+    get token() {
+        let token = localStorage.getItem("token", content)
+
+        if(!token) {
+            // 跳转到登录页面的操作
+        }
+
+        return token
+    }
+}
+
+// 当我们调用token属性的时候 就会触发保存到本地存储的逻辑
+Requset.token = "293423g5jghj342g5jhghj"
+```
+
+
+> 对象代理 proxy
+- 访问器只是对单个属性的控制 对象代理是对整个对象进行控制
+- 我们不是直接操作数据 而是通过代理来操作数据
+
+- 我们先定义一个数据
+```js
+const hd = {name: "sam"}
+```
+
+> new Proxy(对哪个对象进行代理, 配置对象)
+- 代理后 可以通过 代理对象proxy 方法原对象中的属性
+- 相当于proxy就是原对象
+
+- 参数2: 
+- get(obj, prop) { return obj[prop] }
+- obj 为代理的对象
+- prop为代理的对象中的属性
+
+- set(obj, prop, value) { obj[prop] = value }
+- obj 为代理的对象
+- prop为代理的对象中的属性
+- value 为我们修改的时候的值
+
+```js
+const hd = {name: "sam"}
+// 代理指定的对象
+const proxy = new Proxy(hd, {
+  get(obj, prop) {
+    return obj[prop]
+  },
+  set(obj, prop, value) {
+    console.log(value)
+    obj[prop] = value
+
+    // 在严格模式中 要返回true 不然会报错
+    return true
+  }
+
+})
+console.log(proxy.name)
+```
+
+**注意:**
+- 1. 严格模式中 我们需要在set方法中return true 不然会报错
+- 2. 配置对象是必须要传递的
+
+
+> 代理对函数的控制
+- 代理后proxy就是原函数 以前我们是通过 fn() 调用函数
+- 代理后 proxy() 调用函数
+
+- new Proxy(函数名, 配置对象)
+- 参数2:
+- 配置对象里需要传递 apply(fn, obj, args)
+- fn  就是代理的函数
+- obj 就是上下文对象相当于this 我们可以通过 proxy.apply() 的方法传入this指向的对象
+- args 就是传递进来的实参 
+    - args是数组
+    - proxy.apply({}, [参数])
+    - 使用apply()方法传递参数的时候 要把参数放在数组中
+
+- 示例:
+```js
+function factorial(num) {
+  return num == 1 ? 1 : num * factorial(num - 1)
+}
+
+
+// 使用代理来调用对象
+let proxy = new Proxy(factorial, {
+
+  // 当调用proxy()的时候 会执行里面的逻辑
+  apply(fn, obj, args) {
+    console.log(fn)   // 被代理的函数
+    console.log(obj)  // 我们传递的是this 那么obj就是window
+    console.log(args) // 参数会在数组中
+  }
+})
+// 普通调用
+proxy(5)
+
+// 使用apply调用 并传递上下文对象 和 数组传参
+proxy.apply(this, [5])
+```
+
+
+> 举例1:
+- 计算函数的运行时间
+```js
+function factorial(num) {
+  return num == 1 ? 1 : num * factorial(num - 1)
+}
+
+console.log(factorial(5)) 
+
+let proxy = new Proxy(factorial, {
+  
+  apply(fn, obj, args) {
+    
+    console.time("run")
+
+    // 将收到的参数传递到原函数中
+    fn.apply(this, args);
+
+    console.timeEnd("run")
+  }
+})
+
+proxy.apply({}, [5])
+```
+
+
+> 代理对数组的控制
+- 需求:
+- 通过代理对原数组进行加工 如果数组对象中的对象的title的长度大于5进行截断处理
+
+- 也就是对数组的拦截处理
+
+- new Proxy(数组, 配置对象)
+- 代理数组后 proxy就是数组 可以通过 proxy[0] 的方式访问原数组中的元素
+
+- 参数2:
+- get(arr, index)
+- arr就是原数组 index就是proxy[0]对应的索引值
+
+- 好像没有set
+
+
+```js
+let lessons = [
+  {
+    title: "媒体查询知多少",
+    category: "css"
+  },
+  {
+    title: "FLEX",
+    category: "css"
+  },
+  {
+    title: "MYSQL",
+    category: "mysql"
+  },
+]
+
+// 当获取元素的时候我们对title的长度进行截断处理
+let proxy = new Proxy(lessons, {
+  get(arr, key) {
+    const title = arr[key].title
+    const len = 5
+    
+    arr[key].title = title.length > len 
+      ? title.substr(0, len) + ".".repeat(3) 
+      : title
+
+    return arr[key]
+  }
+})
+console.log(proxy[0])
+```
+
+> 通过代理实现双向绑定
+```html
+<input type="text" v-model="title" />
+<input type="text" v-model="title" />
+
+<h4 v-bind="title">这里也会发生更新</h4>
+```
+```js
+function View() {
+    // 创建代理 {}里面用来存放 公共数据 相当于 data
+    let proxy = new Proxy({}, {
+        get(obj, prop) {
+
+        },
+        set(obj, prop, value) {
+            document.querySelectAll(`[v-model="${prop}"]`).forEach(item => {
+                item.value = value
+            })
+        }
+    })
+
+    // 绑定事件
+    this.init = function() {
+        const els = document.querySelectorAll("[v-model]")
+
+        els.forEach(item => {
+            item.addEventListener("keyup", function() {
+                proxy[this.getAttribute("v-model")] = this.value
+            })
+        })
+    }
+}
+
+new View().init()
+```
+
+
+> 代理处理表单验证
+```js
+// 工具类
+class Validate {
+  // 检查value是否超过最大长度
+  max(value, len) {
+    return value.length < len
+  }
+
+  // 检查value是否超过最小长度
+  min(value, len) {
+    return value.length > len
+  }
+
+  isNumber(value) {
+    return /^\d+$/.test(value)
+  }
+}
+
+// 创建代理工厂 将对象加工成代理对象
+function ProxyFactory(target) {
+  return new Proxy(target, {
+    get(target, key) {
+      return target[key]
+    },
+
+    // 键盘抬起的时候就会触发set方法
+    set(target, key, value) {
+       // value就是this 因为外面 proxy[i] = this 代表每一个表单
+       // 获取表单元素上的规则
+       const rule = el.getAttribute("rule")
+
+       // 创建验证类
+       const validate = new Validate()
+
+       let state = rule.split(",").every(rule => {
+
+          // 第一个参数是验证类中的函数 二个函数的参数
+          // info ["max", "12"]
+          const info = rule.split(":")
+
+          // value是表单元素 就是this 就是input
+          return validate[info[0]](value.value, info[1])
+       })
+       console.log(state)
+    }
+  })
+}
+
+// 对NodeList进行了代理
+let proxy = ProxyFactory(document.querySelectorAll("[validate]"))
+
+// 当表单触发键盘抬起事件的时候触发表单验证处理
+proxy.forEach((item,i) => {
+  console.log(item)
+  item.addEventListener("keyup", function() {
+    // 这相当于set的第三个参数就是this
+    proxy[i] = this
+  })
+})
+```
+
+
+> JSON
+> JSON.stringify(目标对象, 参数2, 参数3)
+- 参数2:
+- 数组字符串 ["属性名"]
+- 代表要保留的属性 可以传递多个
+- 传递null 代表全部保留
+
+```js
+let hd = {
+    title: "sam"
+    url: "www.baidu.com",
+    teacher: {
+        name: "erin"
+    }
+}
+
+JSON.stringify(hd, ["title"])
+// {"title": "sam"}
+```
+
+- 参数2:
+- 制表符缩进
+
+
+> 自定义json返回
+- 我们需要在目标对象里面设置 *toJSON: function() { return }* 方法
+```js
+let hd = {
+    title: "sam"
+    url: "www.baidu.com",
+    teacher: {
+        name: "erin"
+    },
+
+    // 设置toJSON方法
+    toJSON: function() {
+        return {
+            title: this.title
+        }
+    }
+}
+
+let json = JSON.stringify(hd)
+```
+
+
+> JSON.parse(目标对象, callback)
+- 参数2
+- 当我们想对返回得JSON对象的格式进行处理的时候 可以传递一个回调
+```js
+let hd = {
+    title: "sam"
+    url: "www.baidu.com",
+    teacher: {
+        name: "erin"
+    }
+}
+
+
+let obj = JSON.parse(hd, (key, value) => {
+    if(key == "sam") {
+        value = "[加油] - " + value
+    }
+})
+```
+
+----------------
+
+
+### 执行上下文
+```js
+// 情况1:
+console.log(a)  // a is not defined
+
+// 情况2:
+console.log(a)  // undefined
+var a
+
+// 情况3:
+console.log(a)  // undefined
+var a = 10
+```
+
+- 上面我们发现:
+- 第一句:
+    报错 a未定义
+
+- 第二句:
+- 第三局:
+    输出都是undefined
+
+- 说明浏览器在执行console.log(a)时，已经知道了a是undefined，但却不知道a是10
+
+- 其实, 在一段js代码拿过来真正一句一句运行之前，浏览器已经做了一些“准备工作”
+
+- 其中就包括对变量的声明(而不是赋值)
+- 变量赋值是在赋值语句执行的时候进行的
+
+- 比如 我们在 console.log(this) 的时候 都会知道无论在哪个位置获取this，都是有值的
+
+- 上面说的是属性的问题
+- 下面我们看看函数的两种情况
+```js
+// 情况1
+console.log(fn1)    // 能输出整个函数
+function fn1() {
+    console.log("fn1")
+}
+
+
+// 情况2
+console.log(fn1)    // undefined
+var fn2 = function() {
+    console.log("fn2")
+}
+
+// 情况2 相当于
+var fn2;
+console.log(fn2)
+fn2 = function() {
+    console.log("fn2")
+}
+```
+
+- 在“准备工作”中，对待函数表达式就像对待“ var a = 10 ”这样的变量一样，只是声明。
+
+- 对待函数声明时，却把函数整个赋值了。
+
+> “准备工作”中完成了哪些工作
+- 1. 变量、函数表达式——变量声明，默认赋值为undefined
+- 2. this——赋值
+- 3. 函数声明——赋值
+
+- 这三种数据的准备情况我们称之为“执行上下文”或者“执行上下文环境”。
+
+- javascript在执行一个代码段之前，都会进行这些“准备工作”来生成执行上下文。
+
+- 这个“代码段”其实分三种情况——全局代码，函数体，eval代码。
+
+
+- 如果在函数中，除了以上数据之外，还会有其他数据。
+```js
+function fn(x) {
+    console.log(arguments) // [10]
+    console.log(x) // 10
+}
+fn(10)
+```
+
+- 以上代码展示了在函数体的语句执行之前，arguments变量和函数的参数都已经被赋值。
+
+- 从这里可以看出，*函数每被调用一次，都会产生一个新的执行上下文环境*。因为不同的调用可能就会有不同的参数。
+
+- 外一点不同在于，*函数在定义的时候（不是调用的时候），就已经确定了函数体内部自由变量的作用域。*
+<!-- 至于“自由变量”和“作用域”是后面要专门拿出来讲述的重点，这里就先点到为止。用一个例子说明一下： -->
+
+```js
+var a = 10
+function fn() {
+    console.log(a)
+    // a是自由变量 函数创建的时候 就确定了a要取值的作用域
+}
+
+
+function bar(f) {
+    var a = 20;
+    f() // 打印的是10 而不是20
+}
+bar(fn)
+```
+
+
+> 结合作用域 上下文环境 我们看看下面的知识点
+```js
+var a = 10, b = 20              // 全局作用域
+
+function fn(x) {
+    var a = 100, c = 300;       // fn的作用域
+
+    function bar(x) {
+        var a = 1000, d = 3000  // bar的作用域
+    }
+
+    bar(100)
+    bar(200)
+}
+
+fn(10)
+```
+
+- 我们在上文中已经介绍了，除了全局作用域之外，每个函数都会创建自己的作用域
+- *作用域在函数定义时就已经确定了。而不是在函数调用时确定。*
+
+- 我们看看结合作用域 上下文环境是怎么样的
+- 1. 在加载程序时，已经确定了全局上下文环境，并随着程序的执行而对变量就行赋值。
+```js
+var a = 10, b = 20
+
+            全局上下文环境
+            a       10
+            d       20
+
+
+function fn(x) {
+    var a = 100, c = 300;       // fn的作用域
+
+
+
+    function bar(x) {
+        var a = 1000, d = 3000  // bar的作用域
+    }
+
+
+
+    bar(100)
+    bar(200)
+}
+
+fn(10)
+```
+
+- 当我们程序执行到 fn(10) 调用的时候 此时生成fn函数的上下文环境压栈，并将此上下文环境设置为活动状态。
+```js
+var a = 10, b = 20
+
+            全局上下文环境
+            a       10
+            d       20
+
+
+function fn(x) {
+    var a = 100, c = 300;       // fn的作用域
+
+            fn(10)上下文环境
+            x       10
+            a       100
+            c       300
+
+
+
+    function bar(x) {
+        var a = 1000, d = 3000  // bar的作用域
+    }
+
+
+
+    bar(100)
+    bar(200)
+}
+
+fn(10)
+```
+
+
+- 当程序执行到bar(100)的时候 调用bar(100) 生成此次bar函数的上下文环境 压栈，并设置为活动状态
+
+```js
+var a = 10, b = 20
+
+            全局上下文环境
+            a       10
+            d       20
+
+
+function fn(x) {
+    var a = 100, c = 300;       // fn的作用域
+
+            fn(10)上下文环境
+            x       10
+            a       100
+            c       300
+
+
+
+    function bar(x) {
+        var a = 1000, d = 3000  // bar的作用域
+
+            bar(100)上下文环境
+            x       100
+            a       1000
+            d       3000
+    }
+
+
+
+    bar(100)
+    bar(200)
+}
+
+fn(10)
+```
+
+- 当执行完bar(100)这行代码 bar(100)调用完成 *则bar(100)上下文环境被销毁* 
+
+- 接着执行bar(200)，调用bar(200)，则又生成bar(200)的上下文环境，压栈，设置为活动状态。
+
+- 当执行完bar(200)这行代码 则bar(200)调用借宿 其上下文环境被销毁 此时就会回到fn(10)上下文环境中 变为活动状态
+<!-- 
+    bar(200)     ->  上下文环境
+    bar(100)     ->  上下文环境
+    fn(10)       ->  上下文环境
+
+    当bar(200) bar(100)都调用完毕后 其上下文环境销毁
+    只剩下fn(10)处于激活状态
+ -->
+
+- 当执行完fn(10)这行代码后 fn(10)执行完成之后 fn(10)上下文环境被销毁 全局上下文环境又回到了活动状态
+
+- 连接起来看，还是挺有意思的。作用域只是一个“地盘”，一个抽象的概念，其中没有变量。要通过作用域对应的执行上下文环境来获取变量的值。同一个作用域下，不同的调用会产生不同的执行上下文环境，继而产生不同的变量的值。所以，作用域中变量的值是在执行过程中产生的确定的，而作用域却是在函数创建时就确定了。
+
+- 所以，如果要查找一个作用域下某个变量的值，就需要找到这个作用域对应的执行上下文环境，再在其中寻找变量的值。
+
+
 
 ### 番外篇
 
@@ -11653,6 +12672,19 @@ div.addEventListener('touchmove', function (e) {
     }
     obj.name = '';
  -->
+
+
+> Object.defineProperties(对象, {
+    name: {
+        value: ""
+        ...
+    },
+    age: {
+
+    }
+})
+
+- 设置多个属性
         
 ---------------------------------
 

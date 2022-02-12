@@ -1817,7 +1817,7 @@ Object.fromEntries([
 
 
 > Object.assign(target, 要复制的对象)
-- 该方法用于对象的合并 将源对象的所有可枚举属性 复制到目标对象中
+- 该方法用于*对象的合并* 将源对象的所有可枚举属性 复制到目标对象中
 - 参数：
 - 参数1: 目标对象
 - 参数2: 2及其以后都是要复制的对象 或者 叫做源对象
@@ -1863,6 +1863,73 @@ Object.fromEntries([
 
   Object.freeze(HOST)
  -->
+
+
+> Object.setPrototypeOf(给谁添加原型, 添加的是谁)
+```js
+let a = {
+    name: "Sam"
+}
+
+let b = {
+    url: "www.bai.com"
+}
+
+Object.setPrototypeOf(a, b)
+```
+
+
+> Object.getOwnPropertyDescriptor(对象, "属性名")
+> Object.getOwnPropertyDescriptors(对象)
+- 查看一个对象中指定属性的状态
+- 查看一个对象中所有属性的状态
+
+```js
+let obj3 = {
+  name: "sam"
+}
+
+console.log(JSON.stringify(Object.getOwnPropertyDescriptor(obj3, "name"), null, 2))
+
+{
+  "value": "sam",
+  // 修改
+  "writable": true,
+  // 遍历
+  "enumerable": true,
+  // 删除 配置
+  "configurable": true
+} 
+```
+
+> Object.preventExtensions(对象)
+- 禁止向对象中添加属性
+
+> Object.isExtensible(对象)
+- 判断该对象是否可以往里添加属性
+
+- 返回值
+- boolean
+
+
+> Object.seal(对象)
+- 封闭一个对象 设置后对象不能删除 修改 添加
+
+> Object.isSealed(对象)
+- 判断一个对象是否被封闭
+
+- 返回值
+- boolean
+
+
+> Object.freeze(对象)
+- 冻结一个对象 干什么都不好使了
+
+> Object.isFrozen(对象)
+- 判断一个对象是否是冻结状态
+
+- 返回值
+- boolean
 
 ------------------------------
 
