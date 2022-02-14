@@ -1740,7 +1740,531 @@ ORDER BY annual_sal DESC;
 
 ------------------
 
-### 
+### 分页
+- 查询返回的记录太多了，查看起来很不方便，按照实际需求 一页显示多少条数据
+
+> LIMIT [位置偏移量], 一页显示多少条
+- 如果不指定“位置偏移量”，将会从表中的第一条记录开始
+
+- 需求1:
+- 每页显示20条记录 此时显示第一页
+
+**注意:**
+- LIMIT 子句必须放在整个SELECT语句的最后！
+
+```sql
+SELECT employee_id, last_name
+FROM employees
+LIMIT 0, 20;    -- 20条数据为 0-119
+```
+
+- 参数1:
+- 偏移量为0, *默认是从0开始*
+- 0位从第一条记录开始 默认指针是指在第一条记录上的 偏移量为0(就是第一条记录的位置) 
+
+- 偏移量: 
+- 0: 指针在第一条记录上
+- 1: 指针往下移动一次, 指针指到下一条记录
+
+
+- 需求2:
+- 显示第二页
+- 们要从119后面开始 也就是120开始 就意味着一上来需要先有一个偏移量
+```sql
+SELECT employee_id, last_name
+FROM employees
+LIMIT 20, 20;
+```
+
+- 需求3:
+- 显示第三页
+```sql
+SELECT employee_id, last_name
+FROM employees
+LIMIT 40, 20;
+```
+
+> 公式:
+> LIMIT (pageNo - 1) * pageSize, pageSize
+- 显示第pageNo页 每页显示pageSize条记录
+```sql
+LIMIT(0, 20)    -- 第一页 20条
+LIMIT(20, 20)   -- 第二页 20条
+LIMIT(40, 20)   -- 第三页 20条
+
+-- 公式: LIMIT (pageNo-1) * pageSize, pageSize
+```
+
+
+> WHERE ..., ORDER BY ..., LIMIT ... 声明顺序如下:
+- 先写order by 后写limit
+```sql
+SELECT employee_id, last_name, salary
+FROM employees
+WHERE salary > 6000
+ORDER BY salary DESC
+LIMIT 10;
+```
+
+- 需求:
+- employees表中有107条数据 我们只想显示第32 33条数据怎么办？
+```sql
+SELECT employee_id, last_name, salary
+FROM employees
+LIMIT 31, 2;
+```
+
+
+> mysql8.0新特性:
+> LIMIT ... OFFSET ...
+- 是 LIMIT 31,2 没什么太大的区别 参数位置颠倒一下就可以了
+
+- OFFSET 后面写的是偏移量
+- LIMIT  后面写的条目数
+
+
+> 练习:
+- 查询员工表中工资最高的信息
+```sql
+SELECT employee_id, last_name, salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1;
+```
+
+> 扩展:
+- LIMIT可以使用在 MySQL、PostgreSQL、MariaDB 和 SQLite 中表示分页 但是不能使用在SQL Server, DB2, Oracle
+
+- 而且需要放到 SELECT 语句的最后面。
+
+
+> 练习:
+- 1. 查询员工的姓名和部门号和年薪，按年薪降序,按姓名升序显示
+```sql
+SELECT last_name, department_id, salary, salary * 12 "year_salary"
+FROM employees
+ORDER BY year_salary, last_name DESC;
+```
+
+- 2. 选择工资不在 8000 到 17000 的员工的姓名和工资，按工资降序，显示第21到40位置的数据 
+```sql
+SELECT last_name, salary
+FROM employees
+
+-- NOT写在条件的后面
+WHERE salary NOT BETWEEN 8000 AND 17000
+ORDER BY salary DESC
+LIMIT 20, 20;
+```
+
+- 3. 查询邮箱中包含 e 的员工信息，并先按邮箱的字节数降序，再按部门号升序
+```sql
+SELECT last_name, email
+FROM employees
+WHERE email LIKE '%e%'
+
+-- 单行函数: length()
+ORDER BY length(email) DESC, department_id;
+```
+
+------------------
+
+### 多表查询
+- 我们有一对多的关系表
+- 员工表
+- 部门表
+
+- 比如:
+- 我们要查询一个部门中有多少个员工 这就是一对多的关系 也需要用到多表查询
+
+- 还有我们一个项目中几百张表示常见的 我们在写select语句的时候很多时候也不是针对一张表去查询的 而是查询多个表
+
+- 员工表:
+- employee_id
+  first_name
+  last_name
+  email
+  phone_number
+  hire_date
+  job_id
+  salary
+  commission_pct
+  manager_id
+  *department_id*
+
+
+- 部门表:
+- *department_id*
+  department_name
+  manager_id
+  *location_id*   部门所坐落的位置
+
+
+- 位置表:
+- *location_id*
+  street_address
+  postal_code
+  city
+  state_province
+  country_id
+
+
+- 我们能看到每个表之间都是有关联关系的 通过*红色id关联*
+
+- 比如:
+- 我们现在有一个需求: 
+- 查询员工为'Abel'在哪个城市工作
+- 我们现在有3张表 员工表 部门表 位置表
+
+- 员工表中没有城市的事儿 城市的信息在locations表里面的city字段
+
+- 思考:
+- 那我们怎么才能找到'Abel'所在的城市呢？
+
+- 1. 查询员工表 找到 'Abel' 的信息
+```sql
+SELECT *
+FROM employees
+WHERE last_name = 'Abel';
+```
+
+- 我们能得到department_id字段 知道Abel在80部门工作
+
+- 2. 查询 部门表 找到部门相关的信息 得到部门所在的城市
+```sql
+SELECT *
+FROM departments
+WHERE department_id = 80;
+```
+
+- 我们根据员工表中的department_id做为条件 查询了departments部门表
+- 查看了80部门的情况 80部门是销售部门 管理者id为145 所在城市2500
+
+- 我们得到了 Abel 在 80号部门 80号部门在 2500城市
+
+- 3. 查询 位置表 找到城市信息
+```sql
+SELECT *
+FROM locations
+WHERE location_id = 2500;
+```
+
+- 查询的结果就是 Abel在Oxford这个城市工作
+- 我们发现 我们最终找到了 Abel在哪个城市工作 这里我们分3次查询了3张表 这也变相的相当于多表查询
+
+- 思考:
+- 为什么不把这3张表合成一张表呢？ 它们都是刻画的员工的信息
+- 不合在一起的原因:
+- 1. 3张表合在一起 会产生特别多的冗余字段 冗余字段会占用内存空间
+- 2. 维护一张巨大的表也会很困难
+- 3. 我们在查询一张表的时候 别的事务是无法操作我们正在操作的表的 如果表的力度越小的话 大家都可以同时操作 效率也会更高
+
+- 我们会根据实际情况把一张大表 按照单位的一些操作或者常用的一些字段放在一个表中 另外的字段放在其他表中 表跟表之间使用id作为连接关系 关联在一起
+
+
+> 多表查询的错误写法 -- 笛卡尔积错误
+- 需求:
+- 我们查询 employee_id department_name
+- 上面这两个字段分别在不同的表中 员工表 和 部门表
+
+- 那我们能不能这么写sql语句 查询信息
+- FROM的后面写了两张表
+- employee_id      --  employees
+- department_name  --  departments
+
+```sql
+SELECT employee_id, department_name
+FROM employees, departments;  
+-- 我们查询出来2889条数据
+```
+
+- 员工表一共才107条数据 为啥能搜索出来这么多？
+```sql
+SELECT 2889 / 107
+FROM DUAL;  -- 27
+
+SELECT *
+FROM departments; -- 27条记录
+```
+
+- 我们发现 employees表 中的每一条记录 都跟整个departments表进行匹配
+- 也就是说employees表的一条记录 分别和 departments表中的每条记录进行了匹配 -- 1 * 27
+
+- 这种错误的现象叫做: 笛卡尔积的错误
+<!-- 
+  笛卡尔积:
+    它是一种现象 笛卡尔乘积是一个数学运算。假设我有两个集合 X 和 Y，
+    把X集合和Y集合的搭配的所有可能都列出来就是笛卡尔积 
+ -->
+
+- 上面的查询方式出现的原因就是:
+- 上面错误的原因就是缺少了多表的连接条件 
+
+> 表A CROSS JOIN 表B
+- 交叉连接两张表
+- 这里只是介绍下 CROSS JOIN 这个关键字 跟我们的多表查询没有什么关系
+
+
+> 笛卡尔积的错误会在下面条件下产生
+- 1. 省略多个表的连接条件（或关联条件）
+- 2. 连接条件（或关联条件）无效
+- 3. 所有表中的所有行互相连接
+
+- 为了避免笛卡尔积， 可以**在 WHERE 加入有效的连接条件。**
+
+
+> 加入连接条件后，查询语法 格式：
+
+```mysql
+SELECT	table1.column, table2.column
+FROM	table1, table2
+WHERE	table1.column1 = table2.column2;  #连接条件
+```
+
+- **在 WHERE子句中写入连接条件。**
+
+
+> 正确的多表查询的方式
+- 需要有连接条件
+- 表与表之间会有一个字段 可以用作与连接条件
+- 比如:
+- 员工表中的 employee_id
+- 部门表中也有 employee_id
+
+- 我们就可以通过两张表同的共有字段作为在where中的连接条件 进行查询
+
+```sql
+SELECT employee_id, department_name
+FROM employees, departments
+
+-- 拿两个表中各自字段的id进行相当判断
+WHERE employees.department_id = departments.department_id;
+```
+
+
+- 需求:
+- 查询 employee_id department_name department_id
+
+```sql
+SELECT employee_id, department_name, department_id
+FROM employees, departments
+WHERE employees.department_id = departments.department_id;
+-- 报错了
+```
+- Column 'department_id' in field list is ambiguous
+- 说 department_id 该字段来自于哪一张表示不确定的
+
+- 因为department_id这个字段两张表中都有
+- 解决方式:
+- 我们要告诉服务器要去哪张表中找 department_id
+```sql
+-- 指明从哪个表中读 department_id 字段 
+-- employees.department_id
+SELECT employee_id, department_name, employees.department_id
+
+FROM employees, departments
+
+WHERE employees.department_id = departments.department_id;
+```
+
+**注意:**
+- 在多表查询的过程中 如果查询语句中出现了多个表中都存在的字段 则必须指明此字段所在的表 通过 *表.字段* 的方式来指明
+
+**建议:**
+- 从sql优化的角度 建议多表查询时 每个字段前都指明其所在的表
+
+```sql
+-- 通多表.字段的方式 指明要查的字段在哪个表中
+SELECT employees.employee_id, departments.department_name, employees.department_id
+
+FROM employees, departments
+
+WHERE employees.department_id = departments.department_id;
+```
+
+
+> 利用表的别名 简化操作
+- 我们发现在多表查询中 我们建议查询的字段前 都要通过 表.字段 的方式 指明要查询的字段来自于哪个表
+
+- 但我们也发现上面的代码会变的特别的长 可读性也不高
+- 所以我们可以给表起别名 在 select 和 where 中使用表的别名
+
+> 字段的别名在:
+- select 字段 "别名"
+- 字段的别名可以在 order by 用字段的别名来指定规则
+
+
+> 表的别名在:
+- from 表 空格 别名
+- from 表 as 别名
+- 表的别名可以在语句中使用
+
+```sql
+SELECT emp.employee_id, dept.department_name, emp.department_id
+FROM employees emp, departments dept
+WHERE emp.department_id = dept.department_id;
+```
+
+**注意:**
+- 我们给表起了别名后 一旦在select或where使用表名的话 则必须使用表的别名 而不能在使用表的原名
+<!-- 
+  因为 sql 的执行顺序是 先执行 from 然后发现我们给表起别名了 
+  然后 sql 会将别名 覆盖原表名
+  所以我们之后再使用的时候 只能用别名
+ -->
+
+
+> 练习
+- 查询:
+- employee_id last_name department_name city
+
+- 要点:
+- 多张表之间的连接条件:
+- a和b找一个条件连接 然后a和c 或者 b和c找一个条件进行连接
+
+```sql
+SELECT t1.employee_id, t1.last_name, t2.department_name, t3.city
+FROM employees t1, departments t2, locations t3
+
+-- 条件 t1和t2拉下手 然后t1和t3拉下手 或者 t2和t3拉下手
+WHERE t1.department_id = t2.department_id && t2.location_id = t3.location_id;
+```
+
+> 总结:
+- 如果有n个表实现多表的查询 则需要至少n-1个连接条件
+- 2个表需要1个 3个表需要2个
+
+------------------
+
+### 多表查询的分类
+- 我们从下面的三个角度多多表查询进行分类
+- 针对连接条件来说的 我们通过这3个角度来看下 连接条件有多种情况
+
+> 等值连接 vs 非等值连接
+> 等值连接:
+- 我们上面的例子中连接条件都是 = 
+- WHERE t1.department_id = t2.department_id
+- 这就是 *等值连接*
+
+> 非等值连接:
+- 只要连接条件不是 = 可能就是非等值连接 比如 大于小于
+
+- 非等值连接的举例:
+
+- job_grades表:
+- A	1000	2999
+  B	3000	5999
+  C	6000	9999
+  D	10000	14999
+  E	15000	24999
+  F	25000	40000
+
+- 需求:
+- 查询 员工姓名 员工工资 工资等级
+
+- 上面我们是用的等值连接 也就是 
+  A表中的一个字段 = B表中的一个相同字段的方法
+
+- 但是 这个需求中 employees表中没有字段 也在job_grades表中存在的
+- 这种情况下 我们就需要使用 非等值连接
+
+- 也就是查询A表中的字段 在B表中某个范围内的
+```sql
+SELECT e.last_name, e.salary, j.grade_level
+FROM employees e, job_grades j
+
+-- 1
+WHERE e.salary BETWEEN j.lowest_sal AND j.highest_sal;
+
+-- 2
+WHERE e.salary >= j.lowest_sal AND e.salary <= j.highest_sal;
+```
+
+
+> 自连接 vs 非自连接
+- 我们前面写的例子都是非自连接
+
+> 非自连接:
+- 不同的表之间进行的连接操作
+
+> 自连接
+- 表自己跟自己连就是自连接 (自恋)
+- 比如：
+- 员工表中每一个员工都有一个 employee_id
+- 每一个员工也都有一个上级 manager_id
+- 每一个上级都是公司的元素 上级本身也会有 employee_id
+
+<!-- 
+  employee_id  name  manager_id
+  1             sam   3
+
+  3             erin  5
+
+  - 我们能看到 id为1的是员工sam 他的领导的是manager_id 3
+  - 领导erin也是公司的员工 所以它也有一个 employee_id 3
+ -->
+
+
+- 需求:
+- 查询员工id 员工姓名 及其 管理者的id 和 管理者的姓名 
+
+- 思路:
+- 当我们分析完 发现要查询的字段 或 逻辑都在同一张表的时候 我们就要使用自连接
+
+- 比如:
+- 我们这个需求中 要查询的员工id name 和 对应领导id name
+- 我们就可以将其想象成我们要查询两张表
+- FROM employees emp, employees mrg
+
+- 连接条件:
+- 员工表的领导的id = 领导表中员工的id
+
+```sql
+-- 字段因为在'2张表'中都有 所以要用别名.字段的方式加以区分
+SELECT emp.employee_id, emp.last_name, mrg.employee_id, mrg.last_name
+
+-- 虽然是同一张employees表 但是使用别名的方式 当成两张表
+FROM employees emp, employees mrg
+
+-- 条件 manager_id = employee_id
+WHERE emp.manager_id = mrg.employee_id;
+```
+
+
+> 内连接 vs 外连接
+
+
+
+
+
+
+
+
+
+
+> 方式1:
+```html
+<button data-src="./img1">按钮1</button>
+<button data-src="./img2">按钮2</button>
+```
+
+```js
+// 1. 给按钮绑定事件
+// 2. 事件的回调中 通过 dataset.src 的方式 获取图片的连接地址
+// 3. 事件的回调中 将获取到的连接地址 赋值给img的src
+```
+
+> 方式2:
+- 你可以创建一个保存图片连接的数组
+```js
+const imgPath = ["./img1.jpg", "./img2.jpg", "./img3.jpg"]
+```
+
+- 遍历给按钮绑定点击事件 然后利用index 去读图片连接的数组中值
+- 比如我点击的所以为2的按钮
+```js
+Array.from(doucument.)
+```
 
 ------------------
 
