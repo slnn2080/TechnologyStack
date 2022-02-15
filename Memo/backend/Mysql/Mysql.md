@@ -2232,39 +2232,565 @@ WHERE emp.manager_id = mrg.employee_id;
 
 
 > 内连接 vs 外连接
+- 内连接:
+- 我们上面写的这些都是内连接
 
+- 比如: 
+- 下面注释里面说的内容就是内连接
+```sql
+SELECT employee_id, department_name
 
+-- ,号左边的叫做左表, ,号右边的叫做右表
+FROM employees e, departments d
 
-
-
-
-
-
-
-
-> 方式1:
-```html
-<button data-src="./img1">按钮1</button>
-<button data-src="./img2">按钮2</button>
+-- 我们只是把左表当中 和 右表当中 满足连接条件的数据 查询出来了 其他的数据都没有要
+WHERE e.department_id = d.department_id;
 ```
 
-```js
-// 1. 给按钮绑定事件
-// 2. 事件的回调中 通过 dataset.src 的方式 获取图片的连接地址
-// 3. 事件的回调中 将获取到的连接地址 赋值给img的src
+> 内连接:
+- 合并具有同一列的两个以上的表的行, **结果集中不包含一个表与另一个表不匹配的行**
+
+> 外连接:
+-  两个表在连接过程中除了返回满足连接条件的行以外**还返回左（或右）表中不满足条件的行** **，这种连接称为左（或右） 外连接**。没有匹配的行时, 结果表中相应的列为空(NULL)。
+<!-- 
+  合并具有同一列的两个以上的表的行 结果集中除了包含一个表与另一个表匹配的行之外 还查询到了左表 或 右表中不匹配的行
+ -->
+
+- 左表: 员工表
+- 右表: 部门表
+- 两个表交叉在一起 类似交集 就是多表查询
+- 其中 AAA 就是 左表中有A列 右表中也有A列 将两个表A列的数据 返回出来 就是查询到的结果
+
+- AAA 就是左表和右表都满足的条件 也就是内连接
+- 但是一共有106条记录
+- 员工表有一个人不在里面 
+- 部门表因为也有一些部门没有员工 也没有被检索出来
+<!-- 
+    左表
+    -----------
+    |         |
+    |     -----------
+    |     | A |      |
+    |     | A |      |
+    |     | A |      |
+    ------|-- |      |
+          |          |
+          ------------
+                  右表
+ -->
+
+- 如果我们把不满足条件的数据也检索出来 就叫做外连接
+- 外连接就是把不满足条件的数据也查出来了(不在AAA范围内的数据)
+
+- 综上:
+- 外连接也有了分类 
+
+> 外连接的分类:
+- 1. 左外连接: 把左表中不满足条件的数据 查询出来
+- 2. 右外连接: 把右表中不满足条件的数据 查询出来
+- 3. 满外连接 (3个部分一起都被查出来了)
+
+
+> 主表 和 从表
+- 如果是左外连接，则连接条件中左边的表也称为`主表`，右边的表称为`从表`。
+
+- 如果是右外连接，则连接条件中右边的表也称为`主表`，左边的表称为`从表`。
+
+
+> 练习:
+- 查询*所有的*员工的 last_name, department_name 信息
+
+**注意:**
+- 一旦是由*所有的*字眼 *并且来自于不同的表* 这时候我们一定要注意 它一定是一个外连接
+
+- 比如我们下面这么查询 只能查到 员工表 和 部门表 中共有department_id字段的数据 106条 但是员工表中一个107个人 所以肯定有没查询到的 这就不符合我们这道题的要求 
+```sql
+SELECT employee_id, department_name
+FROM employees e, departments d
+WHERE e.department_id = d.department_id;
+```
+- 这道题要求是*所有的*
+
+
+> sql92规范中 实现 外连接(mysql不支持)
+> 使用 + 
+- 在 where 条件中 数据少的那边的条件后使用 *(+)*
+- WHERE e.department_id = d.department_id(+);
+
+- *mysql中不支持sql92中外连接的写法 但是别的数据库支持这种写法*
+
+- 思路:
+- 员工表有107条记录 我们要去匹配部门表
+<!-- 
+   员工表       部门表
+    ----       ----
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    ------------------这里是106条记录        
+    |  |
+    ----
+ -->
+
+- 怎么实现外连接的呢？
+- 假如我们把员工表 和 部门表看做是两条腿
+- 员工表是左腿 部门表是右腿 我们能看到两条腿 一高一低
+- 那怎么办？ 我们可以给右腿下面垫一点东西 这样两条腿不就一样长了么
+- 一样长后就代表两边表的结构 行数就一样了
+- 这样左表中多的数据就能展现出现了
+<!-- 
+   员工表       部门表
+    ----       ----
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    ------------------
+    |  |       | +|   这样两边表的行数一样了 员工表
+    ----       ----   多出来的数据就能展现出来了
+ -->
+
+- 也就是现在是员工表的数据多 部门表的数据少 我们就在数据少的那边垫一点东西
+
+
+
+> sql92中的写法 mysql中不支持
+```sql
+SELECT employee_id, department_name
+FROM employees e, departments d
+
+-- 需要使用左外连接 我们在数据少的表后面使用 (+) 垫东西
+WHERE e.department_id = d.department_id(+);
 ```
 
-> 方式2:
-- 你可以创建一个保存图片连接的数组
-```js
-const imgPath = ["./img1.jpg", "./img2.jpg", "./img3.jpg"]
+- 如上就是左外连接 目的就是在右表垫高 显示左表不满足连接条件的数据
+
+
+> sql99规范中 实现 外连接(mysql支持)
+- sql99语法中使用 *join...on* 的方式 实现多表的查询
+- 这种方式也能解决外连接的问题(内连接也能使用这种方法) -- 通用
+
+> sql99语法 实现内连接
+> FROM 表1 INNER JOIN 表2 ON 连接条件
+- 在使用内连接的时候 *INNER可以省略*
+- JOIN后面只能连接一张表 ON后面写他们之间的条件
+- 如果想要连接多张表 那就要写多个 JOIN ON 结构
+
+- 1. 
+- 92语法中 查询的表 表1和表2之间使用 , 来进行分隔
+- FROM 表1, 表2
+
+- 99语法中 查询的表 表1和表2之间使用 JOIN 来进行分隔
+- FROM 表1 JOIN 表2
+
+- 2. 
+- 92语法中的 连接条件 写在 WHERE 后
+- 99语法中的 连接条件 写在 ON 后
+
+```sql
+-- 两张表的情况
+SELECT e.last_name, e.department_id
+FROM employees e JOIN departments d
+ON e.department_id = d.department_id;
 ```
 
-- 遍历给按钮绑定点击事件 然后利用index 去读图片连接的数组中值
-- 比如我点击的所以为2的按钮
-```js
-Array.from(doucument.)
+```sql
+-- 三张表的情况
+SELECT e.last_name, e.department_id, city
+
+-- 连接第二张表
+FROM employees e JOIN departments d
+ON e.department_id = d.department_id;
+
+-- 连接第三张表
+JOIN Locations l
+ON d.location_id = l.location_id;
 ```
+
+<!-- 
+  连接多张表的格式
+
+  select * 
+  from 表1 
+          join 表2 on 连接条件
+          join 表3 on 连接条件
+          join 表4 on 连接条件
+-->
+
+
+> sql99语法 实现外连接
+> 左外连接
+> FROM 表1 LEFT OUTER JOIN 表2 ON 连接条件
+- JOIN用于将多个表进行分隔 LEFT OUTER用于标记使用左外连接
+- 拿着左表的条件去匹配右表的吧(左边数据多)
+
+- 当我们写 LEFT 的时候 一定是外连接 所以这时候我们可以*省略 OUTER*
+- FROM employees e *LEFT OUTER JOIN* departments d
+- FROM employees e *LEFT JOIN* departments d
+
+```sql
+SELECT last_name, department_name
+
+-- 左外连接
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id
+```
+
+
+> 右外连接
+> FROM 表1 RIGHT OUTER JOIN 表2 ON 连接条件
+- 如果右边表的数据量多 当我们把共同的满足条件的数据查出来后
+- 还想把右表中不满足条件的数据查出来 那就要使用右外连接
+- 我们在左边补加号(92语法)
+- 将左边垫高 显示右表不满足连接条件的数据
+
+```sql
+-- 92语法 右外连接 将右表中不满足连接条件的数据展现出来
+SELECT last_name, department_name
+-- 左外连接
+FROM employees e, departments d
+ON e.department_id(+) = d.department_id
+```
+
+<!-- 
+    ----       ----
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    |  |       |  |
+    ------------------
+    | +|       |  |   这样右表不满足条件的数据就能展示了
+    ----       ----
+--> 
+
+```sql
+-- 右外连接 RIGHT OUTER JOIN
+SELECT last_name, department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON e.department_id = d.department_id
+```
+<!-- 
+  员工和部门能匹配的情况下 再把所有的部门查到 这些部门没有人
+  Urman	    Finance
+  Popp	    Finance
+  Higgins	  Accounting
+  Gietz	    Accounting
+  null      Treasury
+  null      Corporate Tax
+  null      Control And Credit
+  null      Shareholder Services
+ -->
+
+---
+
+- 需求:
+- 将 左表中不满足条件的数据 + AAA + 右表中不满足条件的数据 都查询出来 (满外连接)
+
+<!-- 
+    员工表1人没有满足条件
+    -----------
+    |         |
+    |     -----------  AAA既满足员工表又满足部门表为106
+    |     | A |      |
+    |     | A |      |
+    |     | A |      |
+    ------|-- |      |
+          |          |
+          ------------
+                  部门表16个部门没有满足条件
+                  
+ -->
+
+
+> 满外连接:
+> FROM 表1 FULL OUTER JOIN 表2 ON 连接条件
+- 满外连接在*sql99中的方式就是这么写*
+
+```sql
+-- 满外连接 RIGHT OUTER JOIN
+SELECT last_name, department_name
+FROM employees e FULL OUTER JOIN departments d
+ON e.department_id = d.department_id
+```
+- *但是mysql中不支持* FULL OUTER JOIN 的写法
+
+
+> mysql中的满外连接
+- 要实现mysql中的满外连接 我们先了解下 *UNION* 关键字的使用
+
+> UNION 合并查询结果
+- 利用UNION关键字，可以给出多条SELECT语句，并将它们的结果组合成单个结果集。合并时，两个表对应的列数和数据类型必须相同，并且相互对应。各个SELECT语句之间使用UNION或UNION ALL关键字分隔。
+
+> UNION：
+- 是联合的意思 取两个集合的并集
+- 该操作符返回两个查询的结果集的并集 *去除重复记录*
+<!-- 
+    员工表 
+    -----------
+    |         |
+    |         -------
+    |                |
+    |                |
+    |                |
+    ------|          |
+          |          |
+          ------------
+                  部门表
+-->
+
+
+> UNION ALL：
+- 该操作符返回两个查询的结果集的并集 对于两个结果集的重复部分 *不去重*
+
+- 解析 UNION 和 UNION ALL:
+<!-- 
+  我们拿员工表和部门表举例:
+
+  员工表    两表满足连接条件的数据    部门表
+    1             106              16
+
+  如果我们使用的是 UNION关键字
+  结果集为 1 + 106 + 16
+
+  如果我们使用的是 UNION 关键字
+  结果集为 1 + 106 + 106 + 16
+
+  - UNION 和 UNION ALL 的区别就是多了一套公共的交集部分
+ -->
+
+
+> UNION的格式:
+- 直接点理解就是:
+
+- 一个表的数据查询的完整逻辑
+- UNION [ALL]
+- 另一个表的数据查询的完整逻辑
+
+- 也就是两个结果集之间只用 UNION [ALL] 连接
+
+```sql
+SELECT columns FROM table1
+UNION [ALL]
+SELECT columns FROM table2
+```
+
+```sql
+-- 左外连接
+SELECT employee_id, department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id
+
+UNION ALL   -- 使用 UNION ALL 连接上面两个结果集
+
+-- 左外连接去相同部分
+SELECT employee_id, department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON e.department_id = d.department_id
+WHERE e.department_id IS NULL;
+```
+
+**注意:**
+- 在开发中 能用 UNION ALL 的时候就不要使用 UNION
+- 执行UNION ALL语句时所需要的资源比UNION语句少。如果明确知道合并数据后的结果数据不存在重复数据，或者不需要去除重复的数据，则尽量使用UNION ALL语句，以提高数据查询的效率。
+
+**注意:**
+- 在使用 UNION [ALL] 的时候 要保证两个结果集的 *字段 和 字段的类型 和 字段数量 必须一致*
+
+- 上面说完UNION的效率不如UNION ALL 因为它需要在UNION ALL的基础上在进行去重操作
+- 所以我们能用UNION ALL的时候就使用UNION ALL效果高
+
+
+
+> 多表连接的7种场景
+■ : 查询出来的数据
+
+- 1. 内连接
+□■□
+```sql
+SELECT last_name, department_name
+-- 内连接 INNER JOIN ON
+FROM employees e INNER JOIN departments d
+ON e.department_id = d.department_id;
+```
+
+
+
+- 2. 左外连接
+■■□
+```sql
+SELECT last_name, department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id;
+```
+
+
+
+- 3. 右外连接
+□■■
+```sql
+SELECT last_name, department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON e.department_id = d.department_id;
+```
+
+
+
+- 4. 左外连接的基础上 扣掉相同部分
+■□□
+
+- 在 左外连接 的基础上 将相同的部分 抹掉了 ■■□ -> ■□□ *抹掉中间的相同部分*
+
+- 要点:
+- WHERE 条件的时候 左外连接 拿右表的相同字段 IS NULL
+
+```sql
+SELECT last_name, department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id
+
+-- 上面是左外连接的逻辑 我们在左外连接的基础上 添加过滤条件
+-- 过滤条件为 只要右表 d.department_id 为空的数据
+-- 相同的部分都不是NULL 我们指定非要NULL的不就把相同的部分去掉了么
+WHERE d.department_id IS NULL;
+```
+
+
+
+- 5. 右外连接的基础上 扣掉相同部分
+□□■
+
+- 在 右外连接 的基础上 将相同的部分 抹掉了 □■■ -> □□■ *抹掉中间的相同部分*
+
+- 要点:
+- WHERE 条件的时候 右外连接 拿左表的相同字段 IS NULL
+
+```sql
+SELECT employee_id, department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON e.department_id = d.department_id
+
+-- 上面是右外连接的逻辑 我们在右外连接的基础上 添加过滤条件
+WHERE e.department_id IS NULL;
+```
+
+
+
+- 6. 满外连接
+■■■   2 + 5 或者 3 + 4 能得到满外连接
+
+- 使用 UNION ALL
+
+- 2 + 5
+```sql
+-- 左外连接
+SELECT employee_id, department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id
+
+UNION ALL   -- 使用 UNION ALL 连接上面两个结果集
+
+-- 左外连接去相同部分
+SELECT employee_id, department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON e.department_id = d.department_id
+WHERE e.department_id IS NULL;
+```
+
+
+
+- 7. 
+■□■   4 + 5 能得出 7
+
+- 使用 UNION ALL
+- 4 UNION ALL 5
+```sql
+SELECT employee_id, department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id
+WHERE d.department_id IS NULL
+
+UNION ALL
+
+SELECT employee_id, department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON e.department_id = d.department_id
+WHERE e.department_id IS NULL;
+```
+
+
+> 满外连接的方式 上面 6 就是
+- 但是在想获取满外连接的时候又有多出来公共交集的部分怎么办?
+- 看上面的7中场景
+- 那我是不是可以用 2 + 5 的方式 ■■□ + □□■
+- 2 + 5 的方式就没有交集的部分了 这种情况下我们就可以使用 UNION ALL 了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+> 练习:
+- 查询部门编号>90或邮箱包含a的员工信息
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+> 扩展: 常用的 SQL 标准有哪些
+- 在正式开始讲连接表的种类时，我们首先需要知道 SQL 存在不同版本的标准规范，因为不同规范下的表连接操作是有区别的。
+
+- SQL 有两个主要的标准:
+- 分别是 `SQL92` 和 `SQL99`。
+- 92 和 99 代表了标准提出的时间，SQL92 就是 92 年提出的标准规范。
+<!-- 
+  当然除了 SQL92 和 SQL99 以外，还存在 SQL-86、SQL-89、SQL:2003、SQL:2008、SQL:2011 和 SQL:2016 等其他的标准。 
+-->
+
+- 这么多标准，到底该学习哪个呢？
+**实际上最重要的 SQL 标准就是 SQL92 和 SQL99**。
+
+- 一般来说:
+- SQL92 的形式更简单，但是写的 SQL 语句会比较长，可读性较差。- SQL99 相比于 SQL92 来说，语法更加复杂，但可读性更强。
+
+<!-- 
+  我们从这两个标准发布的页数也能看出，SQL92 的标准有 500 页，而 SQL99 标准超过了 1000 页。实际上从 SQL99 之后，很少有人能掌握所有内容，因为确实太多了。就好比我们使用 Windows、Linux 和 Office 的时候，很少有人能掌握全部内容一样。我们只需要掌握一些核心的功能，满足日常工作的需求即可。 
+-->
+
+**SQL92 和 SQL99 是经典的 SQL 标准，也分别叫做 SQL-2 和 SQL-3 标准。**
+<!-- 
+  也正是在这两个标准发布之后，SQL 影响力越来越大，甚至超越了数据库领域。现如今 SQL 已经不仅仅是数据库领域的主流语言，还是信息领域中信息处理的主流语言。在图形检索、图像检索以及语音检索中都能看到 SQL 语言的使用。 
+
+  外连接的语法分为92语法(92年发布的)和99语法(99年发布的)
+-->
+
+
+
+
+
 
 ------------------
 
