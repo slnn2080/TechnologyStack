@@ -1224,7 +1224,7 @@ FROM employees
 WHERE commission_pct IS NULL;
 ```
 
-> IS NOTNULL
+> IS NOT NULL
 - 不为空运算符
 - 判断值 字符串 或 表达式 是否不为空
 ```sql
@@ -2724,28 +2724,216 @@ ON e.department_id = d.department_id
 WHERE e.department_id IS NULL;
 ```
 
-
 > 满外连接的方式 上面 6 就是
 - 但是在想获取满外连接的时候又有多出来公共交集的部分怎么办?
 - 看上面的7中场景
 - 那我是不是可以用 2 + 5 的方式 ■■□ + □□■
 - 2 + 5 的方式就没有交集的部分了 这种情况下我们就可以使用 UNION ALL 了
 
+------------------
+
+### sql99语法的新特性
+- 连接下就可以
+
+> 自然连接 
+- SQL99 在 SQL92 的基础上提供了一些特殊语法，
+- 比如 `NATURAL JOIN` 用来表示自然连接。
+- 我们可以把自然连接理解为 SQL92 中的等值连接。它会帮你自动查询两张连接表中`所有相同的字段`，然后进行`等值连接`。
+
+
+> FROM 表A NATURAL JOIN 表B
+- 使用 NATURAL JOIN 不用写连接条件
+- 使用 NATURAL JOIN 连接两个表后 会将两个表中 所有相同字段 作为连接条件 进行 *等值连接*
+
+- NATURAL JOIN 虽然简洁但不够灵活
+<!-- 
+  员工表和部门表 有两个字段 它们都有
+  department_id
+  manager_id
+
+  如果使用 NATURAL JOIN 那么连接条件会为
+  ON e.department_id = d.department_id
+  AND e.manager_id = d.manager_id 
+      // 只能查出32条数据
+
+  我们要使用 INNER JOIN 的话 那么能查出106条数据
+  我们可以控制 连接条件
+ -->
+
+- 比如我们要从两张表中查询 
+  employee_id 
+  last_name 
+  department_name
+
+- 那就要使用多表查询 而多表查询会有连接条件的要求
+```sql
+SELECT e.employee_id, e.last_name, d.department_id
+FROM employees e JOIN departments d
+
+-- 两个表中 有两个字段是共同的 我们可以拿这两个字段来作为连接条件
+ON e.department_id = d.department_id
+AND e.manager_id = d.manager_id
+```
+
+- 我们使用 *NATURAL JOIN* 连操作下 和上面的效果是一样的
+```sql
+SELECT e.employee_id, e.last_name, d.department_id
+FROM employees e NATURAL JOIN departments d
+```
+
+
+> USING(字段)
+- USING()函数 用来替换 连接条件 ON
+- 当我们连接条件中 左表和右表的 所有字段一样的时候 我们可以直接 USING()一下
+
+**注意:**
+- 自连接不可以使用 USING()
+
+- 之前的操作方式
+```sql
+SELECT e.employee_id, e.last_name, d.department_id
+FROM employees e INNER JOIN departments d
+ON e.department_id = d.department_id
+```
+
+- USING的操作方式
+```sql
+SELECT e.employee_id, e.last_name, d.department_id
+FROM employees e INNER JOIN departments d
+USING(department_id)
+```
 
 
 
+> 总结:
+- 表的连接条件的写法有3种
+- 92: 在 WHERE 中写
+- 99: 在 ON 中写
+- 99: 在 USING() 中写
+
+- WHERE:
+- 适用于所有关联查询
+
+- ON: 
+- 只能和JOIN一起使用 只能写关联条件 虽然关联条件可以并到WHERE中和其他条件一起写
+- 但分开写可读性更好
+
+- USING():
+- 只能和 JOIN 一起使用 而且要求两个关联字段在关联表中名称一致
+- 而且只能表示关联字段值相等
 
 
+**注意：**
 
+- 我们要`控制连接表的数量`。多表连接就相当于嵌套 for 循环一样，非常消耗资源，会让 SQL 查询性能下降得很严重，因此不要连接不必要的表。在许多 DBMS 中，也都会有最大连接表的限制。
 
+- 超过三个表, 禁止join。
+- 需要 join 的字段，数据类型保持绝对一致；
 
-
-
-
+- 多表关联查询时， 保证被关联的字段需要有索引。 
+- 说明：即使双表 join 也要注意表索引、SQL 性能。
 
 
 > 练习:
-- 查询部门编号>90或邮箱包含a的员工信息
+- 1. 显示所有员工的姓名，部门号和部门名称。
+```sql
+-- 注意: 这里提到了所有的 而且涉及到了多张表 那我们就要考虑使用外连接
+-- 我们的需求里面说的是所有员工的情况 也就是要找以员工表为基准的信息 意味着左表的数据可能会多 多的在左边 就要使用左外连接
+SELECT e.last_name, e.department_id, d.department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id;
+```
+
+- 2. 查询90号部门员工的job_id和90号部门的location_id
+```sql
+SELECT e.job_id, d.location_id
+FROM employees e INNER JOIN departments d
+-- 先利用下部门表 将有部门的员工先列出来
+ON e.department_id = d.department_id
+-- 要的是90部门的信息
+WHERE d.department_id = 90
+```
+
+- 3. 选择所有有奖金的员工的 
+- last_name , department_name , location_id , city
+```sql
+SELECT e.last_name, e.commission_pct, d.department_name, d.location_id, l.city
+FROM employees e LEFT OUTER JOIN departments d
+ON e.department_id = d.department_id
+-- 上面使用了左外连接 下面这个表也要用左外连接 相当于 我们补上了第二张表的腿 也要补上第三张表的腿
+LEFT OUTER JOIN locations l
+ON d.location_id = l.location_id
+-- 有奖金的员工信息
+WHERE e.commission_pct IS NOT NULL;
+```
+
+- 4. 选择city在Toronto工作的员工的 
+- last_name , job_id , department_id , department_name 
+```sql
+SELECT e.last_name, e.job_id, e.department_id, d.department_name, l.city
+-- 我们写表的时候按照上面的要展示的字段去写 (老师说先写谁后写谁都一样)
+FROM employees e INNER JOIN departments d
+ON e.department_id = d.department_id
+INNER JOIN locations l
+ON d.location_id = l.location_id
+WHERE l.city = 'Toronto'
+```
+
+- 5. 查询员工所在的部门名称、部门地址、姓名、工作、工资，其中员工所在部门的部门名称为’Executive’
+```sql
+SELECT d.department_name, l.street_address, e.last_name, e.job_id, e.salary
+FROM employees e INNER JOIN departments d
+ON e.department_id = d.department_id
+INNER JOIN locations l
+ON d.location_id = l.location_id
+WHERE d.department_name = 'Executive'
+```
+
+- 6. 选择指定员工的姓名，员工号，以及他的管理者的姓名和员工号，结果类似于下面的格式 
+- employees Emp# manager Mgr# 
+  kochhar   101   king   100
+```sql
+-- 注意 公司的最高负责人是没有领导的 但是也要让他出来 这里有是外连接
+SELECT e.last_name "emp name", e.employee_id "emp id", m.last_name "mgr name", m.employee_id "mgr id"
+FROM employees e LEFT OUTER JOIN employees m
+ON e.manager_id = m.employee_id
+```
+
+- 7. 查询哪些部门没有员工
+```sql
+-- ■□□
+-- 相当于我们在做这样的事情
+-- 告诉我们哪些部门就可以了
+SELECT e.department_id
+FROM departments d LEFT OUTER JOIN employees e
+ON d.department_id = e.department_id
+WHERE e.department_id IS NULL;
+```
+
+- 8. 查询哪个城市没有部门
+```sql
+SELECT l.location_id, l.city
+FROM locations l LEFT OUTER JOIN departments d
+ON l.location_id = d.location_id
+WHERE d.location_id IS NULL;
+```
+
+- 9. 查询部门名为 Sales 或 IT 的员工信息
+```sql
+SELECT e.employee_id, e.last_name, d.department_id
+FROM employees e JOIN departments d
+ON e.department_id = d.department_id
+WHERE d.department_name IN ('Sales', 'IT');
+```
+
+
+
+
+
+
+
+
+
 
 
 
