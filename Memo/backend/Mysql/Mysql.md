@@ -2927,27 +2927,6 @@ WHERE d.department_name IN ('Sales', 'IT');
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 > 扩展: 常用的 SQL 标准有哪些
 - 在正式开始讲连接表的种类时，我们首先需要知道 SQL 存在不同版本的标准规范，因为不同规范下的表连接操作是有区别的。
 
@@ -2975,10 +2954,1097 @@ WHERE d.department_name IN ('Sales', 'IT');
   外连接的语法分为92语法(92年发布的)和99语法(99年发布的)
 -->
 
+------------------
+
+### 函数分类
+- 任何一门语言都会涉及到对功能的封装
+- 从函数定义的角度出发，我们可以将函数分成
+- 1. `内置函数`
+- 2. `自定义函数`。
+
+
+> 不同DBMS(数据管理系统)函数的差异
+- 我们在使用 SQL 语言的时候，不是直接和这门语言打交道，而是通过它使用不同的数据库软件，即 DBMS。
+- **DBMS之间的差异性很大， 远大于同一个语言不同版本之间的差异。**
+
+- 实际上，只有很少的函数是被 DBMS 同时支持的。比如，大多数 DBMS 使用（||）或者（+）来做拼接符，而在 MySQL 中的字符串拼接函数为concat()。
+<!--  
+  concat('字符串1', '字符串2')
+ -->
+
+- 大部分 DBMS 会有自己特定的函数，这就意味着**采用 SQL 函数的代码可移植性是很差的**，因此在使用函数的时候需要特别注意。
+
+- 也就是说 函数不通用 因为不同的软件中对函数的支持不足
+- 我们下面讲的主要是mysql中的函数
+
+
+> MySQL的内置函数及分类
+- MySQL提供了丰富的内置函数，这些函数使得数据的维护与管理更加方便，能够更好地提供数据的分析与统计功能，在一定程度上提高了开发人员进行数据分析与统计的效率。
+
+- MySQL提供的内置函数从
+- `实现的功能角度`
+    - 数值函数、
+    - 字符串函数、
+    - 日期和时间函数、
+    - 流程控制函数、
+    - 加密与解密函数、
+    - 获取MySQL信息函数、
+    - 聚合函数等。
+    
+- 这里，我将这些丰富的内置函数再分为两类：
+  `单行函数`、
+  `聚合函数（或分组函数）`
+
+
+> 单行函数 多行函数(聚合函数)
+- 送进去一行数据 出来一行数据 - 单行行数
+- 送进去多行数据 出来一行数据 - 多行函数
+
+<!-- 
+  数据 -> 单行函数 -> 数据
+
+
+  数据 ->
+  数据 -> 多行函数 -> 数据
+  数据 ->
+ -->
+
+
+> 单行函数的特点
+- 接受参数返回一个结果
+- **只对一行进行变换**
+- **每行返回一个结果**
+- 可以嵌套
+- 参数可以是一列或一个值
+
+
+> 数值函数
+> 基本常用的函数：
+
+> ABS(x) 
+- 返回x的绝对值
+
+> SIGN(X)
+- 返回X的符号。正数返回1，负数返回-1，0返回0
+
+> PI()
+- 返回圆周率的值
+
+> CEIL(x)， CEILING(x)
+- 返回大于或等于某个值的最小整数
+- 32.32 -> 返回 33
+- -43.23 -> 返回 -43
+
+
+> FLOOR(x)
+- 返回小于或等于某个值的最大整数
+- 32.32 -> 返回32
+- -32.23 -> 返回 -33
+
+
+> LEAST(e1,e2,e3…)
+- 返回列表中的最小值
+
+> GREATEST(e1,e2,e3…)
+- 返回列表中的最大值
+
+> MOD(x,y)
+- 返回X除以Y后的余数
+
+
+> RAND()
+- 返回0~1的随机值
+<!-- 
+  比如 0-100 之间的随机数
+  RAND() * 100
+
+  然后四舍五入
+ -->
+
+> RAND(x)
+- 返回0~1的随机值，其中x的值用作种子值，相同的X值会产生相同的随机数
+<!-- 
+  RAND(10)
+  RAND(10)
+      -- 因为我们传入的因子一样 所以两次调用产生的随机数是相同的
+ -->
+
+
+> ROUND(x)
+- 返回一个对x的值进行四舍五入后，最接近于X的整数
+
+> ROUND(x,y)
+- 返回一个对x的值进行四舍五入后最接近X的值，并保留到小数点后面Y位
+
+- 参数y: 保留几位小数
+<!-- 
+  参数y 还可以传入负数
+  round(123.456, -1) 首先小数部分没有了 然后拿个数进行四舍五入的判断 不足5 舍掉 换成0 结果是 120
+ -->
+
+
+> TRUNCATE(x,y)  -- 截断操作
+- 返回数字x截断为y位小数的结果
+- 参数y：保留几位小数 剩下的截断
+- truncate(123.456, 0) -> 保留到整数位 123
+- truncate(123.456, 1) -> 保留到整数位 123.4
+- truncate(129.456, -1) -> 保留到整数位 120
+
+> SQRT(x)
+- 返回x的平方根。当X的值为负数时，返回NULL
+
+
+**注意:**
+- 单行函数可以嵌套
+```sql
+SELECT TRUNCATE(ROUND(123.456, 2),0)
+FROM DUAL;
+  -- 123
+```
+
+---
+
+> 角度与弧度互换函数
+- 我们想象一个表 和 秒针 从3点的位置来当做是0
+- 当我们秒针走过的弧长 和 半径的长度是一样的 这时候秒针的夹角 就是一个弧度
+<!-- 
+  1弧度 = 57度多
+ -->
+
+- 圆的周长: 2PI R
+
+> RADIANS(x)
+- 将角度转化为弧度，其中，*参数x为角度值*
+
+> DEGREES(x)
+- 将弧度转化为角度，其中，*参数x为弧度值*
+
+```sql
+SELECT SIN(RADIANS(30)),DEGREES(ASIN(1)),TAN(RADIANS(45)),DEGREES(ATAN(1)),DEGREES(ATAN2(1,1))
+FROM DUAL;
+```
+
+---
+
+> 三角函数
+> SIN(x)
+- 返回x的正弦值，其中，参数x为弧度值 
+
+> ASIN(x)
+- 返回x的反正弦值，即获取正弦为x的值。如果x的值不在-1到1之间，则返回NULL
+
+> COS(x)
+- 返回x的余弦值，其中，参数x为弧度值
+
+> ACOS(x)
+- 返回x的反余弦值，即获取余弦为x的值。如果x的值不在-1到1之间，则返回NULL
+
+> TAN(x)
+- 返回x的正切值，其中，参数x为弧度值
+
+> ATAN(x)
+- 返回x的反正切值，即返回正切值为x的值
+
+> ATAN2(m,n)
+- 返回两个参数的反正切值
+
+> COT(x)
+- 返回x的余切值，其中，X为弧度值
+
+```sql
+SELECT SIN(RADIANS(30)),DEGREES(ASIN(1)),TAN(RADIANS(45)),DEGREES(ATAN(1)),DEGREES(ATAN2(1,1))
+FROM DUAL;
+```
+
+---
+
+> 指数与对数
+> POW(x,y)，POWER(X,Y)
+- 返回x的y次方
+
+> EXP(X) 
+- 返回e的X次方，其中e是一个常数，2.718281828459045
+
+> LN(X)， LOG(X)
+- 返回以e为底的X的对数，当X <= 0 时，返回的结果为NULL
+
+> LOG10(X)
+- 返回以10为底的X的对数，当X <= 0 时，返回的结果为NULL
+
+> LOG2(X)
+- 返回以2为底的X的对数，当X <= 0 时，返回NULL
+
+--- 
+
+> 进制间的转换
+> BIN(x)
+- 返回x的二进制编码
+
+> HEX(x) 
+- 返回x的十六进制编码
+
+> OCT(x)
+- 返回x的八进制编码
+
+> CONV(x,f1,f2)
+- 返回f1进制数变成f2进制数 
+- CONV(10,2,8) - 将2进制的10转换为8进制
+
+------------------
+
+### 字符串函数
+
+> ASCII(S)
+- 返回字符串S中的*第一个字符的ASCII码值*
+
+
+> CHAR_LENGTH(s)
+- 返回字符串s的*字符的个数*。作用与CHARACTER_LENGTH(s)相同
+```sql
+SELECT CHAR_LENGTH('hello'), CHAR_LENGTH('我们')
+FROM DUAL;
+  -- 5, 2
+```
+
+> LENGTH(s)
+- 返回字符串s的*字节数*，和字符集有关
+```sql
+SELECT LENGTH('hello'), LENGTH('我们')
+FROM DUAL;
+  -- 5, 6
+
+-- hello:
+-- 英文下我们使用的字符集 用一个字节去存就可以
+
+-- 我们
+-- utf8里面每一个汉字占3个字节 所以是6
+```
+
+
+> CONCAT(s1,s2,......,sn)
+- 连接s1,s2,......,sn为一个字符串
+- 变量直接写 字符串用单引号
+
+```sql
+SELECT CONCAT(e.last_name, ' -- worked for -- ', m.last_name)
+FROM employees e INNER JOIN employees m
+WHERE e.manager_id = m.employee_id;
+```
+
+> CONCAT_WS(x, s1,s2,......,sn)
+- 同CONCAT(s1,s2,...)函数，但是每个*字符串之间*要加上x
+
+
+**注意: sql中字符串的索引是从 1 开始的**
+> INSERT(str, idx, len, replacestr)
+- *替换*
+- 将字符串str从第idx位置开始，len个字符长的子串替换为字符串replacestr
+
+- idx:
+  索引位置 从1开始 包括这个位置
+
+- len:
+  取几个
+
+- replacestr
+  - 用这个字符串代替 len个
+
+```sql
+SELECT INSERT('helloworld', 2, 3, 'aaa')
+FROM DUAL;
+
+-- haaaoworld
+-- 从e开始 取3个 ell 替换为 aaa
+```
+
+
+> REPLACE(str, a, b)
+- *替换*
+- 用字符串b替换字符串str中所有出现的字符串a 
+- 将字符串中指定的字符 替换为 指定字符
+
+- 替换失败不会报错 就是替换不成功
+
+```sql
+SELECT REPLACE('hello','ll','aa')
+FROM DUAL;
+
+-- heaao
+```
+
+
+> UPPER(s) 或 UCASE(s)
+- 将字符串s的所有字母转成大写字母
+
+> LOWER(s)  或LCASE(s)
+- 将字符串s的所有字母转成小写字母
+```sql
+-- 我们可以将一个字段转换为小写后 进行过滤
+WHERE lower(last_name) = 'king'
+```
+
+> LEFT(str,n)
+- 返回字符串str最左边的n个字符
+```sql
+LEFT('hello', 2)
+```
+
+> RIGHT(str,n)
+- 返回字符串str最右边的n个字符
+
+
+> LPAD(str, len, pad)
+- 不足len的位置 使用pad来填充
+- 能够实现右对齐的效果
+- 用字符串pad对str最左边进行填充，直到str的长度为len个字符
+
+```sql
+-- 这里我们salary字段是数字 但是也能传入LPAD字符串方法中 因为里面有隐式转换
+SELECT employee_id, last_name, LPAD(salary,10,'*')
+FROM employees;
+```
+
+> RPAD(str ,len, pad)
+- 用字符串pad对str最右边进行填充，直到str的长度为len个字符
+- 能够实现左对齐效果
+
+
+> LTRIM(s)
+- 去掉字符串s左侧的空格
+
+> RTRIM(s)  
+- 去掉字符串s右侧的空格
+
+> TRIM(s)
+- 去掉字符串s 两端的空格 
+
+> TRIM(s1 FROM s)
+- 去掉指定字符串s中 指定s1的字符 *两端*
+```sql
+SELECT TRIM('oo' FROM 'ooheollo')
+FROM DUAL;
+
+-- heollo
+```
+
+> TRIM(LEADING s1 FROM s)
+- 去掉字符串s开始处的s1
+
+> TRIM(TRAILING s1 FROM s)
+- 去掉字符串s结尾处的s1 
+
+
+> REPEAT(str, n)
+- 返回str重复n次的结果
+
+> SPACE(n)
+- 返回n个空格
+
+
+> STRCMP(s1,s2)
+- *比较*字符串s1,s2的ASCII码值的大小
+- s1 大 返回 正数
+- s1 小 返回 负数
+- 0相等
+
+
+> SUBSTR(s,index,len)
+- *截取*
+- 返回从字符串s的index位置取len个字符，
+- 作用与SUBSTRING(s,n,len)、MID(s,n,len)相同
+
+
+> LOCATE(substr,str)
+- 返回字符串substr在字符串str中首次出现的位置，
+- 作用于POSITION(substr IN str)、INSTR(str,substr)相同。未找到，返回0
+<!-- 
+  js里的indexOf
+ -->
+
+- 没找的话 返回 *0*
 
 
 
+> ELT(m,s1,s2,…,sn)
+- 返回指定位置的字符串，如果m=1，则返回s1，如果m=2，则返回s2，如果m=n，则返回sn
 
+- 我们可以理解为 在()中填入的是一个集合 我们传入的第一个参数指定返回集合中哪个位置的元素
+
+
+> FIELD(s,s1,s2,…,sn)
+- 返回字符串s在字符串列表中*第一次出现的位置*
+```sql
+ELT(2, 'a', 'b', 'c')
+-- 2
+```
+
+> FIND_IN_SET(s1,s2)
+- *返回*字符串s1在字符串s2中出现的*位置*。其中，字符串s2是一个以逗号分隔的字符串
+```sql
+FIND_IN_SET('mm','aa, bb, mm')
+-- 3
+```
+
+> REVERSE(s)
+- 返回s反转后的字符串
+
+> NULLIF(value1,value2)
+- 比较两个字符串，如果value1与value2相等，则返回NULL，否则返回value1
+
+------------------
+
+### 日期和时间函数
+
+> 获取日期、时间
+> CURDATE() -- !
+> CURRENT_DATE()
+- 返回当前日期，只包含年、月、日
+
+
+> CURTIME() -- !
+> CURRENT_TIME()
+- 返回当前时间，只包含时、分、秒
+
+
+> NOW() -- !
+> SYSDATE()
+> CURRENT_TIMESTAMP()
+> LOCALTIME()
+> LOCALTIMESTAMP()
+- 返回当前系统日期和时间
+- 返回的是年月日 + 时分秒
+
+---
+
+- 下面这两个跟上面的时间会有8小时的差别
+
+> UTC_DATE()
+- 返回UTC（世界标准时间）日期
+
+> UTC_TIME()
+- 返回UTC（世界标准时间）时间
+
+
+```sql
+SELECT 
+  CURDATE(),
+          -- 2022-02-17
+
+  CURTIME(),
+          -- 21:52:19
+
+  NOW(),
+          -- 2022-02-17 21:52:19
+
+  SYSDATE()+0,
+          -- 20220217215219
+
+  UTC_DATE(),
+          -- 2022-02-17
+
+  UTC_DATE()+0,
+          -- 20220217
+
+  UTC_TIME(),
+          -- 12:52:19 -- 差9小时
+
+  UTC_TIME()+0
+          -- 125219
+FROM DUAL;
+```
+
+**注意:**
+- 结果加上 0 可以转换为 去掉 - 和 ： 之后的连接结果
+
+---
+
+> 日期与时间戳的转换
+- 指定的日期 和 对应的毫秒数之间的转换
+- 很多时候我们在表中保存时间的话 其实都可以用时间戳的方式去保存
+
+- 比如：
+- 订单单号里也会有时间戳做为它的一部分去构成再配一个随机的字符串
+
+
+> UNIX_TIMESTAMP()
+- 以UNIX时间戳的形式返回当前时间。
+- *将当前的时间进行转换*
+- SELECT UNIX_TIMESTAMP() ->1634348884
+```sql
+SELECT UNIX_TIMESTAMP() FROM DUAL;
+	-- 1645102589
+```
+
+
+> UNIX_TIMESTAMP(date)
+- 将时间date以UNIX时间戳的形式返回。 
+- *将指定时间转换为时间戳*
+```sql
+SELECT UNIX_TIMESTAMP('2021-10-01 12:12:12') FROM DUAL;
+  -- 1633057932
+```
+
+
+> FROM_UNIXTIME(timestamp)
+- 将UNIX时间戳的时间转换为普通格式的时间
+- *将时间戳转换为普通格式的时间*
+
+```sql
+SELECT UNIX_TIMESTAMP() FROM DUAL;
+	-- 1645102589
+	
+SELECT FROM_UNIXTIME(1645102589) FROM DUAL;
+	-- 2022-02-17 21:56:29
+```
+
+---
+
+> 获取月份、星期、星期数、天数等函数
+- 
+
+> YEAR(date) / MONTH(date) / DAY(date)
+- 从指定的时间中 返回 年 月 日
+
+> HOUR(time) / MINUTE(time) / SECOND(time)
+- 从指定的时间中 返回 时 分 秒
+
+> MONTHNAME(date)
+- 返回月份：January，...
+
+> DAYNAME(date)
+- 返回星期几：MONDAY，TUESDAY.....SUNDAY
+
+> WEEKDAY(date)
+- 返回周几，
+- 注意，*周1是0*，周2是1，。。。*周日是6*
+
+> QUARTER(date)
+- 返回日期对应的季度，范围为1～4
+
+> WEEK(date) ， WEEKOFYEAR(date)
+- 返回一年中的第几周
+
+> DAYOFYEAR(date)
+- 返回日期是一年中的第几天
+
+> DAYOFMONTH(date)
+- 返回日期位于所在月份的第几天
+
+> DAYOFWEEK(date)
+- 返回周几，
+- 注意：*周日是1*，周一是2，。。。*周六是7*
+
+```sql
+SELECT 
+  YEAR(CURDATE()),
+  MONTH(CURDATE()),
+  DAY(CURDATE()),
+  HOUR(CURTIME()),
+  MINUTE(NOW()),
+  SECOND(SYSDATE())
+FROM DUAL;
+
+
+SELECT 
+  MONTHNAME('2021-10-26'),
+    -- '2021-10-26' 我们也可以这样的指定时间 这里存在着隐式转换
+
+    -- sql中默认的年月日的格式为 2021-10-25 如果我们自己写的格式和默认的格式是一样的时候
+
+    -- 这时候就会有隐式的转换 将 '2021-10-26' 字符串型 隐式的转换为 日期的类型
+
+
+  DAYNAME('2021-10-26'),
+  WEEKDAY('2021-10-26'),
+  QUARTER(CURDATE()),
+  WEEK(CURDATE()),
+  DAYOFYEAR(NOW()),
+  DAYOFMONTH(NOW()),
+  DAYOFWEEK(NOW())
+FROM DUAL;
+```
+
+---
+
+> 日期的操作函数
+> EXTRACT(type FROM date)
+- 返回指定日期中特定的部分，type指定返回的值
+
+- type:
+- MICROSECOND
+    - 返回毫秒数
+
+-	SECOND
+    - 返回秒数
+```sql
+SELECT EXTRACT(SECOND FROM NOW())
+FROM DUAL;
+```
+
+-	MINUTE
+    - 返回分钟数
+
+-	HOUR
+    - 返回小时数
+
+-	DAY
+    - 返回天数
+
+-	WEEK
+    - 返回日期在一年中的第几个星期
+
+-	MONTH
+    - 返回日期在一年中的第几个月
+
+-	QUARTER
+    - 返回日期在一年中的第几个季度
+
+-	YEAR
+    - 返回日期的年份
+
+
+
+*下面的这些是取两个部分 比如小时和秒*
+*22:20 -> 2220*
+
+-	SECOND_MICROSECOND
+    - 返回秒和毫秒值
+
+-	MINUTE_MICROSECOND
+    - 返回分钟的毫秒值
+
+-	MINUTE_SECOND
+    - 返回分钟和秒
+
+-	HOUR_MICROSECOND
+    - 返回小时和毫秒值
+
+-	HOUR_SECOND
+    - 返回小时和秒
+
+-	HOUR_MINUTE
+    - 返回小时和分钟
+```sql
+SELECT EXTRACT(HOUR_MINUTE FROM NOW())
+FROM DUAL;
+    -- 2220  晚上10点20
+```
+
+-	DAY_MICROSECOND
+    - 返回天和毫秒值
+
+-	DAY_SECOND
+    - 返回天和秒
+
+-	DAY_MINUTE
+    - 返回天和分钟值
+
+-	DAY_HOUR
+    - 返回天和小时
+
+-	YEAR_MONTH
+    - 返回年和月
+
+---
+
+> 时间和秒钟 转换的函数
+> TIME_TO_SEC(time)
+- 将传入的时间 转化为 秒 并返回结果值。
+- 转化的公式为：`小时*3600+分钟*60+秒`
+```sql
+SELECT TIME_TO_SEC(CURTIME())
+FROM DUAL;
+
+SELECT TIME_TO_SEC('10:10:10')
+FROM DUAL;
+  -- 36610
+```
+
+> SEC_TO_TIME(seconds)
+- 将 秒数 描述转化为 包含 *时:分:秒*
+```sql
+SELECT SEC_TO_TIME(36610)
+FROM DUAL;
+    -- 10:10:10
+```
+
+---
+
+> 计算日期和时间的函数
+- 这一块在实际开发中是由应用场景的
+- 下面是对年月日做一些*加减的操作*
+
+> DATE_ADD(datetime, INTERVAL expr type)
+> ADDDATE(date, INTERVAL expr type)
+- 返回与给定日期时间相差INTERVAL时间段的日期时间
+
+- 参数1: datetime
+- 日期
+
+- 参数2: 分为3个部分
+- INTERVAL 相当于关键字 固定的
+- 表达式
+- 利用type指定对时间的哪个部分进行操作
+
+```sql
+-- 对当前的时间中的年 进行 +1 操作
+SELECT NOW(), DATE_ADD(NOW(), INTERVAL 1 YEAR)
+FROM DUAL;
+-- now(): 
+      2022-02-17 22:40:50
+-- 操作后: 
+      2023-02-17 22:40:50
+```
+
+**注意:**
+- 虽然我们调用的是 DATE_ADD() 方法 是加的操作
+- 但是如果我们传入 -1 的话 就相当于 减的操作
+```sql
+SELECT NOW(), DATE_ADD(NOW(), INTERVAL -1 YEAR)
+FROM DUAL;
+    -- 2021-02-17 22:40:50
+```
+
+
+> DATE_SUB(date,INTERVAL expr type)
+> SUBDATE(date,INTERVAL expr type)
+- 返回与date相差INTERVAL时间间隔的日期
+
+- 上述的type取值:
+- HOUR
+  - 小时
+
+- MINUTE
+  - 分钟
+
+- SECOND
+  - 秒
+
+- YEAR
+- MONTH
+- DAY
+
+- YEAR_MONTH
+  - 年和月
+
+- DAY_HOUR
+  - 日和小时
+
+- DAY_MINUTE
+  - 日和分钟
+
+- DAY_SECOND
+  - 日和秒
+
+- HOUR_MINUTE
+  - 小时和分钟
+
+- HOUR_SECOND
+  - 小时和秒
+
+- MINUTE_SECOND
+  - 分钟和秒
+
+```sql
+SELECT 
+	DATE_ADD(NOW(), INTERVAL 1 DAY) AS col1,
+	DATE_ADD('2021-10-21 23:32:12',INTERVAL 1 SECOND) AS col2,
+	ADDDATE('2021-10-21 23:32:12',INTERVAL 1 SECOND) AS col3,
+
+  -- 同时对年和月进行操作的时候 要使用'' _ 连接
+	DATE_ADD('2021-10-21 23:32:12',INTERVAL '1_1' MINUTE_SECOND) AS col4,
+
+  -- 可以使用负数
+	DATE_ADD(NOW(), INTERVAL -1 YEAR) AS col5, 					
+
+  -- 同时对年和月进行操作的时候 要使用'' _ 连接
+	DATE_ADD(NOW(), INTERVAL '1_1' YEAR_MONTH) AS col6
+FROM DUAL;
+```
+
+---
+
+> ADDTIME(time1,time2)
+- 在time1的基础上加上time2的时间。
+
+- time2的写法:
+- 1. 如果只是单纯的数字 我们看做是 秒
+- 2. 可以是负数
+- 3. '1:1:3'
+- 4. '2022-10-02'
+- 5. '2022-10-02 22:10:10'
+
+
+> SUBTIME(time1,time2)
+- 在time1的基础上减去time2的时间。
+
+
+> DATEDIFF(date1,date2)
+- 获取date1 和 date2 之间的时间间隔
+- 返回date1 - date2的日期间隔天数
+
+- 应用场景:
+- 用户注册的表格 最近7天 有多少用户注册了
+- 我们的表中会有一个字段保存着用户注册的时间
+- 注册时间和now()进行对比 如果是在7天之内就要这条记录
+
+
+> TIMEDIFF(time1, time2)
+- 返回time1 - time2的 时间间隔
+- 01:03:22
+
+
+> FROM_DAYS(N)
+- 返回从0000年1月1日起，N天以后的日
+- 从 0000年1月1日 起 指定天数 那天对应的日期
+- FROM_DAYS(366) -- 0001-01-01
+
+
+> TO_DAYS(date) 
+- 返回日期date距离0000年1月1日的天
+
+
+> LAST_DAY(date)
+- 返回date所在月份的最后一天的日期
+
+> MAKEDATE(year,n)
+- 针对给定年份 与 传入的天数 组成一个时间
+- 2000 + 100天 是 2000-04-10
+
+> MAKETIME(hour,minute,second)
+- 将给定的小时、分钟和秒组合成时间并返回
+
+> PERIOD_ADD(time,n)
+- 返回time加上n后的时间  
+
+```sql
+SELECT 
+	ADDTIME(NOW(),20),
+      -- 在前面的时间上 +20秒
+
+	SUBTIME(NOW(),30),
+      -- 在前面的时间上 -30秒
+
+	SUBTIME(NOW(),'1:1:3'),
+      -- 减去 1:1:3
+
+	DATEDIFF(NOW(),'2021-10-01'),
+      -- 得到两个时间之间的间隔天数
+
+	TIMEDIFF(NOW(),'2021-10-25 22:10:10'),
+      -- 得到两个时间之间的时间差 
+      -- 838:59:59
+
+	FROM_DAYS(366),
+      -- 0001-01-01
+
+	TO_DAYS('0000-12-25'),
+	LAST_DAY(NOW()),
+
+	MAKEDATE(YEAR(NOW()),32),
+      -- YEAR(NOW()) 取出当前时间的年
+      -- 然后根据我们传入的天数 组成一个日期
+      - 2022-02-01
+
+
+	MAKETIME(10,21,23),
+      -- 组成 时:分:秒 返回
+
+	PERIOD_ADD(20200101010101,10)
+      -- 20200101010111
+
+FROM DUAL;
+```
+
+--- 
+
+> 日期的格式化与解析
+- 格式化:
+- 日期 -> 字符串
+
+- 解析:
+- 字符串 -> 日期
+
+- 上面我们说的是日期的显示格式化和解析
+
+- 之前我们接触过隐式的格式化或解析 比如
+```sql
+SELECT *
+FROM employees
+
+-- 我们填写的是字符串 但是字符串的格式 如果满足 date的默认格式 相当于隐式的将该字符串转换为date的类型了
+WHERE hire_date = '1993-01-13'
+```
+
+> 格式化: 日期 -> 字符串
+> DATE_FORMAT(date, 指定格式)
+- 将日期 按照指定格式来 转换成 字符串
+
+```sql
+-- 将当前的日期 通过 指定的格式 转换为字符串
+SELECT DATE_FORMAT(CURDATE(),'%Y-%M-%D')
+FROM DUAL;
+    -- 2022-February-17th
+
+-- %Y-%m-%d  -- 这是比较标准的格式
+```
+
+
+> 格式化: 日期 -> 字符串
+> TIME_FORMAT(time, 指定格式)
+- 将时间 按照指定格式来 转换成 字符串
+```sql
+SELECT TIME_FORMAT(CURTIME(),'%H:%i:%s')
+FROM DUAL;
+
+-- 23:59:53
+```
+
+> 解析: 字符串 -> 日期
+> STR_TO_DATE(str, 指定格式) 
+- 将字符串按照哪种格式转换回去，解析为一个日期
+- 注意:
+- 我们拿什么格式转成字符串的 就要用什么格式转换回去
+- 格式要一致
+
+
+
+> 指定格式:
+- %Y
+  4位数字表示年份
+
+- %y
+  表示两位数字表示年份
+
+--- *上面是年*
+
+-  %M 
+  月名表示月份(January,....) 
+  
+- %m
+  两位数字表示月份 (01,02,03。。。)
+
+- %b 
+  缩写的月名(Jan.，Feb.，....)
+
+- %c 
+  数字表示月份(1,2,3,...)
+
+--- *上面是月*
+
+- %D 
+  英文后缀表示月中的天数 
+   (1st,2nd,3rd,...)
+
+- %d 
+  两位数字表示月中的天数(01,02...)
+
+- %e
+  数字形式表示月中的天数 (1,2,3,4,5.....)
+
+--- *上面是天数*
+
+- %H
+  两位数字表示小数，24小时制
+  (01,02..)
+
+- %h 和 %I
+  两位数字表示小时，12小时制
+  (01,02..)
+  
+- %k 
+  数字形式的小时，24小时制(1,2,3)
+
+- %l
+  数字形式表示小时，12小时制 (1,2,3,4....)
+
+--- *上面是小时*
+
+- %i
+  两位数字表示分钟(00,01,02)
+
+--- *上面是分钟*
+
+- %S 和 %s
+  两位数字表示秒(00,01,02...)
+
+--- *上面是秒*
+
+- %W
+  一周中的星期名称(Sunday...)
+
+- %a
+  一周中的星期缩写(Sun.， Mon.,Tues.，..)
+
+- %w
+  以数字表示周中的天数
+  (0=Sunday,1=Monday....)
+
+--- *上面是星期*
+
+- %j
+  以3位数字表示年中的天数(001,002...)
+
+- %U
+  以数字表示年中的第几周， (1,2,3。。)
+  其中Sunday为周中第一天
+
+- %u
+  以数字表示年中的第几周， (1,2,3。。)其中Monday为周中第一天
+
+- %T
+  24小时制
+
+- %r
+  12小时制
+
+- %p
+  AM或PM
+
+- %%
+  表示%
+
+
+> GET_FORMAT(date_type, format_type) 
+- 返回日期字符串的显示格式 
+- 传入date_type 和 format_type 能够得到对应国家的日期格式化模板 也就是该国家习惯这么表示 年月日 时分秒
+
+
+```sql
+SELECT GET_FORMAT(DATE, 'USA')
+FROM DUAL;
+
+-- %m.%d.%Y
+```
+
+**技巧:**
+- 我们不用自己指定日期的格式化模式 我们可以在传入格式化模板的时候 通过 GET_FORMAT 来得到指定国家的模板信息
+```sql
+SELECT DATE_FORMAT(CURRENT_DATE,GET_FORMAT(DATE, 'USA'))
+FROM DUAL;
+
+-- 02.18.2022
+```
+
+<!-- 
+    date_type   format_type   返回的格式化字符串
+
+    DATE        USA           m.d.y
+    DATE        JIS           Y-m-d
+    DATE        ISO           Y-m-d
+    DATE        EUR           d.m.Y
+    DATE        INTERNAL      Ymd
+    TIME        USA           h:i:s p
+    TIME        JIS           H:i:s
+    TIME        ISO           H:i:s
+    TIME        EUR           H.i.s
+    TIME        INTERNAL      His
+    DATETIME    USA           Y-m-d H.i.s
+    DATETIME    JIS           Y-m-d H:i:s
+    DATETIME    ISO           Y-m-d H:i:s
+    DATETIME    EUR           Y-m-d H.i.s
+    DATETIME    INTERNAL      YmdHis
+ -->
 
 ------------------
 
