@@ -4048,6 +4048,800 @@ FROM DUAL;
 
 ------------------
 
+### 流程控制函数
+- 流程处理函数可以根据不同的条件，执行不同的处理流程，
+- 可以在SQL语句中实现不同的条件选择。MySQL中的流程处理函数主要包括
+  IF()
+  IFNULL()
+  CASE()
+
+
+> IF(flag,value1,value2)  
+- 以flag为基准 2选1
+- 如果flag的值为TRUE，
+  返回value1，
+  否则返回value2
+
+- 练习:
+- 下面的IF语句写在了字段里面 并起了别名
+- 自定义了工资标准字段 根据IF的结果 自定义了显示的值
+```sql
+SELECT last_name, salary, IF(salary >= 6000, '高工资', '低工资') "工资标准"
+FROM employees
+```
+
+- 练习:
+- 根据IF条件 决定一个表中字段的显示结果
+```sql
+SELECT last_name, salary, IF(commission_pct IS NOT NULL, commission_pct, 0) "details"
+FROM employees
+```
+
+- 练习:
+- 当字段中有NULL的时候 这时候我们要通过字段数据 进行计算 我们可以通过IF语句来避免null值的情况
+```sql
+SELECT 
+  last_name, 
+  salary,  
+  salary * 12 * (1 + IF(commission_pct IS NOT NULL, commission_pct, 0)) "details"
+FROM employees
+```
+
+
+> IFNULL(flag, value2)
+- 这个语法可以看做是前面语法的一种延伸的情况
+- 以flag是否为null为条件基准
+
+- 如果flag不为NULL，
+  返回value1，
+  否则返回value2
+
+```sql
+SELECT last_name, salary, IFNULL(commission_pct, 0) "details"
+FROM employees
+```
+
+
+> CASE WHEN 条件1 THEN 结果1 
+       WHEN 条件2 THEN 结果2 
+       .... 
+       [ELSE resultn] 
+  END
+
+- 相当于Java的if...else if...else...
+- 多选一 结尾的 else ... 不是必须的
+
+```sql
+SELECT 
+	last_name, 
+	salary, 
+	CASE WHEN salary >= 15000 THEN '白骨精'
+			 WHEN salary >= 10000 THEN '潜力股'
+			 WHEN salary >= 80000 THEN '小屌丝'
+			 ELSE '草根' 
+  END "details"
+FROM employees;
+```
+
+- CASE ... END 中间是条件
+- WHEN 后面接条件
+- THEN 后面相当于 { } 里面的逻辑
+
+
+> CASE 表达式 
+    WHEN 常量值
+      THEN 逻辑 
+    WHEN 常量值
+      THEN 逻辑
+    ELSE 逻辑
+  END
+
+- 相当于Java的switch...case...
+- else的部分可选
+
+- 练习:
+- 查询部门号为 10,20, 30 的员工信息, 若部门号为 
+  10 号部门, 则打印其工资的 1.1 倍, 
+  20 号部门, 则打印其工资的 1.2 倍, 
+  30 号部门, 则打印其工资的 1.3 倍
+
+```sql
+SELECT employee_id, last_name, department_id, salary,
+  CASE department_id 
+    WHEN 10 
+      THEN salary * 1.1 
+    WHEN 20
+      THEN salary * 1.2
+    WHEN 30
+      THEN salary * 1.3
+    ELSE
+      salary * 1.4
+  END "details"
+FROM employees
+WHERE department_id IN (10,20,30)
+```
+
+------------------
+
+### 加密 与 解密函数
+- 加密与解密函数主要用于对数据库中的数据进行加密和解密处理，以防止数据被他人窃取。这些函数在保证数据库安全时非常有用。
+
+- 在存取的数据库表中 有一些字段就可以进行加密操作
+- 比如这里我们是对数据库中的表 进行的加密操作 保存数据库中的表的用户信息 被窃取了后也能一定程度保证它的安全
+
+- 前后台交互的流程
+- 用户前台填写完用户名和密码后 发送请求到后台
+- 我们在客户端的时候已经可以对密码进行加密了 没必要在数据库的层面上做加密
+
+- 加密操作可以前置到客户端的层面上 不要在传输的过程中使用明文
+- 比如 前端 -到- 数据库 中都用md5进行加密
+
+
+> PASSWORD(str)
+- 返回字符串str的加密版本，41位长的字符串。
+- 加密结果`不可逆`，常用于用户的密码加密
+
+**注意:**
+- 该函数在mysql8.0中被弃用了
+
+```sql
+SELECT PASSWORD('mysql')
+FROM DUAL;
+```
+
+
+> MD5(str)
+- 返回字符串str的md5加密后的值，也是一种加密方式。`不可逆`, 若参数为NULL，则会返回NULL
+
+```sql
+SELECT MD5('mysql')
+FROM DUAL;
+```
+
+
+> SHA(str)
+- 从原明文密码str计算并返回加密后的密码字符串，当参数为NULL时，返回NULL。`SHA加密算法比MD5更加安全`。
+
+```sql
+SELECT SHA('mysql')
+FROM DUAL;
+```
+
+
+> ENCODE(value,password_seed)
+- 返回使用password_seed作为加密密码加密value
+- password_seed 相当于 加盐
+
+> DECODE(value,password_seed)
+- 返回使用password_seed作为加密密码解密value
+
+- 可以看到，ENCODE(value,password_seed)函数与DECODE(value,password_seed)函数互为反函数。
+
+**注意:**
+- 该函数在mysql8.0中被弃用了
+- ENCODE(value,password_seed)
+- DECODE(value,password_seed)
+
+------------------
+
+### 信息函数
+- MySQL中内置了一些可以查询MySQL信息的函数，
+- 这些函数主要用于帮助数据库开发或运维人员更好地对数据库进行维护工作。
+
+> VERSION()
+- 返回当前MySQL的版本号
+
+> CONNECTION_ID()
+- 返回当前MySQL服务器的连接数
+
+> DATABASE()
+> SCHEMA()
+- 返回MySQL命令行当前所在的数据库
+
+> USER()
+> CURRENT_USER()
+> SYSTEM_USER()
+> SESSION_USER()
+- 返回当前连接MySQL的用户名，返回结果格式为“主机名@用户名”
+
+> CHARSET(value)
+- 返回字符串value自变量的字符集
+
+> COLLATION(value)
+- 返回字符串value的比较规则
+
+------------------
+
+### 其它函数
+- MySQL中有些函数无法对其进行具体的分类，但是这些函数在MySQL的开发和运维过程中也是不容忽视的。
+
+> FORMAT(value,n)
+- 返回对数字value进行格式化后的结果数据。
+- n表示`四舍五入`后保留到小数点后n位
+```sql
+SELECT 
+  FORMAT(123.123, 2),
+  FORMAT(123.523, 0),
+  FORMAT(123.123, -2); 
+FROM DUAL;
+```
+
+> CONV(value,from,to)
+- 将value的值进行不同进制之间的转换
+```sql
+SELECT 
+  CONV(16, 10, 2), 
+  CONV(8888,10,16), 
+  CONV(NULL, 10, 2)
+FROM DUAL;
+```
+
+> INET_ATON(ipvalue)
+- 将以点分隔的IP地址转化为一个数字
+```sql
+SELECT INET_ATON('192.168.1.100');
+-- 转为一个整数了 32322235675
+```
+
+- 扩展:
+- 计算方式: 以“192.168.1.100”为例，计算方式为192乘以256的3次方，加上168乘以256的2次方，加上1乘以256，再加上100。
+
+
+> INET_NTOA(value)
+- 将数字形式的IP地址转化为以点分隔的IP地址
+- 还原成ip地址
+
+
+> BENCHMARK(n,expr)
+- 将表达式expr重复执行n次。
+- 用于测试MySQL处理expr表达式所耗费的时间
+```sql
+SELECT BENCHMARK(1000000, MD5('mysql')
+```
+
+
+> CONVERT(value USING char_code)
+- 将value所使用的字符编码修改为char_code
+```sql
+SELECT 
+  CHARSET('mysql'), 
+  CHARSET(CONVERT('mysql' USING 'utf8'));
+```
+
+
+> 练习:
+- 1.显示系统时间(注:日期+时间)
+```sql
+SELECT NOW() FROM DUAL;
+```
+
+- 2.查询员工号，姓名，工资，以及工资提高百分之20%后的结果(new salary)
+```sql
+SELECT employee_id, last_name, salary, salary * 1.2 "new_salary"
+FROM employees;
+```
+
+- 3.将员工的姓名按首字母排序，并写出姓名的长度(length)
+```sql
+SELECT last_name, CHAR_LENGTH(last_name)
+FROM employees
+ORDER BY last_name
+
+
+-- 如果我们按照名字的长度进行排序的时候
+-- 当字段中有函数的时候 我们一般会给字段起别名 然后按照别名来排序
+SELECT last_name, CHAR_LENGTH(last_name) "name_length"
+FROM employees
+-- 这里是按照别名来排序的
+ORDER BY name_length
+```
+
+- 4.查询员工id,last_name,salary，并作为一个列输出，别名为OUT_PUT
+```sql
+SELECT CONCAT_WS('\t', employee_id, last_name, salary) "OUT_PUT"
+FROM employees;
+```
+
+- 5.查询公司各员工工作的年数、工作的天数，并按工作年数的降序排序
+```sql
+SELECT 
+			DATEDIFF(CURDATE(),hire_date) / 365 worked_years, 
+			DATEDIFF(CURDATE(),hire_date) worked_days
+FROM employees
+ORDER BY worked_years DESC
+```
+
+- 6.查询员工姓名，hire_date , department_id，满足以下条件:雇用时间在1997年之后，department_id 为80 或 90 或110, commission_pct不为空
+```sql
+SELECT last_name, hire_date, department_id
+FROM employees
+WHERE department_id IN (80, 90, 110)
+AND commission_pct IS NOT NULL
+-- 方式1: 利用隐式转换 hire_date是日期类型的 所以如下写法
+AND hire_date >= '1997-01-01'
+-- 方式2: 日期的格式化和解析 利用格式化
+AND DATE_FORMAT(hire_date,'%Y-%m-%d') >= '1997-01-01'
+-- 方式3: 
+AND DATE_FORMAT(hire_date,'%Y') >= '1997'
+-- 方式4：解析
+AND hire_date >= STR_TO_DATE('1997-01-01','%Y-%m-%d')
+```
+
+- 7.查询公司中入职超过10000天的员工姓名、入职时间
+```sql
+SELECT last_name, hire_date
+FROM employees
+WHERE DATEDIFF(CURDATE(),hire_date) >= 10000
+```
+
+- 8.做一个查询，产生下面的结果
+<last_name> earns <salary> monthly but wants <salary*3>
+
+```sql
+SELECT CONCAT(last_name, ' earns ', TRUNCATE(salary,0), ' monthly but wants ', TRUNCATE(salary * 3, 0)) "Dream Salary"
+FROM employees
+```
+
+- 9.使用case-when，按照下面的条件: 
+job       grade 
+AD_PRES     A
+ST_MAN      B
+IT_PROG     C
+SA_REP      D
+ST_CLERK    E
+```sql
+SELECT 
+	last_name "Last_name", 
+	job_id "Job_id", 
+	CASE job_id
+		WHEN 'AD_PRES' THEN 'A'
+		WHEN 'ST_MAN' THEN 'B'
+		WHEN 'IT_PROG' THEN 'C'
+		WHEN 'SA_REP' THEN 'D'
+		WHEN 'ST_CLERK' THEN 'E'
+	END "Grade"
+FROM employees
+```
+
+------------------
+
+### 聚合函数
+- 我们上一章讲到了 SQL 单行函数。实际上 SQL 函数还有一类，叫做聚合（或聚集、分组）函数，
+
+- 它是对一组数据进行汇总的函数，输入的是一组数据的集合，输出的是单个值。
+- 聚合函数作用于一组数据，并对一组数据*返回一个值*。
+
+- 聚合函数:
+- 1. 只会返回一个值
+- 2. 如果分组的话 每组产生一个值
+- 3. 如果不分组就意味着将整个表看做是一组 出现一个值
+
+
+> 常用的聚合函数类型
+- AVG() 
+- SUM()
+    - 上面两个函数只适用于数值类型的字段
+    - null值没有参与运算 也就是会将不是null值的数据进行计算
+
+
+- MAX() 
+- MIN() 
+    - 适用于*数值类型 字符串类型 日期时间类型*的字段(或变量)
+    - 会过滤空值
+
+
+- COUNT()
+    - 会过滤空值
+
+
+> AVG(字段)
+- 该字段的平均情况
+
+> SUM(字段)
+- 该字段的总和
+
+```sql
+SELECT AVG(salary) 
+FROM employees
+```
+
+
+> MAX(字段)
+> MIN(字段)
+- 查询该字段当中的最大 最小的情况
+
+```sql
+SELECT MAX(salary) 
+FROM employees
+
+SELECT MAX(last_name), MIN(hire_date) 
+FROM employees
+```
+
+
+> COUNT(字段)
+- 作用:
+- 计算指定字段在查询结构(表)中出现的*个数*
+- 多少条数据
+
+- 如果要计算表中有多少条记录 如何实现:
+- 1. count(*)
+- 2. count(1)
+
+- 3. count(具体字段)
+  - 方式3不一定对！ 
+  - 计算指定字段出现的个数时 *是不计算null的* 每条记录中如果有null的话的 count是不会计算它的
+<!-- 
+  比如 员工表有107条数据
+  如果 count(*) 应该是107
+  如果 count(1) 应该是107
+  如果 count(commission_pct) 也应该是107
+    但是结果是35
+    因为commission_pct字段中有null值 只有35条记录中commission_pct字段不为空
+ -->
+
+```sql
+-- 一共有多少行出现了employee_id
+SELECT COUNT(employee_id)
+FROM employees
+
+
+SELECT COUNT(2 * salary)
+FROM employees
+-- 还是107 我们查看的就是多少行数据
+```
+
+
+> 练习:
+- 查询公司中平均奖金率
+```sql
+-- 下面的方式不对象 因为没有考虑到空值的情况
+-- AVG是拿不是null的数据计算出结果 但是有的员工没有奖金率 可他们也应该被记入在内
+SELECT AVG(commission_pct)
+FROM employees
+
+-- 正确的做法
+SELECT SUM(commission_pct) / COUNT(*)
+FROM employees
+
+-- 或者 这样 确保没有null
+SELECT SUM(commission_pct) / COUNT(IFNULL(commission_pct,0))
+FROM employees
+
+-- 或者 这样 确保没有null
+SELECT AVG(IFNULL(commission_pct,0))
+FROM employees
+```
+
+> 如果需要统计表中的记录数 下面3种哪个效率高
+- 1. count(*) 
+- 2. count(1)
+- 3. count(具体字段)  -- 非空字段
+
+- 如果使用的都是MyISAM引擎(mysql5.0之前的版本)
+- 上面3种写法的效率是一样的
+
+- 如果使用的是Innodb引擎(mysql5.7 8.0)
+- 上面3中写法的效率是不一样的
+- count(*) = count(1) > count(具体字段)
+
+------------------
+
+### GROUP BY 的使用
+- 如果我们想求员工表中各个部门的平均工资
+- 也就是说同样的部门应该看成一组 也就是我们会分成很多组
+<!-- 
+  10	4400.00
+
+  20	13000.00
+  20	6000.00
+
+  30	11000.00
+  30	3100.00
+ -->
+
+
+- 我们这么写相当于将整个公司看做成了一组 算出的平均工资 出现了一个结果
+```sql
+SELECT AVG(salary)
+FROM employees
+
+-- 结果: 6461.682243
+```
+
+- 那现在我们要分组 那就要告诉数据库我们想要按照什么来分组 比如按照部门id来分组
+```sql
+SELECT department_id, AVG(salary)
+FROM employees
+GROUP BY department_id
+```
+
+- 分成组后 一组出现一个结果 分成几组就出现几个结果
+
+> GROUP BY 字段
+- 按照哪个字段来进行分组
+
+**注意:**
+- 分组意味着按照某一个字段进行了合并 比如3个30 那就合并成一个30 展现结果
+
+- 这时候就不能掺杂合并不了的字段
+- 比如
+```sql
+-- 我们按照job_id将同样工种合并在一起 但是employee_id每个员工都不一样 没法合并 所以会报错
+SELECT employee_id, job_id, AVG(salary)
+FROM employees
+GROUP BY job_id
+```
+
+
+> 二级分组 
+- 需求:
+- 按照部门来进行分组 如果是同一个部门的 工种一样的再进行分组
+
+> GROUP BY 字段1, 字段2
+- 需求:
+- 查询各个department_id job_id的平均工资
+
+```sql
+SELECT department_id, job_id, AVG(salary)
+FROM employees
+GROUP BY department_id, job_id
+ORDER BY department_id
+```
+
+
+**注意:**
+**注意:**
+- SELECT中出现的 非聚合函数的字段 必须声明在 GROUP BY 中
+- 反之 GROUP BY 中声明的字段可以不出现在SELECT中
+
+```sql
+SELECT department_id, job_id, AVG(salary)
+- 非聚合函数的字段为
+- department_id
+- job_id
+
+- 它们一定要出现在GROUP BY中
+GROUP BY department_id, job_id
+```
+
+- 那是不是说 出现了聚合函数 和 其他字段一起的时候
+- 其他字段一定要在 GROUP BY 中
+
+
+
+> GROUP BY 声明的位置
+- FROM - WHERE - *GROUP BY* - ORDER BY - LIMIT
+
+
+> 新特性: GROUP BY 中使用 WITH ROLLUP
+- 使用`WITH ROLLUP`关键字之后，
+- 在所有查询出的分组记录之后增加一条记录(增加一行)，
+- 该记录计算查询出的所有记录(行)的总和或者总平均值，即统计记录数量。
+
+```sql
+SELECT department_id, AVG(salary)
+FROM employees
+GROUP BY department_id WITH ROLLUP;
+
+	  7000.000000
+10	4400.000000
+20	9500.000000
+30	4150.000000
+40	6500.000000
+50	3475.555556
+60	5760.000000
+70	10000.000000
+80	8955.882353
+90	19333.333333
+100	8600.000000
+110	10150.000000
+	  6461.682243   -- 就是这条数据 平均工资
+```
+
+**注意:**
+- 使用 WITH ROLLUP 的话 就不能使用 ORDER BY
+- 它们互相排斥
+
+------------------
+
+### HAVING的使用
+- 作用:
+- 用来过滤数据的
+- 可以理解成对分组数据进行过滤的关键字
+- 和GROUP BY一起使用
+
+
+- 要求:
+- 1. 一旦过滤条件中出现了聚合函数 这时候的过滤条件的关键字就不能使用 WHERE 而是要替换成 HAVING
+
+- 2. 开发中使用HAVING的前提 是sql中使用了 GROUP BY 如果没有GROUP BY 那HAVING也没有必要写了
+
+- 3. HAVING要放在GROUP BY的后面
+- GROUP BY - HAVING
+
+
+- 需求:
+- 查询各个部门中最高工资比10000高的部门信息
+
+```sql
+SELECT department_id, MAX(salary) "height"
+FROM employees
+GROUP BY department_id
+HAVING height > 10000
+```
+
+- 练习:
+- 查询部门id为10 20 30 40这4个部门中最高工资比10000高的部门信息
+
+```sql
+-- 方式1:
+SELECT department_id, MAX(salary) "H_salary"
+FROM employees
+GROUP BY department_id
+
+-- 过滤条件
+HAVING department_id IN (10, 20, 30, 40)
+AND H_salary > 10000
+
+
+-- 方式2
+SELECT department_id, MAX(salary) "H_salary"
+FROM employees
+
+-- WHERE里面不能写聚合函数 就把条件分开了 这个部分没有聚合函数
+WHERE department_id IN (10, 20, 30, 40)
+GROUP BY department_id
+
+-- H_salary是聚合函数
+HAVING H_salary > 10000
+```
+
+**注意:**
+- 我们推荐使用 方式2
+- 也就是 
+- 非聚合函数的过滤条件放在 WHERE中
+- 聚合函数的过滤条件放在 HAVING中
+
+- 注意书写位置
+- FROM - WHERE - GROUP BY - HAVING
+
+
+> 结论:
+- 当过滤条件中有聚合函数的时候 则此过滤条件必须声明在 HAVING 中
+
+- 当过滤条件中*没有聚合函数的时候* 则此*过滤条件推荐声明 在 WHERE 中*
+
+
+> WHERE 和 HAVING 的对比
+- 1. 适用范围来讲 HAVING的适应的范围更广(可以包含聚合函数 也可以对非聚合函数进行过滤)
+
+- 2. 如果过滤条件中没有聚合函数的时候 WHERE的执行效率要高于HAVING
+
+------------------
+
+### sql底层的执行原理
+- 1. select语句的完整结构
+
+```sql
+
+-- sql92
+select ..., ..., ...(存在聚合函数)
+from ..., ...
+where 多表的连接条件 and 过滤条件(不包含聚合函数的条件)
+group by ..., ...
+having 包含聚合函数的过滤条件
+order by ..., ... desc
+limit ..., ...
+
+
+-- sql99
+select ..., ..., ...(存在聚合函数)
+from ... join ... on 多表的连接条件
+         ioin ... on
+
+where 过滤条件(不包含聚合函数的条件)
+group by ..., ...
+having 包含聚合函数的过滤条件
+order by ..., ... desc
+limit ..., ...
+
+```
+
+> 关键字的顺序是不能颠倒的
+- SELECT - FROM - WHERE - GROUP BY - HAVING - ORDER BY - LIMIT
+
+
+> sql语句的执行顺序
+- FROM ->   先看查哪张表 多表的话就是交叉查询
+- ON ->     然后去掉不应该关联在一起的数据
+- LEFT / RIGTHT JOIN
+- WHERE ->    过滤数据
+- GROUP BY -> 剩下的数据进行分组
+- HAVING ->   对聚合函数进行过滤
+
+- SELECT 的字段 -> 然后决定显示哪个字段
+- DISTINCT ->     去重
+
+- ORDER BY ->     排序
+- LIMIT           分页
+
+
+> 为什么WHERE的效率要高于HAVING
+- 比如有一张表 它有10万条数据
+- WHERE一上来就会过滤数据 比如过滤完就剩下10条数据
+- 剩下10条数据再进行分组就很快
+
+- 如果我们把过滤条件放在HAVING里面的话
+- 10万数据 上来就先对10万条数据进行分组
+- 然后对分组后的数据进行过滤
+
+
+> 练习:
+
+- 1. where子句可否使用组函数进行过滤? 
+- -- 不可以
+
+- 2. 查询公司员工工资的最大值，最小值，平均值，总和 
+```sql
+-- 所有的员工可以看成一组
+SELECT MAX(salary), MIN(salary), AVG(salary), SUM(salary)
+FROM employees
+```
+
+- 3. 查询各job_id的员工工资的最大值，最小值，平均值，总和 
+```sql
+-- 按照job_id进行分组
+SELECT job_id, MAX(salary), MIN(salary), AVG(salary), SUM(salary)
+FROM employees
+GROUP BY job_id
+```
+
+- 4. 选择具有各个job_id的员工人数
+```sql
+-- 按照job_id进行分组
+SELECT job_id, count(*)
+FROM employees
+GROUP BY job_id
+```
+
+- 5. 查询员工最高工资和最低工资的差距(DIFFERENCE)
+```sql
+SELECT MAX(salary), MIN(salary), MAX(salary) - MIN(salary) DIFFERENCE
+FROM employees
+```
+
+- 6. 查询各个管理者手下员工的最低工资，其中最低工资不能低于6000，没有管理者的员工不计算在内 
+```sql
+-- 首先涉及到管理者了 我们可以按照管理者id进行分组 一样的管理者id就是同一个管理者
+-- 我们可以先看看每个管理者下的最低工资的人
+SELECT manager_id, MIN(salary) min_sal
+FROM employees e
+WHERE manager_id IS NOT NULL
+GROUP BY e.manager_id 
+HAVING min_sal >= 6000
+```
+
+- 7. 查询所有部门的名字，location_id，员工数量和平均工资，并按平均工资降序
+```sql
+-- 我们看到所有两个字了 一定是外连接
+SELECT d.department_name, d.location_id, COUNT(e.employee_id), AVG(salary)
+FROM departments d LEFT JOIN employees e
+ON d.department_id = e.department_id
+GROUP BY department_name, location_id
+```
+
+- 8. 查询每个工种、每个部门的部门名、工种名和最低工资
+```sql
+SELECT department_name, job_id, MIN(salary)
+FROM departments d left join employees e
+ON d.department_id = e.department_id
+GROUP BY department_name, job_id
+```
+
+
+------------------
+
 ### 书签
 
 ------------------

@@ -94,8 +94,12 @@ ReactDOM.render(<App />, document.body)
 > 使用方式1: 
 - 有些像 computed 当计算属性中的引用的属性发生变化的时候 该计算属性也会重新计算
 
-- 每次组件更新后 或 引用的变量更新后 会自动执行 
+
+> 执行时机
+- 1. 组件初次渲染
 - $: propname = 后面的逻辑
+
+- 2. $: 表达式中引用的变量的值发生了变化
 
 - 相当于定义了一个计算属性？
 - 计算属性前面使用 $: 属性名 的方式定义？
@@ -138,6 +142,28 @@ ReactDOM.render(<App />, document.body)
 <input type="text" bind:value = {text}>
 <p>{text}</p>
 <hr/>
+```
+
+> 使用技巧:
+- 1. 点击按钮时候的逻辑
+```html
+<script>
+  import api from "./api.js"
+  let name = "world"
+  const labels = ["react", "vue", "svelte"]
+  let selected = ""
+
+  // $: 后面的逻辑组件初次渲染的时候会更新次 也就是会先发一次请求 然后每当selected更新的时候 就又会发请求
+  $: [res, controller] = api(selected)
+</script>
+
+{#each labels as label}
+  <button
+    class:active = {selected == label}
+    on:click = {() => selected = label }
+    -- 这里selected = label赋值后会引起一系列的变化
+  >
+{/each}
 ```
 
 ----------------
@@ -187,7 +213,11 @@ export let countdown;
 ----------------
 
 ### { #each 数组 as 变量 [,index] } ... {/each} 遍历
-- - 我们写在 html 模板的部分
+- 我们写在 html 模板的部分
+- index的部分还有key的用处 所以如果对象中有id之类的情况下 就要将id设置为key值
+
+- 比如:
+- {#each arr as item, item.id}
 
 ```html
 <script>
@@ -322,6 +352,7 @@ export let countdown;
 - {:then 结果变量}
 - {:catch 错误变量}
 
+---
 
 {#await 变量(请求结果)}
 
@@ -748,6 +779,63 @@ export const countdownTimer = derived(countdown, (value, set) => {
 })
 ```
 
+> store抽离的写法
+```html
+<script>
+  import {writable, readable} from "svelte/store"
+
+  export const selected = writable("react")
+
+  export const setSelected = (topic) => seleceted.set(topic)
+
+  export const repos = readable({
+    status: "idle", // idle loading loaded error
+    items:[],
+    error: null,
+  }, set => {
+    let currentController;
+
+    let unsubscribe = selected.subscribe(val => {
+
+      // 有它的话代表前面的请求还没有完成
+      if(currentController) {
+        currentController.abort()
+      }
+
+      set({
+        status: "loading", 
+        items:[],
+        error: null,
+      })
+
+      const [res, controller] = api(val)
+      // 呼叫api后将赋值 代表现在已经有请求了
+      currentController = controller 
+
+      res.then(data => {
+        // 请求回来后将currentController置为null
+        currentController = null;
+        set({
+          status: "loaded", 
+          items:data.items,
+          error: null,
+        })
+      }).catch(err => {
+        set({
+           status: "error", 
+            items:[],
+            error: err,
+        })
+      })
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  })
+</script>
+```
+
 ----------------
 
 ### Context
@@ -787,7 +875,7 @@ export const countdownTimer = derived(countdown, (value, set) => {
     name: "sam",
     age: 20
   })
-</script>
+</>
 
 <!-- 子组件 --> 
 <Profile />
