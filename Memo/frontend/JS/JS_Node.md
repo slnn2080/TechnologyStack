@@ -2,6 +2,35 @@
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
 
+### Window.matchMedia(mediaQueryString) 
+- eg:
+- "(max-width: 874px)"
+
+- 可以直接使用 matchMedia() 方法
+
+> 使用方式
+- let mqList = matchMedia(mediaQueryString)
+
+> mqList.matches
+- 如果当前document匹配该媒体查询列表则其值为true；反之其值为false。*只读*
+
+
+- 作用:
+- 可以返回一个表示指定媒体查询字符串的已解析结果的新MediaQueryList对象
+- 可被用于判定Document是否匹配媒体查询, 或者监控一个document 来判定它匹配了或者停止匹配了此媒体查询。
+
+- 说白了就是:
+- 视口满足 我们传入的 "(max-width: 874px)" 规则 那就返回true 否则就返回false
+
+- 举例:
+- 运行媒体查询(max-width: 600px)并在<span>;中显示MediaQueryList的matches属性值。
+- 如果视口的宽度小于或等于600像素，则输出将为true，而如果窗口的宽度大于此宽度，则将输出false。
+```js
+let mql = window.matchMedia('(max-width: 600px)');
+document.querySelector(".mq-value").innerText = mql.matches;
+```
+
+
 ### 焦点元素
 > activeElement 
 - 属性返回文档中当前获得焦点的元素
@@ -3091,16 +3120,31 @@ lcEvent.on("fileSuccess", (data) => {
 ----------------
 
 ### IntersectionObserver API
+- 该API在兼容性上有很大的问题 所以w3c提供了一个 npm包 专门用来解决兼容性的问题
+- 也就是我们 要我们要先使用这个包 然后才能接着用 IntersectionObserver API
+
+- 安装:
+- npm install intersection-observer
+
+- 引入:
+- import "intersection-observer"
+- 确保它在最前面
+- 在html页面里面的话 相当于如下:
+```html
+<script src="./js/intersection-observer.js" />
+```
+
+
 - 自动"观察"元素是否进入视口  
 - 网页开发时，常常需要了解某个元素是否进入了“视口”（viewport），即用户能不能看到它。
 
 - 传统的实现方法是，监听到scroll事件后，调用目标元素（绿色方块）的getBoundingClientRect()方法，得到它对应于视口左上角的坐标，再判断是否在视口之内。这种方法的缺点是，由于scroll事件密集发生，计算量很大，容易造成性能问题。
 
 - IntersectionObserver API 的用法，简单来说就是两行。
-<!-- 
+```js 
     var observer = new IntersectionObserver(callback, options);
     observer.observe(target);
- -->
+```
 
 
 > new IntersectionObserver(callback, [option])
@@ -3110,7 +3154,7 @@ lcEvent.on("fileSuccess", (data) => {
 - 要点:
 - 1. 通过它创建的构造函数 需要创建变量来接收实例
 - 2. 调用实例对象.observe() 方法 指定要观察的DOM节点
-<!-- 
+```js  
     let observer = new IntersectionObserver(callback, options);
     
     // 开始观察
@@ -3121,22 +3165,22 @@ lcEvent.on("fileSuccess", (data) => {
 
     // 关闭观察器
     observer.disconnect();
- -->
+```
 
 
 > 实例对象身上的方法
 > observer.observe(document.getElementById('example'))
 - 开始观察
 - observe()的参数是一个 DOM 节点对象。如果要观察多个节点，就要多次调用这个方法。
-<!-- 
+```js 
     observer.observe(elementA);
     observer.observe(elementB);
- -->
+```
 
 > observer.unobserve(element);
 - 停止观察
 - 取消对某个目标元素的观察，延迟加载通常都是一次性的，observe 的回调里应该直接调用 unobserve() 那个元素
-<!-- 
+```js  
     let observer = new IntersectionObserver(function(entries){
         entries.forEach(function(entry){
             if(entry.isIntersecting){
@@ -3147,7 +3191,7 @@ lcEvent.on("fileSuccess", (data) => {
             }
         })
     })
- -->
+```
 
 > observer.disconnect();
 - 关闭观察器
@@ -3183,7 +3227,7 @@ lcEvent.on("fileSuccess", (data) => {
 
         每一个对象身上还有 entry对象 用于提供目标元素的信息(在回调中使用可以得到被观察元素的信息) 
         一共有6个属性
-<!-- 
+```js 
     {
         time: 3893.92,
         rootBounds: ClientRect {
@@ -3203,8 +3247,10 @@ lcEvent.on("fileSuccess", (data) => {
         intersectionRatio: 0.54,
         target: element
     }
+```
 
-    // 属性解析:
+> 属性解析:
+
     entry.target:   
         被观察的目标元素，是一个 DOM 节点对象
 
@@ -3228,17 +3274,17 @@ lcEvent.on("fileSuccess", (data) => {
 
     entry.time:     
         可见性发生变化的时间，是一个高精度时间戳，单位为毫秒
- -->
+
 
 
 - 参数2. 创建的实例对象 observer
-<!-- 
+```js  
     var observer = new IntersectionObserver(
         (entries, observer) => {
             console.log(entries);
         }
     );
- -->
+```
 
 **要点:**
 - 1. 在合适的位置上操作元素的话 需要用到 entry.target 属性 它是一个DOM节点
@@ -3246,7 +3292,7 @@ lcEvent.on("fileSuccess", (data) => {
 - 2. 这个回调内部逻辑一上来就会执行一次，然后目标元素再次进入视口和离开视口的时候都会再触发一次
 
 - 所以 内部使用 entry.isIntersecting 来进行判断下比较好 当元素进入视口后 执行什么逻辑
-<!-- 
+```js  
     let observer = new IntersectionObserver((entries, observer) => {
         console.log("我进来了")
         entries.forEach((entry) => {
@@ -3259,7 +3305,32 @@ lcEvent.on("fileSuccess", (data) => {
     }, {threshold: [0.25]})
 
     observer.observe($(".box")[0])
- -->
+```
+
+
+- 因为它会触发两次回调函数 为了解决这个问题 我们可以 当元素进入的时候就添加样式 随后下一行就移除监视
+```js
+eventBind() {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio > 0) {
+          entry.target.classList.add("is-show")
+
+          // 为了解决两次回调的问题 刚添加样式后就移除样式
+          observer.unobserve(entry.target)
+        }
+      })
+    }, {
+      rootMargin: "0px 0px",
+      threshold: 0,
+      root: null,
+    })
+
+    Array.prototype.forEach.call(this.title, (element) => {
+      observer.observe(element)
+    })
+  }
+```
 
 
 > option参数 intersection(function(){}, {option})
@@ -3317,7 +3388,7 @@ lcEvent.on("fileSuccess", (data) => {
  -->
 
 > rootMagin: 
-- root如果代表视口那么进去视口则进入的观察范围, rootMagin用来扩展, 或缩小观察范围, 正值为扩大, 负值为缩小
+- root如果代表视口 那么进去视口则进入的观察范围, rootMagin用来扩展, 或缩小观察范围, 正值为扩大, 负值为缩小
 
 - 它的写法类似于 CSS 的margin属性，比如0px 0px 0px 0px，依次表示 top、right、bottom 和 left 四个方向的值。
 
@@ -3327,7 +3398,7 @@ lcEvent.on("fileSuccess", (data) => {
  -->
 
 > 基本用法解析
-<!-- 
+```js  
     let observer = new IntersectionObserver(function(entries){
 
         entries.forEach(function(entry){
@@ -3343,13 +3414,13 @@ lcEvent.on("fileSuccess", (data) => {
     document.querySelectorAll('.box').forEach(function(value){
         observer.observe(value);
     })
-
+```
     1, 首先创建实例对象, observer
     2, 在回调函数中传递目标元素数组形参 entries
     3, 在回调内部 遍历数组 并传入 entry形参
     4, 判断 目标元素是否进入可视区域 如果进入 则添加什么效果
     5, option传入对象 threshold 1
- -->
+
 
 
 > 图片的懒加载
@@ -3365,7 +3436,7 @@ lcEvent.on("fileSuccess", (data) => {
  -->
 
  - 2. 只有图像开始可见时，才会加载真正的图像文件。
- <!-- 
+```js  
     function query(selector) {
         return Array.from(document.querySelectorAll(selector));
     }
@@ -3382,12 +3453,12 @@ lcEvent.on("fileSuccess", (data) => {
     query('.lazy-loaded').forEach(function (item) {
         observer.observe(item);
     });
-  -->
+```
 
 
 > 下拉加载更多
 - 随着网页滚动到底部，不断加载新的内容到页面，它的实现也很简单。
-<!-- 
+```js  
     var intersectionObserver = new IntersectionObserver(
         function (entries) {
             // 如果不可见，就返回
@@ -3401,9 +3472,8 @@ lcEvent.on("fileSuccess", (data) => {
     intersectionObserver.observe(
         document.querySelector('.scrollerFooter')
     );
-
-    无限滚动时，最好像上例那样，页面底部有一个页尾栏（又称sentinels，上例是.scrollerFooter）。一旦页尾栏可见，就表示用户到达了页面底部，从而加载新的条目放在页尾栏前面。否则就需要每一次页面加入新内容时，都调用observe()方法，对新增内容的底部建立观察。
- -->
+```
+- 无限滚动时，最好像上例那样，页面底部有一个页尾栏（又称sentinels，上例是.scrollerFooter）。一旦页尾栏可见，就表示用户到达了页面底部，从而加载新的条目放在页尾栏前面。否则就需要每一次页面加入新内容时，都调用observe()方法，对新增内容的底部建立观察。
 
 
 > 视频自动播放
@@ -3412,7 +3482,7 @@ lcEvent.on("fileSuccess", (data) => {
     <video src="foo.mp4" controls=""></video>
  -->
 
-<!-- 
+```js 
 let video = document.querySelector('video');
 let isPaused = false;
 
@@ -3429,9 +3499,9 @@ let observer = new IntersectionObserver((entries, observer) => {
 }, {threshold: 1});
 
 observer.observe(video);
-
+```
 上面代码中，IntersectionObserver()的第二个参数是配置对象，它的threshold属性等于1，即目标元素完全可见时触发回调函数。
--->
+
 
 
 

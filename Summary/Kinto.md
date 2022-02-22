@@ -445,239 +445,6 @@ cartouchpoint-container {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-### 注释:
-- 在wiki上看到的文档中的写法:
-
-    Array型
-    @type {Array.<number>}
-
-    変数・定数の@type
-    @desc ○○の価格
-    @type {number}
-
-    descriptionタグ
-    @desc ○○の価格を取得して□□する
-
-
-- 参考java中的xiefa:
-
-    @param 形参名 形参类型 形参说明
-    @param args String[] 命令行参数
-    @return 返回值类型 返回值说明
-
-> 长野的方式
-- 1. 在每一个props的前面都加上了注释
- props: {
-    /**
-     * @type {String} 車種日本語名
-     */
-    carName: {
-      type: String,
-      required: true,
-    },
-
-- 2. 在html结构中也添加了注释
-<!-- 
-  <!-- コスト表 ->
- -->
-
-- 3. 对对象中的每一个属性后面都追加了注释
-<!-- 
-  price: "41,261",     // バッテリー代
- -->
-
-- 如果有形参的情况下 使用了下面的方式 添加注释
-- @desc 文字列をspanで囲む
-  @param {String} str
-
-
-> 岗安的注释方式
-- Refactor: components コメント追加 #4159
-
-- 1. 每一个props上都添加了注释
-- 如果props属性是一个数组的话 她写的方式就是 @type {Array.<object>} 数组里面是什么就写的什么
-<!-- 
-  /**
-  * 表示件数の母数を格納する
-  * @type {Function}
-  */
-
-  setAllCount: {
-    type: Function,
-    default: null,
-    require: false,
-  },
-
-
-  /**
-  * 表示するカードの情報リスト
-  * @type {Array.<object>}
-  */
-  list: {
-    type: Array,
-    default: () => {
-
-
-  /**
-    * ブランド
-    * @type {string}
-    */
-  brandType: {
-    type: String,
-    default: "",
-  },
- -->
-
-- 2. 她给data中的每一个属性 也添加了注释
-<!-- 
-  data() {
-    return {
-      /**
-       * セレクタがOPEN（すべての選択肢を表示）状態にあるか
-       * @type {Boolean}
-       */
-      isOpen: false,
-      /**
-       * 選択されたセレクタ
-       * @type {Object}
-       */
-      selected: this.options[0]
-    }
-  },
- -->
-
-- 形参
-<!-- 
-  /**
-    * いずれかの選択肢が選択された際の処理
-    * ・親componentで定義された関数を実行する
-    * ・セレクタのOPEN/CLOSEをトグル
-    * @param {Object} val 選択されたセレクタ
-    */
- -->
-
-### 整理Kinto响应式手册
-
-
-### nuxt化
-- 1. http://store.kinto-jp.com/
-- 3. http://store.kinto-jp.com/lexus/
-
-
-- vuetify:
-- 打不开的网站
-- https://kinto-dev.atlassian.net/wiki/spaces/KINTO/pages/1193954642/MIL
-
-
-
-- 注意点:
-- nodeのバージョンを16.3.0
-- ローカルのnode_modulesを削除して再度インストール
-- pug→HTMLにするのでご注意を
-
-
-- 什么意思?
-- nuxt2系でもcomposition APIが使えるので使いたい
-
-
-> 问题:
-- 1. 确认源文件的位置 从哪个分支开始比较好呢
-<!-- 
-  どのブランチから切ってから作業しますでしょうか
-  それともローカルでnuxtのプロジェクトを作って　ローカルで作業しますでしょうか
- -->
-
-- 2. 上面的网站在家的时候打不开
-<!-- 
-   このみつのURLは家で開けませんでしたが　会社で開けます。
-   自分原因ですか？それとも何か設定がありますでしょうか？
- -->
-
-- 3. 项目中使用vuetify框架么 ルール是学习会的时候讲的么
-<!-- 
-  このプロジェクトでvuetifyフレームワークを使いますでしょうか？　それとも　現在の状態を踏襲しますでしょうか
-
-  使い方について先日岡安さんが勉強会で教えてくれた内容ですか？
-  そのvuetifyルールのファイルがどこにありますでしょうか？
-  vuetifyで出来上がったコンポーネントがありますでしょうか？
- -->
-
-- 4. composition API具体指的是什么
-- 5. vuetify的链接地址打不开
-- 6. 如果需要用到vuetify的话 我们有做好的组件么？ 在哪？
-
-
-
-
-
-### 学习会
-vuetify / data
-
-global kinto design system daft ver 1.0
-
-uiガイドライン
-
-
-g导入vuetify 提供scss文件 前后端导入vuetify
-
-怎么导入？
-pug template
-
-css部分
-temp - /systembase link css
-js怎么导入截图的
-
-全体使用 v-app 包裹
-<v-app>
-  原本的内容
-<v-app>
-
-
-localhost:3000/development/system
-- 这好像是一个 指南的页面
-
-
-599 sp
-600 904 pad
-905-1239
-1240-1439 pc
-1440 以上
-
-sp 4 4
-pad 8 8
-
-pc 1440  12 12
-
-
-stretch 
-折り返し
-
-- 我在这已经待了快两个月了 公司的氛围特别的好 每个人都很热情 在这里很开心
-- 也有一些在意的地方 日语的原因 说出来的话可能不是那么的日本 语气可能很硬 是因为日语的原因
-- 不足 css样式这块 我还需要多写 争取能达到和大家一样的程度
-<!-- 
-  そういえばここですぐに２ヶ月になります
-  会社の雰囲気がとても良くて、みんなも親切でここで仕事をするのは本当に楽しいです
-
-  私の日本語がそんなに上手ではないですので,チャットでの内容とか話した内容とか　きっと失礼なところがあって、
-  すみませんね、今後だんだんに直します
-
-  仕事上にはcssのところがまだ不足なところがありますので、皆さんと同じ程度になるように頑張ります
- -->
-
 ### 主视图页面的总结
 - 问题：
 - 1. 他们不是将整个主视图的区域 拿图片来做 而是将主视图当中的元素 切成一张张的图片 然后放到这个主视图的区域中 然后使用定义来做
@@ -722,53 +489,6 @@ stretch
 - 他们把图片当做一个盒子的背景 
 
 
-
-
-
-
-
-
-
-
-
-### 需要问的东西
-- https://kinto-dev.atlassian.net/jira/software/projects/BACKLOG/boards/192/roadmap?selectedIssue=BACKLOG-710
-- 能从上面的url中得到什么样的信息 起票是什么意思
-<!-- 
-  毎回会議してる時に、いつもこの画面を見ていて、上記のURLから　何のメッセージをもらえますでしょうか
-  起票ってどういう意味でしょうか
- -->
-
-- css中的vw是计算出来的结果 还是自己一点点的调试的结果
-<!-- 
-  vwの方はこれが何を基づいて計算した結果でしょうか
-  それとも少しずつ微調整した結果でしょうか
- -->
-
-- v-btn heading 组件的使用方式
-<!-- 
-  v-btnの使用方
-  headingのコンポーネントどんな効果がありますでしょうか
- -->
-
-- github的问题
-<!-- 
-  今朝pullして、こうになってました、どうやって解決しますでしょうか
- -->
-
-- xdのことですが、この前にやった仕事が全部xdを参照して作業しますよね
-- xdデータは毎回池田さんが私に共有してくれますか？それとも私自分が探すことができるデータでしょうか
-
-
-### 文件路径的问题
-- pdf文件在
-- preview/kinto_one/lineup/toyota
-
-- 确认pdf的url
-- http://localhost:3000/kinto_one/lineup/toyota/alphard/
-
-
-### 关于页面布局总结
 
 ### rem
 - 375px的图 24px的标题是多少rem
@@ -1090,7 +810,6 @@ stretch
  -->
   
 
-
 > .p-morizo-cl__highlight
 - 黄色的提示文字
 <!-- 
@@ -1383,533 +1102,91 @@ stretch
 - 我们还要执行 git merge origin/分支名
 
 
-
-
 > 现在的状态就是等待 远程的操作合并后 再开始新的作业
 - 我现在基于A分支 创建的B分支，但是A分支有问题了 导致了很多错误
 - 我需要等A分支上做修复后 重新pull下
 
 - 那就是说 A分支会将1合并到A分支里面 其实我应该等远程修复完再进行新的作业
 
+-----------------
 
-### 車種Vue化作業
-- PLB-696
-- 作业内容简单的来说 应该是用 prius 作为模版 然后做其他的新的车种
+### 作业整理相关：
+- 现在我需要将 /kinto_one/selection/ 下面的所有文件Vue化 
+- 接下来从每页开始整理下思路是什么样的
 
-- 是不是说我需要在下面的文件夹下 建立其他的车种
-- src/javascripts/contents/kinto_one/lineup/toyota/其它车种
-<!-- 
-  prius模版的地址
-  src/html/kinto_one/lineup/toyota/prius/
-  src/javascripts/contents/kinto_one/lineup/toyota/prius
- -->
-
-- http://localhost:3000/kinto_one/lineup/toyota/voxy
-- https://kinto-jp.com/kinto_one/lineup/toyota/車種名/
-- 上面的链接可能是浏览页面的网址
+- 这个系列的页面有5种车型:
+- 1. compact: 紧凑型车
+- 2. suv
+- 3. minivan: 居家车
+- 4. sedan: 轿车
+- 5. coupe: 双门骄跑
 
 
-> 理解 与 问题集锦
-- 现阶段我的理解是 pug 和 prius 是一对儿 其它的车种也是这样的组合
-- 1. pug负责页面的结构， prius负责啥？
-- 而且我发现 prius 里面只有data配置项定义了数据，将数据传递给了 Wrap 模版 通过props
+- _common.pug 里面有上述的车类型的数据 是数组对象
+```js
+var suvArray = [
+  {
+    href:`${urlbase}aeroraize/`,
+    img:"aeroraize",
+    text:"RAIZE モデリスタ仕様 ADVANCE BLAST STYLE",
+    type:"mdl, grp",
+    power:"hvgas, gas, hv, gasdsl",
+    status: "comingSoon, SoldOut, new"
+  },
+]
+```
 
-- 2. 怎么根据 pug 文件使用prius模版 进行数据的迁移？
-<!-- 
-  pug, wrap, priusどういうふうに連動しますでしょうか
- -->
+- 这个 lineup 区域的页面内锚点连接
+```js
+var fixedlinkArray = [
+  {
+    href:"/kinto_one/selection#compact",
+    text:"COMPACT",
+  },
+  {
+    href:"/kinto_one/selection#suv",
+    text:"SUV",
+  },
+  {
+    href:"/kinto_one/selection#minivan",
+    text:"MINIVAN",
+  },
+  {
+    href:"/kinto_one/selection#sedan",
+    text:"SEDAN",
+  },
+  {
+    href:"/kinto_one/selection#coupe",
+    text:"COUPE",
+  }
+]
+```
 
-- 3. Prius中data配置项中的数据来着哪里？新文件中的数据在哪里？
-<!-- 
-  例えば、この車種の必要なデータがどこにありますでしょうか？
- -->
-
-- 4. 那数据有了最终要做成的样子有么
-<!-- 
-  データはこれですが、
-  最終的な画面の大体な様子がありますでしょうか、何か参照できるファイルがありますでしょうか?
- -->
-
-- 5. 我需要用哪几个文件？
-<!-- 
-  どのファイルを使って、この仕事が終わらせるかな
- -->
-
-- Prius.vue 和 index.pug 文件 对比起来 发现 数据上是没有关系的 也就是说 数据不是从pug文件copy到prius.vue 文件里面的
-- 但是Prius.vue 中的数据 确实是 传到了 Warp 组件里面的 那Prius.vue中的数据是从哪里来的
-
-- pug文件
-- 继承了base
-- 定义了头部
-- 定义了 json 数据
-- 也就是说pug文件主要是用来布局的 也就是定义页面的结构
-
-
-- 6. 桌面上的文件有什么样的作用
-<!-- 
-  このファイルですね、なの作用がありますでしょうか?
- -->
-
-- 7. 我制作的车种怎么在页面上看到
-<!-- 
-  私が完成してる部分がどうやってサイトで見られますでしょうか
-  例えば、何のurlを入力するどか
- -->
-
-- 8. 下方 yaris 部分的3 4 5也是我需要问的问题
-
-
-> 我需要负责的部分
-<!-- 
-  kinto-jp.com/kinto_one/lineup/toyota/roomy/       ルーミー
-  kinto-jp.com/kinto_one/lineup/toyota/sienta/      シエンタ
-  kinto-jp.com/kinto_one/lineup/toyota/yaris/       ヤリス
-  kinto-jp.com/kinto_one/lineup/toyota/yariscross/  ヤリス　クロス
- -->
-
-
-> 作业整理
-- 整理了一下 我现在的主要工作就是将pug里面的数据 复制粘贴到vue里面
-- 而且vue的模版也已经就是现成的了 需要注意的地方就是 怎么去找数据
-
-- 最后 我们在pug的最后 粘贴的是 el里的部分
-- 关于数据 我需要在 cardata.json 里面找
-- 关于是否能拖动 我需要在 dropcardata.json 里面找
-
-- 关于价格
-- 这边希望是最低的价格 我们需要选择一个 价格是最低的
-- yearmax_bonusmax_taxin
-- 我觉得是在降价的dropcardada里面找
-
-- 是现在pug里面定义一个id为xxx的div
-- 然后再在wrap组件里面挂载到这个div中
-
-- isDrop
-- 拿着车的英文名字去 dropcardata 里面找如果有 那就是true 如果没有就是false
-
-- minPrice: [
-    {
-      pattern: "year7_bonus10m_taxin",
-      period: "7年",
-      bonus: "110,000円×14回",
-      bonusTax: "110,000円(税込)",
-    }
-  ],
-- year7_bonus10m_taxin 中间的位置就是 价格 10万 然后自己去算消费税 和 税入一样
-
-- slideCaptionFlag
-- 看看轮播图有没有 标题 有的话 就是true
-- 标题内容可能是网站上的 也可能是pug文件里面的 标题找的是这个部分
-<!--  
-  section.l-cnt__main
-    //-  車種詳細スライダー
-    +imgCarousel(class="p-cardetail__slide--caption")
-    p.m-txt__normal.p-cardetail__slideBottom
-      | すっきりコンパクトサイズながら居心地バツグンの広さが魅力！
-    +btnSimulate("sim1")
- -->
-
-
-- headDescription
-- 复制的是 pug 文件里面的 这个部分
-<!-- 
-  main.p-cardetail(data-ga="true")
-    section.l-cnt__full
-      +m-hero-heading-caption('ルーミー','コンパクトカー、ルーミーの特徴や主要スペックをご紹介します')
- -->
-
-
-- carPoint
-- 复制的是 pug 文件里面的 这个部分
-<!-- 
-  section.l-cnt__main
-    +recommendPoint([
-      {
-        ttl: "シャープかカジュアルか。選べる2つの顔",
-        txt: "シャープで「映える」カスタムか、カジュアルなスタンダードか選べる2つのフロントフェイス。",
-      },
-      {
-        ttl: "後席足元と頭上に解放感を",
-        txt: "コンパクトカーであることを感じさせないゆとりを実現。小さなお子様なら室内で立って着替えることも可能です。",
-      },
-      {
-        ttl: "コンパクトながら充実の安全装備を搭載",
-        txt: "ブレーキ制御付誤発信抑制機能など、次世代のスマートアシストで、より大きな安心を！",
-      }
-    ])
- -->
-
-
-- carDetail
-- lpUrl的部分 如果没有跟prius对应的地方 就可以不用填了 貌似
-<!-- 
-  section.p-cardetail__main.l-cnt__main
-      +noFixedDetailTable
- -->
-
-
-> 留存问题
-- 先週が4車種の仕事があって、ルーミー車種はすでに終わりましたが、残りの車種がルーミーがマージされてから作業した方が良くて、そうでないと、このようなbugが出てきました。
-- でもsourcetreeで見るとこの車種がまだマージされてませんよね
-
-- 先ほど2車種をつくて、シエンタとヤリス　シエンタはbugが出てません、もうマージしました。でも、ヤリスの方がこのbugが出てきました
-
-
-> yaris的情况下
-- 需要在下面的路径里新建一个文件夹
-
-1. 下記の場所にフォルダを新規作成
-  src/javascripts/contents/kinto_one/lineup/toyota/yaris
-
-2. フォルダ内にapp.js、Wrap.vueを新規作成（prius/からコピーでOK）
-
-3. pugファイル → Wrap.vue へデータを移設
-src/html/kinto_one/lineup/toyota/yaris/index.pug
-
-4. pugファイルから余分な記述を削除
-
-5. pugファイルに#yarisを追加（#detailとか#contentでもOK）
-
-<!-- 
-  src/javascripts/contents/kinto_one/lineup/toyota/yaris
-
-  | - yaris
-    - app.js
-    - Wrap.vue
-
-  这些可以从 prius 里面copy
- -->
-
-- 作业内容：
-- 我感觉应该是将 pug文件 做成 vue文件
-<!-- 
-  // pug文件的路径
-  src/html/kinto_one/lineup/toyota/yaris/index.pug
-
-  注意点：
-  1. 要将pug文件中多余的描述删除
-  2. 在pug文件中追加 #yaris 或者 #detail #content 都可以
- -->
-
-
-> 关于分支
-- 我们可以从 /develop_planb 分支里 新分出一个分支 起名为
-- /feature/plan_b/PLB-696-xxx
-- xxx的部分 只要跟现有的分支 没有重复 都可以
-
-<!-- 
-  https://github.com/kinto-dev/kinto-jp.com-frontend#git-%E9%81%8B%E7%94%A8%E3%83%95%E3%83%AD%E3%83%[…]A9%E3%83%B3%E3%83%81%E3%82%92%E4%BD%9C%E6%88%90
- -->
-
-
-> 总结性问题
-<!-- 
-  // git的问题
-  如果我做完了 要开始提交了 提交后的url在哪里获取
-  也就是说想让你们review代码的流程是什么样的 
-  如果有修改 我应该在哪里看到呢？
+- 还有一个 var dropFlag = false
 
 
 
-  // 作业相关的问题
-  因为我对整个项目认识上的不足， 不知道这份工作应该从哪开始入手
-  可以给我讲解下这份工作么？ 比如我应该怎么做？
-  今のプロジェクトには認識が不足ですから、この仕事がどこから手をつけばいいかわかりません
-  この仕事を説明してもよろしいでしょうか、例えばどこからどうやって作業しますかって
+> http://localhost:3000/kinto_one/selection/
+- 1. 页面结构分析：
+
+> kv区:
+- 它是一个展示车的区域 点击按钮切换展示汽车部件
+  - 1. 正常贩卖的:
+    - 按钮是 お見積りはこちら:
+    - 下方有车的价格区域
+
+  - 2. 敬请通知的:
+    - 按钮是 メンバーシップ登録はこちら
+    - 下方没有车的价格区域 直接是 同车类型的其他类型区域
 
   
-  
-  岡安さんがくれた仕事の進捗：
-  午前中BACKLOG-698を対応してる時に、nodeのセッティングがあまり良くないのを発見して、いろんなエラー出てきました、午後ずっとnode再インストールするなどかやってました。
-  Vue化の仕事をまだ入ってません。
-  作業環境を
-  昨日は一日中パソコンの環境整備に追われた
-  この仕事も見てみたがわからなかった
-  プロジェクトを知らないのでwrapファイルにデータを移動する方法がわからない
+> 同车类型的其它类型车辆区:
+- 比如 有4辆suv 那么这个区域就展示其它3辆
 
+> 其它的lineup区
 
-  上午我看了一下 她给我的工作 是由pug 做成 vue的作业是么
-  午前中は岡安さんがくれた仕事を見て、どこから手をつけるかわかりません
-  作業内容はpugをvueに作る作業ですよね
+> BRANDS区
 
-  でも、pugをどうやってvueに作るか　わかりません
-  ちなみにこのページをサイトの中でどうやって探しますでしょうか
- -->
+> よくある質問区
 
------------------------------
-
-### 1125
-- ハリアーLP修正
-
-- 対象ページ
-- https://kinto-jp.com/lp/harrier/
-<!-- 
-  簡易ヘッダーへの差し替えが必要ですので合わせて対応ください
- -->
-
-- 外部制作テンプレート
-- https://kip.kinto-jp.com/2021/09/16/%e9%96%8b%e7%99%ba%e7%b7%a8%e6%88%90%e9%83%a8/
-
------------------------------
-
-### 1124工作
-
-> BACKLOG-805
-- 1. feature/1201/developから新しいブランチを作りますでしょうか
-- 2. 作业内容
-  - この３つのページでしょうか
-  - げんのコードを新しいコードに差し替え作業ですね、でも
-  - あたらしいコードはどんなものでしょうか
-  <!-- 
-    https://kinto-dev.atlassian.net/wiki/spaces/KINTO/pages/847846584
-
-    https://kintojp.sharepoint.com/:x:/r/sites/intranet/_layouts/15/Doc.aspx?sourcedoc=%7B55346235-70F6-4AE0-ACB8-D95543F2156F%7D&file=%E2%98%85%E4%BE%A1%E6%A0%BC%E3%83%9E%E3%82%B9%E3%82%BF%E9%80%B2%E6%8D%97%E7%AE%A1%E7%90%86%E8%A1%A8.xlsx&action=default&mobileredirect=true&cid=7c75e8fd-eb6c-4fa2-b9c4-4c1db8ac7d35  
-
-    打不开
-   -->
-
-- 3. 文件路径
-  - src/javascript/contentsからソースコードを探しますでしょうか
-
-
-> BACKLOG-738  这个还给池田了
-- https://kinto-jp.com/kinto_one/lineup/ 
-- https://kinto-jp.com/kinto_one/lineup/toyota/
-<!-- 
-  ＜上段＞
-    【ルーミー】・コード変更
-    【GR86、RAIZE】・新登場フラグ削除
-    【RAV4(モデリスタ含)】
-      ・追加
-      ・直売CS、乗り換えフラグ入力
-      ・ランキング修正
-
-  ＜下段＞
-    【RAV4(モデリスタ含)】・適用終了：20211201
- -->
-
-- 【ルーミー】・コード変更
-<!-- 
-  どのコードに変更しますでしょうか 
--->
-
-- 【RAV4(モデリスタ含)】・追加・直売CS、乗り換えフラグ入力・ランキング修正
-<!-- 
-  この車種を追加して、
-  直売CS、乗り換えのフラグを作って
-
-  ランキング修正はどんな作業でしょうか
- -->
-
-- ＜下段＞
-  【RAV4(モデリスタ含)】・適用終了：20211201
-<!--  
-  この部分はどこに修正すればいいでしょうか
- -->
-
-
-> BACKLOG-741
-- ラインアップ画像作成
-<!-- 
-  こちらご対応お願いします。
-  画像を下記フォルダに格納するだけでOKです。
-  画像格納場所：　/_preview/assets/img/car_image/
-
-  画像ファイル名：Lineup -> lineup に変更してください
- -->
-
-- このページの作業は　４つの画像をそのまま　/_preview/assets/img/car_image/　に入れる作業だけでしょうか
-
-- ファイル名が　Lineup -> lineup　変更必要がありますでしょうか
-- もともと　小文字となってますが
-
-
-> BACKLOG-753
-- 本番：https://kinto-jp.com/kinto_one/selection/
-- devtest3：https://devtest3-www.kinto-jp.com/kinto_one/selection/
-
-- 1. ファイルも　src/javascript/contentsから　探しますですよね
-- 2. 照着excel去问下
-
-
-> BACKLOG-785
-- rav4、ルーミー、passo以外のグレード表pdf更新
-
-- 1. pdfファイルはどのフォルダーにありますでしょうか
-- 2. roomyとrav4のpdfはどのような役割がありでしょうか
-- 3. もしこの仕事を完成した場合に、どうやってアップロードしますでしょうか
-
------------------------------
-
-### 1108工作
-
-> 手边有的资料
-- https://kinto-dev.atlassian.net/browse/BACKLOG-707
-
-- 対象ページURL
-- https://kinto-jp.com/kinto_one/morizo/gryaris/
-
-- 还有一个xd 里面是设计稿
-- https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox/FMfcgzGlkjhDLDfnXhbblcnngXMXBfMP
-
-- 简单的说
-- 在现有的页上追加新的要素 可能还要顺便的改一下结构
-<!-- 
-  現行のページに要素を追加に伴い構成を見直したい。
- -->
-
-
-- 头说
-- 复制一下这个文件 然后替换下文本 稍微修改一下就好了
-<!-- 
-  こちらのタスクお願いします。先程XDは招待致しました。
-  URLはこちらで。
-  /kinto_one/morizo/gryaris/column/vol2
-
-  /kinto_one/morizo/gryaris/column/vol1
-  をコピーして要素の入れ替えと少しの修正ですむかと思います！よろしくお願いします
- -->
-
-
-- 图片从xd中取出应该是存放在 assets文件夹里面
-- src外侧的html文件中 有html文件
-- src里面的html文件中 应该是pug
-
-
-- 图片的起名方式应该是有规则的，而且pc在一个分界点会呈现不同的图片
-- 也就是说pc端有两张图片 
-
-
-
-> 问题：
-- 1. 从哪个分支建立自己的分支? 提交的时候提交到哪个分支呢？
-<!-- 
-  どのブランチから新しいブランチを作りますでしょうか？ 
-  pushする時にどのブランチにpushしますでしょうか？
--->
-
-- 2. 要确认要做的文件在哪里 是src下的么
-<!-- 
-  私が このpathのファイルをコピーして、コピしたもので作業しますよね
-
-     src/html/kinto_one/morizo/gryaris/column/vol1
- -->
-
-- 3. 
-- 我是只需要插入 vol2 就可以了么 其它的地方不用管是么? 
-- 要做成什么样子 是跟设计稿一样么 数据的话是从设计稿里面获取是么? 够需要修改哪些地方
-<!-- 
-  私が　vol2 の部分だけ作りますでしょうか、他のところが修正する必要がありますでしょうか
-
-  例えば　vol2 を除いて、XDと今の画面と比べて、異なってるところもありますが
-  どちらに参照しますでしょうか
- -->
-
-- 4. News的位置的内容不一样
-<!-- 
-  画面のNews部分の内容とXDの内容と比べて、異なってます
-  もし修正必要があったら、このリンクの内容がどうしようかな
- -->
-
-- 6. xd里面的图片怎么导出 导出什么样的格式 导出后存放在哪里 图片的名字怎么取？
-<!-- 
-  xdから画像をどうやって書き出ししますでしょうか？
-  何の格式ですか？
-  書き出した後　picの保存場所？
-  画像の名前のそのままにしますでしょうか
-
-  一枚写真に３つフォーマットがありますよね？　pcは1x と　２x　あと　sp
-  ピクチャーネーミングしてる時に何か特別なルールか要求がありますでしょうか？
- -->
-
-----
-
-- 作业中的问题
-- 1. 書き出した画像はどこに入れますでしょうか？　
-- html/assets/img/kinto_one/morizo/gryaris/column/vol2　に入れましたが、画像が表示できません
-
-- 2. スタイルの問題は　
-- 既存のスタイルと統一したいんですが、それぞれのクラスが何をしてるか注意点があるかちょっとわかりません。時間がかかりました。
-- もし私がスタイルを調整したい場合にどのファイルで調整すればいいでしょうか
-
-- 3. ビデオのところ　alt属性の値
-
------------------------------
-
-### 1110
-- media 835px
-
-- 1. mediaの修正ファイルはどこにありますでしょうか
-- 2. ダイヤログボクスはcssで書きますかそれとも, この部分を画像にして配置しますでしょうか
-
-
-- wrap
-  - left.div
-    - img
-
-  - right
-    - div.content + before
-  
-
-- 关于 媒体查询 
-- 他刚才说的意思是 外层是手机端的 内层使用pc的应该没问题
-
------------------------------
-
-### 1116
-- 1. 图片放在哪里呢？
-- preview
-
-- 2. 24px 16px
-
------------------------------
-
-### 1126
-- https://kinto-dev.atlassian.net/browse/BACKLOG-688
-
-- 移动端
-- 版心是 327 两边各 24的padding
-
-> 样式
-
-- pc端
-- wrap 1440
-
-- 版心 1392
-- padding 左右各是24px
-<!-- 
-  Margin 0 auto
-  Width 100%
-  Max-width 1392
-  Padding 0 24
- -->
-
-- 蒙版
-<!-- 
-  width: 376px;
-  height: 540px;
-  background: linear-gradient(#000 0%, #121212 100%);
- -->
-
-
-- 按钮
-width: 272px;
-height: 48px;
-border-radius: 24px;
-background: #00708d;
-
-- title
-width: 327px;
-height: 56px;
-background: linear-gradient(#ecc990 0%, #ba9260 100%);
-
-
-<picture>
-  <source
-    srcset="/assets/img/index/offers/offers_tilte_sp.png"
-    media="(max-width: 750px)">
-  <source
-    srcset="/assets/img/index/offers/offers_tilte_pc.png 1x, /assets/img/index/offers/offers_tilte_pc@2x.png 2x"
-    media="(min-width: 751px)">
-  <img srcset="/assets/img/index/offers/offers_tilte_pc.png">
-</picture>
+> 其它区

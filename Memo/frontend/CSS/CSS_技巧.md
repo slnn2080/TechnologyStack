@@ -1,3 +1,19 @@
+### inline-block vertical-align
+- 当一个元素转换为 inline-block 之后 vertical-align 就可以生效了
+- 用于调用行内元素的基线
+- https://www.cnblogs.com/zxjwlh/p/6219896.html
+
+- 这么说吧 将一个元素转换为 inline-block 后 如果遇到怪怪的问题 我们就要使用
+vertical-align 来解决
+
+
+
+### 解决元素之间的默认间距
+- https://www.zhangxinxu.com/wordpress/2012/04/inline-block-space-remove-%E5%8E%BB%E9%99%A4%E9%97%B4%E8%B7%9D/
+
+- 我们可以试试 font-size: 0px
+
+
 ### cover contain 区别
 - 相同点: 
 - background-size中的cover与contain都是将图片以相同的宽高比缩放以适应容易的宽高，
