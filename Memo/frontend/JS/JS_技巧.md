@@ -1,5 +1,282 @@
 ### Js技巧
 
+### 点击对话框意外的部分关闭对话框
+- 需求
+- 我们可以对话框外面的部分加了一层蒙版
+- 我们点击蒙版的时候 会关闭对话框 而不要点击对象框也会关闭对话框
+
+> 要点:
+- e.target
+- 是绑定对象内的子元素 点什么是什么
+
+- e.currentTarget
+- 是绑定事件的这个对象 相当于this
+
+```html
+<body class="body-wrap">
+  <div class="model">
+
+  </div>
+
+  <script>
+    let target = document.querySelector(".body-wrap")
+    target.addEventListener("click", function(e) {
+      console.log(e.target)
+      console.log(e.currentTarget)
+
+      console.log(e.currentTarget == this)
+    })
+  </script>
+</body>
+```
+
+
+
+
+
+### forEach解决异步问题
+- 这里面也涉及了很多的知识点
+- 比如:
+- forEach的重写
+- sleep函数的定义
+- 相当的知识点的介绍等等
+
+
+- 首先我们先说说ajax异步请求和同步代码之间的问题:
+- 比如:
+- 我们现在 要请求 ajax ajax是一个异步的请求 一旦出现下面的逻辑 同步的代码会先执行 我们拿不到对应的结果
+
+- 以下都是伪代码
+```js
+const data = ajax("url", (data) => {
+    return data
+})
+
+console.log(data)       // 这里一定是 null 或者 undefined
+```
+
+- 那怎么才能同步的拿到代码呢？ 
+
+- 方式1: 我们将 ajax请求 变为同步的
+- async: false 我们通过配置项 将async设置为false
+```js
+ const data = ajax("url", {
+   async: false
+ }, () => {
+  return data
+})
+
+console.log(data)       // 这样一定能拿到结果
+```
+
+- 但是又引发了另一个问题 ajax是同步的了 就意味着它会阻塞下面的代码执行 必须等着它拿到结果后 才会执行下面的代码 就意味了 除了我们想同步获取data的console语句
+- 它下面的语句也会变为阻塞状态
+
+```js
+ const data = ajax("url", {
+   async: false
+ }, () => {
+  return data
+})
+
+console.log(data)
+
+// 123会被阻塞
+console.log(123)
+```
+
+- 而逻辑中 123 是没必要被阻塞的 或者说 我们还想让 123 和 ajax之间是异步的关系
+- 也就是 console.log(data) 和 ajax 是一个部分 123 自己是一个部分
+
+- 那怎么解决呢？
+- Promise Promise可以把异步和同步分开
+- 比如:
+```js
+function test() {
+    return Promise(resolve => {
+        ajax("url", (data) => {
+            // 我们在获取到data的时候 将data传出去
+            resolve(data)
+        })
+    })
+}
+
+// 这样 我们可以在then里面 拿到传过来的结果
+test().then((res) => {
+  console.log(res)
+})
+
+
+console.log(123)
+```
+
+- 从上面的代码我们可以发现 ajax请求 和 获取data的逻辑还是同步的
+- 因为只有调用test().then 才能到到结果
+
+- 而和123的逻辑之间仍然是异步的 这就是将 逻辑分开了 分成了两个部分
+
+- 而我们还可以对上面的函数 做一层封装 使用 async await 
+```js
+const getData = async () => {
+    const data = await test()
+    console.log(data)
+}
+getData()
+
+console.log(123)
+```
+
+- 我们会发现上面的同步和异步更加的清晰了 ajax和获取data是同步的 而getData()函数是async和下面123还是异步的
+
+
+> 面试题:
+```js
+fun([
+  () => console.log("start"),
+  () => sleep(1000),
+  () => console.log("1"),
+  () => sleep(2000),
+  () => console.log("2"),
+  () => sleep(3000),
+  () => console.log("end")
+])
+```
+
+- 需求:
+- 要求1:
+- 写出fun函数 sleep函数 要求按顺序 按效果的依次输出结果
+
+- 要求2:
+- 使用forEach可以办到同样的事情么？
+
+- 解析:
+- 这道题的考点就是同步化解决方案 而同步化最常见的方案就是 promise async
+
+- 我们先看看要求1
+
+> 1. 定义 sleep 函数
+```js
+function sleep(ms) {
+    return Promise(resolve => {
+        setTimeout(resolve, ms)
+    })
+}
+```
+
+> 2. 定义 fun 函数
+- 使用普通for循环
+```js
+async function fun(arr) {
+    for(let i=0; i<arr.length; i++) {
+        // 调用函数前都用await 等一等 等待异步函数执行完后 再进行下面的逻辑
+        await arr[i]()
+    }
+}
+```
+
+> 这里查下扩展 delay函数
+```js
+function delay(init = 0) {
+    return new Promise(resolve => {
+        let timer = setTimeout(() => {
+            clearTimeout(timer)
+            resolve()
+        }, init)
+    })
+}
+
+
+async handleChange(e) {
+    let file = e.raw
+    if(!file) return
+
+    this.show = false
+    let loadingIntance = Loading.service({
+        ...
+    })
+
+    await delay(100)
+
+    let data = await readFile(file)
+}
+```
+
+
+> forEach无法办到和普通for循环的原因
+- 上面我们使用了for循环来完成了操作 那我们把for循环换成forEach可以么？
+```js
+async function fun(arr) {
+    arr.forEach(async (fn) => {
+        await fn()
+    })
+}
+```
+
+- 不行
+- 我们发现是一次性的出现所有的结果 没有办法按效果(延迟)按顺序的输出
+
+- 原因:
+- 我们可以从mdn上观察forEach的原码 简单的说 源码里面利用while循环 每次在循环的最后会执行callback 也就是forEach中的第一个参数
+
+- 也就是说 每一次循环会重新执行一次 回调 而不是在一个async函数里面一次性执行所有的逻辑 相当于作用域分开了 也就是每一次执行async函数 然后在await
+
+- 我们要想完成同步化的解决方案 必须是这样的形式 一个async中包含了 异步代码 通过await来解决
+```js
+async function test() {
+  await
+  await
+  await
+}
+```
+
+- 但现在是 forEach每一个循环会调用callback 变成如下的格式了
+- 每一个回调里面的await没办法和其他的await形成同步的关系了async之间都是异步的
+```js
+async fn => {
+  await fn()
+}
+
+async fn => {
+  await fn()
+}
+
+async fn => {
+  await fn()
+}
+```
+
+- 那怎么解决 我们需要重写forEach方法
+```js
+Array.prototype.myForEach = async function(callback, thisArg ) {
+  // 第二个参数是this指向
+
+  // 我们先把this保存一下 谁调用的forEach
+  const _arr = this
+
+  const _isArray = Array.isArray(_arr)
+
+  const _thisArg = thisArg ? Object(thisArg) : window
+
+  // 调用者如果不是arr就抛出异常
+  if(!_isArray) {
+    throw new TypeError("必须是一个数组")
+  }
+
+  // 这里还是使用普通for循环的方式 整个函数是async
+  
+  for(let i=0; i<_arr.length; i++) {
+    // 让callback本身是一个同步的执行流程
+    await callback.call(_thisArg, _arr[i], i, _arr)
+  }
+}
+```
+
+
+
+
+
+
+
 ### 函数的柯里化 和 重写toString()
 ```js
 function add() {

@@ -8315,7 +8315,7 @@ function getDisplayName(UIComponent) {
 
 > 由于await 只能等到成功的结果, 我们处理异常的时候要使用try catch
 - 将可能出现错误的代码写在try里面, 一旦出现错误了就会到catch里
-<!-- 
+```js 
   Search = async() => {
     
     // 解决错误的 try catch
@@ -8324,16 +8324,17 @@ function getDisplayName(UIComponent) {
 
       // async await 对上面的请求进行优化
       const res = await fetch(`http://localhost:3000/api1/search/users2?q=${value}`)
-
       // res.json() 返回的是一个promise对象
       const data = await res.json()
+
+
       console.log(data)
 
     } catch(err) {
       console.log(err)
     }
   }
- -->
+```
 
 ----------------------------
 

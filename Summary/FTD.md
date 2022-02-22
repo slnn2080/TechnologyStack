@@ -1495,6 +1495,8 @@ import Print from "vue-print-nb"
 - 那loading本身是异步的 但是就是想让这个异步的操作在前面来展示怎么办？
 - 提示完loading之后我们在解析数据
 - 老师这里用的是异步延迟 在a b之间使用这个方法做这个事 只有到达时间我们才返回一个成功的状态
+
+> delay函数
 <!--
     function delay(interval = 0) {
         return new Promise(resolve => {

@@ -26,6 +26,9 @@ ReactDOM.render(<App />, document.body)
 ----------------
 
 ### svelet中的结构
+- svelte组件中的后缀为 .svelte
+- 其组件内部的结构为:
+
 <script>
   js逻辑
 </script>
@@ -86,6 +89,29 @@ ReactDOM.render(<App />, document.body)
 	{@html name}
 </main>
 ```
+
+----------------
+
+### props
+- 传递到 components 内的值被称为 properties 或 props
+
+- 父组件:
+- 通过标签属性来传递 prop
+
+- 子组件:
+
+> export let 变量
+- 在svelte中 使用 export关键字 声明接收指定的prop变量
+
+
+- 要点:
+- 1. 在声明prop属性的时候可以设置默认值
+- export let name = "default value"
+- 如果没有指定默认值的话 我们使用该变量的时候 会报错 所以为了避免这点 我们宁可设置一个undefined
+
+- 2. 如果将const、 class 或 function导出到component外部，那它们将会变成只读属性，然而只有函数表达式是有效的props。
+
+- 3. 我们可以通过 <Widget {...things}/> 这种形式一次性的给组件传递多个kv
 
 ----------------
 
@@ -191,8 +217,34 @@ export let countdown;
 
 ----------------
 
+### <style>
+- <style>标签块中的样式仅仅生效于component内部
+
+
+> :global(...)
+- 修饰符来添加全局样式。
+```html
+<style>
+	:global(body) {
+		/* 这里样式全局应用于 <body>内都 */
+		margin: 0;
+	}
+
+	div :global(strong) {
+		/* 这里表示全局应用于被<div>包裹的<strong>标签 */
+		color: goldenrod;
+	}
+</style>
+```
+
+----------------
+
 ### if else if 条件判断
-> {#if 条件} ... {#else} ... {/if}
+> {#if expression}...{/if}
+> {#if expression}...{:else if expression}...{/if}
+> {#if expression}...{:else}...{/if}
+- 和vue的 if else if的作用一样 只是写法上有一定的区别
+
 - 我们写在 html 模板的部分
 - 结尾使用 {/if} 来关闭
 
@@ -205,7 +257,7 @@ export let countdown;
 {#if loading}
 <span>Loading</span>
 
-{#else}
+{:else}
 <span>Loaded</span>
 {/if}
 ```
@@ -215,6 +267,13 @@ export let countdown;
 ### { #each 数组 as 变量 [,index] } ... {/each} 遍历
 - 我们写在 html 模板的部分
 - index的部分还有key的用处 所以如果对象中有id之类的情况下 就要将id设置为key值
+
+- 可以使用 each 块来遍历任何数组或类似数组的值，即具有length 属性的任何对象。
+
+
+> key值的定义方式
+> {#each arr as item, i (key)}
+
 
 - 比如:
 - {#each arr as item, item.id}
@@ -234,6 +293,114 @@ export let countdown;
 1 - 0
 2 - 1
 3 - 2
+```
+
+- each 还可以使用 {:else}子句，
+- *如果列表为空*，则显示{:else} 条件下内容。
+```html
+{#each todos as todo}
+	<p>{todo.text}</p>
+{:else}
+	<p>No tasks today!</p>
+{/each}
+```
+
+----------------
+
+### await block 
+- 用于简化 promise 的语法
+- 我们在写前端页面的时候 都会调用api svelte里面有对 await 的封装
+
+> 格式:
+- {#await expression}
+- {:then 结果变量}
+- {:catch 错误变量}
+- {/await}
+
+---
+
+{#await 变量(请求结果)}
+
+--- 还没有发起请求的阶段 也就是promise处于pending的时候会执行下面的逻辑
+<span>Loading...</span>
+
+--- 结果成功回来的阶段 promise.resolve()
+{:then res}
+<span>{res}</span>
+
+--- 请求出错的阶段    promise.reject()
+{:catch err}      
+<span>{err}</span>
+
+{/await}
+
+
+- 当我们不关心请求为回来之前 也就是 pending 状态的话 我们还可以这么写
+```html
+{#await promise then value}
+	<p>The value is {value}</p>
+{/await}
+```
+
+
+- 需求:
+- 下面我们完成一下 根据请求结果 显示不同的内容
+```html
+<script>
+  let api = fetch("http://www.baidu.com").then(res => res.json())
+</script>
+
+{#await api}
+  <span>Loading...</span>
+
+{:then res}
+  <span>{res}</span>
+
+{:catch err}
+  <span>{err}</span>
+
+{/await}
+```
+
+----------------
+
+### 标签指令
+> on:事件名
+> on:eventname={handler}
+- 使用 on:指令来监听DOM事件。
+
+
+> on:eventname|modifiers={handler}
+- 使用 | 来给事件添加修饰符
+
+> 可用的修饰符如下:
+- 1. preventDefault
+- 在程序运行之前调用 event.preventDefault()
+- 阻止默认行为
+
+- 2. stopPropagation
+- 调用 event.stopPropagation(), 防止事件到达下一个标签
+- 阻止冒泡
+
+- 3. passive
+- 改善了 touch/wheel 事件的滚动表现（Svelte会在合适的地方自动加上它）
+
+- 4. capture
+- 表示在 capture阶段而不是bubbling触发其程序
+
+- 5. once
+- 程序运行一次后删除自身
+
+- 修饰符可以串联在一起，比如on:click|once|capture={...}。
+
+
+> 设置 父组件可以监听子组件的事件
+- 如果所使用的 on: 指令事件没有指定具体值，则表示 component 将会负责转发事件(*这个组件会默认往外发射事件*)，这意味着组件的使用者可以侦听该事件。
+
+```html
+<button on:click>
+	组件本身将发出单击事件
+</button>
 ```
 
 ----------------
@@ -299,6 +466,7 @@ export let countdown;
 - 3. 父组件使用 on:事件名 的方式监听
   - 事件的回调里 可以拿到e 我们传递的实参可以通过 e.detail 来接收到
 
+
 ```html
 <!-- 子组件 -->
 <script>
@@ -344,53 +512,6 @@ export let countdown;
 
 ----------------
 
-### await block 
-- 用于简化 promise 的语法
-- 我们在写前端页面的时候 都会调用api svelte里面有对 await 的封装
-
-> 格式:
-- {:then 结果变量}
-- {:catch 错误变量}
-
----
-
-{#await 变量(请求结果)}
-
---- 还没有发起请求的阶段 也就是promise处于pending的时候会执行下面的逻辑
-<span>Loading...</span>
-
---- 结果成功回来的阶段 promise.resolve()
-{:then res}
-<span>{res}</span>
-
---- 请求出错的阶段    promise.reject()
-{:catch err}      
-<span>{err}</span>
-
-{/await}
-
-
-- 需求:
-- 下面我们完成一下 根据请求结果 显示不同的内容
-```html
-<script>
-  let api = fetch("http://www.baidu.com").then(res => res.json())
-</script>
-
-{#await api}
-  <span>Loading...</span>
-
-{:then res}
-  <span>{res}</span>
-
-{:catch err}
-  <span>{err}</span>
-
-{/await}
-```
-
-----------------
-
 ### bind 标签属性绑定
 - vue中的v-bind
 - 比如 
@@ -398,6 +519,7 @@ export let countdown;
 - 当变量发生变化的时候 将数据反映到input上
 - 等等
 
+> bind:属性
 > bind:目标 = {变量}
 - <input type="text" bind:value={text}>
 - 将input的value值绑定到变量text中
@@ -441,6 +563,120 @@ export let countdown;
 - 2. clientWidth
 - 3. duration
 - 4. muted 等
+
+
+> 媒体标签绑定
+```html
+<video
+	src={clip}
+	bind:duration
+	bind:buffered
+	bind:seekable
+	bind:seeking
+	bind:played
+	bind:ended
+	bind:currentTime
+	bind:paused
+	bind:volume
+	bind:videoWidth
+	bind:videoHeight
+></video>
+```
+
+> 块级标签绑定
+- 块级元素具有4个只读属性的绑定，使用 的方法进行尺寸监听：
+
+  clientWidth
+  clientHeight
+  offsetWidth
+  offsetHeight
+
+```html
+<div
+	bind:offsetWidth={width}
+	bind:offsetHeight={height}
+>
+	<Chart {width} {height}/>
+</div>
+```
+
+
+> 绑定class
+> class:name={value}
+> class:name
+- 帮元素加上className 方便将变量和classname绑定
+- 也就是vue中的 :class="{对象的语法}"
+
+- 放条件为true的时候 才将className添加上去 false的时候会移除className
+
+> 使用方式:
+- 标签属性中
+- class:样式名={变量名}
+
+- 技巧:
+- 如果 样式名 和 变量名 一致的时候 可以直接写 (但是不管用)
+- class:active
+```html
+<button
+  on:click={() => acitve = !acitve}
+  class:active
+>click me</button>
+```
+
+- 示例:
+```html
+<script>
+	let flag = false
+</script>
+
+<main>
+	<button
+		on:click={() => flag = !flag}
+		class:active = {flag}
+	>click me</button>
+</main>
+
+
+<style>
+	button {
+		padding: 10px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+
+	.active {
+		background-color: orange;
+	}
+</style>
+```
+
+> use:fn
+- use:action
+- use:action={parameters}
+- Action 作为一个方法用于*标签被创建时调用*。*调用destroy函数返回表示标签被销毁。*
+
+```html
+<script>
+	function foo(节点, 标签属性中传递过来的实参) {
+		// node已挂载在DOM中
+
+		return {
+
+      // 调用update方法 bar发生变化就会执行里面的逻辑
+      update(bar) {
+				// `bar` 已发生变更
+			},
+
+      // 调用destroy方法表示标签被销毁
+			destroy() {
+				// node已从DOM中移除
+			}
+		};
+	}
+</script>
+
+<div use:foo></div>
+```
 
 ----------------
 
@@ -513,6 +749,24 @@ beforeUpdate(() => {
 
 > onDestroy
 - 在组件即将销毁的时候执行
+
+
+> tick
+- 返回一个promise，该promise将在应用state变更后返回resolves，或者在下一个微任务中（如果没有）更改。
+
+```html
+<script>
+	import { beforeUpdate, tick } from 'svelte';
+
+	beforeUpdate(async () => {
+		console.log('the component is about to update');
+
+		await tick();
+
+		console.log('the component just updated');
+	});
+</script>
+```
 
 ----------------
 
@@ -1102,6 +1356,7 @@ export const countdownTimer = derived(countdown, (value, set) => {
 ### transtion
 - 要点:
 - 1. 元素的进场出场不会在第一次被挂载的时候触发
+
 - 解决方式:
 - 利用setTimeout 延迟定制200之类的
 
@@ -1126,10 +1381,52 @@ export const countdownTimer = derived(countdown, (value, set) => {
 - import {fade} from "svelte/transition"
 
 
-- 基本格式:
+> fade
+- fade 接收以下两个参数：
+- delay:
+   (number, 默认值： 0) — 起始时间点（毫秒）。
+
+- duration
+   (number, 默认值： 400) — 持续时间（毫秒）。
+
+```html
+<script>
+	import { fade } from 'svelte/transition';
+</script>
+
+{#if condition}
+	<div transition:fade="{{delay: 250, duration: 300}}">
+		fades in and out
+	</div>
+{/if}
+```
+
+> blur
+- 接收以下参数：
+- delay 
+  (number, 默认值 0) — 起始点（毫秒）。
+
+- duration 
+  (number, 默认值 400) — 持续时间（毫秒）。
+
+- easing
+   (function, 默认值 cubicInOut) — easing函数。
+   
+- opacity
+   (number, 默认值 0) - 不透明度（取值0-1）。
+
+- amount 
+  (number, 默认值 5) - 模糊范围（单位是px，这里不加单位）。
+
+
+> https://www.sveltejs.cn/docs#fade_%E6%B7%A1%E5%85%A5%E6%B7%A1%E5%87%BA
+- 其他的看文档吧
+
+
+> 基本格式:
 ```html
 {#if 条件}
-  <div transition: fade>
+  <div transition:fade={{配置对象}}>
     i am transition
   </div>
 {/if}
@@ -1141,11 +1438,14 @@ export const countdownTimer = derived(countdown, (value, set) => {
 - 出场:
   - 组件被销毁的时候 属于出场
 
+
+
+
 > 标签属性 transition
   在进场和出厂的时候 执行该动画
 
 ```html
-<div transition:fade>
+<div transition:fade="{{duration: 2000}}">
   i am transition
 </div>
 ```
@@ -1280,55 +1580,7 @@ function rotate(node, config) {
 
 ----------------
 
-### slot class
-
-> class
-- 帮元素加上className 方便将变量和classname绑定
-- 也就是vue中的 :class="{对象的语法}"
-
-- 放条件为true的时候 才将className添加上去 false的时候会移除className
-
-> 使用方式:
-- 标签属性中
-- class:样式名={变量名}
-
-- 技巧:
-- 如果 样式名 和 变量名 一致的时候 可以直接写 (但是不管用)
-- class:active
-```html
-<button
-  on:click={() => acitve = !acitve}
-  class:active
->click me</button>
-```
-
-- 示例:
-```html
-<script>
-	let flag = false
-</script>
-
-<main>
-	<button
-		on:click={() => flag = !flag}
-		class:active = {flag}
-	>click me</button>
-</main>
-
-
-<style>
-	button {
-		padding: 10px;
-		border: 1px solid black;
-		border-radius: 5px;
-	}
-
-	.active {
-		background-color: orange;
-	}
-</style>
-```
-
+### slot
 
 > slot
 - 可以通过slot 将自定义组件传入子组件中
@@ -1441,6 +1693,37 @@ function rotate(node, config) {
 
 > <svelte:body />
 - 可对body对象做操作
+- 没办法通过这个标签 给body添加class
+- 视屏中是想在某种条件下 让body不能滚动 样式里面加了 overflow-y: hidden
+
+- 这个标签只能绑定监听 和 获取属性等
+
+```html
+<svelte:body class:preventScroll={isOpen}/>
+```
+
+- 为了达成同样的效果 这里选择使用了 $
+```js
+$: {
+  if(isOpen) {
+    document.body.classList.add("prevent-scroll")
+  } else {
+    document.body.classList.remove("prevent-scroll")
+  }
+}
+```
+
+```css
+/* 
+  :global选择器: 告诉svelte不要加入hash
+*/
+:global(.preventScroll) {
+  overflow-y: hidden;
+}
+```
+
+
+
 
 > <svelte:head />
 - 可对head做操作
@@ -1457,6 +1740,25 @@ function rotate(node, config) {
 
 > <svelte:component />
 - 可以动态引入 svelte组件
+- this来指定展示哪个页面
+
+> 格式:
+- <svelte:component this={expression}/>
+- 标签动态渲染component，被指定的 component 具有一个 this 属性。每当标签上的属性发生变化，该 component 将会销毁并重新创建渲染。
+
+如果this 指向的值为false则不会呈现任何内容。
+
+
+```html
+<svelte:component 
+  this={$model.component}
+  {...$model.params}
+>
+```
+
+
+
+
 
 > <svelte:options />
 - 可针对组件分别指定编译器选项
@@ -1502,3 +1804,16 @@ myApp.listen(3333)
 ```
 
 ----------------
+
+### svelteKit
+- 安装方式
+- npm init svelte@next my-app
+  cd my-app
+  npm install
+  npm run dev
+
+- 有两个特征需要介绍一下
+- 1. 应用的各个页面都是 .svelte 组件
+- 2. 我们把页面文件 也就是视图 放在 src/routes 文件夹下
+- 放在这里面的文件会在服务器端就开始渲染
+

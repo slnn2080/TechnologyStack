@@ -4433,6 +4433,10 @@ FROM employees
 - COUNT()
     - 会过滤空值
 
+  
+**注意:**
+- 聚合函数是不能嵌套使用的
+
 
 > AVG(字段)
 - 该字段的平均情况
@@ -4838,6 +4842,840 @@ FROM departments d left join employees e
 ON d.department_id = e.department_id
 GROUP BY department_name, job_id
 ```
+
+------------------
+
+### 子查询 概述
+- 子查询就是在一个查询结构当中 嵌套了另外一个查询 我们把这种结构称为子查询 相当于双重for
+
+- SQL 中子查询的使用大大增强了 SELECT 查询的能力，
+- 因为很多时候查询需要从结果集中获取数据，
+- 或者需要从同一个表中先计算得出一个数据结果，然后与这个数据结果（可能是某个标量，也可能是某个集合）进行比较。
+<!-- 
+  也就是说不能一次性的取到最终的值 确定的值还需要一个查询去搞定 这时候就要用到子查询
+ -->
+
+- 比如:
+- Main query
+  谁的工资比 Abel 高?
+    - subquery
+      Abel 的工资是多少?
+
+- 我们看看完成上面的逻辑需要怎么写
+```sql
+-- 方式1: 两次查询
+-- 先查出 Abel 的工资是多少
+SELECT e.employee_id, e.last_name, e.salary
+FROM employees e
+WHERE e.last_name = 'Abel'
+
+-- 根据查到的11000 做为where过滤条件中的一个部分
+SELECT last_name, salary
+FROM employees
+WHERE salary > 11000
+
+
+
+-- 方式2: 自连接
+-- 我们把一张表当成两张表：
+-- 1. 先想我们要展示哪些字段
+SELECT e2.last_name, e2.salary
+FROM employees e1, employees e2
+
+-- 2. 连接条件: 不是等值连接
+WHERE e2.salary > e1.salary
+AND e1.last_name = 'Abel'
+
+
+-- 方式3: 子查询
+-- 我们能发现 整个语句有两个 select
+SELECT last_name, salary
+FROM employees
+WHERE salary > (
+									SELECT salary
+									FROM employees
+									WHERE last_name = 'Abel'
+							 )
+```
+
+
+> 称谓的规范:
+- 1. 外查询(主查询) - 内查询(子查询)
+
+> 子查询的基本使用
+- 1. 子查询（内查询）在主查询之前一次执行完成。
+<!-- 
+  对于整个sql语句来说子查询会先计算出结果
+ -->
+
+- 2. 子查询的结果被主查询（外查询）使用 。
+
+**注意事项:**
+- 子查询要包含在*括号内*
+- 将子查询放在比较条件的*右侧*
+
+- 单行操作符对应单行子查询，多行操作符对应多行子查询
+<!-- 
+  前面我们说了单行函数 和 多行函数
+ -->
+
+
+> 子查询的分类 单行子查询 和 多行子查询
+> 角度1: 
+- 按照子查询 查询出来的记录数是一行还是多行来分类
+
+- 单行子查询:
+- (子查询)中计算出了一条记录供外层使用 这种情况下就是单行子查询 
+
+- 多行子查询:
+- (子查询)中计算出了多行记录供外层使用 这种情况下就是多行子查询
+
+
+> 角度2: 
+- 内查询是否被执行多次来分类
+- 相关子查询:
+- 比如: *查询工资大于本部门平均的员工信息*
+- 要查询的字段是员工和员工的工资
+- 在 where 过滤条件这里应该是 
+  张三的工资 和 张三所在部门的平均工资进行比较
+  李四的工资 和 李四所在部门的平均工资进行比较
+
+- 子查询中每次返回的数不一样 这个数内查询和外查询时有相关性的
+- 这就是相关子查询
+
+---
+
+- 不相关子查询:
+- 下面的逻辑就是不相关子查询 因为是我们拿每一条记录中的salary去和11000比较
+- 这个11000是子查询查询到的结果 是一个常量 与这个常量比较的时候 常量不会发生变化
+```sql
+SELECT last_name, salary
+FROM employees
+WHERE salary > (
+									SELECT salary
+									FROM employees
+									WHERE last_name = 'Abel'
+							 )
+```
+
+- 在比如: 查询工资大于本公司平均的员工信息
+- 本公司就是一个常量 所以这个也是不相关的子查询
+
+------------------
+
+### 单行子查询
+- 单行子查询也就是内查询返回的只是一条记录 供外部去使用
+
+> 单行比较操作符
+- WHERE 条件 *单行比较操作符* (子查询)
+
+- = 
+- <>
+- > >=
+- < <=
+
+> 子查询的编写技巧 (编写步骤)
+- 怎么写子查询呢？
+
+- 思路1: 
+- 从里往外写
+
+- 思路2:
+- 从外往里写
+
+
+- 需求:
+- 查询工资大于149号员工工资的员工信息
+
+- 从里往外写:
+- 我们不知道 149号员工的工资 那就先查下他的工资
+- 我们能查到一个数值
+- 然后需求改成 查询工资大于 10500 的员工信息
+```sql
+-- 里面
+SELECT salary 
+FROM employees
+WHERE employee_id = 149   -- 10500
+
+-- 外面
+SELECT employee_id, last_name, salary
+FROM employees
+WHERE salary > 10500
+
+-- 结合
+-- 将10500替换成 内查询的逻辑
+SELECT employee_id, last_name, salary
+FROM employees
+WHERE salary > (
+	SELECT salary 
+	FROM employees
+	WHERE employee_id = 149
+)
+```
+
+
+- 需求:
+- 返回job_id与141员工相同 salary比143号员工多的员工姓名 job_id 和 工资
+
+- 分析
+- 从里往外
+- 1. 我们先查询141员工的job_id
+```sql
+SELECT job_id 
+FROM employees
+WHERE employee_id = 141		-- ST_CLERK
+```
+
+- 2. 我们先查询143员工的salary
+```sql
+SELECT salary
+FROM employees
+WHERE employee_id = 143		-- 2600.00
+```
+
+- 3. 需求改成
+- 返回job_id为 ST_CLERK 
+- 工资大于 2600.00 的员工信息
+```sql
+SELECT last_name, job_id, salary
+FROM employees
+WHERE job_id = ()
+AND salary > ()
+```
+
+- 4. 结合
+```sql
+SELECT last_name, job_id, salary
+FROM employees
+WHERE job_id = (
+	SELECT job_id 
+	FROM employees
+	WHERE employee_id = 141	
+)
+AND salary > (
+	SELECT salary
+	FROM employees
+	WHERE employee_id = 143
+)
+```
+
+- 需求:
+- 返回公司工资最少的员工的last_name job_id salary
+
+- 从里往外:
+- 先找出公司工资最少的员工
+```sql
+SELECT MIN(salary)
+FROM employees
+```
+
+- 改写需求:
+- 返回公司公司 小于 2100 的员工信息
+```sql
+SELECT last_name, job_id, salary
+FROM employees
+WHERE salary = (
+	SELECT MIN(salary)
+	FROM employees
+)
+```
+
+
+- 需求:
+- 查询与141号 或 174号员工的manager_id 和 department_id相同的其他员工的 employee_id manager_id department_id
+
+- 这次我们*从外往里*写 因为需求太长了
+
+- 1. 断句
+- 1.1 
+- 查询*与141号员工的manager_id 和 department_id相同的其他*员工的 employee_id manager_id department_id
+
+- 1.2
+- 我们把红色的字去掉 这部分是定语 修饰后面的内容的 去掉红字后 就变成了 *查询员工的 employee_id manager_id department_id*
+
+- 也我们上面1.1中去掉红色的部分就是过滤条件了
+
+```sql
+SELECT employee_id, manager_id, department_id
+FROM employees
+```
+
+- 然后我们再看过滤条件
+- 我们要查询141号 或 174号员工的manager_id 和 department_id 
+```sql
+SELECT employee_id, manager_id, department_id
+FROM employees
+WHERE manager_id = ()
+AND department_id = ()
+```
+
+- 结合:
+```sql
+SELECT employee_id, manager_id, department_id
+FROM employees
+WHERE manager_id = (
+	SELECT manager_id
+	FROM employees
+	WHERE employee_id = 141
+)
+AND department_id = (
+	SELECT department_id
+	FROM employees
+	WHERE employee_id = 141
+)
+
+-- 还要另加一个条件 把141这个人的信息抠出去 
+AND employee_id <> 141;
+```
+
+
+- 上面还能改写成这样 有点相同的地方合并的意思
+> 成对查询的方式 where中需要两个字段 我们下面就查询出来两个字段
+```sql
+SELECT employee_id, manager_id, department_id
+FROM employees
+
+-- 这里
+WHERE (manager_id, department_id) = (
+	SELECT manager_id, department_id
+	FROM employees
+	WHERE employee_id = 141
+)
+
+AND employee_id <> 141;
+```
+
+
+> HAVING中的子查询
+- 首先执行子查询
+- 向主查询中的HAVING子句返回结果
+
+- 需求:
+- 查询最低工资大于50号部门最低工资的部门id和其最低工资
+
+- 从外往里
+- 1. 断句
+- 查询*最低工资大于50号部门最低工资的*部门id和其最低工资
+- 去掉红色部分
+
+- 变成:
+- 查询部门id和其最低工资
+```sql
+-- 同时出现了普通字段和聚合函数 所以要使用group by
+SELECT department_id, MIN(salary)
+FROM employees
+GROUP BY department_id
+```
+
+- 我们接下来看条件
+- 最低工资要大于50号部门的最低工资
+```sql
+SELECT department_id, MIN(salary)
+FROM employees
+WHERE department_id IS NOT NULL
+GROUP BY department_id
+
+-- 最低工资 和 50号部门的最低工资 对比 作为条件
+HAVING MIN(salary) > (
+	SELECT MIN(salary)
+	FROM employees
+	WHERE department_id = 50
+)
+```
+
+
+> CASE中的子查询
+- 在CASE表达式中使用单列子查询:
+
+- 需求:
+- 显示员工的 employee_id last_name location 其中 若员工 department_id 和 location_id为1800的department_id相同 则location为 Canada 其余为USA
+
+- 分析
+- 1. location是一个字段 但是这个字段显示什么内容 需要根据 case语句来确定
+```sql
+SELECT employee_id, last_name, (这里是动态的) "location"
+FROM employees
+```
+
+- 2. case语句的条件为
+- 若员工 department_id 和 *location_id为1800的department_id相同*
+
+- 我们需要先查询到 红色的部分
+```sql
+SELECT department_id
+FROM departments
+WHERE location_id = 1800  -- 20
+```
+
+- 改写需求:
+- 若员工 department_id 为 *20* 则location为Canada 其余为USA
+
+```sql
+SELECT employee_id, last_name, (CASE department_id WHEN 20 THEN 'Canada' ELSE 'USA' END) "location"
+FROM employees
+
+SELECT department_id
+FROM departments
+WHERE location_id = 1800
+```
+
+- 接下来 我们把 WHEN 20 的部门替换成子查询
+```sql
+SELECT employee_id, last_name, (CASE department_id WHEN (
+	SELECT department_id
+	FROM departments
+	WHERE location_id = 1800
+) THEN 'Canada' ELSE 'USA' END) "location"
+FROM employees;
+```
+
+- 简单来讲 凡是有不确定的地方我们都可以使用子查询
+
+
+> 子查询的空值问题
+- 如果子查询查到的是空的 不会报错 只不过查完后没有结果
+
+```sql
+SELECT last_name, job_id
+FROM employees
+WHERE job_id = (
+  SELECT job_id
+  FROM employees
+  WHERE last_name = 'Haas'
+);
+```
+
+
+> 非法使用子查询
+- 当内查询查询到的结果是多行的情况下 外层操作符要使用多行操作符
+
+```sql
+SELECT employee_id, last_name
+FROM   employees
+
+-- 2. 子查询的结果是多行的 我们这里用的是 = 
+-- = 是单行操作符 相当于我们要具体等于一个数 但是我们查出了多行数据
+WHERE  salary = (
+  SELECT MIN(salary)
+  FROM employees
+  GROUP BY department_id);
+  -- 1. 内查询时查询各个部门的最低工资 我们查到的应该是多行数据
+```
+
+------------------
+
+### 多行子查询
+- 定义:
+- 内查询返回了多行记录
+
+- 需要使用多行操作符
+
+> 多行比较操作符
+> IN
+  - 等于列表中的*任意一个*
+  <!-- 
+    分我们前面接触的 IN 差不多
+    前面的:
+      IN List
+    
+    现在的:
+      IN 子查询
+   -->
+
+> ANY
+  - 需要和单行比较操作符一起使用
+  - 和子查询返回的*某一个值*比较
+  - 理解技巧:
+    - 相当于找最大
+
+> ALL
+  - 需要和单行比较操作符一起使用
+  - 和子查询返回的*所有值*比较
+  - 理解技巧:
+  - 相当于找最小
+
+
+> SOME
+  - 实际上是ANY的别名 作用相同
+  - 一般使用ANY
+
+
+> ANY ALL 的理解:
+- 比如现在有5个女生来追我 有贤惠的 有有学识的 5种类型
+
+- ANY: 不挑谁都行 只选一个
+- ALL: 所有都要
+
+
+> 举例: IN
+```sql
+SELECT employee_id, last_name
+FROM employees
+
+-- 因为子查询返回的是多行记录 所以这里需要用 IN
+WHERE salary IN (
+
+  -- 子查询返回的是多行记录
+  SELECT MIN(salary)
+  FROM employees
+  GROUP BY department_id
+)
+
+-- 子查询中 查询到了 按部门分组的最低工资
+-- 主查询中看看 哪些员工的工资恰好等于 list(子查询) 中的工资
+```
+
+
+> 举例: ANY ALL
+- 需求:
+- 返回其它job_id中比job_id为'IT_PROG'部门*任一*工资低的员工的员工号 姓名 job_id salary
+
+- 1. 断句
+- 返回*其它job_id中比job_id为'IT_PROG'部门任一工资低的员工*的员工号 姓名 job_id salary
+
+```sql
+SELECT employee_id, last_name
+FROM employees
+```
+
+- 2. 分析条件部分
+- 其它job_id中比job_id为'IT_PROG'部门
+- 把'IT_PROG'部门去掉后的结果
+```sql
+SELECT employee_id, last_name
+FROM employees
+WHERE job_id <> 'IT_PROG'
+```
+
+- 3. 任一工资低的员工
+- 我们要取出这个工种的员工工资 
+```sql
+SELECT salary
+FROM employees
+WHERE job_id = 'IT_PROG'
+```
+
+- 结果:
+```sql
+SELECT employee_id, last_name, salary
+FROM employees
+WHERE job_id <> 'IT_PROG'
+
+-- 首先这里使用了 < 然后看需求是任一 所以选择 ANY
+AND salary < ANY (
+	SELECT salary
+	FROM employees
+	WHERE job_id = 'IT_PROG'
+)
+```
+
+
+- 需求:
+- 返回其它job_id中比job_id为'IT_PROG'部门*所有*工资低的员工的员工号 姓名 job_id salary
+```sql
+SELECT employee_id, last_name, salary
+FROM employees
+WHERE job_id <> 'IT_PROG'
+
+-- 首先这里使用了 < 然后看需求是所有 所以选择 ALL
+AND salary < ALL (
+	SELECT salary
+	FROM employees
+	WHERE job_id = 'IT_PROG'
+)
+```
+
+
+> FROM 当中的子查询
+- 可以把子查询的结果当做是一个表
+
+- 需求:
+- 查询平均工资最低的部门id
+```sql
+-- 这样是错误的写法 mysql聚合函数不能嵌套使用
+SELECT MIN(AVG(salary))
+FROM employees
+GROUP BY department_id
+```
+
+- 我们是先拿出平均工资 然后找最低的部门
+
+> 技巧
+- 我们可以把聚合函数查询出来的结果 当做一个表
+- 注意:
+- 这样写需要给这个表起一个别名
+- 也需要给聚合函数的字段起一个别名
+```sql
+-- 我们再对这个表中的字段就可以再次的使用聚合函数了
+SELECT MIN(avg_sal)
+
+-- 我们将子查询的结果 当做是一个表 并起了别名
+FROM (
+	SELECT AVG(salary) avg_sal
+	FROM employees
+	GROUP BY department_id
+) t_dept_avg_sal
+```
+
+- 完整的写法：
+```sql
+SELECT department_id
+FROM employees
+GROUP BY department_id
+HAVING AVG(salary) = (
+	SELECT MIN(avg_sal)
+	FROM (
+		SELECT AVG(salary) avg_sal
+		FROM employees
+		GROUP BY department_id
+	) t_dept_avg_sal
+)
+```
+
+
+- 方式2:
+```sql
+SELECT department_id
+FROM employees
+GROUP BY department_id
+
+-- 子查询中返回了多行记录 现在我们要找多行记录中最小的 那符合ALL的情况的话 我们只能是 AVG(salary) 本身
+HAVING AVG(salary) <= ALL (
+	SELECT AVG(salary) avg_sal
+	FROM employees
+	GROUP BY department_id
+)
+```
+
+> 多行子查询的空值问题
+- 我们想查出来不是管理者的员工数 但是下面没有查出任何的信息
+ 
+- 因为里面有null值
+```sql
+SELECT last_name
+FROM employees
+
+WHERE employee_id NOT IN (
+  SELECT manager_id
+  FROM employees
+
+  -- 可以使用 WHERE 过滤空值
+);
+```
+
+------------------
+
+### 相关子查询
+- 如果子查询的执行依赖于外部查询，通常情况下都是因为子查询中的表用到了外部的表，并进行了条件关联，因此每执行一次外部查询，子查询都要重新计算一次，这样的子查询就称之为`关联子查询`。
+
+- 相关子查询按照一行接一行的顺序执行，主查询的每一行都执行一次子查询。
+
+- 比如下面的代码 
+- 内查询的语句中出现了 外部的表 outer 那就相当于外部表会把数据送到内查询中
+
+```sql
+select col1, col2
+from table1 outer
+where col1 operator + (
+
+  select col1, col2
+  from table2
+
+  -- 内查询中用到了外部的表outer
+  where expr1 = outer.expr2
+)
+```
+
+> 相关子查询的执行顺序
+- 1. 首先取外层表中的一条记录 送到 内查询中
+
+- 2. 内查询中会使用这条记录 或者 这条记录的一列做运算, 然后子查询中返回结果 
+
+- 3. 拿着当初送进去的数据 和 子查询中返回的数据进行比较 看看是否满足比较的条件 如果满足结果就是1 我们就会要这条数据 如果是0则不要
+
+- 需求:
+- 查询员工中工资大于本部门平均工资的员工的last_name,salary和其department_id
+
+- 首先我们写出基本的部分
+```sql
+SELECT last_name, salary, department_id
+FROM employees e
+WHERE salary > (
+
+)
+```
+
+- 我要是如下的写法是 看看工资大于 50部门的平均工资
+```sql
+SELECT last_name, salary, department_id
+FROM employees e1
+WHERE salary > (
+	SELECT AVG(salary)
+	FROM employees e2
+	WHERE department_id = 50
+)
+```
+
+- 但是我们的要求是查询员工中工资大于本部门平均工资的
+- 也就是说上面 50 部门 是要变化的
+```sql
+SELECT last_name, salary, department_id
+FROM employees e1
+WHERE salary > (
+	SELECT AVG(salary)
+	FROM employees e2
+	WHERE department_id = e1.department_id
+)
+```
+
+- 上面这样写 首先我们观察 *子查询中用到了外层的表*
+- 首先这就构成了相关性的概念
+
+- 理解:
+- 外部一共有107条记录 先取出来其中的一条送到子查询里面去
+
+- 子查询中从送进来的数据中获取department_id 子查询中使用数据进行过滤
+
+- 然后外面送进去的数据 和 返回的数据 进行比较 看是0 还是1
+
+
+- 方式2 在from中声明子查询
+- 在from中写相当于把查询结果作为一张表 我们现在有员工表107表记录 如果我们还有了一个表 表中的字段是各个部门和各个部门的平均工资
+
+- 那我就可以从表A中取一条记录 拿到表B中去看看 对比下 进行多表查询
+```sql
+SELECT department_id, AVG(salary)
+FROM employees
+WHERE department_id IS NOT NULL
+GROUP BY department_id
+```
+
+-- 我们把上面的结果当做是一个新的表
+```sql
+SELECT e.last_name, e.salary, e.department_id
+FROM employees e, (
+	SELECT department_id, AVG(salary) avg_sal
+	FROM employees
+	WHERE department_id IS NOT NULL
+	GROUP BY department_id
+) t_dept_avg_sal
+WHERE e.department_id = t_dept_avg_sal.department_id
+AND e.salary > t_dept_avg_sal.avg_sal
+```
+
+
+> 在 order by 中使用子查询
+- 需求:
+- 查询员工的id, salary, 按照department_name 排序
+```sql
+SELECT employee_id, salary
+FROM employees e
+
+-- department_name不在员工表里面 就意味着我们要结合员工表去找每一个员工在部门表里面的department_name
+ORDER BY (
+	SELECT department_name
+	FROM departments d
+	WHERE e.department_id = d.department_id
+) ASC;
+```
+
+
+> 结论: 在哪些位置可以写子查询
+- 除了 group by 和 limit 其他位置都可以声明子查询
+
+
+- 需求:
+- 若employees表中employee_id与job_history表中employee_id相同的数目不小于2，输出这些相同id的员工的employee_id,last_name和其job_id
+
+```sql
+-- 就是说我们要从员工表中找员工 跟 job_history表中做匹配 看看员工表中的员工在job_history表中的记录超过两条
+SELECT employee_id, last_name, job_id
+FROM employees e
+WHERE 2 <= (
+	SELECT COUNT(*)
+	FROM job_history j
+	WHERE e.employee_id = j.employee_id
+)
+```
+
+- 只要内查询中出现外层的表了 就是相关子查询
+
+
+> EXISTS(存在) 与 NOT EXISTS关键字
+- 关联子查询通常也会和 EXISTS操作符一起来使用，用来检查在子查询中是否存在满足条件的行。
+
+
+> 使用方式:
+> WHERE WXISTS (子查询)
+- 外层送进来的记录 如果在内层找到了后 会返回true 会停止查询
+
+
+- **如果在子查询中不存在满足条件的行：**
+  - 条件返回 FALSE
+  - 继续在子查询中查找
+
+- **如果在子查询中存在满足条件的行：**
+  - 不在子查询中继续查找
+  - 条件返回 TRUE   --  停止查找
+
+- NOT EXISTS关键字表示如果不存在某种条件，则返回TRUE，否则返回FALSE。
+
+- 需求:
+- 查询公司管理者的employee_id，last_name，job_id，department_id信息
+
+```sql
+-- 方式1: 自连接
+SELECT DISTINCT mgr.employee_id, mgr.last_name, mgr.job_id, mgr.department_id
+FROM employees emp JOIN employees mgr
+ON emp.manager_id = mgr.employee_id
+
+
+-- 方式2: 子查询
+SELECT DISTINCT manager_id
+FROM employees
+
+SELECT employee_id, last_name, job_id, department_id
+FROM employees e
+WHERE e.employee_id IN (
+	SELECT DISTINCT manager_id
+  FROM employees
+) 
+
+
+-- 方式3: EXISTS
+SELECT employee_id, last_name, job_id, department_id
+FROM employees e1
+
+-- 我们在外层找每一个员工的employee_id 然后把它送进内层
+WHERE EXISTS(
+	-- 这里不关注哪些字段 我们只要看是否查到记录
+	SELECT * FROM employees e2
+	WHERE e1.employee_id = e2.manager_id
+)
+```
+
+
+- 需求:
+- 查询departments表中，不存在于employees表中的部门的department_id和department_name
+```sql
+-- 方式1:
+SELECT d.department_id, d.department_name
+FROM employees e RIGHT JOIN departments d
+ON e.department_id = d.department_id
+WHERE e.department_id IS NULL
+
+
+-- 方式2:
+SELECT d.department_id, d.department_name
+FROM departments d
+WHERE NOT EXISTS (
+	SELECT * 
+	FROM employees e
+	WHERE d.department_id = e.department_id
+)
+```
+
+------------------
 
 
 ------------------

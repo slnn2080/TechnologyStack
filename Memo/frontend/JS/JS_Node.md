@@ -2,6 +2,21 @@
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
 
+### 焦点元素
+> activeElement 
+- 属性返回文档中当前获得焦点的元素
+
+> document.activeElement.tagName;
+- 返回元素的标签名
+
+> element.focus() 
+- 为元素设置焦点
+
+> document.hasFocus() 
+- 查看当前元素是否获取焦点。
+
+
+
 ### 面向对象编程 - 后盾人
 - 我们先看下函数式编程 求平均成绩
 ```js
