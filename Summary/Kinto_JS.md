@@ -189,3 +189,116 @@ export default class commonAnimation {
 }
 
 ```
+
+
+> Accordion.js
+- 效果:
+- 我们点击标题 就能打开内容的区域
+- 比如我们页面上有4个Q 那每一个Q就算是一个item
+
+- 我们看看每一个Q的html结构:
+
+- div data-module="accordion"       -- *一个item的容器里面有 标题区域 和 收起来的文本区域*
+    - div data-accordion="toggle"   -- *标题区域 该区域也相当于按钮 点击可展开下面的文本区域*
+    - div data-accordion="content"  -- *被隐藏起来的文本区域*
+
+- div data-module="accordion" 上在打开的时候会添加 is-open 样式该类为将原本的内容的透明度有0-1
+- div data-accordion="content" 在div data-module="accordion"添加上is-open后 会有maxHeight的高度变化
+
+```js
+import ResizeManage from "../util/ResizeManage"
+
+export default class Accordion {
+
+  constructor(isDefaultOpen = false) {
+    // 是否默认打开 默认值为false
+    this.isDefaultOpen = isDefaultOpen
+    this.getParam()
+    this.init()
+  }
+
+  // 获取 所有的 折叠item项 相当于获取每一个Q
+  getParam() {
+    this.accordion = document.querySelectorAll("[data-module='accordion']")
+    // 设置 折叠起来的内容区的高度 默认是0
+    this.contentInit = 0
+  }
+
+
+  init() {
+    this.resizeManage = new ResizeManage(835)
+    this.bindEvent()
+  }
+
+
+  bindEvent() {
+    // 将获取的所有Q伪数组进行遍历
+    Array.prototype.forEach.call(this.accordion, (elem) => {
+
+      // 得到 标题区域 和 内容区域
+      const acToggle = elem.querySelector("[data-accordion=\"toggle\"]")
+      const content = elem.querySelector("[data-accordion=\"content\"]")
+
+      // 设置内容区域的高度 初始值为0
+      let contentHeight = this.contentInit
+
+
+      // 展开 合并 高度
+      const toggleHeight = () => {
+        // 内容区的高度没有写死 是最大高度 如果内容区和标题区域的容器wrap有is-open 那么就设置告诉为contentInit 没有的话contentHeight
+        content.style.maxHeight = acToggle.parentNode.classList.contains("is-open") ? `${this.contentInit}px` : contentHeight
+
+        // 给wrap添加is-open
+        acToggle.parentNode.classList.toggle("is-open")
+      }
+
+      // 点击时候的时候
+      const active = () => {
+        const contentPosition = content.getBoundingClientRect()
+        // 先看看内容区的告诉是不是 不等于0 如果不等于0的话 就设置内容区的高度为获取的高度
+        contentHeight = contentPosition.height != 0 ? `${contentPosition.height}px` : "none"
+
+        // 设置内容区的最大高度
+        content.style.maxHeight = `${this.contentInit}px`
+
+        // init
+        acToggle.parentNode.classList.remove("is-open")
+
+        // clickイベント
+        acToggle.addEventListener("click", toggleHeight)
+
+        // デフォルトOPEN
+        if (this.isDefaultOpen) {
+          toggleHeight()
+        }
+      }
+
+      const inactive = () => {
+        content.style.maxHeight = "none"
+        acToggle.parentNode.classList.add("is-open")
+        acToggle.removeEventListener("click", toggleHeight)
+      }
+
+      const onResize = (isMobile) => {
+        // data-accordion-size 属性が指定されている場合、SPのみ/PCのみで実行する
+        if (!isMobile && elem.dataset.accordionSize === "sp") {
+          inactive()
+        } else if (isMobile && elem.dataset.accordionSize === "pc") {
+          inactive()
+        } else {
+          active()
+        }
+      }
+
+      // 読み込み時
+      onResize(this.resizeManage.isMobile)
+
+      // リサイズ時 リセット
+      this.resizeManage.on("resizeManage", () => {
+        onResize(this.resizeManage.isMobile)
+      })
+    })
+  }
+}
+
+```
