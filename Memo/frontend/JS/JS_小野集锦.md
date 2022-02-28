@@ -153,3 +153,85 @@ const data = Array.from(obj, function(item, index) {
 - 改变this指向的配置
 
 ----------------
+
+### 将定义在对象中的get方法提取出来
+
+- 如下我们定义的对象 我们给a属性定义了get方法 
+- 要是想使用get方法我们都是通过 obj.a 的方式进行的调用
+```js
+let obj = {
+  get a() {
+    // 对random的结果进行四舍五入
+    return Math.random() >= 0.5 ? 1 : 0
+  }
+}
+
+console.log(obj.a)  // 0 or 1
+```
+
+- 现在我们想将get方法提取出来
+- 方式1:
+```js
+const fn = obj.a
+```
+
+- 方式2:
+> 含有get的对象.__lookupGetter__("提取哪个get");
+```js
+let round = obj.__lookupGetter__("a");
+console.log(round)
+console.log(round())
+```
+
+- 该方法已经被废弃了 但是它的兼容性超级好
+- 在一些底层代码中使用的是
+- __defineSetter__()
+- __defineGetter__()
+
+- 那既然上面的方法被废弃了 肯定就有一个新的方法出现替换它
+- 我们的get set就是描述符
+
+> Object.getOwnPropertyDescriptor("指定对象", "哪个属性的描述符")
+- 返回的是一个该对象的所有描述符对象
+
+```js
+let round = Object.getOwnPropertyDescriptor(obj, "a")
+console.log(round);
+console.log(round())
+
+{
+  set: undefined, 
+  enumerable: true, 
+  configurable: true, 
+  get: ƒ
+}
+```
+
+- 既然是对象 我们就能通过.的方法获取到get
+```js
+let round = Object.getOwnPropertyDescriptor(obj, "a").get
+console.log(round);
+```
+
+- 该方法的兼容性不是很好 虽然上面的__lookupGetter__方法被废弃了 但是大部分浏览器是支持的
+
+
+> 对象.__defineGetter__("设置的属性", () => {})
+> 对象.__defineSetter__("设置的属性", () => {})
+- 给对象设置什么属性 回调就是get方法的回调
+- 内部需要返回return
+
+- 也就是我们可以直接设置 getter 方法
+- 偏底层的方法
+
+```js 
+let obj = {}
+obj.__defineGetter__("a", () => {
+  return "get a"
+})
+console.log(obj.a)
+```
+
+----------------
+
+### 相等性判断
