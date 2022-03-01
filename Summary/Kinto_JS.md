@@ -302,3 +302,167 @@ export default class Accordion {
 }
 
 ```
+
+
+> Carousel.js
+- 里面包含了 swiper
+- swiper要想滚动 比如有指定一个swiper的容器
+- 该容器里面有滚动的图片区域 和 导航点等区域
+
+- 回顾下 swiper 的基本结构
+```html
+<!-- 外层容器 类名: swiper-container -->
+<div class="swiper-container">
+
+  <!-- 滚动区域 类名: swiper-wrapper -->
+  <div class="swiper-wrapper">
+
+    <!-- item 类名: swiper-slide -->
+    <div class="swiper-slide">Slide 1</div>
+    <div class="swiper-slide">Slide 2</div>
+    <div class="swiper-slide">Slide 3</div>
+  </div>
+
+  <!-- 如果需要分页器 -->
+  <div class="swiper-pagination"></div>
+  
+  <!-- 如果需要导航按钮 -->
+  <div class="swiper-button-prev"></div>
+  <div class="swiper-button-next"></div>
+  
+  <!-- 如果需要滚动条 -->
+  <div class="swiper-scrollbar"></div>
+</div>
+```
+
+- 要点:
+- 1. https://kinto-jp.com/kinto_one/selection/ktsyaris/
+- 在上面的网址中 公司将导航点做成了图片
+
+- 2. 公司项目中并没有上来给容器绑定 swiper 需要的各种类名 而是通过 [data-*] 属性选择器 选择了目标都 通过js部分添加类名
+
+```js
+import Swiper from "swiper"
+/**
+ * カルーセル(Swiper)設定
+ */
+export default class Carousel {
+  /**
+   * @classdesc カルーセル設定
+   */
+  constructor() {
+    this.init()
+  }
+
+  /**
+   * Swiper対象要素を設定
+   */
+  init() {
+
+    // 通过属性选择器 找的外层容器 swiper-container
+    const $container = document.querySelector("[data-module='carousel']")
+
+    // 根据外层容器 找到的 滚动区域的容器 swiper-wrapper
+    const $list = $container.querySelector("[data-carousel='list']")
+
+    // 找到items集合
+    const $item = $list.querySelectorAll("li")
+
+    // 外围容器身上有 data-alt-prefix 和 data-alt-prefix-base 该部分的作用是给导航点图片 动态绑定alt属性
+    // 看看altPrefix的值是不是空 如果不是空就用传入的值 如果是空就用 ""
+    const $prefix = $container.dataset.altPrefix !== "undefined" ? $container.dataset.altPrefix: ""
+    const $prefixBase = $container.dataset.altPrefixBase !== "undefined" ? $container.dataset.altPrefixBase: ""
+
+
+    // 给外围容器添加上 swiper-container
+    $container.classList.add("swiper-container")
+
+    // 给滚动区域添加上  swiper-wrapper
+    $list.classList.add("swiper-wrapper")
+
+    // 给里面的每一个item添加 swiper-slide
+    Array.prototype.forEach.call($item, (el) => {
+      el.classList.add("swiper-slide")
+    })
+
+
+    // 导航点(把导航点做成图片了)区域是ul -- ul(data-carousel="nav" data-thumb-path=`${img_path}pic_carousel_0`)
+    // ul 中的 li 不是写入html结构中的 而是js动态创建的
+
+    // 我们获取到这个ul 取到它身上的 thumbPath 也就是 导航点图片的路径
+    const $thumbPath = document.querySelector("[data-carousel='nav']").dataset["thumbPath"]
+
+
+    // 轮播图的每一个item项是li li当中包含了两个部分 图片区域 和 图片上的文字caption区域
+    // $item 就是每一个轮播项
+    const thumbTextArray = Array.prototype.map.call($item, (d) => {
+
+      // 我们拿到 li -> 文字区域中的指定 DOM节点 querySelector(".text") 然后将它们身上的thumbtext 放到一个数组中
+      const text = d.querySelector(".text")
+      return text.dataset["thumbtext"]
+    })
+
+
+    new Swiper($container, {
+      centeredSlides: true,
+      loop: true,
+      effect: "fade",
+      fadeEffect: {
+        crossFade: false,
+      },
+      speed: 500,
+      pagination: {
+        el: ".swiper-pagination",
+      },
+
+      breakpoints: {
+        750: {
+          pagination: {
+            // 定义pagination 分页器内当前活动块的指示小点的类名。
+            bulletActiveClass: "_active",
+
+            // 此参数设置为true时，点击分页器的指示点分页器会控制Swiper切换。
+            clickable: true,
+
+            // 分页器容器的css选择器或HTML标签。分页器等组件可以置于container之外，不同Swiper的组件应该有所区分，如#pagination1，#pagination2。
+            // 指定分页器的容器
+            el: "[data-carousel='nav']",
+
+            // 渲染分页器小点。这个参数允许完全自定义分页器的指示点。
+            // 接受指示点索引和指示点类名作为参数。
+            renderBullet: (index, className) => {
+              const imgPath = $thumbPath + (index + 1) + "_thumb"
+              const altPrefix = thumbTextArray[index] !== "ベースモデル" ? $prefix: $prefixBase
+              return `
+                <li class="${className}"><div class="thumb-wrap">
+                  <picture>
+                    <source srcset="${imgPath}.jpg 1x, ${imgPath}@2x.jpg 2x" media="(min-width: 835px)">
+                    <img src="${imgPath}.jpg" alt="${altPrefix} - ${thumbTextArray[index]} -">
+                  </picture>
+                  <div class="thumb-absolute-grad">
+                    <p class="thumb-absolute-text">${thumbTextArray[index]}</p>
+                  </div>
+                  </div>
+                </li>
+              `
+            },
+          },
+        }
+      },
+      navigation: {
+        nextEl: "[data-carousel='next']",
+        prevEl: "[data-carousel='prev']",
+      },
+      slidesPerView: 1,
+      spaceBetween: 0,
+      on: {
+        // 事件函数， 初始化后执行。
+        init: () => {
+          const swipeContainer = document.querySelector(".p-selection__cardetail__carousel__inner")
+          swipeContainer.classList.add("is-show")
+        }
+      }
+    })
+  }
+}
+```

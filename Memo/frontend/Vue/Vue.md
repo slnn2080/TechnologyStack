@@ -17552,6 +17552,7 @@ setup() {
 > $attrs
 - 这个属性在vc实例身上
 - $attrs 有点像捡漏的 props声明接收的部分 它捡不到 没声明接收的部分就在它那
+- $attrs是一个对象
 
 - 但是还有一个知识点前面我们没有了解过，就是子组件中我们不利用props配置项来声明接收父组件传递过来的参数，这个数据也会在vc身上
 <!-- 
@@ -17559,10 +17560,35 @@ setup() {
  -->
 
 - 这种方式也可以使用父组件通过props传递过来的数据 但是这种方式没有办法对传递过来的数据进行类型限制
-
 - 如果我们在子组件使用props配置项声明接收后，我们就可以在模板中直接使用了 但是如果我们不接收的话，在模板中使用的时候 就要 $attrs.name 这种方式使用
-
 - 如果我们在子组件中声明接收了 那么数据就会挂载在vc身上 $attrs 中就会没有，如果没有声明接收 那么数据就会在 $attrs 中
+
+- 当我们父组件使用props传递数据后 如果我们没有在子组件里面声明接收 数据就会在 $attrs对象里面
+- 但是如果我们没有使用props声明接收 那么我们传递的数据 会被认为是 attribute 会被当作字符串内联到html文档里
+
+```html
+<Component test="test">
+
+<!-- 如果我们没有声明接收props的 那么数据就会作为标签属性 显示在标签中 -->
+<div test="test">
+```
+
+- 为了避免上述的事情发生 我们要在子组件中 设置
+> inheritAttrs: false 
+
+
+> 扩展: attribute 和 property 的区别 
+> property  
+  是DOM中的属性，是JavaScript里的对象
+
+- Property是这个DOM元素作为对象，其附加的内容，例如childNodes、firstChild等。
+
+> attribute 
+  是HTML标签上的特性，它的值只能够是字符串
+
+- Attribute就是dom节点自带的属性:
+- 例如html中常用的id、class、title、align等。
+
 
 
 > $slots
