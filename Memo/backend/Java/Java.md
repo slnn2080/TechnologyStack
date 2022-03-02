@@ -5315,6 +5315,22 @@ num >> 3;     // 2
   // 如果我们找到一个不存在的数值 会返回 负数
 ```
 
+
+> Arrays.copyOf(目标数组, 新数组的长度)
+- 作用:
+- 复制一个数组 不会影响原数组
+- 参数2要传递一个新的数组的长度 如果超过原数组的长度 则会用默认值来代替
+
+```java
+int[] arr = {1, 2, 3};
+
+// 定义长度为2
+int[] arr2 = Arrays.copyOf(arr, 2);
+
+String res = Arrays.toString(arr2);
+System.out.println(res);    // [1, 2]
+```
+
 ----------------------------
 
 ### 数组使用中的常见异常
@@ -20694,7 +20710,7 @@ public class ProductTest {
 - FutureTask同时实现了Runnable Future接口 它既可以作为Runnable被线程执行 又可以作为Future得到Callable的返回值
 
 
-> FutureTask类
+> FutureTask实现类
 - 我们前面讲解的创建线程的方式中 不断是继承Thread类还是实现Runnable接口的方式 都可以通过线程对象.start()的方式 启动线程执行run方法
 
 - 但是Callable接口没有start()方法 要想启动线程 要借助FutureTask类 FutureTask类就是Future接口的实现类
@@ -21073,15 +21089,14 @@ class NumberThread3 implements Runnable {
 - 需要使用同步机制将操作共享数据的代码包起来 不能包多了 也不能包少了
 
 ----------------------------
-### 复习
+
 ### 跟字符串相关的类
 
 ###  String
 - String类代表字符串 在java程序中的所有字符串字面值("abc")都作为此类的实例实现
 
 - String是一个final类(不能被继承) 代表*不可变的字符序列*
-
-- 字符串是常量 用双引号引起来表示 它们的值在创建之后*不能更改*
+- *字符串是常量* 用双引号引起来表示 它们的值在创建之后*不能更改*
 
 - String对象的字符内容是存储在一个char[]字符数组中的
 <!-- 
@@ -21097,31 +21112,32 @@ class NumberThread3 implements Runnable {
 - 1. String类是声明为final的 不可被继承
 - 2. String实现了如下3个接口
 
-  - Serializable(可序列化的)
-  <!-- 
-    // 字符串是支持序列化的
-    - java是面向对象的语言 数据都封装在对象中 而对象是可以进行传输的 
+> Serializable(可序列化的)
+- 字符串是支持序列化的
+- java是面向对象的语言 数据都封装在对象中 而对象是可以进行传输的 
 
-    - 比如A电脑中的对象可以通过网络发送给B电脑 B电脑接收到后再将对象还原回来 传输的时候我们使用的是流 字节的方式传输 而对象默认情况下是不能传输的 
-    
-    - 但是字符串序列化之后就可以进行传输了
-    - 而String实现了这个接口后 就可以通过网络的方式进行传输了
-  -->
+- 比如A电脑中的对象可以通过网络发送给B电脑 B电脑接收到后再将对象还原回来 传输的时候我们使用的是流 字节的方式传输 而对象默认情况下是不能传输的 
 
-  - Comparable接口(比较器)
-  <!-- 
-    - 实现了该接口String就可以比较大小了
-  -->
+- 但是字符串序列化之后就可以进行传输了
+- 而String实现了这个接口后 就可以通过网络的方式进行传输了
 
-  - CharSequence接口
+
+> Comparable接口(比较器)
+- 实现了该接口String就可以比较大小了
+
+
+> CharSequence接口
 
 
 - 3. String内部定义了
   final char[] value
-  用于存储字符串数据 因为是final修饰的 也就是说这个char[]数组*不能被重新赋值* 而且该*数组中的元素也不能被修改*
+
+  - 用于存储字符串数据 因为是final修饰的 也就是说这个char[]数组*不能被重新赋值* 而且该*数组中的元素也不能被修改*
+
 
 - 4. 通过字面量的方式(区别于new)给一个字符串赋值 此时的字符串值声明在字符串的常量池中
 - 字符串常量池中是不会存储相同内容的字符串的(相当于我们拿String类中重写后的equals比较真实的内容)
+
 
 - 5. String代表不可变的字符序列 简称 不可变性
   - 1. 当对字符串重新赋值的时候 需要重写指定内存区域赋值 不能对原有的char[]进行重新赋值
@@ -21147,20 +21163,27 @@ String str = "abc"
 @Test
   public void test1() {
 
-    // String是一个类 
-    - 但是赋值的时候可以不用new 直接就可以使用字面量的形式赋值
-    - 使用字面量赋值的方式 s1 s2拿到的是同一个常量池中的字符串的地址值
     String s1 = "abc";
     String s2 = "abc";
+    /*
+      String是一个类 
+      但是赋值的时候可以不用new 直接就可以使用字面量的形式赋值
+      使用字面量赋值的方式 s1 s2拿到的是同一个常量池中的字符串的地址值
+    */
 
     // 两个对象用 == 比较的是地址值
     System.out.println(s1 == s2); //true
 
     s1 = "hello";
-    // 当s1的值重新赋值为hello的时候 
-    - 并不是将常量池的abc修改为hello 
-    - 我们的abc底层是使用char[]存储的 存放abc的char[]数组的长度就是3 而hello的长度是5 数组的长度确定后是不能修改的 
-    - 而char[]数组是final的不能被重新赋值 所以当s1="hello"的时候 是在常量池中新造了一个hello的值
+    /*
+      当s1的值重新赋值为hello的时候 并不是将常量池的abc修改为hello 
+
+      我们的abc底层是使用char[]存储的 存放abc的char[]数组的长度就是3 
+      而hello的长度是5 数组的长度确定后是不能修改的 
+
+      而char[]数组是final的不能被重新赋值 所以当s1="hello"的时候 
+      是在常量池中新造了一个hello的值
+    */
 
     System.out.println(s1); // hello
     System.out.println(s2); // abc
@@ -21170,6 +21193,7 @@ String str = "abc"
 
     // 对原有字符串进行拼接的情况
     String s3 = "abc";
+
     // 相当于在现有的字符串上拼接了一段内容
     s3 += "def";
 
@@ -21183,8 +21207,10 @@ String str = "abc"
 
     // 对原有字符串进行修改的情况
     String s4 = "abc";
+
     // 将a修改为m
     String s5 = s4.replace("a", "m");
+
     System.out.println(s4);   
     // abc  s4没有变 也就是说即使仅仅是替换char[]数组中的元素 也不是对原有的char[]进行修改 而是又在常量池中新创建了一个mbc
 
@@ -21223,12 +21249,12 @@ s1 = "hello"
 - 字符串常量池中的特性：
 - 不会存两个相同内容的字符串的
 
-当 String s1 = "abc"; 的时候
-在栈中定义s1 
-首次没有abc的时候 会在方法区的 字符串常量池中造一个abc
+  当 String s1 = "abc"; 的时候
+  在栈中定义s1 
+  首次没有abc的时候 会在方法区的 字符串常量池中造一个abc
 
-当 String s2 = "abc"; 的时候
-系统会先去常量池中找找看看有没有abc 有的话我们就会复用 所以就会将 0x1212 的地址给s2
+  当 String s2 = "abc"; 的时候
+  系统会先去常量池中找找看看有没有abc 有的话我们就会复用 所以就会将 0x1212 的地址给s2
 
 - 所以这时候我们比较 s1 == s2 就是true
 
@@ -21248,11 +21274,26 @@ s1 = "hello"
 
 > 字面量的赋值方式
 > String str = "hello"
+- 这种就相当于我们在常量池中直接造了一个字符串 将地址值赋值给了str变量
 
 
 > new的方式
+- 该方式我们可以传入各种类型的格式 比较灵活 作用会很多吧
+- 我们传入构造器中的数据 就是给底层的char[] 赋值
+- 1. 传空: 
+  代表造了一个长度为0的数组
+
+- 2. 传数据: 
+  代表根据数据生成字符串
+
+- 3. 传char[]: 
+  代表把char[]复制给底层数组 生成字符串
+
+- 4. 传char[] + 起始位置 + 个数
+  代表根据char[]数组中 截取指定的数据放入底层数组 生成字符串
+
+
 > String str = new String();
-- String str = new String();
 - 我们使用上述方式赋值 相当于赋了一个 new char[0] 长度为0
 - 我们给字符串赋值 本质就是给String类内部的char[]数组赋值
 <!-- 
@@ -21296,14 +21337,27 @@ String str2 = new String("abc")
 ```
 
 > new String方式声明的数据
-- 我们通过str2 = new String("abc")方式创建的字符串 是在堆空间声明了一个对象
+- 我们通过如下的方式创建的字符串 是在堆空间声明了一个对象
+  String str2 = new String("abc")
+
 - 该对象中有value属性 值为一个char[]数组
 - str2拿到的是堆空间中对象的地址值
 - 堆空间中对象的value属性拿到的是 "abc"在常量池中的地址值
 
+<!-- 
+    堆空间        栈空间变量 str
+              ↗ 该对象的地址值
+      -- 对象
+            ↘ 堆空间中对象的属性: value
+          -- value(值 char[])
+                ↘
+                  ↘ 
+                    常量池中的地址值
+ -->
+
 ```java
 public void test2() {
-    // 字面量声明的数据javaEE是声明在方法区中的字符串的常量池中
+    // 字面量方式声明的 数据javaEE 是声明在方法区中的字符串的常量池中
     String s1 = "javaEE";
     String s2 = "javaEE";
 
@@ -21312,8 +21366,10 @@ public void test2() {
     String s4 = new String("javaEE");
 
     System.out.println(s1 == s2);   // true
+
     // 这里比较的是常量池的地址值 和 堆的地址值 不一样所以是false
     System.out.println(s1 == s3);   // false
+
     // 2个新的对象 相比当然是false
     System.out.println(s3 == s4);   // false
   }
@@ -21406,7 +21462,7 @@ public class PersonTest {
 
 
 > String不同拼接操作的对比
-- 1. 常量与常量的拼接结果在常量池中 且常量池中不会存在相同内容的常量
+- 1. 常量与常量(字面量的创建方式的结果)的拼接结果在常量池中 且常量池中不会存在相同内容的常量
 <!-- 
   两个字面量的连接的结果 和 一个字面量一样的时候 常量池中认定它们就是同一个
   String s3 = "javaEEhadoop";
@@ -21506,19 +21562,20 @@ public class StringTest {
     System.out.println(ex.ch)
         // best
   }
-
-  // 解析： 
-  - 当我们传递实参 str 的时候 会被形参str接收
-  public void change(String str, char ch[])
-
-  - 因为传递的是地址值 那么形参str接收到的就是地址值 形参str指向了good
-
-  - 但是change方法内部将形参str修改了 但是String是不可变的 方法内部的str是"test ok"; 但是类中的变量仍然还是good
-
-
-  - char[]没有什么不可变 传递实参ch的时候 传递的是地址值 所以形参和实参都指向了一个对象 修改也会影响到方法外的ch
 }
 ```
+
+- 解析： 
+- 当我们传递实参 str 的时候 会被形参str接收
+
+  public void change(String str, char ch[])
+
+- 因为传递的是地址值 那么形参str接收到的就是地址值 形参str指向了good
+
+- 但是change方法内部将形参str修改了 但是String是不可变的 方法内部的str是"test ok"; 但是类中的变量仍然还是good
+
+
+- *char[]没有什么不可变* 传递实参ch的时候 传递的是地址值 所以形参和实参都指向了一个对象 修改也会影响到方法外的ch
 
 ----------------------------
 
@@ -21527,10 +21584,11 @@ public class StringTest {
 
 - jvm要针对具体问题做一些优化处理 所以就开发了不同的jvm
 
+
 > 三种JVM
-- 1. Sun公司的HotSpot
-- 2. BEA公司的JRockit
-- 3. IBM公司的J9 VM
+- 1. Sun公司的 HotSpot
+- 2. BEA公司的 JRockit
+- 3. IBM公司的 J9 VM
 
 - 我们通常所说的jvm都是HotSpot
 
@@ -21560,7 +21618,7 @@ public class StringTest {
 - 上图我们能看到 *堆 和 方法区 是两个并列的结构*
 
 > 堆的细分
-- 我们再来说下 堆 堆细分有3部分
+- 我们再来说下堆 堆细分有3部分
 
 - 一个jvm实例只存在一个堆内存 堆内存的大小是可以调节的
 - 类加载器读取了类文件后 需要把类 方法 常变量放到堆内存中 保存所有引用类型的真实信息 以方便执行器执行 
@@ -21577,6 +21635,7 @@ public class StringTest {
 
   目的就是要和堆分开
  -->
+
 
 > 新生区 异常 Java heap space
 - 新生区是属于堆 当堆出问题的时候 会报 *Java heap space异常* 说明java虚拟机的堆内存不够 原因可能是
@@ -21628,9 +21687,17 @@ System.out.println(s1.length());
 
 > 字符串.charAt(int index);   -- char
 - 取指定位置上的字符
+
+- 返回值类型:
+- char
+
 ```java
-System.out.println(s1.charAt(2));
+String str = "123";
+
+char c = str.charAt(0);
+System.out.println(c + 1);
 ```
+
 
 > 字符串.isEmpty();   - boolean
 - 判断是否为空字符串
@@ -21638,9 +21705,14 @@ System.out.println(s1.charAt(2));
   底层来说 就是判断char[] value的长度
   return value.length == 0
  -->
+
+- 返回值类型:
+- boolean
+
 ```java
-s1 = "";
-System.out.println(s1.isEmpty());
+String str = "";
+boolean empty = str.isEmpty();
+System.out.println(empty);
 ```
 
 
@@ -21671,8 +21743,12 @@ String s2 = s1.trim();
 
 
 > 字符串.equals(Object obj);    -- boolean
-- 比较实际的内容是否相同
+- 比较*实际的内容是否相同*
 - 字符串是严格区分大小写的
+
+- 返回值类型:
+- boolean
+
 ```java
 String s1 = "HelloWorld"
 String s2 = "helloworld"
@@ -21682,6 +21758,10 @@ s1.equals(s2);    // false
 
 > 字符串.equalsIgnoreCase(String anotherString) -- boolean
 - 在忽略大小写的情况下 比较实际内容是否相同
+
+- 返回值类型:
+- boolean
+
 ```java
 String s1 = "HelloWorld"
 String s2 = "helloworld"
@@ -21690,18 +21770,27 @@ s1.equalsIgnoreCase(s2);    // true
 
 
 > 字符串.concat(String str); 
-- 将指定的字符串链接到此字符串的结尾 等价于 +
+- 将指定的字符串*链接*到此字符串的结尾 *等价于 +*
 - 创建新的变量接收
 ```java
 String s1 = "abc";
 String res = s1.concat("def");
+
+
+String str = "abc";
+String str2 = "efg";
+String concat = str.concat(str2);
+System.out.println(concat);
 ```
 
 
-> compareTo(String anotherString);    -- int
+> 字符串.compareTo(String anotherString);    -- int
 - 比较两个字符串的大小
 - 返回结果是int型的 
-- 如果返回负数则当前对象小 正数则当前对象大 0则相等
+- 如果返回
+  负数则当前对象小 
+  正数则当前对象大 
+  0则相等
 
 - 因为String类实现了Comparable接口 所以可以比较大小
 <!-- 
@@ -21709,6 +21798,13 @@ String res = s1.concat("def");
   底层就是 
   拿着每一个元素去对比 如果有不一样的 就让两个元素相减
  -->
+
+- 返回值类型:
+- int
+
+- 应用场景:
+- 字符串排序 手机联系人
+
 ```java
 String s1 = "abc";
 String s2 = "abe";
@@ -21716,12 +21812,12 @@ String s2 = "abe";
 int res = s1.compareTo(s2);   // -2
 ```
 
-- 应用场景:
-- 字符串排序 手机联系人
-
 
 > 字符串.substring(int beginIndex, [endIndex])
-- 如果只传入beginIndex 则从指定位置开始截取字符串 包含index位置
+- 如果只传入beginIndex 则从指定位置开始*截取字符串* 包含index位置
+<!-- 
+  截所有
+ -->
 
 - 如果传入endIndex 则截取从开始(包括)到结束(不包括)的字符串
 - 返回一个新的字符串 
@@ -21739,6 +21835,10 @@ String res = s1.substring(2, 5); // 尚硅谷
 > 字符串.startsWith(String 给定字符);   -- boolean
 - 判断字符串是否以 给定字符 结束 / 开始
 - 需要创建变量接收
+
+- 返回值类型:
+- boolean
+
 ```java
 String str = "helloworld";
 boolean res = str.endsWith("ld"); // true
@@ -21748,6 +21848,10 @@ boolean res = str.endsWith("ld"); // true
 > 字符串.startsWith(String 给定字符, int index);   -- boolean
 - 判断从index位置为准(包含开始位置) 是否以给定字符串开始
 - 需要创建变量接收
+
+- 返回值类型:
+- boolean
+
 ```java
 String str = "helloworld";
 boolean res = str.endsWith("ll", 2); // true
@@ -21755,7 +21859,7 @@ boolean res = str.endsWith("ll", 2); // true
 
 
 > 字符串.contains(CharSequence s);    -- boolean
-- 判断当前字符串中是否包含给定字符串
+- 判断当前字符串中是否包含给定字符串 (子串)
 - 对大小写敏感
 
 ```java
@@ -21798,8 +21902,9 @@ int res = str1.indexOf("lo", 5);  // -1
 
 > 字符串.lastIndexOf(String str, int index);   -- int
 - 返回指定字符串在字符串中最后一次出现的索引 *从指定的索引开始反向搜索* 也就是从右往左
+
 **注意:**
-- 虽然是从后往前找 但是返回的还是从前往后的索引
+- 索引还是从做往右数的 在指定索引位置后 从索引的位置往左找
 
 ```java
 String str = "hellorworld";
@@ -21827,8 +21932,8 @@ String res = str.replace("北", "东");
 - 返回新的字符串
 - 将符合正则的部分 替换为给定字符串
 
-- 注意:
-- 1. 正则是字符串形式的 相当于在 new RegExp("正则") 当中写正则表达式 注意要对符号进行转义
+**注意:**
+- 1. *正则是字符串形式的* 相当于在 new RegExp("正则") 当中写正则表达式 注意要对符号进行转义
 
 - 2. replaceAll方法只有符合正则的全部都会被替换 相当于开启了匹配模式g
 ```java
@@ -21844,8 +21949,14 @@ String newStr = str.replaceAll("\\d+", ",").replaceAll("^,|,$", "");
 
 > 字符串.matches(String 正则);    -- boolean
 - 告知此字符串是否匹配给定的正则表达式 返回布尔值
-- 看看字符串是否匹配正则的格式
+
+- 作用:
+- 指定字符串是否匹配正则的格式
 - 相当于 test();
+
+- 返回值类型:
+- boolean
+
 ```java
 String str = "12345";
 boolean res = str.matches("\\d+");    // true
@@ -21854,11 +21965,14 @@ boolean res = str.matches("\\d+");    // true
 
 > 字符串.split(String 正则);    -- String[]
 > 字符串.split(String 正则, int limit);    -- String[]
-- 根据正则将匹配的内容拆分成String[]数组
+- 根据正则将匹配的内容*拆分成String[]数组* (不包含匹配的内容)
 
 - 带limit参数的方法
 - 根据匹配给定的正则来拆分此字符串 最多不超过limit个
 - 如果超过了 剩下的全部都放到最后一个元素中
+
+- 返回值类型:
+- String[]
 
 ```java
 String str = "hello|world|java";
@@ -21866,6 +21980,7 @@ String[] strs = str.split("\\|");
 
 for(int i=0; i<strs.length; i++) {
   System.out.println(strs[i]);
+  // hello world java
 }
 ```
 
@@ -21943,6 +22058,15 @@ str.getChars(0, 3, strArr, 1);
 for (int i = 0; i < strArr.length; i++) {
   System.out.println(strArr[i]);
 }
+
+
+String str = "abc123efg";
+
+char[] chars = new char[2];
+str.getChars(0,2, chars, 0);
+
+String s = new String(chars);
+System.out.println(s);    // ab
 ```
 
 
@@ -21951,7 +22075,23 @@ for (int i = 0; i < strArr.length; i++) {
 - 组织成 a21cb3
 
 - 提示：
-- a 3不懂 bc12反转
+- a和3不动 bc12反转
+
+```java
+String str = "abc123";
+char[] chars = str.toCharArray();
+
+for(int i=1, j=chars.length-2; i<j; i++, j--) {
+  char temp = chars[i];
+  chars[i] = chars[j];
+  chars[j] = temp;
+}
+
+String s = Arrays.toString(chars);
+System.out.println(s);
+```
+
+> 
 
 ----------------------------
 
@@ -21968,12 +22108,12 @@ for (int i = 0; i < strArr.length; i++) {
   字节就是底层的数了
  -->
 
+
 - 解码:
 - 将看不懂的二进制数据转换为能看得懂 不一定是字符串了
 - 编码的逆过程就是解码
 
 - 字节 -> 字符串
-
 - 解码和编码的编码集要一致
 
 
@@ -21992,21 +22132,26 @@ for (int i = 0; i < strArr.length; i++) {
 String str = "abc123中国";
 // 使用默认的字符集进行的编码
 byte[] bytes = str.getBytes();    // 编码的过程
+// [97, 98, 99, 49, 50, 51, -28, -72, -83, -27, -101, -67]
 
 // 将byte[]转换为 字符串 使用默认的字符集进行的解码
 String newStr = String(bytes)     // 解码的过程
+// abc123中国
 ```
 
-> 将char[]数组中指定位置指定长度的字符转为字符串
-> String(byte[], int beginIndex, int length)
+> new String(byte[], int beginIndex, int length)
+- 将char[]数组中指定位置指定长度的字符转为字符串
 
 ---
 
 > 字符串 -> byte[]    -- 相当于一个编码的过程
 > 字符串.getBytes();
-- 返回值一个byte[]数组
+- 作用:
 - 将字符串转为byte数组
-- 使用默认的字符集进行转换
+- 使用默认的字符集对该字符串进行转换为byte[]
+
+- 返回值类型:
+- 返回值一个byte[]数组
 
 ```java
 String str = "abc123";
@@ -22016,6 +22161,7 @@ byte[] bytes = str.getBytes();
 System.out.println(Array.toString(bytes))
 // [97, 98, 99, 49, 50, 51]
 ```
+
 
 > 当有汉字的情况下 我们是根据指定的编码集对汉字进行byte字节的转换
 ```java
@@ -22038,9 +22184,13 @@ System.out.println(Array.toString(bytes))
 - 我们上面是使用的是默认的当前系统(编辑器里面设定的)的编码集
 - 我们还可以指定编码集
 
+
 > 字符串.getBytes(String charsetName);
 - 返回一个byte[]
 - 使用指定的字符集 进行转换
+
+- 异常:
+- UnsupportedEncodingException
 
 - 该方法会抛异常 *UnsupportedEncodingException*(比如我们输入的不是正确的编码集 所以报错 所以该方法在设置的时候 就会往外抛*不支持*的异常) 我们可以选择处理异常的方式
 
@@ -22049,6 +22199,7 @@ System.out.println(Array.toString(bytes))
 public void test() throws UnsupportedEncodingException {
   String str = "abc123中国";
   byte[] bytes = str.getBytes("gbk");
+
   System.out.println(Array.toString(bytes))
   // gbk是专门针对汉字进行编码的 简体 繁体都有
   // 中国对应的编码集 就变成了 2位一组
@@ -22087,11 +22238,11 @@ public void test() {
 
 - 没加final之前 s3的值是由含有变量的数据进行拼接的
 - 加final之后 为什么是true呢？
-- 我们说常量和常量的拼接在常量池 我们使用final后 该变量就变成常量了 所以还在常量池
+- 我们说常量和常量的拼接在常量池 *我们使用final后 该变量就变成常量了* 所以还在常量池
 
 
 > 总结:
-- 1. final可以修饰局部变量
+- 1. *final可以修饰局部变量*
 - 2. final修饰的变量 是 常量
 - 3. 常量 和 常量进行拼接会在常量池
 
@@ -22106,26 +22257,32 @@ public void test() {
 > String StringBuffer StringBuilder 三者的异同
 
 > String
-- 不可变的字符序列 该类为jdk1.0就开始有的
+- *不可变的字符序列* 该类为jdk1.0就开始有的
 
 
 > StringBuffer
-- 可变的字符序列 该类为jdk1.0就开始有的
-- 该类中的方法都是线程的安全的(效率低)
+- *可变的字符序列* 该类为jdk1.0就开始有的
+- 该类中的方法都是*线程的安全的*(效率低)
 
 
 > StringBuilder
-- 可变的字符序列 该类为jdk1.5后新增的
-- 该类中的方法几乎和StringBuffer是一样的 但是没有synchronized修饰 就是线程不安全的(效率高一些)
+- *可变的字符序列* 该类为jdk1.5后新增的
+- 该类中的方法几乎和StringBuffer是一样的 但是没有synchronized修饰 就是*线程不安全的*(效率高一些)
 
 
-> StringBuilder效率该但线程不安全 StringBuffer线程安全但效率低 那我们怎么选择?
+> StringBuilder效率该但线程不安全 
+> StringBuffer线程安全但效率低 那我们怎么选择?
 - 看是否为多线程的问题
 - 不是多线程问题的时候 我们选择StringBuilder 提高效率
 
 
 > 相同点
 - 底层都是使用char[]存储
+
+
+> 推荐使用 new StringBuffer(int num) 构造器
+- 原因看完这章会有答案
+
 
 > 思考
 - 为什么都用char[]数组存 String就不可变 StringBuffer StringBuilder就可变呢？
@@ -22134,20 +22291,24 @@ public void test() {
 ```java
 StringBuffer sb1 = new StringBuffer("abc");
 
-// 将字符串指定位置的字符 替换为给定字符 该方法没有返回值
+// 将字符串指定位置的字符 替换为给定字符 该方法没有返回值 修改字符串中的字符
 sb1.setCharAt(0, 'm')   // mbc
 ```
 
-- 我们说String类是不可变的 它调用方法修改字符串后都需要创建新的变量来接收 并不影响原字符串
-- 而我们发现 setCharAt方法 没有返回值 真的把原字符串直接修改了 也就是说 影响的就是原字符串
+- 我们说*String类*是不可变的 它*调用方法修改字符串后都需要创建新的变量来接收* 并不影响原字符串
+
+- 而我们发现 *setCharAt方法 没有返回值 真的把原字符串直接修改了* 也就是说 影响的就是原字符串
+
 - 这就是可变的
 
 
 - 那大家底层都一样 为什么它就是可变的呢？ 接下来我们看看它的底层实现
 
+
 > 原码分析
 - String str = new String();
 - 如果我们这么new了一个str 那么底层它帮我们new了一个char[0]数组 长度为0
+
 - char[] value = new char[0]
 
 - String str = new String("abc")
@@ -22177,8 +22338,9 @@ sb1.setCharAt(0, 'm')   // mbc
 
 - 相当于我们每次造完后都额外的空出来16个char
 
+
 > 问题1: 
-- sb1 2的长度是多少呢？
+- sb1 sb2的长度是多少呢？
 ```java
 StringBuffer sb1 = new StringBuffer()
 System.out.println(sb1.length());   // 0
@@ -22194,28 +22356,33 @@ System.out.println(sb2.length());   // 3
 
 - 如果要添加的数据底层盛不下了 那就需要扩容底层的数组
 - 默认情况下 扩容为原来容量的2倍 + 2
-- 同时将原有数组中的元素复制到新的数组中
+- *同时将原有数组中的元素复制到新的数组中*
 
 - 我们看看 append() 方法底层是怎么样的逻辑
+
 
 > 扩容的原码解析
 ```java
 if(str == null) return appendNull();
+
 // 当我们传入str有长度的时候
 int len = str.length();
-// 先确保容量是够的
-- 比如 我们已经存了15个了 现在还要添加"abc"
-- count就是15 + 3 = 18
+
+/*  
+  先确保容量是够的
+  比如 我们已经存了15个了 现在还要添加"abc"
+  count就是15 + 3 = 18
+*/
 ensureCapacityInternal(count + len);
 
 
 // 看看 ensureCapacityInternal 方法 value.length是底层的数组
-- 18 - 16 > 0 说明数组不够了 
+// 18 - 16 > 0 说明数组不够了 
 if(18 - value.length > 0) {  
   value = Array.copyOf(value, newCapacity(18))
 }
 
-- 然后调用的了 newCapacity 将数组扩容了一倍 然后+2
+// 然后调用的了 newCapacity 将数组扩容了一倍 然后+2
 - int newCapacity = (value.length << 1) + 2
 
 
@@ -22233,12 +22400,19 @@ return this
 - 当我们知道 我们要调用 append() 方法多少次的时候
 - 我们尽可能的使用 下面的构造器
 
+
 > new StringBuffer(int num)
 - 创建指定容量的StringBuffer 为了避免自动扩容
 - 比如造一个长度为30 40长度的
 <!-- 
   因为默认就是16 16个字符
  -->
+
+```java
+StringBuffer sb = new StringBuffer(40);
+System.out.println(sb.length());
+// 0  length()方法获取的是该sb中元素的个数
+```
 
 - StringBuffer 和 StringBuilder 使用哪个我们就要看线程是否安全
 
@@ -22249,21 +22423,23 @@ return this
 <!-- 
   append 和 insert 时 如果原来value数组长度不够 可扩容
   下面这些方法支持方法链操作
-
-  方法链原理
-  @overwrite
-  public StringBuilder append(String str) {
-    super.append(str);
-    return this;
-  }
  -->
+
+```java
+// 方法链原理
+@overwrite
+public StringBuilder append(String str) {
+  super.append(str);
+  return this;
+}
+```
 
 
 > sb.append([int char float double long boolean char[] String str CharSequence s StringBuffer sb])
 - 我们可以传递多种数据类型
 
 - 作用：
-- 往字符串中*添加*字符
+- 往字符串中*添加字符*
 
 ```java
 // 调用空参构造器创建sb空字符串(可扩展)
@@ -22281,6 +22457,7 @@ System.out.println(sb);
 > sb.delete(int start, int end)
 - *删除*指定位置的内容
 - 包括开始位置 不包括结束位置
+- 还必须传递两个参数
 
 - 影响原字符串
 
@@ -22303,6 +22480,7 @@ System.out.println(res);
 // ab1
 ```
 
+
 > sb.replace(int start, int end, String str)
 - 将指定位置的字符 *替换*为新的字符串
 - 包括开始位置 不包括结束位置
@@ -22316,7 +22494,17 @@ sb.replace(0, 2, "hello")   // helloc
 
 > sb.insert(int offset, [int char long float double boolean Object String char[]])
 - 在指定的位置 *插入*数据
-- 能插入的类型有很多 但最终都会转为字符串
+- 能插入的类型有很多 但*最终都会转为字符串*
+
+- 在给定的位置上插入 原位置的数据会后移
+<!-- 
+  abc
+   ↑
+  给定索引位置为1
+  就在b的位置上插入数据
+
+  a数据bc
+ -->
 
 - 影响原字符串
 
@@ -22383,14 +22571,14 @@ sb.insert(1, true)
 - 调用String的构造器
 
 
-> String 转换为 StringBuffer StringBuilder
+> String -> StringBuffer StringBuilder
 - 以 String -> StringBuffer 为例
 ```java
 String str = "abc"
 StringBuffer strBuf = new StringBuffer(str);
 ```
 
-> StringBuffer StringBuilder 转换为 String
+> StringBuffer StringBuilder -> String
 - 1. 调用String的构造器
 - 2. 调用StringBuffer.toString()返回的就是一个String类型的字符串
 
@@ -22427,7 +22615,7 @@ public String myTrim(String str) {
 ------
 
 > 2. 将一个字符串进行反转 将字符串中指定部分进行反转
-- 比如 "ab*cdef*g 反转为 *abfedcg*
+- 比如 "ab*cdef*g 反转为 ab*fedc*g
 
 > 方式1
 ```java
@@ -22793,7 +22981,7 @@ public void testStringBuffer() {
 }
 ```
 ----------------------------
-
+### 复习
 ### 日期时间API -- JDK8之前
 
 > System.currentTimeMillis()

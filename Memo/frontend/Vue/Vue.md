@@ -620,7 +620,65 @@ https://vuejs.org/js/vue.min.js
 - 解决方案
 - 当然cookie也有验证 需要在后端设置 给敏感数据 比如cookie设置 HttpOnly 这样只有浏览器才能读取cookie并携带cookie其它人都不可以
 - document.cookie也不能读取cookie 为空
+
+-------
+
+- 前端人员除了传统的 XSS、CSRF 等安全问题之外，又时常遭遇网络劫持、非法调用 Hybrid API 等新型安全问题。
+
+- 请判断以下两个说法是否正确：
+- 1. XSS 防范是后端 RD（研发人员）的责任，后端 RD 应该在所有用户提交数据的接口，对敏感字符进行转义，才能进行下一步操作。
+
+- 2. 所有要插入到页面上的数据，都要通过一个敏感字符过滤函数的转义，过滤掉通用的敏感字符后，就可以插入到页面中。
+
+> xss概念
+- XSS 攻击是页面被注入了恶意的代码
+
+- 案例:
+- 公司需要一个搜索页面，根据 URL 参数决定关键词的内容。
+```html
+<input type="text" value="<%= getParameter("keyword") %>">
+<button>搜索</button>
+<div>
+  您搜索的关键词是：<%= getParameter("keyword") %>
+</div>
+```
+
+- 然而，在上线后不久，小明就接到了安全组发来的一个神秘链接：
+http://xxx/search?keyword="><script>alert('XSS');</script>
+
+小明带着一种不祥的预感点开了这个链接[请勿模仿，确认安全的链接才能点开]。果然，页面中弹出了写着”XSS”的对话框。
+
+- 当浏览器请求 http://xxx/search?keyword="><script>alert('XSS');</script> 时，
+
+- 服务端会解析出请求参数 keyword，得到 "><script>alert('XSS');</script>，拼接到 HTML 中返回给浏览器。形成了如下的 HTML：
+
+```html
+<input type="text" value=""><script>alert('XSS');</script>">
+<button>搜索</button>
+<div>
+  您搜索的关键词是："><script>alert('XSS');</script>
+</div>
+```
+
+- 浏览器无法分辨出 <script>alert('XSS');</script> 是恶意代码，因而将其执行。
+
+- 这里不仅仅 div 的内容被注入了，而且 input 的 value 属性也被注入， alert 会弹出两次。
+
+- 其实，这只是浏览器把用户的输入当成了脚本进行了执行。那么只要告诉浏览器这段内容是文本就可以了。 聪明的小明很快找到解决方法，把这个漏洞修复：
+
+```html
+<input type="text" value="<%= escapeHTML(getParameter("keyword")) %>">
+<button>搜索</button>
+<div>
+  您搜索的关键词是：<%= escapeHTML(getParameter("keyword")) %>
+</div>
+```
  
+- escapeHTML() 按照如下规则进行转义：
+- |字符|转义后的字符| |-|-| |&|&amp;| |<|&lt;| |>|&gt;| |"|&quot;| |'|&#x27;| |/|&#x2F;|
+
+- https://tech.meituan.com/2018/09/27/fe-security.html
+
 ----------------
 
 > v-text 
