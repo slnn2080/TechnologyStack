@@ -235,3 +235,80 @@ console.log(obj.a)
 ----------------
 
 ### 相等性判断
+- es版本中 有4种相等判断的算法
+- 1. === 全等
+- 2. ==  等于
+- 3. 零值相等 -0 === +0  
+- 4. 同值相等 -0 !== +0   NaN === NaN
+
+
+- js中提供有关相等判断的操作方法
+- 1. 严格相等 (strict equality)
+  ===
+
+- 2. 非严格相等(抽象/非约束) (loose equality)
+  ==
+
+- 3. Object.is(val1, val2)
+- 判断两个参数是否是同一个值 es6的新特性 
+
+
+> === 严格相等
+- 不进行隐式类型转换
+
+- 要求:
+- 类型相同 值也要相同
+
+```js
+1 === "1"   // false  类型不同
+1 === 2     // false  值不同
+```
+
+- 引用类型使用 === 判断的时候 引用值必须是同一地址
+```js
+let obj = {}
+let obj2 = obj
+obj === obj2  // true
+
+
+{} === {}    // false  引用值不同
+// 我们这么写相当于字面量 字面量都是通过new Object产生一个新的对象 相当于 {} 就是 new Object 出来的新对象
+
+
+NaN === NaN   // false NaN跟任何值都不相等
+
+
++0 === -0   // true
+// 数学中-0 和 +0代表两个含义 js中不是所有场景都是相等的
+
++Infinity === -Infinity   // false
+```
+
+- 思考:
+- 怎么让 a !== a 返回true 如何定义变量a让这个等式成立呢？
+```js
+a = NaN
+a !== a
+```
+
+
+> 非严格相等 ==
+- 比较之间会进行隐式类型转换 - 等式两边都有可能被转换
+- 转换以后 还是用严格相等进行比较
+
+- 隐式类型转换表:
+- https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Equality_comparisons_and_sameness
+
+```js
+Undefined == Undefined  // true 没有进行类型转换
+Null == Null      // true
+Undefined == Null // true
+
+
+String == Object
+// 隐式转换
+// ToPrimitive(B) == A
+// ToPrimitive(B)通过尝试调用 B 的B.toString() 和 B.valueOf() 方法，将参数 B 转换为原始值（Primitive）。
+
+// 调用.toString()方法将Object转换为原始值 进行比较
+```

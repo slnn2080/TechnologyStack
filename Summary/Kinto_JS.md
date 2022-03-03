@@ -429,7 +429,7 @@ export default class Carousel {
             el: "[data-carousel='nav']",
 
             // 渲染分页器小点。这个参数允许完全自定义分页器的指示点。
-            // 接受指示点索引和指示点类名作为参数。
+            // 接受指示点索引和指示点类名作为参数。 className是swiper自己对小圆点添加的特有样式 swiper-pagination-bullet _active
             renderBullet: (index, className) => {
               const imgPath = $thumbPath + (index + 1) + "_thumb"
               const altPrefix = thumbTextArray[index] !== "ベースモデル" ? $prefix: $prefixBase

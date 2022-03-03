@@ -18710,7 +18710,6 @@ class Window extends Thread {
 
 ----------------------------
 
-### 复习
 ### 创建线程的方式2: 实现Runnable接口
 - 我们上面就说过有多种方式来创建多线程 上面介绍了创建一个线程类然后让它继承Thread类的方式 创建的线程
 
@@ -22981,7 +22980,7 @@ public void testStringBuffer() {
 }
 ```
 ----------------------------
-### 复习
+
 ### 日期时间API -- JDK8之前
 
 > System.currentTimeMillis()
@@ -23000,26 +22999,24 @@ long time = System.currentTimeMillis();
 > Date类
 - Date类有两个地方都有
 <!-- 
-  java.util.Date
+  | -- ava.util.Date
     | -- java.sql.Date
 
   这两个类是子父类的关系
  -->
 
 - 我们先说说 java.util.Date 类：
-<!-- 
-  java.sql.Date类对应着数据库中的日期类型的变量
-  数据库中的一条记录会转换为java层面的一个对象 而数据库中的date转换为对象后 对应的就是 sql.Date 类
+- java.sql.Date类对应着数据库中的日期类型的变量
+- 数据库中的一条记录会转换为java层面的一个对象 而数据库中的date转换为对象后 对应的就是 sql.Date 类 跟数据库交互的时候我们才会用 sql.Date 类
 
-  跟数据库交互的时候我们才会用 sql.Date 类
- -->  
 
 > 创建 Date 对象    -- java.util.Date
-> new Date();   -- 空参构造器
-- 空参构造器返回的是当前时间的date对象
-
 - 注意：
 - 因为两个地方都有Date类 所以idea不会帮我们自动导包 我们要自己选择使用哪个Date类
+
+
+> new Date();   -- 空参构造器
+- 空参构造器返回的是当前时间的date对象
 
 ```java
 import java.util.Date;
@@ -23041,7 +23038,7 @@ public void test() {
 
 > new Date(long date)
 - 传入给定的毫秒数
-- 创建指定毫秒数的date对象
+- 根据指定毫秒数的date对象
 
 ```java
 Date date = new Date(1550306204104L);
@@ -23055,6 +23052,12 @@ System.out.println(date);
 
 - 返回值
 - long型
+
+```java
+Date date = new Date();
+System.out.println(date.getTime());
+// 1646302005462
+```
 
 
 > 创建 Date 对象    -- java.sql.Date
@@ -23096,18 +23099,22 @@ java.sql.Date date2 = (java.sql.Date)date2
 
 - 我们不可能直接塞过去 因为数据库的date对象是跟sql.Date搭配
 - 所以我们这种情况下要将util.Date转为sql.Date
+
 ```java
 Date date = new Date();
 
 // 下面的方式进行强转肯定报错 classCastException
 java.sql.Date date2 = (java.sql.Date)date // x
+```
 
 - 我们new的是util.Date对象 怎么可能转换为java.sql.Date对象呢
 - 也就是说我们new的就是父类 怎么可能转换为子类呢？
 - 我们以前讲的强转能成都是因为我们new的子类 多态到父类 然后再强转下来 这可以
-```
 
-> 解决方式
+
+
+> util.Date -> sql.Date 解决方式
+
 ```java
 Date date = new Date();
 
@@ -23123,16 +23130,17 @@ java.sql.Date date2 = new java.sql.Date(time)
 ### 日期时间API SimpleDateFormat类 -- JDK8之前
 - 直译: 简单的日期格式化
 - Date类的API不易于国际化 大部分被废弃了 
-- java.text.SimpleDateFormat类是一个不与语言环境有关的方式来格式化和解析日期的具体类
+- java.text.SimpleDateFormat类是一个*不与语言环境有关*的方式来*格式化和解析日期的具体类*
 
-- SimpleDateFormat类说白了就是对Date类进行一些的操作 这些操作涉及到了格式化和解析
+- *SimpleDateFormat类*说白了*就是对Date类进行一些的操作 这些操作涉及到了格式化和解析*
 
   格式化:  日期 -> 文本 (指定格式的字符串)
+  
   解　析:  文本 (指定格式的字符串) -> 日期
 
 
 > 该类就是对日期Date类进行解析和格式化的
-- 该类只能操作Date 不能操作Calendar
+- *该类只能操作Date* 不能操作Calendar
 
 
 > SimpleDateFormat类的实例化 -- 使用默认的构造器
@@ -23140,8 +23148,8 @@ java.sql.Date date2 = new java.sql.Date(time)
 - 通过空参构造器 得到一个 sdf实例化对象
 
 **注意:**
-- 该对象只能将 date对象格式化成 默认格式的日期字符串
-- 该对象只能将 默认格式的日期字符串 解析成date对象
+- sdf实例化对象 只能将 date对象格式化成 默认格式的日期字符串
+- sdf实例化对象 只能将 默认格式的日期字符串 解析成date对象
 
 
 > sdf.format(Date date);
@@ -23178,7 +23186,7 @@ System.out.println(dateFormat);
 - Date date
 
 - 异常
-- 该方法会抛出异常 选择处理方式 ParseException
+- ParseException
 
 - 对传入的字符串的格式有要求
 - 默认是什么格式的 我们就要传入什么格式的文本 我们可以先调用format()方法看看默认格式
@@ -23198,7 +23206,8 @@ System.out.println(date1);
 
 
 > 常用该格式的构造器
-> SimpleDateFormat类的实例化 -- 传入参数(格式)
+- 我们可以在 SimpleDateFormat(格式) 构造器里面传入格式参数
+
 > SimpleDateFormat sdf = new SimpleDateFormat(格式);
 - 我们可以传入一个指定格式 然后通过 format() 或者 parse()
 - 可以格式化成我们指定格式的日期字符串
@@ -23242,10 +23251,12 @@ System.out.println(format);
 
 > 练习:
 - 字符串 "2020-09-08" 转为java.sql.Date
+
 - 场景：
 - 我们注册时候的生日 会写入日期 然后前端要将数据传到后台 传到后台的时候 我们以字符串的形式没有问题 但是后台最终要将数据保存到数据库
 
 - 而数据库中需要的是sql.Date对象 所以我们在java层面 将字符串 的日期 转为 sql的Date对象
+
 ```java
 String birth = "2020-09-08";
 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -23285,31 +23296,35 @@ System.out.println(sqlDate);
 ----------------------------
 
 ### Calendar日历类的使用
-- Calendar是一个抽象基类 主要用于完成日期字段之间相互操作的功能
+- *Calendar是一个抽象基类* 主要用于完成日期字段之间相互操作的功能
 - 既然是抽象类就意味着它不能进行实例化 也就是说我们要通过*实现了它的子类去造对象*了 
 
-- Calendar的实现子类 -- GregorianCalendar
+- Calendar的实现子类 -- *GregorianCalendar*
+
 
 > 实例化对象
-> 1. 通过 Calendar的实现子类 -- GregorianCalendar 调用该子类的构造器
+> 1. 通过 Calendar的实现子类 -- GregorianCalendar 调用该子类的构造器 创建calendar实例对象
 
 ```java
 GregorianCalendar calendar = new GregorianCalendar();
 ```
+
+
 > 2. 使用 Calendar.getInstance() 方法创建 Calendar的实例对象
+- 这个方式创建 calendar实例比较方便
+
 ```java
 Calendar calendar = Calendar.getInstance();
 System.out.println(calendar.getClass());
     //  java.util.GregorianCalendar
+```
 
-
-// 解析： 
+> 解析： 
 - Calendar类是抽象类 我们创建的也是Calendar类子类的对象 只不过在这返回的类型是Calendar
 
 - 看不到之类是哪个类了 但通过calendar.getClass()方法查看 能看到实际还是 GregorianCalendar
-```
 
-- 注意:
+> 注意:
 - 两种方式创建的实例对象 类型不同
 - GregorianCalendar
 - Calendar
@@ -23317,29 +23332,7 @@ System.out.println(calendar.getClass());
 - 两种方式其实是一样的 只是GregorianCalendar太难记 喜欢使用第二种方式
 
 
-
 > calendar的常用方法
-```java
-DAY_OF_MONTH
-DAY_OF_WEEK
-    // 周几 英国国家星期从星期日开始算
-DAY_OF_WEEK_IN_MONTH
-DAY_OF_YEAR
-    // 一年中的第几天
-
-WEEK_OF_MONTH
-WEEK_OF_YEAR
-
-HOUR_OF_DAY
-
-YEAR
-MONTH
-    // 结果要+1
-DATE
-HOUR_OF_DAY
-MINUTE
-SECOND
-```
 
 > 获取
 > calendar.get(Calendar.XXX)
@@ -23351,13 +23344,48 @@ SECOND
 - 参数
 - 参考上面 注意是通过 Calendar 调用的常量
 ```java
-Calendar calendar = Calendar.getInstance();
+Calendar.DAY_OF_MONTH
+    // 获取当前时间对象中的 一个月当中的第几天
 
+Calendar.DAY_OF_WEEK
+    // 周几 英国国家 星期是从 星期日开始算 0
+    // 比如今天是周四 我得到的是5 
+
+Calendar.DAY_OF_WEEK_IN_MONTH
+    // 获取这个月的第几周
+
+Calendar.DAY_OF_YEAR
+    // 一年中的第几天
+
+Calendar.WEEK_OF_MONTH
+    // 获取这个月的第几周
+
+Calendar.WEEK_OF_YEAR
+    // 这一年当中的第几周
+
+Calendar.HOUR_OF_DAY
+    // 获取一天当中的第几小时
+
+Calendar.YEAR
+
+Calendar.MONTH
+    // 结果要+1
+
+Calendar.DATE
+
+Calendar.HOUR_OF_DAY
+Calendar.MINUTE
+Calendar.SECOND
+```
+
+```java
+Calendar calendar = Calendar.getInstance();
 
 calendar.get(Calendar.DAY_OF_MONTH);  // 12
 calendar.get(Calendar.DATE)   // 12
 calendar.get(Calendar.MONTH)  // 要加1
 ```
+
 
 > 设置
 > calendar.set(int field, int value)
@@ -23385,9 +23413,8 @@ calendar.add(Calendar.DAY_OF_MONTH, -3);
 ```
 
 
-> calendar.getTime()
+> calendar.getTime()  -- 日历类 --> Date
 - 将calendar对象转换为date对象
-- 日历类 --> Date
 
 - 返回值
 - Date
@@ -23396,12 +23423,25 @@ calendar.add(Calendar.DAY_OF_MONTH, -3);
 Date date = calendar.getTime();
 System.out.println(date);
     // Wed Jan 12 23:04:17 JST 2022
+
+
+// 创建一个calendar对象
+Calendar calendar = Calendar.getInstance();
+
+// 将日历转换为日期
+Date date = calendar.getTime();
+
+// 创建一个date格式化的类
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+// 将我们的日期对象按照执行的格式格式化成字符串 
+String format = sdf.format(date);
+System.out.println(format);
 ```
 
 
-> calendar.setTime()
+> calendar.setTime(Date date)  -- Date --> 日历类
 - 将date对象转换为calendar对象
-- Date --> 日历类
 
 - 返回值
 - Calendar
@@ -23416,6 +23456,23 @@ calendar.setTime(date);
 **注意:**
 - 获取月份时: 一月是0 ... 12月是11
 - 获取星期时: 周日是1, 周一0, 周六7
+
+
+> 个人总结:
+- Date类
+  - util.Date
+    - sql.Date
+
+- SimpleDateFormat
+- 该类用于将Date类型的对象 进行 格式化 和 解析
+
+- Calendar
+- 日历类
+- 该类中定义了很丰富的静态常量 可以通过 Calendar.xxx 的形式来调用
+
+- 同时也提供了 Date - Calendar 对象之间的转换
+- getTime() 日历 - 日期
+- setTIme() 日期 - 日历
 
 ----------------------------
 
@@ -23516,7 +23573,7 @@ Date date = new Date(2020-1900, 9-1, 8);
 > LocalDate.now([时区])
 > LocalTime.now([时区])
 > LocalDateTime.now([时区])
-- 返回的是对应类型的时间对象
+- 返回的是对应类型的时间对象 当前系统的时间
 
 ```java
 // 获取当前本地的日期
@@ -23537,48 +23594,57 @@ System.out.println(localDateTime);
 
 
 > 实例化方式2: 通过各自类调用 of() 方法
+- of()方法可以创建指定的时间对象 
+- of()方法必须要传递参数
+
 > LocalDate.of(指定日期)
 > LocalTime.of(指定时间)
 > LocalDateTime.of(指定日期和时间)
-- 该方法可以设置指定的年 月 日 时 分 秒 没有偏移量
+- 该方法可以根据给定的数据 设置指定的年 月 日 时 分 秒 不用考虑没有偏移量的问题
 
+- 指定时间的方式 年 月 日 时 分 秒 之间以逗号分隔
 ```java
 LocalDateTime localDateTime1 = LocalDateTime.of(2020, 10, 6, 13, 23, 43);
 System.out.println(localDateTime1);
     // 2020-10-06T13:23:43
 ```
 
+
 > 时间对象.get相关方法
 - 没有偏移量的问题哦
 - 该方法用于 *获取* 时间对象中的 年 月 日 时 分 秒
 
+- 返回值类型:
+- int
+
 ```java
-LocalDateTime localDateTime1 = LocalDateTime.of(2020, 10, 6, 13, 23, 43);
+LocalDateTime time = LocalDateTime.of(2016, 10, 1, 13, 25, 22);
+int year = time.getYear();
+System.out.println(year);   // 2016
 
-// 2020-10-06T13:23:43
+// 注意: 获取月份的方法名 getMonthValue 得到的是int
+int month = time.getMonthValue();
+System.out.println(month);    // 10
 
-// 年
-localDateTime1.getYear();
-    // 2020
 
-// 月
-localDateTime1.getMonthValue()
-    // 10
-// 几月
-localDateTime1.getMonth()
-    // OCTOBER
+// 注意得到的类型
+Month month1 = time.getMonth();
+System.out.println(month1);   // OCTOBER
 
-// 日
-localDateTime1.getDayOfMonth();
-    // 6
-// 周几
-localDateTime1.getDayOfWeek();
-    // TUESDAY
 
-// 时分秒
-localDateTime1.getHour()
-localDateTime1.getMinute()
-localDateTime1.getSecond()
+int day = time.getDayOfMonth();
+System.out.println(day);    // 1
+
+
+DayOfWeek week = time.getDayOfWeek();
+System.out.println(week);   // SATURDAY
+
+
+// 获取时分秒
+int hour = time.getHour();
+int minute = time.getMinute();
+int second = time.getSecond();
+System.out.println(hour);
 ```
 
 
@@ -23588,20 +23654,27 @@ localDateTime1.getSecond()
 - *不可变性* 需要创建对应类型的变量接收结果
 
 ```java
-// 修改时间对象的 - 日 有返回值
-LocalDateTime localDateTime2 = localDateTime1.withDayOfMonth(1);
+LocalDateTime time = LocalDateTime.of(2016, 10, 1, 13, 25, 22);
+
+
+// 设置 修改时间对象的 - 日 有返回值
+// 传入 int型 数据
+LocalDateTime localDateTime = time.withDayOfMonth(8);
+System.out.println(localDateTime);    
+// 2016-10-08T13:25:22
+
 
 // 设置 年
-localDateTime1.withYear();
+localDateTime.withYear();
 
 // 设置 月
-localDateTime1.withMonth();
+localDateTime.withMonth();
 
-localDateTime1.withDayOfYear();
+localDateTime.withDayOfYear();
 
-localDateTime1.withHour();
-localDateTime1.withMinute();
-localDateTime1.withSecond();
+localDateTime.withHour();
+localDateTime.withMinute();
+localDateTime.withSecond();
 ```
 
 
@@ -23616,19 +23689,30 @@ localDateTime1.withSecond();
 - 为各类时间对象
 
 ```java
-localDateTime1.plusYears(3);
-localDateTime1.plusMonths();
-localDateTime1.plusDays();
+localDateTime.plusYears(3);
+localDateTime.plusMonths();
+localDateTime.plusDays();
 
-localDateTime1.plusHours();
-localDateTime1.plusMinutes();
-localDateTime1.plusSeconds();
+localDateTime.plusHours();
+localDateTime.plusMinutes();
+localDateTime.plusSeconds();
 
-localDateTime1.plusWeeks();
+localDateTime.plusWeeks();
 ```
 
 > 扩展
 - 毫秒 - 微妙 - 纳秒(nanos)
+
+----------------------------
+
+### 扩展: 2020-01-12T15:17:21
+- 为什么 日期 和 时间 中间要有一个 T 呢
+- 国际标准化组织的国际标准ISO 8601是日期和时间的表示方法，
+- 全称为《数据存储和交换形式·信息交换·日期和时间的表示方法》
+
+- 日期和时间的组合表示法编辑:
+合并表示时，要在时间前面加一大写字母T，
+如要表示北京时间2004年5月3日下午5点30分8秒，可以写成2004-05-03T17:30:08+08:00或20040503T173008+08。
 
 ----------------------------
 
@@ -23639,7 +23723,7 @@ localDateTime1.plusWeeks();
 - 在处理时间和日期的时候 我们通常会想到年 月 日 时 分 秒
 - 然而 这只是时间的一个模型 是面向人类的
 
-- 第二种通用模型是面向机器的 或者说是连续的
+- 第二种通用模型是面向机器的 或者说是连续的 -- Instant类
 <!-- 对于机器来说它只认数 -->
 
 - 在此模型中 时间线中的一个点表示为一个很大的数 这有利于计算机处理
@@ -23726,9 +23810,9 @@ long milli = instant.toEpochMilli();
 ----------------------------
 
 ### DateTimeFormatter的使用
-- 需要格式化 解析日期或时间的时候 我们就使用该类 用来替换原有的SimpleDateFormat类
-- java.time.format.DateTimeFormatter类 提供了三种实例化的方式
+- 需要 格式化 解析日期或时间的时候 我们就使用该类 用来*替换原有的SimpleDateFormat类*
 
+- java.time.format.DateTimeFormatter类 提供了三种实例化的方式
 
 > DateTimeFormatter的实例化
 > 方式1: 预定义的标准格式
@@ -23737,12 +23821,14 @@ long milli = instant.toEpochMilli();
 
 - 该对象用于格式化 或 解析 日期或时间对象
 
-- 注意:
+**注意:**
 - 通过此方式创建的 formatter对象 只能格式化成 或 解析成默认格式的时间字符串
 
 - 解析只能解析成默认格式(解析成时间对象的时候 我们要传入字符串 传入的字符串的格式必须和格式化出来的格式一致)
+
 - 格式化也只能格式化默认格式
 
+--- 
 
 > 方式2: 本地化的相关的格式
 > DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG)
@@ -23759,13 +23845,16 @@ long milli = instant.toEpochMilli();
 
 - FormatStyle.SHORT
     - 2022/01/13 21:07
+
 ```java
 // 创建一个format对象用于解析 和 格式化 日期 时间对象 
 DateTimeFormatter format = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
 
+
 // 使用LONG的时候报错 说没有时区信息 我们在后面加上了
 // .withZone(ZoneOffset.ofHours(9));
 DateTimeFormatter format1 = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG).withZone(ZoneOffset.ofHours(9));
+
 
 
 // 创建一个日期时间对象
@@ -23803,6 +23892,7 @@ System.out.println(dataStr);
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss");
+
 String s = formatter.format(LocalDateTime.now());
 System.out.println(s);
     // 2022-01-13 09:23:25
@@ -23812,7 +23902,8 @@ System.out.println(s);
 > 格式化
 > formatter.format(时间或日期对象)
 - 日期 -> 字符串
-- 返回值
+
+- 返回值类型
 - String类型
 
 ```java
@@ -23873,8 +23964,10 @@ ZonedDateTime zonedDateTime = ZonedDateTime.now();
 ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Tokyo");
 ```
 
+
 > Clock
 - 使用时区提供对当前即时 、 日期和时间的访问的时钟 。
+
 
 > Duration类
 - 当我们想计算两个时间的间隔 以秒和纳秒为基准
@@ -24041,11 +24134,14 @@ java.text.DateFormat
 -->
 
 - java中的对象 正常情况下 只能进行比较: 
-- == 或 != 不能使用 > 或 < 
+- == 或 !=  因为我们使用它们的时候比较的是地址值
+- 不能使用 > 或 < 
 
 - 但是在开发场景中 我们需要对多个对象进行排序 言外之意 就是需要比较对象的大小
 
-- 如何实现？ 我们就需要使用下面的两个接口 我们比较大小用到的两个接口
+- 如何实现？ 
+- 我们就需要使用下面的两个接口 我们比较大小用到的两个接口
+
 
 > java实现对象排序的方式有两种
 - 自然排序: 
@@ -24059,21 +24155,23 @@ java.text.DateFormat
 - 比如我们前面说到的String类 它就实现了Comparable接口 从而String类这种引用数据类型的 也可以进行对象的大小的比较了
 ```java
 // 创建一个字符串数组
-String[] arr = new String[] {"AA", "CC", "MM", "GG", "JJ", "DD", "KK"};
+String[] arr = new String[] {"AA", "CC", "MM", "GG", "JJ", "DD", "kk"};
 
-// 调用排序方法
 Arrays.sort(arr);
+String s = Arrays.toString(arr);
+System.out.println(s);
+// [AA, CC, DD, GG, JJ, MM, kk]
+```
 
 - 我们发现字符串数组是从小到大的顺序排列的 
 - 为什么可以排序?
 - 就是因为String实现了Comparable接口
 
 - String里面重写了compareTo方法 源码中的比较方式 就是从前往后比 有不一样的就做减法
-```
 
 
 > 重写compareTo(obj)的规则：
-- 像String 包装类等*实现了Comparable接口* *重写了compareTo方法* 给出了比较两个对象大小的方式
+- 像String包装类等*实现了Comparable接口* *重写了compareTo方法* 给出了比较两个对象大小的方式
 
 - 对于String和包装类来说 重写的规则如下
 
@@ -24081,18 +24179,22 @@ Arrays.sort(arr);
 - 如果当前对象this小于形参对象obj 则返回负整数
 - 如果相等则返回0
 
-- String 包装类重写compareTo()方法以后 默认情况下是重小到大的顺序排列的
+- String包装类重写compareTo()方法以后 *默认情况下是重小到大的顺序排列的*
 
-- 实现Comparable接口的对象列表(和数组)可以通过Collections sort或Arrays.sort进行自动排序
+- 实现Comparable接口的对象列表(和数组)可以通过Collections sort或Arrays.sort进行自然排序
+- 这些方法在排序的时候默认会考虑我们指定的规则进行排序
+
 - 实现此接口的对象可以用作有序映射中的键或有序集合中的元素 无需指定比较器
+
 
 > 总结：
 - 对于实现了Comparable接口的类 我们想对它们进行排序的时候 直接调用方法就可以了
 <!-- 
   因为上述的类已经重写过了Comparable接口中的compareTo()方法了
  -->
-- Arrays.sort()
-- Collections.sort()
+
+> Arrays.sort()
+> Collections.sort()
 
 ----------------------------
 
@@ -24104,9 +24206,13 @@ Arrays.sort(arr);
 
 - 但是如果是自定义的类(对象) 我们要对它们进行排序的时候 就要按照下面的步骤来处理
 
+
 > 自定义类 -- 自然排序 -- 排序要点
-- 1. 让自定义实现 Comparable接口
-- 2. 重写compareTo()方法 在compareTo()方法中指明如何排序
+- 1. 让自定义类实现 Comparable接口
+- 2. 类中重写 compareTo()方法 在compareTo()方法中指明如何排序
+<!-- 这里只是定义排序规则而已 -->
+
+- 3. 调用现成的别的类的排序方法
 
 - 比如
 - 我们对商品对象的价格进行排序 从低到高
@@ -24143,7 +24249,25 @@ public void goodsTest() {
 // 商品类
 public class Goods implements Comparable {
 
-  ...
+  private String name;
+  private double price;
+
+  public Goods() {}
+  public Goods(String name, double price) {
+    this.name = name;
+    this.price = price;
+  }
+
+
+  // 如果没有重写toString()方法输出的会是地址值
+  @Override
+  public String toString() {
+    return "Goods{" +
+        "name='" + name + '\'' +
+        ", price=" + price +
+        '}';
+  }
+
 
   // 在该重写的方法中 
   // 我们指明按照什么方式进行排序(指明商品比较大小的方式)
@@ -24187,7 +24311,7 @@ public class Goods implements Comparable {
 
 > 应用场景
 - 当元素的类型没有实现 java.lang.Compoarable接口
-- 而又不方便修改代码 或者 实现了 java.lang.Comparable接口规则不适合当前的操作 
+- 而又不方便在自定义类中修改代码 或者 实现了 java.lang.Comparable接口规则不适合当前的操作 
 <!-- 
   比如jdk当中现有的类 没有实现Compoarable接口 但我们又不能修改当前类
 
@@ -24212,13 +24336,18 @@ public class Goods implements Comparable {
 - 在上面两个方式中的第二个参数的位置 传入一个Comparator接口的匿名实现类对象 在方法体中重写compare()方法
 
 
-> 重写compare() 抽象方法
+> 重写compare()方法 抽象方法
 - 重写规则：
 - 重写compare(Object o1, Object o2)方法
 - 比较o1 和 o2的大小
-- 如果方法返回正整数 则表示o1大于o2 
-- 如果方法返回0 则表示相等
-- 如果方法返回负整数 则表示o1小于o2
+- 如果方法
+    返回正整数 则表示o1大于o2 
+
+- 如果方法
+    返回0 则表示相等
+
+- 如果方法
+    返回负整数 则表示o1小于o2
 
 <!-- 
   // compare 和 compareTo 的区别
@@ -24263,6 +24392,7 @@ System.out.println(Arrays.toString(arr));
 
 - 总结:
 - 个人看法 很多时候我们不能修改类的原码去让该类实现comparable接口 但还想实现比较大小的逻辑
+
 - 或者像上面的例子 String虽然实现了comparable接口 但是默认的从小到大的排序规则 不适合我们 我们想要从大道小
 
 - 这时候我们就可以使用Comparator接口 像*打补丁似的*给一个方法注入 排序 指定排序规则
@@ -24314,7 +24444,7 @@ public void test2() {
 }
 ```
 
-- 总结
+> 总结
 - 只要我们在程序中涉及到对象来比较大小了
 - 就会跟这两个接口打交道
 
@@ -24325,6 +24455,7 @@ public void test2() {
   - 相当于让对象所属的类 实现Comparable接口
   - 一劳永逸
   - 一旦指定 能够保证Comparable接口实现类的对象在任何位置都能比较大小
+
 
 - 使用Comparator方式
   - 我们调用排序方式的时候 临时给了一种排序方式
@@ -24348,7 +24479,11 @@ public void test2() {
 
 > 成员变量
 - System类内部包含 in out err 三个成员变量
-- 分别代表标准输入流(键盘输入) 标准输出流(显示器) 和标准错误输出流(显示器)
+
+- 分别代表
+  标准输入流(键盘输入) 
+  标准输出流(显示器)
+  标准错误输出流(显示器)
 
 
 > 成员方法
@@ -24385,6 +24520,7 @@ public void test2() {
     user.dir        用户的当前工作目录
  -->
 
+----------------------------
 
 ### Math
 - java.lang.Math提供了一系列的静态方法用于科学计算 其方法的参数和返回值类型一般为double型
@@ -24421,6 +24557,7 @@ public void test2() {
 > toRadians(double angdeg)
 - 角度 -> 弧度
 
+----------------------------
 
 ### BigInteger类
 - Integer 类作为 int 的包装类 能存储的最大整型值为2^31-1 
@@ -24513,7 +24650,7 @@ bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
 ```
 
 ----------------------------
-
+### 复习
 ### 枚举类
 > 什么叫枚举类？
 - 统计学中 就经常用到枚举法 比如两个骰子 随机丢 问结果<=7的概率是多少

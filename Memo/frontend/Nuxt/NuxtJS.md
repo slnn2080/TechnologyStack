@@ -6,6 +6,12 @@ if(process.browser) console.log(winodw)
 - https://www.cnblogs.com/goloving/p/11397285.html
 
 
+> 在Nuxt里面自动导入组件
+- https://zenn.dev/kokota/articles/14beffb9e846f0
+
+- 在nuxt.config.js中进行配置
+
+
 > 总结问题
 - 1. 后端使用什么语言为主 一般是使用nodejs 但是使用别的语言可以么
 <!-- 
