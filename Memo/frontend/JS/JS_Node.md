@@ -2175,6 +2175,20 @@ lcEvent.on("fileSuccess", (data) => {
     轮询的效率低，非常浪费资源（因为必须不停连接，或者 HTTP 连接始终打开）。因此，工程师们一直在思考，有没有更好的方法。WebSocket 就是这样发明的。
  -->
 
+> Ajax轮询
+- ajax轮询一般分为两种。
+- 1. 设定一个定时器，无论有无结果返回，时间一到就会继续发起请求，这种轮询耗费资源，也不一定能得到想要的数据，这样的轮询是不推荐的。
+
+- 2. 在第一次请求的时候，如果返回数据了那么就在成功的回调里面再次发起这个请求，就像递归一样，调用本方法。如果时间太久，失败了，同样的再次调用这个请求，也就是本函数。当然，长轮询也需要后台配合，没有数据改变的时候就不用返回，或者约定好逻辑。
+
+- 3. 客户端按规定时间定时向服务端发送ajax请求，服务器接到请求后马上返回响应信息并关闭连接。
+- Ajax轮询需要服务器有很快的处理速度与快速响应。
+
+- 客户端是按照规定时间（这个时间由你设定，此处默认为1秒）像服务端发送请求，前一次请求完成后，无论有无结果返回，一秒之后下一次请求又会发出。这就叫做Ajax轮询。
+
+- https://www.cnblogs.com/-wenli/p/10982264.html
+
+
 > websocket的特点
 - 服务器可以主动向客户端推送信息，客户端也可以主动向服务器发送信息，是真正的双向平等对话，
 
@@ -2200,7 +2214,7 @@ lcEvent.on("fileSuccess", (data) => {
 
 > WebSocket 握手请求头 和 响应头 解析
 - 浏览器发出的 WebSocket 握手请求类似于下面的样子：
-<!-- 
+```js 
     GET / HTTP/1.1
 
     // Connection字段表示浏览器通知服务器，如果可以的话，就升级到 WebSocket 协议
@@ -2214,10 +2228,10 @@ lcEvent.on("fileSuccess", (data) => {
     // Sec-WebSocket-Key则是用于握手协议的密钥，是 Base64 编码的16字节随机字符串。
     Sec-WebSocket-Key: sN9cRrP/n9NdMgdcy2VJFQ==
     Sec-WebSocket-Version: 13
- -->
+```
 
 - 服务器的 WebSocket 回应如下。
-<!-- 
+```js
     HTTP/1.1 101 Switching Protocols
 
     // Connection字段通知浏览器，需要改变协议。
@@ -2230,7 +2244,7 @@ lcEvent.on("fileSuccess", (data) => {
 
     // Sec-WebSocket-Location字段表示进行通信的 WebSocket 网址。
     Sec-WebSocket-Location: ws://example.com/
- -->
+```
 
 - Sec-WebSocket-Accept字段是服务器在浏览器提供的Sec-WebSocket-Key字符串后面，添加 RFC6456 标准规定的
 “258EAFA5-E914-47DA-95CA-C5AB0DC85B11”字符串，然后再取 SHA-1 的哈希值。浏览器将对这个值进行验证，以证明确实是目标服务器回应了 WebSocket 请求。Sec-WebSocket-Location字段表示进行通信的 WebSocket 网址。

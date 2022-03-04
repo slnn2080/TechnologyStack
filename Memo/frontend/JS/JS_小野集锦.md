@@ -312,3 +312,109 @@ String == Object
 
 // 调用.toString()方法将Object转换为原始值 进行比较
 ```
+
+- 注意:
+- 任何对象都与 undefined 和 null 不相等
+```js
+({}) === undefined  // false
+({}) === null       // false
+
+// 如果不给{} 包上大括号在控制台上输出会报错 因为它也代表着代码块
+```
+
+
+> Narrow Object 窄对象
+- document.all -- *不建议使用了*
+- 它能选出DOM树上面的所有节点
+```js
+Array.from(document.all).forEach(item => {
+  if(item.nodeName == "DIV") {
+    console.log(item)   // div节点
+  } 
+})
+```
+
+- 那什么叫做窄对象呢?
+- typeof document.all
+- 我们会发现结果是undefined
+
+- ie4的时候出现的 document.all 最早的时候我们可以用它获取节点
+
+- 在ie10以前 document.all 是object
+- 其它浏览器也要引进 document.all 这个属性 但是又不想和ie定义为一样的 object 所以定义为了 undefined 意思是待定
+
+
+> document.all == undefined  // true
+- 该情况和上面说的 undefined和其他进行比较的时候都是false 与这个结论互斥的一种情况
+
+
+> 开发者认为 === 比 == 要好
+- 全等对结果的预测是更加清晰明确
+- 全等在不隐式转换的前提下 更快
+
+
+> 有些情况 === 不利于我们功能的扩展
+- 比如一个函数我们传递参数的时候 我们有可能传递数字1 也可以传递字符串1
+- 那我们在函数内部进行判断的话 哪种情况合适 是不是都合适
+
+- 尤其是我们在用swiper的时候 我们传递数字 和 字符串型的数字是不是都可以
+
+- 这时候我们使用 == 比较好
+
+
+> falsy值
+- 将一个数据通过转换为boolean类型的false的值
+- 一共有8个
+- false
+- +/-0
+- 8n
+- '' "" ``
+- null
+- undefined 
+- NaN
+
+
+> 同值相等 same-value
+- 主要是针对0的
+
+- -0 !== +0   这种情况就是同值相等
+- -0 不等于 +0 他们不是一个东西
+
+- 举例:
+```js
+let obj = {}
+
+// 给obj添加属性 值为-0
+Object.defineProperty(obj, "myZero", {
+  value: -0,
+  writable: false,
+  configurable: false,
+  enumerable: false
+})
+
+
+// 重新定义 myZero 为+0
+Object.defineProperty(obj, "myZero", {
+  value: +0,
+  writable: false,
+  configurable: false,
+  enumerable: false
+})
+
+// 报错 不能重新定义属性
+// Cannot redefine property: myZero
+```
+
+- 但是我们重新定义 -0 的时候就可以 
+- 代表-0跟+0是不一样的
+
+- 也就是说在Object.defineProperty定义value的时候-0 和 +0 是不一样的
+
+- 还有NaN和任何值比较都是false 和自己也是
+- 但是在同值相等的情况下 NaN 和 NaN 会被认为是一样的
+
+- 我们还可以通过 Object.defineProperty 来测试
+- 如果能重复定义 那就是被认为是一样的
+
+
+> 零值相等 same-value-zero

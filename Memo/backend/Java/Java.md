@@ -24650,16 +24650,17 @@ bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
 ```
 
 ----------------------------
-### 复习
+
 ### 枚举类
 > 什么叫枚举类？
 - 统计学中 就经常用到枚举法 比如两个骰子 随机丢 问结果<=7的概率是多少
 - 这时候我们就要把<=7的情况都列出来 6x6=36种情况
 - 像上面把*所有的情况都列出来* 就是枚举法
-<!-- 
-  枚举法的前提是能将所有的情况列全
-  也就是说 情况必须是 有限个！！！ 确定的！！！ 才能枚举
- -->
+
+- 也就是说:
+- 枚举法的前提是能将所有的情况列全
+  情况必须是 有限个！！！ 确定的！！！ 才能枚举
+
 
 - 什么叫有限个 和 确定的？
 - 星期: 1-7
@@ -24672,7 +24673,7 @@ bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
 
 
 > 枚举类的定义
-> 当一个 "类" 中的 "对象" 是有限个 确定的 的时候 这个类就是枚举类
+- 当一个 "类" 中的 "对象" 是有限个 确定的 的时候 这个类就是枚举类
 
 - 场景:
 - 当需要*定义一组常量*时 强烈建议使用*枚举类*
@@ -24685,15 +24686,22 @@ bd.divide(bd2, 15, BigDecimal.ROUND_HALF_UP)
 
 
 > 定义枚举类1(jdk5.0之前 自定义枚举类)
-- 枚举类中的对象是确定且有限的 言外之意我们一开始就知道 也就是说 我们首先要私有化类的构造器 如果没有私有化 就意味着我们可以在类的外面调用构造器 创建多个对象
+- *枚举类中的对象是确定且有限的* 言外之意我们一开始就知道 
+- 也就是说 我们首*先要私有化类的构造器* 如果没有私有化 就意味着我们可以在类的外面调用构造器 创建多个对象
 
-- 如果枚举类中需要属性的话 那么属性也要声明为private final的 因为枚举类中的对象是常量 也就是说对象造完之后就不能赋值了 一旦赋值以后就定了 对象是常量了 对象还有属性 所以下面的属性我们也不让它们变了 全是常量
+- 如果枚举类中需要属性的话 那么属性也要声明为private final的 因为枚举类中的对象是常量 
+
+- 也就是说对象造完之后就不能赋值了 一旦赋值以后就定了 对象是常量了 对象还有属性 所以下面的属性我们也不让它们变了 全是常量
 
 - 因为我们将构造器私有化了 也就是在外面不能造对象了 所以只能在类内部造 这里不是提供get set方法 而是相当于声明 public static final的常量 外部可以通过 类.常量 的形式拿到对象
 
-- 1. 私有化类的构造器 并给对象属性赋值 private修饰
+- 1. 私有化类的构造器 并通过构造器给当前类中的属性进行赋值 并用private修饰
 - 2. 定义类对象的属性 并用private final修饰
 - 3. 类内部创建对象 声明为public static final的
+```java
+  public static final Season SPRING = new Season("春天", "春暖花开");
+```
+
 
 > 具体代码实现
 ```java
@@ -24764,12 +24772,11 @@ class Season {
 ```java
 // 这里的对象也是一个属性
 public static final Season WINTER = new Season("冬天", "冰天雪地");
-
-public static final
-权限的够
-加载的时间早
-不同被修改了
 ```
+
+- public 权限的够
+- static 加载的时间早
+- final  不能被修改了
 
 
 > 定义枚举类2(jdk5.0之后 使用 enum关键字 定义枚举类)
@@ -24887,12 +24894,22 @@ enum Season2 {
 - 在枚举类型中可以直接使用 == 来比较两个枚举常量是否相等
 - Enum提供的这个equals()方法 也是直接使用 == 实现的
 - 它的存在是为了set list 和 map中使用
+
 - 注意 equals()是不可变的
+
+```java
+Season spring = Season.SPRING;
+Season summer = Season.SUMMER;
+
+boolean equals = spring.equals(summer);
+System.out.println(equals);
+```
 
 
 > 枚举类对象.getDeclaningClass
 - 得到枚举常量所属枚举类型的Class对象
 - 可以用它来判断两个枚举常量是否属于同一个枚举类型
+
 ```java
 Class<Season2> declaringClass = winter.getDeclaringClass();
 System.out.println(declaringClass);
@@ -24909,13 +24926,25 @@ System.out.println(winter.name());
 
 > 枚举类对象.ordinal()
 - 得到当前枚举对象在枚举类中的位置 
+
+- 我们在enum类中声明枚举对象的时候是如下的形式 它们就有位置一说 也可以想象它们就是一个数组 所谓的获取的位置就是 索引
+
+```java
+enum Season {
+  SPRING("春天", 23), SUMMER("春天", 23);
+}
+```
+
 - 返回值
 - int
 ```java
-Season2 winter = Season2.valueOf("WINTER");
-int ordinal = winter.ordinal();
-System.out.println(ordinal);
+Season spring = Season.SPRING;
+Season summer = Season.SUMMER;
+
+int i = spring.ordinal();
+System.out.println(i);    // 0
 ```
+
 
 > 枚举类对象.compareTo(枚举类对象)
 - 枚举类型实现了Comparable接口 这样可以比较*两个枚举对象的大小*
@@ -25021,6 +25050,7 @@ public static void main(String[] args) {
   }
 ```
 
+
 > enum定义的枚举类对象分别实现接口的情况2: 特殊
 - 让枚举类对象分别实现接口中的抽象方法
 
@@ -25066,6 +25096,23 @@ spring.show();
     // 这是春天   --- 因为这个枚举对象中自己实现了show()
 ```
 
+- 如果接口中定义了多个抽象方法的话 我们可以重写多个
+```java
+SPRING("春天", 23) {
+  // 接口中定义了两个抽象方法 我们这里就重写两个
+  @Override
+  public void speak() {
+    System.out.println("我是春天我会说英语");
+  }
+
+  @Override
+  public void walk() {
+    System.out.println("我是春天能很快哦");
+  }
+
+}, SUMMER("春天", 23);
+```
+
 ----------------------------
 
 ### 导入工程
@@ -25082,21 +25129,26 @@ spring.show();
 ### 注解(Annotation)
 - jdk5.0中增加了注解的功能
 - Annotation就是代码里的*特殊标记*  
-<!-- 
-  以下都是注解
+
+- 以下都是注解
   @Override
 
   @Description
   @author
   @date
   @version
- -->
 
-- 这些标记可以在编译 类加载 运行时被读取 并指定相应的处理(怎么处理就看是什么注解了)
-- 通过使用注解 程序员在不改变原有逻辑的情况下 在源文件中嵌入一些补充信息
-- 代码分析工具 开发工具和部署工具可以通过这些补充信息进行验证或者进行部署
+
+- 这些标记可以在 编译 类加载 运行时 被读取 并指定相应的处理(怎么处理就看是什么注解了)
+
+- 通过使用注解 程序员在不改变原有逻辑的情况下 在源文件中嵌入一些补充信息 代码分析工具 开发工具和部署工具可以通过这些补充信息进行验证或者进行部署
 
 - 注解可以像修饰符一样被使用 可用于修饰*包 类 构造器 方法 成员变量 参数 局部变量声明* 这些信息被保存在 Annotation的”name=value“对中
+```java
+@Transactional(
+  propagation=Propagation REQUIRES_NEW,
+  isolation=Isolation READ_COMMITTED,readOnly=false,timeout=3)
+```
 
 - 在java基础部分 注解的使用目的比较简单 例如标记过时的功能 忽略警告等 
 
@@ -25150,7 +25202,7 @@ spring.show();
 > @exception的格式要求
 - @exception 异常类型 异常说明
 
-- @param 和 @exception可以并列多个
+- @param 和 @exception 可以并列多个
 
 ```java
 /**
@@ -25248,11 +25300,18 @@ int num = 10;
 
 > 示例3: 跟踪代码依赖性 实现替代配置文件功能
 - servlet3.0提供了注解(annotation) 使得不再需要在web.xml文件中进行servlet的部署
+
 ```java
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
+
   private static final long serialVersionUID = 1L;
-  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServlettException, IOException{ }
+
+  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServlettException, IOException{
+    
+    ...
+
+  }
 
   ...
 }
@@ -25263,13 +25322,16 @@ public class LoginServlet extends HttpServlet {
 @Transactional(propagation=Propagation
 REQUIRES_NEW,
 isolation=Isolation
-READ_COMMITTED,readOnly=false,timeout= 3)
+READ_COMMITTED,readOnly=false,timeout=3)
 
 public void buyBook(String username, String isbn)
+
 // 1 查 书的单价
 int price = bookShopDao.findBookPriceByIsbn(isbn)
+
 // 2 更新库存
 bookShopDao.updateBookStock(isbn)
+
 // 3 更新用户的余额
 bookShopDao.updateUserAccount(username price)
 ```
@@ -25283,20 +25345,26 @@ bookShopDao.updateUserAccount(username price)
 - 标记在非静态的测试方法上
 - 只有标记@Test的方法才能作为一个测试方法单独测试 一个类中可以有多个测试方法 运行时如果只想运行其中的一个 那么选择这个方法名 然后单独运行 否则整个类的所有标记了@Test的方法都会被执行
 
+
 > @BeforeClass
 - 标记在静态方法上 因为这个方法只执行依次 在类初始化时执行
+
 
 > @AfterClass
 - 标记在静态方法上 因为这个方法只执行一次 在所有方法完成后时执行
 
+
 > @Before
 - 标记在非静态方法上 在@Test方法前面执行 而且是在每一个@Test前面都执行
+
 
 > @After
 - 标记在非静态方法上 在@Test方法后面执行 而且是在每一个@Test方法后面都执行
 
+
 > @Ignore
 - 标记在本次不参与与测试的方法上 这个注解的含义就是 某些方法尚未完整 暂不参与此次测试
+
 
 > @BeforeClass @AfterClass @Before @After @Ignore都是配合@Test使用的 单独使用没有意义
 
@@ -25488,7 +25556,8 @@ class Person {
 public @interface Override { }
 ```
 
-- @Target(ElementType.METHOD) @Retention(RetentionPolicy.SOURCE)
+- @Target(ElementType.METHOD) 
+- @Retention(RetentionPolicy.SOURCE)
 - 在@Override注解上的上面还有两个注解 这两个注解就是对@Override的元注解
 
 - 元注解一共有4个
@@ -25500,7 +25569,8 @@ public @interface Override { }
 - 作用:
 - *用于指定@Retentio修饰的注解的生命周期*
 
-- @Retention 包含一个 *RetentionPolicy类型的成员变量*
+> @Retention(RetentionPolicy.SOURCE)
+- @Retention 包含一个 *RetentionPolicy*类型的成员变量
 <!-- 
   RetentionPolicy是一个枚举类 里面定义了三种状态
 
@@ -25514,30 +25584,31 @@ public @interface Override { }
 
 - 这三个成员变量分别指明了@Retention所修饰的注解的生命周期到底持续到哪
 
-```java
-@Retention(RetentionPolicy.SOURCE)
 
-  - 在源文件中有效(即源文件保留) 编译器直接丢弃这种策略的注释
-  - SOURCE 表明在.class文件中不会保留该注解 如果反编译看.class文件是看不见被修饰的注解的 因为在编译的时候就被丢弃了
+> @Retention(RetentionPolicy.SOURCE)
+- 在源文件中有效(即源文件保留) 编译器直接丢弃这种策略的注释
 
-
-@Retention(RetentionPolicy.CLASS)
-
-  - 在class文件中有效(即class保留) 当运行java程序时 jvm不会保留注释 这是默认值
-  - 编译器编译之后会被保留在.class文件中 但不会加载到内存当中
-  - 也就是我们通过java.exe执行.class文件的时候 被修饰的注解不会加载到内存中
+- SOURCE 表明在.class文件中不会保留该注解 如果反编译看.class文件是看不见被修饰的注解的 因为在编译的时候就被丢弃了
 
 
-@Retention(RetentionPolicy.RUNTIME)
+> @Retention(RetentionPolicy.CLASS)
+- 在class文件中有效(即class保留) 当运行java程序时 jvm不会保留注释 这是默认值
 
-  - 在运行时有效(即运行时保留) 当运行java程序时 jvm会保留注释 程序可以通过反射获取该注释
-  - 会被编译到.class文件中 也会加载到内存中 加载到内存中了 我们就可以通过反射去读取 通过反射使用注解
-```
+- 编译器编译之后会被保留在.class文件中 但不会加载到内存当中
+- 也就是我们通过java.exe执行.class文件的时候 被修饰的注解不会加载到内存中
+
+
+> @Retention(RetentionPolicy.RUNTIME)
+- 在运行时有效(即运行时保留) 当运行java程序时 jvm会保留注释 程序可以通过反射获取该注释
+
+- 会被编译到.class文件中 也会加载到内存中 加载到内存中了 我们就可以通过反射去读取 通过反射使用注解
+
 <!-- 
   SOURCE      ClASS         RUNTIME
       ↘ 编译 ↗     ↘ 类加载 ↗       ↘ 反射
      javac.exe     java.exe       自定义注解信息处理流程
  -->
+
 
 **注意:**
 - 只有声明为 RUNTIME 生命周期的注解 才能通过反射获取
@@ -25739,7 +25810,7 @@ public @interface Override { }
 
 
 > ElementType.TYPE_PARAMETER
-    - 表示该注解能写在类型变量的声明语句中(如: 泛型声明)
+- 表示该注解能写在类型变量的声明语句中(如: 泛型声明)
 
 - 在java8之前 注解只能是在声明的地方使用
 - java8之后 注解可以应用在任何地方
@@ -25761,7 +25832,7 @@ public @interface MyAnnotation {
 
 
 > ElementType.TYPE_USE
-    - 表示该注解能写在表示类型的任何语句中
+- 表示该注解能写在表示类型的任何语句中
 
 - ElementType.TYPE_PARAMETER解决了在泛型中声明注解的功能
 - 下面 我们发现 异常前面可以使用注解 变量类型中可以使用注解 强转中也可以使用注解
@@ -25791,7 +25862,7 @@ public @interface MyAnnotation {
 ----------------------------
 
 ### 集合 (容器)
-- 面向对象语法对事物的体现都是以对象的形式 为了方便对多个对象的操作 就要对对象进行存储
+- 面向对象语法 对事物的体现都是以对象的形式 为了方便对多个对象的操作 就要对 对象进行存储
 
 - 使用Array存储对象方面具有一些弊端 而集合就是就是为了解决数组的弊端 就像是一个容器 可以*动态*地把多个对象的引用放入容器中
 
@@ -25820,6 +25891,8 @@ int[] numArr
 
 - 2. 数组中提供的属性和方法少 不便于进行添加 删除 插入等操作 且效率不高 同时无法直接获取存储元素的个数
 <!-- 
+  操作原始数组的方式：
+
   获取实际个数
   定义total变量 往里添加一个我们就total++下 最后查看total
 
@@ -25836,6 +25909,10 @@ int[] numArr
 - java集合类可以用于存储数量不等的多个对象 还可以用于保存具有映射关系的关联数组
 
 
+- 也就是说 集合是为了解决数组的弊端 弊端中就有数组只能存一种类型的数据 那么集合中就可以存储的数据可以不是一个类型的
+- 比如在集合中存个对象 再存一个1 都是可以
+
+
 > 开发中:
 - 凡是涉及到对多个数据进行操作的情况下 我们很少直接调数组 
 - 只是有的时候我们调用方法 方法里面不让我们放集合 只能放数组 这时候我们造一个数组
@@ -25850,10 +25927,11 @@ int[] numArr
 - Collection 和 Map 是两个接口
 
 > Collection接口
-- 单列数据 定义了存取一组对象的方法的集合
+- 单列数据 
+- 该接口中定义了存取一组对象的方法的集合
 <!-- 
   存的都是一个个的数据 也就是常规数组样子的数据 区别于Map
-  □ □ □ □     单列
+  □ □ □ □     单列数据
  -->
 
 - Collection在实际操作的时候还要进行细分 这里先说两个还有其它的
@@ -25901,7 +25979,8 @@ int[] numArr
 
 
 > Map接口
-- 双列数据 保存具有映射关系 "key-value对" 的集合
+- 双列数据 
+- 保存具有映射关系 "key-value对" 的集合
 - Map提供了直接的实现类
 <!-- 
   Map存储的数据 是两个数据 谁映射谁 前面的是key 后面是value
@@ -25968,8 +26047,9 @@ int[] numArr
 
 - 我们看看Collection中定义了哪些Api 我们主要关心下接口中的方法
 <!-- 
+  为什么主要关心下接口中的方法:
   因为接口中只能定义常量 所以我们这里只关心方法
- -->
+-->
 
 
 > Collection接口中的抽象方法
@@ -25980,10 +26060,12 @@ int[] numArr
 Collection coll = new ArrayList();
     // 左面 声明为Collection 
     // 右边 new的时候 我们拿ArrayList来充当
+```
 
 - 原因:
-- 因为下面的方法都是在父接口中定义的 那子接口或者子接口的实现类就都可以用 Collection - List - ArrayList
-```
+- 因为下面的方法都是在父接口中定义的 那子接口或者子接口的实现类就都可以用: 
+  Collection - List - ArrayList
+
 
 **!!!!!!!!!要点:**
 - 向Collection接口的实现类的对象中添加数据obj时 *要求obj所在类要重写equals()方法*
@@ -25991,7 +26073,7 @@ Collection coll = new ArrayList();
 - 因为Collection接口中的方法的形参都是 obj 类型
 - 所以我们要在 obj所在类中重写equals()
 
-- 要注意的重写equals方法的有 contains remove equals 等等
+- 要注意的重写equals方法的有 *contains remove equals* 等等
 
 
 > 实现类对象.add(Object o)
@@ -26033,7 +26115,6 @@ coll2.add(123);
 // 将集合2中的元素 添加到集合1中
 coll.addAll(coll2);
 System.out.println(coll.size());  // 6
-// [456, 123]
 ```
 
 
@@ -26063,6 +26144,7 @@ System.out.println(coll);
  -->
 
 ```java
+// 集合中有元素的时候
 System.out.println(coll.isEmpty());   // false
 ```
 
@@ -26084,7 +26166,7 @@ System.out.println(coll.isEmpty());   // true
 
 > 实现类对象.contains(Object obj)
 - 判断当前集合中是否包含obj
-- 我们在判断时会调用形参obj所在类的equals()方法
+- 我们在判断时会调用*形参obj所在类的equals()方法*
 - *判断的是内容 不是地址*
 
 - 要求：
@@ -26102,7 +26184,8 @@ Collection coll = new ArrayList();
 
 coll.add(123);
 
-boolean contains = coll.contains(123);
+boolean res = coll.contains(123);
+System.out.println(cres);   // true
 System.out.println(coll.contains(123)); // true
 ```
 
@@ -26180,28 +26263,34 @@ System.out.println(coll.containsAll(coll1));
 ------
 
 > 扩展:
-- 想集合中添加元素的两种方式
+- 像集合中添加元素的两种方式
 
 > 方式1:
-- 创建集合 然后调用实现类对象的add()方法添加
+- 1. 创建先集合
+- 2. 然后调用实现类对象的add()方法添加
 
 ```java
 Collection coll = new ArrayList();
 coll.add(123);
 ```
 
-> 方式2: Arrays.asList(元素...);
-- 创建集合的同时 向集合中添加元素
+
+> 方式2: 
+> Arrays.asList(元素...);
+- 使用 Arrays.asList() 方法, 创建集合的同时 向集合中添加元素
 
 - 注意: 
-- 返回值类型是 Array内部类的ArrayList 不是java.util.ArrayList
+- 我们虽然调用的是Arrays的方法 但是返回不是工具类中的ArrayList
+
+- 返回值类型是 
+- Array内部类的ArrayList 
 
 ```java
 Collection coll1 = Arrays.asList(123, 456);
 
-    - Arrays.asList(元素)的方式返回的是一个List List又是Collection的子接口 多态的方式
+List list = Arrays.asList("AA", 12, new Date());
+// Arrays.asList(元素)的方式返回的是一个List List又是Collection的子接口 多态的方式
 ```
-
 
 **注意:**
 - 下面发现 当我们的集合的元素是使用方式2 创建添加元素的时候
@@ -26218,7 +26307,7 @@ coll.remove(123);
 
 - 原因:
 - 调用Arrays.asList()生产的List的add、remove方法时报异常
-- 这是由Arrays.asList() *返回的是Arrays的内部类ArrayList 而不是java.util.ArrayList。*
+- 这是由Arrays.asList() *返回的是Arrays的内部类ArrayList 而不是java.util.ArrayList*
 
 - Arrays的内部类ArrayList和java.util.ArrayList都是继承AbstractList
 
@@ -26308,7 +26397,7 @@ coll.removeAll(coll1)
 > 交集操作
 > 实现类对象.retainsAll(Collection coll1)
 - 获取当前集合和coll1集合的交集 将结果重新赋值给了coll(相当于直接修改了coll)
-- 也就是说只保留两个集合中相同的元素 删除不一样的元素
+- 也就是说*只保留两个集合中相同的元素* 删除不一样的元素
 
 - 要求:
 - *要求obj所在类要重写equals()方法*
@@ -26317,6 +26406,7 @@ coll.removeAll(coll1)
 - boolean
 
 ```java
+// 集合1
 Collection coll = new ArrayList();
 coll.add(123);
 coll.add(456);
@@ -26324,7 +26414,8 @@ coll.add(new Person("sam", 18));
 coll.add(false);
 coll.add(new String("Tom"));
 
-Collection coll1 = Arrays.asList(123, 456, 789);
+// 集合2
+Collection coll2 = Arrays.asList(123, 456, 789);
 
 System.out.println(coll);   // 1
 coll.retainAll(coll1);
@@ -26453,6 +26544,8 @@ System.out.println(list);
 
 **注意:**
 - Arrays.asList(参数部分的问题)
+- 参数是以对象为基准
+
 - 1. 如果我们传入的是 基本数据类型的数组 那么整体会被当做是一个元素
 ```java
 List<int[]> arr = Arrays.asList(new int[]{123, 456});
@@ -26488,9 +26581,11 @@ List arr = Arrays.asList(123， 456);
  -->
 
 
-- Collection接口继承了java.lang.Iterator接口 该接口有一个iterator()方法 那么所有实现了Collection接口的集合类都有一个iterator()方法 用以返回一个实现了Iterator接口的对象
+- Collection接口继承了java.lang.Iterator接口 
+- 该接口有一个iterator()方法 那么所有实现了Collection接口的集合类都有一个iterator()方法 
+- 用以返回一个实现了Iterator接口的对象
 
-- Iterator仅用于遍历集合 iterator本身并不提供承装对象的能力 如果需要创建iterator对象 则必须有一个被迭代的集合
+- *Iterator仅用于遍历集合* iterator本身并不提供承装对象的能力 如果需要创建iterator对象 则必须有一个被迭代的集合
 
 - 集合对象每次调用iterator()方法都得到一个全新的迭代器对象 默认游标都在集合的第一个元素之前
 
@@ -26506,6 +26601,7 @@ List arr = Arrays.asList(123， 456);
 
 **注意:**
 - 每创建一个 iterator对象 它们都独有一套next()指针
+
 - 比如:
 - 我们创建了 iterator对象 拿着它去遍历了一个集合
 - 然后我们还想使用该iterator对象 去遍历另一个集合 不行了 因为next指针已经指到最后了
@@ -26709,7 +26805,7 @@ p:
   - 遍历后自定义元素名称
 
 persons:
-  - 要遍历的结构名称
+  - 要遍历的结构名称(arr list等)
 
 
 // js
@@ -26752,13 +26848,17 @@ for(int i: arr) {
 ```
 
 > foreach的执行过程
-- 上面的案例中 coll 是我们要遍历的集合 该集合会自动取里面的元素 它会先取集合中的第一个元素 赋值给obj变量 然后打印obj
+- 上面的案例中 coll 是我们要遍历的集合 该集合会自动取里面的元素 它*会先取集合中的第一个元素 赋值给obj变量* 然后打印obj
+
+- 注意这里 就提取数组或集合中的一个元素 赋值给另一个变量
 
 - 然后接着取集合中的第二个元素 再赋值给obj 依次类推 直到最后一个元素 
 
 - 内部的原理还是调用的跌代器
 
 
+**注意:**
+- 我们使用
 > 练习:
 ```java
 String[] arr = new String[] {"MM", "MM", "MM"};
@@ -26804,7 +26904,7 @@ coll.forEach(System.out.println);
 ```
 
 ----------------------------
-
+### 复习
 ### List接口 - Collection子接口之一
 - 鉴于java中数组用来存储数据的局限性 我们*通常使用List代替数组*
 - 所以我们通常把 List接口 称之为 *动态数组*
