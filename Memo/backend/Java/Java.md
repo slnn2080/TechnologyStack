@@ -17747,11 +17747,37 @@ finally 无论是否发生异常
 
 
 > 并行 与 并发
-- 并行：
+- 并行(同时)：
 - *多个cpu*同时执行多个任务 比如 多个人*同时做不同的事情*
+<!-- 
+  我们可以理解为两个人吃两个包子
+  甲吃A包子
+  乙吃B包子
+  互相不干涉
+ -->
 
-- 并发：
-- *一个cpu*(采用时间片的策略切换不同的任务)*同时执行多个任务* 比如 秒杀 *多个人做同一件事*
+
+- 并发(交替执行)：
+- *一个cpu*(采用时间片的策略切换不同的任务, 也就是说它是一个交替执行的动作 cpu在几个任务之间来回切换) *同时执行多个任务* 
+<!-- 
+  比如 
+  cpu在处理A任务的时候 B任务是等待状态 然后CPU处理完A后再切换到B
+  依次交替执行 
+
+  可以理解为一个人同时吃2个包子 先吃A一口再吃B一口
+-->
+
+- 多线程是使用并发还是并行呢？ 不一定
+- 取决于CPU
+- 当一个进程里面有多个线程的时候 就是单核cpu在多线程任务之前的切换此时使用的就是并发
+
+- 如果是多核CPU且核数大于线程的数量 此时使用的就是并行
+
+
+
+
+
+- 比如 秒杀 *多个人做同一件事* -- 并发
 <!-- 
   多个人做同一件事
     - 多个线程做同一件事
@@ -26904,12 +26930,13 @@ coll.forEach(System.out.println);
 ```
 
 ----------------------------
-### 复习
+
 ### List接口 - Collection子接口之一
 - 鉴于java中数组用来存储数据的局限性 我们*通常使用List代替数组*
 - 所以我们通常把 List接口 称之为 *动态数组*
 <!-- 
-  原来数组的长度是固定的 以前造数组的时候 要先告诉它数组有多长 而
+  原来数组的长度是固定的 以前造数组的时候 要先告诉它数组有多长 
+  而
   List是不用关心数组的长度 它会动态的帮我们去变换 避开了角标越界的异常
  -->
 
@@ -26945,8 +26972,8 @@ coll.forEach(System.out.println);
 - 底层:
 - ArrayList底层使用 Object[] elementData 进行存储(这点和Vector一样)
 <!-- 
-  说用ArrayList替换数组 其实就是对数组进行的一层封装
-  数据仍然存在数组当中
+  说用ArrayList替换数组 
+  其实就是对数组进行的一层封装 数据仍然存在数组当中
  -->
 
 
@@ -26963,6 +26990,7 @@ coll.forEach(System.out.println);
   transient Node first; 记录链表结构中前一个元素
   transient Node last;  记录链表结构中后一个元素
  -->
+
 ```java
 private static Node<E> {
   E item;
@@ -27053,9 +27081,7 @@ private static Node<E> {
 - stack不一样 我们要删除只能删除尾部的元素
 - 整体表现出来的就是先进后出的特点 相当于对原有数组更加严格的控制
 
-- stack继承vector vector底层结构是数据 stack也一样是用数组存的 只不过在数组上控制操作数组的数据 只能从尾部添加 只能从尾部删除
-
-
+- stack继承vector vector底层结构是数组 stack也一样是用数组存的 只不过在数组上控制操作数组的数据 只能从尾部添加 只能从尾部删除
 
 ----------------------------
 
@@ -27081,11 +27107,11 @@ private static Node<E> {
 
 - ... 第11次
 
-- list.add(11)
+- list.add(添加第11个数据)
 - 如果此次的添加导致底层elementData数组的容量不够 则扩容
 - 默认情况下 扩容为原来的容量的1.5倍 同时需要将原有数组中的数据复制到新的数组中
 <!-- 
-  底层不断的在进行抛弃旧的创建新的 这样一个过程
+  底层不断的在进行抛弃旧的 创建新的 这样一个过程
  -->
 
 
@@ -27205,7 +27231,7 @@ public ArrayList(int initialCapacity) {
 - 此时 底层Object[] elementData初始化为{} 意味着并没有创建长度为10的数组
 
 - list.add(123)
-- 当第一次调用add()方法的时候 底层才创建了长度为10的数组 并将数据123天假到elementData[0]的位置一样
+- 当第一次调用add()方法的时候 底层才创建了长度为10的数组 并将数据123添加到elementData[0]的位置一样
 
 - 后续的添加和扩容操作跟jdk7一样
 
@@ -27315,6 +27341,8 @@ transient Node<E> last;
 - 我们添加一个数据 底层就会创建一个Node 
 
 - 我们打开Node就能看到下面这样的结构
+
+
 ```java
 /*
   这是 LinkedList 的内部类
@@ -27349,10 +27377,10 @@ transient Node<E> last;
 
 - first 和 last 的作用:
 - first
-  想找某一个元素的时候要从头开发查找
+  想找某一个元素的时候要从头开始查找
 
 - last
-  想添加的话都要从尾部添加 
+  想添加的话都要从尾部开始添加 
 
 
 > 2. 调用add()方法添加元素
@@ -27443,7 +27471,7 @@ private void grow(int minCapacity) {
 
 - 实际上到那个时候我们也不愿意用vector 我们后面会说工具类Collections
 
-- 工具类中有 synchronized(ArrayList) 方法 我们把ArrayList丢进去 返回的就是线程安全的
+- 工具类中有 *synchronized(ArrayList)* 方法 我们把ArrayList丢进去 返回的就是线程安全的
 
 ----------------------------
 
@@ -27570,6 +27598,8 @@ System.out.println(list);
 - 返回从fromIndex到toIndex位置的*子集合*
 - 包括开始 不包括结束
 
+- 必须传递两个参数
+
 - 不影响原List
 
 - 返回值
@@ -27577,6 +27607,12 @@ System.out.println(list);
 
 ```java
 List list1 = list.subList(0, 3);
+System.out.println(list1);
+
+
+// 截取从指定位置到最后的元素
+// 我们传入 list.size() 它就是比最后一个元素索引要大1的值 因为我们不包括最后一个索引 所以可以这么写吧
+List list1 = list.subList(2,list.size());
 System.out.println(list1);
 ```
 
@@ -27730,12 +27766,14 @@ set.add("CC");
 set.add(new Person("Tom", 12));
 set.add(129);
 ```
+
+
 > 1. 无序性
 - 1. 无序性不等于随机性
 - 我们发现输出虽然没有按照添加顺序 但是 每次输出结果的顺序却是一样
 
 ```java
-// 我们看看无序性 是输出的时候 没有按照添加的顺序么
+// 我们看看无序性 是输出的时候 没有按照添加的顺序么?
 Iterator iterator = set.iterator();
 while(iterator.hasNext()) {
   System.out.println(iterator.next());
@@ -27753,8 +27791,7 @@ Person{name='Tom', age=12}
 - 在List中每一个元素 都是按照0 1 2 3 ... 的顺序放入的 这是有序
 
 - 无序性(以HashSet为例):
-- 不等于随机性 存储的数据在底层的数组中并非按照数组的索引的顺序进行添加
-- 而是根据 hashCode() 
+- 不等于随机性 存储的数据在底层的数组中并非按照数组的索引的顺序进行添加 而是根据 hashCode()
 - hashCode() 会根据我们要添加的数据的哈希值 来决定在数组中的哪个位置 而不是一个挨一个的放
 <!-- 
   HashSet的底层也是用数组存的 jdk7当中底层创建的数组的长度是16
@@ -27784,6 +27821,10 @@ Person{name='Tom', age=12}
 - 不可重复性:
 - 保证添加的元素按照equals()判断时 不能返回true
 - 即 相同的元素只能添加一个
+
+**注意:**
+- 类中要重写hashCode() 和 equals()
+
 <!-- 
   当我们没有重写 equals() 和 hashCode() 方法的时候
   添加两个对象的时候 都能添加进去 因为我们比较的是地址值
@@ -27859,7 +27900,8 @@ Person{name='Tom', age=12}
     C 
      
 
-  7 跟 8 的区别是谁在数组中 jdk8的时候 原来在数组中的元素还在数组中 后来的在下方
+  7 跟 8 的区别是谁在数组中 
+  jdk8的时候 原来在数组中的元素还在数组中 后来的在下方
 
   jdk7中 让新的元素放在数组中 原有的元素在下方
 
@@ -27992,7 +28034,7 @@ public int hashCode() {
   - https://www.bilibili.com/video/BV1Kb411W75N?p=538&spm_id_from=pageDriver
  -->  
 
-- 4. 31是一个素数 素数作用就是如果我用一个数字来乘以这个素数 那么最终出来的结果只能被素数本身和被省属还有1来整除(减少冲突)
+- 4. *31是一个素数 素数作用就是如果我用一个数字来乘以这个素数 那么最终出来的结果只能被素数本身和被省属还有1来整除(减少冲突)*
 
 
 > 要求
@@ -28055,18 +28097,28 @@ Iterator iterator = set.iterator();
 while(iterator.hasNext()) {
   System.out.println(iterator.next());
 }
+
+// 输出结果
+456
+123
+AA
+CC
+Person2{name='sam', age=18}
+129
 ```
 
 - 上面我们发现 我们遍历出来的顺序和添加的顺序一样
 - 虽然遍历的顺序和添加的顺序一样 但是LinkedHashSet还是无序的
 <!-- 
-  LinkedHashSet在存储数据的时候 它是HashSet的子类存储的结构没有变
+  LinkedHashSet在存储数据的时候 它是HashSet的子类
+  存储的结构没有变
   仍然是先有一个数组 还是利用hash值去得到在数组中的存储位置
 
   添加的时候存放的位置不是一个挨一个放的 这就是无序性
  -->
 
-- 它按照添加的顺序是遍历的原因是 它在原有的HashSet的基础之上 又给元素额外的提供了一对*双向链表 来记录添加的先后顺序*
+- 它按照添加的顺序是遍历的原因是:
+- 它在原有的HashSet的基础之上 又给元素额外的提供了一对*双向链表 来记录添加的先后顺序*
 <!-- 
   A   C   B
   □ □ □ □ □ 
@@ -28077,9 +28129,11 @@ while(iterator.hasNext()) {
   prev B next
   prev C next
 
-  A是先添加进去的 null A next 而next指向 B的 prev
+  A是先添加进去的 第一个添加进去的元素 链表的结构为
 
-  B和C也会有这样的关系
+      null A next 
+      
+  而next指向 B的 prev, B和C也会有这样的关系
  -->
 
 - 总结：
@@ -28095,10 +28149,11 @@ while(iterator.hasNext()) {
 
 ```java
 TreeSet set = new TreeSet();
+
 // 不能添加不同类的对象 失败了
-// set.add(456);
-// set.add("AA");
-// set.add(new Person("Tom", 12));
+set.add(456);
+set.add("AA");
+set.add(new Person("Tom", 12));
 
 Iterator iterator = set.iterator();
 while(iterator.hasNext()) {
@@ -28110,8 +28165,9 @@ while(iterator.hasNext()) {
 - 上面我们遍历set的时候发现报错了
 - *java.lang.ClassCastException异常*
 
+
 - 原因：
-- 我们说TreeSet可以按照对象的指定属性进行排序 TreeSet的意义就是提供了排序 我们按照对象的指定属性来排序 那就是说指定属性大家都要有 也就是说这个对象不能是不同类造的对象
+- 我们说TreeSet可以按照对象的指定属性进行排序 TreeSet的意义就是提供了排序 我们按照对象的指定属性来排序 那就是说指定属性大家都要有 *也就是说这个对象不能是不同类造的对象*
 
 - 比如上面 123 AA 一个是int型 一个是string型 不同的类型 可能就没有共同的属性了
 
@@ -28301,7 +28357,7 @@ public void test1() {
 ----------------------------
 
 ### 阶段性总结
-> 1. 集合Collection中存储的如果是自定义类的对象 需要自定义重写哪个方法？
+> 集合Collection中存储的如果是自定义类的对象 需要自定义重写哪个方法？
 
 - 回答：
 - equals()
@@ -28311,9 +28367,11 @@ public void test1() {
 
 - 如下我们会发现List和Set都需要重写equals()所以说Collection都需要重写equals
 
+
 - List: 
   - list实现类也需要重写equals()
   - 虽说list可以放入重复的数据 比如add的时候没有校验放入的数据是否相等 但是remove contains等方法的时候就需要用到equals()了
+
 
 - Set:
   - HashSet LinkedHashSet
@@ -28442,7 +28500,14 @@ public void test() {
 
 - 这里我们使用set来过滤
 
+> 要点:
+- 可以通过 new ArrayList(set) 将 set 转换为 List
+
 ```java
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 public static List duplicateList(List list) {
   HashSet set = new HashSet();
   set.addAll(list);
@@ -28487,18 +28552,30 @@ set.remove(p1);
 System.out.println(set);
     // new Person(1001, "CC");
     // new Person(1002, "BB");
+
+- 当我们删除这个p1对象的时候 没删掉 按照正常的理解我们原先set中有两个对象 我要删除一个对象p1 那么就应该剩一个对象p2
+
+- 但是结果却是还有两个对象
+- 原因对象在set中存储的位置(set底层还是一个数组) 会根据对象中的属性计算hashCode()确定其在数组中的数值
+- 因为对象中的属性做了修改 所以hashCode的结果发生了变化 它在删除的时候去另一个位置找要删除的元素 没找到
+
+
 - p1 p2在数组中的位置 是根据两个对象中的属性计算哈希值得到的
 
     p1    p2
     □ □ □ □ □ □ 
     c     b
 
-- 然后set.remove(p1) 首先我们还是能找到p1的位置 但是里面的属性时 1001 CC 了 然后在set中remove 需要先判断有没有 
+- 然后set.remove(p1) 首先我们还是能找到p1的位置 但是p1里面的属性发生了变化 由原来的 1001 AA 修改为了 1001 CC 了 
 
-- 判断有没有 它要先看哈希值 所以它会先看1001 CC 的哈希值 然后通过一种算法计算哈希值 得到数据中的一个位置
+- 然后在set中remove 需要先判断有没有 
+
+- 判断有没有 
+- 1. 它要先看哈希值 所以它会先看1001 CC 的哈希值 然后通过一种算法计算哈希值 得到数据中的一个位置
 
 - 然后得到的位置不是p1原来的位置 因为p1的位置是按照1001 AA计算出来的 它找就找到另外的位置了
 
+- 比如我们这时添加一个 1001 CC 发现也能添加成功
 set.add(new Person(1001, "CC"));
 System.out.println(set);
     // new Person(1002, "BB");
@@ -28613,7 +28690,7 @@ hashtable.put(null, null);
 - 它是HashMap的子类 在原有的基础上加了一对指针 形成了链表结构
 
 - 特点：
-- 保证在遍历map元素时 可以按照添加的顺序实现遍历 原因 在原有的HashMap底层结构基础上 添加了一对指针 指向前一个和后一个元素
+- 保证在遍历map元素时 可以按照添加的顺序实现遍历 因为 在原有的HashMap底层结构基础上 添加了一对指针 指向前一个和后一个元素
 
 - 场景：
 - 对于频繁的遍历操作 此类执行效率高于HashMap 也就是当有频繁的遍历操作的时候 我们使用LinkedHashMap
@@ -28641,11 +28718,14 @@ hashtable.put(null, null);
 - 2. HashMap和Hashtable的异同
 - 3. CurrentHashMap和Hashtable的异同(暂时不讲)
 <!-- 
+  CurrentHashMap涉及到
   在多线程访问Map的时候 HashMap是线程不安全的 Hashtable是线程安全的
 
-  这时候我们有很多个线程要访问Map 不管怎么处理线程安全问题都是同步机制 也就是说在同步代码块中 是一个单线程的问题
+  比如
+  这时候我们有很多个线程要访问Map 不管怎么处理线程安全问题都是同步机制 
+  也就是说在同步代码块中 是一个单线程的问题
 
-  多导致多线程操作共享数据的时候效率偏差 为了在高并发的场景下 操作Map的执行效率更高 这就引入了一个新的结构 CurrentHashMap
+  这样会导致多线程操作共享数据的时候效率偏差 为了在高并发的场景下 操作Map的执行效率更高 这就引入了一个新的结构 CurrentHashMap
 
   它能实现分段锁的技术
 
@@ -28676,7 +28756,7 @@ hashtable.put(null, null);
 ----------------------------
 
 ### Map中存储的key-value的特点 (Map结构的理解)
--  我们往Map里面put了4个键值对
+- 我们往Map里面put了4个键值对
 - 比如key是学生 右侧是成绩
 - 我们发现不同的学生是可以考相同的分数的 言外之意value是可以重复的 为了保证效率高 key不能重复且无序的
 <!-- 
@@ -28690,7 +28770,7 @@ hashtable.put(null, null);
       DD            78
 
   key的部分相当于用Set去存储
-    用set存保证所有的key无序
+    用set存 -- 保证所有的key无序
 
   value是可以重复的 也是无序的 相当于用Collection存的
     因为key是无序的 key对应着一个value
@@ -28704,7 +28784,10 @@ hashtable.put(null, null);
 - 一个叫做key
 - 一个叫做value
 
-- 而我们put的时候 put的都是一个个的entry 也就是我们在put key value的时候 在源码中 会帮我们把key value装成一个entry
+- 而我们put的时候 put的都是一个个的entry 
+- 也就是我们在put key value的时候 在源码中 会帮我们把key value装成一个entry
+
+- 我们往map中添加kv的时候 是将一个kv看做成一个entry
 
 
 > Entry的特点
@@ -28720,12 +28803,18 @@ hashtable.put(null, null);
 - 一个键值对: key-value构成了一个Entry对象
 - Map中的entry: 无序的 不可重复的 使用Set存储所有的entry
 
+- 我们分成3个部分是记忆:
+- 1. 整体是一个entry -- set -- 无序不可重复
+- 2. key -- set -- 无序不可重复
+- 3. value -- collection -- 无序的可重复
+
 
 **注意:**
 - Map的结构要求 *key*所在的类要*重写equals()和hashCode()* 
 - Map的结构要求 *value*所在的类要*重写equals()* 
 <!-- 
-  这里是以hashMap为例的 如果是TreeMap的话 又涉及到了自然排序和定制排序的问题
+  这里是以hashMap为例的 
+  如果是TreeMap的话 又涉及到了自然排序和定制排序的问题
  -->
 
 ----------------------------
@@ -28775,7 +28864,7 @@ hashtable.put(null, null);
 
 
 > 扩容
-- 在不断的添加的过程中 会涉及到扩容的问题 当超出临界值(且要存放的位置非空)默认的扩容方式 扩容为原谅的容量的2倍 并将原有的数据复制过来
+- 在不断的添加的过程中 会涉及到扩容的问题 当超出临界值(且要存放的位置非空)默认的扩容方式 扩容为原来的容量的2倍 并将原有的数据复制过来
 
 
 ----------------------------
@@ -28830,7 +28919,7 @@ hashtable.put(null, null);
 - 什么是负载因子（或填充比）?
 - 什么是吞吐临界值 (或阈值 threshold)?
 
-- 我们先来看看常量 和 变量代表什么意思
+- 我们先来看看 常量 和 变量 代表什么意思
 
 > DEFAULT_INITAL_CAPACITY:
   - HashMap的*默认容量*: 16
@@ -29455,7 +29544,7 @@ map.put("AA", 87);
 map.put(45, 123);
 
 System.out.println(map);
-    // {AA=87, 45=123} AA值添加进去一个
+    // {AA=87, 45=123} AA值添加进去一个   key=value
     // 且, value值被替换成87了
 ```
 
@@ -29484,7 +29573,7 @@ map.putAll(map2);
 
 - 返回值
 - Object类型 
-- 返回的是 给定的key所对应的value
+- 返回的是 给定的key所对应的value 要删除的对应的那个值
 
 - 如果给定的key不存在 则返回 null
 
@@ -29629,6 +29718,7 @@ map.put("BB", 87);
 
 Set set = map.keySet();
 Iterator iterator = set.iterator();
+
 while(iterator.hasNext()) {
   System.out.println(iterator.next());
 }
@@ -29643,6 +29733,7 @@ while(iterator.hasNext()) {
 ```java
 Collection coll = map.values();
 Iterator iterator = coll.iterator();
+
 while(iterator.hasNext()) {
   System.out.println(iterator.next());
 }
@@ -29736,10 +29827,10 @@ while(iterator.hasNext()) {
 ----------------------------
 
 ### TreeMap 两种添加方式的使用
-- TreeMap是通过key来进行排序的 所以要求key得是同一个类的对象
+- TreeMap是通过key来进行排序的 所以*要求key得是同一个类的对象*
 
 - 要求:
-- 1. 向TreeMap中添加key-value 要求key必须是由同一个类创建的对象 
+- 1. 向TreeMap中添加key-value *要求key必须是由同一个类创建的对象*
 
 - 因为我们要按照key进行排序, 排序方式:
     - 自然排序
@@ -30291,7 +30382,7 @@ while(scanner.hasNext()) {
 
 ### 泛型 (Generic) jdk5.0后的新特性
 - 泛型：
-- 我们首先可以把泛型理解成一对标签
+- 我们首先可以把泛型理解成标签(中药铺抽屉上的标签)
 
 - 比如：
 - 中药店 每个抽屉外面贴着标签
@@ -30322,7 +30413,7 @@ while(scanner.hasNext()) {
 
 > 泛型的概念
 - 把元素的类型设计成一个参数 这个类型参数叫做泛型
-- 所谓泛型 就是允许在定义类, 接口时通过一个标识表示类中某个属性的类型或者某个方法的返回值及参数类型
+- 所谓泛型 就是允许在 定义类, 接口时 通过一个标识表示类中某个属性的类型 或者 某个方法的返回值 及 参数类型
 
 - 这个类型参数将在使用时确定
 <!-- 
@@ -30386,7 +30477,7 @@ for(Object score: list) {
 
 
 > 集合中泛型的简单使用
-- 我们可以在类的方法中 或者属性中 和 构造器中 我们可以定义泛型
+- 我们可以在类的 方法中 或者 属性中 和 构造器中 我们可以定义泛型
 ```java
 public interator Iterator<E> { ... }
 ```
@@ -30460,6 +30551,9 @@ while (iterator.hasNext()) {
 - 我们发现当我们调用 map.entrySet(); 方法的时候它的返回得结果这如下的
 
 - Set<Map.Entry<String, Integer>>
+- 首先entry返回的是Set 
+- Set里面是一个Map.Entry
+- Map.Entry里面是String Integer
 
 - 解析:
 - 首先我们调用 map.entrySet() 返回得类型是 Set
@@ -30578,7 +30672,7 @@ public class Demo {
 <!-- 
   我们给类声明一个泛型的时候 并不是说该类的类型是T
 
-  而是 泛型相当于我们给类 传递了一个类型参数
+  而是 泛型相当于我们给类 传递了一个类型参数(变量)
   这样类中的结构就可以使用该类型参数
 
   当类实例化的时候 我们就能给这个泛型T 一个确切的类型
@@ -30728,7 +30822,7 @@ list1 = list2;  // 报错
  -->
 
 
-- 6. 如果泛型结构时一个*接口或抽象类* 则不可创建泛型类的对象
+- 6. 如果泛型结构是一个*接口或抽象类* 则不可创建泛型类的对象
 
 
 - 7. jdk1.7 泛型的简化操作
@@ -30738,7 +30832,7 @@ list1 = list2;  // 报错
 - 8. 泛型的指定中不能使用基本数据类型 可以使用包装类替换
 
 
-- 9. 在泛型接口 和 泛型类时 *在静态方法中不能使用类的泛型*(不能使用泛型修饰的结构)
+- 9. 在泛型接口 和 泛型类时 *在静态方法中不能使用类的泛型*(不能使用泛型修饰的结构 也就是说不能属性泛型修饰的属性)
 - 
 <!-- 
   在类/接口上声明的泛型 在本类或本接口中即代表某种类型
@@ -30786,7 +30880,9 @@ public class Order<T> {
 public class MyException<T> extends Exception {}
 ```
 
-- 11. 不能使用new E[]
+- 11. 不能使用 new E[] 也就是说不能new一个泛型数组
+- 但是可以通过如下的方式来办到 也就是先new Object然后强转成泛型数组
+
 - 但是可以: E[] elements = (E[]) new Object[capacity]
 - 参考:
 - ArrayList源码中声明: Object[] elementData 而非泛型类型数组
@@ -30871,6 +30967,8 @@ class Son<T2, A, B> extends Father<Integer, T2>
 - 应用场景
 - 在方法中有不确定的类型 我们调用方法的时候再指明类型是什么 就使用泛型方法
 
+- 通过传递一个实参指明方法中的方形类型
+
 
 - 泛型方法并不是说类中的方法中使用泛型就叫做泛型方法
 - 比如
@@ -30879,19 +30977,21 @@ class Son<T2, A, B> extends Father<Integer, T2>
 boolean add(E e);
 ```
 
+
+> 泛型方法的格式
 - 我们看看什么是泛型方法
 ```java
-<T> T[] toArray(T[] a) { ... }
+权限修饰符 <T> T[] toArray(T[] a) { ... }
 ```
 
 - 我们泛型类定义的泛型参数是<E>的话 那么类中使用E的地方肯定不是泛型方法
 
 > 泛型方法的应用场景
-- 方法的返回值的类型不确定 我们才考虑使用泛型方法
+- *方法的返回值的类型不确定 我们才考虑使用泛型方法*
 
 
 > 泛型方法:
-- 在类中的方法中出现了泛型的结构 方法的泛型参数与类的泛型参数没有任何关系 泛型方法所属的类时不是泛型类都没有关系(泛型方法属于独立的)
+- 在类中的方法中出现了泛型的结构 *方法的泛型参数与类的泛型参数没有任何关系* 泛型方法所属的类是不是泛型类都没有关系(泛型方法属于独立的)
 <!-- 
   - 泛型方法是额外的有一个新的标识了 跟类的泛型参数<E>没关系
 
@@ -30930,8 +31030,8 @@ public <E> List<E> copyFromArrayToList(E[] arr) {
   // 创建一个list 指明泛型结构
   ArrayList<E> list = new ArrayList<>();
 
-  // E类型的item
-  for(E e: list) {
+  // 遍历这个数组 将这个数组中的每一个元素取出来放到list中
+  for(E e: arr) {
     list.add(e);
   }
   return list;
@@ -30941,7 +31041,9 @@ public <E> List<E> copyFromArrayToList(E[] arr) {
 - 使用:
 ```java
 public void test() {
+  // 创建当前类的对象 通过该对象来调用方法
   Order<String> order = new Order<>();
+
   // 创建一个数组
   Integer[] arr = new Integer[] {1, 2, 3, 4 ,5};
 
@@ -30954,10 +31056,14 @@ public void test() {
 - 1. 泛型方法在调用时 指明泛型参数的类型
 
 - 2. 泛型方法的声明泛型参数要*放在方法返回值类型的前面* public等修饰符的后面
+```java
+权限修饰符 <泛型参数> 返回值类型<泛型参数> 方法名(形参类型<泛型参数> 形参变量) { 方法体 }
+```
 
 - 3. 前面说了类中的方法如果声明为static 那就不能在该方法里面使用类的泛型结构
 
 - 泛型方法可以被声明为静态的 原因泛型参数是在调用方法的时候确定的 并非在实例化类时才确定
+
 ```java
 public static <E> List<E> copy(E[] arr)
 ```
@@ -31107,7 +31213,7 @@ public <M> M getValue() {
 - 回顾:
 
 - 继承的特点:
-- 正因为子类是继承父类的 子类的对象赋值给父类的引用
+- 正因为子类是继承父类的 子类的对象可以赋值给父类的引用
 
 ```java
 Object obj = null;
@@ -31176,7 +31282,6 @@ public void show(List<Object> list) {
 
 }
 
-
 // 因为这里只能传入List<Object>类型的list
 show(list1);
 
@@ -31186,6 +31291,7 @@ show(list1);
 public void show2(List<String> list) {
 
 }
+
 show2(list2);
 ```
 
@@ -31206,9 +31312,6 @@ list1 = list2
 
 - 能不能赋值我们看的是<>外面的部分, 是不是子父类的关系 
 - 而不是看泛型部分 <>里面
-
-
-
 
 ----------------------------
 
@@ -31314,7 +31417,7 @@ public void show(List<String> list) { ... }
 - 1. 我们通过 list 存储/添加/写入 的时候 会报错
 
 - 获取(读取)
-- 2. w哦们通过 list 读取 的时候 可以 读取到的数据类型为Object
+- 2. 我们通过 list 读取 的时候 可以 读取到的数据类型为Object
 
 ```java
 List<Object> list1 = null;
@@ -31340,13 +31443,12 @@ list.add("DD");
     // 报错 说你现在是个？ 不能添加String类型的数据
 ```
 
-- 总结:
+> 总结:
 - 我们使用通配符的情况下 List<?> list 就不能通过list对象向堆空间的结构里面添加数据了
 
 - list.add(null) 唯一可以添加null
 
 
-- 
 - 获取(读取) 允许读取数据 读取的数据类型为Object
 ```java
 // 思考:
@@ -31355,7 +31457,7 @@ Object o = list.get(0);
 System.out.println(o);
 ```
 
-- 总结：
+> 总结：
 - 可以获取数据 获取的数据类型为Object
 
 
@@ -31633,14 +31735,14 @@ public class DAOTest {
 
 - 这章里面涉及到的主要问题就是文件的传输 数据的持久化 那就需要我们将内存中的数据存储到硬盘上 以txt jpg avi等格式存储起来 
 <!-- 
-  上面涉及到的知识点都是将数据存储在内存中 jvm或者电脑关闭后 数据就没了
+  IO流之前的部分涉及到的知识点都是将数据存储在内存中 jvm或者电脑关闭后 数据就没了
  -->
 
-- 站在内存层面谈
+- *站在内存层面谈*
 - 内存层面 - 写入到 - 具体文件(持久化层面): 叫做 输出
 - 具体文件 - 读取到 - 内存层面: 叫做 输入
 
-- 因为输入输出分很多种情况(操作数据的特点不一样) 每种情况可能要对应一种流 所以这章里面会涉及到很多的流
+- 因为 输入 输出 分很多种情况(操作数据的特点不一样) 每种情况可能要对应一种流 所以这章里面会涉及到很多的流
 
 - 在介绍各种流之前 我们要先说一个 File类
 <!-- 
@@ -31654,11 +31756,13 @@ public class DAOTest {
     将文件中的数据 读到 内存里
 
     - 这时候我们要有一个端点(.txt) 从哪读进来 或者 写出到哪
+    - 从哪读到内存中 从内存中写到哪个文件里面去
 
-    - 这个端点是一个文件 在java层面就是一个对象 这个文件在java内存层面要拿一个类的对象去充当 这个对象就是File类型的
+    - 这个端点是一个文件 
+    
+    - 在java层面就是一个对象 这个文件在java内存层面要拿一个类的对象去充当 这个对象就是File类型的
 
     .txt文件我们就用一个File类的对象去充当
-
 
     - File类的对象不光能充当文件 还可以表示一个文件目录
  -->
@@ -31733,16 +31837,27 @@ System.out.println(file1);
   eclipse 不分test main 都是相较于一个个的工程下
  -->
 
-
-- 我们可以使用文件对象.getAbsolutePath()输出绝对路径看看
-
-
 ```java
 // 相对路径
 File file = new File("hello.txt");
 
 // file1结果:
 // hello.txt
+```
+
+
+> 文件对象.getAbsolutePath()
+- 输出该文件的绝对路径看看
+
+```java
+@Test
+public void test() {
+  File file = new File("IOTest.txt");
+  String absolutePath = file.getAbsolutePath();
+
+  System.out.println(absolutePath);
+  // /Users/LIUCHUNSHAN/Desktop/Sam/Java/review/IOTest.txt
+}
 ```
 
 > 技巧:
@@ -31763,7 +31878,6 @@ File file = new File("hello.txt");
 @Test
 public void testFileReader() {
   File file = new File("Hello.txt");
-
 }
 
 public static void main(String[] args) {
@@ -31796,7 +31910,7 @@ File file = new File("/Users/LIUCHUNSHAN/Desktop/Sam/Java/hi.txt");
 
 - Unix和URL使用 "/" 来表示
 
-> File.separator常量 相当于 通用的 / 分隔符
+> File.separator -- 常量 相当于通用的 / 分隔符
 - 为了避免还会记和使用麻烦 File类提供了一个常量 *separator*
 
 - 优点：
@@ -31834,6 +31948,7 @@ File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
 - public File(File parent, String child)
 
 ```java
+// 上面的实例化方式2
 File file3 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/", "Java");
 
 // file3结果:
@@ -31851,17 +31966,16 @@ File file4 = new File(file3, "he.txt");
 
 
 > 要点:
-- File 能新建 删除 重命名文件和目录 但 File不能访问文件内容本身
+- 1. File 能 新建 删除 重命名文件和目录 但 File不能访问文件内容本身
 
-- 如果需要访问文件内容本身 则需要使用输入/输出 流
+- 2. 如果需要访问文件内容本身 则需要使用输入/输出 流
 
-- 想要在java程序中表示一个真实存在的文件或目录 那么必须有一个File对象
-
+- 3. 想要在java程序中表示一个真实存在的文件或目录 那么必须有一个File对象
 - 但是java程序中的一个File对象 可能没有一个真实存在的文件或目录
 
-- File对象可以作为参数传递给流的构造器
+- 4. File对象可以作为参数传递给流的构造器
 
-- 文件存在与否 是否可读可写 长度是多少 文件最近的修改日期是多少 File本身就能做这些
+- 5. 文件存在与否 是否可读可写 长度是多少 文件最近的修改日期是多少 File本身就能做这些
 
 ----------------------------
 
@@ -31881,6 +31995,12 @@ File file2 = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/hi.txt");
 
 - 返回值:
 - String
+```java
+File file = new File("IOTest.txt");
+String absolutePath = file.getAbsolutePath();
+System.out.println(absolutePath);
+// /Users/LIUCHUNSHAN/Desktop/Sam/Java/review/IOTest.txt
+```
 
 
 > 文件对象.getPath()
@@ -31888,39 +32008,51 @@ File file2 = new File("/Users/LIUCHUNSHAN/Desktop/ioTest/hi.txt");
 
 - 返回值:
 - String
+```java
+File file = new File("IOTest.txt");
+String path = file.getPath();
+System.out.println(path); // IOTest.txt
+
+// 如果我们new File() 的时候写的是绝对路径 返回的是绝对路径的地址 如果是相对路径返回的就是相对的地址
+```
 
 
 > 文件对象.getName()
-- 获取名称
+- 获取名称 包括文件扩展名
 
 - 返回值:
 - String
+
+```java
+File file = new File("IOTest.txt");
+String name = file.getName();
+System.out.println(name);   // IOTest.txt
+```
 
 
 > 文件对象.getParent()
 - 获取上层文件目录路径 若无 返回null
+- 跟我们传入的相对路径和绝对路径有关系
+- 如果我们传递的是 相当路径 则获取不到上层文件的目录
+- 如果我们传递的是 绝对路径 则能获取上层完整的路径
 
-- 比如：
-- /Users/LIUCHUNSHAN/Desktop/ioTest/hi.txt
-- getParent() -- /Users/LIUCHUNSHAN/Desktop/ioTest
-<!-- 
-  最后没有 /
- -->
-
-- 返回值:
+- 返回值类型:
 - String
 
 - 默认值: null
 
-- 要点:
-- 如果写成相对路径的话 就是null
-- 因为我们传入的只是 "hello.txt" 没有上一级吧
-
 ```java
-// 没有真实的文件
-File file1 = new File("hello.txt");
-System.out.println(file1.getParent());
-// null
+// 相当路径
+File file = new File("IOTest.txt");
+String parent = file.getParent();
+System.out.println(parent);   // null
+
+
+// 绝对路径
+File file2 = new File("/Users/LIUCHUNSHAN/Desktop/Sam/Java/hello.txt");
+String parent = file2.getParent();
+System.out.println(parent);
+    // /Users/LIUCHUNSHAN/Desktop/Sam/Java
 ```
 
 
@@ -31931,6 +32063,12 @@ System.out.println(file1.getParent());
 - long
 
 - 默认值: 0
+```java
+File file = new File("IOTest.txt");
+System.out.println(file.length());    // 19
+
+// this is a test file 一共19个字符
+```
 
 
 > 文件对象.lastModified()
@@ -31940,6 +32078,17 @@ System.out.println(file1.getParent());
 - long
 
 - 默认值: 0
+
+```java
+File file = new File("IOTest.txt");
+long l = file.lastModified();
+System.out.println(l);    // 1646491931576
+
+Date date = new Date(l);
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:ss:mm");
+String format = sdf.format(date);
+System.out.println(format);   // 2022-03-05 23:11:52
+```
 
 ------
 
@@ -32054,6 +32203,18 @@ System.out.println(isRes);
 - 返回值:
 - boolean
 
+```java
+// 这是一个文件
+File file = new File("IOTest.txt");
+System.out.println(file.isDirectory());   // false
+
+
+// 这传入的是一个文件夹
+File folder = new File("/Users/LIUCHUNSHAN/Desktop/Sam");
+boolean directory = folder.isDirectory();
+System.out.println(directory);    // true
+```
+
 
 > 文件对象.isFile()
 - 判断是否是文件
@@ -32062,7 +32223,8 @@ System.out.println(isRes);
 - boolean
 
 
-> 文件对象.exists()
+> 文件对象.exists()   
+- *这个是用来先判断文件是否真实存在的 就像canvas判断有没有画笔一样*
 - 判断当前对象是否在硬盘中存在对应的文件 或 文件目录
 
 - 返回值:
@@ -32141,7 +32303,7 @@ false
 - 这部分的功能是*真正的在硬盘中*创建文件或文件目录
 
 > 文件对象.craeteNewFile()
-- 创建文件 
+- *创建文件*
 - 若文件存在 则不创建 返回false
 
 - 异常:
@@ -32150,7 +32312,7 @@ false
 - 返回值:
 - boolean
 
-- 前提
+- 前提:
 - 我们通过构造器 指定了一个内存中的对象
 
 ```java
@@ -32330,7 +32492,7 @@ public class FindJPGFileTest {
 ```
 
 - 3. 遍历指定目录所有文件名称 包括子文件目录中的文件
-  - 拓展1: 并计算指定目录占用空间的大小
+  - 扩展1: 并计算指定目录占用空间的大小
   - 扩展2: 删除指定文件目录及其下的所有文件
 
 ```java
@@ -32425,7 +32587,7 @@ public class ListFilesTest {
 ```
 
 ----------------------------
-
+### 复习
 ### IO流的原理 与 流的分类
 - IO是input和output的缩写 IO技术是非常使用的机刷 用于*处理设备之间的数据传输*
 
