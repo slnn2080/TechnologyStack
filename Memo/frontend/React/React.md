@@ -3792,6 +3792,17 @@ class Person {
 
 > 总结
 > render() 
+- 作用
+- 我们每一个组件内部都会有一个render方法 它的作用是调用render方法 将react元素渲染到真实的dom里面
+
+- 什么时候触发render？
+- 在组件实例化和存在期的时候会执行render
+
+- 实例化过程中:
+- 当执行componentWillMount之后会执行render，开始将节点挂载在页面上。
+
+- 存在期的过程中:
+- setState会导致组件的重新渲染。
 <!-- 
   该函数会被调用1+n次, 1次为挂载 n为更新
  -->

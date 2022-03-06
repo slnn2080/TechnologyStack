@@ -25694,6 +25694,21 @@ public @interface Override { }
 
 > 格式
 - @Target({TYPE, FIELD, METHOD, PARAMETER ... })
+- 当我们这么使用的时候 前面必须加上
+```java
+import java.lang.annotation.Target;
+
+// 必须加上这句
+import static java.lang.annotation.ElementType.*; 
+
+// 然后这里才不会报错
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotation {
+    String value() default "hello";
+}
+```
+
 - @Target(ElementType.METHOD)
 
 
@@ -32587,18 +32602,19 @@ public class ListFilesTest {
 ```
 
 ----------------------------
-### 复习
+
 ### IO流的原理 与 流的分类
 - IO是input和output的缩写 IO技术是非常使用的机刷 用于*处理设备之间的数据传输*
 
 - 如读/写文件 网络通讯等
 
-- java程序中 对于数据的输入/输出操作以"流(stream)"的方式进行
+- java程序中 对于数据的(对于文件内容)输入/输出操作以"流(stream)"的方式进行
 
 - java.io包下提供了各种"流"类和接口 用以获取不同种类的数据 并通过 标准的方法 输入或输出数据
 
 - input output是一个相对的概念
 - 我们要站位在内存的角度看输入还是输出
+
 
 > 输入input
 - 读取外部数据(磁盘 光盘等存储设备的数据)到程序(内存)中
@@ -32620,7 +32636,7 @@ public class ListFilesTest {
   字符流就是2个字节 一个个char的方式存储的
 
   字符流
-    更适合存储文本数据 比如一个txt文件 都是一个个文件 那么我们就可以使用字符的方式去存储
+    字符更适合存储文本数据 比如一个txt文件 都是一个个文件 那么我们就可以使用字符的方式去存储
 
   字节流
     图片 视频等2进制数据的时候 也就是非文本的数据 我们希望使用字节流
@@ -32710,6 +32726,9 @@ public class ListFilesTest {
 <!-- 
   第一档
   这四个流可以 直接 操作 file
+
+  我们这里这么记 输入还是输出都需要 端点 
+  端点是以 File对象 来充当的 所以在抽象基类的前面加上 File
  -->
 
 
@@ -32718,6 +32737,9 @@ public class ListFilesTest {
   ByteArrayOutputStream   (字节输出流)
   CharArrayReader   (字符输入流)
   CharArrayWriter   (字符输出流)
+<!-- 
+  在抽象基类的前面加上 ByteArray 和 CharArray 
+ -->
 
 
 - 访问管道 (处理流)
@@ -32725,12 +32747,16 @@ public class ListFilesTest {
   PipedOutputStream   (字节输出流)
   PipedReader   (字符输入流)
   PipedWriter   (字符输出流)
+<!-- 
+  在抽象基类的前面加上 Piped
+ -->
 
 - 访问字符串 (处理流)
   空    (字节输入流)
   空    (字节输出流)
   StringReader    (字符输入流)
   StringWriter    (字符输出流)
+
 
 > 缓冲流 (处理流)
   BufferedInputStream   (字节输入流)
@@ -32740,6 +32766,8 @@ public class ListFilesTest {
 <!-- 
   第一档
   处理流的一种
+
+  在抽象基类的前面加上 Buffered
  -->
 
 > 转换流 (处理流)
@@ -32825,10 +32853,13 @@ public class ListFilesTest {
 
 > 节点流中的端点的含义
 - 下面提到的端点的意思 都是直接包一个文件
+- 我们输出也好 还是输出也好 都要考虑输入到哪里(端点) 输出到哪里(端点)
+- 这个端点在java层面我们就用一个 File 对象来代替
 
 ----------------------------
 
 ### FileReader读入数据的操作
+- 自己起的名字: 字符输入流
 
 > FileReader实例化
 > FileReader fr = new FileReader(file);
@@ -32883,18 +32914,19 @@ public void testFileReader() throws IOException {
 <!-- 
   但是我们返回得是int类型
   每一个char都会对应着一个int
-  a - > 97
+  a -> 97
 
   这里相当于用int型的方式存的a
  -->
 
 - 我们读取文件的时候都是使用循环的方式读取文件中的数据
 
-- 如果达到文件末尾了 返回-1 (当该方法返回-1的时候 代表文件读取完毕)
+- 如果达到文件末尾了 *返回-1* (当该方法返回-1的时候 代*表文件读取完毕*)
 
 - 如果文件里面是空的 那么上来就是-1 所以在读取文件的时候都会用while循环 条件就是判断是不是-1
 
-- 需求: 将day01下的hello.txt文件内容读入内存(程序)中 并输出到控制台
+- 需求: 
+- 将day01下的hello.txt文件内容读入内存(程序)中 并输出到控制台
 
 ```java
 @Test
@@ -32922,7 +32954,7 @@ public void testFileReader() throws IOException {
   // 3. 方式2: 数据的读入  
   // 语法上针对于方式1的修改
   int data;
-  while(data = fr.read() != -1) {
+  while((data = fr.read()) != -1) {
     System.out.println((char)data);
   }
 
@@ -32930,6 +32962,27 @@ public void testFileReader() throws IOException {
   fr.close();
 }
 ```
+
+- 结果:
+- 文件中的文本: this is a test file
+
+- 为什么能输出呢？ 在循环中每次读到一个字符就将字符对应的数给data 然后输出一行data 如果我们换成 print 就是一行
+```java
+116
+104
+105
+115
+32
+105
+115
+32
+97
+32
+116
+101
+115
+```
+
 
 - 上面的例子中 不管是 new FileReader() 还是 fr.read() 都会抛出异常
 <!-- 
@@ -32954,7 +33007,7 @@ public void testFileReader() {
   int data;
 
   - 2. ！！！异常处 - fr.read()
-  while(data = fr.read() != -1) {
+  while((data = fr.read()) != -1) {
     System.out.println((char)data);
   }
 
@@ -33045,7 +33098,10 @@ public void testFileReader() {
 - Hello.txt文件中只有[helloworld123]
 
 - 上面我们在读取文件数据的操作时 使用的是 read() 方法
-- 但是该方法 每次只能读到一个字符 如果文件中的数据很多的时候 需要用循环来不断的和硬盘进行交互 效率很差
+- 但是该方法 每次只能读到一个字符 如果文件中的数据很多的时候 需要用循环来不断的和硬盘进行交互 效率很差 
+
+- 文件在硬盘中每次我们从硬盘中读到一个字符就进行输出一次 19个字符就输出19次 效率很差 
+
 <!-- 
   比如 送快递也一样
   快递员不会每次给我们送一个快递 然后就回公司去取新的
@@ -33054,13 +33110,14 @@ public void testFileReader() {
   快递一般都有一个小车 快递员会装一车(放一波) 送完这波回去再取一波
  -->
 
-- 所以read()也一样 每次读一个太慢了
+- 所以read()也一样 每次读一个太慢了 怎么解决？
 
 - 下面还是读取Hello.txt文件里面的数据 但是这次我们对read()方法的操作升级 使用read的重载方法
 
 
 > read(char[] cbuf)
 - 该方法会将文件数据读入到 我们准备好的 char[] cbuf中
+- 每次我们读5个字符 那我们传入的char[]的长度就是一次读多少个
 <!-- 
   所以在使用之前要先创建 char[] cbuf 数组
 
@@ -33150,7 +33207,7 @@ public void testFileReader2() {
 
 
 > 正确的写法:
-- 我们拿下核心的代码
+- 我们如何输出正确的字符串呢？
 
 ```java
 // 1. File类的实例化
@@ -33166,20 +33223,17 @@ char[] cbuf = new char[5];
 int len;
 
 while((len = fr.read(cbuf)) != -1 ) {
-  // 方式1:
+
+  // 方式1: 外层循环一次 相当于拉了一趟小车 5个包裹 那内层循环输出5个包裹 每次输出的次数为 i < len 相当于读到几个输出几个
   for(int i=0; i<len; i++) {
     System.out.print(cbuf[i]);
   }
 
-  // 方式2: 我们将char[]转换为String
-  // 每次从头开始取 取len个
+  // 方式2: 我们每次读到的char[] 转换为String
+  // 从char[]中每次从头开始取 取len个
   String str = new String(cbuf, 0, len);
   System.out.print(str);
 
-  // 方式2: 错误的写法
-  String str = new String(cbuf);
-  System.out.print(str);
-  // helloworld123ld
 }
 ```
 
@@ -33194,18 +33248,23 @@ while((len = fr.read(cbuf)) != -1 ) {
 - 小车本来有5个位置 但是我们指定小车只能装3个
 - 从头装 小车装几个
 
-- 一般不会调用这个方法 一般都是能写满就写满
+- *一般不会调用这个方法 一般都是能写满就写满*
 
 ----------------------------
 
 ### FileWriter写出数据的操作
+- 自己起的名字: 字符输出流
 - 从内存中将数据写出到硬盘文件中
 
 > 写出的步骤
 - 1. 提供File类的对象，指明写出到的文件
+- 也就是说我们要提供一个输出的端点(输出或者是写出到哪个文件)
+
 ```java
 File file = new File("Hello2.txt");
 ```
+
+
 - 2. 提供FileWriter的对象 用于数据的写出
 - 也就是说指明写出的端点
 ```java
@@ -33231,9 +33290,12 @@ FileWriter fw = new FileWriter(file);
 
 
 > fw.write(内容)
-- 我们可以将数据写到哪个文件里面去
-- 我们可以写出一个char[]
-- 我们可以写出一个String str
+- 调用该方法 我们可以将 "内容(数据)" 写到断点文件里面去
+- 如果文件不存在 会自动创建
+
+- 我们可以写出一个 char[]
+- 我们可以写出一个 String str
+- 我们可以写出一个 指定长度的char 或者 String
 
 - *参数类型: 都有用*
 <!-- 
@@ -33245,29 +33307,6 @@ FileWriter fw = new FileWriter(file);
   fw.write(char[] cbuf, int off, int len)
  -->
 
-```java
-while((len = fis.read(buf)) != -1) {
-  System.out.println("len: " + len);
-  // 读到多少写入多少
-  fw.write(cbuf, 0, len);
-}
-```
-
-- 比如我们写出一个字符串
-```java
-// 写出一个字符串
-fw.write("i have a dream!");  
-
-// 写出一个char[]
-fw.write("i have a dream!".toCharArray());  
-```
-
-- 如果想写多条数据 多次调用write()
-```java
-// 换行
-fw.write("i have a dream!\n");
-fw.write("you need to have a dream");
-```
 
 **注意:**
 - 1. 输出操作, 对应的File可以不存在 如果不存在 在输出的过程中 会自动创建此文件 并不会报异常
@@ -33280,9 +33319,36 @@ fw.write("you need to have a dream");
 -->
 
 - 2. 如果对应的File存在 我们传递了第二个参数 false / true
-  - true: 在原有文件上*追加*
-  - false: 对原有文件进行*覆盖*
+- true:  在原有文件上   *追加*
+- false: 对原有文件进行 *覆盖*
 
+
+- 练习: 
+- 向端点文件中 写入内容
+```java
+File file = new File("Output.txt");
+FileWriter fw = new FileWriter(file);
+fw.write("hello, world");
+
+// 写出一个字符串
+fw.write("i have a dream!");  
+// 写出一个char[]
+fw.write("i have a dream!".toCharArray());  
+
+// 如果想写入多次内容 需要多次调用 fw.write() 方法
+fw.write("i have a dream!\n");
+fw.write("you need to have a dream");
+
+
+fw.close();
+```
+
+- 每次读多少 就 写入多少
+```java
+while ((len = fr.read(cbuf)) != -1) {
+  fw.write(cbuf, 0, len);
+}
+```
 
 
 > 练习: 
@@ -33480,6 +33546,7 @@ try {
 - 因为 FileInputStream 和 FileOutputStream 的使用方式和 FileReader 和 FileWriter 一样
 
 - 这里我们直接从需求入手看看 FileInputStream FileOutputStream 的使用方式
+
 - 需求：
 - 实现对图片的复制
 
@@ -33605,8 +33672,9 @@ public void testCopyFile() {
 - 缓冲流是处理流的一种
 - BufferedInputStream   字节
 - BufferedOutputStream  字节
-- BufferedReader  字符
-- BufferedWriter  字符
+
+- BufferedReader        字符
+- BufferedWriter        字符
 
 - 这四个处理流分别在前一个基础上进行包装(处理流就是对已有流进行包装)
 - File..Stream  - BufferedInputStream
@@ -33614,13 +33682,15 @@ public void testCopyFile() {
 - File..Reader  - BufferedReader
 - File..Writer  - BufferedWriter 
 
-- 包装完之后我们就用右边的流进行处理(Buffer...)
+- 包装完之后我们就用上面右边的流进行处理(Buffer...)
 
 
 > 缓冲流的作用:
 - 缓冲流是处理流的一种 它主要的作用就是提高文件的读写效率
 <!-- 
-  开发的时候我们不会直接用 节点流那4个的(File...) 因为它们是比较基本的几个流 效率上稍微差一些 我们要用得话 也会考虑使用缓冲流(Buffer...) 
+  开发的时候我们不会直接用 节点流那4个的(File...) 因为它们是比较基本的几个流 效率上稍微差一些 
+
+  我们要用得话 也会考虑使用缓冲流(Buffer...) 
 -->
 
 
@@ -33630,7 +33700,17 @@ public void testCopyFile() {
 - 要点1:
 - 缓冲流不能直接作用在文件上 它只能作用在节点流的上面 所以在使用缓冲流的前提就是先创建节点流
 
-- 然后把节点流对象当做参数传递到缓冲流的构造器中
+
+> 缓冲流的要点:
+- 把节点流对象当做参数传递到缓冲流的构造器中
+```java
+FileInputStream fis = new FileInputStream(srcFile);
+FileOutputStream fos = new FileOutputStream(destFile);
+
+BufferedInputStream bis = new BufferedInputStream(fis);
+BufferedOutputStream bos = new BufferedOutputStream(fos);
+```
+
 
 - 要点2:
 - 流的关闭:
@@ -33915,7 +33995,7 @@ byte[] buf = new byte[20];
 int len;
 while ((len = fis.read(buf)) != -1) {
   
-  // 对字节数据进行修改 完成加密操作 buf中有多个字节 一个个的改就要使用循环了
+  // 对字节数据进行修改 完成加密操作 buf中有多个字节 一个个的改就要使用循环了 这里相当于内循环
 
 
   // 错误的写法
@@ -34124,13 +34204,13 @@ public void testWordCount() {
 
 ### 转换流
 - 转换流也是处理流的一种
-- 转换流提供了在 字节流 和字 符流 之间的转换
+- 转换流提供了在 字节流 和 字符流 之间的转换
 <!-- 
-  文本文件utf8.txt
+  有一个文本文件.txt - utf8
     正常我们要操作这个文件一般都会使用 字符流
-    但是 现在在这个文件上使用的是 字节流
+    但是现在在这个文件上使用的是 字节流
 
-      这时候我们就可以只用 转换流 将字节流转换为字符流
+      这时候我们就可以只用 转换流 将现在的字节流转换为字符流
 
 
   也就是将输入的 字节流 转换为输入的 字符流
@@ -34138,7 +34218,15 @@ public void testWordCount() {
 
 > java API提供了两个 -转换流-
 > InputStreamReader:  处理输入的流 Reader-char
+- 记忆方法:
+- InputStream 是字节流
+- Reader 是字符流
+
+- InputStream + Reader 将字节流 转换为 字符流
+
+- InputStreamReader为
 - 输入的转换流 将一个个byte *转换为 一个个char*
+
 <!--          
                   程序
                   ↗
@@ -34173,7 +34261,7 @@ public void testWordCount() {
 - 很多时候我们使用转换流处理文件乱码问题 *实现编码和解码的功能*
 
 
-<!-- > 转换流的使用要点
+> 转换流的使用要点
 - 1. InputStreamReader OutputStreamWriter
   - 它们要包裹在 Readerer Writer基类(实现类) 的外层
 
@@ -34182,17 +34270,21 @@ public void testWordCount() {
   如果它们可以包裹在 FileInputStream 和 FileOutputStream (字节流)的外层的话 那它们操作的应该是byte[]
 
   可惜不是
- --> -->
+ -->
 
 > 作用:
 - 提供字节流与字符流之间的转换
 
-- InputStreamReader:  将一个 字节的输入流 转换为 字符的输入流 - 解码
-- OutputStreamWriter: 将一个 字符的输出流 转换为 字节的输出流 - 编码
+- InputStreamReader:  
+- 将一个 字节的输入流 转换为 字符的输入流 - 解码
+
+- OutputStreamWriter: 
+- 将一个 字符的输出流 转换为 字节的输出流 - 编码
 
 
 > 转换流的实例化
 > InputStreamReader isr = new InputStreamReader(字节流输入对象, "UTF-8")
+
 > OutputStreamWriter osw = new OutputStreamWriter(字节流输出对象, "GBK")
 - 如果不传递参数2就是使用系统默认的字符集
 <!-- 
@@ -34299,18 +34391,21 @@ public void testDecode() throws IOException {
 ----------------------------
 
 ### 多种字符编码集的说明
-- 计算机只能识别二进制数据 早起由来是电信号
+- 计算机只能识别二进制数据 早期的由来是电信号
 - 为了方便应用计算机 让它可以识别各个国家的文字 就将各个国家的文字用数字来表示
 <!-- a - 97 -->
+
 - 并一一对应 形成一张表 这就是编码表
+
 
 > 常见的字符集
 - 1. ASCⅡ:
 - 美国标准信息交换吗 *用一个字节的7位可以表示*
 <!-- 
-  一个字节有8位 它有一个没有用 也就是只能表示128种情况 美国就够用
-  一个字节就是8bit 最大是 1111 1111 可以表示256
+  一个字节有8位 它有一个没有用 因为最高位是符号位 左右只有7位是用来表示数字的 2^8是256 2^7就是一半 128
 
+  也就是只能表示128种情况 美国就够用
+  一个字节就是8bit 最大是 1111 1111 可以表示256
   分成正负的话 也就是 -128 ~ 127
  -->
 
@@ -34370,7 +34465,7 @@ public void testDecode() throws IOException {
   2^16 -- 65535
   2^15 -- 32767
 
-  所以就不能标记两个字节到底是存一个字符还是两个字符
+  所以就不能拿出一位用来标记两个字节到底是存一个字符还是两个字符
  -->
 
 - utf-8  就是每次8个位去传递数据
@@ -34458,22 +34553,23 @@ public void testDecode() throws IOException {
 
 ----------------------------
 
-### 标准的输入 输出流
+### 标准的输入 输出流 -- System类
 - System类有3个属性
+
 > 属性:
-  - System.err
-      标准的错误输出流
+- System.err
+    标准的错误输出流
 
-  - System.in
-      标准的输入流(默认从键盘输入)
-      它就是键盘输入
+- System.in
+    标准的输入流(默认从键盘输入)
+    它就是键盘输入
 
-  - System.out
-      标准的输出流(默认从控制台输出)
-      它就是控制台输出
+- System.out
+    标准的输出流(默认从控制台输出)
+    它就是控制台输出
 
-> 
-- 既然是属性的话就会有类型 比如 String name
+
+- 既然它们是属性的话就会有类型 比如 String name
 
 - System.err的类型: PrintStream
 - System.in的类型:  InputStream(IO体系中输入流的基类)
@@ -34489,8 +34585,6 @@ public void testDecode() throws IOException {
  -->
 
 
-
-
 > 练习
 - 练习System.in的操作
 - 从键盘输入字符串 要求将读取到的整行字符串转成大写输出
@@ -34498,6 +34592,7 @@ public void testDecode() throws IOException {
 
 - 思考:
 - 以前我们完成上述的操作是使用 Scanner 来完成的 现在我们使用System.in来完成
+
 - 我们需要读到用户输入的一行数据 这里我们可以使用 readLine()方法 该方法相当于Scanner中的next()
 
 - 那怎么才能从 System.in 到 readLine()呢？
@@ -34512,7 +34607,7 @@ public void testDecode() throws IOException {
 ```java
 // InputStreamReader是转换流 
 // 它需要的参数就是InputStream输入字节流 而我们的System.in就是输入字节流类型, 同时System.in也代表从键盘输入
-InputStreamReader isr = new InputStreamReader(System.in); // 终点不再是具体的file了 而是键盘输入
+InputStreamReader isr = new InputStreamReader(System.in); // 断点不再是具体的file了 而是键盘输入
 
 
 // InputStreamReader是Reader的子类 isr的类型就是Reader
@@ -34608,7 +34703,7 @@ try {
 - 分别"套接"在InputStream OutputStream子类的流上面
 
 - 作用:
-- 用于读取或写出基本数据类型的变量或字符串
+- 用于读取或写出*基本数据类型的变量或字符串*
 <!-- 
   调用对应的方法可以将内存中的基本数据类型和String写入到文件当中 保存起来
 
@@ -35634,7 +35729,7 @@ public static void main(String[] args) throws IOException {
 
 ### 网络编程概述
 > 计算机网络
-- 把分布在不同地理区域的计算机与专门的外部设备用通信线路连城一个规模大 功能强的网络系统 从而使众多的计算机可以方便地互相传递信息 共享硬件 软件 数据信息等资源
+- 把分布在不同地理区域的计算机与专门的外部设备用通信线路连成一个规模大 功能强的网络系统 从而使众多的计算机可以方便地互相传递信息 共享硬件 软件 数据信息等资源
 
 
 > 网络编程的目的
@@ -35664,11 +35759,11 @@ public static void main(String[] args) throws IOException {
 
 
 > 通信协议
-- 计算机网络中实现通信必须有一些约定 即*通信协议， 对速率 传输代码 代码结构 传输控制步骤 出错控制等指定标准*
+- 计算机网络中实现通信必须有一些约定 即*通信协议， 对速率 传输代码 代码结构 传输控制步骤 出错控制等制定标准*
 
 
 > 问题:
-- 网络协议太复杂 计算机网络通信涉及内容很多 比如指定源地址和目标地址 加密解密 压缩解压缩 差错控制 流量控制路由控制 如何实现如此复杂的网络协议？
+- 网络协议太复杂 计算机网络通信涉及内容很多 比如指定源地址和目标地址 加密解密 压缩解压缩 差错控制 流量控制 路由控制 如何实现如此复杂的网络协议？
 
 
 > 通信协议分层的思想
@@ -35781,7 +35876,9 @@ public static void main(String[] args) throws IOException {
 
 - 通过域名访问IP地址的方式:
 - 1. 地址栏键入 www.baidu.com
+
 - 2. 将域名发送给dns域名解析服务器 它会帮我们将域名解析出来 域名的ip地址对应多少
+
 - 3. 拿着解析后的IP地址访问对应的服务器 请求资源
 <!-- 
   我们电脑里面有一个hosts文件 里面也是域名和IP地址的对应关系
@@ -35806,6 +35903,7 @@ public static void main(String[] args) throws IOException {
 
 > InetAddress实例化方式1:
 > InetAddress.getAllByName(String host)
+> InetAddress.getByName(String host)
 - 参数:
 - host: 主机名 或者 我们可以写具体的IP
 
@@ -35817,6 +35915,7 @@ public static void main(String[] args) throws IOException {
 
 > InetAddress实例化方式2:
 > InetAddress.getAllByName(String 域名)
+> InetAddress.getByName(String 域名)
 
 ```java
 // 参数的方法1:
@@ -35940,12 +36039,13 @@ System.out.println(address.length); // 4
 > TCP/IP以及两个主要协议
 - *传输控制协议(TCP)*和*网络互联协议(IP)*而得名 实际上是一组协议 包括多个具有不同功能且互为关联的协议
 
-- IP协议时网络层的主要协议 支持网间互联的数据通信
+- IP协议是网络层的主要协议 支持网间互联的数据通信
 - TCP/IP协议模型从更实用的角度触发 形成了高效的四层体系结构 即物理链路层 IP层 传输层 和 应用层
 
 
 > TCP和UDP
 - 它们虽然都是传输层的协议但是规则不一样
+
 
 > TCP协议:
 - 使用TCP协议前 *须先建立TCP连接* *先形成传输数据通道*
@@ -36011,7 +36111,7 @@ System.out.println(address.length); // 4
 
 
 > UDP协议:
-- 将  数据 源 目的地 封装成数据包 *不需要建立连接*
+- 将 数据源 目的地 封装成数据包 *不需要建立连接*
 - 每个数据报的大小限制在64k内
 <!-- 
   数据多的时候需要发送很多的数据包
@@ -36050,14 +36150,14 @@ System.out.println(address.length); // 4
 - 我们是要给服务器发送的 那就要知道服务端是哪个IP和端口号 上面我们说了IP和端口号会封装为一个socket
 
 - 所以我们要先创建一个scoket 里面就包含了具体的IP和端口号了 指明我们要往哪个目的地发送数据
-- 通过scoket对象我们能获取输入输出流
-- 然后我们通过输出流来写数据
+
+- 通过scoket对象我们能获取输入输出流 然后我们通过输出流来写数据
 - 最后关闭资源 流 和 socket都是资源 都需要关闭
 
 
-- 2. 客户端的逻辑
+- 2. 服务端的逻辑
 - 首先我们要创建服务器端的socket对象
-- 通过服务器端的socket对象 调用accept() 开始监听 当有连接接过来的时候 accept()就会将接收到的数据包装成socket对象返回
+- 通过服务器端的socket对象 调用accept() 开始监听 当有连接接过来的时候 accept()就会将接收到的数据 包装成socket对象返回
 
 - 我们通过调用socket获取输入流来读客户端发送过来的数据
 
@@ -36066,6 +36166,7 @@ System.out.println(address.length); // 4
 > Socket socket = new Socket(InetAddress address, int port)
 - 作用:
 - 实例化socket对象 指明服务器的IP地址和端口号
+- 将ip地址和端口号封装成一个socket对象
 
 - 参数:
 - IP地址
@@ -36073,15 +36174,17 @@ System.out.println(address.length); // 4
 
 ```java
 InetAddress inet = InetAddress.getByName("127.0.0.1");
-// 
+
 Socket socket = new Socket(inet, 8899);
 ```
 
 
-> 客户端实例对象.getOutputStream();
+> 客户端socket实例对象.getOutputStream();
 - 获取字节输出流 用来发送数据
+
 - 返回值:
 - OutputStream
+
 ```java
 OutputStream os = socket.getOutputStream();
 os.write("你好, 我是客户端MM".getBytes());
@@ -36111,8 +36214,9 @@ os.write("你好, 我是客户端MM".getBytes());
  -->
 
 
-> 服务器对象.accept();
-- 相当于开始监听 监听客户端发送的socket 一旦接收到 将数据包装成socket对象返回
+> 服务器serversocket对象.accept();
+- 相当于开始监听 监听客户端发送的socket 
+- 一旦接收到 将数据包装成socket对象返回
 
 - 返回值
 - socket
@@ -36178,7 +36282,7 @@ os.write("你好, 我是客户端MM".getBytes());
 InetAddress inet = InetAddress.getByName("127.0.0.1");
 Socket socket = new Socket(inet, 8899);
 
-// 返回输出流对象 获取一个输出流 用于输出数据
+// 返回输出流对象 获取一个输出流 用于输出数据 给服务端发送数据
 OutputStream os = socket.getOutputStream();
 // 因为是字节流 写出数据的操作
 os.write("你好, 我是客户端MM".getBytes());
@@ -36189,7 +36293,7 @@ socket.close();
 
 
 
-// 客户端
+// 服务端
 // 创建服务器端的socket ServerSocket 指明自己的端口号(服务器)
 ServerSocket ss = new ServerSocket(8899);
 
@@ -36257,8 +36361,10 @@ ss.close();
 public void client() throws IOException {
   // 创建客户端socket对象 指明服务器的地址和端口号
   Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), 8899);
+
   // 传输数据造一个字节输出流
   OutputStream os = socket.getOutputStream();
+
   // 传输文件 先获取一个输入流将文件读到内存的层面
   FileInputStream fis = new FileInputStream("pic_safety_001.jpg");
   byte[] buf = new byte[1024];
@@ -36303,8 +36409,11 @@ public void server() throws IOException {
 @Test
 public void client() throws IOException {
   Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), 8899);
+
   OutputStream os = socket.getOutputStream();
+
   FileInputStream fis = new FileInputStream("pic_safety_001.jpg");
+
   byte[] buf = new byte[1024];
   int len;
   while ((len = fis.read(buf)) != -1) {
@@ -36656,6 +36765,7 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 - 动态语言是在运行时确定数据类型的语言 变量使用之前不需要类型声明 通常变量的类型 是 被赋值的那个值的类型
 
 - 是一类在运行时可以改变其结构的语言
+
 - 例如:
 - 新的函数 对象 甚至代码可以被引进
 - 已有的函数可以被删除或是其他结构上的变化
@@ -36719,7 +36829,7 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
   Class类是在lang包下定义 这个Class不是class关键字
   java是严格区分大小写的 Class 和 关键字class 是两个东西
 
-  Class类表示通用的类 通用的用来描述其它类的结构信息的
+  Class类表示通用的类 通用的 用来描述其它类的结构信息的
   也就是说 类似Person Dog这样的类 又是以Class类的实例出现读到
 
   Class类是用来描述类的类
@@ -36733,6 +36843,7 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
 ### 反射之前/之后等 类的实例化等操作
 - 我们定义了一个Person类 我们看看在反射之间我们可以对Person类做哪些事情
+
 ```java
 package com.sam.reflect;
 
@@ -36820,18 +36931,28 @@ public void test2() throws NoSuchMethodException, InvocationTargetException, Ins
   // 通过反射 完成Person类的实例化
   // Person类本身有一个属性是class Person.class 就是Class类的实例了
   Class clazz = Person.class;
+  System.out.println(clazz);  
+  // class com.sam.review.Person
 
-  // 通过 clazz.getConstructor() 里面的参数我们可以看看Person中的构造器里面的参数是什么类型 我们获取了构造器
+
+  // 获取构造器对象
+  // 通过 clazz.getConstructor(参数类型.class) 里面的参数我们可以看看Person中的构造器里面的参数是什么类型 我们获取了构造器
   Constructor cons = clazz.getConstructor(String.class, int.class);
 
-  // 通过得到的构造器对象 来造对象(实例化) 得到的object类型 我们可以进行强转
+
+  // 通过得到的构造器对象 传入构造器中需要的实参 来造对象(实例化) 得到的object类型 我们可以进行强转
   Object p1 = cons.newInstance("Sam", 18);
   Person p = (Person) p1;
 
   // 通过反射 调用对象指定的属性 和 指定的方法
   // 这样我们就能通过clazz对应的Person类里面age的属性
   Field age = clazz.getDeclaredField("age");
-  // 修改age属性
+
+  System.out.println(age);
+  // int com.sam.review.Student.age
+  // 它是一个属性对象吧 并不是一个基本数据类型能让我们去输出
+
+  // 修改age属性 但是我们可以通过这个age调用set()方法
   age.set(p, 10);
   System.out.println(p.toString());
 
@@ -36915,7 +37036,6 @@ System.out.println(nation);
 
 ### Class的理解 
 - java.lang.Class类的理解 *反射的源头*
-
 - java语言编写完以后需要经过两个过程
 
 > 1. 编译过程:
@@ -36929,6 +37049,9 @@ System.out.println(nation);
 
 > 运行时类
 - 加载到内存中的类(类本身) 我们称为*运行时类* 此运行时类 就*作为Class实例*
+- 当类加载到内存中时 称之为运行时类 该类就作为Class的实例出现
+- 那是不是说反射读取的是运行时类
+
 <!-- 
   Person类 就是 Class的实例
   但是
@@ -36943,7 +37066,7 @@ System.out.println(nation);
   这也体现了万事万物皆对象
  -->
 
-- 2. 换句话说 Class的实例对应着一个运行时类(数组 接口等都可以 只要是加载到内存中的都是)
+- 2. 换句话说 Class的实例对应着一个运行时类(数组 接口等都可以 只要是*加载到内存中的都是*)
 
 - 3. 加载到内存中的运行时类 会缓存一定的时间 在此时间之类 我们可以通过不同的方式来获取此运行时类
 
@@ -37077,10 +37200,11 @@ Class<?> clazz4 = classLoader.loadClass("com.sam.reflect.Person");
 - 上面我们说 clazz对应一个运行时类 那除了类本身之外还有没有其他的结构可以作为Class的实例呢？
 
 - 只要有结构加载到内存中后 都看做成Class的实例了
-- Class相当于加载到内存中的所有结构 不光光是类
+- *Class相当于加载到内存中的所有结构* 不光光是类
 
 
 - Class实例可以是哪些结构的说明:
+
 - 1. class
 - 外部类 成员(成员内部类 静态内部类) 局部内部类 匿名内部类
 
@@ -37190,14 +37314,14 @@ c10 == c11    // true
       ↓
 
     1. 
-    将类的class文件读取内存 并为之
+    将类的class文件读取带内存 并为之
     创建一个java.lang.Class对象
     此过程由类加载器完成
  -->
 
 - 1. 加载:
-- 将class文件字节码内容加载到内存中 并将这些静态数据转换为方法区的运行时数据结构
-- 然后生成一个代表这个类的java.lang.Class对象 作为方法区中类数据的访问入口(即引用地址)
+- 将class文件字节码内容加载到内存中 并*将这些静态数据转换为*方法区的*运行时数据结构*
+- 然后生成一个代表这个类的java.lang.*Class对象 作为*方法区中类*数据的访问入口*(即引用地址)
 - 所有需要访问和使用类数据只能通过这个Class对象 
 - 这个加载的过程需要类的加载器参与
 
@@ -37355,10 +37479,22 @@ FileInputStream fis = new FileInputStream("src/jdbc.properties");
 
 > clazz.newInstance()
 - 通过Class实例对象调用newInstance() 创建对应的运行时类的对象
+- 造对象的
 <!-- 
   newInstance() 内部调用类中的空参构造器
   所以要想用此方法 那么类中必须要提供空参构造器
+
+  上面我们在刚接触泛型的时候 写了一份测试代码 那时候我们是先创建 Class对象clazz
+
+  clazz.getDeclaredConstructor(String.class, int.class);
+  方式得到构造器对象 然后通过
+  constructor.newInstance();
+
+  得到对象实例
+
+  这里是直接通过clazz.newInstance()
  -->
+
 - 我们也可以如下的添加泛型 这样类的泛型决定了newInstance()的返回值
 ```java
 Class<Person> clazz = Person.class
@@ -37388,14 +37524,18 @@ Class<Person> clazz = Person.class
   (权限修饰符 权限不够的问题)
 
 
-- *注意*: 要想newInstance()正常的执行必须满足如下条件
+**注意**: 
+- 要想newInstance()正常的执行必须满足如下条件
+
 - 1. 运行时类必须提供空参的构造器
 - 2. 空参构造器的访问权限得够 通常设置为public
+
 <!-- 
   在javabean中要求提供一个public的空参构造器 
   1. 便于通过反射 创建运行时类的对象
   2. 便于子类继承此运行时类时 默认调用super() 保证父类有此构造器
  -->
+
 
 ```java
 // 想通过反射创建Class的对象 那就要先有Class
@@ -37583,7 +37723,7 @@ public class Person extends Creature<String> implements Comparable<String>, MyIn
 
 ### 获取运行时类的属性结构及其内部的结构
 - 都是通过clazz.getXxxx的形式 调用类中的各个结构 有些见名知意
-
+- 我们通过 clazz. 得到的对象 都是结构对象 那就说该对象身上的结构我们都能获取到
 
 > clazz.getFields()
 - 获取当前运行时类*及其父类中*声明为*public*访问权限的属性
@@ -37790,6 +37930,8 @@ for(Method m: methods) {
 ### 获取运行时类的方法的内部结构
 - 上面我们获取了属性当中的各个结构 方法也可以这样获取方法中的各个内部结构
 
+- 也是先拿到方法的结构对象 通过结构对象.具体方法()的方式 拿到方法中的各个节后
+
 > 方法中的结构:
 - @注解
 - 权限修饰符 返回值类型 方法名(参数类型1 形参名1, ...) throws 异常 {
@@ -37799,7 +37941,7 @@ for(Method m: methods) {
 
 > 获取方法声明的注解
 - 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后 
-- 通过 方法. 的形式 调用具体方法 获取注解
+- 通过 方法结构对象. 的形式 调用具体方法 获取注解
 - 获取注解是所有方法的
 
 > 方法.getAnnotations()
@@ -37829,7 +37971,7 @@ for(Method m: declaredMethods) {
 
 > 获取方法中的权限修饰符
 - 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
-- 通过 方法. 的形式 调用具体方法 获取方法的权限修饰符
+- 通过 方法结构对象. 的形式 调用具体方法 获取方法的权限修饰符
 
 > 方法.getModifiers()
 - 获取方法的权限修饰符
@@ -37853,7 +37995,7 @@ for(Method m: declaredMethods) {
 
 > 获取方法中的返回值类型
 - 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
-- 通过 方法. 的形式 调用具体方法 获取方法的返回值类型
+- 通过 方法结构对象. 的形式 调用具体方法 获取方法的返回值类型
 
 > 方法.getReturnType()
 - 获取方法的返回值类型
@@ -37880,7 +38022,7 @@ for(Method m: declaredMethods) {
 
 > 获取方法中的方法名
 - 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
-- 通过 方法. 的形式 调用具体方法 获取方法的返回方法名
+- 通过 方法结构对象. 的形式 调用具体方法 获取方法的返回方法名
 
 > 方法.getName()
 - 获取方法的方法名
@@ -37902,7 +38044,7 @@ for(Method m: declaredMethods) {
 
 > 获取方法中的形参列表
 - 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
-- 通过 方法. 的形式 调用具体方法 获取方法的返回形参列表
+- 通过 方法结构对象. 的形式 调用具体方法 获取方法的返回形参列表
 
 - 我们没有办法获取到形参名 只能获取到形参的类型
 
@@ -37935,7 +38077,7 @@ for(Method m: declaredMethods) {
 
 > 获取方法中抛出的异常
 - 通过反射 clazz.getDeclaredMethods(); 拿到每一个方法后
-- 通过 方法. 的形式 调用具体方法 获取方法的异常
+- 通过 方法结构对象. 的形式 调用具体方法 获取方法的异常
 
 
 > m.getExceptionTypes()
@@ -37991,7 +38133,7 @@ for(Constructor c: constructors) {
 - 获取当前运行时类的指定构造器
 
 - 参数：
-- 形参列表类型
+- 构造器中形参列表的类型.class
 - *不传就是获取空参构造器*
 - String.class int.class
 
@@ -38241,7 +38383,11 @@ System.out.println(pid);    // 1001
 
 > 属性对象.setAccessible(true);
 - 保证当前属性是可访问的
-<!-- 
+
+- 也就是说 只要是我们通过 clazz.getDeclaredXxx()的形式获取的属性结构对象 我们下面都要调用
+- 属性对象.setAccessible(true); 方法
+
+<!--  
   当我们读取或设置的属性的权限是default 或者 private的时候
   默认情况下是不允许我们访问的
 
@@ -38293,9 +38439,11 @@ Person p = (Person) clazz.newInstance();
 - 返回值:
 - Method
 
+
 > 方法的调用
-> 方法对象.invoke()
+> 方法对象.invoke(对象(方法的调用者), (实参))
 - 通过invoke() 调用该方法(方法对象所表示的方法)
+- 当我们拿到方法结构对象后 通过该对象调用invoke() 来实现方法的调用
 
 - 参数1:
 - 方法的调用者
@@ -39016,7 +39164,7 @@ public class ProxyTest {
 - StreamAPI可以声明性的通过 parallel()与sequential()在并行流与顺序流之间进行切换
 
 ----------------------------
-
+### 复习
 ### Lambda表达式
 - Lambda是一个匿名函数 我们可以把Lambda表达式理解为是*一段可以传递的代码*(将代码像数据一样进行传递)
 
