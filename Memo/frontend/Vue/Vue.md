@@ -7602,6 +7602,7 @@ allowed in .vue files - render functions are required elsewhere
       proxy: {
         // 一套配置
         '/api1': {
+
           target: '<服务器地址url不用接具体接口>',
           pathRewrite: {'^/api1':''},
           ws: true,
@@ -7616,6 +7617,29 @@ allowed in .vue files - render functions are required elsewhere
     }
   }
  -->
+
+```js
+module.exports = {
+  devServer: {
+    proxy: {
+      '/api': {
+        target: "http://127.0.0.1:3333",
+        pathRewrite: {'^/api':''},
+        ws: true,
+        changeOrigin: true
+      }
+    }
+  }
+}
+```
+
+**注意:**
+- 1. 前端发请求的时候 一定要http开头
+- 2. 我们要往前端所在的服务器端口号发请求8080
+- 3. 主机地址:端口号 + /api + /接口
+```js
+axios.get("http://127.0.0.1:8080/api/word")
+```
 
 >>> proxy对象的内部属性 解析
 - 1. '/api'： 
