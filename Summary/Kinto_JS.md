@@ -466,3 +466,138 @@ export default class Carousel {
   }
 }
 ```
+
+
+
+> Modal
+- 这个是添加遮罩层 并有关闭的功能
+
+- 核心思想:
+- 就是将定义在html页面结构中的内容(iframe)复制一份 插入到遮罩层的div中控制播放关闭
+
+- 样式问题:
+- 这个部分关于遮罩层的样式 和 关闭按钮的样式 要放在app.vue里面 也就是最上层的组件中
+
+
+- modal区域的整体结构:
+
+- li(data-module="animation", data-anime="movie")
+  - div(data-module="modal")
+    - div(data-modal="toggle")
+      - h3
+      - div
+
+        - picture
+        - div(data-modal="content")
+          - div
+            - iframe
+        - div
+
+```js
+export default class Modal {
+
+  constructor() {
+    this.getParam();
+    this.init();
+  }
+
+
+  getParam() {
+    // 获取 body
+    this.body = document.getElementsByTagName("body")[0];
+    console.log("body", body)
+
+    // 获取有标记为 [data-module="modal"] 的元素
+    this.modal = document.querySelectorAll('[data-module="modal"]');
+
+    // 将所有的 [data-module="modal"] 的元素 变成一个数组
+    this.modalArray = [].slice.call(this.modal);
+
+    // 创建遮罩层
+    this.overlay = `<div class="m-modal__bg" data-modal="overlay"></div>`;
+
+    // 创建关闭按钮
+    this.closeBtn = `<p class="m-modal__btn--close" data-modal="close">CLOSE</p>`;
+  }
+
+
+  init() {
+    this.bindEvent();
+    this.closeEvent();
+  }
+
+  /**
+   * @description 按下变成toggle的部分，显示模态内容。 0.1秒后overlay被insert
+   */
+  bindEvent() {
+    // 遍历 modal 数组
+    this.modalArray.forEach((elem) => {
+      // 获取每一个 modal 元素对象下的 [data-modal="toggle"] 元素
+      const toggleArray = [].slice.call(elem.querySelectorAll('[data-modal="toggle"]'));
+
+      // 获取 每一个modal元素对象下的 [data-modal="content"] 这个content中就是一个 iframe 
+      const content = elem.querySelector('[data-modal="content"]');
+
+      // 遍历每一个 [data-modal="toggle"] 元素 给它添加点击事件
+      toggleArray.forEach((toggle) => {
+        toggle.addEventListener("click", (event) => {
+
+
+          this.body.style.overflow = "hidden";
+          // 将遮罩层添加到 body元素内部的最后一个子节点之后。
+          this.body.insertAdjacentHTML("beforeend", this.overlay);
+
+          // 動的に追加した要素にクラスを付与するためここで定数を定義
+          // 选中插入的遮罩层
+          const appendModalBg = document.querySelector('[data-modal="overlay"]');
+
+          // モーダルの中身を複製
+          // 将 [data-modal="content"] 的内容复制一份
+          const contentClone = content.cloneNode(true);
+
+          // optionを受け渡し 传递选项
+          const opt = event.target.getAttribute("data-modal-target");
+          // 如果有 data-modal-target 对应的值 就将该值 给 复制的内容
+          if (opt !== undefined) {
+            contentClone.setAttribute("data-modal-target", opt);
+          }
+
+          // 将复制的内容插入到 遮罩层里面
+          appendModalBg.insertAdjacentElement("beforeend", contentClone);
+
+          // 0.1秒后给遮罩层添加 is-show 样式
+          setTimeout(() => {
+            appendModalBg.classList.add("is-show");
+          }, 100);
+
+          // 在body内部的最后一个子节点之后。插入closeBtn
+          this.body.insertAdjacentHTML("beforeend", this.closeBtn);
+        });
+      })
+    });
+  }
+
+  /**
+   * @description クローズボタンを押下し、コンテンツの非表示、overlayの削除
+   * 点击关闭按钮后 关闭正在显示的内容 删除遮罩层
+   */
+  closeEvent() {
+    document.addEventListener("click", (event) => {
+      // 获取遮罩层和关闭按钮
+      const appendModalBg = document.querySelector('[data-modal="overlay"]');
+      const appendModalBtn = document.querySelector('[data-modal="close"]');
+
+      // 如果我们点击的目标 身上能取到 close 或者 身上能取到 遮罩层
+      if ((event.target && event.target.dataset.modal === "close") || (event.target && event.target.dataset.modal === "overlay")) {
+        this.body.style.overflow = "";
+        appendModalBg.classList.remove("is-show");
+        setTimeout(() => {
+          appendModalBg.parentNode.removeChild(appendModalBg);
+        }, 400);
+        appendModalBtn.parentNode.removeChild(appendModalBtn);
+      }
+    });
+  }
+}
+
+```

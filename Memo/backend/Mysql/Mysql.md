@@ -2033,7 +2033,7 @@ FROM departments; -- 27条记录
 
 > 加入连接条件后，查询语法 格式：
 
-```mysql
+```sql
 SELECT	table1.column, table2.column
 FROM	table1, table2
 WHERE	table1.column1 = table2.column2;  #连接条件
@@ -6307,6 +6307,745 @@ WHERE 2 < (
 - 如果子查询相对简单 建议从外往里写 一旦子查询结构复杂 则建议从里往外写
 
 - 如果是相关子查询的话 通常都是从里往外写
+
+------------------
+
+### 创建和管理表
+> 一条数据存储的过程
+- `存储数据是处理数据的第一步`。只有正确地把数据存储起来，我们才能进行有效的处理和分析。
+
+- 那么，怎样才能把用户各种经营相关的、纷繁复杂的数据，有序、高效地存储起来呢？ 
+
+- 在 MySQL 中，一个完整的数据存储过程总共有 4 步，分别是
+- 1. 创建数据库
+- 2. 确认字段
+- 3. 创建数据表
+- 4. 插入数据
+
+- 为什么我们要先创建一个数据库，而不是直接创建数据表呢？ 
+
+- 因为从系统架构的层次上看，MySQL 数据库系统从大到小依次是
+- 1. `数据库服务器`
+- 2. `数据库`
+- 3. `数据表`
+- 4. 数据表的`行与列` 
+
+- MySQL 数据库服务器之前已经安装。所以，我们就从创建数据库开始。
+
+
+> 标识符命名规则
+- 1. 数据库名、表名不得超过30个字符，变量名限制为29个
+
+- 2. 必须只能包含 A–Z, a–z, 0–9, _ 共63个字符
+
+- 3. 数据库名、表名、字段名等对象名中间*不要包含空格*
+
+- 4. 同一个MySQL软件中，数据库不能同名；同一个库中，表不能重名；同一个表中，字段不能重名
+
+- 5. 必须保证你的字段没有和保留字、数据库系统或常用方法冲突。如果坚持使用，请在SQL语句中使用`（着重号）引起来
+
+- 6. 保持字段名和类型的一致性：
+- 在命名字段并为其指定数据类型的时候一定要保证一致性，
+- 假如数据类型在一个表里是整数，那在另一个表里可就别变成字符型了
+<!-- 
+  比如 A表 和 B表 中都有 department_id 
+  那么 AB两个表 中该字段的数据类型 要保持一致
+ -->
+
+
+> 创建数据库
+> 方式1: 
+> CREATE DATABASE 数据库名; 
+- 创建数据库
+
+- 在创建数据库的时候 如果没有显式的指定数据库的字符集 那么就会用系统默认的字符集
+```sql
+-- 查看系统默认的字符集
+show variables like 'character _%';
+```
+
+
+> 方式2: 
+> CREATE DATABASE 数据库名 CHARACTER SET 字符集;
+- 创建数据库并指定字符集
+- 该方式显式的指明了要创建的数据库的字符集
+```sql
+create database mytest2 character set 'gbk';
+```
+- 如果数据库已存在 系统就会报错
+
+
+> 方式3: 
+> CREATE DATABASE IF NOT EXISTS 数据库名; 
+> CREATE DATABASE IF NOT EXISTS 数据库名 CHARACTER SET 字符集
+- 判断数据库是否已经存在，不存在则创建数据库（`推荐`）
+- 如果要创建的数据库已经存在 则创建不成功 但不会报错
+
+- 建议我们在创建数据库的时候 加上 character set '字符集'
+- 因为mysql5.7的版本 数据库的字符集 不是utf8(是拉丁) 
+- 8.0的时候才是
+
+- 所以我们在创建数据的时候 最好加上 *'utf8'*
+
+
+**注意:**
+- 1. *DATABASE 不能改名。*
+- 一些可视化工具可以改名，它是建新库，把所有表复制到新库，再删旧库完成的。
+
+- 2. 创建数据库也需要权限 我们在上篇的时候先不说权限的问题
+
+
+
+> show create database 数据库名
+- 查看创建数据库时候的信息
+
+```sql
+show create database mutest1
+
+-- CREATE DATABASE `mutest1` 
+
+/*!40100 
+  DEFAULT CHARACTER SET utf8mb4   默认的字符集
+  COLLATE utf8mb4_0900_ai_ci      比较规则
+*/ 
+
+/*!80016 
+  DEFAULT ENCRYPTION='N' 
+*/
+```
+
+--------
+
+> 管理数据库
+
+> SHOW DATABASES;
+- 查看当前链接中的所有数据库
+
+```sql
+SHOW DATABASES; #有一个S，代表多个数据库
+```
+
+
+> USE 数据库名;
+- 指明使用哪个数据库 或者叫 *切换数据库*
+```sql
+USE mytest2;
+```
+
+
+> SHOW TABLES;
+- 查看当前数据库中保存的数据表
+```sql
+SHOW TABLES;
+```
+
+
+> SELECT DATABASE()
+- 查看当前正在使用的数据库
+```sql
+-- 使用的一个 mysql 中的全局函数
+SELECT DATABASE() FROM DUAL;  
+
+SELECT DATABASE()
+```
+
+
+> SHOW TABLES FROM 数据库名;
+- 查看指定数据库下所有的表
+```sql
+SHOW TABLES FROM 数据库名;
+
+-- 当我们在这个数据库下的时候可以省略from
+SHOW TABLES;
+```
+
+
+> SHOW CREATE DATABASE 数据库名;
+- 查看数据库的创建信息
+```sql
+SHOW CREATE DATABASE 数据库名;
+或者：
+SHOW CREATE DATABASE 数据库名\G
+```
+
+> show create table 表名
+- 查看数据库的创建信息
+
+
+**注意:**
+- 要操作表格和数据之前必须先说明是对哪个数据库进行操作，否则就要对所有对象加上“数据库名.”。
+
+--------
+
+> 修改数据库
+- 虽然能修改数据库 但是一般情况下 我们不会去改数据库 因为数据库下面有很多表 成本太高了
+
+- 一般是刚造的数据库 里面还没有具体的表呢 这时候可以修改数据库的信息
+
+> ALTER DATABASE 数据库名 CHARACTER SET 字符集;
+- 更改数据库字符集
+
+```sql
+ALTER DATABASE 数据库名 CHARACTER SET 字符集;  
+-- 比如：gbk、utf8等
+```
+
+--------
+
+> 删除数据库
+- 删除结构 删除表 删除数据库 删除什么 都用的drop
+> 方式1:
+> DROP DATABASE 数据库名;
+- 删除指定的数据库
+
+```sql
+DROP DATABASE 数据库名;
+```
+
+> 方式2:
+> DROP DATABASE IF EXISTS 数据库名;
+- 删除指定的数据库（`推荐`）
+
+```sql
+DROP DATABASE IF EXISTS 数据库名;
+```
+
+
+**注意:**
+- 删除不存在的数据库会报错
+- 删除操作默认情况是不能回滚的 删除了就回不来了 默认情况下是没有备份的
+
+------------------
+
+### 创建数据表
+- 在我们创建表的时候 一定会明确表中有哪些字段 这些字段在其他的编程语言当中也称之为变量 变量的话就会涉及到数据类型 也就是说表中的字段也是有类型的
+
+- 前提:
+- 必须具备创建表的权限 和 存储空间要够
+
+> 方式1: "白手起家"
+> create table 表名()
+> create table if not exists 表名
+- 如果数据库下没有这张表的话就创建成功
+
+- 语法格式:
+```sql
+CREATE TABLE [IF NOT EXISTS] 表名(
+	字段1, 数据类型 [约束条件] [默认值],
+	字段2, 数据类型 [约束条件] [默认值],
+	字段3, 数据类型 [约束条件] [默认值],
+	……
+	[表约束条件]
+);
+
+
+-- 简单的创建表
+create table if not exists mytemp1 (
+	-- 添加字段
+	id int,
+	emp_name varchar(15),
+	hire_date date
+)
+```
+
+**注意:**
+- 1. 最后一个字段语句后 不能使用,结尾
+- 2. 使用 varchar 时候 必须指明长度 varchar(15)
+<!-- 
+  不能超过15个字符
+ -->
+
+- 3. 如果创建表时没有指明使用的字符集 则默认使用表所在数据库的字符集
+
+
+> 方式2:  "富二代型"
+- 1. 基于现有的表创建新的表 同时也会导入数据
+- 2. 我们可以利用丰富的查询功能 将查询的结果作为新的表 也可以使用下面的语法
+- 3. 查询语句中字段可以起别名 起的别名就会作为新的表的字段名
+- 4. 查询语句可以结构比较丰富 使用前面章节讲过的各种select
+
+> create table 表名 AS select ... from 已有的表
+- 基于AS后面的查询语句创建的表
+
+- 表中的内容也是我们查询语句查询的结果
+```sql
+create table mytemp2
+as
+select employee_id, last_name, salary
+from employees 
+```
+
+> 练习1:
+- 创建一个employees_copy 实现对employees表的复制 *包括表的数据*
+```sql
+create table employees_copy
+as
+select * from employees;
+```
+
+> 练习2:
+- 创建一个employees_copy 实现对employees表的复制 *不包括表的数据*
+
+- 思考:
+- 数据有多少主要取决于下面的查询语句
+```sql
+create table employees_copy
+as
+select * from employees
+-- 通过where来控制
+where 1 = 2;
+```
+
+------------------
+
+### 修改 重命名 删除 清空表
+
+> 修改表 alter table
+- 针对已经造好的表我们进行修改
+
+> 添加一个字段
+> alter table 表名 add 字段名 字段类型 [first|after 字段名]
+
+- 默认添加到表中的最后一个字段的位置
+- 还可以指明字段添加在哪个位置
+
+```sql
+alter table mytemp1
+-- 10: 代表包括小数部分 一共有10位
+-- 2:  代表小数部分有2位
+add salary double(10, 2)
+
+
+alter table mytemp1
+-- 电话号码使用字符串去存储 不用int型
+add phone varchar(20) after id
+-- 加在 id字段 之后
+```
+
+
+> 修改一个字段
+- 修改数据类型 长度 默认值等
+- 修改字段的数据类型的操作 我们一般不会做
+- 比如: 我们可以改改varchar长度
+
+> alter table 表名 modify 字段 修改内容
+> alter table 表名 modify 字段名 字段类型 [DEFAULT 默认值] [FIRST|AFTER 字段名];
+```sql
+alter table mytemp1
+
+-- 将长度修改为 20 - 25
+modify emp_name varchar(25)
+
+-- 还可以指定默认值
+modify emp_name varchar(25) default 'aaa'
+```
+
+
+> 重命名一个字段
+> alter table 表名 change 旧字段名 新字段名 字段类型
+```sql
+alter table mytemp1
+change salary monthly_salary double(10, 2)
+```
+
+**注意:**
+- 在改名的同时 还可以修改原有的字段类型 也就是说 change 操作里面 还有 modify 的效果
+
+
+> 删除一个字段
+> alter table mytemp1 drop column 指定字段名
+```sql
+alter table mytemp1
+drop column email;
+```
+
+--------
+
+> 重命名表
+> 方式1:  -- 推荐
+> rename table 表名 to 新表名
+```sql
+rename table mytemp1 to mytable;
+```
+
+
+> 方式2:
+> alter table 旧表名 rename [TO] 新表名;  
+- [TO]可以省略
+
+--------
+
+> 删除表
+- 不光将表结构删除 同时表中的数据也删除 释放表空间
+
+> drop table [if exists] 表名
+- 如果要删除多个表 表名1, 表名2
+```sql
+drop table mytemp1;
+```
+
+--------
+
+> 清空表
+- 它会删除表中的数据 但是表的结构保留(比如表的字段 和 字段的类型 都会保留)
+
+> truncate table 表名
+```sql
+truncate table mytemp1;
+```
+
+------------------
+
+### DCL中 commit 和 rollback 的使用
+
+> commit 
+- 提交数据
+- 一旦执行 commit 操作后 则数据就会永久的被保存在数据库中
+- 意味着数据不可以回滚(回滚就是撤销)
+
+
+> rollback
+- 回滚数据
+- 一旦执行 rollback 则可以实现数据的回滚
+- 回滚到最近的一次 commit 之后
+
+- 比如:
+- 我们对表进行了一些操作 然后执行了一次commit 相当于将数据永久的保存起来了 
+
+- commit 1
+- commit 2
+- 执行了一些操作
+- 执行了一些操作
+- rollback    -- 可以回滚到 commit 2 一些操作的逻辑就没了
+
+
+> 对比 truncate table 和 delete from
+- 相同点:
+- 他们都可以实现对表中所有数据的删除 同时保留表结构
+
+- 不同点:
+- truncate table:
+- 一旦执行此操作 表数据全部清除 同时 数据是不可以回滚的
+
+- delete from:
+- 一旦执行此操作 表数据可以全部清除(不带where) 同时 数据是可以实现回滚的
+
+
+> DDL 和 DML 的说明
+- DDL的操作:
+- truncate table代表的是DDL中的一种 只要是DDL的操作就如下
+- 一旦执行DDL操作(创建表 删除表 修改表 清空表 重命名表) 就不可以回滚
+
+- DML的操作:
+- 默认情况下 一旦执行 也是不可回滚的(可以修改参数实现可回滚)
+- 但是如果在执行DML之前 执行了
+> set autocommit = false
+- 则执行的DML操作就可以实现回滚
+- 因为DML的操作 每执行一步 默认就会提交一次 这样回滚的话 只能回到当次 但是我们禁用默认提交 这样就可以回到显式commit的时候
+
+
+- set autocommit = false 指令对DDL操作无效
+- 因为在执行完DDL操作之后 一定会执行一次commit 而DDL的默认commit操作是不受该指令的影响的
+
+
+> 演示 delete from
+```sql
+-- 不管前面都做过什么 先提交一次
+commit;
+
+-- 107条数据
+select * from mytemp1;  
+
+-- 执行 可以回滚的操作
+set autocommit = false;
+
+-- 使用DML删除表中的数据
+delete from mytemp1;
+
+-- 没有数据
+select * from mytemp1;  
+
+rollback;
+
+-- 107条数据就回来了 回滚到最近的一次commit之后
+select * from mytemp1;  
+
+
+-- commit 
+
+  -- 中间的 删除 逻辑 就被无视了 所以表中的数据就回来了
+  -- 那是不是说 中间的有用的逻辑也会没了
+
+-- rollback
+```
+
+**注意:**
+- 1. DDL的操作要慎重 因为该系列的操作是不能回滚的
+- 2. 开发中在清空表的数据的时候 我们使用 truncate 还是 delete from? 如下：
+
+> 阿里开发规范：
+- TRUNCATE TABLE 比 DELETE 速度快，且使用的系统和事务日志资源少，
+
+- 但 *TRUNCATE* 无事务且不触发 TRIGGER，有可能造成事故，故*不建议在开发代码中使用此语句*。 
+
+- TRUNCATE TABLE 在功能上与不带 WHERE 子句的 DELETE 语句相同。
+
+<!-- 
+  TRUNCATE TABLE 为什么不能回滚 因为自动有commit 还有就是我们使用该命令清除表数据的时候 就不会关心回滚的事 言外之意就是不会在删除数据的同时将数据做一个备份
+
+  比如我们可以在触发器中一边删一边做备份 我们在这里就不用考虑这样的事儿 所以 TRUNCATE TABLE 考虑的事情比较少 占用的系统资源也就比较小
+
+  而delete操作 一边删还要一边将数据做一个备份 以防用户回滚 所以它占用的系统资源会多一些
+
+  从资源使用上说 肯定是TRUNCATE TABLE节省资源
+  但是使用TRUNCATE TABLE可能会造成事故 比如表在没有做备份的前提下 我们进行了TRUNCATE TABLE操作 那就是真的没有了
+
+  这就是事故 跟造成事故相比 消耗点系统资源也是可以的
+ -->
+
+------------------
+
+### MySQL字段命名
+- 【`强制`】表名、字段名必须使用小写字母或数字，禁止出现数字开头，禁止两个下划线中间只出现数字。
+<!-- 
+  数据库字段名的修改代价很大，因为无法进行预发布，所以字段名称需要慎重考虑。 
+-->
+
+**字段名一定要想好 后期不会改了**
+
+  - 正例：aliyun_admin，rdc_config，level3_name 
+
+  - 反例：AliyunAdmin，rdcConfig，level_3_name
+
+
+
+- 【`强制`】禁用保留字，如 desc、range、match、delayed 等，请参考 MySQL 官方保留字。
+
+
+
+- 【`强制`】表*必备三字段*：
+  - id
+  - gmt_create
+  - gmt_modified。 
+
+- 说明：
+  - 其中 id 必为主键:
+  - 区分表中的一条记录的
+  
+  - 类型为BIGINT UNSIGNED、单表时自增、步长为 1。
+  - BIGINT
+  - 让id的数据类型 变的大一些 数据量可能是非常的庞大
+
+  - UNSIGNED
+  - 无符号的 也就是说只能取正数
+
+  - gmt_create
+  - gmt_modified
+  - 这两个字段的类型均为 DATETIME 类型，
+  - 前者 现在时 表示主动式创建，后者 过去分词 表示被动式更新
+
+
+
+- 【`推荐`】表的命名最好是遵循 “业务名称_表的作用”。 
+- 正例：alipay_task、force_project、 trade_config
+
+
+
+- 【`推荐`】库名与应用名称尽量一致。
+- 【参考】合适的字符存储长度，不但节约数据库表空间、节约索引存储，更重要的是提升检索速度。 
+
+  - 正例：无符号值可以避免误存负数，且扩大了表示范围。
+
+ 
+
+### 如何理解清空表、删除表等操作需谨慎？！
+- `表删除`操作将把表的定义和表中的数据一起删除，并且MySQL在执行删除操作时，不会有任何的确认信息提示，因此执行删除操时应当慎重。在删除表前，最好对表中的数据进行`备份`，这样当操作失误时可以对数据进行恢复，以免造成无法挽回的后果。
+
+- 同样的，在使用 `ALTER TABLE` 进行表的基本修改操作时，在执行操作过程之前，也应该确保对数据进行完整的`备份`，因为数据库的改变是`无法撤销`的，如果添加了一个不需要的字段，可以将其删除；相同的，如果删除了一个需要的列，该列下面的所有数据都将会丢失。
+
+
+
+### MySQL8新特性 — DDL的原子化
+- 在MySQL 8.0版本中，InnoDB表的DDL支持事务完整性，即`DDL操作要么成功要么回滚`。DDL操作回滚日志写入到data dictionary数据字典表mysql.innodb_ddl_log（该表是隐藏的表，通过show tables无法看到）中，用于回滚操作。通过设置参数，可将DDL操作日志打印输出到MySQL错误日志中。
+
+- 分别在 MySQL 5.7版本 和 MySQL 8.0版本 中创建数据库和数据表，结果如下：
+
+```sql
+-- 5.7 中
+CREATE DATABASE mytest;
+
+USE mytest;
+
+CREATE TABLE book1(
+  book_id INT ,
+  book_name VARCHAR(255)
+);
+
+SHOW TABLES;
+
+-- 删掉指定的表
+DROP TABLE book1, book2; 
+
+-- 虽然报错了 因为没有book2 但是book1 也被删除了
+-- 上面的这句相当于两个操作 顺序执行
+
+-- DROP TABLE book1   -- 删了
+-- DROP TABLE book2   -- 报错 但上面的也执行了
+
+```
+
+
+
+```sql
+-- 8.0 中
+CREATE DATABASE mytest;
+
+USE mytest;
+
+CREATE TABLE book1(
+  book_id INT ,
+  book_name VARCHAR(255)
+);
+
+SHOW TABLES;
+
+-- 删掉指定的表
+DROP TABLE book1, book2; 
+
+-- 我们发现 book1 没有被删掉
+
+-- 下面的逻辑从上到下顺序执行
+-- DROP TABLE book1   -- 删了
+-- DROP TABLE book2   -- 报错 
+
+-- 但是我们发现book1还是存在的 说明操作后 自动进行了回滚
+-- 因为回滚了 导致了删除操作没有成功 这就是DDL的原子化
+
+```
+
+- 原子化:
+- 事务是由一个或多个DML操作所构成的
+
+- 特征:
+- 要么多个DML操作都执行完 都成功了 就commit
+- 要么中间一个操作报错了 因为事务是一个整体 要么就全部执行成功 要么失败后执行成功的操作也回滚回去
+
+- 也就是要么3个事情都做了 要么1个都别做
+- 原子就是不可分隔性
+
+------------------
+
+### MySQL中的数据类型
+- 数据类型会影响到数据存储的精度
+
+> 整数类型
+- TINYINT   (tinyint)
+- SMALLINT  (smallint)
+- MEDIUMINT (mediumint)
+- *INT(或INTEGER)*  **关注**
+- BIGINT    (bigint)
+
+
+> 浮点类型
+- FLOAT   (float)
+- DOUBLE  (double)
+
+
+> 定点数类型
+- 一般小数都用 decimal 因为精度的问题 上面的float double不靠谱
+- *DECIMAL* (decimal)   **关注**
+
+
+> 位类型
+- BIT
+
+---以上是数值类型---
+
+> 日期时间类型
+- YEAR  (year)
+- TIME  (time)
+- *DATE*    (date)    **关注**
+- DATETIME  (datetime)
+- TIMESTAMP (timestamp)
+
+---以上是日期类型---
+
+> 文本字符串类型
+- CHAR        (char)
+- *VARCHAR*   (varchar)
+- TINYTEXT    (tinytext)
+- TEXT        (text)
+- MEDIUMTEXT  (mediumtext)
+- LONGTEXT    (longtext)
+
+
+> 枚举类型
+- ENUM    (enum)
+
+
+> 集合类型
+- SET     (set)
+
+
+> 二进制字符串类型
+- 图片 音乐文件 视频等
+- BINARY    (binary)
+- VARBINARY (varbinary)
+- TINYBLOB  (tinyblob)
+- BLOB      (blob)
+- MEDIUMBLOB(mediumblob)
+- LONGBLOB  (longblob)
+
+
+> JSON类型
+- SON对象
+- JSON数
+
+---以上是字符串类型---
+
+> 空间数据类型
+- 单值：
+  GEOMETRY    (geometry)
+  POINT       (point)
+  LINESTRING  (linestring)
+  POLYGON     (polygon)
+  
+- 集合：
+  MULTIPOINT      (multipoint)
+  MULTILINESTRING (multilinestring)
+  MULTIPOLYGON    (multipolygon)
+  GEOMETRYCOLLECTION  (geometercollection)
+
+---以上是空间类型---
+
+- 其中，常用的几类类型介绍如下：
+
+> INT
+- 从-2^31到2^31-1的整型数据。存储大小为 4个字节
+
+> CHAR(size)
+- 定长字符数据。若未指定，默认为1个字符，最大长度255
+
+> VARCHAR(size)
+- 可变长字符数据，根据字符串实际长度保存，**必须指定长度**
+
+> FLOAT(M,D)
+- 单精度，占用4个字节，M=整数位+小数位，D=小数位。 D<=M<=255,0<=D<=30，默认M+D<=6
+
+> DOUBLE(M,D)
+- 双精度，占用8个字节，D<=M<=255,0<=D<=30，默认M+D<=15
+
+> DECIMAL(M,D)
+- 高精度小数，占用M+2个字节，D<=M<=65，0<=D<=30，最大取值范围与DOUBLE相同。
+
+> DATE
+- 日期型数据，格式'YYYY-MM-DD'
+
+> BLOB 
+- 二进制形式的长文本数据，最大可达4G
+
+> TEXT
+- 长文本数据，最大可达4G
 
 ------------------
 
