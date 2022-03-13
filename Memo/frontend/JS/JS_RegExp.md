@@ -47,7 +47,37 @@
 
 ### 正则方法 exec
 > reg.exec(str)
-- 
+```js
+let str = "java"
+let reg = /\w/
+```
+
+- 如果 正则后面不带有 /g 那么 exec() 方法只会检索一次 匹配到就结束
+
+- 如果 正则后面带有 /g 那么每次调用 exec() 方法 就会继续向下查找 只有使用 匹配模式g 的时候 lastIndex 才会发生变化
+
+- 也就是说 开启了 g 利用了 lastIndex 记录查找到哪里(最新位置) 然后按照*最新的位置* 进行继续查找 直到找到最后
+
+```js
+let str = "java"
+let reg = /\w/g
+
+console.log(reg.exec(str))    // j
+console.log(reg.lastIndex)    // 1
+
+console.log(reg.exec(str))    // a
+console.log(reg.lastIndex)    // 2
+
+console.log(reg.exec(str))    // v
+console.log(reg.lastIndex)    // 3
+
+console.log(reg.exec(str))    // a
+console.log(reg.lastIndex)    // 4
+
+console.log(reg.exec(str))    // null
+console.log(reg.lastIndex)    // 0
+```
+
 
 > reg.lastIndex
 - 依次查找字符串中每一个字符的位置 该属性代表当前字符所在的位置
@@ -55,7 +85,7 @@
 - 直到查询结束
 **注意：**
 - 当使用 匹配模式g 的时候 lastIndex 才会发生变化 不然后是0
-<!--  
+```js  
   let hd = "houdunren"
   let reg = /\w/g
 
@@ -67,7 +97,60 @@
   while((res = reg.exec(hd))) {
     log(res)
   }
- -->
+```
+
+
+### 正则对象 reg
+- 每个正则对象都包含5个属性
+- 1. source
+- 2. global
+- 3. ignoreCase
+- 4. multiline
+- 5. lastIndex
+
+> reg.source
+- 正则的内容 /之间的内容/
+```js
+let reg = /11/g
+console.log(reg.source)   // 11
+console.log(reg.global)
+console.log(reg.ignoreCase)
+console.log(reg.multiline)
+```
+
+
+> reg.global
+- 只读的布尔值 查看当前正则表达式是否带有 g
+
+
+> reg.ignoreCase
+- 只读的布尔值 查看当前正则表达式是否带有 i
+
+
+> reg.multiline
+- 只读的布尔值 查看当前正则表达式是否带有 m
+
+
+> reg.lastIndex
+- 是一个可读/写的整数，如果匹配模式中带有g修饰符，这个属性存储在整个字符串中下一次检索的开始位置，这个属性会被exec( ) 和 test( ) 方法用到。
+```js
+let str = "1111"
+let reg = /11/g
+
+console.log(reg.test(str))
+console.log(reg.lastIndex)    // 2
+```
+
+- 当调用exec( )的正则表达式对象具有修饰符g时，它将把当前正则表达式对象的lastIndex属性设置为紧挨着匹配子串的字符位置，当同一个正则表达式第二次调用exec( )，它会将从lastIndex属性所指示的字符串处开始检索，如果exec( )没有发现任何匹配结果，它会将lastIndex重置为0。
+
+- test( )方法，它的参数是一个字符串，用test( )对某个字符串进行检测，如果包含正则表达式的一个匹配结果，则返回true，否则返回false。
+
+- 当调用*test( )*的正则表达式对象具有修饰符g时，*它的行为和exec( )相同*，因为它从*lastIndex*指定的位置处开始检索某个字符串，如果它找到了一个匹配结果，那么它就立即设置lastIndex为紧挨着匹配子串的字符位置
+看看下面这段有趣的代码
+
+- 为什么同样的字符串，同样的正则表达式，却打印的不一样，如果你已经理解了 lastIndex属性，那你一定明白为什么。
+
+- 在强调一次，上面说的关于lastIndex的问题，都是因为正则表达式对象中带有修饰符g，如果不带有修饰符g，就不用担心这些问题了。
 
 -------------------
 
@@ -85,6 +168,23 @@
 
 > m
 - 每一行单独处理
+- 用以在多行模式中执行匹配 需要配合 ^ 和 $
+- 示例:
+```js
+// 下面的str是多行文本 就是有换行
+let str = "java\njavascript"
+
+// 现在我想检索 在段首的 javascript 但是 如果我这么写
+let reg = /^javascript/
+
+// 会是null
+console.log(res)  // null
+
+// 但是如果我们加上 /m 就开启了多行模式 就可以找到段首的位置
+let reg = /^javascript/m
+console.log(res)
+
+```
 
 > u
 - 使用字符属性的时候使用

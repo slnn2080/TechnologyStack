@@ -622,12 +622,14 @@
 
 > 1. DDL （Data Definition Languages）
 - *数据定义语言*
+- 创建库和管理表
 
 - 这些语句定义了不同的数据库、表、视图、索引等数据库对象，还可以用来创建、删除、修改数据库和数据表的结构。
 
 
 > DDL中主要的语句关键字包括: 
 - DDL语句 主要是从无到有的创建数据库中的对象(表 视图 存储过程 函数 事件等等)
+- 
 
 - create
   创建
@@ -648,6 +650,7 @@
 
 > 2. DML（Data Manipulation Language）
 - *数据操作语言*
+- 增删改查
 
 - 用于添加、删除、更新和查询数据库记录，并检查数据完整性。
   
@@ -655,7 +658,7 @@
 - 针对于一条记录的操作行为 叫做操作语言
 
 - insert
-  添加一条记录
+  添加一条记录1
 
 - delete
   删除一条记录(drop是删除结构)
@@ -6933,77 +6936,2082 @@ DROP TABLE book1, book2;
 - 也就是要么3个事情都做了 要么1个都别做
 - 原子就是不可分隔性
 
+
+> 练习部分
+
+> 1. 创建数据库test01_office 指明字符集为utf8 并在此数据库下执行下述的操作
+```sql
+create database if not exists test01_office character set 'utf8';
+
+use test01_office;
+```
+
+
+> 2. 创建表dept01
+- 要求:
+- id int(7)
+- name varchar(25)
+```sql
+create table if not exists dept01 (
+  -- 不足7位用0补
+  id int(7),
+  `name` varchar(25)
+)
+```
+
+
+> 3. 将表 departments 中的数据插入新表dept02中
+- 注意:
+- 我们可以调用其它数据库中的表的前提是权限得够
+- 因为我们现在是root用户 权限够 所以才能调用 如果是自定义用户就够呛了
+
+```sql
+-- 注意 departments 表在 aiguigudb 数据库下
+-- dept02 要创建在 test01_office 数据库下 
+create table if not exists dept02
+as
+-- 这里要指明departments来自于哪个数据库
+select * from aiguigudb.departments;
+```
+
+
+> 4. 创建表emp01
+- 要求:
+- id int(7)
+- first_name varchar(25)
+- last_name varchar(25)
+- dept_id int(7)
+
+```sql
+create table if not exists emp01 (
+  id int(7),
+  first_name varchar(25),
+  last_name varchar(25),
+  dept_id int(7)
+)
+```
+
+
+> 5. 将列last_name的长度增加到50
+```sql
+alter table emp01
+modify last_name varchar(50)
+```
+
+
+> 6. 根据表employees创建emp02
+```sql
+create table if not exists emp02
+as
+select * from atguigudb.employees;
+```
+
+
+> 7. 删除表emp01
+```sql
+drop table emp01;
+```
+
+
+> 8. 将表emp02重命名为emp01
+```sql
+rename table emp02 to emp01
+```
+
+
+> 9. 在表dept02和emp01中添加新列test_column，并检查所作的操作
+```sql
+alter table emp01
+add test_column varchar(10);
+
+alter table emp02
+add test_column varchar(10);
+```
+
+
+> 10. 直接删除表emp01中的列 department_id
+```sql
+alter table emp01
+drop column department_id
+```
+
+
+> 练习2:
+> 1. 创建数据库 test02_market
+```sql
+create database if not exists test02_market character set 'utf8'
+
+use test02_market;
+show create database test02_market;
+```
+
+
+> 2. 创建数据表 customers
+- 要求:
+- c_num int
+- c_name varchar(50)
+- c_contact varchar(50)
+- c_city varchar(50)
+- c_birth date
+
+```sql
+create table is not exists customers (
+  c_num int,
+  c_name varchar(50),
+  c_contact varchar(50),
+  c_city varchar(50),
+  c_birth date
+)
+
+show tables;
+```
+
+
+> 3. 将 c_contact 字段移动到 c_birth 字段后面
+```sql
+desc customers;
+
+alter table customers
+modify contact varchar(50) after c_birth;
+```
+
+
+> 4. 将 c_name 字段数据类型改为 varchar(70)
+```sql
+alter table customers
+modify c_name varchar(70)
+```
+
+
+> 5. 将c_contact字段改名为c_phone
+```sql
+alter table customers
+change c_contact c_phone varchar(50);
+```
+
+
+> 6. 增加c_gender字段到c_name后面，数据类型为char(1)
+```sql
+alter table customers
+add c_gender char(1) after c_name;
+```
+
+
+> 7. 将表名改为customers_info
+```sql
+rename table customers to customers_info
+```
+
+
+> 8. 删除字段c_city
+```sql
+alter table customers_info
+drop column c_city
+```
+
+------------------
+
+### DML 数据处理之增删改
+- 增删改都是对表中数据的处理 比如增加一条记录 删除一条记录 或者是修改某一个字段的值 都是对表中的数据进行了调整 这些范范的我们都可以成为 update
+
+
+### DML 添加(插入)数据
+- 准备工作:
+```sql
+-- 选择数据库
+use atguigudb
+
+-- 创建一张表
+create table if not exists emp01 (
+	id int,
+	`name` varchar(15),
+	hire_date date,
+	salary double(10, 2)
+)
+
+-- 查看应用的哪个数据库
+SELECT DATABASE()
+
+-- 查看创建表时的结构
+desc emp01
+```
+
+> 方式1:
+- 一条一条的添加数据
+
+> insert into 表 values (字段值, ...)
+- 我们添加的是表中的一行信息 所以我们values里面的书写顺序要和创建表时候的字段顺序一致
+
+**注意:**
+- 没有指明往哪个字段去添加
+- 依照表中字段声明的先后顺序 依次添加字段的值
+
+- 这种方式不好 因为我们在往表中添加数据的时候 要特别注意表的字段的声明顺序
+
+```sql
+insert into emp01
+values(1, 'Tom', '2000-12-21', 3400)
+```
+
+
+> 推荐
+> insert into 表(指明字段名) values(字段对应的值)
+- 这个方式可以指明要添加的字段 根据指定的字段 添加对应的字段的值 (推荐)
+
+- 指明字段可以不用写全 没有指定的字段对应的值null 比如表中有3个字段 我也可以指明2个字段
+```sql
+insert into emp01(id, hire_date, salary, `name`)
+values(2, '1999-09-09', 4000, 'Sam')
+```
+
+- 一条插入语句可以添加多条记录
+```sql
+insert into emp01(id, `name`, hire_date)
+values
+(5, 'erin', '1986-10-22'),    -- 以, 结尾
+(6, 'sam', '1985-10-02')
+```
+
+**扩展:**
+```sql
+mysql> INSERT INTO emp(emp_id,emp_name)
+  -> VALUES (1001,'shkstart'),
+  -> (1002,'atguigu'),
+  -> (1003,'Tom');
+
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+```
+
+- 使用INSERT同时插入多条记录时，MySQL会返回一些在执行单行插入时没有的额外信息，这些信息的含义如下：
+●　Records：
+  表明插入的记录条数。
+
+●　Duplicates：
+  表明插入时被忽略的记录，原因可能是这些记录包含了重复的主键值。
+
+●　Warnings：
+  表明有问题的数据值，例如发生数据类型转换。
+
+
+- 一个同时插入多行记录的INSERT语句等同于多个单行插入的INSERT语句，但是*多行的INSERT语句*在处理过程中`效率更高`。
+
+--------
+
+> 方式2:
+- 将查询结果插入到表中
+
+> insert into 表(指明字段) 查询语句
+- 注意:
+- 1. 查询的字段一定要与添加到的表的字段一一对应
+- 2. employess表中的字段类型 和 emp01中的字段类型 不一致的情况下 我们要改一下其中一个表的字段类型
+
+- 比如
+- employess表中的 last_name 是 varchar(25)
+- emp01表中的 name 是 varchar(15)
+
+- 当有名字超过25的时候 可能会出现错误 所以我们要修改下emp01中的字段类型 确保在添加的时候是可以成功的
+
+```sql
+insert into emp01(id, `name`, salary, hire_date)
+-- 下面的查询语句
+select employee_id, last_name, salary, hire_date
+from employees
+where department_id in (50, 60)
+```
+
+
+> 小结:
+- `VALUES`也可以写成`VALUE`，但是VALUES是标准写法。
+- 字符和日期型数据应包含在单引号中。
+
+------------------
+
+### DML 更新(修改)数据
+- 对表中已经存在的数据进行修改
+
+> update 表名 set 字段名 = 要改成什么 where 过滤条件
+- 一般都会加一个过滤条件 如果没有where的话 就相当于是批量的修改
+
+- 如果要修改一条记录的多个字段 可以用 , 隔开
+
+```sql
+-- 如果没有加过滤条件 相当于是将 name 字段的值 都设置为 nn
+update emp01
+set `name` = 'nn'
+-- 修改指定的记录
+where id = 5
+
+
+-- 修改一条记录的多个字段
+update emp01
+set name = 'nn', salary = 8888    -- 使用 , 隔开
+where id = 5
+```
+
+**注意:**
+- 修改表中的数据的时候 有可能是不成功的 有可能是由于约束的影响造成的
+
+
+> 练习
+- 将表中姓名中包含字符a的提薪20%
+```sql
+update emp01
+set salary = salary * 1.2
+where last_name like %a%
+```
+
+------------------
+
+### DML 删除数据
+- 删除数据的时候 *一定要有where* 不然就把表中的数据都删掉了
+
+> delete from 表名 where id = ?
+- 一定要有where 来指定要删除谁 不然就是表中的数据全无
+
+```sql
+delete from emp01
+where id = 1
+where id > 1
+```
+
+- 由于约束的影响 删除也可能是失败的
+
+
+> 总结:
+- DML操作默认情况下 执行完以后都会自动提交数据
+- 如果希望执行完以后不自动提交数据 则需要使用 set autocommit = false 这样我们可以使用rollback来进行回滚
+
+
+> mysql8的新特性: 计算列
+- 什么叫计算列呢？简单来说就是某一列的值是通过别的列计算得来的。
+
+- 例如，a列值为1、b列值为2，c列不需要手动插入，定义a+b的结果为c的值，那么c就是计算列，是通过别的列计算得来的。(excel么)
+
+- 在MySQL 8.0中，CREATE TABLE 和 ALTER TABLE 中都支持增加计算列。下面以CREATE TABLE为例进行讲解。
+
+> 举例：
+- 定义数据表tb1，然后定义字段id、字段a、字段b和字段c，
+- 其中字段c为计算列，用于计算a+b的值。
+
+- 首先创建测试表tb1，语句如下：
+
+> 计算列的定义方式
+- 我们在 create table 也就是表的初始化的时候 声明一个字段为计算列
+
+- 或者 alter table 对表的字段进行修改的时候 声明一个字段为计算列
+
+> generated always as (字段 运算符号 字段) virtual
+```sql
+create table tb1(
+  id int,
+  a int,
+  b int,
+  -- c 字段就作为了计算列
+  c int generated always as (a + b) virtual
+);
+```
+
+- 插入演示数据，语句如下：
+```sql
+INSERT INTO tb1(a, b) VALUES(100, 200);
+```
+
+------------------
+
+### 综合练习
+
+> 1. 创建数据库test01_library
+```sql
+create database if not exists test01_library character set 'utf8'
+
+use test01_library
+```
+
+
+> 2. 创建表 books，表结构如下：
+```
+| 字段名  | 字段说明 | 数据类型     |
+| ------- | -------- | ------------ |
+| id      | 书编号   | INT          |
+| name    | 书名     | VARCHAR(50)  |
+| authors | 作者     | VARCHAR(100) |
+| price   | 价格     | FLOAT        |
+| pubdate | 出版日期 | YEAR         |
+| note    | 说明     | VARCHAR(100) |
+| num     | 库存     | INT          |
+```
+
+```sql
+create table if not exists books(
+  id INT,
+  name VARCHAR(50),
+  authors VARCHAR(100),
+  price FLOAT,
+  pubdate YEAR,
+  note VARCHAR(100),
+  num INT
+)
+```
+
+
+> 3. 向books表中插入记录
+- 1. 不指定字段名称，插入第一条记录
+- 2. 指定所有字段名称，插入第二记录
+- 3. 同时插入多条记录（剩下的所有记录）
+```
+| id   | name          | authors         | price | pubdate | note     | num  |
+| ---- | ------------- | --------------- | ----- | ------- | -------- | ---- |
+| 1    | Tal of AAA    | Dickes          | 23    | 1995    | novel    | 11   |
+| 2    | EmmaT         | Jane lura       | 35    | 1993    | joke     | 22   |
+| 3    | Story of Jane | Jane Tim        | 40    | 2001    | novel    | 0    |
+| 4    | Lovey Day     | George Byron    | 20    | 2005    | novel    | 30   |
+| 5    | Old land      | Honore Blade    | 30    | 2010    | law      | 0    |
+| 6    | The Battle    | Upton Sara      | 30    | 1999    | medicine | 40   |
+| 7    | Rose Hood     | Richard haggard | 28    | 2008    | cartoon  | 28   |
+```
+
+```sql
+insert into books
+values(1, 'Tal of AAA', 'Dickes', 23, '1995', 'novel', 11);
+
+insert into books(id, name, authors, price, pubdate, note, num)
+values(1, 'Tal of AAA', 'Dickes', 23, '1995', 'novel', 11);
+
+insert into books(id, name, authors, price, pubdate, note, num)
+values
+(1, 'Tal of AAA', 'Dickes', 23, '1995', 'novel', 11),
+(2, 'EmmaT', 'Jane lura', 35, '1993', 'joke', 22),
+(3, 'Story of Jane Tim', 'Dickes', 40, '2001', 'novel', 0),
+(4, 'Lovey Day', 'George Byron', 20, '2005', 'novel', 30),
+(5, 'Old land', 'Honore Blade', 30, '2010', 'law', 0),
+(6, 'The Battle', 'Upton Sara', 30, '1999', 'medicine', 40),
+(7, 'Rose Hood', 'Richard haggard', 28, '2008', 'cartoon', 28),
+```
+
+
+> 4. 将小说类型(novel)的书的价格都增加5。
+```sql
+update books
+set price = price + 5
+where note = 'novel'
+```
+
+
+> 5. 将名称为EmmaT的书的价格改为40，并将说明改为drama。
+```sql
+update books
+set price = 40, note = 'drama'
+where name = 'EmmaT'
+```
+
+
+> 6. 删除库存为0的记录。
+```sql
+delete from books
+where num = 0
+```
+
+
+> 7. 统计书名中包含a字母的书
+```sql
+select name from books
+where name like %a%
+```
+
+
+> 8. 统计书名中包含a字母的书的数量和库存总量
+```sql
+select count(*), sum(num)
+from books
+where name like %a%
+```
+
+
+> 9. 找出“novel”类型的书，按照价格降序排列
+```sql
+select name, note, price from books
+where note = 'novel'
+order by price desc
+```
+
+
+> 10. 查询图书信息，按照库存量降序排列，如果库存量相同的按照note升序排列
+```sql
+select * 
+from books
+order by num desc, note asc
+```
+
+
+> 11. 按照note分类统计书的数量
+```sql
+select note, count(*)
+from books
+group by note
+```
+
+
+> 12. 按照note分类统计书的库存量，显示库存量超过30本的
+```sql
+select sum(num), note
+from books
+group by note
+having sum(num) > 30
+```
+
+
+> 13. 查询所有图书，每页显示5本，显示第二页
+```sql
+select * from books
+-- 偏移量是5
+limit 5, 5
+```
+
+
+> 14. 按照note分类统计书的库存量，显示库存量最多的
+```sql
+select sum(num) sum_num, note
+from books
+group by note
+order by sum_num desc
+limit 1 
+```
+
+
+> 15. 查询书名达到10个字符的书，不包括里面的空格
+```sql
+-- 聚合函数不能嵌套 没说其他单行函数不能嵌套
+select char_length(replace(name, ' ', ''))
+from books
+
+-- 答案
+select name
+from books
+where char_length(replace(name, ' ', '')) >= 10
+```
+
+> 16. 查询书名和类型，其中note值为novel显示小说，law显示法律，medicine显示医药，cartoon显示卡通，joke显示笑话
+```sql
+-- 对note开始进行条件分支 如果是(when)... 则(then)...
+select name, note, 
+case note when 'novel' then '小说'
+          when 'law' then '法律'
+          when 'medicine' then '医药'
+          when 'cartoon' then '卡通'
+          when 'joke' then '笑话'
+          else '其他'
+          -- 指明结束 并添加一个列的别名
+          end "类型"
+from books
+```
+
+
+> 17. 查询书名、库存，其中num值超过30本的，显示滞销，大于0并低于10的，显示畅销，为0的显示需要无货
+```sql
+select name "书名", num "库存", 
+case when num > 30 then '滞销'
+     when num > 0 and num < 10 then '畅销'
+     when num = 0 then '无货'
+     else '正常'
+     end "显示状态"
+from books
+```
+
+
+> 18. 统计每一种note的库存量，并合计总量
+```sql
+-- 因为使用了 with rollup 相当于在结果集的sum(num)列最后又加了一行 合计的数据 但是 对应的note列 就是null
+select note, sum(num)
+from books
+group by note with rollup;
+
+
+-- 为了结果note列对应的信息是null的问题 我们可以这样
+select ifnull(note, '合计') "note", sum(num)
+from books
+group by note with rollup;
+```
+
+
+> 19. 统计每一种note的数量，并合计总量
+```sql
+select ifnull(note, '合计') "note", count(*)
+from books
+group by note with rollup;
+```
+
+
+> 20. 统计库存量前三名的图书
+```sql
+select *
+from books
+order by num desc
+limit 0, 3
+```
+
+
+> 21. 找出最早出版的一本书
+```sql
+select *
+from books
+order by pubdate asc
+limit 1
+```
+
+
+> 22. 找出novel中价格最高的一本书
+```sql
+select *
+from books
+where note = 'novel'
+order by price desc
+limit 1
+```
+
+
+> 23. 找出书名中字数最多的一本书，不含空格
+```sql
+select *
+from books
+order by char_length(replace(name, ' ', '')) desc
+limit 1
+```
+
+
+> 这部分的练习没有做
+- https://www.bilibili.com/video/BV1iq4y1u7vj?p=58&spm_id_from=pageDriver
+
+- 数据增删改查的练习
+
 ------------------
 
 ### MySQL中的数据类型
 - 数据类型会影响到数据存储的精度
 
-> 整数类型
+### 整数类型
 - TINYINT   (tinyint)
 - SMALLINT  (smallint)
 - MEDIUMINT (mediumint)
 - *INT(或INTEGER)*  **关注**
 - BIGINT    (bigint)
 
+- 整数类型一共有 5 种，包括 TINYINT、SMALLINT、MEDIUMINT、INT（INTEGER）和 BIGINT。
 
-> 浮点类型
-- FLOAT   (float)
-- DOUBLE  (double)
+  整数类型    字节    有符号数取值范    无符号数取值范围
+  tinyint     1     -128~127        0~255
 
+  smallint    2     -32768~32767    0~65535
+
+  mediumint   3     -8388608~8388607 
+                                    0~16777215
+
+  int
+  integer     4     -2147483648~2147483647        
+                                    0~4294967295
+
+  bigint      8
+                    -9223372036854775808~
+                    9223372036854775807
+                                    0~
+                                    18446744073709551615
+
+```sql
+create table test_int1(
+  f1 tinyint,
+  f2 smallint,
+  f3 mediumint,
+  f4 integer,
+  f5 bigint
+)
+
+
+-- 给 f1 字段添加多行数据
+insert into test_int1(f1)
+values(12), (-12), (-128)
+
+
+-- 因为 f1字段的类型为tinyint 超过 f1 字段的表数范围了 所以会报错
+-- out of range value for column f1 at row 1
+insert into test_int1(f1)
+values(128)
+```
+
+> mysql5.7
+- 我们发现在 mysql5.7中用上面的逻辑同样的创建表 字段类型的后面会有(数字)
+```sql
+f1 tinyint(4)
+f2 smallint(6)
+f3 mediumint(9)
+f4 int(11)
+f5 bigint(20)
+```
+
+- 括号里面的数字 是数字的宽度
+- 比如 tinyint(4) tinyint的表数范围是 -128 ~ 127 
+- -128 就是4位 128 3位 + - 一位 一共4位
+
+
+> 可选属性
+- 整数类型的可选属性有三个
+- 1. 显式字符宽度
+- 2. unsigned
+- 3. zerofill
+
+> 数据类型(M)
+- 表示显示宽度，M的取值范围是(0, 255)。例如，int(5)：当数据宽度小于5位的时候在数字前面需要用字符填满宽度。
+- 该项功能需要配合“`ZEROFILL`”使用，表示用“0”填满宽度，否则指定显示宽度无效。
+
+```sql
+create table test_int2(
+  f1 int,
+  f2 int(5),
+  f3 int(5), zerofill
+)
+
+insert into test_int2(f1, f2)
+values(123, 123), (123456, 123456)
+
+-- f1       f2      f3
+-- 123      123     00123
+-- 123456   123456  123456
+
+```
+
+- 当我们创建 字段的时候 f2 int(5) 这种写法就是指明 字段的显示宽度 这个宽度不会显示int型的正常的表数范围
+
+- 我们使用 显式指定宽度的时候 要配合*ZEROFILL*来使用 这种写法才有意义 当不满自定的宽度的时候 用0来填充
+
+**注意:**
+- 当我们使用 zerofill 的时候 会自动在该字段上 添加 unsigned
+- *从mysql8.0开始 整数数据类型不推荐使用显示宽度属性*
+
+------
+
+> unsigned
+- 无符号类型（非负），所有的整数类型都有一个可选的属性UNSIGNED（无符号属性），无符号整数类型的最小取值为0。
+
+- 所以，如果需要在MySQL数据库中保存非负整数值时，可以将整数类型设置为无符号类型。
+
+- int类型默认显示宽度为int(11)，无符号int类型默认显示宽度为int(10)。 因为无符号了 所以不需要负数了 所以由 11 -> 10
+
+```sql
+CREATE TABLE test_int3(
+  f1 INT UNSIGNED
+);
+```
+
+------
+
+> zerofill
+- 0填充,（如果某列是ZEROFILL，那么MySQL会自动为当前列添加UNSIGNED属性），
+
+- 如果指定了ZEROFILL只是表示不够M位时，用0在左边填充，如果超过M位，只要不超过数据存储范围即可。
+
+原来，在 int(M) 中，M 的值跟 int(M) 所占多少存储空间并无任何关系。 int(3)、int(4)、int(8) 在磁盘上都是占用 4 bytes 的存储空间。也就是说，**int(M)，必须和UNSIGNED ZEROFILL一起使用才有意义。**如果整数值超过M位，就按照实际位数存储。只是无须再用字符 0 进行填充。
+
+
+> 5种整型的适用场景
+- `TINYINT`：
+  一般用于枚举数据，比如*系统设定取值范围*很小且固定的场景。
+
+- `SMALLINT`：
+  可以用于较小范围的统计数据，比如统计工厂的固定资产库存数量等。
+
+- `MEDIUMINT`：
+  用于较大整数的计算，比如车站每日的客流量等。
+
+- `INT、INTEGER`：
+  取值范围足够大，一般情况下不用考虑超限问题，用得最多。比如商品编号。
+
+- `BIGINT`：
+  只有当你处理特别巨大的整数时才会用到。比如双十一的交易量、大型门户网站点击量、证券公司衍生产品持仓等。
+
+
+> 如何选择？
+- 在评估用哪种整数类型的时候，你需要考虑`存储空间`和`可靠性`的平衡问题：
+  一方面: 
+    用占用字节数少的整数类型可以节省存储空间；
+
+  另一方面: 
+    要是为了节省存储空间， 使用的整数类型取值范围太小，一旦遇到超出取值范围的情况，就可能引起`系统错误`，影响可靠性。 
+
+
+- 举个例子，商品编号采用的数据类型是 INT。原因就在于，客户门店中流通的商品种类较多，而且，每天都有旧商品下架，新商品上架，这样不断迭代，日积月累。
+
+- 如果使用 SMALLINT 类型，虽然占用字节数比 INT 类型的整数少，但是却不能保证数据不会超出范围 65535。相反，使用 INT，就能确保有足够大的取值范围，不用担心数据超出范围影响可靠性的问题。 
+
+- 你要注意的是，在实际工作中，**系统故障产生的成本远远超过增加几个字段存储空间所产生的成本**。因此，我建议你首先确保数据不会超过取值范围，在这个前提之下，再去考虑如何节省存储空间。
+
+- 也就是设置字段的范围的时候 我们要考虑 扩容问题
+
+------------------
+
+### 浮点类型
+- 浮点数和定点数类型的特点是可以`处理小数`，你可以把整数看成小数的一个特例。
+- 因此，浮点数和定点数的使用场景，比整数大多了。 
+- MySQL支持的浮点数类型，分别是 FLOAT、DOUBLE、REAL。
+
+
+- FLOAT   (float)   -- 4字节
+- DOUBLE  (double)  -- 8字节
+- REAL    (real 它默认就是double)
+
+- 设置 sql_mode 可以将real设置为 float 类型
+```sql
+SET sql_mode = “REAL_AS_FLOAT”;
+```
+
+- 也就是说 我们仍然有两种类型 float 和 double
+
+> FLOAT 和 DOUBLE 这两种数据类型的区别是啥呢？
+- FLOAT  占用字节数少，取值范围小；
+- DOUBLE 占用字节数多，取值范围也大。
+
+
+> 为什么浮点数类型的无符号数取值范围，只相当于有符号数取值范围的一半，也就是只相当于有符号数取值范围大于等于零的部分呢？ 
+
+MySQL 存储浮点数的格式为：`符号(S)`、`尾数(M)`和 `阶码(E)`。因此，无论有没有符号，MySQL 的浮点数都会存储表示符号的部分。因此， 所谓的无符号数取值范围，其实就是有符号数取值范围大于等于零的部分。
+
+- 这个部分可以回顾一下
+- https://www.bilibili.com/video/BV1iq4y1u7vj?p=61&spm_id_from=pageDriver
+
+
+**注意:**
+- float double 没必要特意的去加unsigned了
+
+
+> 数据精度说明
+- 对于浮点类型，在MySQL中
+  单精度值使用`4`个字节，
+  双精度值使用`8`个字节。
+
+- MySQL允许使用`非标准语法`（其他数据库未必支持，因此如果涉及到数据迁移，则最好不要这么用）：
+  `FLOAT(M,D)`  或
+  `DOUBLE(M,D)`。
+<!-- 
+  标准的就是不要这么写了 (M, D)
+ -->
+  
+- 这里，M称为`精度`，D称为`标度`。
+  (M,D)中 M=整数位+小数位，D=小数位。 
+  D<=M<=255，0<=D<=30。
+
+- 例如，定义为FLOAT(5,2)的一个列可以显示为-999.99-999.99。如果超过这个范围会报错。
+
+
+- FLOAT和DOUBLE类型在不指定(M,D)时，默认会按照实际的精度（由实际的硬件和操作系统决定）来显示。
+
+- 说明：浮点类型，也可以加`UNSIGNED`，但是不会改变数据范围，例如：FLOAT(3,2) UNSIGNED仍然只能表示0-9.99的范围。
+
+
+- 不管是否显式设置了精度(M,D)，这里MySQL的处理方案如下：
+
+- 如果存储时，整数部分超出了范围，
+  MySQL就会报错，不允许存这样的值
+
+- 如果存储时，小数点部分若超出范围，就分以下情况：
+
+  - 若四舍五入后，整数部分没有超出范围，则只警告，但能成功操作并四舍五入删除多余的小数位后保存。例如在FLOAT(5,2)列内插入999.009，近似结果是999.01。
+
+  - 若四舍五入后，整数部分超出范围，则MySQL报错，并拒绝处理。如FLOAT(5,2)列内插入999.995和-999.995都会报错。
+
+- **从MySQL 8.0.17开始，FLOAT(M,D) 和DOUBLE(M,D)用法在官方文档中已经明确不推荐使用**，将来可能被移除。另外，关于浮点型FLOAT和DOUBLE的UNSIGNED也不推荐使用了，将来也可能被移除。
+
+```sql
+create table test_double1(
+  f1 float,
+  f2 float(5, 2),
+  f3 double,
+  f4 double(5, 2)
+)
+
+
+insert into test_double1(f1, f2)
+values(123.45, 123.45)
+
+-- 结果 没有任何问题
+-- f1      f2
+-- 123.45  123.45
+
+
+
+insert into test_double1(f3, f4)
+values(123.45, 123.456)
+-- f4 的小数位超过2位了 小数部分四舍五入了
+-- f3      f4
+-- 123.45  123.46
+
+
+insert into test_double1(f3, f4)
+values(123.45, 1234.456)
+-- f4 的整数位超过3位了  -- 报错了
+-- f3      f4
+-- 123.45  报错
+```
+
+> 要点:
+- double(5, 2) -- 123.456 -- 123.46: 
+- 如果小数位超过设置的显示位数后 小数部分会四舍五入
+
+- 整数位要是超过会报错
+
+
+> 精度误差说明
+- 浮点数类型有个缺陷，就是不精准。
+- 下面我来重点解释一下为什么 MySQL 的浮点数不够精准。
+
+- 比如，我们设计一个表，有f1这个字段，插入值分别为
+  0.47,
+  0.44,
+  0.19，
+  
+- 我们期待的运行结果是：0.47 + 0.44 + 0.19 = 1.1。
+- 而使用sum之后查询：1.0999999999999999
+
+```sql
+CREATE TABLE test_double2(
+  f1 DOUBLE
+);
+
+INSERT INTO test_double2
+VALUES(0.47),(0.44),(0.19);
+
+SELECT SUM(f1)
+FROM test_double2;
+-- 1.0999999999999999
+```
+
+- 查询结果是 1.0999999999999999。看到了吗？虽然误差很小，但确实有误差。 你也可以尝试把数据类型改成 FLOAT，然后运行求和查询，得到的是， 1.0999999940395355。显然，误差更大了。
+
+- 那么，为什么会存在这样的误差呢？
+- 问题还是出在 MySQL 对浮点类型数据的存储方式上。 
+
+- MySQL 
+  用 4 个字节存储 FLOAT 类型数据，
+  用 8 个字节来存储 DOUBLE 类型数据。
+  
+- 无论哪个，都是采用二进制的方式来进行存储的。
+- 比如 9.625，
+  用二进制来表达，就是 1001.101，
+  或者表达成 1.001101×2^3。
+  
+- 如果尾数不是 0 或 5（比如 9.624），你就无法用一个二进制数来精确表达。进而，就只好在取值允许的范围内进行四舍五入。 
+
+- 在编程中，如果用到浮点数，要特别注意误差问题，
+- **因为浮点数是不准确的，所以我们要避免使用“=”来判断两个数是否相等。**
+- 同时，在一些对精确度要求较高的项目中，千万不要使用浮点数，不然会导致结果错误，甚至是造成不可挽回的损失。那么，MySQL 有没有精准的数据类型呢？当然有，这就是定点数类型：`DECIMAL`。
+
+--------
 
 > 定点数类型
 - 一般小数都用 decimal 因为精度的问题 上面的float double不靠谱
 - *DECIMAL* (decimal)   **关注**
 
+- 在使用 decimal 的时候 通过会加上(M, D)
+- 因为字节数和M相关
 
-> 位类型
-- BIT
+  数据类型         字节数     含义
 
----以上是数值类型---
+  DECIMAL(M,D)    M+2字节   有效范围由M和D决定
+  DEC,
+  NUMERIC
 
-> 日期时间类型
-- YEAR  (year)
-- TIME  (time)
-- *DATE*    (date)    **关注**
-- DATETIME  (datetime)
-- TIMESTAMP (timestamp)
 
----以上是日期类型---
+- 使用 DECIMAL(M,D) 的方式表示高精度小数。其中，
+  M被称为精度，
+  D被称为标度。
+  
+- 0<=M<=65，0<=D<=30，D<M。
+- 例如:
+- 定义DECIMAL（5,2）的类型，表示该列取值范围是-999.99~999.99。
 
-> 文本字符串类型
-- CHAR        (char)
-- *VARCHAR*   (varchar)
+
+- **DECIMAL(M,D)的最大取值范围与DOUBLE类型一样**，
+- 但是有效的数据范围是由M和D决定的。
+
+- DECIMAL 的存储空间并不是固定的，由精度值M决定，总共占用的存储空间为M+2个字节。也就是说，在一些对精度要求不高的场景下，比起占用同样字节长度的定点数，浮点数表达的数值范围可以更大一些。
+
+- 定点数在MySQL内部是以`字符串`的形式进行存储，这就决定了它一定是精准的。
+
+- 当DECIMAL类型*不指定精度和标度时*，其默认为DECIMAL(10,0)。(默认的时候就没有小数了) 
+- 当数据的精度超出了定点数类型的精度范围时，则MySQL同样会进行四舍五入处理。
+
+```sql
+CREATE TABLE test_decimal1(
+  f1 DECIMAL,
+  f2 DECIMAL(5,2)
+);
+
+desc test_decimal1
+-- 结果
+-- decimal(10, 0)   当没有指明 （M, D） 的时候 
+-- decimal(5, 2)
+
+-- mysql8.0 的时候 也是这样显示的
+
+
+insert into test_decimal1(f1)   -- decimal(10, 0)
+values(123), (123.45)
+
+select * from test_decimal1
+-- 结果 
+-- f1 
+-- 123
+-- 123
+
+-- 我们发现结果都是123
+-- 123.45 f1的字段是 (10, 0) 所以小数部分会四舍五入
+
+
+insert into test_decimal1(f2)   -- decimal(5, 2)
+values(999.99)
+-- 没问题
+
+values(67.567)
+-- 小数3位 会进行四舍五入 变成2位 67.57
+```
+
+
+> 浮点数 vs 定点数
+
+```sql
+CREATE TABLE test_double2(    -- DOUBLE
+  f1 DOUBLE
+);
+
+INSERT INTO test_double2
+VALUES(0.47),(0.44),(0.19);
+
+SELECT SUM(f1)
+FROM test_double2;
+-- 1.0999999999999999
+```
+
+- 我们将 f1 字段的数据类型 修改为 decimal 然后观察下结果
+```sql
+CREATE TABLE test_decimal2(    -- DECIMAL
+  f1 DECIMAL(5, 2)
+);
+
+INSERT INTO test_decimal2
+VALUES(0.47),(0.44),(0.19);
+
+SELECT SUM(f1)
+FROM test_decimal2;
+-- 1.10
+```
+
+- 结果能看到 decimal 替换 double 后 结果确实比double更加的精准
+
+- 如果我们要求结果是精准的 那么我们就使用 decimal 类型
+- 如果存储的空间的字节数一样的情况下 浮点类型的存储范围会更大一些 如果我们希望表数范围能够更大一些 也不用那么精准 这时候可以考虑用浮点型
+
+- 浮点数相对于定点数的优点是在长度一定的情况下，浮点类型取值范围大，但是不精准，适用于需要取值范围大，又可以容忍微小误差的科学计算场景（比如计算化学、分子建模、流体动力学等）
+
+- 定点数类型取值范围相对小，但是精准，没有误差，适合于对精度要求极高的场景 （比如涉及金额计算的场景）
+
+
+> 开发中的经验
+- “由于 DECIMAL 数据类型的精准性，在我们的项目中，*除了极少数（比如商品编号）用到整数类型外*，其他的数值都用的是 DECIMAL，
+
+- 原因就是这个项目所处的零售行业，要求精准，一分钱也不能差。
+
+--------
+
+> 位类型 BIT
+- BIT类型中存储的是二进制值，类似010110。
+
+  二进制字符串类型:   BIT(M)    
+  长度:             M    
+  长度范围:         1 <= M <= 64
+  占用空间:         约为(M + 7)/8个字节
+
+- 如果我们指明一个字段为 bit类型 没有指明M 那么默认只能存储1位
+- 这个1位 表示只能存1位的二进制(可以存0 或者 1)
+
+- (M) 可以指定 BIT的位置
+- 比如 bit(5)
+- 那么 _ _ _ _ _ 有5个位置
+
+- 这里的M是表示二进制的位置 位数最小值为1，最大值为64。
+```sql
+CREATE TABLE test_bit1(
+  f1 BIT,
+  f2 BIT(5),
+  f3 BIT(64)
+);
+
+-- 0 和 1 都可以
+INSERT INTO test_bit1(f1)
+VALUES(1);
+
+-- 如果2的话 就会报错
+-- Data too long for column 'f1' at row 1
+INSERT INTO test_bit1(f1)
+-- 2 这么写是10进制的 如果是8进制会是0开头
+-- 但是10进制 转换为2进制 会是 10 而我们的f1字段 默认为1位 报错
+VALUES(2);
+
+
+-- f2字段是 BIT(5) 就意味是 _ _ _ _ _ 有5个位
+-- 5个位最大的值是 11111 - 31
+INSERT INTO test_bit1(f2)
+VALUES(23);
+```
+
+- 当我们查询 bit 的结果的时候
+- 小黑屏 是16进制来展示数据
+- 编辑器 会有b 开头的样式 navicat 没试
+
+
+- 使用SELECT命令查询位字段时，
+> BIN()
+- 将字段以2进制结果来展示
+
+> HEX()
+- 将字段以16进制结果来展示
+
+> 位字段 + 0
+- 将字段以10进制结果来展示
+
+```sql
+SELECT BIN(f2), HEX(f2), f1 + 0
+FROM test_bit1;
+```
+
+------------------
+
+### 日期与时间类型
+- 日期与时间是重要的信息，在我们的系统中，几乎所有的数据表都用得到。
+- 原因是客户需要知道数据的时间标签，从而进行数据查询、统计和处理。 
+
+
+- MySQL有多种表示日期和时间的数据类型，不同的版本可能有所差异，MySQL8.0版本支持的日期和时间类型主要有：
+
+- YEAR类型        1字节   YYYY或YY
+- TIME类型        3字节   HH:MM:SS
+- DATE类型        3字节   YYYY-MM-DD
+- DATETIME类型    8字节   YYYY-MM-DD HH:MM:SS
+- TIMESTAMP类型   4字节   YYYY-MM-DD HH:MM:SS
+
+- `YEAR`      表示年
+- `DATE`      表示年、月、日
+- `TIME`      表示时、分、秒
+- `DATETIME`  表示年、月、日、时、分、秒
+- `TIMESTAMP` 表示带时区的年、月、日、时、分、秒
+
+
+> 日期时间类型  
+- 注意下 最小值 和 最大值 我们不能超过这个范围
+
+              最小值         最大值
+- YEAR        1901          2155
+- TIME        -838:59:59    838:59:59
+- DATE        1000-01-01    9999-12-03
+
+- DATETIME    1000-01-01    9999-12-31
+              00:00:00      23:59:59
+
+- TIMESTAMP   1970-01-01    2038-01-19
+              00:00:00 UTC  03:14:07 UTC
+
+
+- 可以看到，不同数据类型表示的时间内容不同、取值范围不同，而且占用的字节数也不一样，你要根据实际需要灵活选取。
+
+- 为什么时间类型 TIME 的取值范围不是 -23:59:59～23:59:59 呢？
+- 原因是 MySQL 设计的 TIME 类型，不光表示一天之内的时间，而且可以用来表示一个时间间隔，这个时间间隔可以超过 24 小时。
+
+
+> YEAR类型
+- YEAR类型用来表示年份，在所有的日期时间类型中所占用的存储空间最小，只需要`1个字节`的存储空间。
+
+- 在MySQL中，YEAR有以下几种存储格式(表现形式)：
+- 1. 以4位字符串或数字格式表示YEAR类型，比如:
+
+- 可以用数字格式写 4位数
+1901 ~ 2155
+
+- 可以用字符格式写 4位数  *使用字符串格式的比较好*
+'2021'
+
+
+- 2. 以2位字符串格式表示YEAR类型，最小值为00，最大值为99。
+
+- 当取值为 01 到 69 时，表示2001到2069；
+- 当取值为 70 到 99 时，表示1970到1999；
+
+- 当取值整数的0或00添加的话，      那么是0000年；
+- 当取值是日期字符串的'0'添加的话， 是2000年。
+
+**从MySQL5.5.27开始，2位格式的YEAR已经不推荐使用**。
+- *YEAR默认格式就是“YYYY”*，没必要写成YEAR(4)，
+- 从MySQL 8.0.19开始，不推荐使用指定显示宽度的YEAR(4)数据类型。
+
+```sql
+CREATE TABLE test_year(
+  f1 YEAR,
+  f2 YEAR(4)
+);
+
+
+INSERT INTO test_year
+VALUES('2020','2021');
+
+INSERT INTO test_year
+VALUES('45','71');
+
+INSERT INTO test_year
+VALUES(0,'0');
+
++------+------+
+| f1   | f2   |
++------+------+
+| 2020 | 2021 |
+| 2045 | 1971 |
+| 0000 | 2000 |
++------+------+
+```
+
+---------
+
+> DATE类型
+- DATE类型表示日期，没有时间部分，格式为`YYYY-MM-DD`，
+- 其中，
+  YYYY表示年份，
+  MM表示月份，
+  DD表示日期。
+  
+- 需要`3个字节`的存储空间。在向DATE类型的字段插入数据时，同样需要满足一定的格式条件。
+
+- 1. 以`YYYY-MM-DD`格式或者`YYYYMMDD`格式表示的字符串日期
+
+  最小取值为 1000-01-01
+  最大取值为 9999-12-03
+
+- YYYYMMDD格式会被转化为YYYY-MM-DD格式。
+
+- 2. 以`YY-MM-DD`格式或者`YYMMDD`格式表示的字符串日期，此格式中，年份为两位数值或字符串满足YEAR类型的格式条件为：
+
+  - 当年份取值为00到69时，会被转化为2000到2069
+  - 当年份取值为70到99时，会被转化为1970到1999
+  
+- 使用`CURRENT_DATE()`或者`NOW()`函数，会插入当前系统的日期。
+
+```sql
+CREATE TABLE test_date1(
+  f1 DATE
+);
+
+INSERT INTO test_date1
+VALUES ('2020-10-01'), ('20201001'), (20201001);
+
+INSERT INTO test_date1
+VALUES 
+('00-01-01'), 
+('000101'), 
+('69-10-01'), 
+('691001'), 
+('70-01-01'), 
+('700101'), 
+('99-01-01'), 
+('990101');
+
+INSERT INTO test_date1
+VALUES
+(000301), 
+(690301), 
+(700301), 
+(990301); 
+
+-- 添加当前系统的时间
+INSERT INTO test_date1
+VALUES (CURRENT_DATE()), (NOW());
+
+SELECT *
+FROM test_date1;
+```
+
+---------
+
+> TIME类型
+- TIME类型用来表示时间，不包含日期部分。在MySQL中，需要`3个字节`的存储空间来存储TIME类型的数据
+
+- 标准格式:
+- HH:MM:SS 格式来表示TIME类型，其中，
+- HH表示小时，MM表示分钟，SS表示秒。
+
+- 在MySQL中，向TIME类型的字段插入数据时，也可以使用几种不同的格式。
+
+- 下述的字母都是代表 几个数字
+
+- 1. 可以使用带有冒号的字符串，比如'
+  `D HH:MM:SS'`
+  `HH:MM:SS`
+  `HH:MM`
+  `D HH:MM`
+  `D HH`
+  `SS`
+
+- 以上格式，都能被正确地插入TIME类型的字段中。
+
+- 上述的 *D* 表示天，
+  最小值为0
+  最大值为34
+  
+- 如果使用带有D格式的字符串插入TIME类型的字段时，D会被转化为小时，计算格式为D*24+HH。
+
+- 当使用带有冒号并且不带D的字符串表示时间时，表示当天的时间，
+- 比如 12:10表示12:10:00，而不是 00:12:10。
+
+
+- 2. 可以使用不带有冒号的字符串或者数字，
+- 格式为'`HHMMSS`'或者`HHMMSS`。
+
+- 如果插入一个不合法的字符串或者数字，MySQL在存储数据时，会将其自动转化为00:00:00进行存储。
+
+- 比如1210，MySQL会将最右边的两位解析成秒，表示00:12:10，而不是12:10:00。
+
+- 3. 使用`CURRENT_TIME()`或者`NOW()`，会插入当前系统的时间。
+
+```sql
+CREATE TABLE test_time1(
+  f1 TIME
+);
+
+INSERT INTO test_time1
+VALUES('2 12:30:29'), ('12:35:29'), ('12:40'), ('2 12:40'),('1 05'), ('45');
+
+-- ('2 12:30:29') -- 60:30:29 - 2 X 24 + 12
+
+INSERT INTO test_time1
+VALUES ('123520'), (124011),(1210);
+
+INSERT INTO test_time1
+VALUES (NOW()), (CURRENT_TIME());
+
+SELECT * FROM test_time1;
+```
+
+---------
+
+> DATETIME类型
+- DATETIME类型在所有的日期时间类型中占用的存储空间最大，总共需要`8`个字节的存储空间。
+
+- 在格式上为DATE类型和TIME类型的组合，
+
+- 标准格式:
+- `YYYY-MM-DD HH:MM:SS`
+
+  - YYYY表示年份
+  - MM表示月份
+  - DD表示日期
+  - HH表示小时
+  - MM表示分钟
+  - SS表示秒
+
+- 在向DATETIME类型的字段插入数据时，同样需要满足一定的格式条件。
+
+- 以`YYYY-MM-DD HH:MM:SS`格式或者`YYYYMMDDHHMMSS`格式的字符串插入DATETIME类型的字段时，
+
+  最小值为  1000-01-01 00:00:00
+  最大值为  9999-12-03 23:59:59。
+
+- 以`YYYYMMDDHHMMSS`格式的数字插入DATETIME类型的字段时，会被转化为YYYY-MM-DD HH:MM:SS格式。
+
+- 以`YY-MM-DD HH:MM:SS`格式或者`YYMMDDHHMMSS`格式的字符串插入DATETIME类型的字段时，两位数的年份规则符合YEAR类型的规则，
+  00到69 表示 2000到2069
+  70到99 表示 1970到 1999。
+
+- 使用函数`CURRENT_TIMESTAMP()`和`NOW()`，可以向DATETIME类型的字段插入系统的当前日期和时间。
+
+```sql
+INSERT INTO test_datetime1
+VALUES ('2021-01-01 06:50:30'), ('20210101065030');
+
+INSERT INTO test_datetime1
+VALUES ('99-01-01 00:00:00'), ('990101000000'), ('20-01-01 00:00:00'), ('200101000000');
+
+INSERT INTO test_datetime1
+VALUES (20200101000000), (200101000000), (19990101000000), (990101000000);
+ 
+INSERT INTO test_datetime1
+VALUES (CURRENT_TIMESTAMP()), (NOW());
+```
+
+---------
+
+> TIMESTAMP类型
+- TIMESTAMP类型也可以表示日期时间，其显示格式与DATETIME类型相同，都是`YYYY-MM-DD HH:MM:SS`
+
+- 需要4个字节的存储空间。
+
+- 但是TIMESTAMP存储的时间范围比DATETIME要小很多，只能存储
+  1970-01-01 00:00:01 UTC ~ 2038-01-19 03:14:07 UTC
+  
+- UTC表示世界统一时间，也叫作世界标准时间。
+
+**存储数据的时候需要对当前时间所在的时区进行转换，查询数据的时候再将时间转换回当前的时区。因此，使用TIMESTAMP存储的同一个时间值，在不同的时区查询时会显示不同的时间。**
+
+- 向TIMESTAMP类型的字段插入数据时，当插入的数据格式满足YY-MM-DD HH:MM:SS和YYMMDDHHMMSS时，
+- 两位数值的年份同样符合YEAR类型的规则条件，只不过表示的时间范围要小很多。
+
+- 如果向TIMESTAMP类型的字段插入的时间超出了TIMESTAMP类型的范围，则MySQL会抛出错误信息。
+
+```sql
+CREATE TABLE test_timestamp1(
+  ts TIMESTAMP
+);
+
+INSERT INTO test_timestamp1
+VALUES ('1999-01-01 03:04:50'), ('19990101030405'), ('99-01-01 03:04:05'), ('990101030405');
+
+-- 以 @ 来分隔也是可以的 可以正常的显示
+INSERT INTO test_timestamp1
+VALUES ('2020@01@01@00@00@00'), ('20@01@01@00@00@00');
+
+
+INSERT INTO test_timestamp1
+VALUES (CURRENT_TIMESTAMP()), (NOW());
+
+
+--Incorrect datetime value
+INSERT INTO test_timestamp1
+VALUES ('2038-01-20 03:14:07');
+```
+
+> TIMESTAMP 和 DATETIME 的区别：
+- TIMESTAMP存储空间比较小，表示的日期时间范围也比较小
+
+- 底层存储方式不同，TIMESTAMP底层存储的是毫秒值，距离1970-1-1 0:0:0 0毫秒的毫秒值。
+
+- 两个日期比较大小或日期计算时，TIMESTAMP更方便、更快。
+
+- TIMESTAMP和时区有关。TIMESTAMP会根据用户的时区不同，显示不同的结果。而DATETIME则只能反映出插入时当地的时区，其他时区的人查看数据必然会有误差的。
+
+```sql
+CREATE TABLE temp_time(
+  d1 DATETIME,
+  d2 TIMESTAMP
+);
+
+
+INSERT INTO temp_time 
+VALUES
+('2021-9-2 14:45:52','2021-9-2 14:45:52');
+
+
+INSERT INTO temp_time 
+VALUES
+(NOW(),NOW());
+
+
+-- 都是一样的
++---------------------+---------------------+
+| d1                  | d2                  |
++---------------------+---------------------+
+| 2021-09-02 14:45:52 | 2021-09-02 14:45:52 |
+| 2021-11-03 17:38:17 | 2021-11-03 17:38:17 |
++---------------------+---------------------+
+
+
+-- 修改当前的时区
+SET time_zone = '+9:00';
+
++---------------------+---------------------+
+| d1                  | d2                  |
++---------------------+---------------------+
+| 2021-09-02 14:45:52 | 2021-09-02 15:45:52 |
+| 2021-11-03 17:38:17 | 2021-11-03 18:38:17 |
++---------------------+---------------------+
+```
+
+- 我们使用 TIMESTAMP 的时候 会自动加上1个小时(时区的时间)
+
+
+> 开发中的经验
+- 用得最多的日期时间类型，就是 `DATETIME`。
+
+- 虽然 MySQL 也支持 YEAR（年）、 TIME（时间）、DATE（日期），以及 TIMESTAMP 类型，但是在实际项目中，尽量用 DATETIME 类型。因为这个数据类型包括了完整的日期和时间信息，取值范围也最大，使用起来比较方便。毕竟，如果日期时间信息分散在好几个字段，很不容易记，而且查询的时候，SQL 语句也会更加复杂。 
+
+- 此外，一般存*注册时间、商品发布时间等*，不建议使用DATETIME存储，而是使用`时间戳`，因为DATETIME虽然直观，但不便于计算。
+
+- 比如:
+- 我们可以使用 UNIX_TIMESTAMP() 获取时间戳 然后存储到表中 该字段可以使用 bigint类型 来存储
+
+------------------
+
+### 文本字符串类型
+- 在实际的项目中，我们还经常遇到一种数据，就是字符串数据。
+- 比如:
+- 姓名, 家庭住址等文本 这样的数据在进行存储的时候就会使用字符串类型
+
+- CHAR        (char)        可以理解为固定长度的char
+- *VARCHAR*   (varchar)     var是变量 可变长度的字符
 - TINYTEXT    (tinytext)
 - TEXT        (text)
 - MEDIUMTEXT  (mediumtext)
-- LONGTEXT    (longtext)
+- LONGTEXT    (longtext) 
 
 
-> 枚举类型
-- ENUM    (enum)
+  字符串类型    长度    长度范围          占用存储空间
+  char(M)      M      0<=M<=255       M个字节
+  varchar(M)   M      0 M 65535       M+1
+
+  tinytext     L      0 L 255         L+2
+  text         L      0 L 65535       L+2
+  mediumtext   L      0 L 16777215    L+3
+  longtext     L      0 L 4294967295  L+4
+
+  enum         L      0 L 65535       1or2
+  set          L      0 L 64          1,2,3,4or8
+
+- 在定义 char 和 varchar 的时候 可以指定宽度 指定M后 才会确定占用的空间大小
+
+- text存储的是文本数据 比如一篇文章 一段话 这样的场景我们选择的是text类型
 
 
-> 集合类型
+> CHAR 与 VARCHAR 类型
+- CHAR(固定长度)和VARCHAR(可变长度)类型都可以存储比较短的字符串。
+
+  字符串类型    特点    长度    长度范围    占用存储空间
+  char(M)     固定长度  M      0<=M<=255  M个字节
+  varchar(M)  可变长度  M      0 M 65535  实际长度+1
+
+**注意:**
+- 虽然 varchar 的长度上面可以定义为65535 但实际上我们只能定义到 21845
+- 因为 一个汉字占3个字节 65535 / 3 注意一下
+
+
+- 比如
+- 我们定义为char类型的时候 char(10) 如果不够10位也会补齐10位
+- 如果我们定义为varchar类型的时候 varchar(10) 存了个hello 一共占用了5个字节 剩下的5个没有用 那实际长度只有5
+
+- 实际长度+1 1个字节是用来计算varchar中存储的数据一共占了多少为 这1个字节用于计算的
+
+
+> CHAR类型
+- CHAR(M) 类型一般需要预先定义字符串长度。*如果不指定(M)，则表示长度默认是1个字符。*
+
+- 如果保存时，数据的实际长度比CHAR类型声明的长度小，则会在`右侧填充`空格以达到指定的长度。
+- 当MySQL检索CHAR类型的数据时，CHAR类型的字段会去除尾部的空格。(也就是说检索的时候 我们是看不到空格的)
+
+- 定义CHAR类型字段时，声明的字段长度即为CHAR类型字段所占的存储空间的字节数。
+
+```sql
+CREATE TABLE test_char1(
+  -- 如果定义的时候没有指明 默认就是1 只允许添加一个字符
+  c1 CHAR,
+  c2 CHAR(5)
+);
+
+DESC test_char1;
+
+
+INSERT INTO test_char1
+VALUES('a','Tom');
+
+-- 这也是可以的 char(5) 就是5个字符
+INSERT INTO test_char1
+VALUES('尚硅谷教育','Tom');
+
+-- 虽然指定了char(5)会在右侧使用空格填充 但实际上 我们检索的时候会去掉空格
+SELECT c1, CONCAT(c2,'***') FROM test_char1;
+
+
+INSERT INTO test_char1(c2)
+VALUES('a  ');
+
+SELECT CHAR_LENGTH(c2)
+FROM test_char1;  -- 1
+-- 虽然上面我们自己输入了2个空格 但是我们使用的是char(5)
+-- 系统把我们自己输入的空格也当做系统自动添加的了
+```
+
+---------
+
+> VARCHAR类型
+- VARCHAR(M) 定义时，`必须指定`长度M，否则报错。
+- 报错原因:
+- 因为varchar是可变长度的 到底varchar最多能存多少 我们要告诉系统
+
+- MySQL4.0版本以下，varchar(20)：
+  *指的是20字节*，如果存放UTF8汉字时，只能存6个（每个汉字3字节）
+  
+- MySQL5.0版本以上，varchar(20)：
+  *指的是20字符*
+
+- 检索VARCHAR类型的字段数据时，会保留数据尾部的空格。VARCHAR类型的字段所占用的存储空间为字符串实际长度加1个字节。
+
+```sql
+CREATE TABLE test_varchar1(
+  NAME VARCHAR  -- 报错
+);
+
+
+-- Column length too big for column 'NAME' (max = 21845)
+CREATE TABLE test_varchar2(
+  NAME VARCHAR(65535)  -- 错误
+);
+
+
+
+CREATE TABLE test_varchar3(
+  NAME VARCHAR(5)
+);
+
+INSERT INTO test_varchar3
+VALUES('尚硅谷'),('尚硅谷教育');
+
+-- Data too long for column 'NAME' at row 1
+INSERT INTO test_varchar3
+VALUES('尚硅谷IT教育');
+```
+
+
+- char类型 存 '尚硅谷' 就是按照字符的数量 来存
+- varchar类型 存 '尚硅谷' 是考虑字节数 来存
+
+
+> 在开发中是选择 char 还是 varchar ？
+
+  类型      特点      空间上        时间上    适用场景
+  CHAR(M)   固定长度  浪费存储空间   效率高    存储不大
+                                           速度要求高
+
+  VARCHAR(M)可变长度  节省存储空间   效率低    非CHAR的情况
+
+
+- 情况1：
+- 存储很短的信息。
+- 比如门牌号码101，201……这样很短的信息应该用char，因为varchar还要占1个byte用于存储信息长度，本来打算节约存储的，结果得不偿失。
+
+
+- 情况2：
+- 固定长度的。
+- 比如使用uuid作为主键，那用char应该更合适。因为他固定长度，varchar动态根据长度的特性就消失了，而且还要占个长度信息。
+
+
+- 情况3：
+- 十分频繁改变的column。因为varchar每次存储都要有额外的计算，得到长度等工作，如果一个非常频繁改变的，那就要有很多的精力用于计算，而这些对于char来说是不需要的。
+
+
+- 情况4：
+- 按照具体存储引擎中来确定使用的情况：
+- `MyISAM` 数据存储引擎和数据列：
+- MyISAM数据表，最好使用固定长度(CHAR)的数据列代替可变长度(VARCHAR)的数据列。这样使得整个表静态化，从而使`数据检索更快`，用空间换时间。
+
+- `MEMORY` 存储引擎和数据列：
+- MEMORY数据表目前都使用固定长度的数据行存储，因此无论使用CHAR或VARCHAR列都没有关系，两者都是作为CHAR类型处理的。
+
+
+> mysql5.5以后使用的存储引擎就是InnoDB
+- `InnoDB`存储引擎，*建议使用VARCHAR类型。*
+- 因为对于InnoDB数据表，内部的行存储格式并没有区分固定长度和可变长度列（所有数据行都使用指向数据列值的头指针），而且**主要影响性能的因素是数据行使用的存储总量**，由于char平均占用的空间多于varchar，所以除了简短并且固定长度的，其他考虑varchar。这样节省空间，对磁盘I/O和数据存储总量比较好。
+
+---------
+
+> TEXT类型
+- 它是用来存储文本数据的 比如文章 评论等情况 根据实际文本的大小 我们选择具体的类型
+
+- 在MySQL中，TEXT用来保存文本类型的字符串，总共包含4种类型，分别为
+
+  TINYTEXT
+  TEXT
+  MEDIUMTEXT
+  LONGTEXT
+  
+- 在向TEXT类型的字段保存和查询数据时，系统自动按照实际长度存储，不需要预先定义长度。这一点和 VARCHAR类型相同。
+
+- 每种TEXT类型保存的数据长度和所占用的存储空间不同，如下：
+
+  字符串类型    
+    特点    
+    长度    
+    长度范围    
+    占用的存储空间
+
+  TINYTEXT:
+    小文本、可变长度   
+    L
+    0 <= L <= 255
+    L + 2 个字节
+
+  TEXT:
+    文本、可变长度
+    L
+    0 <= L <= 65535
+    L + 2 个字节
+
+  MEDIUMTEXT:
+    中等文本、可变长度
+    L
+    0 <= L <= 16777215
+    L + 3 个字节
+  
+  LONGTEXT:
+    大文本、可变长度
+    L
+    0 <= L<= 4294967295（相当于4GB）
+    L + 4 个字节
+
+**注意:**
+- 由于实际存储的长度不确定，MySQL 不允许 TEXT 类型的字段做主键
+- 遇到这种情况，你只能采用 CHAR(M)，或者 VARCHAR(M)。
+
+```sql
+CREATE TABLE test_text(
+  tx TEXT
+);
+
+
+INSERT INTO test_text
+VALUES('atguigu   ');
+
+SELECT CHAR_LENGTH(tx)
+FROM test_text;  -- 10
+-- 说明在保存和查询数据时，并没有删除TEXT类型的数据尾部的空格。
+```
+
+> 开发中经验
+- TEXT文本类型，可以存比较大的文本段，搜索速度稍慢，
+- 因此如果不是特别大的内容，建议使用CHAR，VARCHAR来代替。
+- 还有TEXT类型不用加默认值，加了也没用。
+
+- 因为text存储的是大文本 如果我们把文章添加到表中的一个字段里 后期我们又把文章删掉了 这时候 会导致空洞
+
+- 而且text和blob类型的数据删除后容易导致“空洞”，使得文件碎片比较多，所以频繁使用的表不建议包含TEXT类型字段，建议单独分出去，单独用一个表。
+
+---------
+
+> 枚举类型  -- 多选一(字符串)
+- ENUM('枚举成员', '枚举成员2', '枚举成员3' ... )
+
+- ENUM类型也叫作枚举类型，ENUM类型的取值范围需要在定义字段时进行指定。
+<!-- 
+  枚举类型就是我们有具体的几种值 我们将这几种值都列出来 这就是枚举 
+-->
+
+- 设置字段值时，ENUM类型只允许从成员中选取单个值，不能一次选取多个值。其所需要的存储空间由定义ENUM类型时指定的成员个数决定。
+
+  字符串类型    长度    长度范围            占用的存储空间
+  ENUM         L      1 <= L <= 65535   1或2个字节
+
+- 当ENUM类型包含1～255个成员时，需要1个字节的存储空间
+- 当ENUM类型包含256～65535个成员时，需要2个字节的存储空间
+- ENUM类型的成员个数的上限为65535个
+
+
+> 使用 枚举 成员的情况
+```sql
+CREATE TABLE test_enum(
+  -- 字段 season 类型 ENUM()
+  season ENUM('春','夏','秋','冬','unknow')
+);
+
+
+-- 我们在添加值的时候 只能在枚举成员中选择一个填写
+INSERT INTO test_enum
+VALUES('春'),('秋');
+
+-- 忽略大小写
+INSERT INTO test_enum
+VALUES('UNKNOW');
+
+-- 允许按照角标的方式获取指定索引位置的枚举值 索引位置从1开始
+INSERT INTO test_enum
+VALUES('1'),(3);
+
+-- Data truncated for column 'season' at row 1
+INSERT INTO test_enum
+VALUES('ab');
+
+-- 当ENUM类型的字段没有声明为NOT NULL时，插入NULL也是有效的
+INSERT INTO test_enum
+VALUES(NULL);
+```
+
+--------
+
+> 集合类型 -- 多个里面选多个(字符串)
 - SET     (set)
 
+- SET表示一个字符串对象，可以包含0个或多个成员，但成员个数的上限为`64`。设置字段值时，可以取取值范围内的 0 个或多个值。
 
-> 二进制字符串类型
-- 图片 音乐文件 视频等
-- BINARY    (binary)
-- VARBINARY (varbinary)
-- TINYBLOB  (tinyblob)
-- BLOB      (blob)
-- MEDIUMBLOB(mediumblob)
-- LONGBLOB  (longblob)
+- 当SET类型包含的成员个数不同时，其所占用的存储空间也是不同的，具体如下：
+
+  成员个数范围（L表示实际成员个数）   占用的存储空间
+  1 <= L <= 8                    1个字节
+  9 <= L <= 16                   1个字节
+  17 <= L <= 24                  3个字节
+  25 <= L <= 32                  4个字节
+  33 <= L <= 64                  8个字节
+
+- SET类型在存储数据时成员个数越多，其占用的存储空间越大。
+
+**注意：**
+- SET类型在选取成员时，可以一次选择多个成员，这一点与ENUM类型不同。
+
+```sql
+CREATE TABLE test_set(
+  s SET ('A', 'B', 'C')
+);
+
+-- 集合中的都可以选 没有数量的要求
+INSERT INTO test_set (s) VALUES ('A'), ('A,B');
+
+-- 插入重复的SET类型成员时，MySQL会自动删除重复的成员
+INSERT INTO test_set (s) VALUES ('A,B,C,A');
+
+-- 向SET类型的字段插入SET成员中不存在的值时，MySQL会抛出错误。
+INSERT INTO test_set (s) VALUES ('A,B,C,D');
+```
+
+- 枚举类型 和 集合类型的综合使用：
+```sql
+CREATE TABLE temp_mul(
+  gender ENUM('男','女'),
+  hobby SET('吃饭','睡觉','打豆豆','写代码')
+);
+
+-- 成功
+INSERT INTO temp_mul VALUES('男','睡觉,打豆豆'); 
+
+-- 失败
+-- Data truncated for column 'gender' at row 1
+INSERT INTO temp_mul VALUES('男,女','睡觉,写代码'); 
+
+-- 失败
+-- Data truncated for column 'gender' at row 1
+INSERT INTO temp_mul VALUES('妖','睡觉,写代码');
+
+-- 成功
+INSERT INTO temp_mul VALUES('男','睡觉,写代码,吃饭');
+```
+
+------------------
+
+### 二进制字符串类型
+- MySQL中的二进制字符串类型主要存储一些二进制数据，比如可以存储图片、音频和视频等二进制数据。
+
+- MySQL中支持的二进制字符串类型主要包括
+
+  - BINARY      (binary)
+  - VARBINARY   (varbinary)
+  - TINYBLOB    (tinyblob)
+  - BLOB        (blob)
+  - MEDIUMBLOB  (mediumblob)
+  - LONGBLOB    (longblob)
 
 
-> JSON类型
-- SON对象
-- JSON数
+> BINARY 与 VARBINARY 类型
+- 跟我们前面讲的 char varchar 是对应的关系
+<!-- 
+  char varchar -- 是多少字符
+  binary varbinary -- 是多少字节
+ -->
 
----以上是字符串类型---
+- BINARY和VARBINARY类似于CHAR和VARCHAR，只是它们存储的是二进制字符串。
 
-> 空间数据类型
+- BINARY (M)为固定长度的二进制字符串，
+  *M表示最多能存储的字节数*
+  取值范围是0~255个字符。
+  
+  - 如果未指定(M)，表示只能存储`1个字节`。
+  - 例如BINARY(8)，表示最多能存储8个字节，
+  - 如果字段值不足(M)个字节，将在右边填充'\0'以补齐指定长度。
+
+
+- VARBINARY (M)为可变长度的二进制字符串，
+  *M表示最多能存储的字节数*
+  总字节数不能超过行的字节长度限制65535，
+  另外还要考虑额外字节开销，VARBINARY类型的数据除了存储数据本身外，还需要1或2个字节来存储数据的字节数。
+  
+
+- VARBINARY类型`必须指定(M)`，否则报错。
+
+
+  二进制字符串类型  特点      值的长度         占用空间
+
+  BINARY(M)      固定长度   M 0 M 255       M个字节
+  VARBINARY(M)   可变长度   M 0 M 65535     M+1个字节
+
+- 固定长度:
+- 就是占用了那些字节
+
+- 可变长度:
+- 看的是实际占的字节
+
+```sql
+CREATE TABLE test_binary1(
+  f1 BINARY,
+  f2 BINARY(3),
+
+  -- 报错 一定要指明 长度
+  f3 VARBINARY,
+  f4 VARBINARY(10)
+);
+
+-- abcd这些是可以当做一个字节去存储的
+INSERT INTO test_binary1(f1,f2)
+VALUES('a','a');
+
+-- 失败
+INSERT INTO test_binary1(f1,f2)
+VALUES('尚','尚');
+
+
+INSERT INTO test_binary1(f2,f4)
+VALUES('ab','ab');
+
+-- f2是3个字节 因为 f2 BINARY(3) 是固定长度
+SELECT LENGTH(f2), LENGTH(f4)
+FROM test_binary1;
+
++------------+------------+
+| LENGTH(f2) | LENGTH(f4) |
++------------+------------+
+|          3 |       NULL |
+|          3 |          2 |
++------------+------------+
+```
+  
+--------
+
+> BLOB类型
+- BLOB是一个`二进制大对象`，可以容纳可变数量的数据。
+
+- MySQL中的BLOB类型包括
+  TINYBLOB
+  BLOB
+  MEDIUMBLOB
+  LONGBLOB
+  
+- 它们可容纳值的最大长度不同。可以存储一个二进制的大对象，
+- 比如`图片`、`音频` 和 `视频`等。
+
+- 需要注意的是，在实际工作中，往往不会在MySQL数据库中使用BLOB类型存储大对象数据，通常会将图片、音频和视频文件存储到`服务器的磁盘上`，并将图片、音频和视频的访问路径存储到MySQL中。
+<!-- 
+  存储到`服务器的磁盘上`
+  比如 分布式的项目当中 我们使用到了fastdfs 它是用来分布式存储我们的图片的 像淘宝的图片 我们都可以放在fastdfs里面
+
+  没有必要在表里面体现这样的结构 就是数据库可以这样的存储图片视频等 但是开发中我们并没有选择这么去用
+ -->
+
+- 跟 text 比较像
+
+
+  二进制类型    值的长度    长度范围        占用空间
+  TINYBLOB    L          0 L 255        L+1字节
+
+  BLOB        L          0 L 65535      L+2字节 
+                         相当于64KB   
+
+  MEDIUMBLOB  L          0 L 16777215   
+                         相当于16MB     L+3字节
+
+  LONGBLOB    L          0 L 4294967295   
+                         相当于4GB      L+4字节
+
+
+```sql
+CREATE TABLE test_blob1(
+  id INT,
+  img MEDIUMBLOB
+);
+```
+
+
+> TEXT和BLOB的使用注意事项
+- 在使用text和blob字段类型时要注意以下几点，以便更好的发挥数据库的性能。
+
+- ①:
+- BLOB和TEXT值也会引起自己的一些问题，特别是执行了大量的删除或更新操作的时候。删除这种值会在数据表中留下很大的"`空洞`"，以后填入这些"空洞"的记录可能长度不同。为了提高性能，建议定期使用 OPTIMIZE TABLE 功能对这类表进行`碎片整理`。
+
+- ② 
+- 如果需要对大文本字段进行模糊查询，MySQL 提供了`前缀索引`。
+- 但是仍然要在不必要的时候避免检索大型的BLOB或TEXT值。例如，SELECT * 查询就不是很好的想法，除非你能够确定作为约束条件的WHERE子句只会找到所需要的数据行。否则，你可能毫无目的地在网络上传输大量的值。
+
+- ③ 
+- 把BLOB或TEXT列`分离到单独的表`中。
+- 在某些环境中，如果把这些数据列移动到第二张数据表中，可以让你把原数据表中的数据列转换为固定长度的数据行格式，那么它就是有意义的。
+- 这会`减少主表中的碎片`，使你得到固定长度数据行的性能优势。它还使你在主数据表上运行 SELECT * 查询的时候不会通过网络传输大量的BLOB或TEXT值。
+
+------------------
+
+### JSON类型
+- JSON（JavaScript Object Notation）是一种轻量级的`数据交换格式`。简洁和清晰的层次结构使得 JSON 成为理想的数据交换语言。它易于人阅读和编写，同时也易于机器解析和生成，并有效地提升网络传输效率。
+
+- **JSON 可以将 JavaScript 对象中表示的一组数据转换为字符串，然后就可以在网络或者程序之间轻松地传递这个字符串，并在需要的时候将它还原为各编程语言所支持的数据格式。**
+
+- 在MySQL 5.7中，就已经支持JSON数据类型。在MySQL 8.x版本中，JSON类型提供了可以进行自动验证的JSON文档和优化的存储结构，使得在MySQL中存储和读取JSON类型的数据更加方便和高效。
+创建数据表，表中包含一个JSON类型的字段 js 。
+
+```sql
+CREATE TABLE test_json(
+  js json
+);
+
+INSERT INTO test_json (js) 
+VALUES ('{"name":"songhk", "age":18, "address":{"province":"beijing", "city":"beijing"}}');
+
+SELECT *
+FROM test_json;
+```
+
+- 上面就将一个json对象保存在了数据库中 以字符串的形式
+- 我们还可以在sql层面 提取json对象中的值
+
+> -> 箭头操作符
+> json字段 -> $.属性名
+- $就代表json对象
+
+- 当需要检索JSON类型的字段中数据的某个具体值时，可以使用“->”和“->>”符号。
+
+```sql
+SELECT js -> '$.name' AS name, 
+       js -> '$.age' AS age,
+       js -> '$.address.province' AS province, 
+       js -> '$.address.city' AS city
+FROM test_json;
+
++----------+------+-----------+-----------+
+| NAME     | age  | province  | city      |
++----------+------+-----------+-----------+
+| "songhk" | 18   | "beijing" | "beijing" |
++----------+------+-----------+-----------+
+```
+
+- 通过“->”和“->>”符号，从JSON字段中正确查询出了指定的JSON数据的值。
+
+---------
+
+> 空间类型
+- MySQL 空间类型扩展支持地理特征的生成、存储和分析。这里的地理特征表示世界上具有位置的任何东西，可以是一个实体，例如一座山；可以是空间，
+
+- 例如一座办公楼；也可以是一个可定义的位置，例如一个十字路口等等。MySQL中使用`Geometry（几何）`来表示所有地理特征。Geometry指一个点或点的集合，代表世界上任何具有位置的事物。
+
+- MySQL的空间数据类型（Spatial Data Type）对应于OpenGIS类，包括单值类型：GEOMETRY、POINT、LINESTRING、POLYGON以及集合类型：MULTIPOINT、MULTILINESTRING、MULTIPOLYGON、GEOMETRYCOLLECTION 。
+
+- Geometry是所有空间集合类型的基类，其他类型如
+  POINT
+  LINESTRING
+  POLYGON     都是Geometry的子类。
+
+
+  - Point
+  - 顾名思义就是点，有一个坐标值。
+  - 例如POINT(121.213342 31.234532)，POINT(30 10)，坐标值支持DECIMAL类型，经度（longitude）在前，维度（latitude）在后，用空格分隔。
+
+  - LineString
+  - 线，由一系列点连接而成。如果线从头至尾没有交叉，那就是简单的（simple）；如果起点和终点重叠，那就是封闭的（closed）。
+  - 例如LINESTRING(30 10,10 30,40 40)，点与点之间用逗号分隔，一个点中的经纬度用空格分隔，与POINT格式一致。
+
+  - Polygon，多边形。可以是一个实心平面形，即没有内部边界，也可以有空洞，类似纽扣。最简单的就是只有一个外边界的情况，
+  - 例如POLYGON((0 0,10 0,10 10, 0 10))。
+
+- MultiPoint、MultiLineString、MultiPolygon、GeometryCollection 这4种类型都是集合类，是多个Point、LineString或Polygon组合而成。
+
 - 单值：
   GEOMETRY    (geometry)
   POINT       (point)
@@ -7011,14 +9019,320 @@ DROP TABLE book1, book2;
   POLYGON     (polygon)
   
 - 集合：
-  MULTIPOINT      (multipoint)
-  MULTILINESTRING (multilinestring)
-  MULTIPOLYGON    (multipolygon)
+  MULTIPOINT          (multipoint)
+  MULTILINESTRING     (multilinestring)
+  MULTIPOLYGON        (multipolygon)
   GEOMETRYCOLLECTION  (geometercollection)
 
----以上是空间类型---
 
-- 其中，常用的几类类型介绍如下：
+> 小结及选择建议
+- 在定义数据类型时，
+  - 如果是`整数`，  就用` INT`； 
+  - 如果是`小数`，  一定用定点数类型 `DECIMAL(M,D)`； 
+  - 如果是`日期与时间`，就用 `DATETIME`。 
+
+- 这样做的好处是，首先确保你的系统不会因为数据类型定义出错。不过，凡事都是有两面的，可靠性好，并不意味着高效。
+
+- 比如，TEXT 虽然使用方便，但是效率不如 CHAR(M) 和 VARCHAR(M)。
+
+关于字符串的选择，建议参考如下阿里巴巴的《Java开发手册》规范：
+
+
+**阿里巴巴《Java开发手册》之MySQL数据库：**
+- 1. 任何字段如果为非负数，*必须是 UNSIGNED*
+
+- 【`强制`】小数类型为 DECIMAL，禁止使用 FLOAT 和 DOUBLE。 
+  - 说明：
+  - 在存储的时候，FLOAT 和 DOUBLE 都存在精度损失的问题，很可能在比较值的时候，得到不正确的结果。
+
+  - 如果存储的数据范围超过 DECIMAL 的范围，建议将数据拆成整数和小数并分开存储。
+
+- 【`强制`】如果存储的字符串长度几乎相等，使用 CHAR 定长字符串类型。 比如手机号
+
+- 【`强制`】VARCHAR 是可变长字符串，不预先分配存储空间，*长度不要超过5000*。
+- *如果存储长度大于此值，定义字段类型为 TEXT，独立出来一张表*，用主键来对应，避免影响其它字段索引效率。
+
+------------------
+
+### 约束 constraint
+- 我们在创建表的时候 就可以给表中的字段添加约束 在实际的开发中是一定会创建约束的
+
+- 我们在给表中的字段添加约束后 后续做增删改的时候就要考虑约束
+
+
+> 为什么需要约束
+- 为了保证数据的完整性
+
+- 数据完整性（Data Integrity）是指
+  数据的精确性（Accuracy）
+  可靠性（Reliability）
+
+- 它是防止数据库中存在不符合语义规定的数据和防止因错误信息的输入输出造成无效操作或错误信息而提出的。
+
+
+> 理解数据的完整性
+- 为了保证数据的完整性，SQL规范以约束的方式对**表数据进行额外的条件限制**。从以下四个方面考虑：
+
+- `实体完整性（Entity Integrity）`：
+    例如，
+    同一个表中，不能存在两条完全相同无法区分的记录
+
+- `域完整性（Domain Integrity）`：
+    例如：
+    年龄范围0-120，性别范围“男/女”
+
+- `引用完整性（Referential Integrity）`：
+    例如：
+    员工所在部门，在部门表中要能找到这个部门
+
+- `用户自定义完整性（User-defined Integrity）`：
+    例如：
+    用户名唯一、密码不能为空等，本部门经理的工资不得高于本部门职工的平均工资的5倍。
+
+
+- 上面的限制都是通过约束来体现
+
+
+> 什么是约束
+- 约束是表级的强制规定。
+- 对表中的字段的限制 比如要求该字段是非空的 唯一的等等 作用在字段上的
+
+- 可以在创建表时规定约束
+  CREATE TABLE 语句   或者表创建之后通过
+  ALTER TABLE  语句   规定约束**。
+
+
+> 约束的分类
+> 角度1: 从约束的字段的个数来区分
+- 根据约束数据列的限制(是作用在一个字段上? 还是作用在几个字段的联合上? ) 约束可分为：
+
+  - 单列约束： 每个约束只约束一列
+  <!-- 
+    只给 id 加约束
+   -->
+
+  - 多列约束： 每个约束可约束多列数据
+  <!-- 
+    (id, name) 加约束
+    id name合在一起做一个约束
+   -->
+
+
+> 角度2:
+- 根据约束的作用范围(或者说从定义的位置来分) 约束可分为：
+
+  - 列级约束： 
+    将约束声明在对应的字段后面
+
+  - 表级约束： 
+    在表中所有的字段都声明完以后 在所有字段的后面声明的约束
+    
+
+> 列级约束:
+- 位置: 列的后面
+- 支持的约束类型: 语法都支持，但外键没有效果
+- 是否可以起约束名: 不可以
+
+
+> 表级约束：
+- 位置: 所有列的下面
+- 支持的约束类型: 默认和非空不支持，其他支持
+- 是否可以起约束名: 可以（主键没有效果）
+
+
+> 角度3:
+- 根据约束起的作用(功能), 约束可分为：
+
+- 1. NOT NULL : 非空约束
+  规定某个字段不能为空
+
+- UNIQUE : 唯一约束
+  规定某个字段在整个表中是唯一的
+
+- PRIMARY KEY : 主键(非空且唯一)约束
+
+- FOREIGN KEY : 外键约束
+
+- CHECK : 检查约束
+
+- DEFAULT : 默认值约束
+
+- 注意:
+- MySQL不支持check约束，但可以使用check约束，而没有任何效果
+
+
+- 约束是作用在表中的字段上的 那如何去添加这些约束呢？
+
+> 添加约束的途径
+- create table 的时候 添加约束
+- alter table 的时候 补充添加约束 / 删除约束
+
+
+> 查看表中的约束
+> select * from information_schema.table_constraints where table_name = '表的名字'
+```sql
+SELECT * FROM information_schema.table_constraints
+WHERE table_name = 'employees'
+```
+
+--------
+
+> 非空约束 的使用
+>  NOT NULL
+- 限定某个字段/某列的值不允许为空
+<!-- 
+  比如我们练习中 employees 表中 last_name hire_date salary 都是 not null 不能为空的 而员工所在的部门 department_id 就可以是null 
+-->
+
+- 默认，所有的类型的值都可以是NULL，包括INT、FLOAT等数据类型
+- *非空约束只能*出现在表对象的列上，只能*某个列单独限定非空*，不能组合非空
+
+- 一个表可以有很多列都分别限定了非空
+- 空字符串''不等于NULL，0也不等于NULL
+
+**注意:**
+- not null 只能使用列级约束
+
+
+> 添加非空约束
+> 1. 建表时:
+```sql
+CREATE TABLE 表名称(
+	字段名 数据类型,
+  字段名 数据类型 NOT NULL
+);
+```
+
+- 根据实际的需要我们添加 not null 约束
+```sql
+create table test1(
+  id int NOT NULL,
+  last_name varchar(15) NOT NULL,
+
+  -- 下面两个根据实际的场景就可以不添加
+  email varchar(25),
+  salary decimal(10, 2)
+)
+
+
+desc test1;
+```
+
+- not null 影响的是我们给字段的赋值
+```sql
+insert into test1(id, last_name, email, salary)
+values(1, 'Tom', 'tom@mail', 3300)
+
+
+-- 报错 column 'last_name' cannot be null
+insert into test1(id, last_name, email, salary)
+values(2, null, 'tom@mail', 3300)
+
+
+-- 没有 salary 字段 该字段我们设置了非空 报错
+-- 'last_name' do not have a default value
+insert into test1(id, email)
+values(2, 'abc@mail')
+
+-- 为什么报 last_name 没有默认值的错误呢？
+-- 当我们没有给一个设置非空约束的字段赋值的时候 它会先看看该字段有没有默认值 如果有默认值就会使用默认值 如果没有就会使用null 一用null就会报错
+```
+
+- 因为我们给字段设置了 not null 那么就会影响修改表中的数据的操作
+- 也就是说 我们设置了非空约束后 对于 增删改 是会产生影响的
+
+
+> 2. 在 alter table 时 添加约束(使用的是modify)
+```sql
+alter table 表名称 modify 字段名 数据类型 not null;
+```
+
+```sql
+ALTER TABLE emp
+MODIFY sex VARCHAR(30) NOT NULL;
+```
+
+- 当字段中的值里有null值的时候 我们添加 非空约束 会失败
+
+
+> 在 alter table 时 删除非空约束
+
+```sql
+-- 去掉not null， 相当于修改某个非注解字段，该字段允许为空
+alter table 表名称 modify 字段名 数据类型 NULL;
+
+
+-- 去掉not null， 相当于修改某个非注解字段，该字段允许为空
+alter table 表名称 modify 字段名 数据类型;
+```
+
+```sql
+ALTER TABLE emp
+MODIFY sex VARCHAR(30) NULL;
+
+ALTER TABLE emp
+MODIFY NAME VARCHAR(15) DEFAULT 'abc' NULL;
+```
+
+
+
+> 常见的数据类型的属性
+> NULL
+- 数据列可包含NULL值
+
+
+> NOT NULL
+- 数据列不允许包含NULL值
+
+
+> DEFAULT -- default
+- 默认值
+
+
+> PRIMARY KEY -- primary key
+- 主键
+
+
+> AUTO_INCREMENT  -- auto increment
+- 自动递增 适用于整数类型
+
+
+> UNSIGNED  -- unsigned
+- 无符号
+- 主要针对数值类型 因为有正有负 如果加上它的话 只能表示正数
+- 比如: 年龄字段 就可以用 unsigned 来修饰
+
+
+> CHAEACTER SET 'name'  --  character set 'name'
+- 指定一个字符集
+- 我们在创建数据库的时候可以指明字符集
+- create dateabase if not exists dbtest12 character set 'utf8'
+
+- 我们还可以 创建表的时候 指明 *表的字符集*
+
+> create table emp1(字段 字段类型, 字段2 ...) character set 'utf8'
+- 在创建表的语句的末尾 使用 character set '字符集' 指定表的字符集
+```sql
+create table emp1(
+  id int
+) character set 'utf8'
+```
+
+- 我们还可以创建表 指明表中的字段的时候 可以指定 *字段的字符集*
+
+> create table emp2(字段 字段类型 character set '字符集')
+```sql
+create table emp2(
+  id int,
+  -- name字段 显式的指明该字段的字符集 为gbk
+  name varchar(15) character set 'gbk'
+)
+```
+
+- 在开发的时候 我们在创建数据库的时候 指明字符集
+
+
+> 常用的几类类型介绍如下：
 
 > INT
 - 从-2^31到2^31-1的整型数据。存储大小为 4个字节
@@ -7049,7 +9363,27 @@ DROP TABLE book1, book2;
 
 ------------------
 
-### 书签
+### 面试
+
+> 面试1、为什么建表时， 加 not null default '' 或 default 0
+- 答：不想让表中出现null值。
+
+> 面试2、为什么不想要 null 的值
+- 答:
+（1）不好比较。null是一种特殊值，比较时只能用专门的is null 和 is not null来比较。碰到运算符，通常返回null。
+
+（2）效率不高。影响提高索引效果。因此，我们往往在建表时 not null default '' 或 default 0
+
+> 面试3、带AUTO_INCREMENT约束的字段值是从1开始的吗？
+- 在MySQL中，默认AUTO_INCREMENT的初始值是1，每新增一条记录，字段值自动加1。
+
+- 设置自增属性（AUTO_INCREMENT）的时候，还可以指定第一条插入记录的自增字段的值，这样新插入的记录的自增字段值从初始值开始递增，如在表中插入第一条记录，同时指定id值为5，则以后插入的记录的id值就会从6开始往上增加。添加主键约束时，往往需要设置字段自动增加属性。
+
+
+> 面试4、并不是每个表都可以任意选择存储引擎？
+- 外键约束（FOREIGN KEY）不能跨引擎使用。
+
+- MySQL支持多种存储引擎，每一个表都可以指定一个不同的存储引擎，需要注意的是：外键约束是用来保证数据的参照完整性的，如果表之间需要关联外键，却指定了不同的存储引擎，那么这些表之间是不能创建外键约束的。所以说，存储引擎的选择也不完全是随意的。
 
 ------------------
 
