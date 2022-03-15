@@ -106,6 +106,12 @@ md rd hello.txt d: dir rm
 
 > m1的情况下如何安装14版本的node
 - https://mako-note.com/ja/install-node14-on-m1-mac/
+<!-- 
+    // 仅供参考
+    https://blog.csdn.net/longgege001/article/details/114067242?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-1-114067242.pc_agg_new_rank&utm_term=m1+mac+nvm%E5%AE%89%E8%A3%85&spm=1000.2123.3001.4430
+
+    https://blog.csdn.net/yunchong_zhao/article/details/121282961?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-1-121282961.pc_agg_new_rank&utm_term=m1%E8%8A%AF%E7%89%87+%E5%AE%89%E8%A3%85%E4%BD%8E%E7%89%88%E6%9C%ACnode&spm=1000.2123.3001.4430
+ -->    
 
 
 > 配置nvm

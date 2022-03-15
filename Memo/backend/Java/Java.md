@@ -10622,7 +10622,7 @@ public Student(String name, int age, String major) {
 - 什么是多态性：
 - 多态性又称对象的多态性
 
-    Person p = ... new (这个部分要是一个对象)
+    Person p = ... new (这个部分要是一个子类对象)
     - 我们new了一个子类的对象 赋值给了声明为父类的变量
 
 - 上面的代码中右侧的部分的对象体现了多种形态 叫做对象的多态性
@@ -10743,7 +10743,6 @@ public class Man extends Person {
 **注意:**
 - 多态性不适用于属性 对于属性来说 编译和运行都看左边
   
-
 - 我们可以调用Person中定义好的方法 eat walk 但是不能调用子类特有的earnMoney() 
 
 - p2.eat()

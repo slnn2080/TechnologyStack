@@ -9274,6 +9274,1132 @@ ALTER TABLE emp
 MODIFY NAME VARCHAR(15) DEFAULT 'abc' NULL;
 ```
 
+--------
+
+> 唯一性约束
+> UNIQUE
+- 用来限制某个字段/某列*的值*不能重复。 也就是值唯一
+- 比如 我们向 email 字段 连续添加两次一样的值 第二次就添加不进去
+
+> unique 特点
+- 1. 同一个表可以有多个唯一约束。
+- 2. 唯一约束可以是某一个列的值唯一，也可以多个列组合的值唯一。
+
+- 3. 唯一性约束允许列值为空 NULL。可以多次添加null值
+
+- 4. 在创建唯一约束的时候，如果不给唯一约束命名，就默认和列名相同。(起名的话就是我们起的名 没起的话 就是列的字段名 比如id name salary)
+*MySQL会给唯一约束的列上默认创建一个唯一索引。*
+
+
+> 添加约束
+> 1. 创建表的时候 添加约束
+> 列级约束
+- 我们将约束声明在字段的后面了 这种情况就叫做 *列级约束*
+```sql
+create table test2(
+  -- 员工的id都是不一样的 所以 id 可以加 unique
+  id int unique,
+  last_name varchar(15),
+
+  -- 员工邮箱也应该不一样
+  email varchar(25) unique,
+  salary decimal(10, 2)
+)
+```
+
+> 表级约束
+> [constraint 约束名] 约束(字段)  -- [可以省略]
+> 约束(字段)
+- 我们将约束声明在所有字段完了的后面 叫做 *表级约束*
+```sql
+create table test2 (
+  字段 类型 [列级约束],
+  字段 类型 [列级约束],
+  ...,
+
+  -- 声明在所有字段的后面
+  constraint uni_test2_email unique(email)
+
+  -- 解析:
+  -- constraint关键字 + 约束名 + unique(作用在email字段上)
+
+  -- 约束名: 约束缩写_表名_作用的字段名
+
+
+  -- 表级约束的缩写
+  unique(email)
+)
+```
+
+- 约束名的作用:
+- 在删除约束的时候 我们需要用到约束名
+
+
+- 添加数据
+```sql
+-- 这是正常添加没有问题的
+insert into test2(id, last_name, email, salary)
+values(1, 'Tom', 'tom@126.com', 4500)
+
+
+-- 报错
+-- 当已定义为唯一约束的字段 添加重复的一样的值的时候会报错
+insert into test2(id, last_name, email, salary)
+values(1, 'Tom', 'tom@126.com', 4500)
+
+
+-- 正常添加
+-- 可以向声明为 unique 的字段上添加 null 值
+insert into test2(id, last_name, email, salary)
+values(2, 'Tom', null, 4500)
+
+-- 正常添加
+-- 可以向该字段多次的添加 null 值
+insert into test2(id, last_name, email, salary)
+values(3, 'Tom', null, 4500)
+```
+
+
+> 2. 在 alter table 的时候 添加约束
+- 方式1:
+- 使用 方式1 就是给表级约束的写法:
+
+```sql
+alter table 表名称 add unique(字段名1, 字段名2)
+```
+
+- 方式1举例
+```sql
+alter table test2
+-- 没有给约束起名字 那么就是字段名就是约束名
+add unique(salary)
+
+
+-- 给约束起名字
+alter table test2
+add constraint uni_test2_sal unique(salary);
+```
+
+
+- 方式2: 
+```sql
+alter table 表名称 modify 字段名 字段类型 unique;
+```
+
+- 方式2举例:
+- 列级约束的方式
+```sql
+alter table test2
+modify last_name varchar(15) unique
+```
+
+
+> 复合的唯一性约束 or 多列约束
+- 多列约束 只能以 表级约束的方式来指定
+
+- 我们给多列添加唯一性约束 多列中只要有一列的值不一样就可以添加成功
+<!-- 
+  name password
+  sam  123456
+
+  -- 添加数据
+  sam  123    -- 成功
+  erin 123456 -- 成功
+
+  sam 123456  -- 失败
+ -->
+
+```sql
+create table user(
+  id int,
+  `name` varchar(15),
+  `password` varchar(25),
+
+  -- 指定 name 和 password 两列的约束
+  constraint uni_user_name_pwd unique(`name`, `password`)
+)
+```
+
+- 插入值:
+```sql
+-- 第一条数据 肯定正常添加
+insert into user
+values(1, 'Tom', 'pwd-abc')
+
+
+-- 我们是给 name password 两个字段指定 unique
+-- 下面 name 不一样 password 一样 可以添加成功么?
+-- 可以
+insert into user
+values(1, 'Tom1', 'pwd-abc')
+
+
+-- 添加失败
+insert into user
+values(1, 'Tom', 'pwd-abc')
+```
+
+
+> 添加多列约束的场景:
+- 案例:
+```sql
+-- 学生表
+create table student(
+	sid int,	            -- 学号
+  sname varchar(20),    -- 姓名
+  tel char(11) unique key,    -- 电话
+  cardid char(18) unique key  -- 身份证号
+);
+
+
+-- 课程表
+create table course(
+	cid int,          -- 课程编号
+  cname varchar(20) -- 课程名称
+);
+
+
+-- 选课表
+-- 某个学生 选的 哪门课
+create table student_course(
+  id int,
+	sid int,    -- 学号
+  cid int,    -- 课程编号
+  score int,
+
+  -- 一个学生一门课只能有一个成绩 不能出现一个学生一门课有多个成绩
+  unique key(sid, cid)  -- 复合唯一
+);
+
+
+
+insert into student 
+values(1,'张三','13710011002','101223199012015623');  -- 成功
+
+insert into student 
+values(2,'李四','13710011003','101223199012015624');  -- 成功
+
+insert into course 
+values(1001,'Java'),(1002,'MySQL');  -- 成功
+
+
+select * from student;
++-----+-------+-------------+--------------------+
+| sid | sname | tel         | cardid             |
++-----+-------+-------------+--------------------+
+|   1 | 张三  | 13710011002 | 101223199012015623 |
+|   2 | 李四  | 13710011003 | 101223199012015624 |
++-----+-------+-------------+--------------------+
+
+
+select * from course;
++------+-------+
+| cid  | cname |
++------+-------+
+| 1001 | Java  |
+| 1002 | MySQL |
++------+-------+
+
+
+insert into student_course 
+values
+(1, 1, 1001, 89),
+(2, 1, 1002, 90),
+(3, 2, 1001, 88),
+(4, 2, 1002, 56);  -- 成功
+
+select * from student_course;
++----+------+------+-------+
+| id | sid  | cid  | score |
++----+------+------+-------+
+|  1 |    1 | 1001 |    89 |
+|  2 |    1 | 1002 |    90 |
+|  3 |    2 | 1001 |    88 |
+|  4 |    2 | 1002 |    56 |
++----+------+------+-------+
+
+
+-- 违反sid-cid的复合唯一    失败
+-- ERROR 1062 (23000): Duplicate entry '1-1001' for key 'sid' 
+-- 这样相当于 张三这个学生java课有两次成绩 这样就不行 
+insert into student_course values (5, 1, 1001, 88);
+```
+
+
+> 删除唯一性约束
+> alter table 表名 drop index 唯一约束名
+
+- 添加唯一性约束的列上也会自动创建唯一索引。
+<!-- 
+  唯一约束上对应的所以叫做唯一索引
+-->
+
+- 删除唯一约束只能通过删除唯一索引的方式删除。
+- 删除时需要指定唯一索引名，唯一索引名就和唯一约束名一样。
+
+- 如果创建唯一约束时未指定名称，如果是单列，就默认和列名相同；
+- 如果是组合列，那么默认和(列名1, 列名2)中排在第一个的列名1相同。也可以自定义唯一性约束名。
+
+**总结: 删除唯一约束通过唯一约束的名即可**
+
+```sql
+-- 查看有哪些约束
+SELECT * FROM information_schema.table_constraints 
+WHERE table_name = '表名';
+
+
+ALTER TABLE USER 
+DROP INDEX uni_name_pwd;
+```
+
+**扩展：**
+> show index from 表名称;
+- 查看表的索引
+
+--------
+
+> PRIMARY KEY 约束 -- primary key
+- 用来唯一标识表中的一行记录。
+- 我们前面说过 实体的完整性 同一张表中 不能存在两条完全相同无法区分的记录 
+- 为了确保我们有两条一样的记录 我们就会只用主键
+
+- 主键约束相当于
+      唯一约束 + 非空约束的组合
+
+- 主键约束检具了唯一约束的特点 和 非空约束的特点 
+- 主键约束的列不允许值重复，也不允许出现空值。
+<!-- 
+  比如我们给id声明为主键
+  那么我们添加两条
+  id
+  1
+  1
+
+  是不行的
+ -->
+
+- 一个表最多只能有一个主键约束
+- 建立主键约束可以在列级别创建，也可以在表级别上创建。
+
+- 主键约束对应着表中的一列或者多列（复合主键）
+- 如果是多列组合的复合主键约束，那么这些列都不允许为空值，并且组合的值不允许重复。
+
+- **MySQL的主键名总是PRIMARY**，就算自己命名了主键约束名也没用。
+
+- 当创建主键约束时，系统默认会在所在的列或列组合上建立对应的**主键索引**（能够根据主键查询的，就根据主键查询，效率更高）。如果删除主键约束了，主键约束对应的索引就自动删除了。
+
+**注意:**
+- 不要修改主键字段的值。因为主键是数据记录的唯一标识，如果修改了主键的值，就有可能会破坏数据的完整性。
+
+
+> 添加 主键 约束
+> 1. 建表时指定主键约束
+```sql
+create table 表名称(
+  -- 列级
+	字段名  数据类型  primary key,
+  字段名  数据类型,  
+  字段名  数据类型,
+
+  -- 表级
+  [constraint 约束名] primary key(字段名)
+);
+```
+
+
+- 1. 一个表中 最多只能有一个主键约束
+- 2. 在以后创建表的时候 都要加上主键约束 提供一个主键
+- 3. 主键约束的特征:
+- 非空且唯一 用于唯一的标识表中的一条记录
+<!-- 
+  unique 不就是用来标识 数据的唯一性的么？
+  unique 可以添加 null值 比如我们查询下谁是空值  能查出来很多条记录 
+
+  所以在unique的基础上 我们再加上非空就是主键的特征了
+ -->
+
+- 4. 适合加上主键约束的字段: id
+- 5. 表级约束的时候 没有必要给主键约束起名字 固定就是primary
+
+- 6. 复合约束 也就是几个字段合在一起被当成主键 那么只有全部字段都一样才会报错 有一个字段不一样都可以添加成功
+
+- 7. 复合约束 这些字段 不能为null 任何一个都不可以
+
+- 8. 当没有主键的时候 系统会自动帮我们选择一个字段 比如优先选唯一性的约束的字段 去帮我们构建一个b+tree存放数据 也没有唯一性约束的时候 会自动通过优化器帮我们选择一个字段来构建
+ 
+```sql
+create table test3(
+  -- 给id添加 主键约束
+  id int primary key,
+  last_name varchar(15),
+  salary decimal(10, 2),
+  email varchar(25)
+)
+
+
+create table test3(
+  id int,
+  last_name varchar(15),
+  salary decimal(10, 2),
+  email varchar(25),
+
+  -- 表级约束
+  -- 即使我们给 primary key 添加约束名 也没有 它就叫做 primary
+  constraint pk_test3_id primary key(id)
+)
+```
+
+- 复合主键约束
+```sql
+create table user(
+  id int,
+  name varchar(15),
+  password varchar(25),
+
+  -- name 和 password 合在一起 构成 主键约束
+  primary key(name, password)
+)
+
+
+-- 正常添加
+insert into user
+values(1, 'Tom', 'abc');
+
+-- name 和 password 合在一起 构成 主键约束
+-- 我们只修改了 name 看看能不能添加成功
+-- 可以
+insert into user
+values(1, 'Tom1', 'abc');
+
+
+-- 复合的主键约束中 任一字段 也不能 为null
+-- 报错
+insert into user
+values(1, null, 'abc');
+```
+
+
+> 2. alter table的时候添加 主键约束
+```sql
+alter table 表名称 
+-- 字段列表可以是一个字段，
+-- 也可以是多个字段，如果是多个字段的话，是复合主键
+ADD PRIMARY KEY(字段列表); 
+```
+
+```sql
+create table test3(
+  id int primary key,
+  last_name varchar(15),
+  salary decimal(10, 2),
+  email varchar(25)
+)
+
+
+-- alter table 添加主键约束
+alter table test3
+add primary key(id)
+```
+
+
+> 删除主键约束 (在实际开发中 不会去删除表中的主键约束)
+```sql
+alter table 表名称 drop primary key;
+```
+1
+```sql
+alter table test3 drop primary key;
+```
+
+--------
+
+> 自增列: auto_increment
+- auto_increment就是作用在主键上的 声明在某个字段上后 让该字段的值自动的增长
+
+- 一般自增长都会加在主键身上
+
+> 特点:
+- 1. 一个表最多只能有一个自增长列
+- 2. 当需要产生唯一标识符或顺序值时，可设置自增长
+- 3. 自增长列约束的列必须是主键约束 或者 唯一约束 其他的列不可以
+- 4. 自增约束的列的数据类型必须是整数类型
+- 5. 
+  如果自增列指定了 0 和 null，会在当前最大值的基础上自增；
+  如果自增列手动指定了具体值，直接赋值为具体值。
+
+
+> 建表时指定 自增约束(自增列)
+```sql
+create table 表名称(
+	字段名  数据类型  primary key auto_increment,
+  字段名  数据类型  unique key not null,  
+  字段名  数据类型  unique key,
+  字段名  数据类型  not null default 默认值, 
+);
+
+create table 表名称(
+	字段名  数据类型 default 默认值 ,
+  字段名  数据类型 unique key auto_increment,  
+  字段名  数据类型 not null default 默认值,
+
+  primary key(字段名)
+);
+```
+
+
+```sql
+create table test(
+  -- 自增长列 必须声明在 主键约束 或者 唯一约束上
+  id int primary key auto_increment,
+  last_name varchar(15)
+)
+
+
+-- 当我们给id字段设置为 自增长后 主键的字段(id)就不用管了
+-- id 会自动增长
+insert into test(last_name)
+values('Tom')
+
+
+-- 不建议的使用方式1:
+-- 我们给id设置了 auto_increment 但是我们还是指定给主键添加值
+insert into test(id, last_name)  -- id可以不用管的
+values(0, 'Tom')
+-- 即使我们指定0 该数据也会自动增长 比如上一条是1 这条我们指定0 这条数据的结果也是2
+-- 即使我们指定null 该数据也会自动增长为3
+```
+
+- 1. 当我们向主键(含auto_increment)的字段上添加0或null的时候 实际上会自动的往上添加指定的字段的数值(原来的auto_increment到哪了 接着网上增)
+
+- 2. 当我们向主键(含auto_increment)的字段上添加 表中没有的数值的时候 这时候会添加成功
+<!-- 
+  1
+  2
+  3
+  4
+  5
+
+  我们添加 id 为 10 -- 成功
+  1
+  2
+  3
+  4
+  5
+  10
+
+  我们添加id 为 -10 -- 成功
+  -10
+  1
+  2
+  3
+  4
+  5
+ -->
+
+- 3. 上面我们在5的后面 直接指定了10 然后我们再次添加一条数据的话 会是接着10添加 也就是下条数据会是11
+<!-- 
+  1
+  2
+  3
+  4
+  5
+  10
+  11 -- 新数据
+ -->
+
+- 4. 添加的数据 会按照主键(id) 排序存放
+
+> 总结:
+- 开发中一旦主键作用的字段上声明有 auto_increment
+- 则我们在添加数据时 就不要给主键对应的字段去赋值了(也就是添加数据的时候 不用指明自增长的字段了)
+<!-- 
+  比如我们给id设置了自增长 那么我们在添加数据的时候 不要指明id
+
+  insert into test(name, password)
+  values(...)
+ -->
+
+
+> 在 alter table 时添加
+```sql
+alter table 表名
+modify 字段 int auto_increment
+```
+
+
+```sql
+create table test(
+  id int primary key,
+  last_name varchar(15)
+)
+
+-- 我们使用modify的添加自增长的时候 没用将主键约束也机上呢
+alter table test
+modify id int auto_increment
+```
+
+
+> 删除 自增长
+- 就是在已添加 auto_increment 的字段上 使用modify修改的时候 不写 auto_increment 就是删除
+```sql
+alter table 表名
+modify 字段 int
+```
+
+
+> MySQL 8.0新特性—自增变量的持久化
+- 在MySQL8.0之前，自增主键AUTO_INCREMENT的值如果大于max(primary key)+1，在MySQL重启后，会重置
+
+- AUTO_INCREMENT=max(primary key)+1，这种现象在某些情况下会导致业务主键冲突或者其他难以发现的问题。
+
+- 下面通过案例来对比不同的版本中自增变量是否持久化。
+
+> 在 mysql5.7中 演示
+```sql
+-- 创建数据库
+create database dbtest;
+
+-- 使用数据库
+use dbtest;
+
+-- 创建表
+create table test(
+  id int primary key auto_increment
+)
+
+-- 添加数据
+insert into test
+values
+-- 我们写0的时候 会自动的往上去增
+(0),
+(0),
+(0),
+(0)
+
+select * from test;
+id
+1
+2
+3
+4
+
+-- 删掉id=4的记录
+delete from test
+where id = 4
+
+-- 然后再添加数据
+insert into test
+values(0)
+
+-- 上面我们已经把id=4的数据删除了
+select * from test;
+id
+1
+2
+3
+5 -- 添加的新数据是5
+
+-- 因为原来已经到4了 然后我们把4删除了 它并没有从3的基础上自增 而是从4的基础上再次自增成为5
+
+-- 这种情况叫做 裂缝
+
+
+-- 我们再把id=5的记录删掉
+delete from test
+where id = 5
+
+select * from test;
+id
+1
+2
+3
+
+-- 在这个时候 我们把 mysql数据库重启一下
+net stop mysql57 -- 关闭mysql5.7
+net start mysql57
+
+select * from test;
+id
+1
+2
+3
+
+-- 重启服务器后 再插入数据
+insert into test
+values(0)
+
+select * from test;
+id
+1
+2
+3
+4
+
+-- 按照上面的思路 我们新添加的数据应该是6 但是重启服务器后发现是4了
+
+-- 为什么？
+-- 原因:
+-- auto_increment 在内存中维护了一个值 这个值在内存中会依次递增 当我们重启服务器后 内存中的这个值就不存在了 当我们再次添加的时候 它会先获取id字段添加到几了 然后依照这个值 继续自增
+```
+
+- 从结果可以看出，新插入的0值分配的是4，按照重启前的操作逻辑，此处应该分配6。出现上述结果的主要原因是自增主键没有持久化。
+
+- 在MySQL 5.7系统中，对于自增主键的分配规则，是由InnoDB数据字典内部一个`计数器`来决定的，而该计数器只在`内存中维护`，并不会持久化到磁盘中。当数据库重启时，该计数器会被初始化。
+
+
+> 在 mysql8.0中 演示
+```sql
+-- 创建数据库
+create database dbtest;
+
+-- 使用数据库
+use dbtest;
+
+-- 创建表
+create table test(
+  id int primary key auto_increment
+)
+
+-- 添加数据
+insert into test
+values
+-- 我们写0的时候 会自动的往上去增
+(0),
+(0),
+(0),
+(0)
+
+select * from test;
+id
+1
+2
+3
+4
+
+-- 删掉id=4的记录
+delete from test
+where id = 4
+
+-- 然后再添加数据
+insert into test
+values(0)
+
+-- 上面我们已经把id=4的数据删除了
+select * from test;
+id
+1
+2
+3
+5 -- 添加的新数据是5
+
+
+-- 我们再把id=5的记录删掉
+delete from test
+where id = 5
+
+select * from test;
+id
+1
+2
+3
+
+-- 在这个时候 我们把 mysql数据库重启一下
+net stop mysql80
+net start mysql80
+-- 57 80 在windows -- 管理 -- 里面能到看
+
+select * from test;
+id
+1
+2
+3
+
+-- 重启服务器后 再插入数据
+insert into test
+values(0)
+
+select * from test;
+id
+1
+2
+3
+6
+
+-- 我们发现mysql8.0中 会是6
+-- 也就是说 8.0 中的 auto_increment 是持久化的 它不是像5.7一样放在内存中维护的 8.0中是放在了 重做日志 中
+-- 它将计数器的值放在了 重做日志中 当重启的时候 会从 重做日志 中读取计数器的值
+```
+
+- 从结果可以看出，自增变量已经持久化了。
+
+- MySQL 8.0将自增主键的计数器持久化到`重做日志`中。每次计数器发生改变，都会将其写入重做日志中。如果数据库重启，InnoDB会根据重做日志中的信息来初始化计数器的内存值。
+
+--------
+
+> 外键约束 foreign key
+- 限定某个表的某个字段的引用完整性。
+- 我们上面说过 引用完整性 比如 员工所在部门 在部门表中要能找到这个部门 这就叫做引用完整性 这就是通过外键约束来起作用
+
+<!-- 
+  // departments
+  primary key
+  ---------------------------------
+  department_id  |  department_name    部门表
+  ---------------------------------
+              ↖
+                ↖
+                  ↖
+  // employees      ↖
+                  foreign key
+  ---------------------------------
+  employee_id  |  department_id       员工表
+  ---------------------------------
+
+
+  然后我们往 员工表中添加数据
+  添加
+  200  sam  9   -- 正常添加 因为 部门表里面有9
+  200  erin 60  -- 添加失败 因为 部门表里面没有60
+
+  添加失败的原因就是
+  员工表中的 department_id 字段 
+      关联了 
+          部门表中的 department_id 字段
+
+
+
+  部门表中的 department_id 叫做主键
+  员工表中的 department_id 叫做外键
+
+
+  员工表 有 外键(department_id) 关联了 部门表的 主键
+
+  部门表就是主表(父表)
+  员工表就是从表(子表)
+
+
+  我们通过外键关联了别的表中的主键 起作用的效果是
+  我们往 从表 中添加数据的时候 外键字段中的值 必须存在于关联主表字段中 已经存在的值 如果主表关联字段中没有 则添加失败
+
+ -->
+
+
+
+> 主表和从表 / 父表和子表
+- 主表（父表）：
+    被引用的表，被参考的表 (有一个字段被参考了)
+
+- 从表（子表）：
+    引用别人的表，参考别人的表 (参考别的表中的一个字段)
+
+- 例如：
+- 员工表的员工所在部门这个字段的值要参考部门表：部门表是主表，员工表是从表。
+
+- 例如：
+- 学生表、课程表、选课表：选课表的学生和课程要分别参考学生表和课程表，学生表和课程表是主表，选课表是从表。
+
+
+> 特点
+- 1. 从表的外键列(外键字段)，必须引用/参考 主表的主键或唯一约束的列
+- 为什么？因为被依赖/被参考的值必须是唯一的
+
+- 2. 在创建外键约束时，如果不给外键约束命名，**默认名不是列名，而是自动产生一个外键名**（例如 student_ibfk_1;），建议指定外键约束名。
+
+- 3. 创建(CREATE)表时就指定外键约束的话，先创建主表，再创建从表
+
+- 4. 删表时，先删从表（或先删除外键约束），再删除主表
+
+- 5. 当主表的记录被从表参照时，主表的记录将不允许删除，如果要删除数据，需要先删除从表中依赖该记录的数据，然后才可以删除主表的数据
+
+- 6. 在“从表”中指定外键约束，并且一个表可以建立多个外键约束
+<!-- 
+  员工表中 department_id 参照 departments表
+  员工表中 job_id 参照 jobs表
+
+  这些都是员工表中的外键
+ -->
+
+- 7. 从表的外键列与主表被参照的列名字可以不相同，但是数据类型必须一样，逻辑意义一致。
+- 如果类型不一样，创建子表时，就会出现错误
+- “ERROR 1005 (HY000): Can't create table'database.tablename'(errno: 150)”。
+-  例如：都是表示部门编号，都是int类型。
+
+- 8. **当创建外键约束时，系统默认会在所在的列上建立对应的普通索引**。但是索引名是外键的约束名。（根据外键查询效率很高）
+
+- 9. 删除外键约束后，必须`手动`删除对应的索引
+
+
+> 添加外键约束 foreign key
+> create table 时添加
+- 前提:
+- 1. 先创建主表(也就是被参照的表)
+- 2. 被参照的字段(主表中的字段) 必须是主键或者是唯一约束的键
+
+> 表级约束
+> [constraint 约束名] foreign key (本表字段) references 主表(主表中关联哪个字段)
+
+```sql
+-- 先创建主表
+create table dept1(
+  -- 该字段必须是主键 或者是 唯一约束的键
+  dept_id int primary key,
+  dept_name varchar(15)
+)
+
+-- 再创建从表
+create table emp1(
+  emp_id int primary key auto_increment,
+  emp_name varchar(15),
+
+  -- 该字段名还可以跟主表中关联字段名不一样
+  dept_id int,
+
+  -- 表级约束
+  -- foreign key (dept_id) 设置本表中 dept_id 为外键
+  -- references dep1(dept_id) 关联 主表中的指定字段
+  constraint fk_emp1_dept_id foreign key (dept_id) references dep1(dept_id)
+)
+```
+
+**注意:**
+- 1. (从表的某个字段)的数据类型必须与主表名(被参考字段)的数据类型一致，逻辑意义也一样
+
+- 2. (从表的某个字段)的字段名可以与主表名(被参考字段)的字段名一样，也可以不一样
+
+
+- 演示外键的效果
+```sql
+-- 我们往 emp1 表中添加数据
+insert into emp1
+values(1001, 'Tom', 10)
+    -- 添加失败 因为主表中没有10号部门
+
+
+-- 先给主表添加数据 添加一个10号部门
+insert into dept1
+values(10, 'IT')
+
+-- 然后再给 emp1 表中添加 有10部门的数据
+insert into emp1
+values(1001, 'Tom', 10)
+    -- 成功
+
+
+-- 删除部门表中的10号部门 删除失败
+-- 必须先删除从表中10号部门相关的数据 然后再删
+delete from dept1
+where dept_id = 10
+
+-- 修改部门表中的10部门 修改为 20部门 修改失败
+-- 也是因为外键的影响
+update dept1
+set dept_id = 20
+where dept_id = 10
+```
+
+
+> alter table 是添加
+- 一般情况下，表与表的关联都是提前设计好了的，因此，会在创建表的时候就把外键约束定义好。
+- 不过，如果需要修改表的设计（比如添加新的字段，增加新的关联关系），但没有预先定义外键约束，那么，就要用修改表的方式来补充定义。
+
+> alter table 从表名 add [constraint 约束名] foreign key (从表字段) references 主表名(被引用字段) [on update cascade on delete set null]
+-- 最后是约束等级
+
+```sql
+-- 先创建 部门表
+create table dept2(
+  dept_id int primary key,
+  dept_name varchar(15)
+)
+
+
+-- 再创建员工表
+create table emp2(
+  emp_id int primary key auto_increment,
+  emp_name varchar(15),
+  department_id int
+)
+
+
+-- 使用 alter table 的形式添加外键约束
+alter table emp2
+add constraint fk_emp2_dept_id foreign key(department_id) references dept2(dept_id)
+```
+
+
+> 约束等级
+- `Cascade方式`：
+- 在父表上update/delete记录时，同步update/delete掉子表的匹配记录 
+<!-- 
+  我们发现在单独删除或者更新主表的数据的时候 发现会报错
+
+  当我们使用这种模式的时候
+  修改 主表的 10部门 -> 20部门
+  从表的10号部门也会变成20部门
+
+  如果我们将主表中的10部门的记录删掉 从表中的10号部门的记录也会被删掉
+ -->
+
+
+- `Set null方式`：
+- 在父表上update/delete记录时，将子表上匹配记录的列设为null，但是要注意子表的外键列不能为not null  
+<!-- 
+  我们修改主表中的 10部门 -> 20部门
+  从表中的10号部门的信息 会变成null
+ -->
+
+
+- `No action方式`：
+- 如果子表中有匹配的记录，则不允许对父表对应候选键进行update/delete操作 *默认不添加约束等级的时候 就是 no action*
+
+--- 下面的了解就可以 ---
+
+- `Restrict方式`：
+- 同no action， 都是立即检查外键约束
+
+
+- `Set default方式`
+- （在可视化工具SQLyog中可能显示空白）：父表有变更时，子表将外键列设置成一个默认的值，但Innodb不能识别
+
+
+**注意:**
+- 1. 如果没有指定等级，就相当于Restrict方式。
+**结论:**
+- 2. 对于外键约束，最好是采用: `ON UPDATE CASCADE ON DELETE RESTRICT` 的方式。
+
+
+- 演示: 
+- update的时候 使用 cascade
+- delete的时候 使用 set null
+```sql
+-- 创建部门表 
+create table dept(
+	did int primary key,		-- 部门编号
+  dname varchar(50)			  -- 部门名称
+);
+
+
+-- 创建员工表
+create table emp(
+	eid int primary key,  -- 员工编号
+  ename varchar(5),     -- 员工姓名
+  deptid int,				    -- 员工所在的部门
+
+  -- 把修改操作设置为级联修改等级，把删除操作设置为set null等级
+  foreign key (deptid) references dept(did) on update cascade on delete set null
+);
+
+
+-- 先添加主表的数据
+insert into dept values(1001,'教学部');
+insert into dept values(1002, '财务部');
+insert into dept values(1003, '咨询部');
+
+
+-- 再添加从表的数据
+-- 在添加这条记录时，要求部门表有1001部门
+insert into emp values(1,'张三',1001); 
+insert into emp values(2,'李四',1001);
+insert into emp values(3,'王五',1002);
+
+
+-- 更新主表中的 部门编号 did  修改成成
+update dept
+set did = 1006
+where did = 1002
+
+
+-- 修改了 部门表中 did 1002 - 1006
+-- 员工表中 原先王五所在1002部门 被修改成了1006
+
+
+-- 删除部门表中的 1006
+delete from dept
+where did = 1006
+
+
+-- 员工表中 原先王五所在的1006部门 变成了null
+```
+
+
+> 删除外键约束
+> alter table 从表名 drop foreign key 外键约束名;
+- 一个表中可以声明有多个外键约束 所以删除的时候我们要指明要删的是哪一个
+
+- 步骤:
+- 1. 第一步先查看约束名 和 删除外键约束
+```sql
+-- 查看某个表的约束名
+SELECT * FROM information_schema.table_constraints WHERE table_name = '表名称'
+
+
+-- 删除外键约束
+alter table emp1
+drop foreign key fk_emp1_dept_id(这是外键的约束名)
+```
+
+
+- 如果外键自动生成的普通索引也不想要了 走 2 3 的流程
+- 2. 第二步查看索引名和删除索引（注意，只能手动删除）
+```sql
+-- 查看某个表的索引名
+SHOW INDEX FROM 表名称;
+```
+
+- 3. 删除
+```sql
+ALTER TABLE 从表名 DROP INDEX 外键约束名;
+-- 索引名是 key_name
+```
+
+
+> 开发中到底要不要用 外键约束？？
+- 我们前面讲了非空约束 唯一约束 主键约束 这3个我们在开发的时候能用上就用上 尤其是主键约束是一定要有的 因为它直接影响了主键索引 和 表 b+tree 的结构
+
+- 那外键约束要不要用？
+
+> 问题1：
+- 如果两个表之间有关系（一对一、一对多），比如：员工表和部门表（一对多），它们之间是否一定要建外键约束？
+
+- 答：不是的
+
+
+> 问题2：
+- 建和不建外键约束有什么区别？
+
+- 答：建外键约束，你的操作（创建表、删除表、添加、修改、删除）会受到限制，从语法层面受到限制。例如：在员工表中不可能添加一个员工信息，它的部门的值在部门表中找不到。
+
+- 不建外键约束，你的操作（创建表、删除表、添加、修改、删除）不受限制，要保证数据的`引用完整性`，只能依`靠程序员的自觉`，或者是`在Java程序中进行限定`。
+
+- 例如：在员工表中，可以添加一个员工的信息，它的部门指定为一个完全不存在的部门。
+
+
+> 问题3：
+- 那么建和不建外键约束和查询有没有关系？
+- 答：没有 跟增删改有关系
+
+> 结论:
+- 在 MySQL 里，外键约束是有成本的，需要消耗系统资源。对于大并发的 SQL 操作，有可能会不适合。
+
+- 比如大型网站的中央数据库，可能会`因为外键约束的系统开销而变得非常慢`。所以，MySQL 允许你不使用系统自带的外键约束，在`应用层面`完成检查数据一致性的逻辑。
+<!-- 
+  比如 我们创建一个部门数组 看看我们要添加的员工信息中的部门是不是 数组里面的 如果不是 就不让添加 也就是把能不能添加的约束行为 放在应用层面来完成
+ -->
+
+- 也就是说，即使你不用外键约束，也要想办法通过应用层面的附加逻辑，来实现外键约束的功能，确保数据的一致性。
+
+
+> 阿里开发规范
+-【`强制`】不得使用外键与级联，一切外键概念必须在应用层解决。 
+
+- 说明：（概念解释）学生表中的 student_id 是主键，那么成绩表中的 student_id 则为外键。如果更新学生表中的 student_id，同时触发成绩表中的 student_id 更新，即为级联更新。
+
+- 外键与级联更新适用于`单机低并发`，不适合`分布式`、`高并发集群`；级联更新是强阻塞，存在数据库`更新风暴`的风险；外键影响数据库的`插入速度`。
+
+
+> 结论
+- mysql给我们提供了外键的功能 用于体现引用的完整性 但是在实际开发中 我们会在应用层面解决数据的完整性 而不是通过数据库中的外键
+
 
 
 > 常见的数据类型的属性
@@ -9332,34 +10458,6 @@ create table emp2(
 - 在开发的时候 我们在创建数据库的时候 指明字符集
 
 
-> 常用的几类类型介绍如下：
-
-> INT
-- 从-2^31到2^31-1的整型数据。存储大小为 4个字节
-
-> CHAR(size)
-- 定长字符数据。若未指定，默认为1个字符，最大长度255
-
-> VARCHAR(size)
-- 可变长字符数据，根据字符串实际长度保存，**必须指定长度**
-
-> FLOAT(M,D)
-- 单精度，占用4个字节，M=整数位+小数位，D=小数位。 D<=M<=255,0<=D<=30，默认M+D<=6
-
-> DOUBLE(M,D)
-- 双精度，占用8个字节，D<=M<=255,0<=D<=30，默认M+D<=15
-
-> DECIMAL(M,D)
-- 高精度小数，占用M+2个字节，D<=M<=65，0<=D<=30，最大取值范围与DOUBLE相同。
-
-> DATE
-- 日期型数据，格式'YYYY-MM-DD'
-
-> BLOB 
-- 二进制形式的长文本数据，最大可达4G
-
-> TEXT
-- 长文本数据，最大可达4G
 
 ------------------
 

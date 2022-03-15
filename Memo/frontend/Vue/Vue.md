@@ -16463,6 +16463,48 @@ footer    footer    footer
 
 ### 技巧
 
+> 如何在Vue中使用mock
+- npm i mockjs
+- import
+- 定义规则 
+- 如果不使用拦截的话可以不传递第一个url参数 然后使用变量接收
+-
+
+```js
+  import Mock from "mockjs";
+  Mock.mock("http://localhost:3200/data", {
+    "list|5-10": [
+      {
+        flag: "@id",
+        "title|+1": ["基本情報", "登録情報", "事務所等情報", "連絡先", "資格情報", "政治連盟", "その他", "口座情報", "交通費", "自宅"],
+        "options|3-5": [
+          {
+            "subTitle|+1": ["登録番号", "氏名", "フリガナ", "生年月日", "性別", "支部", "種別", "変更年月日", "入会年月日", "登録年月日"],
+            type: "input",
+            prop: /[\u0041-\u005a]{5}/,
+          }
+        ],
+      }
+    ]
+  })
+```
+
+
+> Vue中 deep 的使用方式
+- 一般在使用scoped后 父组件的样式将不会渗透到子组件中 而我们调用的element组件就相当于在父组件中使用子组件
+- 这时候我们想改变element组件的部分样式时 就要在class类名前加上 /deep/ 或者 >>> 或者 ::v-deep
+- .(外层class) >>> .(内层class)
+
+- vue在解析样式的时候会在类名的后面加上[vasdf2323]之类的属性 当我们使用 deep 后该属性就会加在外层class上 获取我们修改的样式就会生效
+- .(外层class) .(内层class)[data-v-asfda123]
+- .(外层class) >>> .(内层class)   ---   .(外层class)[data-v-asfda123]  .(内层class)
+
+<!--
+    .table-wrap /deep/ .el-table__header-wrapper .cell {
+      padding-left: 0;
+    }
+-->
+
 > render函数
 - render方法的实质就是生成template模板
 

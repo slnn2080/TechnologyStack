@@ -1,3 +1,157 @@
+### 移行手顺
+
+> pug的情况下
+- 1. 将原本在 src/html/xxx/index.pug的内容 复制到 pages/xxx/index.vue 里面
+
+- 2. 在 template 中导入通用的pug组件 
+- include/components/temporary/_all
+
+```pug
+<template lang="pug">
+  //- 这里可以引入别的 pug 组件
+  include /components/temporary/_all
+        //- include ./button/_button
+        //- include ./heading/_heading
+        //- include ./hero/_hero
+        //- include ./text/_text
+        //- include ./anchor/_anchor
+        //- include ./navi/_footer
+
+  div
+    section.l-cnt__full
+      +m-hero-heading-caption('特定商取引法に基づく表記', 'NOTATIONS BASED ON THE ACT ON SPECIFIED COMMERCIAL TRANSACTIONS')
+          
+</template>
+<script>
+export default {
+  data () {
+    return {
+      layoutData: {
+        breadcrumbs: [
+          {
+            text: "特定商取引法に基づく表記",
+            href: "/commercial_transaction/"
+          }
+        ]
+      },
+      meta: {
+        title: "特定商取引法に基づく表記",
+        description: "KINTOの「特定商取引法に基づく表記」についてのご案内です。【KINTO】クルマのサブスク、トヨタから",
+        keywords: "toyota,トヨタ自動車,トヨタ,KINTO,キント,サブスクリプション,subscription,サブスク,KINTO ONE,愛車,愛車ポイント,フルサービスリース,リース,借りる,クルマのサブスク、トヨタから",
+        path: "/commercial_transaction/",
+        og: {
+          imagePath: "/assets/img/pic_ogimage_002.jpg",
+          type: "article"
+        }
+      }
+    }
+  },
+  created () {
+    this.updateLayout()
+    this.updateHeader()
+  },
+  methods: {
+    updateLayout () {
+      this.$nuxt.$emit("updateLayout", this.layoutData)
+    },
+    updateHeader () {
+      this.$nuxt.$emit("updateHeader", this.meta)
+    }
+  }
+}
+</script>
+<style lang="scss">
+@use '~assets/style/source/style' as g;
+@use '@/assets/style/contents/commercial_transaction/style' as p;
+</style>
+```
+
+- 3. 如果页面里面有 这个页面单独需要的 局部组件 配置在
+- components/pages/XXX/
+- 然后使用 include 导入
+
+- 4. pug文件删除
+- 5. 就得style样式 在下面的路径下 导入使用 使用 @use
+- assets/style/source/style.scss
+
+- 6. 每个文件单独的导入style样式
+- 7. 旧sytle文件的位置发生了变化 如下
+<!-- 
+  以下の記述は旧style（現/assets/style/source/配下）のfoundationを読み込んでいる
+  @use "../../foundation/global" as g;
+  @use "../../parts/print";
+
+  ↓以下に変更
+
+  @use "../../source/foundation/global" as g;
+  @use "../../source/parts/print";
+ -->  
+
+- 8. 页面的组件问题
+- 以前: src/javascripts/contents/XXX/components/
+- 现在: components/pages/XXX/
+<!--  
+  移動先
+
+  /components/pages/index/
+  -> YYYY.vue（各ページで使用しているvueコンポーネント）
+  -> _parts.pug（pugパーツが存在している場合）
+  -> /mixin(必要に応じて)/
+  -> /styles/_foundation.scss
+ -->
+
+- 9. 修改 导入文件的路径
+
+- 10. 将 src/javascripts/contents/XXX/app.js 的内容 移动到 mounted中
+
+- 11. 图片不在 /assets/img/ 的情况下 页面固有的情况下 将图片移动到static下面
+<!-- 
+  _preview/lp/roomy/assets/img => static/lp/roomy/assets/img
+ -->  
+
+- 12. 表示确认
+- 13. 将pug文件和_preview配下のHTML文件删除
+
+
+> Vue的情况下:
+- 1. 
+- 原来: src/javascripts/contents/XXX/app(wrap).vue 
+- 现在: pages/XXX/index.vue
+
+- 将文件内容整理到现在的文件下
+
+
+- 2. app.js里面的内容移动 或者 删除
+- 3. 组件类的文件 整理到 components/pages/XXX/ 导入使用
+- 4. 要导入旧的style.scss的情况下 
+- assets/style/source/style.scss をimport
+
+- 5. 页面单独的scss样式 在 
+- assets/style/contents/XXX/style.scss
+- 导入使用
+
+- 6. 各文件中原有的路径要进行修改
+- 7. 页面内使用的图片要整理到 static 的下面
+- 8. 删除pug文件 和 _preview配下のHTML文件
+- 9. 看看能不能显示
+
+
+> 项目根目录是 @
+- 比如 @/components/pages
+
+> 模板中的img路径
+- 图片都是 static 中 模板中直接可以 以 static 中的文件夹开头
+- assets/img/bnr_step03_pc.jpg
+- /campaign/cp-creditpoint/assets/img/pic_mv_pc.png
+
+
+
+
+
+
+
+
+
 ### Kinto index page
 - 翻做一下 index 页面 然后记录一下 翻做过程中的要点
 
