@@ -1,3 +1,7 @@
+### 虚拟dom
+- https://zhuanlan.zhihu.com/p/136272774
+
+
 ### 安装 Svelet
 - 1. npx degit sveltejs/template ProName
 - 2. npm install

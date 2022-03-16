@@ -10084,7 +10084,6 @@ id
  -->
 
 
-
 > 主表和从表 / 父表和子表
 - 主表（父表）：
     被引用的表，被参考的表 (有一个字段被参考了)
@@ -10400,64 +10399,487 @@ ALTER TABLE 从表名 DROP INDEX 外键约束名;
 > 结论
 - mysql给我们提供了外键的功能 用于体现引用的完整性 但是在实际开发中 我们会在应用层面解决数据的完整性 而不是通过数据库中的外键
 
+--------
 
+> check约束(检查约束)
+- 检查某个字段的值是否符合某种要求，*一般指的是值的范围*
+- 如果不满足要求 则添加失败
 
-> 常见的数据类型的属性
-> NULL
-- 数据列可包含NULL值
+**注意:**
+- MySQL5.7 不支持
+- MySQL5.7 可以使用check约束，但check约束对数据验证没有任何作用。添加数据时，没有任何错误或警告
 
-
-> NOT NULL
-- 数据列不允许包含NULL值
-
-
-> DEFAULT -- default
-- 默认值
-
-
-> PRIMARY KEY -- primary key
-- 主键
-
-
-> AUTO_INCREMENT  -- auto increment
-- 自动递增 适用于整数类型
-
-
-> UNSIGNED  -- unsigned
-- 无符号
-- 主要针对数值类型 因为有正有负 如果加上它的话 只能表示正数
-- 比如: 年龄字段 就可以用 unsigned 来修饰
-
-
-> CHAEACTER SET 'name'  --  character set 'name'
-- 指定一个字符集
-- 我们在创建数据库的时候可以指明字符集
-- create dateabase if not exists dbtest12 character set 'utf8'
-
-- 我们还可以 创建表的时候 指明 *表的字符集*
-
-> create table emp1(字段 字段类型, 字段2 ...) character set 'utf8'
-- 在创建表的语句的末尾 使用 character set '字符集' 指定表的字符集
+> 在创建表的时候指定 check约束
+> 字段 字段类型 的 后面 添加 检查约束
+> check(条件)
 ```sql
-create table emp1(
-  id int
-) character set 'utf8'
+create table test(
+  id int,
+  last_name varchar(15),
+  salary decimal(10, 2) check(salary > 2000)
+)
+
+
+-- 插入数据
+-- 添加成功
+insert into test
+values(1, 'Tom', 2500)
+
+
+-- 添加失败
+insert into test
+values(1, 'Tom', 1500)
+
+
+-- 举例:
+salary decimal(10, 2) check(salary > 2000)
+gender char check ('男' or '女')
+age int check(age > 20),
+
+age tinyint check(age >20)
+sex char(2) check(sex in(‘男’,’女’))
+check(height>=0 AND height<3)
 ```
 
-- 我们还可以创建表 指明表中的字段的时候 可以指定 *字段的字符集*
+--------
 
-> create table emp2(字段 字段类型 character set '字符集')
+> default约束(默认值约束)
+- 给某个字段/某列指定默认值，一旦设置默认值，在插入数据时，如果此字段没有显式赋值，则赋值为默认值。
+
+> 创建表时 添加 default约束
 ```sql
-create table emp2(
+create table 表名称(
+  字段名 数据类型 not null default 默认值, 
+);
+```
+
+**注意:**
+- 默认值约束一般不在唯一键和主键列上加
+
+- 示例：
+```sql
+create table test(
   id int,
-  -- name字段 显式的指明该字段的字符集 为gbk
-  name varchar(15) character set 'gbk'
+  last_name varchar(15),
+  -- 如果salary没有赋值的话 默认值就是2000
+  salary decimal(10, 2) default 2000
 )
 ```
 
-- 在开发的时候 我们在创建数据库的时候 指明字符集
+
+> alter table的时候 添加 default 约束
+> alter table 表名称 modify 字段名 数据类型 default 默认值;
+
+- 如果这个字段原来有非空约束，你还保留非空约束，那么在加默认值约束时，还得保留非空约束，否则非空约束就被删除了
+
+- 同理，在给某个字段加非空约束也一样，如果这个字段原来有默认值约束，你想保留，也要在modify语句中保留默认值约束，否则就删除了
+```sql
+alter table 表名称 
+modify 字段名 数据类型 default 默认值 not null;
+```
+
+```sql
+alter table test
+modify salary decimal(10, 2) default 2500
+```
 
 
+> 删除default约束
+> 在 alter table 删除约束
+- 直接去掉 default 默认值就可以
+```sql
+-- 添加 默认值约束
+alter table test
+modify salary decimal(10, 2) default 2500
+
+
+-- 删除默认值约束
+alter table test
+modify salary decimal(10, 2)
+```
+
+
+> 面试1
+- 为什么建表时，
+加 not null default '' 或 default 0
+<!-- 
+  default '' -- 针对字符串类型的
+  default 0  -- 针对数值类型的
+ -->
+
+- 答：不想让表中出现null值。 避免在没有赋值的时候显示null值 跟js中的默认值一个意思 
+  let str = ""
+  let arr = []
+  let num = 0
+
+
+> 面试2
+- 为什么不想要 null 的值
+
+- 1. 不好比较。null是一种特殊值，比较时只能用专门的is null 和 is not null来比较。碰到运算符，通常返回null。
+
+- 2. 效率不高。影响提高索引效果。因此，我们往往在建表时 not null default '' 或 default 0
+
+
+> 面试3
+- 带AUTO_INCREMENT约束的字段值是从1开始的吗？
+
+- 在MySQL中，默认AUTO_INCREMENT的初始值是1，每新增一条记录，字段值自动加1。
+
+- 设置自增属性（AUTO_INCREMENT）的时候，还可以指定第一条插入记录的自增字段的值(我插入第一条数据的id设置为10)，这样新插入的记录的自增字段值从初始值开始递增(在10的基础上递增)，
+
+- 如在表中插入第一条记录，同时指定id值为5，则以后插入的记录的id值就会从6开始往上增加。添加主键约束时，往往需要设置字段自动增加属性。
+
+
+> 面试4、并不是每个表都可以任意选择存储引擎？
+- 外键约束（FOREIGN KEY）不能跨引擎使用。
+- 主表的引擎和从表的引擎必须一致
+
+- MySQL支持多种存储引擎，每一个表都可以指定一个不同的存储引擎，需要注意的是：外键约束是用来保证数据的参照完整性的，如果表之间需要关联外键，却指定了不同的存储引擎，那么这些表之间是不能创建外键约束的。所以说，存储引擎的选择也不完全是随意的。
+
+```sql
+show create table test
+
+create table test() 在这里部分不仅可以指定字符集 还可以执行引擎
+
+-- 也就是说 我们可以给任何表设置引擎
+```
+
+------------------
+
+### 约束的章节练习没有做
+- https://www.bilibili.com/video/BV1iq4y1u7vj?p=73&spm_id_from=pageDriver
+
+------------------
+
+### 视图
+- 从这章开始我们要讲一些除了表之外的数据库对象
+
+> 常见的数据库对象
+- 我们先看看 数据库里面 常见的对象有什么
+
+> 表 table
+- 表就是典型的数据库对象
+- 表是存储数据的逻辑单元，以行和列的形式存在，
+- 列就是字段
+- 行就是记录
+
+
+> 数据字典
+- 数据字典也是表 只不过它是系统表，存放数据库相关信息的表。
+- 系统表的数据通常由数据库系统维护，程序员通常不应该修改，只可查看
+
+
+> 约束(constraint)
+- 执行数据校验的规则，用于保证数据完整性的规则
+
+
+> 视图(view)
+- 一个或者多个数据表里的数据的逻辑显示，视图并不存储数据
+
+
+> 索引(index)
+- 用于提高查询性能，相当于书的目录
+
+
+> 存储过程(procedure)
+- 用于完成一次完整的业务处理，*没有返回值*，但可通过传出参数将多个值传给调用环境
+
+
+> 存储函数(function)
+- 用于完成一次特定的计算，*具有一个返回值*
+- 系统给我们提供的函数 比如单行函数 和 聚合函数
+
+
+> 触发器(trigger) 
+- 相当于一个事件监听器，当数据库发生特定事件后，触发器被触发，完成相应的处理
+<!-- 
+  比如我们删除表中的一条记录 删之前就会触动一个触发器的执行 比如吧要删除的记录保存到另外的一张表里面
+
+  -- 这就是数据的备份
+ -->
+
+
+> 视图
+> 为什么要使用视图?
+- 视图一方面可以帮我们使用表的一部分而不是所有的表，
+- 另一方面也可以针对不同的用户制定不同的查询视图。
+
+- 比如，针对一个公司的销售人员，我们只想给他看部分数据，而某些特殊的数据，比如采购的价格，则不会提供给他。
+
+- 再比如，人员薪酬是个敏感的字段，那么只给某个级别以上的人员开放，其他人的查询视图中则不提供这个字段。
+
+- 刚才讲的只是视图的一个使用场景，实际上视图还有很多作用。最后，我们总结视图的优点。
+
+
+- 举例:
+- 我们前面有一张 员工表 employees
+- 这张表中有很多的字段和数据 这张表在实际的工作当中会让数据库的管理人员维护表
+
+- 假如我们这个数据库的管理人员就是一个普通员工
+- 而表中有些数据 有些字段比较敏感 比如员工的薪资 那么这个维护人员就能看到表里的所有工资 不太合适
+
+- 也就是希望除了这些敏感的字段之外的字段 让这个维护人员操作
+- 为了解决这个问题 有哪些方法呢?
+
+- 1. 去除敏感字段 把其它字段取出来造成一张子表(新表)
+<!-- 
+  我们前面说了创建表的时候可以使用 利用查询结果创建新表
+  create table test
+  as
+  select * from ...
+ -->
+
+- 让这个维护人员去维护这张新表 但是这样又有一个问题 我们改的是新表 并不是原表 和原表没有关系了
+
+- 2. 视图
+- 我们根据原表 过滤掉敏感的字段 然后创建一个视图
+<!-- 
+  创建视图的方式 和 创建表的方式一样 就是把table换成view
+  create view test
+  as
+  select * from ...
+ -->
+
+- 然后我们让维护人员去维护视图 他对视图的操作会影响到原表
+- 我们要知道的是 view本身不存数据 我们通过view修改的数据 还是原表的(对view的增删改查 都是对原表的操作)
+
+- 我们通过视图完成了表的权限管理工作
+
+
+> 视图的理解
+- 视图是一种`虚拟表`，本身是`不具有数据`的，占用很少的内存空间，它是 SQL 中的一个重要概念。
+<!-- 
+  我们能视图来查询数据 但是数据还是原来的表里面的
+ -->
+
+- 创建视图的时候 依赖的select语句中的表 称之为基表
+- **视图建立在已有表的基础上**, 视图赖以建立的这些表称为**基表**。
+<!-- 
+    用  户    Application 应用场景
+
+                ↑ ↓
+
+    虚拟表    view 整合一张或多张表数据
+
+                ↑ ↓
+
+    数据表    table
+ -->
+
+- 视图的创建和删除只影响视图本身，不影响对应的基表。
+- 但是当对视图中的数据进行增加、删除和修改操作时，数据表中的数据会相应地发生变化，反之亦然。(基表中的数据发生变化 视图里面的数据也会发生变化 -- haha 双向绑定么？)
+
+
+- 视图的本质:
+- 向视图提供数据内容的语句为 SELECT 语句, 可以将视图理解为**存储起来的SELECT语句** 
+<!-- 
+  因为视图是通过 对基表的查询(select语句)得到的视图
+  那是不是说 视图 就相当于是 一个逻辑可能很复杂的查询语句
+ -->
+
+- 视图的好处:
+- 1. 控制数据的方位
+- 2. 简化查询
+
+- 视图，是向用户提供基表数据的另一种表现形式。通常情况下，小型项目的数据库可以不使用视图，(不推荐使用视图 几十个表可用可不用 这样的项目不大)
+
+- 但是在大型项目中，以及数据表比较复杂的情况下(几百张表 n多字段)，视图的价值就凸显出来了，它可以帮助我们把经常查询的结果集放到虚拟表中，提升使用效率。理解和使用起来都非常方便。
+<!-- 
+  因为大型的项目中 表之间的关系 字段就特别的复杂了 
+  这时候我们要是写一个select语句 代码量可能会非常的大
+
+  如果我们没有把这个select语句保存起来 后面还想用 每次都要现写
+
+  这时候我们就可以把这个代码量非常大 逻辑性非常复杂的查询语句 通过视图的方式 固定下来 当我们每次要用的时候直接现调就可以了
+
+  这也是视图的另一个优点就是简化我们的查询
+ -->
+
+
+> 创建视图
+> create view
+
+> 1. 完整版的创建
+```sql
+create [or replace]   -- replace修改视图
+
+-- 算法: 
+[algorithm = { undefined | megre | temptable }] 
+
+-- 跟下面查询语句中的字段一一匹配 相当于在这里给查询语句中的字段起了一个别名
+view 视图名称 [(字段列表)]
+
+AS 查询语句(select ... from)
+[WITH [CASCADED|LOCAL] CHECK OPTION]
+```
+
+> 2. 精简版 -- 我们主要看这个
+```sql
+create view 视图名称[(视图中的字段别名)]
+as 
+select ... from tablename
+```
+
+> 创建视图 示例:
+> 1. 准备工作
+```sql
+-- 创建数据库
+create database dbtest;
+
+-- 使用数据库
+use dbtest;
+
+-- 创建视图要先有基表 我们先创建两个表
+-- 相当于复制了一下 atguigudb中的employees departments
+create table emps
+as
+select *
+from atguigudb.employees
+
+create table depts
+as
+select *
+from atguigudb.departments
+```
+
+**注意:**
+- 我们上面的复制表 只是把数据复制过来了 除了非空约束其他的字段约束并没有复制过来
+
+
+> 2. 创建视图
+
+> 要点:
+- 视图中的字段名 有两种创建方式
+- 1. 查询语句中字段的别名会作为视图中字段的名称
+- 2. 视图名称(视图字段名) 视图字段名和查询语句中的字段名一一匹配
+
+
+- 针对单表创建视图:
+```sql
+-- 情况1:
+-- 视图中的字段与基表的字段 有对应的关系
+
+-- 针对单表创建视图 emps
+create view v_emp1
+as
+select employee_id, last_name, salary
+from emps
+
+
+-- 查看视图 跟操作表一样
+select * from v_emp1
+
+
+-- 视图中字段名称的指定方式1:
+-- 在视图名称的后面的括号中指定
+create view v_emp2(emp_id, emp_name, emp_salary)
+as
+-- 视图中字段名称的指定方式2:
+-- 查询语句中字段的别名会作为视图中字段的名称
+select employee_id emp_id, last_name emp_name, salary
+from emps
+where salary > 8000
+
+
+-- 情况2:
+-- 视图中的字段在基表中可能没有对应的字段
+-- 比如 查询各个部门的平均工资
+-- 平均工资这个字段是基表当中不存在的 是我们通过avg算出来的
+create view v_emp_sal
+as
+select department_id, avg(salary) avg_sal
+from emps
+where department_id is not null
+group by department_id
+```
+
+
+- 针对多表创建视图:
+```sql
+-- 是不是也相当于我们将查询通过view的形式存起来了
+-- 这里也可以看出来我们将view看做是存储起来的select语句
+-- 因为我们能通过 v_emp_dept 查询了
+create view v_emp_dept
+as
+select e.employee_id, e.department_id, d.department_name
+from emps e join depts d
+on e.department_id = d.department_id
+
+
+select * from v_emp_dept
+```
+
+
+> 利用视图对数据进行格式化
+- 我们经常需要输出某个格式的内容，比如我们想输出员工姓名和对应的部门名，
+对应格式为 emp_name(department_name)，就可以使用视图来完成数据格式化的操作：
+
+```sql
+create view v_emp_dept
+as
+select concat(e.last_name, '(', d.department_name, ')') emp_info
+from emps e join depts d
+on e.department_id = d.department_id
+```
+
+
+> 基于视图创建视图
+- 当我们创建好一张视图之后，还可以在它的基础上继续创建视图。
+
+```sql
+create view v_emp2
+as
+-- 我们从 v_emp1 视图里面查询 这两个字段 基于这个视图再创建了 v_emp2
+select employee_id, last_name
+from v_emp1
+```
+
+
+> 查看视图
+```sql
+-- 这叫查看视图中的数据
+select * from 视图名称
+```
+
+- 我们要查看视图对象 比如我们查看下当前的数据库下一共有多少个视图
+
+> 语法1： show tables
+- 查看数据库的表对象、视图对象
+```sql
+-- 该命令查看的是 表 和 视图 视图也会在结果集中
+show tables;
+```
+
+> 语法2： desc / describe 视图名称;
+- 查看视图的结构
+
+```sql
+desc / describe 视图名称;
+```
+
+
+> 语法3： show table status like '视图名称'\G
+- 查看视图的属性信息（显示数据表的存储引擎、版本、数据行数和数据大小等）
+
+```sql
+-- 使用 \G 报错 就去掉 或者在 小黑屏里面使用
+SHOW TABLE STATUS LIKE '视图名称'[\G]
+
+-- 使用|G 会变成一列列的显示效果
+```
+
+- 执行结果显示，注释Comment为VIEW，说明该表为视图，其他的信息为NULL，说明这是一个虚表。
+
+
+> 语法4： show create view 视图名称
+- 查看视图的详细定义信息
+
+```sql
+SHOW CREATE VIEW 视图名称;
+```
+
+### 书签
 
 ------------------
 

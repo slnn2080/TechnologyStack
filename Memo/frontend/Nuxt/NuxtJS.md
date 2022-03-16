@@ -1,7 +1,9 @@
 ### 技巧
-> 在nuxt下使用window
+> 在nuxt下使用window 判断是在客户端还是在服务端
 ```js
 if(process.browser) console.log(winodw)
+if(process.server)
+if(process.client)
 ```
 - https://www.cnblogs.com/goloving/p/11397285.html
 
