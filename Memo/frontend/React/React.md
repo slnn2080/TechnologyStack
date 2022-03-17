@@ -12322,6 +12322,9 @@ params > search > state
 - 比如：
 - 发送ajax 设置订阅 / 启动定时器 / 手动修改真是的DOM(极其罕见)
 
+- 副作用:
+- return一个函数来消除
+
 ------
 
 > React.useRef()

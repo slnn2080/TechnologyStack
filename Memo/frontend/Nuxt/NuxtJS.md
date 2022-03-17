@@ -1,4 +1,14 @@
 ### 技巧
+> <no-ssr>
+- 该组件用于设置组件不在服务器渲染中呈现。
+- https://www.bookstack.cn/read/nuxtjs-guide/31fa4be0c4876195.md
+```html
+<no-ssr placeholder="Loading...">
+  <!-- 此组件仅在客户端呈现 -->
+  <comments />
+</no-ssr>
+```
+
 > 在nuxt下使用window 判断是在客户端还是在服务端
 ```js
 if(process.browser) console.log(winodw)
