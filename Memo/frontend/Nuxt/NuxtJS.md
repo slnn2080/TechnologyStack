@@ -1,4 +1,29 @@
 ### 技巧
+> 组件内部 给html部分添加 script 标签
+- 场景:
+- 在Kinto的项目中 nuxt 环境下 有一个功能是必须在html页面里面引入 script 标签的
+- 但是 nuxt 的项目里面 使用的是 default.vue 模板 不知道应该将 script 添加到哪里
+
+- 解决方式:
+- 我们在页面的组件内 使用 head配置项:
+
+```js
+// html側で以下読み込み必須
+// <script charset="UTF-8" data-mil-loader="https://kinto.mil.movie/bosTe8/js/mil_loader.js" />
+
+// 解决方式:
+head: {
+  script: [
+    {
+      charset: "UTF-8",
+      "data-mil-loader": "https://kinto.mil.movie/bosTe8/js/mil_loader.js"
+    }
+  ]
+}
+```
+
+
+
 > <no-ssr>
 - 该组件用于设置组件不在服务器渲染中呈现。
 - https://www.bookstack.cn/read/nuxtjs-guide/31fa4be0c4876195.md

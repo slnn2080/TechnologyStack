@@ -11040,7 +11040,7 @@ drop view [if exists] 视图1[, 视图2]
 
 ------------------
 
-### 存储过程的使用说明
+### 存储过程的使用说明 (阿里不建议使用)
 - MySQL从5.0版本开始支持存储过程和函数。
 
 > 存储函数
@@ -11132,6 +11132,10 @@ END
 }
 ```
 
+- 注意:
+- 形参的类型在形参名的后面 这点和java等不一样
+
+
 > 结构说明
 > IN:
 - 当前参数为输入参数，也就是表示入参
@@ -11147,8 +11151,21 @@ END
 - 当前参数既可以为输入参数，也可以为输出参数。
 
 
-> characteristics(特征):
+> characteristics(特征 特征):
 - 表示创建存储过程时指定的对存储过程的约束条件，特征中可以填入的值是：
+
+> 格式:
+```sql
+create procedure 存储过程名(in 参数名 参数类型)
+
+DETERMINISTIC
+CONTAINS SQL
+READS SQL DATA
+
+BEGIN
+  ... 存储过程体
+END
+```
 
 ```sql
 LANGUAGE SQL
@@ -11181,15 +11198,18 @@ COMMENT 'string'
 - 指明子程序使用SQL语句的限制。
 
 - CONTAINS SQL
+- 是否包含sql语句
 - 表示当前存储过程的子程序包含SQL语句，但是并不包含读写数据的SQL语句；
 
 - NO SQL
 - 表示当前存储过程的子程序中不包含任何SQL语句；
 
 - READS SQL DATA
+- 可以读sql中的数据
 - 表示当前存储过程的子程序中包含读数据的SQL语句；
 
 - MODIFIES SQL DATA
+- 可以写sql中的数据
 - 表示当前存储过程的子程序中包含写数据的SQL语句。
 - 默认情况下，系统会指定为CONTAINS SQL。
 
@@ -11228,7 +11248,7 @@ COMMENT 'string'
 > SELECT ... INTO：
 - 把从数据表中查询的结果存放到变量中，*也就是为变量赋值。*
 
->. DELIMITER delimiter 分隔符
+> delimiter 分隔符
 - 设置新的结束标记
 
 - 比如 我们定义了一个存储过程
@@ -11270,6 +11290,412 @@ delimiter ;
 
 
 > 存储过程的 创建 和 调用
+> 创建存储过程:
+```sql
+-- 准备工作
+create database dbtest
+use dbtest
+
+
+-- 创建表
+create table emps
+as
+select * from atguigudb.employess
+
+create table depts
+as
+select * from atguigudb.departments
+```
+
+> 创建存储过程:
+- 语句创建完后要执行一次
+
+> 无参数 无返回值的场景
+- 举例:
+- 创建存储过程 select_all_data() 查看 employees 所有的数据
+```sql
+delimiter $
+create procedure select_all_data()
+begin
+  select * from employees;
+-- 默认end要以 ; 结尾
+end $
+delimiter ;
+```
+
+> 存储过程的调用:
+> call 存储过程名()
+```sql
+call select_all_data();
+```
+
+
+- 举例:
+- 创建存储过程 avg_employee_salary() 返回所有员工的平均工资
+```sql
+-- 创建
+delimiter $
+create procedure avg_employee_salary()
+begin
+  select avg(salary)
+  from employees;
+end $
+delimiter ;
+
+
+-- 调用
+call avg_employee_salary();
+```
+
+
+- 举例:
+- 创建存储过程 show_max_salary() 用来查看 emps 表的最高薪资
+```sql
+delimiter $
+create procedure show_max_salary()
+begin
+  select max(salary) from employess;
+end $
+delimiter ;
+
+
+call show_max_salary();
+```
+
+
+> out的场景
+> 要点:
+> 关于形参
+- 在形参的位置:
+- out 形参名 形参类型
+
+- 注意:
+- 形参类型, 我们要将结果 赋值给 形参 这时就要求
+- 查询结果的类型 和 形参的类型要一致
+- desc 表: 查看字段的类型 将该类型 复制给 形参类型
+
+> 关于sql赋值
+> select ... into 形参变量 from 表名
+- 之前我们查询语句是:
+- select * from 表名
+
+- 现在我们要将查询结果 写入 形参变量中 使用 into
+- select * into 变量 from emps 
+
+> 关于 调用传参
+> call 过程名(@形参名)
+- @变量 相当于 我们用户定义的变量
+
+- 举例:
+- 创建存储过程 show_min_salary() 查看 emps 表的最低薪资值 并将最低薪资通过 out 参数 ms 输出
+
+> 查看 变量值
+> select @变量
+- 上面将查询结果 存储到ms变量中 如和查看呢?
+
+```sql
+delimiter $
+-- salary字段的类型就是 double 
+-- 该类型创建表的时候确定的
+create procedure show_min_salary(out ms double)
+begin 
+  select min(salary) into ms
+  from employees;
+end $
+delimiter ;
+
+
+-- 调用
+-- @ms 该实参名 和 形参名 一致呢
+call show_min_salary(@ms)
+
+
+-- 查看变量
+select @ms
+```
+
+
+> in的场景
+> 要点:
+- 在形参的位置:
+- in 形参名 形参类型
+
+
+> 定义变量:
+> set @变量名
+- 用户自定义的变量使用 set @变量名 来定义
+(set 相当于let) ?
+- 系统变量前面好像是 @@ 下面会讲
+
+
+> 给定义的变量赋值
+> =
+> :=
+- 都是赋值符号
+- set @变量 = 'xxx'
+- set @变量 := 'xxx'
+
+
+- 举例:
+- 创建存储过程 show_someone_salary() 查看 emps 表的某个员工的薪资 并用 in 参数 empname 输入员工姓名
+
+```sql
+delimiter $
+create procedure show_someone_salary(in empname varchar(20))
+begin
+  select salary from employees
+  where last_name = empname
+end $
+delimiter ;
+
+
+-- 调用:
+-- 直接传入 姓名
+call show_someone_salary('Abel')
+
+-- 将姓名定义到外面
+set @empname = 'Abel'
+set @empname := 'Abel'  -- 赋值符号
+call show_someone_salary(@empname)
+```
+
+
+> 有in 和 out的场景
+> 要点:
+- 在形参的位置:
+- 声明 
+  in  形参名 形参类型
+  out 形参名 形参类型
+
+> 调用的时候
+- 因为我们有两个形参 所以调用传递实参的时候 也要传递两个
+- in类型的  我们可以先定义好再传入实参位置
+- out类型的 我们直接在实参的位置写 @out形参名 即可
+
+
+- 举例:
+- 创建存储过程 show_someone_salary()
+- 查看 emps 表的某个员工的薪资 
+  并用in参数empname 输入员工姓名 
+  用out参数empsalary输出员工的薪资
+
+```sql
+delimiter $
+create procedure show_someone_salary(in empname varchar(20), out empsalary double)
+begin
+  -- 将结果写入到 带有out的变量中
+  select salary into empsalary
+  from employees
+
+  -- empname为输入的变量
+  where last_name = empname
+end $
+delimiter ;
+
+
+-- 调用
+set @empname = 'Abel'
+-- 传入对应的 in 和 out 的参数
+call show_someone_salary(@empname, @empsalary)
+
+-- 查看 out出来的数据
+select @empsalary
+```
+
+
+> inout的场景
+> 要点:
+- inout类型的变量 既当输入又作为输出来使用
+
+- 举例:
+- 创建存储过程 show_mgr_name()
+- 查询某个员工领导的姓名 并用 inout参数 empname 输入员工姓名 输出领导的姓名
+
+```sql
+delimiter $
+create procedure show_mgr_name(inout empname varchar(20))
+begin
+  -- 先查员工领导的id 根据id再去找领导的姓名
+  select last_name into empname
+  from employees
+  where employee_id = (
+    select manager_id from employees
+    where last_name = empname;
+  )
+end $
+delimiter ;
+
+
+-- 调用
+set @empname = 'Abel'
+call show_mgr_name(@empname)
+
+-- inout是既当爹又当妈
+select @empname
+```
+
+
+> 如何调试(调试困难):
+- 在 MySQL 中，存储过程不像普通的编程语言（比如 VC++、Java 等）那样有专门的集成开发环境。
+
+- 因此，你可以通过 SELECT 语句，把程序执行的中间结果查询出来，来调试一个 SQL 语句的正确性。调试成功之后，把 SELECT 语句后移到下一个 SQL 语句之后，再调试下一个 SQL 语句。
+
+- 这样`逐步推进`，就可以完成对存储过程中所有操作的调试了。当然，你也可以把存储过程中的 SQL 语句复制出来，逐段单独调试。
+
+
+------------------
+
+### 存储函数的使用
+- 前面学习了很多函数，使用这些函数可以对数据进行的各种处理操作，极大地提高用户对数据库的管理效率。
+- MySQL支持自定义函数，定义好之后，调用方式与调用MySQL预定义的系统函数一样。
+
+- 存储函数 也就是 自定义函数
+
+> 存储函数的语法:
+```sql
+create function 函数名(形参名 形参类型, ... )
+returns 返回值类型
+[characteristics ... ] -- 对函数做一定描述的特征值
+
+begin
+
+  函数体  -- 函数体中肯定有 return 语句
+  return (查询语句)
+
+end
+```
+
+> 说明:
+- 1. 函数中的形参类型 只有 IN参数 也就是只有入参
+- 2. returns 返回值类型
+- 表示函数返回数据的类型
+
+- returns子句只能对function做指定，对函数而言这是`强制`的。
+- 它用来指定函数的返回类型，而且函数体必须包含一个`return value`语句。
+
+- 3. characteristic 创建函数时指定的对函数的约束。取值与创建存储过程时相同，这里不再赘述。
+
+- 4. 函数体也可以用BEGIN…END来表示SQL代码的开始和结束。如果函数体只有一条语句，也可以省略BEGIN ... END。
+
+
+> 调用存储函数 select
+- 存储过程我们使用 call 来调用
+- 存储函数我们使用 select 来调用
+
+- SELECT 函数名(实参列表)
+
+
+> 函数体内容返回值的使用
+> return (查询语句)
+
+- 举例:
+- 创建存储函数，名称为email_by_name()，
+- 参数定义为空，该函数查询Abel的email，并返回，数据类型为字符串型。
+
+```sql
+delimiter $
+create function email_by_name()
+returns varchar(25)
+-- 解决报错的方式1: returns后面加特性
+        DETERMINISTIC
+        CONTAINS SQL
+        READS SQL DATA
+
+begin
+
+  return (
+    select email from employess
+    where last_name = 'Abel'
+  )
+
+end $
+delimiter ;
+
+
+-- 调用
+select email_by_name();
+```
+
+**注意:**
+- 若在创建存储函数中报错“
+`you might want to use the less safe log_bin_trust_function_creators variable`”，
+有两种处理方法：
+
+> 方式1:
+- 加上必要的函数特性
+- [NOT] DETERMINISTIC
+- 和
+- {CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA}
+
+> 方式2:
+- SET GLOBAL log_bin_trust_function_creators = 1;
+<!-- 默认值是0 设置为1后就不检验函数的特征了-->
+
+
+- 举例:
+- 创建存储函数，名称为email_by_id()，
+- 参数传入emp_id，该函数查询emp_id的email，并返回，数据类型为字符串型。
+
+```sql
+
+-- 创建函数前执行此语句 保证函数的创建会成功
+SET GLOBAL log_bin_trust_function_creators = 1;
+
+delimiter $
+create function email_by_id(emp_id int)
+returns varchar(25)
+begin
+  return (
+    select email from employees
+    where employee_id = emp_id
+  );
+end $
+delimiter ;
+
+
+-- 调用
+set @emp_id = 100
+select email_by_id(@emp_id)
+```
+
+
+- 举例:
+- 创建存储函数count_by_id()，参数传入dept_id，该函数查询dept_id部门的员工人数，并返回，数据类型为整型。
+
+```sql
+delimiter $
+create function count_by_id(dept_id int)
+returns int
+begin
+  return (
+    select count(*) from employess
+    where department_id = dept_id
+  );
+end $
+delimiter ;
+
+
+-- 调用
+select count_by_id(30)
+```
+
+
+> 对比存储函数和存储过程
+- 结果上的对比:
+        关键字      调用    返回值    应用场景
+存储过程 procedure   call   0或多    一般用于更新
+
+存储函数 function    select 1       查询结果为1个
+                                   并要求返回
+
+- 使用位置的对比:
+- **存储函数可以放在查询语句中使用，存储过程不行**。
+
+- 反之，存储过程的功能更加强大，包括能够执行对表的操作（比如创建表，删除表等）和事务操作，这些功能是存储函数不具备的。
+
+
+> 存储过程和函数的查看、修改、删除
+
 
 ------------------
 

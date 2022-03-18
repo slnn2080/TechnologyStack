@@ -245,7 +245,7 @@ async function test() {
 }
 ```
 
-- 但现在是 forEach每一个循环会调用callback 变成如下的格式了
+- 但现在是forEach每一个循环会调用callback 变成如下的格式了
 - 每一个回调里面的await没办法和其他的await形成同步的关系了async之间都是异步的
 ```js
 async fn => {

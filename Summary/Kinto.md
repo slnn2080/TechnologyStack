@@ -120,7 +120,6 @@ export default {
 
 - 将文件内容整理到现在的文件下
 
-
 - 2. app.js里面的内容移动 或者 删除
 - 3. 组件类的文件 整理到 components/pages/XXX/ 导入使用
 - 4. 要导入旧的style.scss的情况下 
