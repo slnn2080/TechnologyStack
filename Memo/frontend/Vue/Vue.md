@@ -8376,6 +8376,60 @@ axios.get("http://127.0.0.1:8080/api/word")
 
 --------------------------
 
+### 单页面中多个视图
+- 当我们想在一个页面有 有两个<router-view>的时候 可以采取下面的方式
+
+- 我们在一个路由的配置对象里面写上 components: { }
+
+```html
+<div>
+  <router-link to="/page1">页面1</router-link> <br>
+  <router-link to="/page2">页面2</router-link>
+</div>
+
+<div>
+  <router-view></router-view>
+  <hr>
+  <router-view name="page1"></router-view>
+  <hr>
+  <router-view name="page2"></router-view>
+</div>
+```
+
+```js
+import VueRouter from "vue-router"
+import Page1 from "../components/Page1"
+import Page2 from "../components/Page2"
+import Wrap from "../components/Wrap"
+
+const routes = [
+  {
+    path: "/",
+    // 当路径是/的时候 组件显示在不同的区域
+    components: {
+      default: Wrap,
+      page1: Page1,  // 这里就是 router-view name属性
+      page2: Page2,
+    }
+  },
+  {
+    path: "/page1",
+    component: Page1
+  },
+  {
+    path: "/page2",
+    component: Page2
+  },
+]
+const router = new VueRouter({
+  routes
+})
+
+export default router
+```
+
+--------------------------
+
 ### 嵌套路由
 - 一级路由 和 二级路由 如果一级路由里面再有一级路由那么它就是二级路由
 - 比如 我们要创建/home/message 那么这就是一个嵌套路由 我们要将/message的逻辑写在/home的里面

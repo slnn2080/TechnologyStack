@@ -11172,11 +11172,13 @@ LANGUAGE SQL
 
 [NOT] DETERMINISTIC
 
-{ 
-  CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA 
-}
+CONTAINS SQL
+NO SQL
+READS SQL DATA
+MODIFIES SQL DATA 
 
-SQL SECURITY { DEFINER | INVOKER }
+SQL SECURITY DEFINER
+SQL SECURITY INVOKER
 
 COMMENT 'string'
 ```
@@ -11227,6 +11229,15 @@ COMMENT 'string'
 
 - `COMMENT 'string'`：
 - 注释信息，可以用来描述存储过程。
+
+<!-- 
+  跟 { } | 这些符号无关
+  我们直接写就可以 比如:
+
+  CONTAINS SQL
+  SQL SECURITY DEFINER
+ -->
+
 
 
 > BEGIN - END
@@ -11695,6 +11706,2444 @@ select count_by_id(30)
 
 
 > 存储过程和函数的查看、修改、删除
+
+> 查看
+- 创建完之后，怎么知道我们创建的存储过程、存储函数是否成功了呢？
+
+> 查看方式1:
+> show create procedure 存储过程名
+> show create function 存储函数名
+- 结尾加上 \G 在小黑屏中 会换种显示方式
+
+```sql
+SHOW CREATE FUNCTION test_db.CountProc \G
+```
+
+
+> 查看方式2:
+> show procedure status [like 'pattern']
+> show function status [like 'pattern']
+- 这个语句返回子程序的特征 如
+  数据库、
+  名字、
+  类型、
+  创建者
+  创建
+  修改日期。
+
+- 当我们没有指定 like pattern 的时候 会显示当前数据库和其它数据库中的 存储函数或过程
+
+- 参数:
+- [LIKE '自定存储名 或 模糊查询']:
+
+- 匹配存储过程或函数的名称，可以省略。当省略不写时，会列出MySQL数据库中存在的所有存储过程或函数的信息。
+
+```sql
+-- 查询指定的存储过程
+show procedure status like 'show_max_salary'
+
+
+-- 模糊查询 存储函数
+show function status like 'email_%'
+```
+
+- 查询结果 示例:
+```sql
+Db: test_db
+                Name: SelectAllData
+                Type: PROCEDURE
+             Definer: root@localhost
+            Modified: 2021-10-16 15:55:07
+             Created: 2021-10-16 15:55:07
+       Security_type: DEFINER
+             Comment: 
+character_set_client: utf8mb4
+collation_connection: utf8mb4_general_ci
+  Database Collation: utf8mb4_general_ci
+
+-- Security_type: 安全级别
+-- 我们在定义存储函数和过程的时候 提到过 
+-- characteristics
+-- 这个部分可以通过 sql security 可以设定安全级别
+-- definer  指定定义它们的人才能调  -- 默认值
+-- invoker  只要有权限的人就能调
+
+-- Comment: 注释信息
+-- characteristics
+-- 这个部分可以通过 comment 可以设定注释信息
+```
+
+
+> 查看方式3:
+> information_schema.Routines
+- MySQL中存储过程和函数的信息存储在information_schema数据库下的Routines表中。可以通过查询该表的记录来查询存储过程和函数的信息。其基本语法形式如下：
+
+```sql
+SELECT * FROM information_schema.Routines
+WHERE ROUTINE_NAME='存储过程或函数的名' 
+[AND ROUTINE_TYPE = {'PROCEDURE|FUNCTION'}];
+```
+
+```sql
+SELECT * FROM information_schema.Routines
+WHERE 
+-- 这里区分太小写 当存储过程 和 存储函数 重名了 后面补一个 ROUTINE_TYPE
+ROUTINE_NAME='count_by_id'　AND　ROUTINE_TYPE = 'FUNCTION'
+```
+
+
+------
+
+> 修改
+- 这里的修改不能修改 函数体 或者 过程体
+- 只能修改 函数特性 或 过程特性
+- 也就是修改: characteristics
+
+```sql
+alter procedure 存储过程名 [这里放特性]
+alter function  存储函数名 [这里放特性]
+```
+
+- 这里能修改的特性会比上面介绍的能少一些
+- 能修改的特性:
+{ CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }
+| SQL SECURITY { DEFINER | INVOKER }
+| COMMENT 'string'
+<!-- 
+  跟 { } | 这些符号无关
+  我们直接写就可以 比如:
+
+  CONTAINS SQL
+  SQL SECURITY DEFINER
+ -->
+
+- `CONTAINS SQL`
+    表示子程序包含SQL语句，但不包含读或写数据的语句。
+
+- `NO SQL`
+    表示子程序中不包含SQL语句。
+
+- `READS SQL DATA`
+    表示子程序中包含读数据的语句。
+
+- `MODIFIES SQL DATA`
+    表示子程序中包含写数据的语句。
+
+- `SQL SECURITY DEFINER`
+- `SQL SECURITY INVOKER`
+    指明谁有权限来执行。
+
+  - `DEFINER`，表示只有定义者自己才能够执行。
+  - `INVOKER`，表示调用者可以执行。
+
+- `COMMENT 'string'`
+  表示注释信息。
+
+```sql
+alter procedure show_max_salary
+sql security invoker
+comment '查询最高工资'
+```
+
+
+> 删除
+- 删除存储过程和函数，可以使用DROP语句，其语法结构如下：
+
+```sql
+drop procedure [if exists] 存储过程名
+drop function [if exists] 存储函数名
+```
+
+- IF EXISTS：如果程序或函数不存储，它可以防止发生错误，产生一个用SHOW WARNINGS查看的警告。
+
+- 场景:
+- 我们定义的函数体 和 过程体有问题 想修改 但是修改不了
+- 这时候我们可以删除函数体重新创建
+
+```sql
+DROP PROCEDURE CountProc;
+DROP FUNCTION CountProc;
+```
+
+
+> 关于存储过程使用的争议
+- 尽管存储过程有诸多优点，但是对于存储过程的使用，**一直都存在着很多争议**，
+
+- 比如有些公司对于大型项目要求使用存储过程，而有些公司在手册中明确禁止使用存储过程，为什么这些公司对存储过程的使用需求差别这么大呢？
+
+
+> 优点:
+- 1. 存储过程可以一次编译多次使用。存储过程只在创建时进行编译，之后的使用都不需要重新编译，这就提升了 SQL 的执行效率。
+
+- 2. 可以减少开发工作量。将代码`封装`成模块，实际上是编程的核心思想之一，这样可以把复杂的问题拆解成不同的模块，然后模块之间可以`重复使用`，在减少开发工作量的同时，还能保证代码的结构清晰。
+
+- 3. 存储过程的安全性强。我们在设定存储过程的时候可以`设置对用户的使用权限`，这样就和视图一样具有较强的安全性。
+
+- 4. 可以减少网络传输量。因为代码封装到存储过程中，每次使用只需要调用存储过程即可，这样就减少了网络传输量。
+
+- 5. 良好的封装性。在进行相对复杂的数据库操作时，原本需要使用一条一条的 SQL 语句，可能要连接多次数据库才能完成的操作，现在变成了一次存储过程，只需要`连接一次即可`。
+
+> 缺点
+- 基于上面这些优点，不少大公司都要求大型项目使用存储过程，比如微软、IBM 等公司。但是国内的阿里并不推荐开发人员使用存储过程，这是为什么呢？
+
+
+> 阿里开发规范
+- 【强制】禁止使用存储过程，存储过程难以调试和扩展，更没有移植性。
+
+- 存储过程虽然有诸如上面的好处，但缺点也是很明显的。
+
+- 1. 可移植性差。存储过程不能跨数据库移植，比如在 MySQL、Oracle 和 SQL Server 里编写的存储过程，在换成其他数据库时都需要重新编写。
+
+- 2. 调试困难。只有少数 DBMS 支持存储过程的调试。对于复杂的存储过程来说，开发和维护都不容易。虽然也有一些第三方工具可以对存储过程进行调试，但要收费。
+
+- 3. 存储过程的版本管理很困难。比如数据表索引发生变化了，可能会导致存储过程失效。我们在开发软件的时候往往需要进行版本管理，但是存储过程本身没有版本控制，版本迭代更新的时候很麻烦。
+
+- 4. 它不适合高并发的场景。高并发的场景需要减少数据库的压力，有时数据库会采用分库分表的方式，而且对可扩展性要求很高，在这种情况下，存储过程会变得难以维护，`增加数据库的压力`，显然就不适用了。
+
+
+> 小结：
+- 存储过程既方便，又有局限性。尽管不同的公司对存储过程的态度不一，但是对于我们开发人员来说，不论怎样，掌握存储过程都是必备的技能之一。
+
+
+> 存储过程和存储函数的练习没做
+- https://www.bilibili.com/video/BV1iq4y1u7vj?p=82&spm_id_from=pageDriver
+
+------------------
+
+### 变量 流程控制 游标
+
+### 变量
+- 在MySQL数据库的存储过程和函数中，可以使用变量来*存储查询*或计算的*中间结果数据*，或者*输出最终的结果数据。*
+
+- 在 MySQL 数据库中，变量分为:
+
+- 1. 系统变量
+  - 全局系统变量(全局变量)
+  - 会话系统变量(local变量 / 会话变量)
+
+- 系统变量的图示:
+<!-- 
+    全局变量
+    -----------
+    |         |
+    |     -----------
+    |     | A |      |
+    |     | A |      |
+    |     | A |      |
+    ------|-- |      |
+          |          |
+          ------------
+                  local变量
+
+    AAA 的部分 既存在于全局 又是存在于local
+    也就是说有两份 AAA 所以在修改的时候我们要指明 修改的是哪个
+
+-- 当我们修改AAA变量的时候 要指明我们修改的是会话的还是全局的
+-- 指明会话的 那不会影响到其它的会话变量
+-- 指明全局的 那会影响到其它的全局变量
+
+- 我们能看到有一些变量 既在全局变量中 又在local变量中
+- 有一些变量只是 全局变量
+- 有一些变量只是 local变量
+-->
+
+
+- 2. 用户自定义变量
+
+
+> 系统变量
+- 变量由系统定义，不是用户定义，属于`服务器`层面。
+- 启动MySQL服务，就会生成MySQL服务实例 在此期间，MySQL将为MySQL服务器内存中的系统变量赋值，这些系统变量定义了当前MySQL服务实例的属性、特征。
+
+
+- 这些系统变量的值 比如
+  `编译MySQL时参数`的默认值，
+  `配置文件`（例如my.ini等）中的参数值。
+
+<!-- 
+  大家可以通过网址
+  `https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html` 
+
+  查看MySQL文档的系统变量。 
+-->
+
+> 系统变量的分类
+- 系统变量分为
+  - 全局系统变量（需要添加`global` 关键字）
+  <!-- 全局变量 -->
+  - 会话系统变量（需要添加 `session` 关键字）
+  <!-- local变量 -->
+  
+- **如果不写，默认会话级别。**
+<!-- 
+  分成 全局 和 会话 的原因
+  mysql在启动的时候对应一个实例 只要实例启动起来就会将系统变量加载到内存中
+
+  变量的作用域不一样 我们可以从作用域的角度理解 分为全局和会话
+ -->
+
+- 当我们的mysql实例启动起来以后 全局变量都全部进行了初始化
+- 当具体的一个客户端 连接 mysql服务的时候 只要一连接就称之为一次会话
+<!-- 
+  一个客户端或者叫一个请求 发起对数据库的连接 进而做相关的请求操作 我们就说这时候就建立了一个会话
+ -->
+
+- 一旦建立会话后 就涉及到 local变量 的初始化
+
+- 客户端1 -- 会话1的变量
+- 客户端2 -- 会话2的变量
+- 客户端3 -- 会话3的变量
+
+- 会话1 2 3的变量 有自己的作用域 会话1中的变量进行修改后 不会影响到会话2中的变量
+
+- 改全局的变量后 每个会话层面的用到的都是修改后的变量
+
+
+**注意:**
+- 这里的客户端指的是 navicate 这个软件 这个软件跟数据库服务器建立一次连接就是一次会话
+
+- 在连接期间就是一次会话 一旦断开连接重新再次连接 就是另外一次会话
+
+
+
+- 静态变量（在 MySQL 服务实例运行期间它们的值不能使用 set 动态修改）属于特殊的全局系统变量。
+
+- 每一个MySQL客户机成功连接MySQL服务器后，都会产生与之对应的会话。会话期间，MySQL服务实例会在MySQL服务器内存中生成与该会话对应的会话系统变量，这些会话系统变量的初始值是全局系统变量值的复制。
+
+- 全局系统变量针对于所有会话（连接）有效，但`不能跨重启(别重启mysql的服务 因为是内存层面 一旦重启 刚才的修改都失效了)`
+
+- 会话系统变量仅针对于当前会话（连接）有效。
+- 会话期间，当前会话对某个会话系统变量值的修改，不会影响其他会话同一个会话系统变量的值。
+
+- 会话1对某个全局系统变量值的修改会导致会话2中同一个全局系统变量值的修改。
+
+- 在MySQL中有些系统变量只能是全局的
+- 例如 max_connections 用于限制服务器的最大连接数
+
+- 有些系统变量作用域既可以是全局又可以是会话，
+- 例如 character_set_client 用于设置客户端的字符集
+
+- 有些系统变量的作用域只能是当前会话，例如 pseudo_thread_id 用于标记当前会话的 MySQL 连接 ID。
+
+
+> 查看系统变量
+- 查看所有或部分系统变量
+
+> 查看所有全局变量
+```sql
+show global variables;
+```
+
+> 查看所有会话变量
+```sql
+show session variables;
+show variables; -- 默认查询的是 会话系统变量
+```
+
+> 查询部分的系统变量
+- 使用 like '模糊查询'
+```sql
+show global variables like 'admin_%'
+show session variables like 'character_%'
+```
+
+> 查询指定系统变量
+> select @@
+- 作为 MySQL 编码规范，MySQL 中的系统变量以`两个“@@”`开头
+
+- 其中
+  @@global:  仅用于 标记 全局系统变量
+  @@session: 仅用于 标记 会话系统变量
+  
+- “@@”标记的变量(没有指明是全局还是会话的时候)
+- 会先去会话系统变量找 如果不存在，则标记全局系统变量。
+
+```sql
+-- 查看指定的系统变量的值
+select @@global.变量名
+
+
+-- 查看指定的会话变量的值
+SELECT @@session.变量名
+
+
+-- 查询没有指明 全局 会话 的情况
+SELECT @@变量名
+```
+
+- 示例:
+```sql
+select @@global.max_connections;    -- 151
+
+-- character_set_client该变量既是系统也是会话
+select @@global.character_set_client;
+select @@session.character_set_client;
+
+-- 下面的情况会先查询会话系统变量 再查询全局系统变量
+select @@character_set_client;
+```
+
+
+> 修改系统变量的值
+- 有些时候，数据库管理员需要修改系统变量的默认值，以便修改当前会话或者MySQL服务实例的属性、特征。
+
+> 方式1: 
+- 修改MySQL`配置文件`，继而修改MySQL系统变量的值（该方法需要重启MySQL服务）
+- 该方式为一劳永逸式 修改后 每次mysql重启都会以配置文件重新加载
+
+- 局限性:
+- 如果我们的服务器已经在运行状态了 该方法就没有作用了
+
+> 方式2:
+- 在MySQL服务运行期间，使用`set`命令 重新设置系统变量的值
+
+> set @@global.变量名 = 变量值
+> set global 变量名 = 变量值
+- 以上方式只是针对当前数据库实例是有效的 一旦重启mysql服务就失效了 恢复默认值(mysql会以配置文件重新加载吧？)
+
+> set @@session.变量名 = 变量值
+> set session 变量名 = 变量值
+- 针对于当前会话是有效的 一旦结束会话 重新建立起新的会话 就失效
+
+
+```sql
+set @@global.max_connections = 161;
+set global max_connections = 171;
+
+-- character_set_client 这个变量全局会话层面都有 但是我们修改的仅是会话层面的 所以 全局层面的character_set_client不会变 还是utf8
+set @@session character_set_client = 'gbk'
+set session character_set_client = 'gbk'
+```
+
+------------------
+
+### 用户变量
+- 用户变量是用户自己定义的
+- 自定义变量以 一个 `@` 开头
+
+**注意:**
+- @ *不是*用来修饰 会话用户变量 和 局部变量 的
+- @ 主要是用来修饰 会话用户变量 的
+<!-- 
+  局部变量就不用 @ 修饰了 因为局部变量的作用范围比较小(只在begin end里有效) 
+ -->
+
+
+> 用户变量分类
+- 根据作用范围不同 分为:
+- 1. 会话用户变量
+  - 作用域: 和会话变量一样，只对`当前连接`会话有效。
+
+- 2. 局部变量
+  - 作用域: 只在 BEGIN 和 END 语句块中有效。局部变量只能在`存储过程和函数`中使用。
+
+
+> 会话用户变量
+> 变量的定义(声明和赋值)
+- 在连接保持的状态下 只要连接不断 变量就一直有效
+
+> 方式1:
+- 直接定义一个值
+> set @用户变量 = 值
+> set @用户变量 := 值
+
+
+> 方式2:
+- 我们定义的用户变量的值 可能来源于一个查询语句(来源于具体表中的一个字段)
+
+> select @用户变量 := 表达式(from等子句)
+- 注意: 这里我们*使用的是 :=*   不是 = 
+
+- 记忆技巧:
+- 1. 先写查询语句(要赋的值)
+- select count(*) from emps;
+
+- 2. 定义用户变量 并使用 := 赋值
+
+      @count :=
+         ↑  插入这个位置
+         V
+- select   count(*) from emps;
+
+
+> select 表达式 into @用户变量 from ...
+- 这种方式好一些 将查到的字段信息 into 到用户变量里面去 from后面的逻辑结构都没有变化
+
+
+> 查看用户变量的值(使用 查看 比较 运算等)
+> select @用户变量
+
+- 准备工作:
+```sql
+create database dbtest;
+use dbtest;
+
+create table emps
+as
+select * from atguigudb.employees;
+
+create table depts
+as
+select * from atguigudb.departments;
+
+select * from emps;
+select * from depts;
+```
+
+```sql
+-- 定义 用户变量
+set @m1 = 1;
+set @m2 := 2;
+set @sum = @m1 + @m2;
+
+-- 查看 用户变量
+select @sum;
+
+
+-- 将查询结果赋值给 用户变量
+-- 方式1:
+-- select [@count :=] count(*) from emps;
+-- [这部分是插入查询语句中取的]
+select @count := count(*) from emps;
+select @count;
+
+-- 方式2:
+-- 将查询的字段数据等 into 到一个变量中
+select avg(salary) into @avg_sal from emps;
+select @avg_sal;
+```
+
+
+> 局部变量
+- 这个部分我们就要拿到 存储过程 和 存储函数 来讲解
+- 会话用户变量 在定义变量的时候 不用指定变量的类型 可以理解为动态的
+- 局部变量 在定义变量的时候 需要指明变量的类型
+
+> 定义局部变量的关键字: declare
+- 位置:
+- 只能放在 begin ~ end 中 的*首行*
+
+- 作用域:
+- 仅在定义它的 begin ~ end 中有效
+
+> 定义变量的方式1:
+> declare 变量名 类型 [default 值]; 
+- 在函数体中定义
+- 如果没有DEFAULT子句，初始值为NULL
+
+```sql
+DECLARE　myparam　INT　DEFAULT 100;
+```
+
+> 定义变量的方式2:
+- 当定义的变量 类型一样[默认值一样] 的时候可以选择合并定义
+```sql
+DECLARE　myparam1, myparam2　INT　DEFAULT 100;
+```
+
+
+> 赋值:
+- 方式1:
+- set 变量名 = 值
+- set 变量名 := 值
+
+- 方式2:
+- 将查询结果 into 到变量里
+- select 字段名或表达式 into 变量名 from ...
+
+- 将查询结果 into 到不同的变量里
+- select 字段1, 字段2 into 变量1, 变量2 from ...
+```sql
+select last_name, salary into emp_name, emp_sal from ...
+```
+
+
+> 使用
+- select 局部变量名;
+
+- 示例:
+```sql
+begin
+	-- 声明局部变量
+  -- 声明1个局部变量
+	declare 变量名1 变量数据类型 [DEFAULT 变量默认值];
+
+  -- 声明多个局部变量
+	declare 变量名2, 变量名3, ... 变量数据类型 [DEFAULT 变量默认值];
+
+	-- 为局部变量赋值
+	SET 变量名1 = 值;
+	SELECT 值 INTO 变量名2 FROM 子句;
+
+	-- 查看局部变量的值
+	SELECT 变量1, 变量2, 变量3;
+end
+```
+
+
+- 测试:
+```sql
+delimiter $
+create procedure test_var()
+begin
+	-- 声明变量
+	declare a int default 0;
+	declare b int;		-- 不行默认值为null
+	declare emp_name varchar(25);
+	
+	-- 赋值变量
+	set a = 1;
+	set b := 2;
+	-- 将查询结果赋值给 emp_name 变量
+	select last_name into emp_name 
+	from emps 
+	where employee_id = 101;
+	
+	
+	-- 使用
+	select a, b, emp_name;
+end $
+delimiter ;
+
+-- 调用 存储过程
+call test_var();
+
+-- 结果:  1	 2	Kochhar
+```
+
+
+> 练习1: 
+- 声明局部变量，并分别赋值为employees表中employee_id为102的last_name和salary
+
+> 要点:
+- 1. 定义的 存储过程 和 存储函数 只要执行一次就会加载到 服务器中 所以过程名 和 函数名 不能重复
+
+- 2. 语句的分号 都要带上
+
+```sql
+elimiter $
+create procedure test_var2()
+begin
+	-- 声明变量
+	declare emp_name varchar(25);
+	declare emp_sal double(10, 2) default 0.0;
+	
+	-- 赋值
+	-- select last_name into emp_name, salary into emp_sal
+	select last_name, salary into emp_name, emp_sal
+	from emps
+	where employee_id = 102;
+	
+	
+	-- 使用
+	select emp_name, emp_sal;
+end $
+delimiter ;
+
+-- 调用 存储过程
+call test_var2();
+```
+
+
+> 练习2: 
+- 声明两个变量，求和并打印 （分别使用会话用户变量、局部变量的方式实现）
+
+> 要点:
+- 一个@ 就是用户定义的
+- 两个@ 就是系统的
+
+```sql
+set @v1 = 10;
+set @v2 = 20;
+
+set @res = @v1 + @v2;
+select @res;
+
+
+delimiter $
+create procedure test_var3()
+begin
+	declare v1, v2, res int
+
+  set v1 = 10;
+  set v2 = 20;
+	set res = v1 + v2
+
+  select res
+	
+end $
+delimiter ;
+
+-- 调用 存储过程
+call test_var3();
+```
+
+
+> 练习3: 
+- 创建存储过程“different_salary”查询某员工和他领导的薪资差距，并用IN参数emp_id接收员工id，用OUT参数dif_salary输出薪资差距结果。
+
+```sql
+delimiter $
+create procedure different_salary(in emp_id int, out dif_salary double)
+begin
+	-- 分析: 
+	-- 1. 查询 emp_id 的工资
+	-- 2. 查询 emp_id 的管理者的id 
+	-- 3. 查询 管理者的工资
+	-- 4. 计算两个工资的差值
+	
+  declare emp_sal, mar_sal double default 0.0;
+	declare mar_id int;
+	
+  select salary into emp_sal from emps
+  where employee_id = emp_id;
+
+  select salary into mar_sal from emps
+  where employee_id = (
+	  -- 管理者的id
+    select manager_id from emps
+    where employee_id = emp_id
+  );
+	
+	set dif_salary = mar_sal - emp_sal;
+
+end $
+delimiter ;
+
+set @dif_salary := 0;
+call different_salary(102, @dif_salary);
+select @dif_salary;
+
+-- 尝试了很多次 然后把所有的删除了
+show procedure status like 'different_%';
+drop procedure if exists different_salary6;
+```
+
+
+> 对比会话用户变量与局部变量
+
+              作用域			  定义位置				语法
+
+会话用户变量	  当前会话		  会话的任何地方		加@符号，不用指定类型
+
+局部变量	     定义它的
+              BEGIN END中  首行		         一般不用加@,
+                                          需要指定类型
+
+------------------
+
+### 定义条件与处理程序
+
+> 错误演示1:
+- 我们在 dbtest 数据库下 现在要往 表中添加一条记录
+```sql
+-- 报错
+-- 1364: field email doesn't have a default value
+insert into employees(last_name)
+values('Tom');
+
+-- 查看表结构
+desc employees;
+
+-- 原因:
+-- 有一些字段添加了约束 设置成了 not null
+-- email字段就是not null 我们在添加数据的时候 email字段没有被赋值所以报错
+```
+
+- 这节我们主要讲 在mysql当中如果出现问题的情况下如何处理的问题
+- 也就是错误的处理(比如java中的异常处理)
+
+- mysql中是如何处理异常的 我们分为两个环节 `定义条件` 和 `处理程序`
+
+> 定义条件:
+- 是事先定义程序执行过程中可能遇到的问题，
+- 也就是把程序中可能遇到的问题 定义一下 比如定义一个 错误的名称
+
+> 处理程序
+定义了在遇到问题时应当采取的处理方式，并且保证存储过程或函数在遇到警告或错误时能继续执行。这样可以增强存储程序处理问题的能力，避免程序异常停止运行。
+- 也就是错误的处理 当我们遇到问题之后 程序如何处理 我们自己编写代码告诉它应该是继续还是退出 或者执行什么逻辑
+
+- 保证在程序遇到问题的时候代理能够执行下去
+
+> 说明： 定义条件 和 处理程序 在存储过程、存储函数中都是支持的。
+
+
+> 错误演示2:
+- SET @x = 1 2 3
+- 这3行的作用类似 调试时候的console 检查在哪个部分出现的问题
+- 比如:
+- 如果x为3 能走到3 说明上面的语句都执行了
+- 如果x为2 说明 SET @x = 2; 上面 出现了问题
+
+
+> 要点:
+- 过程的内部使用的是 local变量 所以当前会话是可以调用的
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE UpdateDataNoCondition()
+	BEGIN
+		SET @x = 1;
+    -- 员工的邮箱是不能为null的
+		UPDATE employees SET email = NULL WHERE last_name = 'Abel';
+		SET @x = 2;
+		UPDATE employees SET email = 'aabbel' WHERE last_name = 'Abel';
+		SET @x = 3;
+	END //
+
+DELIMITER ;
+
+-- 调用存储过程 报错: 1048: column email cannot be null
+call UpdateDataNoCondition();
+
+-- local变量 整个会话是可见的
+select @x;    -- 1
+```
+
+- 可以看到，此时@x变量的值为1。结合创建存储过程的SQL语句代码可以得出：
+- 当我们没有在存储过程中 未定义条件 和 处理程序的时候
+
+- 如果存储过程中执行的SQL语句报错时，MySQL数据库会抛出错误，并退出当前SQL逻辑，不再向下继续执行。
+
+
+> 定义条件(可选):
+- 定义条件就是给MySQL中的错误码命名，这有助于存储的程序代码更清晰。
+- 它将一个`错误名字`和`指定的错误条件`关联起来。
+- 这个名字可以随后被用在定义处理程序中使用
+
+- 因为 mysql 报错的时候 提示的错误码 太抽象了 比如
+- 1368(HT000)
+
+- 所以我们将这个错误 关联起来 起个见名知意的错误名字
+
+
+> 定义条件的格式:
+- 我们主要要填写的就是 错误名称 和 错误码
+
+```sql
+declare 错误名称 condition for 错误码(或错误条件)
+
+-- mysql_error_code
+declare 错误名称 condition for 1364
+
+-- sqlstatevalue   --- 注意
+declare 错误名称 condition for sqlstate 'HY000'
+```
+
+> 错误码:
+- 我们在小黑屏上 看到报错的信息如下:
+```sql
+ERROR 1364(HY000)
+```
+
+- 1364(HY000) = MySQL_error_code(sqlstate_value)
+- `MySQL_error_code`和`sqlstate_value` 都可以表示出现的错误
+
+- Mysql_error_code: 数值类型
+- sqlstate_value:   字符串类型(5位长度)
+
+- 我们上面说 定义条件的格式为:
+- declare 错误名称 condition for 错误码(或错误条件)
+- 错误码的部分 我们可以写: 1364 或者 'HY000' 都可以
+
+
+> 定义条件举例1:
+- 定义“Field_Not_Be_NULL”
+- 错误名 与 MySQL中违反非空约束的错误类型是“ERROR 1048 (23000)”对应。
+
+```sql
+-- 方式1: 使用 Mysql_error_code 
+declare Field_Not_Be_NULL condition for 1048;
+
+
+-- 方式1: 使用 sqlstatevalue
+-- 注意: 在使用 sqlstatevalue 错误码的时候 前面要加上 sqlstate关键字
+declare Field_Not_Be_NULL condition for sqlstate '23000'
+```
+
+
+> 定义条件举例2:
+- 定义"ERROR 1148(42000)"错误，名称为command_not_allowed。
+```sql
+declare command_not_allowed condition for 1148;
+declare command_not_allowed condition for sqlstate '42000';
+```
+
+
+> 定义处理程序
+- 如果说上面我们是给 错误起个易懂的名字 这里就是关键 如何解决异常
+- 这个部分是解决 当异常出现之后 我们该怎么办
+
+> 格式:
+```sql
+declare 处理方式 handler for 错误类型 处理语句
+
+-- 理解: 上面有 处理方式 错误类型 处理语句 如何理解?
+
+-- 如果我们出现了 这种 `错误类型` 就按照这种 `处理方式` 处理
+-- 处理的语句是 `处理语句`
+```
+
+> 处理方式:
+- continue:
+    表示遇到错误不处理 继续执行
+
+- exit
+    表示遇到错误马上退出。
+
+- undo:
+    表示遇到错误后撤回之前的操作(MySQL中暂时不支持这样的操作)
+
+
+> 错误类型(即条件)
+- sqlstate '字符串错误码'
+    表示长度为5的sqlstate_value类型的错误代码
+
+- Mysql_error_code
+    匹配数值类型错误代码
+
+- 错误名称
+    定义条件中指定的错误条件名称
+
+---
+
+- sqlwarning
+    匹配所有以01开头的SQLSTATE错误代码
+
+- not found
+    匹配所有以02开头的SQLSTATE错误代码
+
+- sqlexception
+    匹配所有没有被SQLWARNING或NOT FOUND捕获的SQLSTATE错误代码
+
+
+> 处理语句
+- 如果出现上述条件之一，则采用对应的处理方式，并执行指定的处理语句。
+- 语句可以是像“`SET 变量 = 值`”这样的简单语句(定义一个用户变量 然后给这个用户变量赋个值)，也可以是使用`BEGIN ... END`编写的复合语句。
+
+```sql
+-- 方法1：捕获sqlstate_value
+DECLARE CONTINUE HANDLER FOR SQLSTATE '42S02' 
+SET @info = 'NO_SUCH_TABLE';
+
+
+-- 方法2：捕获mysql_error_value
+DECLARE CONTINUE HANDLER FOR 1146 SET @info = 'NO_SUCH_TABLE';
+
+
+-- 方法3：先定义条件，再调用
+DECLARE no_such_table CONDITION FOR 1146;
+DECLARE CONTINUE HANDLER FOR NO_SUCH_TABLE SET @info = 'NO_SUCH_TABLE';
+
+
+-- 方法4：使用SQLWARNING
+DECLARE EXIT HANDLER FOR SQLWARNING SET @info = 'ERROR';
+
+
+-- 方法5：使用NOT FOUND
+DECLARE EXIT HANDLER FOR NOT FOUND SET @info = 'NO_SUCH_TABLE';
+
+
+-- 方法6：使用SQLEXCEPTION
+DECLARE EXIT HANDLER FOR SQLEXCEPTION SET @info = 'ERROR';
+```
+
+
+> 案例解决
+- 在存储过程中，定义处理程序，捕获sqlstate_value值，当遇到MySQL_error_code值为1048时，执行CONTINUE操作，并且将@proc_value的值设置为-1。
+
+> 要点:
+- 我们要在 过程体 的开始位置 声明 处理程序
+
+```sql
+delimiter $
+create procedure UpdateDateNoCondtion()
+begin
+  -- 定义处理程序
+  -- 处理方式1:
+  declare continue handler for 1048 set @proc_value = -1;
+
+  -- 处理方式2:
+  declare continue handler for sqlstate '23000' set @proc_value = -1;
+
+
+  SET @x = 1;
+  -- 上面因为定义了处理程序 虽然此处会报错 但错误会被捕获(并在捕获的时候通过处理方式 定义了变量proc_value并赋值为-1) 并且 continue关键字 再告诉程序应该继续向下执行
+  UPDATE employees SET email = NULL WHERE last_name = 'Abel';
+  SET @x = 2;
+  UPDATE employees SET email = 'aabbel' WHERE last_name = 'Abel';
+
+  -- 也就是说 @x 能成功的 = 3
+  SET @x = 3;
+
+end $
+delimiter ;
+
+
+-- 查看结果
+-- 这时候会正常的执行结束
+call UpdateDateNoCondtion();
+select @x, @proc_value;   -- 3, -1
+```
+
+- 我们在存储过程中 定义了处理程序 所以程序不会终止 并指定了 处理方式
+
+
+- 举例:
+- 创建一个名称为“InsertDataWithCondition”的存储过程
+- 在存储过程中，定义处理程序，捕获sqlstate_value值，当遇到sqlstate_value值为23000时，执行EXIT操作，并且将@proc_value的值设置为-1。
+
+```sql
+-- 准备工作
+create table departments
+as
+select * from atguigudb.`departments`;
+
+-- 给表中的字段添加唯一性的约束 约束名 uk_dept_name
+alter table departments
+add constraint uk_dept_name unique(department_name);
+
+-- 演示内容:
+-- 往表中添加两条记录 值为一样的 这样 根据字段的唯一性 肯定会报错的
+
+delimiter $
+create procedure InsertDataWithCondition()
+begin
+  -- 方式1:
+  -- 定义处理程序
+  declare exit handler for sqlstate '23000' set @proc_value = -1;
+
+  -- 方式2:
+  -- 定义条件:
+  declare duplicate_entry condition for 1062;
+  declare exit handler for duplicate_entry set @proc_value = -1;
+
+  SET @x = 1;
+  insert into departments(department_name) values('测试');
+  SET @x = 2;
+  insert into departments(department_name) values('测试');
+  SET @x = 3;
+end $
+delimiter ;
+
+
+-- 调用:
+call InsertDataWithCondition();
+```
+
+------------------
+
+### 流程控制
+- 正常的一个程序默认的执行方式 都是从上往下开始执行
+- 这种结构我们称之为 `顺序结构`
+
+- 还有两类的结果也是需要我们掌握的
+- `分支结构`: 二选一 多选一
+- `循环结构`: 程序满足一定条件下，重复执行一组语句
+
+- 解决复杂问题不可能通过一个 SQL 语句完成，我们需要执行多个 SQL 操作。流程控制语句的作用就是控制存储过程中 SQL 语句的执行顺序，是我们完成复杂操作必不可少的一部分。
+
+- 针对于MySQL 的流程控制语句主要有 3 类。
+
+- `条件判断语句`：IF 语句和 CASE 语句
+- `循环语句`：LOOP、WHILE 和 REPEAT 语句
+- `跳转语句`：ITERATE 和 LEAVE 语句
+
+
+> 分支结构之 if
+> 语法结构:
+```sql
+  if 表达式(变量) then 操作1
+  [elseif 表达式2(变量2) then 操作2] ...
+  [else 操作n]
+  end if
+```
+
+- 根据表达式的值 
+  如果为真 执行后面的then操作
+  如果为假 继续向下判断 直到为真 执行其后面的then操作
+- 一旦匹配成功 就结束整个的 if结构
+
+- []是可以选的
+
+> 要点:
+- 1. 不同的表达式对应不同的操作
+- 2. 使用在 begin ~ end 中
+
+**注意:**
+- 只能用于 存储过程 或 存储函数 中
+
+```sql
+delimiter $
+create procedure test_if()
+begin
+  -- 声明 局部变量
+  declare stu_name varchar(15);
+  declare email varchar(25);
+  declare age int default 20;
+
+  -- 情况1:
+  -- 最简单的if结构
+  if stu_name is null
+    then select 'stu_name is null';   -- 这是相当于 console
+  end if;
+
+
+  -- 情况2:
+  -- 2选1的场景
+  if email is null
+    then selecet 'email is null';
+  else 
+    select 'email is not null';
+  end if;
+
+
+  -- 情况3:
+  -- 多选一
+  if age > 40
+    then select '中老年';
+  elseif age > 18
+    then select '青壮年';
+  elseif age > 8
+    then select '青少年';
+  else
+    select '婴幼儿';
+  end if;
+
+end $
+delimiter ;
+
+call test_if();  -- 使用 select '' 的方式 输出在结果集了
+```
+
+
+- 举例1:
+- 声明存储过程“update_salary_by_eid1”，
+- 定义IN参数emp_id，输入员工编号。
+- 判断该员工薪资
+  如果低于8000元并且入职时间超过5年就涨薪500元；否则就不变。
+
+```sql
+delimiter $
+create procedure update_salary_by_eid1(in emp_id int)
+begin
+  -- 定义变量
+  declare emp_sal double default 0;
+  declare emp_hire_date double;  -- 记录员工工作多久了
+
+  -- 查询工资的结果 赋值到 emp_sal
+  select salary into emp_sal from emps
+  where employee_id = emp_id;
+
+  -- 入职时间大于5年的逻辑
+  -- 使用 datediff(date1,date2) 结果返回的是 差值的天数 / 365
+  select datediff(curdate(), hire_date) / 365 into emp_hire_date
+  from emps
+  where employee_id = emp_id;
+
+
+  if emp_sal < 8000 and emp_hire_date > 5
+    then update emps set salary = salary + 500 
+         where employee_id = emp_id;
+  end if;
+
+end $
+delimiter ;
+```
+
+
+- 举例2:
+- 声明存储过程“update_salary_by_eid2”，
+- 定义IN参数emp_id，输入员工编号。
+- 判断该员工薪资
+  如果低于9000元并且入职时间超过5年，就涨薪500元；
+  否则就涨薪100元。
+
+```sql
+delimiter $
+create procedure update_salary_by_eid1(in emp_id int)
+begin
+
+  declare emp_sal double default 0;
+  declare emp_hire_date double; 
+
+  select salary into emp_sal from emps
+  where employee_id = emp_id;
+
+  select datediff(curdate(), hire_date) / 365 into emp_hire_date
+  from emps
+  where employee_id = emp_id;
+
+
+  if emp_sal < 9000 and emp_hire_date > 5
+    then update emps set salary = salary + 500 
+         where employee_id = emp_id;
+  else 
+    update emps set salary = salary + 100 
+    where employee_id = emp_id;
+  end if;
+
+end $
+delimiter ;
+```
+
+
+- 举例3:
+- 声明存储过程“update_salary_by_eid3”，
+- 定义IN参数emp_id，输入员工编号。判断该员工
+  薪资如果低于9000元，就更新薪资为9000元
+  薪资如果大于等于9000元且低于10000的，但是奖金比例为NULL的，就更新奖金比例为0.01；
+  其他的涨薪100元。
+
+```sql
+delimiter $
+create procedure update_salary_by_eid1(in emp_id int)
+begin
+
+  -- 工资
+  declare emp_sal double default 0;
+  -- 奖金率
+  declare bonus doule;
+
+  select salary into emp_sal from emps
+  where employee_id = emp_id;
+
+  select commisstion_pct into bonus from emps
+  where employee_id = emp_id;
+
+
+  if emp_sal < 9000
+    then update emps set salary = 9000
+         where employee_id = emp_id;
+  -- 如果上面的if不满足 就意味着 emp_sal > 9000了 所以这里直接写 < 10000
+  elseif emp_sal < 10000 and bonus is null
+    update emps set commisstion_pct = 0.01
+    where employee_id = emp_id;
+  else
+    update emps set salary = salay + 100
+    where employee_id = emp_id;
+  end if;
+
+end $
+delimiter ;
+```
+
+------
+
+> 分支结构之 case
+
+> 语法结构1:
+- 它类似于 switch
+- 根据 case 后面的 表达式 与 when 后面的值 一一匹配
+
+```sql
+  case 表达式
+  when 值1 
+    then 结果1 或 语句1 (如果是语句 则需要加分号);
+  when 值2
+    then 结果2 或 语句2 (如果是语句 则需要加分号);
+
+  ...
+
+  else 结果n 或 语句n (如果是语句 则需要加分号);
+  end [case] 
+  -- 如果是放在 begin ~ end 中需要加上 case
+  -- 如果放在 select 后面 不需要加上 case
+```
+
+> 语法结构2:
+- 它类似于 多重if
+- when 后面就相当于 if(表达式) 它可以是一个范围 取真假
+- 如果条件为真 就执行后面的语句
+
+```sql
+  case
+  when 条件1 
+    then 结果1 或 语句1 (如果是语句 则需要加分号);
+  when 条件2
+    then 结果2 或 语句2 (如果是语句 则需要加分号);
+
+  ...
+
+  else 结果n 或 语句n (如果是语句 则需要加分号);
+  end [case] 
+  -- 如果是放在 begin ~ end 中需要加上 case
+  -- 如果放在 select 后面 不需要加上 case
+```
+
+- 结构1 和 结构2 之间的区别在于 case 后面有没有表达式
+
+
+> 举例:
+- 基本使用情况:
+
+```sql
+delimiter $
+create procedure test_case()
+begin 
+  -- 演示1: case 表达式 when 值1 then ...
+  declare num int default 2;
+
+  case num
+    when 1 then select 'num = 1';
+    when 2 then select 'num = 2';
+    else select 'other value'
+  -- 因为在 begin end 中要加上case end case
+  end case;
+
+
+  -- 演示: case when 条件 then ...
+  declare num int default 10;
+  case
+  when num > 100
+    then select '3位数';
+  when num > 10
+    then select '2位数';
+  else select '个位数';
+  end case;
+
+end $
+delimiter ;
+```
+
+
+> 举例2:
+- 声明存储过程“update_salary_by_eid4”，
+- 定义IN参数emp_id
+- 输入员工编号。判断该员工
+  薪资如果低于9000元，就更新薪资为9000元；
+  薪资大于等于9000元且低于10000的，但是奖金比例为NULL的，就更新奖金比例为0.01；
+  其他的涨薪100元。
+```sql
+delimiter $
+create procedure update_salary_by_eid6(in emp_id int)
+begin
+  declare emp_sal double;
+  declare emp_com double;
+
+  select salary into emp_sal from emps
+  where employee_id = emp_id;
+
+  select commission_pct into emp_com
+  from emps
+  where employee_id = emp_id;
+
+  case
+  when emp_sal  < 9000
+    then update emps set salary = 9000
+    where employee_id = emp_id;
+  when emp_sal < 10000 and emp_com is null
+    then update emps set commission_pct = 0.01
+    where employee_id = emp_id;
+  else
+    update emps set salary = salary + 100
+    where employee_id = emp_id;
+  end case;
+
+end $
+delimiter ;
+```
+
+
+
+> 举例3:
+- 声明存储过程update_salary_by_eid5，
+- 定义IN参数emp_id，输入员工编号。
+- 判断该员工的入职年限，
+- 如果是0年，薪资涨50；
+- 如果是1年，薪资涨100；
+- 如果是2年，薪资涨200；
+- 如果是3年，薪资涨300；
+- 如果是4年，薪资涨400；
+- 其他的涨薪500。
+
+```sql
+delimiter $
+create procedure update_salary_by_eid5(in emp_id int)
+begin
+
+  declare hire_year double;
+  -- 对结果还要进行四舍五入 或者用截断 或者使用int来定义 向下取整比较好一些
+  select round(datediff(curdate(), hire_date) / 365) into hire_year
+  from emps
+  where employee_id = emp_id;
+  
+  case hire_year
+  when 0
+    then update emps set salary = salary + 50
+    where employee_id = emp_id;
+  when 1
+    then update emps set salary = salary + 100
+    where employee_id = emp_id;
+  when 2
+    then update emps set salary = salary + 200
+    where employee_id = emp_id;
+  when 33
+    then update emps set salary = salary + 300
+    where employee_id = emp_id;
+  when 4
+    then update emps set salary = salary + 400
+    where employee_id = emp_id;
+  else update emps set salary = salary + 500
+       where employee_id = emp_id;
+  end case
+
+end $
+delimiter ;
+```
+
+------------------
+
+### 循环结构 之 loop
+- loop循环语句用来重复执行某些语句。
+- loop内的语句一直重复执行直到循环被退出（使用LEAVE子句），跳出循环过程。
+<!-- 
+  leave 相当于 break 么
+ -->
+
+> loop语句 基本格式:
+```sql
+  [loop_label:] loop
+    循环执行的语句(循环体)
+    leave [loop_label]
+  end loop [loop_label]
+```
+> 要点:
+- 1. [loop_label]表示 loop 语句的标注名称，该参数可以省略。
+
+- 2. 退出循环 必须要借助 if + leave
+- leave的使用 则必须配合 loop_label
+
+- 3. 因为退出循环 一般要借助 if + leave 那么如果没有if + leave就是一个死循环 所以 loop 一般用来做死循环的操作 
+- 然后当满足什么条件的时候退出
+
+- 4. 循环体内部要配合 leave 关键字使用 在某个条件下跳出循环
+- 5. loop if等语句 都要有 end loop end if 用来标记结束
+
+- 举例:
+- 定义一个num变量 在num>=10的时候 终止循环
+```sql
+delimiter $
+create procedure test_loop()
+begin
+	declare num int default 0;
+	
+	loop_tag: loop
+		set num = num + 1;
+		if num >= 10 then leave loop_tag;
+		end if;
+	end loop loop_tag;
+	
+	-- 查看 num 变量
+	select num;
+end $
+delimiter	;
+
+call test_loop();   -- 10
+```
+
+
+- 举例2:
+- 当市场环境变好时，公司为了奖励大家，决定给大家涨工资。
+- 声明存储过程“update_salary_loop()”，
+- 声明OUT参数num，输出循环次数。
+- 存储过程中实现循环给大家涨薪，薪资涨为原来的1.1倍。
+- 直到全公司的平均薪资达到12000结束。并统计循环次数。
+<!-- 
+  select avg(salary) from emps;   // 7034
+  平均工资没有超过12000 就再循环一轮
+ -->
+
+```sql
+delimiter $
+create procedure update_salary_loop(out num int)
+begin
+  -- 判断循环标准就是平均薪资
+  declare avg_sal double;
+
+  -- 记录计算循环的次数
+  declare loop_count int default 0;   -- 这里要赋默认值
+
+  -- 获取员工的平均工资
+  select avg(salary) into avg_sal from emps;
+
+  loop_label: loop
+    -- 结束循环的条件 平均薪资高于12000
+    if avg_sal >= 12000
+      then leave loop_label;
+    end if;
+
+    -- 逻辑到这里 更新员工的工资
+    update emps set salary = salary * 1.1;
+    -- avg_sal 在循环内也要更新不然就是死循环
+    select avg(salary) into avg_sal from emps;
+
+    -- 记录循环次数
+    set loop_count = loop_count + 1;
+  end loop loop_label;
+
+  -- 给out num来赋值
+  set num = loop_count;
+
+end $
+delimiter ;
+
+
+-- 查看
+call update_salary_loop(@num);
+select @num;
+
+```
+
+
+> 要点:
+- 凡是循环结构一定具备4要素
+- 1. 初始化条件
+- 2. 循环条件
+- 3. 循环体
+- 4. 迭代条件
+
+- 比如下面的案例:
+```sql
+delimiter $
+create procedure update_salary_loop(out num int)
+begin
+
+  declare avg_sal double;
+  declare loop_count int default 0;  -- 这里要赋默认值
+
+  -- 1. 初始化条件
+  select avg(salary) into avg_sal from emps;
+
+  loop_label: loop
+
+    -- 2. 循环条件 >= 12000 退出
+    if avg_sal >= 12000
+      then leave loop_label;
+    end if;
+
+    -- 3. 循环体
+    update emps set salary = salary * 1.1;
+
+    -- 4. 迭代条件
+    select avg(salary) into avg_sal from emps;
+    set loop_count = loop_count + 1;
+
+  end loop loop_label;
+  set num = loop_count;
+
+end $
+delimiter ;
+```
+
+------------------
+
+### 循环结构 之 while
+- while语句创建一个带条件判断的循环过程。
+- while在执行语句执行时，先对指定的表达式进行判断，
+  如果为真, 就执行循环内的语句，
+  如果为假, 就退出循环。
+
+> while语句 基本格式:
+```sql
+  [while_label:] while 循环条件 do
+    循环体 ...
+  end while [while_label]
+```
+- [while_label:]为 while 语句的标注名称
+- 如果循环条件结果为真，WHILE语句内的语句或语句群被执行，直至循环条件为假，退出循环。
+
+
+- 举例1:
+```sql
+delimiter $
+create procedure test_while()
+begin
+
+  -- 初始化条件
+  declare num int default 1;  -- 这里要赋默认值
+
+  -- 循环条件
+  while num < 10 do
+
+    -- 循环体 (略)
+
+    -- 迭代条件
+    set num = num + 1;
+  end while;
+
+end $
+delimiter ;
+```
+
+- 举例2:
+- 市场环境不好时，公司为了渡过难关，决定暂时降低大家的薪资。
+- 声明存储过程“update_salary_while()”，
+- 声明OUT参数num，输出循环次数。
+- 存储过程中实现循环给大家降薪，薪资降为原来的90%。
+- 直到全公司的平均薪资达到5000结束。并统计循环次数。
+```sql
+delimiter $
+create procedure update_salary_while(out num int)
+begin 
+
+  declare avg_sal double;
+  declare flag int default 0;   -- 这里要赋默认值
+
+  select avg(salary) into avg_sal from emps;
+
+  while avg_sal > 5000 do
+    update emps set salary = salary * 0.9;
+    set flag = flag + 1;
+    select avg(salary) into avg_sal from emps;
+  end while;
+
+  set num = flag
+end $
+delimiter ;
+ 
+call update_salary_while(@num);
+select @num;
+```
+
+
+------------------
+
+### 循环结构 之 repeat
+- repeat语句创建一个带条件判断的循环过程。
+- 与WHILE循环不同的是，REPEAT 循环首先会执行一次循环
+
+- 然后在 UNTIL 中进行表达式的判断，
+  如果满足条件就退出，即 END REPEAT；
+  如果条件不满足，则会就继续执行循环，直到满足退出条件为止。
+<!-- 
+
+ -->
+
+> repeat语句 基本格式:
+```sql
+  [repeat_label:] repeat
+    循环体语句 ...
+
+  until 结束循环的条件表达式    -- 这里不要加分号 ！！！
+  end repeat [repeat_label]
+```
+
+> 要点:
+- 1. until: 是结束循环的表达式 (也就是 条件为真的时候退出循环)
+<!-- 
+  这里跟 while等循环条件不一样 while中的条件是 
+    当符合条件的时候 执行循环体
+    当不符合条件的时候 退出循环
+ -->
+
+- 2. 循环体 肯定会先指定一次
+
+
+- 举例:
+```sql
+delimiter $
+create procedure test_repeat()
+begin
+
+  declare num int default 1;
+
+  repeat
+    set num = num + 1;
+
+  until num >= 10   -- 这里不要加上分号
+  end repeat;
+
+  select num;
+
+end $
+delimiter ;
+```
+
+- 举例2:
+- 当市场环境变好时，公司为了奖励大家，决定给大家涨工资。
+- 声明存储过程“update_salary_repeat()”，声明OUT参数num，输出循环次数。
+
+- 存储过程中实现循环给大家涨薪，薪资涨为原来的1.15倍。
+- 直到全公司的平均薪资达到13000结束。并统计循环次数。
+
+```sql
+delimter $
+create procedure update_salary_repeat(out num int)
+begin
+
+  declare flag int defualt 0;
+  declare avg_sal double;
+
+  select avg(salary) into avg_sal from emps;
+
+  repeat
+    update emps set salary = salary * 1.15;
+    set flag = flag +  1;
+    select avg(salary) into avg_sal from emps;
+
+  until avg_sal >= 13000
+  end repeat;
+
+  set num = flag
+
+end $
+delimter ;
+
+call update_salary_repeat(@num);
+select @num;
+```
+
+> 对比三种循环结构：
+- 1、这三种循环都可以省略名称，
+- 但*如果循环中添加了循环控制语句*（LEAVE或ITERATE）*则必须添加名称*。
+
+- 2. 
+- LOOP：  一般用于实现简单的"死"循环
+- WHILE： 先判断后执行
+- REPEAT：先执行后判断，无条件至少执行一次
+
+------------------
+
+### 跳转语句之 leave 语句
+- LEAVE语句：
+  可以用在循环语句内，或者 以 BEGIN 和 END 包裹起来的*程序体*内，
+  表示*跳出循环*或者*跳出程序体*的操作。
+<!-- 
+  begin ~ end 中间的就是程序体 
+  leave也能跳出程序体
+ -->
+  
+- 如果你有面向过程的编程语言的使用经验
+- 你可以把 LEAVE 理解为 *break*
+
+> leave的使用格式:
+- label参数表示循环的标志。LEAVE和BEGIN ... END或循环一起被使用。
+```sql
+leave label标签
+```
+
+- 举例:
+- 使用 leave 退出程序体
+
+- 创建存储过程 “leave_begin()”，声明INT类型的IN参数num。
+给BEGIN...END加标记名，并在BEGIN...END中使用IF语句判断num参数的值。
+
+- 如果num<=0，则使用LEAVE语句退出BEGIN...END；
+- 如果num=1，则查询“employees”表的平均薪资；
+- 如果num=2，则查询“employees”表的最低薪资；
+- 如果num>2，则查询“employees”表的最高薪资。
+
+- IF语句结束后查询“employees”表的总人数。
+
+```sql
+delimiter $
+create procedure leave_begin(in num int)
+
+-- 给程序体 添加 label
+begin_label: begin
+  if num <= 0
+    then leave begin_label;
+  elseif num = 1
+    then select avg(salary) from emps;
+  elseif num = 2
+    then select min(salary) from emps;
+  else 
+    select max(salary) from emps;
+  end if;
+
+  -- 查询总人数
+  select count(*) from emps;
+end $
+
+delimiter ;
+```
+
+
+- 举例2:
+- 当市场环境不好时，公司为了渡过难关，决定暂时降低大家的薪资。
+- 声明存储过程“leave_while()”，声明OUT参数num，输出循环次数，
+- 存储过程中使用WHILE循环给大家降低薪资为原来薪资的90%，直到全公司的平均薪资小于等于10000，并统计循环次数。
+
+```sql
+delimter $
+create procedure leave_while(out num int)
+begin
+
+  declare avg_sal double;
+  declare flag int default 0;
+
+  select avg(salary) into avg_sal from emps;
+
+  -- 这里就是利用 while true 做死循环 然后等满足某个条件在退出
+  while_label: while true do
+
+    if avg_sa l<= 10000
+      then leave while_label;
+    end if;
+
+    set flag = flag + 1;
+    update emps set salary = salary * 0.09;
+    select avg(salary) into avg_sal from emps;
+
+  set num = flag;
+
+end $
+delimter ;
+```
+
+------------------
+
+### 跳转语句之 iterate 语句
+- ITERATE语句：
+  *只能用在循环语句（LOOP、REPEAT和WHILE语句）内*，表示重新开始循环
+  也是跳过本次循环的意思
+
+- 将执行顺序转到语句段开头处。
+- 如果你有面向过程的编程语言的使用经验，你可以把 ITERATE 理解为 *continue*，意思为“再次循环”。
+
+> 格式:
+- label参数表示循环的标志。ITERATE语句必须跟在循环标志前面。
+```sql
+iterate 标签
+```
+
+- 举例:
+- 定义局部变量num，初始值为0。循环结构中执行num + 1操作。
+- 如果num < 10，则继续执行循环；
+- 如果num > 15，则退出循环结构；
+
+```sql
+delimiter $
+create procedure test_iterate()
+begin
+
+  declare num int default 0;
+
+  loop_label: loop
+    set num = num + 1;
+
+    if num < 10
+      -- 如果小于10 则继续进行循环 这里我们用 iterate 来体现
+      then iterate loop_label;
+
+    -- num 16 的时候 满足下面的条件判断 跳出循环
+    elseif num > 15
+      then leave loop_label;
+    end if;
+    
+    select '尚硅谷: 让天下没有难学的技术';
+  end loop;
+
+end $
+delimiter ;
+```
+
+------------------
+
+### 游标 (也可以叫做光标)
+- 就像鼠标的光标似的 用来定位表中一条条的数据的
+- 比如:
+```sql
+  -- 一共查询到了107条数据
+  select * from emps;
+```
+
+- 我们能发现不管是查询也好 还是update也好 都是把整个表当做一个整体出现的
+- 比如 update 当没有 where 的时候 一下会修改 整个表的数据
+- 比如 delete 当没有 where 的时候 一下会删除整个表
+
+- 那能不能深入数据里面 一条一条的记录去操作 而不是针对整个的结果集
+- 比如 我们查询公司 按照 desc 排序 107 条
+- 然后我们可以 设置一个上限 上限设置为 200000 然后一个一个员工的工资去累加 首次超过200000的时候 就停下来 看我们累加过几个 这样就是拿着表中一条 一条的记录去操作 而不是安装整体去操作
+
+- 这里我们就需要 了解 游标
+
+- 虽然我们也可以通过筛选条件 WHERE 和 HAVING，或者是限定返回记录的关键字 LIMIT 返回一条记录，但是，却无法在结果集中像指针一样，向前定位一条记录、向后定位一条记录，或者是`随意定位到某一条记录`，并对记录的数据进行处理。
+<!-- 
+  这段的意思就是 我们通过过滤等手段 拿到的是一个结果集
+  但是我们没办法 定义到 结果集当中的某一条记录 对这条数据进行精确的处理
+
+  想要这么做就要用到游标
+ -->
+
+- 这个时候，就可以用到游标。*游标，提供了一种灵活的操作方式*，*让我们能够对结果集中的每一条记录进行定位*，并对指向的记录中的数据进行操作的数据结构。**游标让 SQL 这种面向集合的语言有了面向过程开发的能力。**
+
+
+- 在 SQL 中，游标是一种临时的数据库对象，可以指向存储在数据库表中的数据行指针。这里游标`充当了指针的作用`，我们可以通过操作游标来对数据行进行操作。
+
+- MySQL中游标可以在存储过程和函数中使用。
+
+- 举例:
+- 我们查询了 employees 数据表中工资高于15000的员工都有哪些：
+```sql
+  select employee_id, last_name, salary
+  from employees
+  where salary > 15000
+
+  -- 查询结果 下面就是一个结果集
+  100
+  101
+  102
+  103
+  104
+  105
+  106     ← 游标
+  205
+
+  -- 我们可以通过游标 指向 结果集中的任意一条数据
+  -- 每次游标下移的时候 就能获取到该行的数据
+```
+
+> 游标的使用步骤
+- 1. 先定义局部变量 *游标的定义必须定义在 局部变量 的下面*
+- 2. 游标必须在声明*处理程序*之前被声明
+
+```sql
+  begin
+    declare 局部变量
+    declare 游标名 cursor for 查询语句;
+
+    -- 游标必须定义在 处理程序 的上方
+    
+  end
+```
+
+
+- 如果我们想要使用游标，一般需要经历四个步骤。
+- 不同的 DBMS 中，使用游标的语法可能略有不同。
+
+> 步骤1: 声明游标
+- 作用:
+- 定义一个游标 让它指向结果集
+
+- 这个语法适用于 MySQL，SQL Server，DB2 和 MariaDB。
+```sql
+  declare 游标名 cursor for 查询语句;
+  (查询语句: 查询出来的是结果集 游标就是针对这个结果集进行操作)
+```
+
+- Oracle 或者 PostgreSQL，需要写成：
+```sql
+declare 游标名 cursor is 查询语句;
+(查询语句: 查询出来的是结果集 游标就是针对这个结果集进行操作)
+```
+
+
+> 打开游标
+- 作用:
+- 定义好游标之后，如果想要使用游标，必须先打开游标, 打开游标的时候 SELECT 语句的查询结果集就会送到游标工作区，为后面游标的`逐条读取`结果集中的记录做准备。
+
+```sql
+ open 游标名;
+```
+
+
+> 使用游标
+- 作用:
+- 逐条读取数据
+
+- 变量1 变量2:
+- 上面定义游标的时候 后面的查询语句中 查询的字段 每一个字段对应一个变量
+<!-- 
+  declare 游标名 cursor for select emp_id, emp_name, salary
+
+  我们每 fetch 一次 就取出一条记录 这条记录中有3个字段
+  然后我们把这三个字段 into 到 变量1 变量2 变量3 中
+ -->
+
+```sql
+fetch 游标名 into 变量1 [, 变量2]
+
+-- 变量 和定义游标的时候 查询的字段 要一一对应 我们给变量起名字的时候 也要跟字段一一匹配上
+```
+
+- 这句的作用是使用 cursor_name 这个游标来读取当前行，并且将数据保存到 var_name 这个变量中，游标指针指到下一行。如果游标读取的数据行有多个列名，则在 INTO 关键字后面赋值给多个变量名即可。
+
+**注意:**
+- 1. 变量1 变量2 必须在声明游标之前就定义好
+- 2. 游标的查询结果集中的字段数 必须跟 INTO 后面的变量数一致
+
+
+> 关闭游标:
+```sql
+  close 游标名;
+```
+
+- 有 OPEN 就会有 CLOSE，也就是打开和关闭游标。
+- 当我们使用完游标后需要关闭掉该游标。因为游标会`占用系统资源`，如果不及时关闭，**游标会一直保持到存储过程结束**，影响系统运行的效率。而关闭游标的操作，会释放游标占用的系统资源。
+<!-- 
+  我们的游标针对查询出来的结果 一条条的取数据 它会对查询出来的数据 进行锁定
+
+  如果另外一个人 也要去查询这些数据 由于我们当前的游标占用着 这个人就要等待 这就是锁定带来的弊端
+
+  如果是并发量比较高的情况下 就一定要及时的关闭游标
+ -->
+
+- 关闭游标之后，我们就不能再检索查询结果中的数据行，如果需要检索只能再次打开游标。
+
+- 1. 声明游标
+- 2. 打开游标
+- 3. 使用游标 (从游标中获取数据的过程)
+- 4. 关闭游标
+
+> 游标的特性
+- 弹幕说的:
+- 每执行一次自动下移一位 直到eof
+
+
+> 举例:
+- 创建存储过程“get_count_by_limit_total_salary()”，
+- 声明IN参数 limit_total_salary，DOUBLE类型； 相当于设置上限
+- 声明OUT参数total_count，INT类型。
+
+- 函数的功能可以实现累加薪资最高的几个员工的薪资值，直到薪资总和达到limit_total_salary参数的值，返回累加的人数给total_count。
+
+- 思路
+- 我们利用游标 获取每一条记录中的salary字段 然后取这个字段中的值进行累加 当累加的结果 达到 我们的上限的时候 停止
+- 因为要取一条条 所以还涉及到了循环
+
+```sql
+delimiter $
+create procedure get_count_by_limit_total_salary(in limit_total_salary double, out total_count int)
+begin
+
+  -- 先定义 使用游标时的变量 查询语句中有几个 我们就声明几个
+  declare emp_sal double;  -- 某一个员工的工资
+
+  -- 我们要拿到salary往这里面累加
+  declare sum_sal double default 0.0;
+  declare emp_count int default 0;   -- 迭代的次数
+
+  -- 1. 声明游标
+  declare emp_cursor cursor for select salary from emps order by salary desc; -- 因为从最高的开始 所以要排序
+
+  -- 2. 打开游标
+  open emp_cursor;
+
+  -- 3. 使用游标 这里要一条条取(fetch) 所以要循环
+  cursor_label: loop
+    if sum_sal >= limit_total_salary
+      then leave cursor_label
+    end if
+
+    fetch emp_cursor into emp_sal;
+    set sum_sal = sum_sal + emp_sal;
+    set emp_count = emp_count + 1;
+
+  end loop cursor_label;
+
+  set total_count = emp_count;
+
+  -- 4. 关闭游标 -- 最后再关闭游标
+  close emp_cursor;
+
+end $
+delimiter ;
+
+
+-- 调用:
+call get_count_by_limit_total_salary(200000, @total_count);
+select @total_count;
+```
+
+- 使用场景
+- 当我们发现 我们用一堆的select语句搞不定了 需要取出表中一条条记录的具体字段的 这时候就要考虑使用游标
+
+
+> 小结:
+- 游标是 MySQL 的一个重要的功能，为`逐条读取`结果集中的数据，提供了完美的解决方案。跟在应用层面实现相同的功能相比，游标可以在存储程序中使用，效率高，程序也更加简洁。
+
+- 但同时也会带来一些性能问题，比如在使用游标的过程中，会对数据行进行`加锁`，这样在业务并发量大的时候，不仅会影响业务之间的效率，还会`消耗系统资源`，造成内存不足，这是因为游标是在内存中进行的处理。
+
+- 建议：养成用完之后就关闭的习惯，这样才能提高系统的整体效率。
+
+
+> 补充: 全局变量的持久化
+- 我们前面说变量的时候 分为 系统变量 和 用户变量
+- 系统变量又分为
+  - global 全局系统变量
+  - local  会话系统变量
+
+- 这里我们说的旧是 全局系统变量的持久化
+
+- 上面我们说过 global系统变量不能重启 一旦重启mysql的话 全局系统变量就失效了
+
+- 以前的话 我们想重启之后 还有效果 我们只能考虑在配置文件中做操作
+
+- 现在我们想 在服务器运行期间设置的 全局变量 可以持久化
+
+> 使用 persist(持久化)
+```sql
+-- 以前:
+set global max_connections = 1000;
+
+-- 现在:
+set persist global max_connections = 1000;
+```
+
+- MySQL会将该命令的配置保存到数据目录下的`mysqld-auto.cnf`文件中，下次启动时会读取该文件，用其中的配置来覆盖默认的配置文件。
+
+
+> 课后练习也没做
+- https://www.bilibili.com/video/BV1iq4y1u7vj?p=91&spm_id_from=pageDriver
+
+------------------
+
+### 触发器
+- 在实际开发中，我们经常会遇到这样的情况：
+- 比如电商的项目有 2 个或者多个相互关联的表，
+  如`商品信息`和`库存信息`分别存放在 2 个不同的数据表中
+  
+- 我们在添加一条新商品记录的时候，为了保证数据的完整性，必须*同时*在库存表中添加一条库存记录。
+<!-- 
+  也就是说 我们添加一条商品记录的时候 要同时更新两张表的记录
+  相当于两个 insert 的操作
+  这两张表都更新了 就保证了数据的完整性
+
+  不能商品信息表里面有 库存信息里面没有 这样就不对了
+ -->
+
+- 这样一来，我们就必须把这两个关联的操作步骤写到程序里面，而且要用`事务`包裹起来，确保这两个操作成为一个`原子操作`，要么全部执行，要么全部不执行。
+
+- 要是遇到特殊情况，可能还需要对数据进行手动维护，这样就很`容易忘记其中的一步`，导致数据缺失。
+
+- 这个时候，咱们可以使用触发器。**你可以创建一个触发器，让商品信息数据的插入操作自动触发库存数据的插入操作。**这样一来，就不用担心因为忘记添加库存数据而导致的数据缺失了。
+
+
+> 触发器概述
+- MySQL从`5.0.2`版本开始支持触发器。MySQL的触发器和存储过程一样，都是嵌入到MySQL服务器的一段程序。
+<!-- 
+  触发器和存储过程一样 都是写在mysql服务器中的 属于服务器的一段代码
+
+  触发器不是我们自己调的 而是有下面的事件(增删改)来触发的 相当于回调么
+ -->
+
+- 触发器是由`事件来触发`某个操作，这些事件包括`INSERT`、`UPDATE`、`DELETE`事件。所谓事件就是指用户的动作或者触发某项行为。如果定义了触发程序，当数据库执行这些语句时候，就相当于事件发生了，就会`自动`激发触发器执行相应的操作。
+
+- 当对数据表中的数据执行插入、更新和删除操作，需要自动执行一些数据库逻辑时，可以使用触发器来实现。
+
+
+> 创建触发器语法
+```sql
+  create trigger 触发器名称
+  before | after insert | update | delete on 表名
+  for each row
+
+  触发器执行的语句...
+```
+
+- 解释:
+- on 表名:
+  表示触发器监控的对象。
+
+- before | after:
+  表示触发的时间。
+  before 表示在事件之前触发
+  after  表示在事件之后触发
+
+- insert | update | delete:
+  insert: 表示插入记录时触发；
+  update: 表示更新记录时触发；
+  delete: 表示删除记录时触发。
+
+- for each row:
+  每对表进行一次指定事件 都会触发 触发器的执行
+
+- 触发器执行的语句块:
+  可以是单条SQL语句，也可以是由BEGIN ... END结构组成的复合语句块。
+
+
+- 举例:
+- 准备工作
+```sql
+create database dbtest;
+
+use dbtest;
+
+create table test_trigger (
+  id int primary key auto_increment,
+  t_node varchar(30)
+);
+
+create table test_trigger_log (
+  id int primary key auto_increment,
+  t_log varchar(30)
+);
+
+select * from test_trigger;
+select * from test_trigger_log;
+```
+
+- 创建触发器:
+- 需求:
+- 创建名称为before_insert的触发器，
+- 向test_trigger数据表插入数据之前，
+- 向test_trigger_log数据表中插入before_insert的日志信息。
+
+> 要点:
+- 1. 触发器名:
+- 时机 + 事件 + 表名 + tri
+
+```sql
+delimiter $
+create trigger before_insert_test_tri
+before insert on test_trigger
+for each row
+begin
+  -- 当往 test_trigger 表 插入数据之前 执行下面的操作
+  insert into test_trigger_log (t_log)
+  values('before insert ...');
+
+end $
+delimiter ;
+
+
+-- 测试:
+insert into test_trigger(t_node)
+values('Tom');
+
+select * from test_trigger;
+-- 我们发现这张表也有这条数据
+select * from test_trigger_log;
+```
+
+
+- 举例2:
+- 创建名称为after_insert的触发器，
+- 向test_trigger数据表插入数据之后，
+- 向test_trigger_log数据表中插入after_insert的日志信息。
+```sql
+delimiter $
+create trigger before_insert_test_tri
+after insert on test_trigger
+for each row
+begin
+  -- 当往 test_trigger 表 插入数据之前 执行下面的操作
+  insert into test_trigger_log (t_log)
+  values('after insert ...');
+
+end $
+delimiter ;
+```
+
+
+- 举例3:
+- 定义触发器“salary_check_trigger”，基于员工表“employees”的INSERT事件，
+- 在INSERT之前检查将要添加的新员工薪资是否大于他领导的薪资，如果大于领导薪资，则报sqlstate_value为'HY000'的错误，从而使得添加失败。
+
+> 要点1:
+- 我们有一条数据 要添加到 emps 中
+- 但是在触发中 我们要对 *这条即将要添加的数据* 进行操作
+- 这条即将要添加的数据 可以在 用 *new* 关键字来代替使用
+
+> 添加使用 new 来代替  new代表一条记录
+> 删除使用 old 来代替  old代表一条记录
+
+> 要点2:
+- 我们要主动的抛出错误信息 相当于 throws error
+
+> SIGNAL SQLSTATE 'HY000' SET MESSAGE_TEXT = '薪资高于领导薪资错误';
+
+> signal sqlstate 'HY000' set message_text = '薪资高于领导薪资错误'
+
+
+- 准备工作
+```sql
+create table emps
+as
+select * from atguigudb.employees; 
+
+create table depts
+as
+select * from atguigudb.departments; 
+```
+
+```sql
+delimiter $
+create trigger salary_check_trigger
+before insert on emps
+for each row
+begin 
+
+  declare mgr_sal double;
+  -- 要查询到 要即将要添加的数据中的manager的薪资
+  -- 我们在这里怎么能拿到即将还没有添加的这条记录的呢？
+  -- 使用 new !!!!!!!
+
+  -- 查询即将要添加的员工的领导的薪资
+  -- 过滤条件为 员工id = 添加这条记录中的 manager_id
+  select salary into mgr_sal from emps
+  where employee_id = new.manager_id;
+
+  -- 如果新员工的工资 > 他领导的工资
+  if new.salary >= mgr_sal
+    then signal sqlstate 'HY000' set message_text = '薪资高于领导薪资错误';
+  end if;
+
+end $
+delimiter ;
+
+
+-- 测试:
+
+-- 创建添加失败的情景:
+-- 103的工资是9000 我们要添加的这个员工的薪资是10000
+insert into emps(employee_id, last_name, email, hire_date, job_id, salary, manager_id)
+values(300, 'Tom', 'tom@126.com', curdate(), 'ad_vp', 10000, 103);
+```
+
+
+> 查看触发器
+- 查看触发器是查看数据库中已经存在的触发器的定义、状态和语法信息等。
+
+> 方式1:
+- 查看当前数据库的所有触发器的定义
+```sql
+-- 注意 要么写; 要么写 \G
+show triggers \G
+```
+
+> 方式2:
+- 查看当前数据库中某个触发器的定义
+```sql
+show create trigger 触发器名
+```
+
+> 方式3:
+- 从系统库information_schema的TRIGGERS表中查询“salary_check_trigger”触发器的信息。
+```sql
+select * from information_schema.TRIGGERS;
+```
+
+
+> 删除触发器
+- 触发器也是数据库对象，删除触发器也用DROP语句，语法格式如下：
+```sql
+drop trigger [if exists] 触发器名称;
+```
+
+
+> 触发器的优缺点
+> 优点:
+- 1. 触发器可以确保数据的完整性
+- 2. 触发器可以帮助我们记录操作日志。
+<!-- 
+  利用触发器，可以具体记录什么时间发生了什么。比如，记录修改会员储值金额的触发器，就是一个很好的例子。这对我们还原操作执行时的具体场景，更好地定位问题原因很有帮助。
+ -->
+
+- 3. 触发器还可以用在操作数据前，对数据进行合法性检查
+<!-- 
+  比如，超市进货的时候，需要库管录入进货价格。但是，人为操作很容易犯错误，比如说在录入数量的时候，把条形码扫进去了；录入金额的时候，看串了行，录入的价格远超售价，导致账面上的巨亏……这些都可以通过触发器，在实际插入或者更新操作之前，对相应的数据进行检查，及时提示错误，防止错误数据进入系统。
+ -->
+
+
+> 缺点:
+- 1. 触发器最大的一个问题就是可读性差
+<!-- 
+  因为触发器存储在数据库中，并且由事件驱动，这就意味着触发器有可能`不受应用层的控制`。这对系统维护是非常有挑战的。
+
+  比如，创建触发器用于修改会员储值操作。如果触发器中的操作出了问题，会导致会员储值金额更新失败。我用下面的代码演示一下：
+ -->
+```sql
+mysql> update demo.membermaster set memberdeposit=20 where memberid = 2;
+ERROR 1054 (42S22): Unknown column 'aa' in 'field list'
+```
+
+- 结果显示，系统提示错误，字段“aa”不存在。
+- 这是因为，触发器中的数据插入操作多了一个字段，系统提示错误。可是，如果你不了解这个触发器，很可能会认为是更新语句本身的问题，或者是会员信息表的结构出了问题。说不定你还会给会员信息表添加一个叫“aa”的字段，试图解决这个问题，结果只能是白费力。
+
+
+- 2. 相关数据的变更，可能会导致触发器出错。
+<!-- 
+  特别是数据表结构的变更，都可能会导致触发器出错，进而影响数据操作的正常运行。这些都会由于触发器本身的隐蔽性，影响到应用中错误原因排查的效率。
+ -->
+
+> 注意点
+- 注意，如果在子表中定义了外键约束，并且外键指定了ON UPDATE/DELETE CASCADE/SET NULL子句，此时修改父表被引用的键值或删除父表被引用的记录行时，也会引起子表的修改和删除操作，此时基于子表的UPDATE和DELETE语句定义的触发器并不会被激活。
+
+- 例如：基于子表员工表（t_employee）的DELETE语句定义了触发器t1，而子表的部门编号（did）字段定义了外键约束引用了父表部门表（t_department）的主键列部门编号（did），并且该外键加了“ON DELETE SET NULL”子句，那么如果此时删除父表部门表（t_department）在子表员工表（t_employee）有匹配记录的部门记录时，会引起子表员工表（t_employee）匹配记录的部门编号（did）修改为NULL，但是此时不会激活触发器t1。只有直接对子表员工表（t_employee）执行DELETE语句时才会激活触发器t1。
+
+
+> 练习1:
+- 1. 复制一张emps表的空表emps_back，只有表结构，不包含任何数据
+
+- 2. 查询emps_back表中的数据
+- 3. 创建触发器emps_insert_trigger，每当向emps表中添加一条记录时，同步将这条记录添加到emps_back表 中
+
+- 准备工作:
+```sql
+CREATE TABLE emps
+AS
+SELECT employee_id,last_name,salary FROM atguigudb.`employees`;
+
+
+CREATE TABLE emps_back
+AS
+SELECT * FROM emps
+-- 只有表结构 没有数据
+WHERE 1=2;
+```
+
+```sql
+DELIMITER //
+CREATE TRIGGER emps_insert_trigger
+AFTER INSERT ON emps
+FOR EACH ROW
+
+BEGIN
+    INSERT INTO emps_back(employee_id,last_name,salary)
+
+    -- 使用了 new 
+    VALUES(NEW.employee_id, NEW.last_name, NEW.salary);
+END //
+DELIMITER ;
+
+
+-- 测试
+INSERT INTO emps VALUES(300,'Tom',5600);
+SELECT * FROM emps_back;
+```
+
+
+> 练习2:
+- 准备工作:使用练习1中的emps表
+- 复制一张emps表的空表emps_back1，只有表结构，不包含任何数据
+- 创建触发器emps_del_trigger，每当向emps表中删除一条记录时，同步将删除的这条记录添加到
+emps_back1表中
+
+```sql
+CREATE TABLE emps_back1
+AS
+SELECT * FROM emps
+WHERE 1=2;
+
+
+SELECT * FROM emps_back1;
+
+
+DELIMITER //
+CREATE TRIGGER emps_del_trigger
+BEFORE DELETE ON emps
+FOR EACH ROW
+
+BEGIN
+    INSERT INTO emps_back1(employee_id,last_name,salary)
+
+    -- 删除的时候 old 代表删除的那条记录
+    VALUES(OLD.employee_id,OLD.last_name,OLD.salary);
+END //
+DELIMITER ;
+
+
+-- 测试:
+DELETE FROM emps
+WHERE employee_id = 100;
+SELECT * FROM emps_back1; #测试2
+DELETE FROM emps;
+SELECT * FROM emps_back1;
+```
 
 
 ------------------
