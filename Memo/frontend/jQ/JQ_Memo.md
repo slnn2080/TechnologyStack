@@ -1326,6 +1326,51 @@ prop(): 专门操作属性值为布尔值
     })
  -->
 
+
+> bind() 
+- 可以给一个元素绑定多个事件
+- 我们可以利用 e.type 区分发生了什么事件
+```js 
+$("div").bind("mouseover mouseout", (e) => {
+    switch(e.type) {
+        case "mouseover" :
+            console.log("mouseover")
+            break
+        case "mouseout" :
+            console.log("mouseout")
+            break
+    }
+})
+```
+
+- 图片跟随鼠标移动的案例:
+```js
+$("#small").bind("mouseover mouseout mousemove", function (e) {
+    switch (e.type) {
+        case "mouseover":
+            $("#showBig").show()
+            break
+        case "mouseout":
+            $("#showBig").hide()
+            break
+        case "mousemove":
+            $("#showBig").offset({
+                // 这里加10的原因
+                left: e.clientX + 10,
+                top: e.clientY + 10
+            })
+            break
+    }
+})
+```
+
+- 如果不+10 当我们往右下移动的时候 鼠标会进入大的div的区域
+- 一旦离开小div大图片就会隐藏 所以就造成了一闪一闪的状态(显示/隐藏 切换太快造成的)
+
+- +10 是为了让鼠标移动的时候 始终和大图片保持一定的距离 防止进入大盒子里面造成一闪一闪的状态
+
+
+
 > 表单(form对象).submit(function() { ... })
 - 表单提交事件
 - 这个submit()函数是在form表单点击submit按钮的时候默认可以触发的。
