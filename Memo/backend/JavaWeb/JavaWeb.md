@@ -903,6 +903,63 @@ version="4.0">
 </web-app>
 ```
 
+
+> 扩展:
+- 在继承 HttpServlet 类后 我们也可以在它的子类中重写
+- init()
+- service()
+
+**注意:**
+- 当我们在HttpServlet的子类中 重写了 init() 方法后
+- 一定要在该方法内 调用 super.init(config) 这句一定不能少
+
+```java
+// 通过继承HttpServlet的方法 创建 servlet实例
+public class HelloServlet2 extends HttpServlet {
+  
+// 重写了 init 方法
+@Override
+public void init(ServletConfig config) throws ServletException {
+  super.init(config);   // 这句一定不能省
+}
+
+
+@Override
+protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  System.out.println("HelloServlet2 doGet()");
+
+
+  // 如果 super.init(config); 这句省掉的话 下面的 servletConfig 就会是null 进而我们再调getServletName 就会报空指针异常的错误
+  ServletConfig servletConfig = getServletConfig();
+  System.out.println(servletConfig.getServletName());
+  System.out.println(servletConfig.getInitParameter("url"));
+}
+```
+
+> 为什么一定要在init()写super.init(config)?
+- class GenericServlet
+    ↑
+- class HttpServlet
+
+- 上面我们在 doGet() 方法中调用了 getServletConfig() 
+- 而getServletConfig() 是GenericServlet中的方法
+
+- GenericServlet类中也有init方法
+```java
+public void init(ServletConfig config) throws ServletException {
+
+  // 它在里面将config保存起来了
+  this.config = config;
+  this.init();
+}
+```
+
+- GenericServlet类中的init()中 将config保存起来了 一旦我们重写后init()方法后 因为子类也有init()  父类也有init() 调用init()会调用子类的init()
+
+- 所以 GenericServlet类 中 this.config = config 的操作就会丢失
+
+- 所以我们在子类中的init()方法中 又调用了 super.init(config) 相当于又调用了父类中的init()
+
 ----------------
 
 ### 使用 idea的工具 自动创建 servlet程序
@@ -1023,7 +1080,204 @@ public class HelloServlet implements Servlet {
 - 获取在 web.xml 中配置的初始化参数名
 
 
+> ServletContext相关
+-  一个 Web工程 只有一个 ServletContext 对象实例
+- ServletContext对象是在 web工程部署启动的时候创建 在web工程停止的时候销毁
+
+
 > servletConfig.getServletContext()
-- 获取 servletContext 对象
-- 不知道啥作用
+- 通过servletConfig调用方法 获取 servletContext 对象
+
+> getServletContext()
+- 调用该方法直接获取 servletContext 对象
+
+```java
+public class ContextServlet1 extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    // 获取 ServletConfig 对象
+    ServletConfig servletConfig = getServletConfig();
+
+    // 获取 ServletContext 对象 的方式1:
+    ServletContext servletContext = servletConfig.getServletContext();
+
+    // 获取 ServletContext 对象 的方式2:
+    ServletContext servletContext2 = getServletContext();
+  }
+}
+```
+
+> 说明:
+- servletContext是一个接口 它表示 servlet上下文对象
+- 一个web工程*只有一个 servletContext 对象实例*
+- servletContext是一个域对象
+
+- 什么是域对象?
+- 域对象 是可以像Map一样存储数据的对象 这里的域指的是存取数据的操作范围 
+
+- 这个范围是: 整个的web工程
+
+> Map 和 域对象 的对比
+- 存数据:
+- Map:  put()
+- 域对象: setAttribute()
+
+
+- 取数据:
+- Map: get()
+- 域对象: getAttribute()
+
+
+- 删数据:
+- remove()
+- removeAttribute()
+
+
+> 作用:
+- 1. 获取 web.xml 中配置的上下文参数 context-param
+- 2. 获取当前的工程路径, 格式: /工程路径
+- 3. 获取工程部署后在服务器硬盘上的绝对路径
+
+- 4. 像 map 一样存取数据
+```java
+// 4. 像 map 一样存数据
+public class ContextServlet1 extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    ServletContext context = getServletContext();
+
+    // 在存放数据之前 获取 key1 对应的数据
+    System.out.println("设置之前: Contxt中 key1 的值为: " + context.getAttribute("key1"));  // null
+
+    // 存数据
+    context.setAttribute("key1", "value1");
+
+    // 取数据
+    System.out.println("Context中获取 key1 的值为: " + context.getAttribute("key1")); 
+    // Context中获取 key1 的值为: value1
+  }
+}
+```
+
+- 当我们重新部署 Tomcat 服务器的时候 也就是 redeploy 被点击的时候 它会把原来的工程停了 然后把新的工程(修改后的工程)放进去再启动 服务器虽然没有重启但是web工程被重新的部署了(因为web工程被重新的部署了相当于是一个 销毁创建的过程)
+
+- 只要是web工程被重启 ServletContext 对象就会被销毁
+- 只要是工程一直都在的情况下 我们往context对象中保存的数据 我们随时都能取出来
+
+- 总结:
+- 就是web工程只要没有被销毁 存在context中的数据想怎么用就怎么用 但一旦被销毁 需要等待让里面赋值 没赋值之前都是null
+
+
+> 扩展:
+> 1. servlet程序和servletConfig对象都是由Tomcat负责创建 我们负责使用
+
+- servlet程序默认是第一次访问的时候创建
+- servletConfig是每个servlet程序创建时 就创建一个对应的servletConfig对象
+<!-- 
+  servletConfig 会被传递到 init() 方法中 供我们使用
+  它里面就封装了初始化配置的信息
+ -->
+
+> 2.  ServletConfig还可以在其他地方使用 比如在 HttpServlet类中
+- ServletConfig 除了在 init() 方法中使用之外还可以在其他的地方使用
+
+> ServletConfig servletConfig = getServletConfig();
+- 通过 getServletConfig() 方法 返回的也是 servletConfig 对象
+
+**注意:**
+- 每一个servletConfig对应的是自己的servlet程序 有自己的初始化参数等
+
+- 也就是说 
+- servlet程序1 有一套自己的 servlet 参数
+- servlet程序2 有一套自己的 servlet 参数
+
+----------------
+
+### HttpServletRequest类
+- 该类在 doGet() 和 toPost() 方法中都有 
+```java
+protected void doGet(
+  HttpServletRequest req, 
+  HttpServletResponse resp
+)
+```
+
+
+> 作用:
+- 每次只要有*请求*进入 Tomcat 服务器 Tomcat服务器就会把请求过来的HTTP协议信息解析好封装到 Request对象 中
+
+- 然后传递到 service() (doGet doPost)中给我们使用
+- 我们可以通过 HttpServletRequest对象 获取到所有请求的信息
+
+- 它是Tomcat服务器创建的 每次请求创建一个 请求完成就将其销毁
+
+> HttpServletRequest类的常用方法
+- (HttpServletRequest req)
+- req身上的方法太多了 不断的总结吧
+
+> req.getRequestURI();
+- 获取请求的资源路径
+
+> req.getRequestURL();
+- 获取请求的统一资源定位符(绝对路径)
+
+> req.getRemoteHost();
+- 获取客户端的ip地址
+- 如果url上输入 localhost 访问 得到的是 0:0:0:0:0:0:0:1
+
+- 如果url上输入 127.0.0.1 访问 得到的是 127.0.0.1
+- 如果url上输入的是真实的ip 得到的是 真实的ip
+
+```java
+public class RequestAPIServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    String reqURI = req.getRequestURI();
+    System.out.println("URI: " + reqURI);
+    // URI: /test
+
+    StringBuffer reqURL = req.getRequestURL();
+    System.out.println("URL: " + reqURL);
+    // URL: http://localhost:8080/test
+
+    String remoteHost = req.getRemoteHost();
+    System.out.println("Host: " + remoteHost);
+    // Host: 0:0:0:0:0:0:0:1
+    // 0:0:0:0:0:0:0:1  - ipv6 
+    // 127.0.0.1  - ipv4
+  }
+}
+```
+
+> req.getHeader("String 请求头name");
+- 获取指定的请求头
+```java
+String header = req.getHeader("User-Agent");
+System.out.println("请求头: " + header);
+// 请求头: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) 
+```
+
+> req.getMethod();
+- 获取请求的方式
+
+> req.getParameter("String key");
+- 获取请求的参数
+
+> req.getParameterValues("String key");
+- 获取请求的参数(多个值的时候使用)
+
+> req.setAttribute("key", "value");
+- 设置域数据
+
+> req.getAttribute("key");
+- 获取域数据
+
+> req.getRequestDispatcher("string");
+- 获取请求转发对象
+
+
+
+
 

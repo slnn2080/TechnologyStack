@@ -1,11 +1,11 @@
 ### import "intersection-observer"
 - 导入这些包是为了要解决 IntersectionObserver API 兼容性的问题
 
-> ScrollAnimation.js  -- 监视目标元素
+### ScrollAnimation.js  -- 监视目标元素
 - 该js的用处就是 当目标元素到达进入视口的时候 添加样式 
 - 要点:
-- 1. 目标元素上要添加: p-selection__index__lineup__cartypehdg
-- 2. 要先引入 intersection-observer 包 用来解决兼容性的问题
+> 1. 目标元素上要添加: p-selection__index__lineup__cartypehdg
+> 2. 要先引入 intersection-observer 包 用来解决兼容性的问题
 
 ```js
 export default class ScrollAnimation {
@@ -51,7 +51,7 @@ export default class ScrollAnimation {
 ```
 
 
-> HeightAdjust.js  -- 调整高度
+### HeightAdjust.js  -- 调整高度
 - 调整的是 车种展示区域
 - 作用:
 - 当在视口小于874的时候 统一图片下方文本区域的高度
@@ -95,17 +95,17 @@ export default class HeightAdjust {
 ```
 
 
-> commonAnimation.js
+### commonAnimation.js
 - 该js文件依托于 animejs 所以使用之前必须要先引入
 
 - 作用:
 
 
 - 要点:
-- 1. 获取元素 
+> 1. 获取元素 
 - 获取目标元素
 
-- 2. 每个目标元素 分别添加不同的动画效果
+> 2. 每个目标元素 分别添加不同的动画效果
 - 比如我给div1绑定一种动画效果 再给div2绑定一种动画消化 是通过事件来完成的
 
 ```js
@@ -191,7 +191,7 @@ export default class commonAnimation {
 ```
 
 
-> Accordion.js
+### Accordion.js
 - 效果:
 - 我们点击标题 就能打开内容的区域
 - 比如我们页面上有4个Q 那每一个Q就算是一个item
@@ -304,7 +304,7 @@ export default class Accordion {
 ```
 
 
-> Carousel.js
+### Carousel.js
 - 里面包含了 swiper
 - swiper要想滚动 比如有指定一个swiper的容器
 - 该容器里面有滚动的图片区域 和 导航点等区域
@@ -469,7 +469,7 @@ export default class Carousel {
 
 
 
-> Modal
+### Modal
 - 这个是添加遮罩层 并有关闭的功能
 
 - 核心思想:
@@ -597,6 +597,136 @@ export default class Modal {
         appendModalBtn.parentNode.removeChild(appendModalBtn);
       }
     });
+  }
+}
+
+```
+
+
+### Include.js
+- 场景:
+- http://localhost:3000/terms/index/
+
+- 这个页面是一个 index 页 页面上有很多的 <a> 连接 点击后跳转过去 到另一个页面
+- <a>连接的模式是:
+```pug
+  a(href='/terms/toyota/') 2021年12月14日〜 初期費用フリープラン
+  a(href='/terms/toyota/cancel_free/') 2021年12月14日〜 解約金フリープラン
+  a(href='/terms/toyota/?archive=211021') 2021年10月21日～2021年12月13日
+  a(href='/terms/toyota/?archive=210408') 2021年4月8日～2021年10月20日
+```
+
+- 我们观察上面的 <a>连接 上面都会跳转到 toyota/ index.pug
+
+- 上面是根据 连接后面的参数 ? 来决定在页面上展示什么内容 也就是说
+```pug
+  模板内容
+
+  block content-block
+  section.l-cnt__full
+    +m-hero-heading-caption('KINTO ONE（トヨタ）初期費用フリープラン利用規約', 'TERMS AND CONDITIONS')
+
+  section.l-cnt__main
+    p.m-txt__normal--right.u-show--pc
+      button.p-terms__btn--print(onclick='window.print();')
+        | 印刷する
+
+
+    #js-incTarget(data-incpath='/inc/terms/toyota/')
+```
+
+- #js-incTarget:
+- 就是一个 动态内容 
+- 首先页面加载 js部分先会读取参数部分 解析参数 利用基础路径 和 解析的参数拼接成一个 新的url
+
+- 然后利用 axios 对这个路径发起请求 
+- 因为 /inc/terms/toyota/211021.html
+- 所以会向 这个路径 请求资源 并把内容 塞进 #js-incTarget 部分
+  
+
+
+```js
+import "core-js/modules/es.promise"
+import axios from "axios"
+import Scroll from "../modules/Scroll"
+
+export default class Include {
+
+  constructor() {
+    this.getParam()
+    this.eventBind()
+  }
+
+
+  getParam() {
+    // 获取 我们要将axios读取的内容塞进哪里 也就是 目的地
+    this.el = document.getElementById("js-incTarget")
+  }
+
+
+  eventBind() {
+    // 将 目的地 赋值给 loadTarget
+    const $loadTarget = this.el
+
+
+    if ($loadTarget) {
+      // 读取 目的地 身上的 data-incpath 的值
+      let incPath = $loadTarget.dataset["incpath"]
+      console.log("incPath: -- ", incPath)    // /inc/terms/toyota/
+
+      console.log("search: -- ", location.search)  // ?archive=211021
+
+      // 如果我们是点击目录页 进到的这个页面 url 后面会有参数 这里对参数进行处理
+      const urlParam = location.search.substring(1).split("&")
+      console.log("urlParam: -- ", urlParam)  // ['archive=211021']
+
+
+      // 创建错误时候的提示内容
+      const errorMsg = document.createElement("p")
+      // const errorText = document.createTextNode("指定されたデータが存在しません")
+      errorMsg.classList.add("m-txt__normal")
+      errorMsg.innerText = "指定されたデータが存在しません"
+
+
+      // 如果能读取到 目的地身上的 incpath 还有参数的情况下
+      if (incPath) {
+        if (urlParam) {
+          
+          // 这个数组会装["a": "b"] 这样结构的东西
+          const paramDataArray = []
+
+          // 对 ['archive', '211021'] 参数数组进行加工
+          for (let i = 0; i < urlParam.length; i++) {
+            const paramData = urlParam[i].split("=")
+            console.log("paramData: -- ", paramData)  // ['archive', '211021']
+
+            // [archive: '211021']
+            paramDataArray[paramData[0]] = paramData[1]
+            console.log("paramDataArray: -- ", paramDataArray)    // [archive: '211021']
+
+            // 如果 参数数组的key为archive 拼接路径
+            if (paramData[0] == "archive") {
+              incPath += paramData[1] + ".html"   // /inc/terms/toyota/211021.html
+              break
+            }
+          }
+        }
+
+        // 上面的操作就是为了得到 路径 这里发起请求将数据请求回来后 塞进目的地
+        try {
+          axios.get(incPath).then((response) => {
+            console.log("response.data: -- ", response.data)
+            $loadTarget.innerHTML = response.data
+            new Scroll()
+          })
+        } catch (error) {
+          $loadTarget.appendChild(errorMsg)
+        }
+      } else {
+        // data-incpath属性または属性値がない場合はエラー
+        $loadTarget.appendChild(errorMsg)
+      }
+    }
   }
 }
 

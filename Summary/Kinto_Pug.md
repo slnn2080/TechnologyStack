@@ -1328,3 +1328,39 @@ show:lg:inline    none              none          none          none            
 }
 </style>
 ```
+
+
+### /system/foundation/global"
+- 这里面定义了很多的变量
+
+> width
+  $wd-xs: 360px;
+
+  $wd-sm: 600px;
+
+  $wd-sm-md: 905px;
+
+  $wd-sm-md-width: 840px;
+
+  $wd-md: 1240px;
+
+
+  $wd-lg: 1440px;
+
+
+> margin
+  $mgn-xs: 4px;
+
+  $mgn-sm: 8px;
+
+  $mgn-md-sm: 16px;
+
+  $mgn-md: 24px;
+
+  $mgn-md-lg: 32px;
+
+  $mgn-lg: 48px;
+
+  $mgn-xl: 64px;
+
+  $mgn-xxl: 80px;

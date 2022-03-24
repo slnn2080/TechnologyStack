@@ -1,3 +1,369 @@
+### Http协议
+- 协议是指双方或多方相互约定 大家都需要遵守的规则叫协议
+
+- http协议
+- 就是指客户端和服务器之间通信时 发送的数据 需要遵守的规则叫做http协议
+
+- http协议中发送的数据又叫做报文
+
+
+### 请求的 http协议格式
+- 客户端 给 服务器 发送数据叫请求
+- 服务器 给 客户端 回传数据叫响应
+
+- 上述的过程都需要遵守协议
+
+
+> 请求:
+- 请求分为 get请求 和 post请求
+
+> get请求的http协议格式
+- get请求的http协议格式分为两个部分:
+- 1. 请求行:
+  - 请求行分为3个部分:
+  - 1. 请求的方式: get
+  - 2. /请求资源路径?请求参数#片段
+  - 3. 请求的协议和版本号: HTTP/1.1
+
+
+- 2. 请求头
+  - 请求头是由 
+    key: value 
+    组成 不同键值对表示不同的含义
+
+- 下面的内容就是 get请求的 http 协议内容:
+```js
+// 请求行部分
+GET /project/ HTTP/1.1
+
+// 请求头部分
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/;q=0.8,application/signed-exchange;v=b3;q=0.9
+
+Accept-Language: zh-CN,zh;q=0.9
+
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36
+
+Accept-Encoding: gzip, deflate, br
+
+Host: localhost:8080
+
+Connection: keep-alive
+
+Cache-Control: max-age=0
+sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="99", "Google Chrome";v="99"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+
+Upgrade-Insecure-Requests: 1
+
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+
+Cookie: _gcl_au=1.1.1969632477.1642737980; ...
+
+If-None-Match: W/"388-1647958095621"
+If-Modified-Since: Tue, 22 Mar 2022 14:08:15 GMT
+```
+
+> q权重系数
+- 范围: 0 =< q <= 1
+- q 值越大，请求越倾向于获得其“;”之前的类型表示的内容
+- 若没有指定 q 值，则默认为1，若被赋值为0，则用于提醒服务器哪些是浏览器不接受的内容类型。
+
+
+> 常见的get请求头
+- Accept:
+- 告诉服务器 客户端可以接收的数据类型
+<!-- 
+  */* 表示任意类型数据
+ -->
+
+- Accept-Language:
+- 告诉服务器客户端可以接收的语言类型 
+  zh_CH
+  en_US
+  ja
+
+- User-Agent:
+- 用户代理(浏览器的信息): 
+- 数据是我们操作浏览器 浏览器替我们发送的 浏览器就是代理
+
+- Accept-Encoding:
+- 告诉服务器 客户端可以接收的数据的编码格式(或者压缩格式)
+
+- Host:
+- 请求的服务器的ip和端口号
+
+- Connection:
+- 告诉服务器请求连接如何处理
+- 常用的值:
+- 1. keep-alive: 
+  告诉服务器回传数据后不要马上关闭 保持一小段时间的连接
+
+- 2. closed:
+  马上关闭
+
+
+> post请求的http协议格式
+-  post请求分为4部分
+- 1. 请求行
+  - 请求行分为3个部分:
+  - 1. 请求的方式: POST
+  - 2. /请求资源路径?请求参数#片段
+  - 3. 请求的协议和版本号: HTTP/1.1
+
+- 2. 请求头
+  - key:value 不同的请求头 有不同的含义
+
+- 3. 空行
+
+- 4. 请求体
+  - 就是发送给服务器的数据
+
+
+- 下面的内容就是 post请求的 http 协议内容:
+```js
+// 请求行
+POST /project/hello2 HTTP/1.1
+
+// 请求头
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/;q=0.8,application/signed-exchange;v=b3;q=0.9
+
+Referer: http://localhost:8080/project/
+
+Accept-Language: zh-CN,zh;q=0.9
+
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36
+
+Accept-Encoding: gzip, deflate, br
+
+Host: localhost:8080
+
+Connection: keep-alive
+Content-Length: 28
+
+Content-Type: application/x-www-form-urlencoded
+
+Cache-Control: max-age=0
+
+sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="99", "Google Chrome";v="99"
+
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+Upgrade-Insecure-Requests: 1
+Origin: http://localhost:8080
+
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+
+Cookie: _gcl_au=1.1.1969632477.1642737980; ...
+
+
+// 空行
+
+// 请求体
+username=sam&password=123321
+```
+
+> 常见的post请求头
+- get和post大部分的请求头是相同的
+
+- Referer:
+- 请求发起时 浏览器地址栏的地址(从哪来) 
+<!-- 
+  比如 
+  前端页面:
+  http://localhost:8080/project/
+  页面有一个 form表单
+  action="http://localhost:8080/project/hello2"
+
+  也就是说我们点击 提交的时候 会跳转到 http://localhost:8080/project/hello2
+
+  这时我们再打开控制台的 network 查看 Referer
+  会发现它的值为 http://localhost:8080/project/
+
+  也就是说我们可以从这个请求头上看出 从哪来到/hello2这个页面的
+
+
+  应用场景:
+  - 1. 从这个请求头也能看出 哪个网站给我导的流量比较多
+  - 2. 防止盗链 这个没细说
+ -->
+
+- Content-Type:
+- 表示发送数据的类型 常用的值:
+  - application/x-www-form-urlencoded 
+    - 表示提交的数据格式是: key=value&key=value
+    - 然后对url进行编码(把非英文的内容转换为 %xxx%xx)
+
+  - multipart/form-data:
+    - 表示以多段的形式提交数据给服务器(以流的形式)
+    - 用于上传
+
+- Content-Length:
+- 发送数据的长度
+
+- Cache-Control:
+- 表示如何控制缓存 
+- no-cache不缓存
+
+
+> get请求有哪些:
+- 1. form标签 method = get
+- 2. a标签
+- 3. link标签 引入css
+- 4. script标签 引入js文件
+- 5. img标签 引入图片
+- 6. iframe 引入html页面
+- 7. 在浏览器地址栏输入地址后敲回车
+
+
+> post请求
+- form标签 method = post
+
+----------------
+
+### 响应的 http协议格式
+- 跟请求的相比而言 也是分3个部分
+
+- 1. 响应行
+  - 响应行分为4个部分
+  - 1. 响应的协议和版本号  HTTP/1.1
+  - 2. 响应的状态码       200
+  - 3. 响应状态描述符(对响应状态码进行描述的)   OK
+
+- 2. 响应头
+  - key: value
+  - 不同的响应头 有不同的含义
+  - 表示一些服务器的信息
+
+- 3. 空行
+
+- 4. 响应体
+  - 回传给客户端的数据
+
+
+下面的内容就是 响应的 http 协议内容:
+```js
+// 响应航
+HTTP/1.1 200 OK
+
+// 响应头
+Server: Apche-Coyote/1.1
+Accept-Ranges: bytes
+ETag: W/"415-1648127565264"
+Last-Modified: Thu, 24 Mar 2022 13:12:45 GMT
+Content-Type: text/html
+Content-Length: 415
+Date: Thu, 24 Mar 2022 14:08:22 GMT
+Keep-Alive: timeout=20
+Connection: keep-alive
+
+// 空行
+
+// 响应体
+```
+
+> 常见的响应头信息:
+- Server:
+- 表示服务器的信息
+
+- Content-Type:
+- 表示响应体的数据类型 如: text/html
+- 显示 文本/html文本
+
+- Content-Length:
+- 数据的长度
+
+- Date:
+- 请求响应的时间(GMT是格林时间距北京差8小时)
+
+- Accept-Ranges:
+- 是用来告知客户端服务器是否能处理范围请求，以指定获取服务器某个部分资源。
+- bytes
+- none
+
+
+> 常见的响应码说明
+- 200:
+  表示请求成功
+
+- 302:
+  表示请求重定向
+
+- 404:
+  表示请求服务器已经收到了 但是你要的数据不存在
+  (可能是请求地址错了)
+
+- 500:
+  表示服务器已经收到请求 但是服务器内部错误
+  (服务器的代码错误)
+
+
+> MIME类型说明
+- MIME是HTTP协议中数据类型
+
+> 格式:
+- 大类型/小类型
+
+> 常见的MIME类型
+
+  超文本标记语言文本: 
+      .html   text/html
+
+  普通文本:
+      .txt    text/plan
+
+  RTF文本:
+      .rtf    application/rtf
+
+  GIF图形:
+      .gif    image/gif
+  
+  JPEG图形:
+      .jpeg   image/jpeg
+
+  GZIP文件:
+      .gz     application/x-gzip
+
+  TAR文件:
+      .tar    application/x-tar
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- 下面的部分是看书记录的 ---
+
 ### HTTP
 - Web 浏览器、服务器和相关的Web 应用程序都是通过HTTP 相互通信的
 
