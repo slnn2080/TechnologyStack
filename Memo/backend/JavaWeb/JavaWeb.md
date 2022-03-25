@@ -1135,11 +1135,24 @@ public class ContextServlet1 extends HttpServlet {
 
 
 > 作用:
-- 1. 获取 web.xml 中配置的上下文参数 context-param
-- 2. 获取当前的工程路径, 格式: /工程路径
-- 3. 获取工程部署后在服务器硬盘上的绝对路径
+> 1. 获取 web.xml 中配置的上下文参数 context-param
+> 2. 获取当前的工程路径, 格式: /工程路径
 
-- 4. 像 map 一样存取数据
+> 3. 获取工程部署后在服务器硬盘上的绝对路径
+> context.getRealPath("/")
+- 返回的是*项目在服务器的绝对路径*
+```java
+  ServletContext context = getServletContext();
+
+  String realPath = context.getRealPath("/");
+
+  System.out.println("realPath: " + realPath);
+  // /Users/LIUCHUNSHAN/Desktop/Sam/JavaWeb/java_web_local/out/artifacts/tomcat_test2_war_exploded/
+```
+
+> 4. 像 map 一样存取数据
+> context.setAttribute("key1", "value1");
+> context.getAttribute("key1")
 ```java
 // 4. 像 map 一样存数据
 public class ContextServlet1 extends HttpServlet {
@@ -1194,7 +1207,7 @@ public class ContextServlet1 extends HttpServlet {
 
 ----------------
 
-### HttpServletRequest类
+### HttpServletRequest类  req
 - 该类在 doGet() 和 toPost() 方法中都有 
 ```java
 protected void doGet(
@@ -1259,14 +1272,86 @@ System.out.println("请求头: " + header);
 // 请求头: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) 
 ```
 
+
 > req.getMethod();
 - 获取请求的方式
+
 
 > req.getParameter("String key");
 - 获取请求的参数
 
+- 参数:
+- key值(标签中的name属性对应的值)
+
+- 返回值类型
+- String
+
+```java
+String username = req.getParameter("username");
+System.out.println("用户名: " + username);
+```
+
 > req.getParameterValues("String key");
 - 获取请求的参数(多个值的时候使用)
+- 比如:
+- checkbox多选框 name="hobby" 我们选择了多个值的时候
+- hobby=c++&hobby=java
+- 要用该API
+```java
+String[] hobbies = req.getParameterValues("hobby"); 
+
+System.out.println("爱好: " + Arrays.toString(hobbies));
+// 爱好: [c++, java, javascript]
+```
+
+```html
+<!-- 前端表单: -->
+<h3>RequestAPI测试</h3>
+<form action="http://localhost:8080/test" method="get">
+  username: <input type="text" name="username" id="uname" value="sam"> <br><br>
+  password: <input type="text" name="password" id="pwd" value="111111"> <br><br>
+  hobby:
+    <input type="checkbox" name="hobby" value="c++"> C++
+    <input type="checkbox" name="hobby" value="java"> Java
+    <input type="checkbox" name="hobby" value="javascript"> Javascript <br><br>
+    <input type="submit" value="提交">
+</form>
+```
+
+```java
+// 后台接口
+public class RequestAPIServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+    String[] hobbies = req.getParameterValues("hobby");
+
+    System.out.println("用户名: " + username);
+    System.out.println("密码: " + password);
+    System.out.println("爱好: " + Arrays.toString(hobbies));
+
+  }
+}
+```
+
+**post请求需要注意一下**
+**该API必须在获取请求参数代码前调用**
+> req.setCharacterEncoding("UTF-8");
+- 设置请求体的字符集为 UTF-8(从而解决post请求的中文乱码问题)
+
+- 场景:
+- 当前端表单使用 post 提交数据的时候 如果数据中含有中文(用户名) 我们java使用getParamter()后台接收到的值 会是乱码
+
+- 解决方式:
+- 在doPost()方法的首行位置 调用该方法
+```java
+protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  // 首行的位置调用
+  req.setCharacterEncoding("UTF-8");
+}
+```
 
 > req.setAttribute("key", "value");
 - 设置域数据
@@ -1274,10 +1359,836 @@ System.out.println("请求头: " + header);
 > req.getAttribute("key");
 - 获取域数据
 
-> req.getRequestDispatcher("string");
-- 获取请求转发对象
+- 上面在域里面设置的数据 服务器端的所有实例都能获取的到相当于 vuex
+
+------
+
+> 请求的转发
+- 概念:
+- 服务器收到请求后 从 一个资源 跳转到 另一个资源 的操作叫请求转发
+
+- 场景:
+- 服务器中的资源共同完成一个功能的时候
+- 下面的服务器有两个servlet程序共同完成一个完整的业务
+- 业务的执行是有顺序的, 我们要先执行servlet1 再执行servlet2
+<!-- 
+    客户端    ->    服务器(Tomcat)
+
+                  servlet1 程序:
+
+                  servlet2 程序: 
+-->
+
+
+- 业务逻辑: 
+<!--
+  客户端 先请求servlet1
+  http://ip:port/工程名/servlet1
+
+      ↘
+
+        servlet1(柜台1):
+        1. 检查是否有请求参数 (相当于办事的材料)
+        2. 处理完业务后 加载一个章 到下一个柜台
+        3. 问路 servlet2怎么走
+        4. 知道路后 走到servlet2(柜台)
+
+        ↘ 这步就是: 请求转发(自动流转到servlet2)
+
+          servlet2(柜台2):
+          1. 获取请求参数(检查材料)
+          2. 检查有没有servlet1(柜台1)的章 有章代表前面的环节都没有问题
+          3. 处理自己的业务(这里整个业务逻辑就完成了)
+
+
+- servlet2处理完成之后会将结果(数据)带回浏览器端(会再次经过servlet1 但是一般servlet1不会再进行什么操作)
+
+    客户端  ←  servlet1  ←  servlet2
+ -->
+
+
+   
+> req.getRequestDispatcher(String path 另一个接口的地址);
+- 获取请求转发对象(获取请求调度)
+- path: /接口地址
+<!-- 
+  必须以 / 打头
+  /: 代表 http://ip:port/工程名/ 映射到idea的web目录 
+ -->
+
+- 返回值:
+- RequestDispatcher requestDispatcher对象
+
+- 扩展:
+- 参数不光光可以写 服务器中的资源路径(接口地址)
+- 还可以利用请求转发跳转到web工程下的其他页面
+```java
+// / 是web工程根路径下
+req.getRequestDispatcher("/a/b/c.html").forward(req, resp);
+```
+
+- 注意:
+- 请求转发只能在本web工程下使用 比如不能访问百度
+
+```java
+RequestDispatcher requestDispatcher = req.getRequestDispatcher("/servlet2");
+```
+
+> requestDispatcher.forward(req, res)
+- 通过调用 requestDispatcher对象的 forward() 方法 去往指定的接口url
+- 参数:
+- 将servlet1的req res对象传入 一边servlet2中可以从req res对象中拿到客户端传递过来的数据
+```java
+requestDispatcher.forward(req, res);
+```
+
+
+> 梳理逻辑:
+- 1. 客户端向servlet1接口发起请求
+- 2. servlet1: 中先获取客户端传递过来的数据 并做检查等逻辑操作
+- 3. servlet1: 中该章 通过设置域数据(如果能在servlet2中取出该数据说明盖过章)
+- 4. servlet1: 中问路 调用getRequestDispatcher() 得到请求调度
+- 5. servlet1: 中走向servlet2 调用请求调度对象的 forward() 方法
+
+- 6. servlet2: 中先获取客户端传递过来的数据 这里可能进行一些验证之类的操作
+- 7. servlet2: 中检查是否servlet1中盖过章 从域里面尝试取servlet1存的数据
+- 8. servlet2: 中继续进行自己的业务逻辑
+
+- 完成
+
+- 代码部分:
+```java
+// servlet1
+package com.sam.servlet_test2;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class Servlet1 extends HttpServlet {
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 1. servlet1中先获取客户端的请求参数(办事的材料) 并做检查
+    String username = req.getParameter("username");
+    System.out.println("Servlet1(柜台)中检查参数(材料)" + username);
+
+    // 2. servlet1在检查完参数(材料)后要加盖一个章 并传递到servlet2（柜台2）去 这里我们利用 域数据 来盖章
+    req.setAttribute("key", "柜台1的章");
+
+    // 3. 问路: servlet2(柜台2)怎么走
+    RequestDispatcher requestDispatcher = req.getRequestDispatcher("/servlet2");
+
+    // 4. 走向servlet2
+    requestDispatcher.forward(req, res);
+  }
+}
 
 
 
+// servlet2
+package com.sam.servlet_test2;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class Servlet2 extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    // 1. servlet2(柜台2)同样也要看请求参数(版式材料)
+    String username = req.getParameter("username");
+    System.out.println("Servlet2(柜台)中检查参数(材料)" + username);
+
+    // 2. 查看柜台1是否有盖章
+    Object key = req.getAttribute("key");
+    System.out.println("柜台1是否有章: " + key);
+
+    // 3. 处理自己的业务
+    System.out.println("servlet2处理自己的业务");
+  }
+}
+
+```
+
+> 请求转发的特点:
+- 1. 浏览器地址栏没有变化
+- 2. 请求转发是一次请求
+<!-- 
+  虽然我们经历了服务器端的两个资源(走了两个接口)
+  但是对于客户端而言就是一进一出 所以就是一次请求
+
+           →
+  客户端        服务器
+           ←
+ -->
+
+- 3. servlet1 servlet2共享request域中的数据
+<!-- 
+  我们在servlet1中 将数据保存在 请求对象req中
+    req.setAttribute()
+
+  然后下面我们又将这个req对象 传递到servlet2中使用了
+    requestDispatcher.forward(req, res)
+
+  所以保存在req中的域数据也传递过去了
+ -->
+
+ - 4. 请求可以转发到WEB-INF目录下(也就是利用请求转发 访问到WEB-INF目录下的文件)
+ <!-- 
+  WEB-INF下假如我们放一个index.html文件
+  然后 url 上输入 localhost:8080/WEB-INF/index.html
+  这样是访问不到的 也就是说 浏览器做不到访问WEB-INF目录下的文件
 
 
+  但是 请求转发可以 我们可以在 servlet1接口中 将请求转发到/WEB-INF/index.html下
+  RequestDispatcher requestDispatcher = req.getRequestDisPatcher("/WEB-INF/index.html")
+
+  requestDispatcher.forward(req, res)
+
+  这样我们通过 /servlet1 接口访问的时候 就能看到WEB-INF/index.html文件了
+  -->
+
+- 5. 那可以利用请求转发 跳转到www.baidu.com么？ 
+- 不行
+
+----------------
+
+### base标签
+- 作用:
+- 它可以设置一个当前页面中所有相对路径工作时 参照哪个路径来进行跳转
+- 当设置了base后我们在跳转的时候 会先看有没有base值 如果有的话则忽略相对路径跳转参考浏览器地址栏中的url规则 也base指定的值为基准
+
+- 位置:
+```html
+<head>
+  <title>
+  <base href="http://localhost:8080/a/b/" target="">
+</head>
+```
+
+- 要点:
+- base标签里面资源名是可以省略的 以目录为准 / 不能省略(因为没有/代表是一个资源的路径)
+
+> 相对路径:
+- 所有相对路径在工作的时候都会参照当前浏览器地址栏中的地址来进行跳转
+<!-- 
+  - 比如: 
+  - 我们 跳转到 c.html 页 这时url为
+  - http://localhost:8080/a/b/c.html
+
+  - 当我们想从 c.html 页 跳回 index 页
+  - c.html页中的标签路径为 ../../index.html
+
+  - http://localhost:8080/a/b/c.html
+    +
+  - ../../index.html
+
+  - ..是返回上一层目录 返回两次
+  - 一次: c.html在b目录下 返回上一层就是a
+  - http://localhost:8080/a + ../index.html
+
+  - 一次: 再返回上一层 再去掉a 就变成了下面的路径结构
+  - http://localhost:8080/index.html
+
+  - 这时候就得到了正确的路径
+ -->
+
+
+> 场景:
+- 根目录/index.html页面 跳转到 根目录/a/b/c.html
+```html
+<!-- 根目录/index.html页面 -->
+<a href="./a/b/c.html">
+
+<!-- 根目录/a/b/c.html -->
+<a href="../../index.html"> 
+```
+
+- 上述跳来跳去是没有问题的
+
+- 但是如果我们跳转到 ./a/b/c.html 页面的行为是 通过接口中的逻辑 请求转发过去的
+```java
+public class forwardC extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    System.out.println("经过了ForwardC程序");
+    // /是web工程根路径下 请求转发到的 c.html
+    req.getRequestDispatcher("/a/b/c.html").forward(req, resp);
+  }
+}
+```
+
+- 这时候我们再通过 <a href="../../index.html"> 想回到index.html是没有办法的 404
+- 因为:
+- 当我们使用请求转发来跳转的时候 浏览器地址栏中的地址是
+- http://localhost:8080/forwardc
+
+- 跳转回去的路径是 ../../index.html
+
+- http://localhost:8080/forwardc
+  +
+- ../../index.html
+
+- 以这个路径返回两层 得到的是一个错误的路径 这就是跳转不回去的原因
+- 原因:
+- 相对路径在工作的时候 参数的地址发生了变化 跳不回去了
+
+
+> 解决方式
+- 之所以请求转发的方式 通过 相对路径 跳不回去 是因为地址栏发生了变化
+- 如果我们有办法让它参照的地址永远不变 那就可以跳回去
+
+- 上面的情况 我是不是就可以 将 http://localhost:8080/a/b/c.html 设置为base
+
+- base标签写在title标签的下面 head标签的里面
+- <base href="http://localhost:8080/a/b/">
+
+- 设置完成后 下面我们再使用 相对路径来进行跳转 都是可以的
+
+
+> 相对路径 和 绝对路径
+- 相对路径:
+- ./    表示  当前目录
+- ../   表示  上一级目录
+- 资源名 表示  当前目录/资源名
+
+- 绝对路径:
+- http://ip:port/工程路径/资源路径
+
+
+> JavaWeb中 / 斜杠的不同意义
+- 在 web 中 / 斜杠 是一种绝对路径
+
+> / 斜杠 
+- 如果被 浏览器解析 得到的地址是
+- http://ip:port
+
+- 如果被 服务器解析 得到的地址是
+- http://ip:port/工程路径
+<!-- 
+  使用场景
+  1. <url-pattern>/servlet1</url-pattern>
+    / 会被解析为 http://ip:port/工程路径/servlet1
+
+  2. servletContext.getRealPath("/")
+    我们传入的 / 也表示到工程路径 映射到idea中 就是web
+
+  3. request.getRequestDispatcher("/")
+ -->
+
+
+> 特殊情况:
+> res.sendRedirect("/")
+- 这里的 / 是将 /斜杠 发送给浏览器解析 得到的是 http://ip:port
+<!-- 
+  如果是写在服务器上面但是是发送到前端解析
+  /
+  前端 和 后台 解析的结果不同
+ --> 
+
+----------------
+
+### HttpServletResponse类 res 响应对象
+- HttpServletResponse类 和 HttpServletRequest类 一样。
+- 每次请求进来 Tomcat服务器都会创建一个 response对象 传递给servlet程序去使用
+
+- HttpServletResponse类: 表示请求回来的信息
+- HttpServletRequest类:  表示所有响应的信息
+
+- 如果我们需要设置 返回给客户端的信息 都可以通过 HttpServletResponse对象来进行设置
+
+- *HttpServletResponse类是用来设置响应的*
+
+- res既然是用来设置响应的 那怎么传递给客户端呢？
+- 通过 流
+
+
+> 响应有两个流:
+- 1. 字节流: 
+  常用语下载(传递二进制数据)
+  res.getOutputStream()
+
+- 2. 字符流: 
+  常用语回传字符串(常用)
+  res.getWriter()
+
+**注意:**
+- 上述的两种流 *只能只用一个* 使用了字节流就不能再使用字符流 反之亦然
+
+> res.getWriter()
+- 获取字符流
+
+- 返回值
+- PrintWriter
+
+```java
+PrintWriter writer = res.getWriter();
+```
+
+
+> writer.write()
+- 向客户端写入字符串
+- 参数类型:
+- string char[] 好像都会转成字符串输出过去
+
+
+> writer.print()
+- 可以将各种类型的数据转换成字符串的形式输出
+- 参数类型比write()要全
+
+
+> 使用 res对象 往客户端回传数据
+- 需求1:
+- 往客户端回传 字符串 数据
+
+- 思路:
+- 先选择一种流: 字符流
+
+- 步骤:
+- 1. 先得到字符流
+- 2. 调用字符流对象的方法 向客户端页面写入数据
+
+```java
+public class ResponseIO extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    PrintWriter writer = res.getWriter();
+
+    writer.write("test content");
+  }
+}
+```
+
+> res.getCharacterEncoding()
+- 该方法用于获得此时响应对象所采用的字符编码类型。
+- 默认的情况下 服务端的响应对象采用的是 ISO-8859-1
+- 该字符集不支持中文
+
+
+> res.setCharacterEncoding("字符集")
+- 设置服务器的字符集为UTF-8(服务器这边支持的字符集)
+
+
+> res.setHeader("key", "value")
+- 设置响应头
+
+- 例如我们可以设置 Content-Type 属性
+- 告诉浏览器我们的响应数据 的 数据类型 和 数据使用的字符集是什么 便于浏览器使用对应的字符集解析我们的响应数据
+
+
+> 中文乱码问题
+- 当我们向客户端 响应中文的时候 浏览器显示 ???
+- 这代表我们在服务端没有设置响应对象的字符集
+
+- 当浏览器显示 不正确的文字信息的时候
+- 这代表我们没有告诉浏览器 服务端响应的信息的编码格式是什么
+
+> 方案1:
+- 1. res.setCharacterEncoding("UTF-8");
+- 2. res.setHeader("Content-Type", "text/html; charset=UTF-8")
+
+```java
+public class ResponseIO extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    // 该方法用于获得此时响应对象所采用的字符编码类型。
+    String encoding = res.getCharacterEncoding();
+
+    System.out.println(encoding);
+    // 默认ISO-8859-1 - 该字符集不支持中文
+
+    // 设置服务器的字符集为UTF-8(服务器这边支持的字符集)
+   res.setCharacterEncoding("UTF-8");
+
+   // 通过响应头设置浏览器也使用utf-8 text/html表示我返回的数据是什么 并且告诉该数据的字符集是什么 有了这个以后浏览器就按照这个显示就没问题了
+   res.setHeader("Content-Type", "text/html; charset=UTF-8");
+
+    PrintWriter writer = res.getWriter();
+    writer.write("测试文本");
+  }
+}
+```
+
+
+> res.setContentType("text/html; charset=UTF-8");
+- 同时设置服务器和客户端都使用 UTF-8 字符集 还设置了响应头
+
+- 作用:
+- 作用是使客户端浏览器，区分不同种类的数据，并根据不同的MIME调用浏览器内不同的程序嵌入模块来处理相应的数据。
+<!-- 
+  是用来告诉客户端 我的响应数据时什么样的类型吧
+ -->
+
+**注意:**
+- 此方法一定要在*获取流对象之前*调用 才有效
+
+
+> 方案2:
+- 只写这一行的代码
+- res.setContentType("text/html; charset=UTF-8");
+```java
+public class ResponseIO extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 方案2:
+    // 这一行代码 同时设置服务器和客户端都使用 UTF-8 字符集 还设置了响应头
+    res.setContentType("text/html; charset=UTF-8");
+    PrintWriter writer = res.getWriter();
+    writer.write("测试文本");
+  }
+}
+```
+
+----------------
+
+### 请求重定向
+- 请求重定向是指客户端给服务器发请求 然后服务器告诉客户端说 我给你一个新的地址 你去新的地址访问 这就是请求重定向(因为之前的地址可能已经被废弃)
+
+<!-- 
+    客户端(浏览器)        服务器(Tomcat)
+
+                    ---- response1 程序 ----
+
+                    随着时间的推移和项目的不断更新
+                    升级 response1这个接口慢慢的
+                    被废弃了由新的接口 response2
+                    取代
+
+
+
+                    ---- response2 程序 ----
+
+                    response2程序取代了response1
+                    功能更完善 安全性更高
+ -->
+
+- 上面我们 Tomcat 服务器上有两个接口 其中
+  response1 -- 旧
+  response2 -- 新
+
+- 慢慢的response2取代了response1
+- 服务端做了更新 但是客户端不知道 也就是说 客户端的用户还会拿着 http://ip:port/工程名/response1 去请求资源
+
+- 但是response1已经被废弃 它有义务告诉客户端两个事情
+- 1. 我已搬迁
+- 2. 告知客户端新的地址
+
+- 步骤1:
+- 设置 响应码: 302
+
+- 步骤2:
+- 设置 响应头key:Location value:新地址
+
+- 客户端解析 response1的结果 知道已经搬迁 再次发起新地址的请求
+
+- 浏览器会再次请求 /response2 接口(也就是新地址) 然后通过新接口返回的响应 收到最终的结果 解析后展示到页面上
+
+> 总结下:
+- 请求转发: 是 /接口1 给 /接口2
+- 重定向: 客户端先找/接口1，然后解析接口1的响应 去找/接口2 最终从/接口2身上拿到最终结果
+
+
+> 代码的体现:
+> res.setStatus(响应状态码);
+- 设置响应的状态码
+- 比如:
+- 设置302 告知浏览器 该接口地址已搬家
+
+
+> res.setHeader("Location", "http://~新地址")
+- 设置响应头 Location 为重定向到哪里
+
+
+> res.sendRedirect("新地址")
+- 302是规定的 该方法默认的会设置 响应状态码为302 并重定向到指定的资源或地址
+
+
+> 方案1:
+- 1. res.setStatus(302);
+- 2. res.setHeader("Location", "新地址");
+```java
+public class Response1 extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    System.out.println("曾到此一游: Response1");
+
+    // 设置响应状态码 302 表示重定向(表示已搬迁)
+    res.setStatus(302);
+
+    // 设置响应头 说明新的地址在哪里
+    res.setHeader("Location", "http://localhost:8080/response2");
+    res.setHeader("Location", "/response2");
+  }
+}
+```
+
+
+> 方案2: 推荐
+- res.sendRedirect("http://localhost:8080/response2")
+```java
+public class Response1 extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    res.sendRedirect("/response2");
+
+  }
+}
+```
+
+
+> 请求重定向的特点:
+- 1. 浏览器的地址栏发生了变化
+- 2. 请求重定向是两次请求(一去一回就是一次请求)
+- 3. 不共享requset域中的数据
+<!-- 
+  也就是说 我在 /接口1 中 设置域数据
+  req.setAttribute("key", "value")
+
+
+  我在 /接口2 中 读取域数据 是获取不到的
+  req.getAttribute("key")   // null
+
+  因为:
+  Tomcat每次收到请求就会把请求过来的数据解析好 封装成一个request对象 每次请求都会封装成一个
+
+  第二次请求又是一个新的request对象
+ -->
+
+- 4. 不能访问WEB-INF下的资源
+- 5. 可以访问当前工程以外的资源 比如 百度
+
+----------------
+
+### JavaEE项目的三层架构
+- 服务端的代码是分为3层架构的
+- 1. 
+- 2. 
+- 3. 
+
+<!-- 
+- 所有的代码请求是从 客户端 发起的
+- http://ip:port/工程路径/资源路径
+
+      ↘ 当客户端发起请求的时候 下面3层每层都做了什么
+
+
+              JavaEE 三层架构
+
+
+  Web层/视图展现层    Service业务层   DAO持久层
+  1. 获取请求参数     1. 处理业务逻辑  只负责跟数据库
+  封装成为Bean对象    2. 调用持久层保  交互进行crud操作
+                    存到数据库
+  2. 调用service
+  层处理业务
+
+  3. 当处理好后响应
+  数据给客户端
+  比如:
+  请求转发
+  重定向
+
+  展现不同页面
+
+
+- 然后从数据库开始 将结果一层层的返回 交给客户端
+- 客户端拿到结果解析并展示在页面上
+ -->
+
+
+> Web层：
+- 主要用来接收请求并响应数据, 主要的技术有:
+- servlet程序
+- springMVC
+- webwork
+- strtus1
+
+
+> Service
+- 主要的技术有:
+- spring框架
+
+
+> DAO持久层
+- 主要的技术有
+- Jdbc
+- DbUtils
+- JdbcTemplate
+- Mybatis
+- Hiberante
+- JPA
+
+- 分层的目的是为了解耦
+- 解耦就是为了降低代码的耦合度 方便项目后期的维护和升级
+
+----------------
+
+### 实现用户的注册和登录
+- 尚硅谷书城的 登录界面 和 表单的验证部分 我们做完了
+- 但是还没有实现 服务器相关的功能
+
+> 注册
+- 现在我们要完成 填写完注册信息后 客户端校验通过后 我们要把数据发给服务器 然后服务器接收到数据后 把数据保存到数据库
+
+> 登录
+- 我们输入用户名和密码之后 符合验证的规则之后 我们把数据发送给服务器 服务器获取用户名和密码 到数据库去检查 如果发现用户名正确 就会跳转到登录成功页面(login_success.html) 登录失败还是登录页面 继续输入
+
+
+> 项目结构
+- 我们分层后对于尚硅谷项目来说结构目录有哪些变化 会多了一些包(package)
+
+- web层:
+  - com.atguigu.web/servlet/controller
+
+- service层
+  - com.atguigu.service  -- service接口包
+  - com.atguigu.service.impl  -- service接口实现类
+
+- dao持久层
+  - com.atguigu.dao
+  - com.atguigu.dao.impl  -- dao接口实现类
+
+- 实体bean对象
+  - com.atguigu.[pojo/entity/domain/bean] javabean
+
+- 测试包
+  - com.atguigu.[test/junit]
+
+- 工具类
+  - com.atguigu.utils
+
+
+- 我们先在idea中创建一个动态的web工程 先组织包结构
+
+  | - book_project
+    | - src
+      | - com.sam.dao
+        | - com.sam.dao.impl
+
+      | - com.sam.service
+        | - com.sam.service.impl
+
+      | - com.sam.pojo
+      | - com.sam.test
+      | - com.sam.utils
+      | - com.sam.web
+
+
+    | - web
+      | - pages
+      | - static
+      | - WEB-INF
+        - web.xml
+      - index.html
+
+- 后面我们整个项目就在这里面完成
+
+> 代码环节的流程
+> 1. 县创建书城需要的 数据库 和 表
+<!-- 
+  注册页面:
+    需要保存的数据
+    id 用户名 密码 邮箱
+ -->
+
+```sql
+create database if not exists book character set 'utf8';
+
+use book;
+
+create table t_user(
+	`id` int primary key auto_increment,
+	-- 个别用户名跟邮箱账号一样比较长 有设置为100的
+	`username` varchar(25) not null unique,
+	-- 一般都是32位 varchar类型
+	`password` varchar(32) not null,
+	`email` varchar(200)
+);
+
+
+-- 插入测试数据
+insert into t_user(`username`, `password`, `email`)
+values('admin', 'admin', 'admin@gmail.com');
+
+select * from t_user;
+```
+
+
+> 2. 编写数据库表对应的 JavaBean 对象
+- 我们数据库中有一个 t_user 表 那么就应该在java层面有一个 类跟它对应
+
+- 我们在 com.sam.pojo 包里面 新建一个 User 类
+
+```java
+package com.sam.pojo;
+
+public class User {
+  private Integer id;
+  private String username;
+  private String password;
+  private String email;
+
+  
+  public User() {
+  }
+
+  public User(Integer id, String username, String password, String email) {
+    this.id = id;
+    this.username = username;
+    this.password = password;
+    this.email = email;
+  }
+
+  @Override
+  public String toString() {
+    return "User{" +
+        "id=" + id +
+        ", username='" + username + '\'' +
+        ", password='" + password + '\'' +
+        ", email='" + email + '\'' +
+        '}';
+  }
+
+  public Integer getId() {
+    return id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+}
+
+```
