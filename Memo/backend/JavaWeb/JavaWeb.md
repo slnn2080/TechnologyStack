@@ -408,16 +408,18 @@
 
 - 1. 首先将jar包放入到 WEB-INF 下面的 lib文件夹内
 - 2. 
-  - 方式1. 选择这两个jar包 右键 add as library
-  - 方式2. 
-    - ctrl + ;
-    - libraries
-    - 点击 + 
-    - 选择 JAVA (添加到类库的作用)
-    - 找到我们jar的位置 选上所有的jar包
-    - 将jar包添加到类库后 将jar指定给哪个module使用 选择我们指定的web工程
+- 方式1: 选择这两个jar包 右键 add as library
 
-- 3. 选择 artifacts 点击 fix
+- 方式2:
+- 1. ctrl + ；
+- 2. Libraries -- 点击加号 -- 选择 JAVA (添加到类库的作用) -- 找到要添加的jar包 然后给该jar lib 起个name 比如 book_lib
+- 3. Modules -- 找到要操作的module -- 右侧点击 Dependencies 点击 + -- Library -- 选择步骤2中创建的 book_lib
+
+- 步骤4可以这样: 将jar包添加到类库后 将jar指定给哪个module使用 选择我们指定的web工程
+
+- 步骤4也可以这样: artifacts -- 选择我们的 book_project: war ... -- fix -- add "book_lib" to the artifact 将这个lib添加到 部署的里面来
+
+- 步骤4选择一个就可以
 
 
 > 如何在idea上部署工程到Tomcat上运行 
@@ -1651,6 +1653,8 @@ public class forwardC extends HttpServlet {
 
 - 设置完成后 下面我们再使用 相对路径来进行跳转 都是可以的
 
+**注意:<base>只对当前页面是有效的**
+
 
 > 相对路径 和 绝对路径
 - 相对路径:
@@ -1691,6 +1695,67 @@ public class forwardC extends HttpServlet {
   /
   前端 和 后台 解析的结果不同
  --> 
+
+
+**注意:**
+- 如果我们页面中加上了 <base> 标签后
+- 其它的link script的引用的文件的方式也要进行修改(原来是相对路径是基于文件的 现在改成base后路径就发生了变化 再进行相对操作就会找不到)
+
+```html
+<!-- 原来 -->
+<link 
+  type="text/css" 
+  rel="stylesheet" 
+  href="../../static/css/style.css" >
+
+<script 
+  src="../../static/js/jquery-1.7.2.js"></script>
+
+
+<!-- 现在 -->
+<!-- 一般在项目里面 base的href 只写到工程的路径 -->
+<base href="http://localhost:8080/project/" />
+<link 
+  type="text/css" 
+  rel="stylesheet" 
+  href="static/css/style.css" >
+
+<script 
+  src="static/js/jquery-1.7.2.js"></script>
+
+<!-- 
+  注意:
+    href="static/css/style.css"
+
+  - static的前面不能有 /
+  - 有 / 代表从 http://localhost:8080/ 找static
+  - 没有 / 代表从 http://localhost:8080/project 找static
+
+  - 根路径发生了变化
+  - 有 / 前端从 ip:port
+  - 没有 / 从 ip:port/工程名
+
+ -->
+```
+
+
+
+**在实际的项目中我们只使用绝对路径或者 base标签的形式**
+- 比如:
+- action="接口地址"
+
+- 这个接口地址 就要选择使用 base + 相对路径 或者 绝对路径的形式
+
+- 我们javaweb的课程中
+- web阶段: base + 相对
+- 框架阶段: 绝对路径
+
+
+> 例：
+```html
+<!-- 一般在项目里面 base的href 只写到工程的路径 -->
+<base href="http://localhost:8080/" />
+```
 
 ----------------
 
@@ -2030,6 +2095,14 @@ public class Response1 extends HttpServlet {
 - 分层的目的是为了解耦
 - 解耦就是为了降低代码的耦合度 方便项目后期的维护和升级
 
+
+**注意: JavaEE 三层架构**
+- 在三层架构中 临层之间可以调用 但是不要跨层调用
+- web -> service -> dao
+
+- 比如: 不要在 web层 调用 dao层的逻辑
+- 但是: 可以通过 service层 来操作 dao层
+
 ----------------
 
 ### 实现用户的注册和登录
@@ -2047,24 +2120,39 @@ public class Response1 extends HttpServlet {
 - 我们分层后对于尚硅谷项目来说结构目录有哪些变化 会多了一些包(package)
 
 - web层:
+  - 这里面放 servlet 程序 用来负责客户端发送过来的请求和响应
   - com.atguigu.web/servlet/controller
 
 - service层
+  - 业务层:
+  - 前端页面中 每一个功能就算是一个业务 一个业务对应着一个方法
+  - 比如:
+  - 前端的注册页面的注册功能就是一个业务
+
   - com.atguigu.service  -- service接口包
   - com.atguigu.service.impl  -- service接口实现类
 
+
 - dao持久层
+  - 这里主要是完成和数据库的交互工作
   - com.atguigu.dao
   - com.atguigu.dao.impl  -- dao接口实现类
 
+
 - 实体bean对象
+  - 比如数据库中的一张表 就会对应一个java类 一个完整的java类就是一个javabean
+
   - com.atguigu.[pojo/entity/domain/bean] javabean
+  
 
 - 测试包
   - com.atguigu.[test/junit]
+  - 所有对项目中的逻辑 测试的代表都写在这个包下
+
 
 - 工具类
   - com.atguigu.utils
+  - 比如通过jdbc连接数据库连接池 关闭连接池 都在这个包下
 
 
 - 我们先在idea中创建一个动态的web工程 先组织包结构
@@ -2128,6 +2216,8 @@ select * from t_user;
 
 - 我们在 com.sam.pojo 包里面 新建一个 User 类
 
+- 也就是说 一个表对应着一个java类
+
 ```java
 package com.sam.pojo;
 
@@ -2148,47 +2238,901 @@ public class User {
     this.email = email;
   }
 
-  @Override
-  public String toString() {
-    return "User{" +
-        "id=" + id +
-        ", username='" + username + '\'' +
-        ", password='" + password + '\'' +
-        ", email='" + email + '\'' +
-        '}';
+  // get set toString 构造器 ...
+}
+
+```
+
+- 在编写DAO持久层之前 项目经理会搭建好一些常用的工具类 这里工具类的搭建 我们也自己来
+
+
+> 编写工具类 JbdcUtils
+- 该工具类只要是用来 管理数据库连接池 在里面获取连接 关闭连接的
+
+- 这个部分要用到数据库连接池 所以要将数据库连接池用到的一些jar放到项目 WEB-INF/lib 里
+<!-- 
+  mysql-connector-java-5.1.7-bin.jar -- 数据库驱动
+  - 说明:
+  - 这个数据库的驱动必须和 mysql 的版本一致
+  - https://dev.mysql.com/downloads/file/?id=509728
+
+  druid-1.1.9.jar -- 德鲁伊 数据库连接池
+ -->
+
+- 让项目里面添加 jar包 的流程
+- 1. ctrl + ；
+- 2. Libraries -- 点击加号 -- 找到要添加的jar包 然后给该jar lib 起个name 比如 book_lib
+- 3. Modules -- 找到要操作的module -- 右侧点击 Dependencies 点击 + -- Library -- 选择步骤2中创建的 book_lib
+- 4. artifacts -- 选择我们的 book_project: war ... -- fix -- add "book_lib" to the artifact 将这个lib添加到 部署的里面来
+
+
+- 德鲁伊的配置文件: jdbc_properties
+- 我们要使用 德鲁伊 (数据库连接池的jar包) 就要有配置文件
+- 该文件放入 src 下
+
+```js
+// 修改成自己的数据库用户名和密码和数据库服务器中的数据库
+username=root
+password=qwer6666
+// 这里添加的 ?use... 是为了解决时区的问题
+url=jdbc:mysql://localhost:3306/book?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+
+
+driverClassName=com.mysql.cj.jdbc.Driver
+initialSize=5
+maxActive=10
+```
+
+
+> Jdbc工具类
+- 注意点:
+- 1. 导入的包
+
+```java
+package com.sam.utils;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceFactory;
+
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Properties;
+
+
+public class JdbcUtils {
+
+  private static DruidDataSource dataSource;
+  // 使用静态代码块 给 dataSource 属性做初始化
+  static {
+    try {
+      Properties properties = new Properties();
+
+      // 以反射的方式读取 jdbc.properties 配置文件
+      InputStream inputStream = JdbcUtils.class.getClassLoader().getResourceAsStream("jdbc.properties");
+
+      // 从流中加载数据
+      properties.load(inputStream);
+
+      // 创建了数据库连接池
+      dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+
+      // 判断数据库连接池是否创建成功 如果能得到连接就创建成功了
+      // System.out.println(dataSource.getConnection());
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
-  public Integer getId() {
-    return id;
+  // 为了测试连接池创建是否成功 我们创建一个main方法 main方法一加载当前类就会加载 类加载就会实行static代码块
+  // public static void main(String[] args) { }
+
+  // 获取数据库连接池中的连接的方法
+  public static Connection getConnection() {
+    Connection conn = null;
+
+    try {
+      conn = dataSource.getConnection();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    // 如果返回的是null 说明获取连接失败 有值就是成功
+    return conn;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
+  // 关闭连接 放回数据库连接池
+  public static void close(Connection conn) {
+    if(conn != null) {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
   }
 }
 
 ```
+
+
+> 测试jdbc的工具类是否没问题
+- 我们在 com.sam.test 包下 创建一个专门针对 jdbc工具类的测试类
+```java
+package com.sam.test;
+
+// 注意导包 导的是我们自己创建的包 有些时候 第三方jar包可能和我们重名
+import com.sam.utils.JdbcUtils;
+
+import org.junit.Test;
+
+import java.sql.Connection;
+
+public class JdbcUtilsTest {
+  @Test
+  public void testJdbcUtils() {
+    // 获取连接池里面的连接
+    Connection connection = JdbcUtils.getConnection();
+
+    // 测试看看有没有值 不是null就是连接成功
+    System.out.println(connection);
+
+    // 一定要关闭连接
+    JdbcUtils.close(connection);
+  }
+}
+
+```
+
+
+> 4. 编写　BaseDao
+- 我们在com.sam.dao.impl 下创建 BaseDao 类
+
+- BaseDao类的作用:
+- 给别人复用代码的 它不需要对象实例(让子类继承用的 不需要创建BaseDao的实例对象) 所以可以修饰为 abstract 类
+
+- 只要是继承BaseDao类的子类 都会有它定义的方法
+- 同时我们传入sql语句 传入要查询的对象类型 就能得到该类型的结果
+
+- 它就相当于一个模板
+
+
+- jar包:
+- BaseDao类 要需要 DbUtils jar 我们也要导入到library中 该jar包用来操作数据库
+
+```java
+package com.sam.dao.impl;
+
+import com.sam.utils.JdbcUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+public abstract class BaseDao {
+  // 使用 DbUtils 操作数据库
+  private QueryRunner queryRunner = new QueryRunner();
+
+  // update()方法用来执行: insert update delete 语句
+  public int update(String sql, Object ... args) {
+
+    // 使用 queryRunner对象的 update(参数1, 参数2, 参数3)
+    // 参数1: 数据库的链接
+    // 参数2: sql语句
+    // 参数3: Object ... args (args是我们传入的查询条件 比如根据id username查询等 该args会跟 ? 占位符的位置一一匹配)
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.update(connection, sql, args);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JdbcUtils.close(connection);
+    }
+
+    // 返回-1表示执行失败 返回其它表示影响的行数
+    return -1;
+  }
+
+  /**
+   * @desc 查询方法 返回一个对象 这是一个泛型方法
+   * @param type 查询结果的对象的类型
+   * @param sql 查询语句
+   * @param args 我们传入的查询条件 比如根据id username查询等 该args会跟 ? 占位符的位置一一匹配
+   */
+  public <T> T queryForOne(Class<T> type, String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      // 参数3: new BeanHandler<>(type) type是执行完前面的查询后 返回的对象的类型 我们把这个部分定义成形参
+      return queryRunner.query(connection, sql, new BeanHandler<T>(type), args);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JdbcUtils.close(connection);
+    }
+    return null;
+  }
+
+  /**
+   * @desc 查询返回多个对象的查询方法
+   */
+  public <T> List<T> queryForList(Class<T> type, String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.query(connection, sql, new BeanListHandler<T>(type), args);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JdbcUtils.close(connection);
+    }
+    return null;
+  }
+
+  /**
+   * @desc 查询返回一行中某一列的sql语句
+   */
+  public Object queryForSingleValue(String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.query(connection, sql, new ScalarHandler(), args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JdbcUtils.close(connection);
+    }
+
+    return null;
+  }
+}
+
+```
+
+
+> 5. 编写 UserDao 和 测试
+- BaseDao是为了给UserDao继承用抽取出来的
+
+- UserDao是一个接口
+- 我们在 com.sam.dao 下创建
+- 1. 先创建一个 UserDao interface
+- 2. package com.sam.dao.impl 删掉 impl 然后会飘红 停留1秒钟 点击 move - move to com.sam.dao 下
+
+\\ interface UserDao 中应该有哪些方法？
+- 是由我们的业务逻辑决定的 比如我们要完成的是 注册尚硅谷会员的界面 这个页面中有哪些需要操作数据的地方决定的
+
+- 注册需要哪些数据库的操作?
+- 1. 验证用户名是否有效 我们要去数据库查一下
+- 2. 我们要将用户填入的信息保存到数据库
+- 3. 登录操作 我们要根据用户名 和 密码去查询数据库 只要查不到 就说明 要不就是用户名有问题 要么就是密码有问题
+
+- UserDao接口:
+```java
+package com.sam.dao;
+
+import com.sam.pojo.User;
+
+public interface UserDao {
+  // 根据用户名 查询用户信息 如果返回null说明没有这个用户
+  public User queryUserByUsername(String username);
+
+  // 保存用户信息
+  public int saveUser(User user);
+
+  // 根据用户名 和 密码 查询用户信息 如果返回null 说明用户名或密码错误
+  public User queryUserByUsernameAndPassword(String username, String password);
+}
+
+```
+
+- UserDao接口的实现类 UserDaoImpl类
+- 我们在 com.sam.dao.impl下创建
+- 该类要继承BaseDao抽象类和实现UserDao接口
+
+> 要点 sql 语句中 ? 占位符的使用
+```java
+package com.sam.dao.impl;
+
+import com.sam.dao.UserDao;
+import com.sam.pojo.User;
+
+public class UserDaoImpl extends BaseDao implements UserDao {
+  // 实例了 UserDao接口 中的方法
+  @Override
+  public User queryUserByUsername(String username) {
+    // ? 是占位符 我们通过 ... args 传入的参数就是 ? 所以要对应问号的顺序
+    String sql = "select id, username, password, email from t_user where username = ?";
+
+    // 要查找的数据类型是 User.class
+    return queryForOne(User.class, sql, username);
+  }
+
+  @Override
+  public int saveUser(User user) {
+    String sql = "insert into t_user(username, password, email) values(?, ?, ?)";
+
+    //
+    return update(sql, user.getUsername(), user.getPassword(), user.getEmail());
+  }
+
+  @Override
+  public User queryUserByUsernameAndPassword(String username, String password) {
+    String sql = "select id, username, password, email from t_user where username = ? and password = ?";
+    return queryForOne(User.class, sql, username, password);
+  }
+}
+
+```
+
+- 写好 DAO 后我们还要测试一下
+- 之前我们在 com.sam.test 包下 创建一个测试类 然后在测试类中 一个方法一个方法的测
+- 我们还可以换一个方法 将要测试的方法一次性的 写在test包下
+
+- 我们要测的是 UserDao接口中的 三个方法
+- 我们在 UserDao接口中 ctrl + shift + t
+- 选择 create new Test 在弹出的面板中
+- 1. 选择 测试框架 junit4
+- 2. classname 默认
+- 3. 选中要测试的方法
+- 4. destination package选择 test包
+
+- 然后我们会发现 我们选中的方法 自动会到 test包下 并创建了一个测试类
+
+```java
+package com.sam.test;
+
+import com.sam.dao.impl.UserDaoImpl;
+import com.sam.pojo.User;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class UserDaoTest {
+
+  UserDaoImpl userDao = new UserDaoImpl();
+
+  @Test
+  public void queryUserByUsername() {
+    if(userDao.queryUserByUsername("admin") == null) {
+      System.out.println("用户名可用");
+    } else {
+      System.out.println("用户名已存在");
+    }
+  }
+
+  @Test
+  public void saveUser() {
+    if(userDao.queryUserByUsernameAndPassword("admin", "admin") == null) {
+      System.out.println("用户名或密码错误，登录失败");
+    } else {
+      System.out.println("登录成功");
+    }
+  }
+
+  @Test
+  public void queryUserByUsernameAndPassword() {
+    // id是自增的 所以是 null
+    // 输出下 只要结果不是 -1 就意味着添加成功
+    System.out.println(userDao.saveUser(new User(null, "sam", "111111", "sam@gmail.com")));
+  }
+}
+```
+
+
+> 6. 编写 UserService 和 测试
+- 往回写:
+- 客户端 <- Web层 <- Service业务层 <- Dao持久层
+- 上面我们写完了 Dao层 现在我们开始写 Service业务层
+
+- service层表示业务:
+- 我们观察下 前端的页面 都有哪些业务？
+- 一个业务一个方法
+
+- 登录界面的: 
+  - 登录功能是一个业务
+
+- 注册界面的: 
+  - 注册功能是一个业务
+  - 检查用户名是否存在也是一个业务
+
+
+- 我们先在 com.sam.service 下创建一个 UserService接口
+```java
+package com.sam.service;
+import com.sam.pojo.User;
+
+public interface UserService {
+  /**
+   * 注册用户 也就是注册功能的业务
+   * @param user
+   */
+  public void registUser(User user);
+
+  /**
+   * 登录 也就是登录功能的业务
+   * @param user
+   */
+  public User login(User user);
+
+  /**
+   * 检查用户名是否可用
+   * @param username
+   * @return 返回true表示用户名已存在 返回false表示用户名可用
+   */
+  public boolean existsUsername(String username);
+}
+
+```
+
+
+- UserService接口的实现类
+- 我们在 com.sam.service.impl 下面创建 UserService接口的实现类UserServiceImpl类
+
+- 我们的UserServiceImpl类是需要操作数据库的 因为里面有登录 注册等方法
+
+- 而数据库是DAO来操作的 所以我们要在 UserServiceImpl类 中定义一个 属性 属性为 UserDao接口的实现类对象
+```java
+package com.sam.service.impl;
+
+import com.sam.dao.UserDao;
+import com.sam.dao.impl.UserDaoImpl;
+import com.sam.pojo.User;
+import com.sam.service.UserService;
+
+public class UserServiceImpl implements UserService {
+
+  // 因为我们要操作数据库 操作数据库就要用到 DAO层的对象 我们这里就用到 userDao
+  private UserDao userDao = new UserDaoImpl();
+
+
+  // 注册用户
+  @Override
+  public void registUser(User user) {
+    // 注册用户 调用 Dao层的逻辑 来完成 就是将user保存到数据库中
+    userDao.saveUser(user);
+  }
+
+  // 登录  如果返回null则登录失败 返回有值 则登录成功
+  @Override
+  public User login(User user) {
+    // 根据用户名和密码来查询数据库 如果不为null证明能查询到 就可以登录
+    return userDao.queryUserByUsernameAndPassword(user.getUsername(), user.getPassword());
+  }
+
+  @Override
+  public boolean existsUsername(String username) {
+    if(userDao.queryUserByUsername(username) == null) {
+      // 等于null说明没有查到 没查到表示 可用
+      return false;
+    }
+    return true;
+  }
+}
+
+```
+
+
+- UserServiceTest测试类
+```java
+package com.sam.test;
+
+import com.sam.pojo.User;
+import com.sam.service.UserService;
+import com.sam.service.impl.UserServiceImpl;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class UserServiceTest {
+
+  // 先创建一个 UserService 的实现类对象
+  UserService userService = new UserServiceImpl();
+
+  @Test
+  public void registUser() {
+    // id是自增的 所以是null
+    userService.registUser(new User(null, "erin", "111111", "erin@gmail.com"));
+  }
+
+  @Test
+  public void login() {
+    // 根据用户名和密码来进行登录
+    if(userService.login(new User(null, "sam", "111111", null)) == null) {
+      System.out.println("登录失败");
+    } else {
+      System.out.println("登录成功");
+    }
+  }
+
+  @Test
+  public void existsUsername() {
+    if(userService.existsUsername("nn")) {
+      System.out.println("用户名已存在");
+    } else {
+      System.out.println("用户名可用");
+    }
+  }
+}
+```
+
+
+> 实现用户注册功能
+- 逻辑整理:
+- 当我们访问到 用户注册页面 的时候 我们会开始输入信息
+
+    用户名: 
+    密码:
+    确认密码:
+    邮件:
+    验证码:
+
+- 当用户输入完成 就会点击 注册 开始提交 这时候会将参数发送给服务器 去注册保存
+
+- 服务器会有一个servlet程序来接收发送过来的数据
+- 我们创建一个 RegistServlet 程序 它用来接收请求
+
+- RegistServlet程序内需要处理的逻辑:
+- 1. 获取请求参数
+- 2. 检查验证码是否正确
+    正确: 
+      - 3. 检查用户名是否可用
+        可用: 
+          调用Service保存到数据库 然后跳转到 注册成功页面
+          (regist_success)
+
+        不可用: 跳回注册页面
+
+    不正确: 跳回注册页面
+
+
+- 同时 因为我们创建了 servlet程序 还要在 web.xml 中进行配置
+- 配置 servlet程序的接口路径
+```xml
+<servlet>
+    <servlet-name>RegistServlet</servlet-name>
+    <servlet-class>com.sam.web.RegistServlet</servlet-class>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>RegistServlet</servlet-name>
+    <url-pattern>/regist</url-pattern>
+</servlet-mapping>
+```
+
+- 前端页面 关于action="接口地址"和 页面中相对路径的使用
+- 这里我们都使用 <base href> + 相对路径的方式
+
+- 我们 tomcat 服务器中 工程名是 /project
+- 所以 这里我们设置base路径到工程名 
+```html
+<base href="http://localhost:8080/project/">
+```
+
+- 注意:
+- 当前页面下的 css img js 等资源资源的相对路径也要进行修改
+- 不要以 / 开头
+```html
+	<link type="text/css" rel="stylesheet" href="static/css/style.css" >
+```
+
+- 同时 form表单的接口地址也要修改
+- 因为base配置到 /project/ 而我们的servlet接口就是从 工程名后面开始的 所以直接写 regist 就可以了
+```html
+<form action="regist" method="post">
+```
+
+- 接下来我们开始写在服务器 servlet程序的代码
+
+```java
+package com.sam.web;
+
+import com.sam.pojo.User;
+import com.sam.service.UserService;
+import com.sam.service.impl.UserServiceImpl;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class RegistServlet extends HttpServlet {
+
+  // 通过service层的对象 来操作数据库 web层本身不要写操作数据库的逻辑
+  private UserService userService = new UserServiceImpl();
+
+
+  // 处理post请求
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    // 1. 获取请求的参数
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+    String email = req.getParameter("email");
+    String code = req.getParameter("code");
+
+    // 2. 检查验证码是否正确(验证码由服务器生成 先写死) 要求验证码为: abcd
+    if("abcd".equalsIgnoreCase(code)) {
+      // 如果验证码正确 那么就检查用户名是否可用
+      // javaEE 三层模型 web -> service -> dao 必须是临层调用 不能隔层调用
+      
+      // 也就是说 web层是不能调用dao层的 所以这里我们需要service层的UserServiceImpl类
+      if(userService.existsUsername(username)) {
+        // 进入这里代表 用户名不可用 因为数据库里面已经有了
+        System.out.println("用户名 [" + username + "] 已存在");
+        req.getRequestDispatcher("/pages/user/regist.html").forward(req, res);
+
+      } else {
+        // 进入这里代表 用户名可用 可用的情况下我们就将其保存到数据库
+        userService.registUser(new User(null, username, password, email));
+        req.getRequestDispatcher("/pages/user/regist_success.html").forward(req, res);
+      }
+
+    } else {
+      System.out.println("验证码 [" + code + "] 错误");
+      // 当验证码不正确的时候 让其跳转到注册页面
+      // getRequestDispatcher的地址必须以/打头 代表在web
+      req.getRequestDispatcher("/pages/user/regist.html").forward(req, res);
+    }
+  }
+}
+
+```
+
+----------------
+
+### IDEA中 Debug 调试的使用
+- Debug调试代码, 首先需要两个元素
+- 1. 断点
+- 2. Debug启动Tomcat运行代码(我们点那个小臭虫启动)
+
+- 小臭虫启动后 我们一般点一个类中的第一行代码 或者点在出错的前一行
+
+- 比如： 我们测试下面的类 那我们就在这里打断点
+```java
+public class RegistServlet extends HttpServlet {
+
+
+  private UserService userService = new UserServiceImpl();
+  // 处理post请求
+  @Override
+
+  这里打断点!!!!
+  ↓
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 1. 获取请求的参数
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+    String email = req.getParameter("email");
+    String code = req.getParameter("code");
+
+    if("abcd".equalsIgnoreCase(code)) {
+
+      if(userService.existsUsername(username)) {
+        System.out.println("用户名 [" + username + "] 已存在");
+        req.getRequestDispatcher("/pages/user/regist.html").forward(req, res);
+
+      } else {
+        userService.registUser(new User(null, username, password, email));
+        req.getRequestDispatcher("/pages/user/regist_success.html").forward(req, res);
+      }
+
+    } else {
+      System.out.println("验证码 [" + code + "] 错误");
+      req.getRequestDispatcher("/pages/user/regist.html").forward(req, res);
+    }
+  }
+}
+
+```
+
+- 当我们故意输入不正确的 验证码 debug 窗口就会被激活
+
+> debug调试都需要注意哪些点
+> 1. 调试的按钮区域
+  - step over: 让代码让下走一行
+
+  - step into: 可以进入当前的方法内(自己写的代码 非框架源码)
+  - step out:  跳出当前方法体外(跳出去)
+
+  - force step into: 
+    强制进入当前方法体内(是不是自己写的代码 都可以进去 包括框架的代码)
+
+  - run to cursor:
+    跳到当前的光标处(可以跳转鼠标光标的位置)
+
+
+> 2. variables面板
+- 它可以查看*当前方法范围内*所有有效的变量 显示的变量是随着当前方法的改变而发生变化
+
+> 3. frames方法调用栈窗口
+- 1. 可以查看当前线程有哪些方法调用信息
+- 2. 列表中的方法是 下面的方法调用上一行的方法
+<!-- 栈结构 先调用的方法在栈底 -->
+
+
+> 左侧侧边栏的按钮区
+- stop: 
+  停止调试(都停了)
+
+- resume program:
+  程序一直跑 知道下一个断点停下来 如果没有断点就一直往下跑
+
+- mute:
+  临时禁用所有的断点
+
+----------------
+
+### 用户登录功能实现
+- 登录页面也是一样 用户一行来需要输入内容
+ - 用户名:
+ - 密码: 
+ - 登录
+
+- 用户输入完成后 会将数据发送给服务器端
+- 服务器端需要有程序有来接收数据 LoginServlet程序
+
+- LoginServlet程序中:
+- 1. 获取请求的参数
+- 2. 调用XxxService.xxx()方法处理业务
+<!-- userService.login()登录 -->
+
+- 3. 根据上述方法的返回值 确定登录成功还是失败
+    成功:
+      跳转到成功页面
+
+    失败:
+      跳转回登录页面
+
+
+- 接下来我们在 com.sam.web 里面写 LoginServlet 类
+```java
+package com.sam.web;
+
+import com.sam.pojo.User;
+import com.sam.service.UserService;
+import com.sam.service.impl.UserServiceImpl;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class LoginServlet extends HttpServlet {
+
+  private UserService userService = new UserServiceImpl();
+
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    String username = req.getParameter("username");
+
+    String password = req.getParameter("password");
+
+    if(userService.login(new User(null, username, password, null)) == null) {
+      // 登录失败
+      System.out.println("用户名或密码输入不正确");
+      req.getRequestDispatcher("/pages/user/login.html").forward(req, res);
+    } else {
+      // 登录成功
+      req.getRequestDispatcher("/pages/user/login_success.html").forward(req, res);
+    }
+  }
+}
+
+```
+
+- 也要注意
+- 1. html页面 base标签的配置
+- 2. css js等src的设置
+- 3. action的设置
+- 4. web.xml的设置
+
+----------------
+
+### JSP
+- jsp的全称是 java server pages
+- java的服务器页面
+
+- jsp的主要作用是代替servlet程序回传html页面的数据
+- 因为servlet程序回传html页面数据时一件非常繁琐的事情 开发成本和维护成本都极高
+
+- 下面我们看下 servlet程序 怎么回传页面的
+```java
+package com.sam.jsp;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+public class PrintHtml extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    // 设置响应对象的编码格式
+    resp.setContentType("text/html; charset=UTF-8");
+
+    // 得到响应流
+    PrintWriter writer = resp.getWriter();
+    writer.write("<!DOCTYPE html>\r\n");
+    writer.write("<html lang=\"en\">\n");
+    writer.write("<head>\n");
+    writer.write("<meta charset=\"UTF-8\">\n");
+    writer.write("<title>Title</title>\n");
+    writer.write("</head>\n");
+    writer.write("<body>\n");
+    writer.write("<h3>这是servlet回传的页面数据</h3>\n");
+    writer.write("</body>\n");
+    writer.write("</html>\n");
+  }
+}
+
+```
+
+- 几乎是用 write() 方法一行行的拼接出来的 这样写出的代码得多麻烦 写的时候还没有任何的提示工具
+
+- 那jsp又是怎么做到的？
+
+> 创建 jsp 文件
+- 我们在 web 文件目录下面 new -- jsp 文件
+
+- jsp文件的模板: 
+
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+    <h3>这是一个 jsp 页面</h3>
+</body>
+</html>
+```
+
+
+> jsp如何访问？
+- jsp页面和html页面一样 都是存放在web目录下 访问也跟访问html一样
+
+- http://ip:port/工程名/a.jsp
+
+
+> jsp页面的本质
+- 我们看看为什么jsp能够很好的替代 servlet程序回传的页面
+- jsp页面*本质上是一个servlet程序*
+<!-- 
+  为什么这么说呢？
+  因为当我们第一次访问 jsp页面的时候
+
+  某个文件夹中 org/apache/jsp/ 目录下 会多出
+  a__jsp.class
+  a__jsp.java
+ -->
+
+- 也就是说当我们第一次访问jsp页面的时候 Tomcat服务器会帮我们把jsp页面翻译成一个java源文件 并且对它进行编译成为.class字节码程序(我们打开这个java源文件 其内部的内容是)
+```java
+public final class a__jsp extends org.apache.jasper.runtime.HttpJspBase implements org.apache.jasper.runtime.JspSourceDependent, ... {
+
+}
+```
+
+- 我们跟踪源代码发现 HttpJspBase类 直接的继承了 HttpServlet类 也就是说 jsp翻译出来的java的类 它间接的继承了HttpServlet类 也就是 翻译出来的是一个servlet程序
+
+
+> 总结:
+- 通过翻译的java源代码我们就可以得到结果:
+- jsp就是servlet程序
+```java
+/*
+  this is the super class of all jsp-generated servlets
+*/
+public abstract class HttpJspBase extends HttpServlet implements HttpJspPage { ... }
+```
+
+- 底层实现也是通过输出流 writer.write() 回传到客户端的

@@ -4,6 +4,7 @@
 - https://www.jianshu.com/p/3a4e245d43b1
 
 ### 数据库的root密码
+- root
 - qwer6666
 
 

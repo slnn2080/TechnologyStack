@@ -10457,15 +10457,28 @@ Vue Components                        Mutations         Devtools
 - 借助mapState生成计算属性，从state中读取数据
 
 > 方式一： 对象写法
-> mapState({
-  我们在组件中想要使用的变量名: 'vux中想要使用的数据',    // v的部分要加上引号
+```js
+mapState({
+  // v的部分要加上引号
+  我们在组件中想要使用的变量名: 'vux中想要使用的数据',    
   我们在组件中想要使用的变量名: 'vux中想要使用的数据',
 })  
+
+// 还可以写成
+mapState({
+  // v的部分要加上引号
+  我们在组件中想要使用的变量名: state => state.它内部的数据,    
+  我们在组件中想要使用的变量名: state => state.它内部的数据,    
+})  
+```
 
 - 注意：
 - 1. 这里不能因为我们想起的名字和state中的数据名一致 就使用es6的简写模式
 - 2. vm变量名就是我们要在模板中使用的变量 它用来映射state中的数据
 - 3. kv v的部分属于state中定义的数据 一定要加上""
+
+- 4. 当 v 使用函数的写法的时候 就是通过 state 去读vuex中我们想要使用的数据
+
 
 - 要点：
 - mapState()本身就是一个对象 放在计算属性中的时候 要使用...来解构
@@ -10475,7 +10488,13 @@ Vue Components                        Mutations         Devtools
 
     // 要点在这 ...
     ...mapState({
+
+      // 函数的方式 和 字符串的方式 相同
+      school: state => state.school
       school: 'school',
+
+      ---
+
       subject: 'subject',
     })
   }
