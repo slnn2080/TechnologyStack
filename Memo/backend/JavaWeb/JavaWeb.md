@@ -3136,3 +3136,1282 @@ public abstract class HttpJspBase extends HttpServlet implements HttpJspPage { .
 ```
 
 - 底层实现也是通过输出流 writer.write() 回传到客户端的
+
+----------------
+
+### jsp头部的 page指令
+```xml
+<%@ page 
+  contentType="text/html;charset=UTF-8"
+  language="java" 
+%>
+```
+
+> page指令
+- 可以修改jsp页面中的一些重要的属性或者行为
+
+> 常用的page属性
+> language
+- 表示jsp翻译后是什么语言文件 暂时只支持 java
+
+> contentType
+- 表示jsp返回的数据类型是什么 也是源码中:
+- res.setContentType()
+
+> pageEncoding
+- 表示当前jsp页面本身的字符集
+
+> import
+- 跟java源代码中的使用方式一样 用于导包导类
+```java
+<%@ page import="java.util.Map" %>
+```
+
+---
+
+> autoflush
+- 设置当out输出流缓冲区满了之后 是否自动刷新缓冲区 
+- 默认值是true
+
+> buffer
+- 设置out缓冲区的大小 
+- 默认是8kb
+
+- 上述两个属性是给 out 输出流使用的
+
+<!-- 
+  比如:
+   jsp页面上有特别多的内容 但是我设置的是
+   <%@ page 
+    autoflush = false
+    buffer: "1kb"
+  %>
+
+  页面就会报 JSP Buffer overflow 缓冲满了之后不能自动刷新报的错误
+
+  记住 JSP页面也是java程序
+ -->
+
+---
+
+> errorPage
+- 设置当jsp页面 *运行时出错* 自动跳转去的错误页面
+
+- errorPage="/路径"
+- 这个路径一般都是以 斜杠开头 表示请求地址为 
+- http://ip:port/工程名/  
+- 映射到代码的web目录
+
+```java 
+// 当我们下方的jsp页面中的代码出现错误的时候 自动跳转到 指定的错误提示页面上
+<% page errorPage = "/error500.jsp" %>
+
+<body>
+  jsp页面
+
+  <!-- 下方的代码会报错 -->
+  <%
+    int i = 12 / 0;
+  %>
+</body>
+```
+
+> isErrorPage
+- 设置当前jsp页面是否是错误信息页面 默认是false
+- 如果是true 可以获取异常信息
+
+> session
+- 设置访问当前jsp页面 是否会创建 HttpSession对象
+- 默认是true
+
+> extends
+- 设置jsp翻译出来的ajva类默认继承谁
+- 就跟 java类中类的继承是一样的 相当于修改了 java类继承的位置
+
+```java
+<%@ page extends="java.servlet.HttpServlet "%>
+```
+
+
+- 修改上面的属性 相当于修改 java类中的属性
+
+----------------
+
+### jsp 常用的脚本
+- jsp页面对应的java类在
+- /Library/Tomcat8/work/Catalina/localhost/ROOT/org/apache/jsp
+
+> 声明脚本 (不太使用)
+- 我们可以在jsp页面中 写出下面的结构 在结构中使用Java代码
+- 我们声明的所有java结构 都会体现在 该页面对应的java类中 相当于我们在页面上的java操作 会被翻译到页面的java类中
+
+> 声明脚本的格式: <%! ... %>
+- 作用:
+- 可以给jsp翻译出来的java类定义属性和方法
+- 甚至是静态代码块 内部类等
+
+```html
+<body>
+  <%! 声明java代码 %>
+</body>
+```
+
+> 练习:
+- 在jsp页面中 声明:
+  类属性
+  静态代码快
+  类方法
+  内部类
+```java
+// 页面中用到什么结构 会自动使用该方法进行导包
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+// 声明类属性
+<%!
+    private Integer id;
+    private String name;
+    private static Map<String, Object> map;
+%>
+
+// 声明静态代码块 可以给上面的map进行赋值
+<%!
+    static {
+        map = new HashMap<String, Object>();
+        map.put("key1", "value1");
+    }
+%>
+
+// 声明类的方法
+<%!
+    public int getNum() {
+      return 12;
+    }
+%>
+
+// 声明内部类
+<%!
+    public static class A {
+      private Integer id;
+    }
+%>
+</body>
+</html>
+```
+
+------
+
+> 表达式脚本 (常用)
+- 表达式脚本的作用是: *在jsp页面上输出数据*
+- 也就是直接往页面上输出信息 *在底层上*表达式都会通过 print() 方法输出在页面上
+
+- out.print( 表达式 )
+
+
+> 表达式脚本的格式是: <%= ... %>
+```html
+<body>
+  <%= 表达式脚本 %>
+</body>
+```
+
+> 为什么可以利用 表达式脚本 向页面输出内容
+- 我们观察源码(jsp页面会被翻译成一个java类 我们看的这个)发现 类中有一个方法
+
+- _jspService() 该方法中还是利用了 输出流在java类中拼接页面的形式 拼接出来的
+```java
+out.print(12)
+out.write("<br>\r\n")
+out.print(12.12)
+out.write("<br>\r\n")
+out.print("我是字符串")
+out.write("<br>\r\n")
+out.print(map)
+out.write("<br>\r\n")
+```
+
+
+> 特点:
+- 1. 所有的表达式脚本都会被翻译到 _jspService() 方法中
+
+- 2. 表达式脚本都会被翻译成 out.print(内容) 输出到页面上
+
+- 3. 由于表达式脚本翻译的内容都在 _jspService() 方法里所以_jspService()方法中的对象 都可以直接使用
+- 比如: *req, res 我们也能在 表达式脚本中使用*
+
+- 4. *表达式脚本的表达式不能以 ; 结尾*
+<!-- 
+  如果下面这样就会报错
+  <%=
+    request.getParameter("username");
+  %>
+
+  jsp被翻译过来后
+  out.print(request.getParameter("username"););
+
+  所以表达式不能加 ; 
+ -->
+
+```java
+// 比如 service() 方法中有如下对象: 
+public void _jspService(
+  final javax.servlet.http.HttpServletRequest request, 
+  
+  final javax.servlet.http.HttpServletResponse response
+)
+       
+  final javax.servlet.jsp.PageContext pageContext;
+  final javax.servlet.ServletContext application;
+  final javax.servlet.ServletConfig config;
+  javax.servlet.jsp.JspWriter out = null;
+  final java.lang.Object page = this;
+  javax.servlet.jsp.JspWriter _jspx_out = null;
+  javax.servlet.jsp.PageContext _jspx_page_context = null;
+```
+
+
+> 练习:
+- 在jsp页面上 利用表达式 脚本输出
+  整型
+  浮点型
+  字符串
+  对象
+
+```html
+<body>
+<%!
+    private static Map<String, Object> map;
+%>
+
+<%!
+    static {
+        map = new HashMap<String, Object>();
+        map.put("key1", "value1");
+    }
+%>
+
+<%!
+    public static class A {
+      private Integer id;
+    }
+%>
+
+
+<%= 12 %> <br>
+<%= 12.12 %> <br>
+<%= "我是字符串" %> <br>
+
+<!-- 因为上面我们已经通过静态代码块 给map赋值了 所以页面上会正常显示 map对象 -->
+<%= map %> <br>
+
+<!-- 
+  因为 service() 方法有中req对象 所以我们也可以利用req身上的方法 将url上的参数显示到页面上
+
+  比如 我们地址栏输入
+  http://ip:port/?usernmae=sam
+ -->
+<%=
+  request.getParameter("username")
+%>
+
+</body>
+```
+
+------
+
+> 代码脚本
+- 代码脚本的作用:
+- 可以在jsp页面中 编写我们自己需要的功能(写的是java语句)
+
+**注意:**
+- <% java语句 %>  都*会被翻译到 _jspService() 方法中*
+
+- 也就是说我们在 _jspService() 方法中 可以写的东西 在代码脚本中都可以写
+
+- 所以我们要是声明方法的话 就不行了 因为方法内部不能定义方法 所以要是声明方法的话 还是需要使用声明脚本
+
+
+> 代码脚本的格式 <% ... %>
+```html
+<body>
+  <% java语句 %>
+</body>
+```
+
+
+> 特点:
+> 1. 代码脚本翻译之后都在 _jspService() 方法中
+
+> 2. 代码脚本由于翻译到 _jspService() 方法中 所以在_jspService() 方法中的现有对象 都可以直接使用
+
+> 3. 还可以由多个代码脚本块组合完成一个完整的java语句
+```java
+// 类似这样也可以 但这又啥用
+<%
+  for(int j=0; j<10; j++) {
+%>
+
+<%
+    System.out.println(j);
+  }
+%>
+```
+
+> 4. 代码脚本还可以和表达式脚本一起组合使用(引引加加) 在jsp页面上显示数据
+- 比如 我想让 for循环中的i 在jsp页面上输出 
+```java
+// 正常的for循环
+<%
+  for(int i=0; i<10; i++) {
+    System.out.println(i);
+  }
+%>
+
+// 现在我想让 i 在页面上显示 这就要使用到 脚本标记的嵌套 好像引引加加啊
+<%
+  for(int i=0; i<10; i++) {
+%>
+    // 插入 表达式脚本
+    <%= i %> <br>
+<%
+  }
+%>
+```
+
+- 利用这点我们可以在页面上输出任何的东西 本质相当于
+- "今天天气真不错 很" + 变量 + "啊！"
+
+- 比如我们还可以完成类似 v-for 的逻辑
+```html
+<table>
+  <tr>
+    <%
+      for(int i=0; i<10; i++) {
+    %>
+      <td> 第 <%= i + 1 %> 行 </td>
+    <%
+      }
+    %>
+  </tr>
+</table>
+```
+
+- 比如 if语句也一样 我们让结果输出到页面 也是利用 引引加加 甚至也可以用它来完成 v-if 的逻辑
+```html
+<%
+  int i = 12;
+  if(i == 12) {
+%>
+  <h1><%= "i为12" %></h1> <br>
+<%
+  }
+%>
+```
+
+> 练习:
+- 我们利用 代码脚本 写
+- if语句
+- for循环语句
+- 翻译后java文件中 _jspService方法内的代码都可以写
+
+```html
+<body>
+  <%=
+    request.getParameter("username")
+  %>
+
+  <%
+    int i = 12;
+    if(i == 12) {
+      System.out.println("i为12");
+    } else {
+      System.out.println("i不为12");
+    }
+  %>
+
+  <%
+    for(int j=0; j<10; j++) {
+      System.out.println(j);
+    }
+  %>
+
+<!-- 
+  因为我们写的代码脚本相当于写在 jspService() 方法中 那就是说 该方法内容的对象我们可以直接使用 比如 req
+ -->
+  <%
+    String username = request.getParameter("username");
+    System.out.println(username);
+  %>
+</body>
+```
+
+----------------
+
+### jsp中 三种注释
+- jsp中可以写3种注释
+
+> html注释
+- html注释会被翻译到java源代码中 在jspService方法里以 out.write() 输出到客户端
+<!-- html注释 -->
+
+> java注释
+- java注释会被翻译到java源代码中
+- 一般java注释是声明在 代码脚本 声明脚本中使用
+
+> jsp注释
+- jsp注释可以注释掉 jsp页面中的所有代码 
+- 我们要是想注释掉代码级的东西 就使用这种注释
+
+----------------
+
+### jsp中 九大内置对象
+- jsp中的内置对象 是指Tomcat在翻译jsp页面成为servlet源代码后 内部提供的九大对象 叫内置对象
+
+```java
+public void _jspService(
+  final javax.servlet.http.HttpServletRequest request, 
+  final javax.servlet.http.HttpServletResponse response
+)
+      
+  final javax.servlet.jsp.PageContext pageContext;
+
+  final javax.servlet.ServletContext application;
+
+  final javax.servlet.ServletConfig config;
+
+  javax.servlet.jsp.JspWriter out = null;
+
+  final java.lang.Object page = this;
+
+  javax.servlet.jsp.JspWriter _jspx_out = null;
+
+  javax.servlet.jsp.PageContext _jspx_page_context = null;
+
+```
+
+**注意:下面的对象的名字是底层源码的名字不是我们自己起的 必须这么用 比如: 不能将request写成req**
+
+- request: 
+  请求对象
+
+- response: 
+  响应对象
+
+- pageContext: 
+  jsp的上下文对象
+
+- sesstion:
+  会话对象
+
+- application:
+  servletContext对象(servlet里面的上下文对象)
+
+- config:
+  servletConfig对象
+
+- out:
+  jsp输出流对象
+
+- page
+  指向当前jsp的对象
+
+- exception:
+  异常对象
+<!-- 
+  异常对象 必须设置为 true 的时候 才能开启
+  <%@ page isErrorPage="true" %>
+ -->
+
+----------------
+
+### jsp中 四大域对象 
+- 在上述的9个内置对象中有4个是域对象
+- 四个域对象分别是:
+
+- 1. pageContext  (PageContextImpl类):
+    
+- 2. request      (HttpServletRequest类):
+
+- 3. session      (HttpSession类):
+
+- 4. application  (ServletContext类):
+
+- 域对象是可以像 Map 一样存取数据的对象
+- 4个月对象的功能一样 不同的是它们对数据的存取范围
+
+> 域对象数据的存取范围
+- 1. pageContext:
+  - 当前jsp页面范围内有效
+
+- 2. request:
+  - 一次请求内有效
+
+- 3. session:
+  - 一个会话范围内有效(打开浏览器访问服务器 直到关闭浏览器, 浏览器不管会话一直都在)
+
+- 4. application:
+- 整个web工程范围内都有效(只要web工程不停止 数据都在 该对象在web工程启动的时候创建 停止的时候销毁)
+
+---
+
+> 实验1:
+- 我们在 scoped1.jsp 中 往4个域对象中存数据
+- 然后再在 scoped1.jsp 中 读出来 发现没有问题 正常读取
+- 因为都在这4个域对象的存储范围
+
+```java
+<body>
+    <h1>scoped jsp页面</h1>
+<%
+    pageContext.setAttribute("key", "pageContext");
+    request.setAttribute("key", "request");
+    session.setAttribute("key", "session");
+    application.setAttribute("key", "application");
+%>
+
+
+<h5>
+pageContext域是否有值: 
+<%= pageContext.getAttribute("key") %> <br>
+
+request域是否有值: 
+<%= request.getAttribute("key") %> <br>
+
+session域是否有值: 
+<%= session.getAttribute("key") %> <br>
+
+application域是否有值: 
+<%= application.getAttribute("key") %> <br>
+</h5>
+
+// pageContext是当前页面内有效: 我们现在就是 scoped1.jsp
+
+// request是一次请求有效
+// sesstion是浏览器没有关闭就有效
+// application是web工程不关闭就有效
+</body>
+```
+
+
+> 实验2:
+- 接下来我们让域的范围不断的变大 我们观察下 哪些域的数据就无效了
+
+- 我们让 scoped1.jsp 通过请求转发 跳转到 scoped2.jsp
+- 我们在scoped2.jsp中直接读数据 看看数据的情况
+
+```java
+<h5>
+pageContext域是否有值: 
+<%= pageContext.getAttribute("key") %> <br>
+  // null
+
+
+request域是否有值: 
+<%= request.getAttribute("key") %> <br>
+  // request
+
+
+session域是否有值: 
+<%= session.getAttribute("key") %> <br>
+  // session
+
+application域是否有值: 
+<%= application.getAttribute("key") %> <br>
+  // application
+</h5>
+```
+
+- 我们发现 pageContext 域对象中的数据为null了
+- 因为 pageContext 已经离开了当前的 scoped1.jsp 所以在 scoped2.jsp 页面中取不出来 
+
+- request有值是因为请求转发算一次请求
+- session有是因为浏览器没有关
+- application有是因为服务器没有停
+
+
+> 实验3:
+- 上面我们是访问 scoped1.jsp 转发到 scoped2.jsp 这是一次请求
+
+- 但是我们直接输入 localhost:8080/scoped2.jsp 这是单独的请求了scoped2.jsp 这是两次请求所以 
+
+```java
+<%= request.getAttribute("key") %> <br>
+  // null
+```
+
+> 实验4:
+- 关闭浏览器后 sesstion域对象中的数据也没有了
+
+> 实验5:
+- 关闭或重新部署服务器 application域对象中的数据也没有了 
+
+> 问题:
+- 4个域对象都可以存取数据 那我们使用哪个？
+
+- 虽然4个域对象都可以存储数据 在使用上他们是有优先顺序的
+- *四个域在使用的时候 优先顺序是:*
+
+  pageContext - request - session - application
+
+- 我们存的数据还是占用内存的 如果我们选择最小的有效范围 那么就会在最短在数据不需要用的情况下 就能最快的释放内存 减轻服务器的压力
+
+----------------
+
+### jsp中 out输出 和 response.getWriter输出的区别
+- response表示响应:
+- 我们经常用于设置返回给客户端的内容(输出)
+
+- out:
+- 也是给用户做输出使用的
+
+- 那它们有什么样的区别呢？
+- out输出流 和 getWrite输出流都有各自的缓冲区
+- 两个流在输出的时候都是输出到自己的缓冲区里面的 比如我们jsp页面上打印
+```java
+<%
+  out.write("out输出1 <br>");
+  out.write("out输出2 <br>");
+
+  response.getWriter().write("response输出1 <br>");
+  response.getWriter().write("response输出2 <br>");
+%>
+```
+<!-- 
+  out缓冲区       response缓冲区
+  --------       -------------
+
+  out输出1        response输出1 
+  out输出2        response输出2
+
+ -->
+
+> 当jsp页面中所有代码执行完成后 会做以下的两个操作
+- 1. 执行 out.flush() 操作, 会把out缓冲区中的数据 *追加写入到*response缓冲区的*末尾*
+
+- 2. 会执行response的刷新操作 把response缓冲区中的数据写给客户端
+
+- 所有上面的jsp页面上的结果会是:
+- response输出1
+- response输出2
+- out输出1
+- out输出2
+
+- 即使 out语句 在 response语句的上面
+
+- 那我们使用哪种输出流呢？
+- 我们发现源代码的底层中都使用的是 out.print() 
+
+**注意:**
+- 由于jsp翻译之后 底层源代码都是用out来进行输出 所以一般情况下 我们*在jsp页面中统一使用out来进行输出* 避免输出数据的顺序混乱
+
+
+> out.write()
+- 该方法只适合输出字符串
+<!-- 
+  底层是将传入的数据 强转为char 字符串没有问题 但是其它的类型转为char就会转为对应的asc2码 会出现问题
+ -->
+
+> out.print()
+- 输出任意数据都没有问题(都转换成为字符串后调用的write输出)
+
+- 深入源码，浅出结论:
+- 在jsp页面中 可以统一使用 out.print() 来进行输出
+
+----------------
+
+### jsp中 常用标签
+- 什么时候才需要用 下面的3组标签呢？
+- 一般网页都分为3个部分
+
+  头部: 导航 菜单 轮播等
+
+  主体: 页面的主体内容
+
+  脚部: 联系我们
+
+- 一般大型的网站会有3级页面 4级页面 这样的页面可能有上万个 那就是说我们要在上万个网站中维护相同的内容
+
+- 比如我们要改一处修改需要去上万个页面上改相同的地方 这维护起来就很难了
+- 要是我们修改一处就完全都改过来了 不就好了 这里就需要下面的包含的功能
+<!-- 
+  就相当于 我们给 脚部 单独设置一个组件 其它页面中都引入这个组件
+
+  这个动作在jsp里面叫做包含
+ -->
+
+> 静态包含 <%@ include file="/路径" %>
+- file属性指定要引入的jsp页面的路径
+- 地址中第一个斜杠表示为 http://ip:port/工程名
+(映射到代码的web目录)
+
+- main.jsp
+```html
+<body>
+
+    头部内容 <br>
+
+    主体内容 <br>
+
+    <%@ include file="/include/footer.jsp"%>
+</body>
+
+<!-- 
+  | - web
+    | - include
+      - footer.jsp
+    
+    - main.jsp
+ -->
+```
+
+> 静态包含的特点:
+- 被包含的jsp页面 就是指引入的组件
+
+- 1. 静态包含不会翻译被包含的jsp页面
+- 2. 静态包含其实是把被包含的jsp页面的代码拷贝到包含的位置执行输出
+
+------
+
+> 动态包含 <jsp:include page="/路径"></jsp:include>
+- 使用的是 <jsp:include></jsp:include>标签 内部指定page属性
+
+- page属性:
+- 要引入的文件的路径
+
+- 动态包含也可以实现静态包含的效果 只是底层的原理不太一样 它也是可以像静态包含一样 把被包含的内容执行输出到包含位置
+
+
+> 动态包含的特点 (包括页面传值)
+- 1. 动态包含会把包含的jsp页面也翻译成java代码
+- 2. 动态包含不在是在被引入页面的内容 使用out.print()一行行的输出在页面上 
+
+- 而是 一条java语句
+- JspRuntimeLibrary.include(request, response, "/include/footer.jsp", out, false)
+
+- 通过上面的代码去调用被包含的jsp页面执行输出
+
+- 3. 动态包含还可以传递参数 到引入的页面里(传值到另一个页面)
+```html
+<jsp:include page="/include/footer.jsp">
+  <jsp:param name="key1" vlaue="value1">
+  <jsp:param name="key2" vlaue="value2">
+</jsp:include>
+```
+
+- B页面通过如下方式获取A页面传递过来的参数
+```html
+<h1>
+  A页面传递过来的内容是: 
+  <%= request.getParameter("key1")%>
+</h1>
+```
+
+- 开发中绝大多数都是使用静态包含 
+
+> jsp标签 - 请求转发 
+> <jsp:forward page=""></jsp:forward>
+- 以前我们是通过 代码脚本 中写 java代码来完成请求转发的功能 比如:
+```java
+<body>
+  <%
+    request.getRequestDispatcher("/scoped2.jsp").forward(req, res);
+  %>
+</body>
+```
+
+- 现在 在jsp页面中 请求转发我们可以利用一个标签来实现
+- <jsp:forward page=""></jsp:forward>
+- 它的功能跟上面的java代码一样就是请求转发的标签形式的语法糖
+
+- page请求设置路径
+
+----------------
+
+### jsp练习:
+- 练习 jsp与servlet程序配合使用的场景
+- servlet将获取的结果数据 交给 jsp页面做呈现
+
+
+- 1. jsp输出一个表格 里面有10个学生的信息
+
+```html
+<body>
+   <%
+        List<Student> list = new ArrayList<>();
+        for(int i=0; i<10; i++) {
+          list.add(new Student(i+1, "学生姓名" + i + 1, i + 1, "phone: " + i));
+        }
+   %>
+
+    <table>
+    <%
+        for (Student student: list) {
+    %>
+        <tr>
+            <td><%= student.getId() %></td>
+            <td><%= student.getName() %></td>
+            <td><%= student.getAge() %></td>
+            <td><%= student.getPhone() %></td>
+        </tr>
+    <%
+        }
+    %>
+    </table>
+</body>
+```
+
+- 2. 前端有 根据用户输入的关键字 来展现相关信息的功能
+- 比如 我们输入 张 就把所有张姓的学生信息 输出到页面上
+
+- 前后端的逻辑
+<!-- 
+  客户端:
+    输入 关键字 搜索 学生信息
+
+  点击 搜索 后会将请求发送给服务端的 servlet程序(SearchStudentServlet)
+
+  服务端:
+    1. 获取请求的参数: 关键字
+    2. 发送sql语句到数据库去查询学生信息
+    3. 遍历查询到的结果输出给客户端显示
+
+  但是我们讲jsp的时候也说了 servlet程序不适合直接把数据回传到客户端 也就是说 3 在servlet里面实现是非常麻烦的
+
+  jsp页面就特别适合做这样的事情
+ -->
+
+- jsp页面配合servlet程序 将结果数据展示在页面上的逻辑
+<!-- 
+  我们创建一个 showStudent.jsp 页面 用来展示学生的数据
+
+  也就是说上面的 步骤3 我们希望给jsp页面来做
+  也就是说 我们需要 jsp 和 servlet 共同完成一个功能
+
+  那我们思考下:
+  怎么从servlet程序 到 jsp页面呢 ？ 并同时把结果数据带到jsp页面中
+
+  SeachStudentServlet -> showStudent.jsp
+ -->
+
+- 我们在 servlet程序里面 可以通过 请求转发 到jsp页面
+- 数据可以通过 request域对象 传递
+- 也就是说将查询到的学生信息保存到 request域 中
+- 然后jsp读取域对象中的数据 展示在域对象中
+
+
+- SearchStudentServlet类
+```java
+package com.sam.jsp;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SearchStudentServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    // 1. 获取请求的参数
+
+    // 2. 发sql语句查询学生的信息
+
+    // 3. 保存查询到的结果 到 request域中 这里我们使用for循环模拟查询到的数据
+    List<Student> list = new ArrayList<>();
+    for(int i=0; i<10; i++) {
+      list.add(new Student(i+1, "学生姓名" + i + 1, i + 1, "phone: " + i));
+    }
+
+    // 将查询结果保存到 域对象中
+    req.setAttribute("studs", list);
+
+    // 4. 请求转发到 showStudent.jsp
+    req.getRequestDispatcher("/scoped.jsp").forward(req,resp);
+  }
+}
+
+```
+
+
+- jsp页面 获取数据的方式 通过 request.getAttribute() 方法
+```html
+<body>
+    <h1>我也展示页面: </h1>
+   <%
+        <!-- 这里为什么要类型转换呢？ 因为获取到的结果是一个Object -->
+        List<Student> students = (List<Student>) request.getAttribute("studs");
+   %>
+
+    <table>
+    <%
+        for (Student student: students) {
+    %>
+        <tr>
+            <td><%= student.getId() %></td>
+            <td><%= student.getName() %></td>
+            <td><%= student.getAge() %></td>
+            <td><%= student.getPhone() %></td>
+        </tr>
+    <%
+        }
+    %>
+    </table>
+</body>
+```
+
+
+**注意:**
+- 我们上面的代码写完了 但要注意的是 访问流程
+- 我们一定要先通过 /search 接口访问 SearchStudentServlet程序 然后通过它转发到 jsp页面才可以 如果我们直接访问 jsp页面就会报空指针异常的错误
+
+- 因为没有经过servlet程序 request域中是没有数据的
+
+----------------
+
+### Listener监听器
+- Listener监听器是javaweb的三大组件之一, javaweb的三大组件分别是:
+- 1. servlet程序
+- 2. filter过滤器
+- 3. listener监听器
+
+- Listener是JavaEE的规范 它是一个接口
+```java
+public interface ServletContextListener extends EventListener {
+
+  void contextInitialized(ServletContextEvent var1);
+
+  void contextDestroyed(ServletContextEvent var1);
+}
+```
+
+- 作用:
+- 监听某种事物的变化 通过回调函数 反馈给客户(程序)去做一些相应的处理
+
+- 监听器一共有8个 随着技术的发展绝大多数的监听器已经使用不上了 只有ServletContextListener监听器还有用
+
+
+> ServletContextListener监听器
+- 该监听器可以监听 ServletContext 对象的创建和销毁
+- ServletContext对象在web工程启动的时候创建 在web工程停止的时候销毁
+
+- 监听到创建和销毁之后都会分别调用ServletContextListener监听器的方法反馈
+
+- 两个方法分别是:
+> void contextInitialized(ServletContextEvent var1)
+- 该方法在ServletContext对象创建之后马上调用 做初始化
+
+> void contextDestroyed(ServletContextEvent var1)
+- 该方法在ServletContext对象销毁之后调用
+
+
+- 如何使用ServletContextListener监听器监听ServletContext对象？
+
+
+> 使用步骤:
+> 1. 编写一个类去实现 ServletContextListener 接口
+> 2. 实现其两个回调方法
+```java
+package com.sam.listener;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+public class MyServletContextListener implements ServletContextListener {
+
+  @Override
+  public void contextInitialized(ServletContextEvent servletContextEvent) {
+    System.out.println("servlet-context对象被创建了");
+  }
+
+  @Override
+  public void contextDestroyed(ServletContextEvent servletContextEvent) {
+    System.out.println("servlet-context对象被销毁了");
+  }
+}
+
+```
+
+> 3. 到web.xml中去配置监听器
+- 就需要下面这一个标签
+```xml
+<listener>
+  <listener-class>com.sam.listener.MyServletContextListener</listener-class>
+</listener>
+```
+
+- 然后我们重新部署服务器就会生效
+- 这样我们就可以利用这两个方法记入一些信息 或者 实现一些功能
+
+----------------
+
+### EL表达式
+- EL表达式的全程是 expression language 即表达式语言
+
+- EL表达式的作用:
+- 代替jsp页面中的表达式脚本在jsp页面中进行数据的输出
+
+- 因为EL表达式在输出数据的时候 要比jsp表达式脚本简洁很多
+- 比如
+```html
+<body>
+  <!-- 先存在数据 -->
+  <%
+    request.setAttribute("key", "value");
+  %>
+
+  <h5>
+    表达式脚本输出key的值: 
+    <%= request.getAttribute("key") %>
+  </h5>
+
+  <h5>
+    EL表达式输出key的值: 
+    ${key}
+  </h5>
+</body>
+```
+
+> EL表达式的格式: ${表达式}
+- el表达式主要是在jsp页面中输出数据
+- 主要是输出域对象中的数据
+
+- 比如在读取域中的数据的时候 我们传入的 直接是域中的key 不用加引号
+
+
+> EL表达式的特点
+- 我们发现 EL表达式 仅需要使用 *${}* 就可以 简洁了很多
+- 而且 当我们输出的数据不存在的时候
+- jsp表达式脚本: 会显示 null
+- el表达式: 会显示 空
+
+
+> EL表达式搜索4个域的顺序
+```html
+<body>
+  <%
+    <!-- 往4个域中保存了相同key的数据 -->
+    pageContext.setAttribute("key", "pageContext");
+    request.setAttribute("key", "request");
+    session.setAttribute("key", "session");
+    application.setAttribute("key", "application");
+  %>
+  
+  <!-- 这里我们会输出哪个值 -->
+  ${key}
+</body>
+```
+
+- 当4个域中都有相同的key的数据的时候 EL表达式会按照4个域的从小到大的顺序去进行搜索 找到就输出
+
+- pageContext - request - session - application
+- 如果pageContext里面没有会去request中找 依次类推
+
+
+> EL表达式 读取各种数据类型的方式
+- 上面我们都是在 域对象中 保存的是简单类型的数据 比如一个字符串之类的
+
+- 如果我们在 域对象中保存的时候 javabean 而且还有各种属性 数组 list集合 map集合等 这时候是怎么输出的呢？
+
+- 先创建一个Person类
+- 注意: 这里我们写了各个属性对应的get()
+```java
+package com.sam.pojo;
+
+import java.util.List;
+import java.util.Map;
+
+public class Person {
+  private int name;
+  private String[] phones;
+  private List<String> cities;
+  private Map<String, Object> map;
+
+  public Person() {
+  }
+
+  public Person(int name, String[] phones, List<String> cities, Map<String, Object> map) {
+    this.name = name;
+    this.phones = phones;
+    this.cities = cities;
+    this.map = map;
+  }
+
+  public int getName() {
+    return name;
+  }
+
+  public void setName(int name) {
+    this.name = name;
+  }
+
+  public String[] getPhones() {
+    return phones;
+  }
+
+  public void setPhones(String[] phones) {
+    this.phones = phones;
+  }
+
+  public List<String> getCities() {
+    return cities;
+  }
+
+  public void setCities(List<String> cities) {
+    this.cities = cities;
+  }
+
+  public Map<String, Object> getMap() {
+    return map;
+  }
+
+  public void setMap(Map<String, Object> map) {
+    this.map = map;
+  }
+}
+
+```
+
+- 我们在jsp页面中 设置person的值
+```java
+<%
+  Person person = new Person();
+
+  person.setName("sam");
+
+  person.setPhones(new String[]{"电话1", "电话2", "电话3"});
+
+  List<String> list = new ArrayList<>();
+  list.add("北京");
+  list.add("上海");
+  list.add("大连");
+  person.setCities(list);
+
+  Map<String, Object> map = new HashMap<>();
+  map.put("key1", "value1");
+  map.put("key2", "value2");
+  map.put("key3", "value3");
+  person.setMap(map);
+
+  // 我们把person放入到4个域中
+  pageContext.setAttribute("person", person);
+%>
+```
+
+> 读取对象中的属性
+> ${对象.属性名}
+- 对象后面直接跟着 对象中的属性 该属性是不是private没有关系
+- 因为在读取属性的时候 el表达式看的是属性对应的get()方法
+
+**注意:**
+- 如果属性没有对应的get()方法就会报错
+
+```java
+${person.name}
+```
+
+> 读取数组
+- 通过下标获取数组中的指定元素
+```java
+${person.phones[0]}
+```
+
+> 读取list
+- 通过下表读取list中指定的元素
+```java
+${person.cities[0]}
+```
+
+> 读取map
+- map属性.map中的key
+```java
+${person.map.key1}
+```
+
+----------------
+
+### EL表达式 -- 运算
+- el表达式不仅仅可以输出数据 还可以进行运算 将*运算后的结果进行输出*
+
+> 关系运算
+- ${5==5} 页面输出的结果是 true
+
+  == 或 eq    ${5==5 或 5 eq 5}   true
+  != 或 ne
+  < 或 lt
+  > 或 gt
+  <= 或 le
+  >= 或 ge
+
+
+> 逻辑运算
+  && 或 and   ${12 == 12 && 12 < 11}  false
+  || 或 or
+  ! 或 not
+
+
+> 算数运算
+  +
+  -
+  *
+  / 或 div
+  % 或 mod
+
+
+> empty运算 ${empty 要检查的对象}
+- empty运算可以判断一个数据是否为空 
+  如果为空返回true 
+  不为空输出false
+
+- 为空的情况
+- 值为null值 为空
+- 值为空串的时候 为空
+- 值是object类型数组 长度为0的时候 为空
+- list集合 元素个数为0 为空
+- map集合 元素个数为0 为空
+
+```html
+<%
+  request.setAttribute("emptyNull", null);
+%>
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+> js java中变量互相访问
+> js变量获取jsp页面中的java代码的变量值
+- 方法:
+- let 变量名 = <%= java变量 %>
+
+> java代表获取js变量的值
+- 说明:
+- 在jsp中 java部分是在服务器端执行的
+- js部分是在客户端的浏览器执行的
+
+- 二者完全不相干 因此直接在jsp页面上是无法在js java html变量之间进行调用的
+
+- 解决方法:
+- 将js变量放到form中的一个变量里面 在后台从form中提交到后台 比如 我们可以利用 input type="hidden" 就是传值用
