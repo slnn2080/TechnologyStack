@@ -192,7 +192,7 @@ console.log(res)
 
 > y
 - 必须连续的满足条件
-<!-- 
+```js 
   let hd = "后盾人qq群: 1111,9999后端人"
   let reg = /(\d+),?/y
   reg.lastIndex = 7
@@ -200,7 +200,7 @@ console.log(res)
   while((res = reg.exec(hd))) {
     qq.push(res[1])
   }
- -->
+```
 
 -------------------
 
@@ -237,7 +237,7 @@ console.log(res)
   let hd = "houdunren2010"
 
   // 我们要提取字母
-  hd.match(/\p{L}/gu/)
+  hd.match(/\p{L}/gu)
  -->
 
 
@@ -398,7 +398,7 @@ console.log(res)
 
 ### 原子组
 > ()    --  \1
-- 使用院子组包裹起来的部分是一个整体 就想图层里面的元素 移动的时候都是按照整体来操作 ctrl+g
+- 使用原子组包裹起来的部分是一个整体 就想图层里面的元素 移动的时候都是按照整体来操作 ctrl+g
 <!-- 
   <h1>
     houdunren

@@ -5271,6 +5271,17 @@ import {xxx} from "./mixins/xxx.js"
 -->
 
 
+> scss中的使用方式
+```scss
+::v-deep {
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+```
+
+
 > <style lang='less'>
 - 我们在写样式的时候 可以使用less 直接这么写标签就可以了
 - 但是需要安装 less-loader
@@ -19627,5 +19638,382 @@ export default {
   setup(props, { attrs, slots, emit, expose }) {
     ...
   }
+}
+```
+
+---------------
+
+> Vue-component-class 类组件
+- Vue 类组件是一个库，可让您以类样式语法制作 Vue 组件。
+
+> 安装
+- npm install --save vue vue-class-component
+
+> 引入
+- import Vue from 'vue'
+- import Component from 'vue-class-component'
+
+> 使用
+- @Component
+- export default class HelloWorld extends Vue {}
+
+
+> 类组件内部数据的声明
+> 方式1:
+- 直接写在 类内部
+- 属性名 = 属性值 的方式
+
+- 注意:
+- 如果数据的初始值是 undefined 的话 则该属性不是响应式的
+- 为了避免上述的情况 我们可以给数据赋 null 值
+
+- 初始化属性的赋值方式:
+- 属性名 = null
+
+```html
+<template>
+  <div>{{ message }}</div>
+</template>
+
+<script>
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component
+export default class HelloWorld extends Vue {
+  // Declared as component data
+  message = 'Hello World!'
+}
+</script>
+```
+
+> 方式2:
+- 使用data配置项 没错 我们仍然可以在 类组件内容使用data配置项的形式来给属性赋值
+- 该方式的数据都是响应式的
+```js
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component
+export default class HelloWorld extends Vue {
+  // `message` will be reactive with `null` value
+  message = null
+
+  // See Hooks section for details about `data` hook inside class.
+  data() {
+    return {
+      // `hello` will be reactive as it is declared via `data` hook.
+      hello: undefined
+    }
+  }
+}
+```
+
+
+> 类组件内部方法的声明
+- 我们可以直接在类组件的内容定义方法
+
+**注意:**
+- 这里定义方法的时候 不能像react那样使用箭头函数 不然 this 会丢失
+```html
+<script>
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component
+export default class HelloWorld extends Vue {
+  // Declared as component method
+  hello() {
+    console.log('Hello World!')
+  }
+}
+</script>
+```
+
+
+> 类组件内部 计算属性 的声明
+- 将属性定义为 函数形式 前面加上 get
+
+```html
+<template>
+  <input v-model="name">
+</template>
+
+<script>
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component
+export default class HelloWorld extends Vue {
+  firstName = 'John'
+  lastName = 'Doe'
+
+  // Declared as computed property getter
+  get name() {
+    return this.firstName + ' ' + this.lastName
+  }
+
+  // Declared as computed property setter
+  set name(value) {
+    const splitted = value.split(' ')
+    this.firstName = splitted[0]
+    this.lastName = splitted[1] || ''
+  }
+}
+</script>
+```
+
+
+> 类组件中的 生命周期
+- 直接在类组件中 写生命周期就可以
+```js
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component
+export default class HelloWorld extends Vue {
+  // Declare mounted lifecycle hook
+  mounted() {
+    console.log('mounted')
+  }
+
+  // Declare render function
+  render() {
+    return <div>Hello World!</div>
+  }
+}
+```
+
+> 类组件中使用 props
+- Vue 类组件没有为 props 定义提供专门的 API。
+- 但是，您可以通过使用规范Vue.extendAPI 来做到这一点：
+
+> 步骤
+- 1. 使用 Vue.extend({}) 创建一个组件 内部定义 props
+- 2. 定义我们的类组件 继承我们通过 Vue.extend({}) 创建的组件 这样类组件中就可以用 props 了
+
+```html
+<template>
+  <div>{{ message }}</div>
+</template>
+
+<script lang="ts">
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+// Define the props by using Vue's canonical way.
+const GreetingProps = Vue.extend({
+  props: {
+    name: String
+  }
+})
+
+// Use defined props by extending GreetingProps.
+@Component
+export default class Greeting extends GreetingProps {
+  get message(): string {
+    // this.name will be typed
+    return 'Hello, ' + this.name
+  }
+}
+</script>
+```
+
+> 其它选项
+- @component({})
+- 装饰器里面可以传递一个配置对象 我们可以把其它的选项放到装饰器里面
+
+```html
+<template>
+  <OtherComponent />
+</template>
+
+<script>
+import Vue from 'vue'
+import Component from 'vue-class-component'
+import OtherComponent from './OtherComponent.vue'
+
+@Component({
+  // Specify `components` option.
+  // See Vue.js docs for all available options:
+  // https://vuejs.org/v2/api/#Options-Data
+  components: {
+    OtherComponent
+  }
+})
+export default class HelloWorld extends Vue {}
+</script>
+```
+
+
+> 类组件中 使用路由中的钩子
+- 1. 我们先定义一个js文件 名为: class-component-hooks.js
+- 2. 利用Component注册要使用的钩子
+```js
+// class-component-hooks.js
+import Component from 'vue-class-component'
+
+// Register the router hooks with their names
+Component.registerHooks([
+  'beforeRouteEnter',
+  'beforeRouteLeave',
+  'beforeRouteUpdate'
+])
+
+
+// 类组件中就可以直接使用了
+import Vue from 'vue'
+import Component from 'vue-class-component'
+
+@Component
+export default class HelloWorld extends Vue {
+  // The class component now treats beforeRouteEnter,
+  // beforeRouteUpdate and beforeRouteLeave as Vue Router hooks
+  beforeRouteEnter(to, from, next) {
+    console.log('beforeRouteEnter')
+    next()
+  }
+
+  beforeRouteUpdate(to, from, next) {
+    console.log('beforeRouteUpdate')
+    next()
+  }
+
+  beforeRouteLeave(to, from, next) {
+    console.log('beforeRouteLeave')
+    next()
+  }
+}
+```
+
+
+**注意:**
+- 我们定义的钩子.js文件 在main.js里面引入
+- 将钩子注册的语句放在主文件的顶部来确保执行顺序：
+
+```js
+import './class-component-hooks'
+
+import Vue from 'vue'
+import App from './App'
+
+new Vue({
+  el: '#app',
+  render: h => h(App)
+})
+```
+
+
+> 自定义装饰器
+- Vue 类组件提供 createDecorator 了创建自定义装饰器
+
+> 引入
+- import { createDecorator } from 'vue-class-component'
+
+> 创建自定义装饰器
+> createDecorator((options, key) => { ... })
+- 参数:
+- options: vue的配置对象
+- key: 属性名 或 方法名
+- parameterIndex: 如果自定义装饰器用于参数，则装饰参数的索引。
+
+```js
+// decorators.js
+import { createDecorator } from 'vue-class-component'
+
+// 声明一个自定义装饰器 
+export const Log = createDecorator((options, key) => {
+
+  // 将原来的方法保存起来
+  const originalMethod = options.methods[key]
+
+  // 在原来的方法的基础上添加了逻辑 也就是创建一个新的方法 将原来的方法包起来 在新方法的内容提供其它的逻辑
+  options.methods[key] = function wrapperMethod(...args) {
+    // Print a log.
+    console.log(`Invoked: ${key}(`, ...args, ')')
+
+    // Invoke the original method.
+    originalMethod.apply(this, args)
+  }
+})
+```
+
+```js
+import Vue from 'vue'
+import Component from 'vue-class-component'
+import { Log } from './decorators'
+
+@Component
+class MyComp extends Vue {
+  // It prints a log when `hello` method is invoked.
+  @Log
+  hello(value) {
+    // ...
+  }
+}
+```
+
+-------
+
+> 属性装饰器库   vue-property-decorator文档
+- 此库完全依赖于vue-class-component, 所以请使用此库前, 先阅读它的文档
+- npm install vue-property-decorator -S
+
+- @Prop
+- @PropSync
+- @Model
+- @Watch
+- @Provide
+- @Inject
+- @ProvideReactive
+- @InjectReactive
+- @Emit
+- @Ref
+- @Component (由 vue-class-component提供)
+- Mixins (名为mixins的辅助函数, 由 vue-class-component提供)
+
+- https://www.jianshu.com/p/b497c44836d1
+
+
+> Prop装饰器
+> @Prop(Number) 标识符(readonly) 属性名: 可选类型 | 可选类型
+> @Prop({配置对象}) 标识符(readonly) 属性名: 可选类型 | 可选类型
+```js
+import { Vue, Component, Prop } from 'vue-property-decorator'
+
+@Component
+export default class YourComponent extends Vue {
+  @Prop(Number) readonly propA: number | undefined
+  @Prop({ default: 'default value' }) readonly propB!: string
+  @Prop([String, Boolean]) readonly propC: string | boolean | undefined
+}
+```
+- 相当于
+```js
+export default {
+  props: {
+    propA: {
+      type: Number
+    },
+    propB: {
+      default: 'default value'
+    },
+    propC: {
+      type: [String, Boolean]
+    }
+  }
+}
+```
+
+
+> @Watch
+```js
+import {Watch} from "vue-property-decorator";
+
+@Watch("count", {
+      immediate: true,
+})
+ getValue(val: string, oldVal: string) {
+      console.log("val:", val, "  oldVal:", oldVal);
 }
 ```

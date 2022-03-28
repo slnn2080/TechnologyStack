@@ -2,6 +2,1095 @@
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
 
+### 栈结构
+- 栈是一种特殊的线性表,它的存储空间是连续的。
+- *栈的操作只能在表尾进行*, 因此栈的特点有一个是“*先入后出*”（LIFO）
+
+- 栈就像一个杯子 
+    栈底就是杯底
+    栈顶就是杯顶
+
+- 栈的头部(杯子),叫做栈底,  有一个指针始终指向栈底。
+- 栈的最后一个元素,叫做栈顶, 也有一个指针指着。
+
+
+> 加入元素的时候
+- 会在栈尾加入,叫做：进栈, 入栈, 或压栈。
+- 元素入栈后，尾指针会指向它的地址。
+
+> 删除元素时
+- 删除尾部最后一个,叫做出栈或退栈。
+
+
+> 栈的操作
+- 对于数组来讲 栈顶就是 数组的末尾
+
+> push(element): 
+- 添加一个新元素到栈顶位置.
+
+> pop()
+- 移除栈顶的元素，同时返回被移除的元素。
+
+> getTopElement()
+- 返回栈顶的元素，不对栈做任何修改（这个方法不会移除栈顶的元素，仅仅返回它）
+
+> isEmpty()
+- 如果栈里没有任何元素就返回 true，否则返回 false。
+
+> size()
+- size()：返回栈里的元素个数，这个方法和数组的 length 属性很类似。
+
+> toString()
+- 展示当前栈内所有元素
+
+
+> 使用js来实现栈
+```js
+function Stack() {
+    // 初始化一个栈(数组)
+    this.list = []
+
+    // 入栈
+    Stack.prototype.push = function(e) {
+    this.list.push(e)
+    }
+
+
+    // 出栈
+    Stack.prototype.pop = function(e) {
+    return this.list.pop()
+    }
+
+    // 获取栈顶的元素
+    Stack.prototype.getTopElement = function() {
+    return this.list[this.list.length - 1]
+    }
+
+    // 判断栈是否为空
+    Stack.prototype.isEmpty = function() {
+    let size = this.list.length
+    return size === 0
+    }
+
+    // 展示当前栈内所有元素
+    Stack.prototype.toString = function() {
+    let string = ""
+    for(let i in this.list) {
+        string += `${this.list[i]}`
+    }
+
+    return string
+    }
+}
+```
+
+> 栈结构应用
+- 十进制转二进制
+
+- 思路
+- 目标数字除以2的商继续除以2 得到的余数取逆
+
+- 注意:
+- 里面的循环条件
+
+```js
+function d2b(number) {
+    // new 栈
+    let stack = new Stack()
+
+    // 循环入栈
+    while (number > 0) {
+        stack.push(number % 2)
+        number = Math.floor(number / 2)
+    }
+
+    循环出栈
+    let string = ''
+    while (!stack.isEmpty()) {
+        string += stack.pop()
+    }
+
+    return string
+}
+
+console.log(d2b(168)) // 10101000
+```
+
+
+### 队列结构
+- 上面我们说了 栈结构 栈结构的特点是先入后出
+- 我们可以把栈结构想象成一个杯子
+
+- 这里我们再了解一下 队列结构
+- 队列结构的特点就是 先入先出
+
+- 队列是一种受限的线性结构
+- 受限之处在于它只允许在
+    表的前端（front）进行删除操作
+    而在表的后端（rear）进行插入操作
+
+> 我们把队列想象成一根管子
+- 左手边 出去 (删除操作)
+- 右手边 进来 (插入操作)
+
+
+- 生活中类似队列的场景有很多，比如：
+- 食堂排队打饭（喜欢插队的小伙伴除外）
+- 排队上厕所蹲坑（坑位只有一个）
+- 超市排队结账
+
+
+> 队列的实现
+- 队列的实现我们也利用 数组 
+- 实现栈的时候 我们用的是 pop() push() api
+
+- 实现队列的时候 我们用的是 shift() push() api
+
+
+> enqueue(element)
+- 向队列尾部添加一个（或多个）新的项。
+
+> dequeue()
+- 移除队列的第一（即排在队列最前面的）项，并返回被移除的元素。
+
+> front()
+- 返回队列中第一个元素——最先被添加，也将是最先被移除的元素。队列不做任何变动（不移除元素，只返回元素信息——与 Stack 类的 peek 方法非常类似）。
+
+> isEmpty()
+- 如果队列中不包含任何元素，返回 true，否则返回 false。
+
+> size()
+- 返回队列包含的元素个数，与数组的 length 属性类似。
+
+> toString()
+- 返回当前队列，字符串形式。
+
+
+> 代码实现一个队列
+```js
+ function Queue() {
+    // 初始化一个栈(数组)
+    this.list = []
+
+    // 入队列
+    Queue.prototype.enqueue = function(e) {
+    this.list.push(e)
+    }
+
+
+    // 出队列
+    Queue.prototype.dequeue = function() {
+    return this.list.shift()
+    }
+
+    // 返回队列中的第一个元素
+    Queue.prototype.front = function() {
+    return this.list[0]
+    }
+
+    // 判断队列是否为空
+    Queue.prototype.isEmpty = function() {
+    let size = this.list.length
+    return size === 0
+    }
+
+    // 返回队列中元素个数
+    Queue.prototype.size = function () {
+    return this.list.length
+    }
+
+    // 返回当前队列
+    Queue.prototype.toString = function() {
+    let string = ""
+    for(let i in this.list) {
+        string += `${this.list[i]}`
+    }
+
+    return string
+    }
+}
+
+
+// 创建队列对象
+var queue = new Queue()
+
+// 在队列中添加元素
+queue.enqueue("Vue")
+queue.enqueue("React")
+queue.enqueue("Angular")
+
+// 查看一下队列前端元素
+console.log(queue.front())
+
+// 查看队列是否为空和元素个数
+console.log(queue.isEmpty())
+console.log(queue.size())
+
+// 从队列中删除元素
+console.log(queue.dequeue())
+console.log(queue.dequeue())
+console.log(queue.dequeue())
+```
+
+> 应用1
+- 击鼓传花队列实现
+
+- 这里我们的游戏规则可能和现实中的规则有一些不一样,具体游戏规则如下:
+
+- 几个人围成一圈,开始数数,数到某个数字的人自然被淘汰
+最后剩下的那个人获得胜利,求出最后那个人的位置
+```js
+//传入人员个数以及每次数数的个数
+function passFlower(member, num) {
+    let queue = new Queue()
+
+    for(let i=0; i < member.length; i++) {
+        queue.enqueue(member[i])
+    }
+
+    while (queue.list.length !== 1) {
+        for(let i=0; i < num - 1; i++) {
+            queue.enqueue(queue.dequeue())
+        }
+        queue.dequeue()
+    }
+    return queue.list[0]
+}
+
+console.log(passFlower(['V', 'W', 'X', 'Y', 'Z'], 3))
+```
+
+
+> 优先级队列的实现
+- 实现优先级队列主要有四个方面需要考虑
+- 1. 封装元素和优先级放在一起(可以封装一个新的构造函数)
+
+- 2. 添加元素时, 将当前的优先级和队列中已经存在的元素优先级进行比较
+
+- 3. 一旦优先级, 大于某个元素, 就将该元素插入到元素这个元素的位置. 其他元素会依次向后移动.
+
+- 4. 如果遍历了所有的元素, 没有找到某个元素被这个新元素的优先级低, 直接放在最后即可.
+
+```js
+// 定义队列
+function PriorityQueue() {
+    this.list = []
+
+    function EachElement(e, num) {
+        // 元素
+        this.element = e
+        // 优先级
+        this.priority = num
+    }
+
+    //入列
+    PriorityQueue.prototype.enqueue = function (e, priority) {
+        let element = new EachElement(e, priority)
+
+        if(this.list.length === 0) {
+            this.list.push(element)
+            return;
+        }
+
+        for(let i in this.list) {
+            if(element.priority < this.list[i].priority) {
+                this.list.splice(i, 0, element)
+                return;
+            }
+        }
+
+        this.list.push(element)
+    }
+
+    //出列
+    PriorityQueue.prototype.dequeue = function () {
+        return this.list.shift()
+    }
+
+    //返回当前队列的元素个数
+    PriorityQueue.prototype.size = function () {
+        return this.list.length
+    }
+
+    //返回当前队列第一个元素
+    PriorityQueue.prototype.front = function () {
+        return this.list[0]
+    }
+
+    //判断优先级队列是否为空
+    PriorityQueue.prototype.isEmpty = function() {
+        if(this.list.length === 0) {
+            return true
+        }
+        else {
+            return false
+        }
+    }
+
+    //返回当前队列
+    PriorityQueue.prototype.toString = function () {
+        let string = ''
+        for(let i in this.list) {
+            string += `${this.list[i].element}:${this.list[i].priority} `
+        }
+        return string
+    }
+}
+
+export default PriorityQueue
+
+
+// 使用队列
+// 创建优先级队列对象
+var pQueue = new PriorityQueue()
+
+// 添加元素
+pQueue.enqueue("Vue", 10)
+pQueue.enqueue("React", 5)
+pQueue.enqueue("Angular", 12)
+pQueue.enqueue("Svelte", 3)
+
+// 遍历所有的元素
+var size = pQueue.size()
+for (var i = 0; i < size; i++) {
+    var item = pQueue.dequeue()
+    console.log(item.element + "-" + item.priority)
+}
+```
+
+
+### 单向链表
+- 要存储多个元素，数组（或列表）可能是最常用的数据结构。
+- 每种语言都实现了数组。这种数据结构非常方便，提供了一个便利的[]语法来访问它的元素。然而，这种数据结构有一个缺点：
+
+- 在大多数语言中，数组的大小是固定的，从数组的起点或中间``插入或移除项的成本很高，因为需要移动元素；尽管 JavaScript 中的Array类方法可以帮我们做这些事，但背后的处理机制同样如此。
+
+> 什么是链表
+- 链表存储有序的元素集合，但不同于数组，链表中的元素在内存中并不是连续放置的。
+
+- 每个元素由 一个存储元素本身的节点 和 一个指向下一个元素的引用(也称指针或链接)组成。下图展示了链表的结构:
+
+       node
+        □□
+        ↙↘
+    item  next
+
+- 相对于传统的数组，链表的一个好处在于，添加或移除元素的时候不需要移动其他元素。然而，链表需要使用指针，因此实现链表时需要额外注意。
+
+
+- 数组的另一个细节是可以直接访问任何位置的任何元素，而要想访问链表中间的一个元素，需要从起点(表头)开始迭代链表直到找到所需的元素。
+
+- 现实中有许多链表的例子：一列火车是由一系列车厢/车皮组成的，每节车厢/车皮都相互连接，你很容易分离一节车皮，改变它的位置，添加或移除它。下图演示了一列火车，每节车皮都是链表的元素，车皮间的连接就是指针：
+
+
+> 创建一个链表类
+- 1. 封装LinkedList的类, 用于表示我们的链表结构
+- 2. 在 LinkedList 类中有一个Node类, 用于封装每一个节点上的信息
+- 3. 链表中我们保存两个属性, 一个是链表的长度, 一个是链表中第一个节点
+
+```js
+/ 封装链表的构造函数
+function LinkedList() {
+    // 表示链表的长度
+    this.length = 0
+
+    // 表示链表的第一个节点
+    this.head = null
+
+    // 封装一个Node类, 用于保存每个节点信息
+    function Node(element) {
+        // 节点信息
+        this.element = element
+
+        // 指针
+        this.next = null
+    }
+}
+
+```
+
+> 封装一些常见操作
+- 这里我们可以模拟类似数组的一些增删改查的方法来封装一个关于链表的常见操作:
+
+> append(element)：
+- 向列表尾部添加一个新的项
+
+**注意:**
+- 链表为空的情况：新添加的节点直接赋值给 head
+- 链表不为空的情况：将新添加的节点赋值给最后一个节点 next
+- 当然了，要记得在添加完成后给链表的 length 加 1
+
+```js
+// 链表尾部追加元素方法
+LinkedList.prototype.append = function (element) {
+
+    // 1.根据新元素创建节点
+    var newNode = new Node(element)
+
+    // 2.判断原来链表是否为空
+    if (this.head === null) { // 链表尾空
+        this.head = newNode
+    } else { // 链表不为空
+
+        // 2.1.定义变量, 保存当前找到的节点
+        var current = this.head
+
+        while (current.next) {
+            current = current.next
+        }
+
+        // 2.2.找到最后一项, 将其next赋值为node
+        current.next = newNode
+    }
+
+    // 3.链表长度增加1
+    this.length++
+}
+```
+
+> insert(position, element)：
+- 向列表的特定位置插入一个新的项。
+
+**注意:**
+- 插入位置校验：比如当前链表长度为 2，插入的位置为 5，这种情况是肯定不允许的
+- 找到正确插入的位置：想要找到正确的插入位置，需要对链表进行循环操作
+- 注意插入式中间插入还是头部插入
+
+```js
+// 根据下标删除元素
+LinkedList.prototype.insert = function (position, element) {
+    // 1.检测越界问题: 越界插入失败
+    if (position < 0 || position > this.length) return false
+
+    // 2.找到正确的位置, 并且插入数据
+    var newNode = new Node(element)
+    var current = this.head
+    var previous = null
+    index = 0
+
+    // 3.判断是否列表是否在第一个位置插入
+    if (position == 0) {
+        newNode.next = current
+        this.head = newNode
+    } else {
+        while (index++ < position) {
+            previous = current
+            current = current.next
+        }
+
+        newNode.next = current
+        previous.next = newNode
+    }
+
+    // 4.length+1
+    this.length++
+
+    return true
+}
+```
+
+> indexOf(element)：
+- 返回元素在列表中的索引。如果列表中没有该元素则返回-1。
+- indexOf()方法返回元素在列表中的索引，可以直接循环当前链表元素，获取下标位置：
+
+```js
+// 根据元素获取链表中的位置
+LinkedList.prototype.indexOf = function (element) {
+    // 1.定义变量, 保存信息
+    var current = this.head
+    index = 0
+
+    // 2.找到元素所在的位置
+    while (current) {
+        if (current.element === element) {
+            return index
+        }
+        index++
+        current = current.next
+    }
+
+    // 3.来到这个位置, 说明没有找到, 则返回-1
+    return -1
+}
+```
+
+> remove(position)：
+- 从列表的特定位置移除一项。
+
+**注意:**
+- remove()方法从列表中移除一项，移除数据有两种常见的方式：
+- 根据位置移除对应的数据
+- 根据数据, 先找到对应的位置, 再移除数据
+
+- 根据位置移除对应的数据
+- 同insert方法类似，需要对位置进行判断是否在可移除范围内
+- 移除第一项时, 直接让head指向第二项信息就可以
+- 移除其他项的信息时，我们需要通过while循环, 找到正确的位置；找到正确位置后, 就可以直接将上一项的next指向current项的next, 这样中间的项就没有引用指向它, 也就不再存在于链表后, 会面会被回收掉.
+
+```js
+// 根据位置移除节点
+LinkedList.prototype.remove = function (position) {
+    // 1.检测越界问题: 越界移除失败, 返回null
+    if (position < 0 || position >= this.length) return null
+
+    // 2.定义变量, 保存信息
+    var current = this.head
+    var previous = null
+    var index = 0
+
+    // 3.判断是否是移除第一项
+    if (position === 0) {
+        this.head = current.next
+    } else {
+        while (index++ < position) {
+            previous = current
+            current = current.next
+        }
+
+        previous.next = current.next
+    }
+
+    // 4.length-1
+    this.length--
+
+    // 5.返回移除的数据
+    return current.element
+}
+```
+
+> removeEl(element)：
+- 从列表中移除一项元素。
+- 可以直接利用 indexOf() 方法查询出元素所在的位置，再根据位置移除元素
+
+```js
+// 根据元素删除信息
+LinkedList.prototype.removeEl = function (element) {
+    var index = this.indexOf(element)
+    return this.remove(index)
+}
+```
+
+> isEmpty()：
+- 如果链表中不包含任何元素，返回 true，如果链表长度大于 0 则返回 false。
+- 直接根据链表的长度length来封装：
+```js
+// 判断链表是否为空
+LinkedList.prototype.isEmpty = function () {
+    return this.length == 0
+}
+```
+
+> size()：
+- 返回链表包含的元素个数。与数组的 length 属性类似。
+- 直接根据链表的长度length来封装：
+```js
+// 获取链表的长度
+LinkedList.prototype.size = function () {
+    return this.length
+}
+```
+
+> toString()：
+- 由于列表项使用了 Node 类，就需要重写继承自 JavaScript 对象默认的 toString 方法，让其只输出元素的值。
+
+- toString()方法将链表转换成字符串形式，直接使用循环拼接即可：
+```js
+// 链表的toString方法
+LinkedList.prototype.toString = function () {
+    // 1.定义两个变量
+    var current = this.head
+    var listString = ""
+
+    // 2.循环获取链表中所有的元素
+    while (current) {
+        listString += "," + current.element
+        current = current.next
+    }
+
+    // 3.返回最终结果
+    return listString.slice(1)
+}
+```
+
+
+### 双向链表
+- 在上一篇文章中，我们对图片单向列表做了详解，单向列表主要有哪些特点呢？
+
+- 只能从头部遍历到尾部，或者从尾部遍历到头部
+- 单向的，上一个链表中有一个指向``下一个的引用
+- 通过以上两个特点也能看出单向链表有一个非常明显的缺点：
+
+- 单向链表中我们可以轻易的获取到下一个节点，但是想要获取上一个节点，就得从链表头部开始遍历才能获取到想要的节点
+
+- 但是在实际开发中，想获取上一个节点的情况还是很多的，那么如何解决这个问题呢？
+
+- 答案：双向链表
+
+> 什么是双向链表
+- 双向链表可以有效的解决单向链表中提到的问题，那么双向链表主要有哪些特点？
+
+- 既可以从头遍历到尾, 又可以从尾遍历到头；链表相连的过程是双向的
+- 一个节点既有向前连接的引用, 也有一个向后连接的引用
+
+
+> 双向链表有什么缺点呢?
+- 每次在插入或删除某个节点时, 需要处理四个节点的引用, 而单向链表只有两个
+- 并且相当于单向链表, 必然占用内存空间更大一些.
+- 但是这些缺点和我们使用起来的方便程度相比, 是微不足道的
+
+
+> 创建一个双向链表类
+- 创建双向链表类的思路基本上和创建单向链表类的思路很类似，由于一个节点既有向前连接的引用, 也有一个向后连接的引用的特性，需要增加以下属性：
+
+- 在单向链表的基础上增加 prev 属性，该属性用于指向上一个节点
+- 添加 tail 属性，用于指向末尾节点
+
+```js
+// 创建双向链表的构造函数
+function DoublyLinkedList() {
+    // 创建节点构造函数
+    function Node(element) {
+        this.element = element
+        this.next = null
+        this.prev = null // 新添加的
+    }
+
+    // 定义属性
+    this.length = 0
+    this.head = null
+    this.tail = null // 新添加的
+}
+
+```
+
+> 封装一些常见操作
+- 常见的操作方法和单向链表的常见操作方法基本一样，这里就不一一阐述；但是在实现的过程中，双向链表可能会更加的复杂一点。主要的复杂点：一个节点既有向前连接的引用, 也有一个向后连接的引用
+
+> append()方法
+- append()方法向尾部增加数据，有两种情况：
+
+- 链表中原来没有数据：直接让head和tail指向这个新的节点即可
+- 链表中存在数据：
+- 新节点的next/tail目前都是 null. 但是作为最后一个节点, 需要有一个指向前一个节点的引用. 所以这里我们需要newNode.prev = this.tail
+
+- 因为目前newNod已经变成了最后的节点, 所以 this.tail 属性的引用应该指向最后: this.tail = newNode即可
+
+- 记得最后一步：this.length++
+
+```js
+// 在尾部追加数据
+DoublyLinkedList.prototype.append = function (element) {
+    // 1.根据元素创建节点
+    var newNode = new Node(element)
+
+    // 2.判断列表是否为空列表
+    if (this.head == null) {
+        this.head = newNode
+        this.tail = newNode
+    } else {
+        this.tail.next = newNode
+        newNode.prev = this.tail
+        this.tail = newNode
+    }
+
+    // 3.length+1
+    this.length++
+}
+```
+
+
+> insert() 方法
+- insert() 方法主要用来向链表任意位置插入数据，相对于单向链表来说，这里就稍微复杂点
+
+- 插入元素主要可以分为三种情况：头部插入、中间插入、尾部插入
+
+- 以下分为三种情况详解：
+
+- 头部插入元素
+- 将元素插入到头部是比较简单只需要分成了两种情况：
+
+- 列表为空：那么直接让head/tail指向newNode即可
+- 列表不为空：这个时候需要修改原来head的prev指向新节点,新节点的next指向原来的head. 并且head现在要指向newNode
+
+
+- 中间位置插入元素
+- 将元素插入到中间的某个位置，这种可能需要考虑的情况要稍微多点
+
+- 我们需要找到正确的插入位置, 通过while循环, 这个并不难, 因为我们在单向链表的时候已经找过了.
+- 首先, 你的newNode的next/prev必然要指向前后的节点, 也就是current和previous
+- 其次, 而current的prev需要指向newNode, 而previous的next需要指向newNode.
+
+
+- 尾部插入元素
+- 插入尾部其实就是append() 方法，详情看图解：
+```js
+// 在任意位置插入数据
+DoublyLinkedList.prototype.insert = function (position, element) {
+    // 1.判断越界的问题
+    if (position < 0 || position > this.length) return false
+
+    // 2.创建新的节点
+    var newNode = new Node(element)
+
+    // 3.判断插入的位置
+    if (position === 0) { // 在第一个位置插入数据
+        // 判断链表是否为空
+        if (this.head == null) {
+            this.head = newNode
+            this.tail = newNode
+        } else {
+            this.head.prev = newNode
+            newNode.next = this.head
+            this.head = newNode
+        }
+    } else if (position === this.length) { // 插入到最后的情况
+        // 思考: 这种情况是否需要判断链表为空的情况呢? 答案是不需要, 为什么?
+        this.tail.next = newNode
+        newNode.prev = this.tail
+        this.tail = newNode
+    } else { // 在中间位置插入数据
+        // 定义属性
+        var index = 0
+        var current = this.head
+        var previous = null
+
+        // 查找正确的位置
+        while (index++ < position) {
+            previous = current
+            current = current.next
+        }
+
+        // 交换节点的指向顺序
+        newNode.next = current
+        newNode.prev = previous
+        current.prev = newNode
+        previous.next = newNode
+    }
+
+    // 4.length+1
+    this.length++
+
+    return true
+}
+```
+
+> remove() 方法
+- remove()方法从列表的特定位置移除一项，和插入基本类似，也可以分为三种情况：移除头部、移除中间、移除末尾
+
+- 移除头部
+- 删除头部元素分为两种情况：
+- 链表只有一个元素：那么将head/tail直接设置为null即可
+- 链表有多个元素：这个时候删除头部的元素 head = head.next;head.prev = null
+
+
+- 移除中间元素
+- 删除中间的元素其实也很简单，只需要使用while循环找到删除元素的正确位置，将previous的next直接设置成current的next, 将current.next的prev设置成previous即可
+
+
+- 移除尾部元素
+- 删除尾部元素直接将tail设置为 tail 的prev；tail 的next设置为null即可
+
+```js
+// 根据位置删除对应的元素
+DoublyLinkedList.prototype.removeAt = function (position) {
+    // 1.判断越界的问题
+    if (position < 0 || position >= this.length) return null
+
+    // 2.判断移除的位置
+    var current = this.head
+    if (position === 0) {
+        if (this.length == 1) {
+            this.head = null
+            this.tail = null
+        } else {
+            this.head = this.head.next
+            this.head.prev = null
+        }
+    } else if (position === this.length -1) {
+        current = this.tail
+        this.tail = this.tail.prev
+        this.tail.next = null
+    } else {
+        var index = 0
+        var previous = null
+
+        while (index++ < position) {
+            previous = current
+            current = current.next
+        }
+
+        previous.next = current.next
+        current.next.prev = previous
+    }
+
+    // 3.length-1
+    this.length--
+
+    return current.element
+}
+```
+
+> indexOf()方法
+- indexOf()方法用于获取元素在链表中的位置，这个和单向链表的实现方式一样，直接使用while循环获取，这里不做过多讲解，直接上代码：
+```js
+// 根据元素获取在链表中的位置
+DoublyLinkedList.prototype.indexOf = function (element) {
+    // 1.定义变量保存信息
+    var current = this.head
+    var index = 0
+
+    // 2.查找正确的信息
+    while (current) {
+        if (current.element === element) {
+            return index
+        }
+        index++
+        current = current.next
+    }
+
+    // 3.来到这个位置, 说明没有找到, 则返回-1
+    return -1
+}
+```
+
+> isEmpty()方法
+- 直接根据链表的长度length来封装：
+```js
+// 判断链表是否为空
+DoublyLinkedList.prototype.isEmpty = function () {
+    return this.length == 0
+}
+```
+
+> size()方法
+- 直接根据链表的长度length来封装：
+```js
+// 获取链表的长度
+DoublyLinkedList.prototype.size = function () {
+    return this.length
+}
+```
+
+> getHead()方法
+```js
+// 获取第一个元素
+DoublyLinkedList.prototype.getHead = function () {
+    return this.head.element
+}
+```
+
+> getTail()方法
+```js
+// 获取最后一个元素
+DoublyLinkedList.prototype.getTail = function () {
+    return this.tail.element
+}
+```
+
+
+
+### 装饰器
+- 装饰器（Decorator）是一种与类（class）相关的语法
+- *装饰器是一种函数*，写成 *@ + 函数名*
+
+- 它可以放在类和类方法的定义前面。
+
+- 例如: 
+- 下面代码一共使用了四个装饰器，一个用在类本身，另外三个用在类方法。
+```js
+@frozen class Foo {
+
+  @configurable(false)
+  @enumerable(true)
+
+  method() {}
+
+  @throttle(500)
+
+  expensiveMethod() {}
+
+}
+```
+
+> 装饰器的定义
+- 装饰器就是一个函数 所以定义装饰器的方式 就是定义一个函数
+- 装饰器是一个对类进行处理的函数。装饰器函数的第一个参数，就是所要装饰的目标类。
+
+- 参数
+- 形参就是 被装饰的类
+
+- 通过装饰器 可以给 目标类 添加属性
+
+> 定义格式:
+- 装饰器的定义和使用 
+
+> 为类添加 静态属性:
+- 相当于给 MyTestableClass 类本身添加属性 因为 target就是类本身
+```js
+// 定义装饰器 target就是被装饰的类
+function testable(target) {
+    target.isTestable = true
+}
+
+
+// 将装饰器 装饰 整个类 装饰哪个类 target就是哪个类
+@testable
+class MyTestableClass {
+
+}
+
+// 装饰器给类添加了静态属性 isTestable 
+MyTestableClass.isTestable // true
+```
+
+
+- 默认装饰器只有一个参数就是被装饰类 如果想给装饰器添加参数 可以使用高阶函数的形式
+```js
+// 外层函数用于接收参数
+function testable(isTestable) {
+
+  // 内部 return 的这个函数的参数 才是 被装饰类
+  return function(target) {
+    // 利用外层的参数 我们对类中的静态属性进行赋值操作
+    target.isTestable = isTestable;
+  }
+}
+```
+
+- 像上面 高阶函数的形式定义的装饰器 就可以接收额外的参数了
+```js
+@testable(true)
+class MyTestableClass {}
+MyTestableClass.isTestable  // true
+```
+
+
+> 为类添加实例属性 
+- 添加实例属性 可以通过 prototype 来操作
+
+```js
+// 定义装饰器
+function testable(target) {
+    // 给类的原型对象上添加属性 这样它的实例对象就能拿到
+    target.prototype.isTestable = true;
+}
+
+// 将装饰器应用在 类上
+@testable
+class MyTestableClass { }
+
+// 查看类的实例对象身上有没有该属性
+let obj = new MyTestableClass();
+obj.isTestable // true
+```
+
+
+> 例子:
+```js
+// mixins.js
+// 将传递进来的参数 添加到 类的原型对象上
+export function mixins(...list) {
+    return function(target) {
+        Object.assign(target.prototype, ...list)
+    }
+}
+
+
+// import {mixins} from "./mixins.js"
+// 定义个数据
+const foo = {
+    foo() {
+        console.log("foo")
+    }
+}
+
+
+// 在类上使用定义的装饰器 并把上面定义的数据传递进去
+@mixins(foo)
+class MyClass {}
+
+// 测试
+let obj = new MyClass()
+obj.foo()
+```
+
+- 实际开发中，React 与 Redux 库结合使用时，常常需要写成下面这样。
+```js
+class MyReactComponent extends React.Component {}
+export default connect(mapStateToProps, mapDispatchToProps)(MyReactComponent);
+```
+
+- 有了装饰器，就可以改写上面的代码。
+```js
+@connect(mapStateToProps, mapDispatchToProps)
+export default class MyReactComponent extends React.Component {}
+```
+
+
+> 方法的装饰
+- 装饰器不仅可以装饰类，还可以装饰类的属性。
+```js
+class Person {
+    @readonly
+    name() {
+        return `${this.first} ${this.last}`
+    }
+}
+
+// 上面代码中，装饰器readonly用来装饰“类”的name方法。
+
+// 定义 readonly 装饰器
+function readonly(target, name, decriptor) {
+    // descriptor对象原来的值如下
+    {
+        value: specifiedFunction,
+        enumerable: false,
+        configurable: true,
+        writable: true
+    };
+
+    descriptor.writable = false;
+    return descriptor;
+}
+
+readonly(Person.prototype, 'name', descriptor);
+// 类似于
+Object.defineProperty(Person.prototype, 'name', descriptor);
+```
+
+- 参数:
+- 装饰器第一个参数是类的原型对象
+<!-- 
+    上例是Person.prototype
+    装饰器的本意是要“装饰”类的实例，但是这个时候实例还没生成，所以只能去装饰原型（这不同于类的装饰，那种情况时target参数指的是类本身）；
+-->
+
+- 第二个参数是所要装饰的属性名，
+- 第三个参数是该属性的描述对象。
+
+- 上面代码说明，装饰器（readonly）会修改属性的描述对象（descriptor），
+- 然后被修改的描述对象再用来定义属性。
+
+
+- 我们看下下面的例子:
+- 修改属性描述对象的enumerable属性，使得该属性不可遍历。
+```js
+class Person {
+    @nonenumerable
+    get kidCount() {
+        return this.children.length
+    }
+}
+
+// 定义装饰器
+function nonenumerable(target, name, decriptor) {
+    decriptor.enumerable = false;
+    return decriptor
+}
+```
+
+
+
 ### insertAdjacentHTML() 
 - 将指定的文本解析为HTML或XML，并将结果节点插入到DOM树中的指定位置。它不会重新解析它正在使用的元素，因此它不会破坏元素内的现有元素。这避免了额外的序列化步骤，使其比直接innerHTML操作更快。
 
@@ -8546,6 +9635,7 @@ fun.call() fun.apply() fun()这三个效果都是一样的
     var reg = new RegExp("a");
     var reg = new RegExp("a", "i");
  -->
+
 
 > var reg = /正则/
 - 通过字面量来创建正则表达式

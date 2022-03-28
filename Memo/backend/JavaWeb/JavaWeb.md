@@ -1363,6 +1363,10 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws S
 
 - 上面在域里面设置的数据 服务器端的所有实例都能获取的到相当于 vuex
 
+
+> req.getScheme()
+- 可以获取请求的协议
+
 ------
 
 > 请求的转发
@@ -4382,17 +4386,331 @@ ${person.map.key1}
   request.setAttribute("emptyNull", null);
 %>
 
+${empty emptyNull}
+```
+
+
+> 三元运算 表达式 ? 值1 : 值2
+- 跟我们熟悉的用法是一样的
+```java
+${ 12 == 12 ? "帅" : "不帅" }
+```
+
+
+> . 点运算 和 [] 中括号运算
+- . 运算: 可以输出 Bean 对象中某个属性的值
+- []运算: 可以输出有序集合中某个元素的值 还可以输出map集合中key里含有特殊字符的key的值
+
+**注意:**
+- 当map中没有对应的key值的时候 结果会是0 也不是null
+
+```java
+<%
+  Map<String, Object> map = new HashMap<>()
+  map.put("a.a.a", "aaaValue")
+  map.put("b+b+b", "bbbValue")
+
+  request.setAttribute("map", map)
+%>
+
+// 当key中有特殊字符的时候 使用[] key用引号引起来
+${map["a.a.a"]}
+```
+
+----------------
+
+### EL表达式 11个隐含对象
+- el表达式中11个隐含对象 是el表达式中自己定义的 可以直接使用
+
+- 也就是在 ${ 这里直接用 }
+
+> pageScope(Map<String, Object>):
+- 可以获取 pageContext 域中的数据
+<!-- 
+  域中的数据是以键值对的形式存在的 所以把数据放在的map中 我们通过 pageScope 获取
+ -->
+
+```java
+<%
+  pageContext.setAttribute("key", "pageContext");
+  request.setAttribute("key", "request");
+  session.setAttribute("key", "session");
+  application.setAttribute("key", "application");
+%>
+
+${pageScope.key}
+```
+
+- pageScope 就对应着 pageContext域 我们可以通过pageScope拿到pageContext域的数据
+
+- 下面的三个也一样
+
+
+> requestScope(Map<String, Object>):
+- 可以获取 request 域中的数据
+<!-- 
+  key是String
+  value是Object类型的数组
+ -->
+
+
+> sessionScope(Map<String, Object>):
+- 可以获取 session 域中的数据
+<!-- 
+  key是String
+  value是Object类型的对象
+ -->
+
+
+> applicationScope(Map<String, Object>):
+- 可以获取 servletContext 域中的数据
+<!-- 
+  key是String
+  value是Object类型的对象
+ -->
+
+**上面的 4个 是跟域数据有关的**
+
+
+
+> pageContext(PageContextImpl): 
+- 可以获取jsp中的九大内置对象
+- 
+```java
+${pageContext.九大内置对象}
+```
+- 然后通过九大内置对象再读取其身上的各种属性和方法
+- el表达式 比较简洁 当对应的属性有get方法的时候 可以直接.属性名(内部会对应找该属性的get方法)
+
+\\ 它的常用场景
+- 下面的信息 大部分都是在 request对象中
+> 1. 协议:
+```java
+  <%=request.getScheme()%>  // http
+  ${pageContext.request.scheme} // http
+```
+
+> 2. 服务器ip:
+```java
+  <%=request.getServerName()%>  // localhost
+  ${pageContext.request.serverName} // localhost
+```
+
+> 3. 服务器端口:
+```java
+  <%=request.getServerPort()%>  // 8080
+  ${pageContext.request.serverPort} // 8080
+```
+
+> 4. 获取工程路径:
+```java
+  <%=request.getContextPath()%>  // 
+  ${pageContext.request.contextPath} // 
+```
+
+> 5. 获取请求方法:
+```java
+  <%=request.getMethod()%>  // GET
+  ${pageContext.request.method} // GET
+```
+
+> 6. 获取客户端ip地址
+```java
+  <%=request.getRemoteHost()%>  // 
+  ${pageContext.request.remoteHost} // 
+```
+
+> 7. 获取会话的id编号
+- 获取会话的唯一标识
+
+```java
+  <%=session.getId()%>  // 
+  ${pageContext.session.id} // 
+```
+
+**上面的 1个 是用来获取9大内置对象的**
+
+
+
+> param(Map<String, String>):
+- 可以获取请求参数的值
+```java
+// http:localhost:8080/?username=sam6age=18
+
+${param}    // {username=sam, age=18}
+${param.username}  // sam
+${param.age}       // 18
+```
+
+> paramValues(Map<String, String[]>):
+- 可以获取请求参数的值 获取多个值的时候使用
+
+- value对应的是String[]
+
+```java
+// http:localhost:8080/?username=sam6age=18
+
+${paramValues}     
+  // {username=String[], age=String[]}
+
+${paramValues.username[0]}  // sam
+${paramValues.age[0]}       // 18 
+
+
+// 当一个key有多个value的之后我们使用它比较好
+// hobby=java&hobby=C++
+${paramValues.hobby} // 它是一个数组
+```
+
+**上面的 2个 是用来获取请求参数的**
+
+
+
+> header(Map<String, String>):
+- 可以获取请求头的信息
+- 能获取到整个请求头 也就是多个键值对
+
+> headerValues(Map<String, String[]>):
+- 可以获取请求头的信息 获取多个值的时候使用
+
+```java
+${header["User-Agent"]}
+```
+
+**上面的 2个 是用来获取请求头信息的**
+
+
+
+> cookie(Map<String, Cookie>):
+- 可以获取当前请求的cookie信息
+<!-- 
+  key是String
+  value是Cookie对象
+ -->
+
+```java
+${cookie}  // 会输出cookie对象中对应的值
+// JSESSIONID=javax.servlet.http.Cookie@8fd4c3b
+
+${cookie.JSESSIONID.name}   // JSESSIONID
+// 输出指定key
+
+
+${cookie.JSESSIONID.value}  // javax.servlet.http.Cookie@8fd4c3b
+// 输出指定key对应的value
+```
+
+-
+
+> initParam(Map<String, String>):
+- 可以获取在 web.xml 中配置的 <context-param> 上下文参数
+```java
+// 先要配置<context-param> 一定要重新部署
+<context-param>
+  <param-name>url</param-name>
+  //  /// 相当于省略了 localhost:3306
+  <param-value>jdbc:mysql:///test</param-value>
+</context-param>
+
+
+{$initParam.url}  // 
+```
+
+----------------
+
+### JSTL标签库
+- jsp标准的标签库 是一个不断完善的开放源代码的jsp标签库
+- *el表达式*主要是为了*替换*jsp中的*表达式脚本*
+
+- *jstl*主要是为了*替换* *代码脚本*
+
+- jstl由5组不同功能的标签库组成
+- 1. 核心标签库(重点)
+  uri: http://java.sun.com/jstl/core
+  前缀: c
+
+- 2. 格式化
+  uri: http://java.sun.com/jstl/fmt
+  前缀: fmt
+
+- 3. 函数
+  uri: http://java.sun.com/jstl/functions
+  前缀: fn
+
+- 4. 数据库(不使用)
+  uri: http://java.sun.com/jstl/sql
+  前缀: sql
+
+- 5. XML(不使用)
+  uri: http://java.sun.com/jstl/xml
+  前缀: x
+
+
+> 标签库的使用方式
+- 相当于通过 uri 来引入 对应的标签库
+- 1. 先导入 jstl 标签库的jar包
+- 老师提供的文件夹里面有 我放到sam里面了
+
+- 2. 使用 taglib 指令引入标签库
+<%@ taglib prefix="前缀" uri="对应的uri" %>
+<!-- 
+  这步对应的 jstl会自动导入
+  比如我们输入 就会自动的导入
+  <c:forEach> 
+ -->
+
+```html
+<!-- 这里哦 -->
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="com.sam.jsp.Student" %>
+<%@ page import="java.util.List" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+    <h1>Scoped页面</h1>
+
+    <!-- 还有这里 输入完这个命令上面自动导入的 -->
+    <c:set />
+
+</body>
+</html>
 
 ```
 
 
+> core核心库的使用
+> <c:set />
+- set标签可以往域中保存数据
 
+- 思考:
+- 往域对象中保存数据的方法之前介绍过是
+- 域对象.setAttribute(key, value)
+- 我们要使用set标签的时候 要考虑 
+  - 往哪个域对象中保存
+  - 保存的key
+  - 保存的value
 
+> <c:set /> 的标签属性
+> <c:set scope="session | request | page | application"/>
+- 设置保存到哪个域 默认值是page(不指定该属性就是page)
 
+> <c:set var="" />
+- 用来设置保存在域对象中的数据的 key
 
+> <c:set value="" />
+- 用来设置保存在域对象中的数据的 value
 
+```html
+<c:set scope="request" var="username" value="sam">
 
-
+<!-- 使用通过set标签 保存在pageContext域中的数据 -->
+${requestScope.username}   // sam
+```
 
 
 
