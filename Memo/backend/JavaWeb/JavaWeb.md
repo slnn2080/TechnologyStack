@@ -4713,6 +4713,237 @@ ${requestScope.username}   // sam
 ```
 
 
+> <c:if test=""/>
+- if标签用来做if判断
+
+- test属性:
+- 值为判断条件(使用el表达式)
+
+- 该标签没有 if else else if 的写法 但是我们可以使用多个if标签来表示if else
+
+```html
+<c:if test="${12 == 12}">
+  <h1>表达式为真的时候才能看到我</h1>
+</c:if>
+```
+
+
+> <c:choose> <c:when test="${}"> <c:otherwise>
+- 多路判断 跟 switch case default 非常接近
+- 也相当于 if else if else
+
+- choose标签 在外围标签
+- when标签 表示每一种判断情况
+- otherwise标签 表示剩下的情况
+
+- 代码从上往下走 如果成立就输出第一个 不成立继续往下走 一旦有一个成立了 其它的就不管了
+
+```html
+<c:choose>
+  <c:when test="${条件1}">
+    内容
+  </c:when>
+  <c:when test="${条件2}">
+    内容
+  </c:when>
+  <c:otherwise>
+    内容
+  </c:otherwise>
+</c:choose>
+```
+
+```html
+<%
+  <!-- 我们先往requset域中保存在数据 -->
+  request.setAttribute("height", 178);
+%>
+
+<!-- 
+  我们根据域中的数据 进行判断 根据判断结果 做不同输出 
+-->
+<c:choose>
+  <c:when test="${requestScope.height > 180}">
+    <h3>很高</h3>
+  </c:when>
+  <c:when test="${requestScope.height > 170}">
+    <h3>还可以</h3>
+  </c:when>
+  <c:otherwise>
+    <h3>剩下的</h3>
+  </c:otherwise>
+</c:choose>
+```
+
+**注意:**
+- 1. <c:choose>标签里面不能使用html注释 我们要使用jsp注释
+- 2. <c:when>标签的父标签必须是<c:choose>标签
+- 也就是说我们要在<c:when>或者<c:otherwise>中再使用 多路判断 外层必须是<c:choose>
+
+
+> <c:forEach />
+- 遍历输出使用 遍历数据的
+- 常见的遍历情况
+
+> 标签属性
+- begin: 设置遍历开始的索引 从begin开始
+- end: 设置结束的索 到end结束
+- var: 循环中的变量 也是当前正在遍历的数据
+
+- 输出内容要用 el 表达式
+
+> 1. 遍历1到10 输出
+```html
+<c:forEach begin="1" end="10" var="i">
+  ${i}
+</c:forEach>
+
+<!-- 1 2 3 4 5 6 7 8 9 10 -->
+```
+
+
+> 标签属性
+- items: 表示遍历的数据源 相当于 v-for="(item) of arr"
+- var: 表示当前遍历的数据 相当于 v-for="(item)"
+
+> 2. 遍历object数组
+```html
+<%
+    request.setAttribute("arr", new String[]{"111", "222", "333"});
+%>
+
+<c:forEach items="${requestScope.arr}" var="item">
+  ${item}
+</c:forEach>
+```
+
+
+> 3. 遍历list集合 list中存放Person类 有属性: 编号 用户名 密码 年龄 电话信息
+```html
+<%
+  List<Student> students = new ArrayList<>();
+  for(int i=1; i<=10; i++) {
+    students.add(new Student(i, "user" + i, "pwd" + i, 18+i, "phone" + i));
+  }
+
+  request.setAttribute("studs", students);
+%>
+<c:forEach items="${requestScope.studs}" var="stud">
+  <div>编号: ${stud.id}</div>
+  <div>用户名: ${stud.username}</div>
+  <div>密码: ${stud.password}</div>
+  <div>年龄: ${stud.age}</div>
+  <div>电话: ${stud.phone}</div>
+  <div>操作: 添加 or 删除</div>
+</c:forEach>
+```
+
+
+> 4. 遍历map集合
+```html
+<%
+  HashMap<String, Object> map = new HashMap<>();
+  map.put("key1", "value1");
+  map.put("key2", "value2");
+  map.put("key3", "value3");
+
+  <!-- 
+    注意 el表达式只能操作域中的数据 所以要将map保存到域中
+   -->
+  request.setAttribute("map", map);
+
+  <!-- 
+    回忆下map原生怎么遍历
+    for(Map.Entry<String, Object> entry: map.entrySet()) {
+
+    }
+   -->
+%>
+<c:forEach items="${requestScope.map}" var="entry">
+  <!-- 这里是键值对 key1=value1 -->
+  ${entry} <br>
+
+  <!-- 相当于调用 entry.getKey() -->
+  ${entry.key} <br>
+
+  <!-- 相当于调用 entry.getValue() -->
+  ${entry.value} <br>
+</c:forEach>
+```
+
+
+> 只遍历数据源中的一部分
+- 比如我有一个数据源 我只想遍历其中的指定的数据 怎么做?
+
+- 标签属性
+- items: 表示遍历的集合
+- var: 表示遍历的数据
+- begin: 表示遍历的开始索引值
+- end: 表示结束的索引值
+
+```html
+<c:forEach begin="2" end="7" items="${requestScope.studs}" var="stud">
+    <div>编号: ${stud.id}</div>
+    <div>用户名: ${stud.username}</div>
+    <div>密码: ${stud.password}</div>
+    <div>年龄: ${stud.age}</div>
+    <div>电话: ${stud.phone}</div>
+    <div>操作: 添加 or 删除</div>
+</c:forEach>
+```
+
+> 标签属性
+- step: 表示遍历的步长值 默认是1
+- 1: 相当于 i++
+- 2: 相当于 i+=2
+
+- varStatus: 表示当前遍历到的数据的状态
+- 它定义的值 是一个对象 varStatus="status"
+- status实现了 LoopTagStatus 接口 该接口中定义如下的方法:
+**注意:当我们在el表达式中使用的时候 直接写 status.current 就可以**
+```java 
+  // 也就是说 status 可以调用如下的方法
+  public Obejct getCurrent()
+    // 获取当前遍历到的数据
+
+  public int getIndex()
+    // 获取当前遍历的索引
+
+  public int getCount()
+    // 遍历的个数 就是遍历了几个
+
+  public boolean isFirst()
+  public boolean isLast()
+    // 表示遍历的数据是否是第一条或最后一条
+
+  public Integer getBegin() 
+  public Integer getEnd() 
+  public Integer getStep()
+    // 获取 begin end step 的属性值
+```
+
+- 比如 我们有一个10条数据的集合 如果 step="2" 那么会跳过一条数据输出
+
+```html
+<c:forEach step="2" varStatus="status" items="${requestScope.studs}" var="stud">
+    <div>编号: ${stud.id}</div>
+    <div>用户名: ${stud.username}</div>
+    <div>密码: ${stud.password}</div>
+    <div>年龄: ${stud.age}</div>
+    <div>电话: ${stud.phone}</div>
+    <div>操作: 添加 or 删除</div>
+
+    <div>
+      ${status.current}   相当于 item
+      ${status.index}     相当于 index
+      ${status.count}     相当于 遍历了几条数据
+      ${status.first}
+      ${status.last}
+      ${status.begin}
+      ${status.end}
+      ${status.step}
+    </div>
+</c:forEach>
+```
 
 
 

@@ -57,7 +57,7 @@ function Stack() {
 
 
     // 出栈
-    Stack.prototype.pop = function(e) {
+    Stack.prototype.pop = function() {
     return this.list.pop()
     }
 
@@ -104,7 +104,7 @@ function d2b(number) {
         number = Math.floor(number / 2)
     }
 
-    循环出栈
+    // 循环出栈
     let string = ''
     while (!stack.isEmpty()) {
         string += stack.pop()

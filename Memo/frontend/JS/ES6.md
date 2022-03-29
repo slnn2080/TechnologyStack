@@ -298,7 +298,7 @@ let e = 100, h = [], g = 'abc';
         console.log(name, age);
     }
 
-    // fn(obj);
+    fn(obj);
 ```
 - 调用这个函数的时候, 传进来的对象必须有name age属性, 如果没有值为undefined
 
@@ -661,7 +661,7 @@ let e = 100, h = [], g = 'abc';
 
 
 - 案例:
-- [{value: '1,2'}, {value: '3'}, {value: '4'}] 将里面的value对应的值提取成一个数组
+- [{value: '1.2'}, {value: '3'}, {value: '4'}] 将里面的value对应的值提取成一个数组
 
 - 初始值我们还是给pre一个[], 这样能确定它的类型
 ```js 
