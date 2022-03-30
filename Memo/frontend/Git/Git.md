@@ -872,6 +872,8 @@ git push origin master
 ### 修改 commit -m 
 - git commit --amend
 - 会进入到 vim 编辑器
+- i
+- : 获取 esc 然后wq
 
 ---------------------------
 

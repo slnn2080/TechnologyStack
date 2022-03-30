@@ -1184,6 +1184,35 @@ public class ContextServlet1 extends HttpServlet {
 - 就是web工程只要没有被销毁 存在context中的数据想怎么用就怎么用 但一旦被销毁 需要等待让里面赋值 没赋值之前都是null
 
 
+> context.getResourceAsStream("文件路径")
+- 读取资源 通过流返回
+- 比如我们下载逻辑 要读取文件内容到内存层面 然后在返回给客户端 这里我们就可以通过这个指定文件所在的路径 将文件读到输入流中
+
+- 返回值:
+- InputStream 节点流
+
+```java
+ServletContext servletContext = getServletContext();
+
+// 参数: 文件所在的路径 在服务器端 / 代表web目录
+InputStream resourceAsStream = servletContext.getResourceAsStream("/file/" + downloadFileName);
+```
+
+
+> context.getMimeType("文件路径")
+- 读取文件的数据类型
+- 用于告知客户端文件的数据类型是什么
+```java
+String downloadFileName = "pic.jpg";
+ServletContext servletContext = getServletContext();
+
+String mimeType = servletContext.getMimeType("/file/" + downloadFileName);
+
+res.setContentType(mimeType);
+```
+
+
+
 > 扩展:
 > 1. servlet程序和servletConfig对象都是由Tomcat负责创建 我们负责使用
 
@@ -1366,6 +1395,17 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws S
 
 > req.getScheme()
 - 可以获取请求的协议
+
+> req.getInputStream()
+- 获取字节输入流对象 可以将流形式的文字读到内存中
+```java
+ServletInputStream inputStream = req.getInputStream();
+// 创建buf缓冲区
+byte[] buf = new byte[1024];
+int len;
+
+// 下面就是以循环的方式来进行读入操作
+```
 
 ------
 
@@ -4945,12 +4985,513 @@ ${requestScope.username}   // sam
 </c:forEach>
 ```
 
+----------------
+
+### 文件的上传
+
+> 文件的上传的操作步骤
+> 1. <form method="post" enctype="multipart/form-data">
+\\要点:
+- 1. get请求是有长度限制的
+<!-- 
+  IE浏览器（Microsoft Internet Explorer） 对url长度限制是2083（2K+53），超过这个限制，则自动截断（若是form提交则提交按钮不起作用）。
+
+  firefox（火狐浏览器）的url长度限制为 65 536字符，但实际上有效的URL最大长度不少于100,000个字符。
+
+  chrome（谷歌）的url长度限制超过8182个字符返回本文开头时列出的错误。
+
+  Safari的url长度限制至少为 80 000 字符。
+
+  Opera 浏览器的url长度限制为190 000 字符。Opera 9 地址栏中输入190 000字符时依然能正常编辑。
+ -->
+
+- 2. enctype="multipart/form-data"
+- 表示提交的数据以多段(每一个表单项一个数据段)的形式进行拼接 然后以二进制流的形式发送给服务器
+
+- 当我们选择enctype="multipart/form-data" 在http协议的 content-type字段中
+```js
+// Content-Type: 提交的数据类型
+// boundary: 表示每段数据的分隔符 后面的值是浏览器随机生成的 每次提交都会随机生成的值
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary2RleoyPO8D7gEGZ1
+
+
+// 请求体: 每个form表单项会被分成一段 比如我们的页面中有 username 和 file 两项 所以被分成了两端
+------WebKitFormBoundary2RleoyPO8D7gEGZ1
+// Content-Disposition 描述
+Content-Disposition: form-data; name="username"
+// 空行
+
+// 当前表单项的值
+sam
+
+// 另一段数据的开始
+------WebKitFormBoundary2RleoyPO8D7gEGZ1
+Content-Disposition: form-data; name="photo"; filename=""
+Content-Type: application/octet-stream
+// 空行
+
+// 上传的文件的数据 这里没有体现的原因是 谷歌觉得数据很多如果直接显示在这里会显得很乱 所以没有显示
+------WebKitFormBoundary2RleoyPO8D7gEGZ1--
+// 最后的分隔符多了两个-- 表示数据的结束标记
+```
+
+> 2. <input type="file">
+
+> 3. 编写服务器代码接收 处理上传的数据
+- multipart/form-data是以流的形式将数据发送给的服务器 所以服务端代码只能够以流的形式接收 
+<!-- 
+  比如我们在服务端 直接这么接收 就获取不到的
+  sout(req.getParameter("username"))  // null
+  sout(req.getParameter("photo"))  // null
+
+  因为客户端是以流的形式发送的
+  对应服务端只能以流的形式来接收
+ -->
+
+> 现实开发中
+- 但是现实的开发中 我们不太会自己写完整的逻辑 都是用第三方提供的jar包
+- 类似文件上传的功能很多第三方对这样的功能做了模块的封装我们只需要使用别人封装好的jar包就可以对 上传的文件数据进行解析
+
+- 比如关于文件上传处理数据等 就可以使用 apache提供的 jar包
+- commons-fileupload.jar
+- commons-io.jar
+<!-- 
+  commons-fileupload.jar需要依赖 commons-io.jar 所以这两个包我们都要引入 
+-->
+
+> commons-fileupload.jar的使用方式
+- 1. 导包（2个）
+- 2. 我们解析上传的文件的数据 需要用到的类和方法如下
+
+
+> ServletFileUpload类:
+- 用于解析上传的数据
+
+- 注意:
+- 我们使用ServletFileUpload类的时候 需要导包 注意我们要导入的包是commons的(tomcat也有 但是不要导这个)
+
+> ServletFileUpload类的实例化
+- 实例化之后才能调用下面的各种方法
+
+> new ServletFileUpload(参数)
+- 参数:
+- FileItemFactory实现类
+<!-- 
+  FileItemFactory是一个接口 我们要传入就是这个接口的实现类对象
+
+  FileItemFactory实现类: DiskFileItemFactory
+  
+ -->
+
+```java
+// 先创建 FileItemFactory接口的实现类对象 作为参数传入到 ServletFileUpload构造器里面
+DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
+
+// 创建用于解析上传数据的工具类
+ServletFileUpload servletFileUpload = new ServletFileUpload(fileItemFactory);
+```
 
 
 
+> 该类提供的方法:
+> boolean ServletFileUpload.isMultipartContent(HttpServletRequest req)
+- 作用:
+- 判断当前上传的数据格式是否是多段的格式(如果不是多段的格式是解析不了的)
+
+- 如果返回 true: 就是多段的数据
+- 如果返回 false: 就不是多段数据(该类就处理不了)
 
 
-> js java中变量互相访问
+> public List<FileItem> parseRequest(HttpServletRequest req)
+- 作用:
+- 解析上传的数据(解析的是文件的二进制数据)
+- 解析好后得到的是多个 FileItem
+
+- FileItem类:
+- 表示每一个表单项
+
+- 返回值:
+- List集合 里面放的多个 FileItem
+<!-- 
+  因为是form里面所有的 表单项 那必然包括普通的表单项和文件的表单项
+
+  我们对于普通的表单项 和 文件的表单项的处理是不同的 关心的点也不同
+ -->
+
+> 以下都是 FileItem 类型里面的具体对象来调用方法
+- 比如
+- for(FileItem item: list) { }
+- 我们拿的是 item 去调用下面的方法
+
+> boolean FileItem.isFormField()
+- 作用:
+- 判断当前这个表单项是否是普通的表单项 还是上传的文件类型
+
+- true: 表示普通类型的表单项
+- false: 表示上传的文件类型
+
+> String FileItem.getFieldName()
+- 获取表单项的name属性值
+
+> String FileItem.getString("UTF-8")
+- 获取当前表单项的值
+- 需要指定字符集
+
+> String FileItem.getName()
+- 获取上传的文件名
+
+> void FileItem.write(file)
+- 将上传的文件写到 参数file 所指向的磁盘(硬盘)位置 就可以保存到磁盘上了
+
+
+> 上传文件的流程代码演示
+- 客户端:
+```html
+<form action="http://localhost:8080/load" method="post" enctype="multipart/form-data">
+  用户名: <input type="text" name="username" id="username"> <br>
+  头&emsp;像: <input type="file" name="photo" id="photo"> <br>
+  <input type="submit" value="提交">
+</form>
+```
+
+- 服务端:
+```java
+package com.sam.servlet;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+public class UploadServlet extends HttpServlet {
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 1. 先判断上传的数据是否为多段数据(只有是多段的数据 才是文件上传的 才能够解析)
+    if(ServletFileUpload.isMultipartContent(req)) {
+
+      // 2. 创建 ServletFileUpload 的对象
+      // 2.1 先创建 FileItemFactory接口的实现类对象 作为参数传入到 ServletFileUpload构造器里面
+      DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
+      // 创建用于解析上传数据的工具类ServletFileUpload
+      ServletFileUpload servletFileUpload = new ServletFileUpload(fileItemFactory);
+
+      // 调用工具类的方法 解析上传的数据 得到每一个表单项FileItem
+      try {
+        List<FileItem> list = servletFileUpload.parseRequest(req);
+
+        // 3. 循环判断 每一个表单项是普通类型 还是上传的文件
+        for(FileItem item: list) {
+          if(item.isFormField()) {
+            // true: 意味着普通表单项
+            System.out.println("表单项的name属性名:" + item.getFieldName());
+            // UTF-8 解决乱码问题
+            System.out.println("表单项的name属性值:" + item.getString("UTF-8"));
+          } else {
+            // 上传的文件
+            System.out.println("表单项的name属性名:" + item.getFieldName());
+            System.out.println("上传的文件名:" + item.getName());
+
+            // 将上传的文件写到 桌面 test 文件夹里面
+            item.write(new File("/Users/LIUCHUNSHAN/Desktop/file_test/" + item.getName()));
+          }
+        }
+
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
+
+```
+
+----------------
+
+### 文件的下载
+
+- 流程
+- 客户端 -> 服务器(Tomcat)
+- 客户端发起GET请求 告诉服务器 我要下载什么文件
+
+- 服务器的逻辑:
+- 在 doGet() 方法下 进行如下的逻辑
+- 1. 获取要下载的文件名
+- 2. 读取要下载的文件内容
+- 3. 把下载的文件内容回传给客户端
+- 4. 在回传前 通过响应头告诉客户端返回的数据类型(因为不同的类型客户端的处理方式是不同的)
+- 5. 告诉客户端收到的数据是用于下载使用(还是使用响应头)
+
+- 我们在module下准备一些要下载的文件
+
+  | - web
+    | - file
+      - pic.jpg
+
+
+> 要点1:
+> commons-io.jar 包下 有IOUtils类
+- 该类专门用于 io 操作
+
+> IOUtils.copy(输入流, 输出流)
+- 将读到输入流的数据 复制给输出流
+
+
+> 要点2:
+> 我们可以通过 ServletContext对象 读到指定文件的数据类型
+> servletContext.getMimeType("文件路径")
+- 返回值:
+- String  image/jpeg
+
+
+> 要点3:
+> 我们通过设置响应头 
+- Content-Disposition: "attachment;filename=文件名"
+- 来告知浏览器怎么处理我们我们发送到客户端的数据 这种方式为下载
+```java
+res.setHeader("Content-Disposition", "attachment;filename=" + downloadFileName);
+```
+
+> 下载的代码逻辑
+```java
+package com.sam.servlet;
+
+// 注意我们导的包
+import org.apache.commons.io.IOUtils;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class DownloadServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+
+    // 1. 获取要下载的文件名 这里我们写死
+    String downloadFileName = "pic.jpg";
+
+    
+    // 
+    ServletContext servletContext = getServletContext();
+
+
+    /*
+      4. 在回传前 通过响应头告诉客户端返回的数据类型
+      - 该步骤要在前面来完成 我们要通过 servletContext 对象读取文件的数据类型
+    */
+    // 获取要下载文件的类型
+    String mimeType = servletContext.getMimeType("/file/" + downloadFileName);
+    System.out.println("下载的文件类型" + mimeType); // image/jpeg
+
+    // 设置响应头 告诉客户端数据类型
+    res.setContentType(mimeType);
+
+
+    /*
+      5. 还要告诉客户端收到的数据是用于下载使用(还是通过响应头)
+      - 如果没有写步骤5 客户端就会将图片直接显示浏览器上
+      Content-Disposition: 表示收到的数据怎么处理
+      attachment: 表示附件 表示下载使用
+      filename="文件名" 指定下载的文件名 下载的文件叫什么名字
+    */
+    res.setHeader("Content-Disposition", "attachment;filename=" + downloadFileName);
+
+
+    /*
+      2. 读取要下载的文件内容(通过 ServletContext对象可以读取文件内容)
+      ServletContext对象 可以通过获取到getResourceAsStream() 输入流
+      可以指定文件路径 将文件数据读到内存中
+    */
+
+    // 参数: 文件所在的路径 在服务器端 / 代表web目录
+    InputStream resourceAsStream = servletContext.getResourceAsStream("/file/" + downloadFileName);
+
+    
+    /*
+      以往我们获取节点流后 通过调用节点流的方法 while循环读数据
+      但是 commons-io.jar 包中 就有操作io的工具类IOUtils 它可以直接做流的操作
+
+      3. 把下载的文件内容回传给客户端
+      参数 输入流 和 输出流
+      创建输出流 获取响应的输出流
+    */
+
+    ServletOutputStream outputStream = res.getOutputStream();
+
+
+    // 调用IOUtils工具类的copy方法, 将读取到的内容 写给 outputStream 读取输入流中的全部数据 复制给输出流 输出给客户端
+    IOUtils.copy(resourceAsStream, outputStream);
+  }
+}
+```
+
+
+> 使用 URLEncoder解决谷歌ie浏览器中文下载名乱码的问题
+- 如果我们指定下载的文件名 是中文的时候
+- res.setHeader("Content-Disposition", "attachment;filename=小狗");
+
+- 会出现文件名是乱码
+- 因为http协议是美国人设计的 http协议里面默认是不支持中文传输的
+
+- 我们需要对 中文进行编码 才能通过网络来进行传输
+
+- 浏览器为: 谷歌 或者 ie
+- 谷歌 和 ie 用的是url编码
+- 所以我们需要对文件名 进行 URL编码
+
+> URLEncoder.encode("小狗.jpg", "UTF-8")
+- 是将汉字转化为 %xx%xx的格式 
+```java
+res.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("小狗.jpg", "UTF-8"));
+```
+
+
+- 浏览器为: 火狐
+- 火狐用的是 base64编码 所以火狐对url编码处理不了
+
+> base64编码
+- 1. 实例化BASE64Encoder类的对象
+- 2. 通过对象调用encode()方法
+
+> BASE64Encoder base64Encoder = new BASE64Encoder()
+- 创建base64编码器
+
+> BASE64Decoder base64Decoder = new BASE64Decoder();
+- 创建base64解码器
+
+
+> base64Encoder.encode(参数)
+- 通过encode()执行base64编码操作
+
+- 参数:
+- bytes[]
+
+- 所以我们要将内容转为 字节数组
+- 字符串.getBytes("UTF-8")
+
+- 返回值
+- String 编码后的内容
+
+
+> base64Decoder.decodeBuffer(参数);
+- 通过decodeBuffer()执行base64解码操作
+
+- 参数:
+- 编码后的字符串
+
+- 返回值:
+- byte[]
+- 编码的时候就是对字节数组操作的 所以解码的之后返回的也是字节数组
+
+
+
+- base64编码演示:
+```java
+public static void main(String[] args) throws IOException {
+  String content = "这是需要Base64编码的内容";
+
+
+  // 编码操作
+  // 创建编码器
+  BASE64Encoder base64Encoder = new BASE64Encoder();
+
+  // 执行编码
+  String encodeStr = base64Encoder.encode(content.getBytes("UTF-8"));
+
+  System.out.println(encodeStr);
+  // 6L+Z5piv6ZyA6KaBQmFzZTY057yW56CB55qE5YaF5a65
+
+
+  // 创建base64解码器
+  BASE64Decoder base64Decoder = new BASE64Decoder();
+
+  // 解码操作
+  byte[] bytes = base64Decoder.decodeBuffer(encodeStr);
+
+  // 将字节数组还原为字符串
+  String str = new String(bytes, "UTF-8");
+  System.out.println(str);
+}
+```  
+
+
+- 上面我们知道 火狐浏览器中 怎么解决 文件名中文乱码的情况 那我们怎么在项目中使用呢？
+
+
+- 如果客户端浏览器是火狐浏览器 那么我们需要对中文名进行 base64 的编码操作
+
+- 这时候需要把请求头
+- Content-Disposition: attachment; filename=中文名
+
+- 修改为如下的格式
+- Content-Disposition: attachment; filename==?charset?B?xxxxx?=
+
+- =?charset?B?xxxxx?=
+- 我们对这个部分解析一下
+- =?
+  表示编码内容的开始
+
+- charset
+  表示字符集
+
+- B
+  表示base64编码
+
+- xxx
+  表示文件名base64编码后的内容
+
+- ?=
+  表示编码内容的结束
+
+```java
+res.setHeader("Content-Disposition", "attachment;filename==?charset?B?xxx?=");
+
+// 上面要在各个部分填充上正确的数据
+
+res.setHeader(
+  "Content-Disposition", 
+  "attachment;filename==?UTF-8?B?"+ new BASE64Encoder().encode("小狗.jpg".getBytes("UTF-8")) + "?=");
+```
+
+
+- 上面的方式是火狐的解决方式 但是我们回到ie上发现 ie不支持上面的方式
+<!-- 
+  要么搞定ie 就搞定不了火狐 搞定了狐火 ie就出现问题
+
+  谷歌没有问题
+ --> 
+
+- 解决方案
+- 判断: 如果是火狐浏览器就使用base64格式的编码 如果是ie浏览器就使用url编码 这样就支持全部浏览器了
+
+> 要点:
+> req.getHeader("User-Agent")
+- 获取客户端信息
+
+```java
+if(req.getHeader("User-Agent").contains("Firefox")) {
+  // 使用base64编码
+} else {
+  // 使用url编码
+}
+```
+
+----------------
+
+### js java中变量互相访问
 > js变量获取jsp页面中的java代码的变量值
 - 方法:
 - let 变量名 = <%= java变量 %>
@@ -4964,3 +5505,491 @@ ${requestScope.username}   // sam
 
 - 解决方法:
 - 将js变量放到form中的一个变量里面 在后台从form中提交到后台 比如 我们可以利用 input type="hidden" 就是传值用
+
+----------------
+
+### 书城项目第三阶段
+- 我们还是回到书城的项目
+
+> 1. html页面转成jsp页面
+- 1. html页面*顶行*添加page指令
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+```
+
+- 2. 修改文件后缀名为 .jsp
+- 修改完文件的后缀名后 还要看看页面中的src等地址
+- 我们可以 ctrl+shift+r 查找指定格式的文件 和 目录 查找 .html -> .jsp
+
+
+> 2. 抽取页面中相同的内容
+> 登录成功的nav部分
+- 比如登录之后的 nav 部分 每个页面中其实都有一样的部分
+<!-- 
+  欢迎韩总 <a>订单</a><a>注销</a><a>返回</a>
+ -->
+
+- 例如这些公共的操作我们就可以抽取成一个jsp页面 然后去引用就可以了 这样我们只需要维护一份
+
+- 比如我们可以在
+  | - web
+    | - common
+      - login_success_menu.jsp
+
+- 创建 公共组件
+- 这里注意 我们只有一个div 也就是页面中的一个部分
+```html
+<!-- login_success_menu.jsp文件  -->
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<div>
+  <span>欢迎<span class="um_span">韩总</span>光临尚硅谷书城</span>
+  <a href="../order/order.jsp">我的订单</a>
+  <a href="../../index.jsp">注销</a>&nbsp;&nbsp;
+  <a href="../../index.jsp">返回</a>
+</div>
+```
+
+- 在原有的页面中 删除这个部分 引入组件
+```html
+<div id="header">
+  <img class="logo_img" alt="" src="static/img/logo.gif" >
+
+  <!-- 引入组件 -->
+  <%@ include file="/common/login_success_menu.jsp"%>
+</div>
+```
+
+> base标签 (动态base)
+- 整个项目采用的是 base + 相对 的方案
+- 所以每一个页面上 都有base标签 我们把这个部分也抽取出来
+
+- 同样每个页面都引入了css样式 和 jq
+```html
+<!-- head.jsp -->
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<base href="http://localhost:8080/project/" />
+<link type="text/css" rel="stylesheet" href="static/css/style.css" >
+<script src="static/js/jquery-1.7.2.js"></script>
+```
+
+- 同样 在所有的文件上 <%@inclued file%> 引入组件
+
+
+**注意:**
+- 我们上面的base设置的值是
+- http://localhost:8080/project/
+
+- 但是当我只用 192.168.3.3 来访问的时候
+- 这个页面中的 css js 等资源文件 还是向
+- localhost(本机) 去请求
+
+- 如果是我自己访问是没有问题的
+- 但是如果是别人访问的时候 因为 资源文件 都是 localhost(本机) 所以这些资源文件都会向 访问这个人的电脑去请求
+
+- 当资源文件向访问者的电脑请求资源的时候 页面的样式就会出现问题 因为访问者的电脑没有资源文件
+
+> 解决方法
+- 上面发生问题的原因我们知道了
+- 所以
+- base标签里面的ip port 工程路径 我们都有必要 动态获取
+
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<%
+  <!-- 利用各个方法获取 url 部分 进行拼接 -->
+  String scheme = request.getScheme();
+  String ip = request.getServerName();
+  int port = request.getServerPort();
+  String proPtah = request.getContextPath();
+
+  <!-- 最后的一个 / 不能省 -->
+  String path = scheme + "://" + ip + ":" + port + proPtah + "/";
+%>
+
+<base href="<%= path %>" />
+<link type="text/css" rel="stylesheet" href="static/css/style.css" >
+<script src="static/js/jquery-1.7.2.js"></script>
+```
+
+----------------
+
+### 优化: 表单提交失败时候的错误提示
+- 我们先回忆下 表单提交的逻辑
+- 客户端:
+    点击按钮 发起请求 提交数据 登录会注册
+
+- 服务器:
+    只要失败就会跳回原来的页面
+    原来的页面需要哪些信息?
+    - 1. 需要告诉我 为什么跳回来的? 用户名密码错误? 还是验证码错误？ 还是用户名已存在？
+
+    - 2. 已填写的信息还要继续的保留在输入框内(这叫做回显)
+
+    上述的 1 2 都是需要给客户端的
+
+> 要点:
+- 要回显的信息(回传的数据)都要 通过req 保存到 request域 中
+- 我们在 登录接口 LoginServlet 类中处理逻辑
+<!-- 
+  我们用node写后台的时候 都是将这些数据 保存到一个对象中 然后把这个对象 响应回前端
+  let data = { ... }
+
+  但是java中 可以通过req对象 将数据保存造request域中 这样jsp页面可以直接使用
+ -->
+
+> 登录页面
+- LoginServlet接口逻辑
+```java
+protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 获取 用户名
+  String username = req.getParameter("username");
+  // 获取密码
+  String password = req.getParameter("password");
+
+  if(userService.login(new User(null, username, password, null)) == null) {
+    // 登录失败
+    // 将错误信息 和 回显的表单项信息 保存到Request域中
+    req.setAttribute("msg", "用户名和密码错误");
+    req.setAttribute("username", username);
+
+    // 请求转发(跳转到哪个页面)
+    req.getRequestDispatcher("/pages/user/login.jsp").forward(req, res);
+
+  } else {
+    // 登录成功
+    req.getRequestDispatcher("/pages/user/login_success.jsp").forward(req, res);
+  }
+}
+```
+
+- login.jsp
+- 提示信息的默认值:
+- 因为页面刚刷出来的时候 还没有走接口里面的逻辑
+- 所以request域中的数据就是null 所以当第一次页面加载的时候 应该有默认的显示信息 
+
+- 这个默认的显示信息 我们就通过 三元来设置
+
+
+- 表单项里面的填写的数据:
+- 因为form表单默认的动作就是刷新页面 如果页面一刷新 表单项里面的数据就会被清空 用户体验不好
+
+- 我们这里也是将用户填写的信息 再次的送回客户端 显示在页面中
+
+```html
+<!-- 错误提示区域 -->
+<span class="errorMsg">
+  <%= 
+    request.getAttribute("msg") == null
+      ? "请输入用户名和密码" 
+      : request.getAttribute("msg") 
+  %>
+</span>
+
+
+<!-- 回显表单项中的数据 -->
+<label>用户名称：</label>
+<input 
+  class="itxt" 
+  type="text" 
+  placeholder="请输入用户名" autocomplete="off" 
+  tabindex="1" 
+  name="username"
+  value="
+  <%=
+    request.getAttribute("username") == null 
+      ? "" 
+      : request.getAttribute("username")
+  %>"
+/>
+```
+
+> 注册页面
+- 和登录页面的逻辑是一样的
+```java
+protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 1. 获取请求的参数
+  String username = req.getParameter("username");
+  String password = req.getParameter("password");
+  String email = req.getParameter("email");
+  String code = req.getParameter("code");
+
+  if("abcd".equalsIgnoreCase(code)) {
+
+    if(userService.existsUsername(username)) {
+      // 进入这里代表 用户名不可用 因为数据库里面已经有了
+      req.setAttribute("msg", "用户名已存在");
+      req.setAttribute("username", username);
+      req.setAttribute("email", email);
+
+      req.getRequestDispatcher("/pages/user/regist.jsp").forward(req, res);
+
+    } else {
+      // 进入这里代表 用户名可用 可用的情况下我们就将其保存到数据库
+      userService.registUser(new User(null, username, password, email));
+      req.getRequestDispatcher("/pages/user/regist_success.jsp").forward(req, res);
+    }
+
+  } else {
+    // 当验证码不正确的时候 让其跳转到注册页面 并在跳转前将客户端需要回显的数据保存在request域中
+    req.setAttribute("msg", "验证码错误");
+    req.setAttribute("username", username);
+    req.setAttribute("email", email);
+
+    // getRequestDispatcher的地址必须以/打头 代表在web
+    req.getRequestDispatcher("/pages/user/regist.jsp").forward(req, res);
+  }
+}
+```
+
+- regist.jsp
+```html
+<input 
+  class="itxt" 
+  type="text" 
+  placeholder="请输入邮箱地址"
+  autocomplete="off" 
+  tabindex="1"
+  name="email" id="email"
+  value="<%=request.getAttribute("email") == null ? "" : request.getAttribute("email")%>"
+/>
+```
+
+----------------
+
+### 优化: 合并LoginServlet和RegistServlet
+- 在实际的项目开发中 一个模块 一般只使用一个Servlet程序
+- 而现在我们的 登录 和 注册 各有一个servlet 而登录和注册都属于用户模块的功能
+- 这里我们想将 LoginServlet 和 RegistServlet 合并到一起成为一个UserServlet(它既实现了登录的功能 又实现了注册的功能)
+
+- 可以又有一个问题:
+- 登录功能使用的是post请求
+- 注册功能使用的是post请求
+
+- 也就是说我们要在 UserServlet程序的 doPost() 方法中 区分两个功能(登录注册) 那怎么办？
+
+> 解决方式:
+- 我们可以在 登录的jsp页面 和 注册的jsp页面 中添加了一个 隐藏域
+
+**技巧:**
+- 利用隐藏域向后台传送数据
+
+- 该隐藏域表示登录的功能
+  <input type="hidden" name="action" value="login">
+
+- 该隐藏域表示注册的功能
+  <input type="hidden" name="action" value="regist">
+
+- 然后我们在 UserServlet程序 一上来取出 隐藏域中的 action对应的值
+```java
+String action = req.getAttribute("action")
+
+if("login".equals(action)) {
+  // 登录逻辑
+} else if("regist".equals(action)) {
+  // 注册逻辑
+}
+```
+
+- 这就跟我想的 定义一个变量 通过变量来标识是什么请求是一样的 只不过这里使用了html结构中的隐藏域
+
+
+> 代码逻辑部分
+```java
+package com.sam.web;
+
+import com.sam.pojo.User;
+import com.sam.service.UserService;
+import com.sam.service.impl.UserServiceImpl;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class UserServlet extends HttpServlet {
+  private UserService userService = new UserServiceImpl();
+
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    String action = req.getParameter("action");
+
+    if("login".equals(action)) {
+      login(req, res);
+    } else if("regist".equals(action)) {
+      regist(req, res);
+    }
+  }
+
+  protected void login(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+
+    if(userService.login(new User(null, username, password, null)) == null) {
+      // 登录失败
+      // 将错误信息 和 回显的表单项信息 保存到Request域中
+      req.setAttribute("msg", "用户名和密码错误");
+      req.setAttribute("username", username);
+      req.getRequestDispatcher("/pages/user/login.jsp").forward(req, res);
+    } else {
+      // 登录成功
+      req.getRequestDispatcher("/pages/user/login_success.jsp").forward(req, res);
+    }
+  }
+  protected void regist(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 1. 获取请求的参数
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+    String email = req.getParameter("email");
+    String code = req.getParameter("code");
+
+    // 2. 检查验证码是否正确(验证码由服务器生成 先写死) 要求验证码为: abcd
+    if("abcd".equalsIgnoreCase(code)) {
+
+      if(userService.existsUsername(username)) {
+        // 进入这里代表 用户名不可用 因为数据库里面已经有了
+        req.setAttribute("msg", "用户名已存在");
+        req.setAttribute("username", username);
+        req.setAttribute("email", email);
+
+        req.getRequestDispatcher("/pages/user/regist.jsp").forward(req, res);
+
+      } else {
+        // 进入这里代表 用户名可用 可用的情况下我们就将其保存到数据库
+        userService.registUser(new User(null, username, password, email));
+        req.getRequestDispatcher("/pages/user/regist_success.jsp").forward(req, res);
+      }
+
+    } else {
+      // 当验证码不正确的时候 让其跳转到注册页面 并在跳转前将客户端需要回显的数据保存在request域中
+      req.setAttribute("msg", "验证码错误");
+      req.setAttribute("username", username);
+      req.setAttribute("email", email);
+
+      // getRequestDispatcher的地址必须以/打头 代表在web
+      req.getRequestDispatcher("/pages/user/regist.jsp").forward(req, res);
+    }
+  }
+}
+
+```
+
+----------------
+
+### 优化: 使用反射优化大量的if else
+- 用户模块的功能 除了登录和注册 还有其它的功能
+- 比如:
+  - 添加用户
+  - 修改用户信息
+  - 修改密码
+  - 绑定手机号
+  - 绑定邮箱
+  - 注销用户 ... 
+
+- 这样的话 每一个功能都会有一个隐藏域来对应这个功能
+- 然后在UserServlet程序里面 通过else if进行判断 然后做不同的处理
+
+- 要是有一种方法 一次性的写好 不管是什么样的功能 都可以走同样的逻辑
+
+- 我们先找找规律
+
+  <input type="hidden" name="action" value="login">
+
+- 如果 action的值是login 那么我们调用的方法也是login
+- 如果 action的值是regist 那么我们调用的方法也是regist
+
+- 如果是其它也一样 也就是说 action的值就是方法名 那是不是说我们*可以通过反射通过action的值 找到对应的方法来执行就可以了*
+
+- 反射前:
+- 我们要if else判断 是不是 xxx动作 如果是做什么样的逻辑
+
+- 反射后:
+- 一套代码 相当于一个通用的模板
+- {"方法名1": 方法1, 方法名2: 方法2}
+- 然后我们拿着 方法名去对象里面进行匹配 action
+- 相当于 obj[action]() 的使用方式吧
+
+> 代码部分
+- 下面这样就可以省略了 大量的if else逻辑
+```java
+protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 获取页面中的隐藏域的action值 根据该值 利用反射调用对应的方法
+  String action = req.getParameter("action");
+  try {
+    // this是当前的对象实例 getClass() 就是获取父类(造this的类) 
+    Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);
+    // this是当前的对象实例
+    method.invoke(this, req, res);
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+}
+```
+
+----------------
+
+### 优化: 抽取BaseServlet程序
+- 我们上面只接触了 用户模块
+- 用户模块(UserServlet程序)
+<!-- 
+  用户模块逻辑:
+  1. 获取action参数值
+  2. 通过反射获取action对应的业务方法
+  3. 通过反射调用业务方法
+ -->
+
+
+- 那我们还有其他的模块 比如
+- 图书模块(BookServlet程序)
+<!-- 
+  图书模块逻辑:
+  1. 获取action参数值
+  2. 通过反射获取action对应的业务方法
+  3. 通过反射调用业务方法
+ -->
+ 
+- 我们发现图书模块也是这样 既然他们做的事情都一样 可以将这部分逻辑抽出来 抽取到一个父类里面 我们管这个叫做 BaseServlet
+- 我们将上面的逻辑抽到BaseServlet程序里面
+<!-- 
+  1. 获取action参数值
+  2. 通过反射获取action对应的业务方法
+  3. 通过反射调用业务方法
+ -->
+
+- 然后UserServlet 和 BookServlet只需要继承BaseServlet就可以了 这样以后所有的模块都不再需要写这部分的逻辑了
+
+- BaseServlet
+- 我们让BaseServlet继承HttpServlet
+- 然后其它的类就不同继承HttpServlet 而是继承BaseServlet
+```java
+public abstract class BaseServlet extends HttpServlet {
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 获取页面中的隐藏域的action值 根据该值 利用反射调用对应的方法
+    String action = req.getParameter("action");
+    try {
+      // this是当前的对象实例 getClass() 就是获取父类(造this的类)
+      Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);
+      // this是当前的对象实例
+      method.invoke(this, req, res);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+
+// 其它类
+public class UserServlet extends BaseServlet {
+  // 其它类中的 doPost 方法就可以不用写了 因为都在BaseServlet程序里面
+
+  // 这样其它类中 只需要定义每个功能需要处理的逻辑就可以了 比如:
+  protected void login(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {}
+
+  protected void regist(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {}
+
+
+  // 这样有关通过反射调用方法的逻辑都在BaseServlet里面
+}
+```

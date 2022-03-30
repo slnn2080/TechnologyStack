@@ -287,6 +287,19 @@ Connection: keep-alive
 - bytes
 - none
 
+- Content-Disposition:
+- 用于告诉客户端 收到数据后怎么处理
+- Content-Disposition: "attachment; filename="
+- attachment: 表示下载使用
+- filename="文件名" 指定下载文件的文件名
+<!-- 
+  Content-disposition是MIME协议的扩展，MIME协议指示MIME用户代理如何显示附加的文件。当Internet Explorer接收到头时，他会激活文件下载对话框，它的文件名框自动填充headers指定的文件名。
+
+  服务器向浏览器发送文件时，如果是浏览器支持的文件类型，一般会默认使用浏览器打开，比如txt、jpg等。如果需要提示用户保存，就要利用Content-Disposition进行处理，（敲黑板，划重点）关键在于一定要加上attachment [附件] [əˈtætʃmənt]
+
+  这样的话，浏览器在打开的时候回提示保存还是打开，即使选择打开，也会使用相关联的程序，比如记事本打开，而不是IE直接打开。
+ -->
+
 
 > 常见的响应码说明
 - 200:

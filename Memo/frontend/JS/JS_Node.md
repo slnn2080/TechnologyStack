@@ -1,6 +1,9 @@
 ### 待看前端的设计模式
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
+### if else 减少嵌套
+- https://www.jianshu.com/p/ea22123d4f62
+
 
 ### 栈结构
 - 栈是一种特殊的线性表,它的存储空间是连续的。
