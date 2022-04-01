@@ -2626,6 +2626,13 @@ for(let entries of map.entries()) {
 
 ### 迭代器的应用
 - 迭代器用来自定义遍历数据, 按照我们自己的意愿遍历数据
+- 正常一个obj对象 是没有办法通过 for...of来进行遍历的 会提示:
+- TypeError: obj is not iterable 的错误
+
+- 但是我们可以通过在 obj 内部添加 Symbol.iterator 接口 实现自定义遍历对象中指定的结构
+
+- 当我们在对象中自定义 Symbol.iterator 接口后 我们就可以通过 for...of 来遍历数据了
+
 
 ```js 
 /* 
@@ -2635,56 +2642,61 @@ for(let entries of map.entries()) {
     遍历下面的对象, 每次返回的结果是数组里的成员
 */
 
-const banji = {
+const obj = {
     name:'终极一班',
-    stus:[
-        'xiaoming',
-        'xiaoning',
-        'xiaotian',
-        'xiaohong'
+    hobby:[
+        'javascript',
+        'java',
+        'c++',
+        'python'
     ],
 
-    // 添加iterator接口, 并在内部自定义遍历内容
+    // 在obj中添加iterator接口, 并在其内部自定义遍历内容
     [Symbol.iterator](){
-        // 3 声明一个索引变量, 让它不断指向下一个成员
+
+        // 声明一个索引变量, 让它不断指向下一个成员
         let index = 0;
-        // 创建保存外层this的变量
+
+        // 创建保存外层this的变量 this指向obj
         let _this = this;
 
-        // 1 创建一个指针对象
+        // 创建一个指针对象
         return {
-            // 2 创建一个next();
+            // 创建一个next();
             next:function(){
+
                 // 根据下标返回结果, 在这里定下来 需要遍历哪个对象
-                if(index < _this.stus.length){   //如果小于stus.length代表遍历没有结束
+                if(index < _this.hobby.length){   //如果小于hobby.length代表遍历没有结束
 
-            // 每次调用next方法返回的是一个包含value 和 done属性的对象
-            const result = {value:_this.stus[index], done:false}
+                    // 每次调用next方法返回的是一个包含value 和 done属性的对象
+                    const result = {value:_this.hobby[index], done:false}
 
-            /* 
-            this的问题, 我们的this是在next:function(){} 里的 所以我们要在外部创建一个变量用来保存外部的this
-            */
+                    /* 
+                        this的问题, 我们的this是在next:function(){} 里的 所以我们要在外部创建一个变量用来保存外部的this
+                    */
 
-            // 4 下标自增, 不自增永远为0
-            index++;
+                    // 下标自增, 不自增永远为0
+                    index++;
 
-            // 5 返回结果
-            return result;
-            }else{
-                //遍历完成
-                return {value:undefined, done:true};
-            }
+                    // 返回结果
+                    return result;
+
+                }else{
+                    //遍历完成
+                    return {value:undefined, done:true};
+                }
             }
         };
     }
 }
 
         
-    for(let n of banji){
-        console.log(n);     
-        //TypeError: banji is not iterable banji这个变量不能迭代(遍历), 因为没有iterator接口
-        // 那我们就在上面的班级里(要遍历的对象里添加接口)
-    }
+// 这样遍历的时候 遍历的就是 我们在 iterator接口中指定的 数据结构
+for(let item of obj){
+    console.log(item);     
+    //TypeError: banji is not iterable banji这个变量不能迭代(遍历), 因为没有iterator接口
+    // 那我们就在上面的obj里(要遍历的对象里添加接口)
+}
 ```
 
 -------------------------------
@@ -3027,7 +3039,7 @@ const banji = {
 
 -------------------------------
 
-### 生成年期函数的应用案例 
+### 生成器函数的应用案例 
 - 先准备两个文件
     1.txt   [12,5,8]
     2.txt   ["a":12, "b":5]

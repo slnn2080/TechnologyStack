@@ -1,5 +1,12 @@
 ### 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
 
+### Git命令删除远程分支
+- 假设要删除hehe的远程分支，我们需要先把分支切换到master，因为你现在所在的分支就是hehe，在这个分支下，是不能删除它的。
+
+- git push origin --delete hehe
+
+
+
 ### 静态页面托管到github
 - 1. 创建仓库
 - 2. 创建 gh-pages 分支

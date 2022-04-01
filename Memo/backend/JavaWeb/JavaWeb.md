@@ -1335,6 +1335,25 @@ System.out.println("爱好: " + Arrays.toString(hobbies));
 // 爱好: [c++, java, javascript]
 ```
 
+
+> req.getParameterMap()
+- 获取请求的参数 的 键值对形式 name=value
+
+- 返回值：
+- map类型
+- Map<String, String[]>
+
+- 使用场景:
+- BeanUtils.populate(对象, map类型)
+- 后面我们会使用这个方法 将请求的数据直接注入到user对象里面 它的第二个参数需要一个map类型的数据
+
+
+> req.getParameterNames()
+- 获取请求参数的 key
+
+- 返回值应该是一个String[]数组
+
+
 ```html
 <!-- 前端表单: -->
 <h3>RequestAPI测试</h3>
@@ -5992,4 +6011,1114 @@ public class UserServlet extends BaseServlet {
 
   // 这样有关通过反射调用方法的逻辑都在BaseServlet里面
 }
+```
+
+----------------
+
+### BeanUtils工具类的使用
+- BeanUtils工具类 它可以一次性的把所有请求的参数注入到JavaBean中
+
+- 比如：
+- 我们在 UserServlet程序 中的login()方法内
+- 需要获取表单中的username password参数 将这些参数封装成一个User对象
+```java
+protected void login() {
+
+  String username = req.getParameter("username");
+  String password = req.getParameter("password");
+  
+  // 这里 将参数 放到了User对象里面
+  if(userService.login(new User(null, username, password, null)) == null) { }
+    
+}
+```
+
+- regist() 方法内 也一样 获取参数 封装成一个User对象
+```java
+protected void regist() {
+  // 1. 获取请求的参数
+  String username = req.getParameter("username");
+  String password = req.getParameter("password");
+  String email = req.getParameter("email");
+  String code = req.getParameter("code");
+
+  // 这里 将参数 放到了User对象里面
+  userService.registUser(new User(null, username, password, email));
+```
+
+- 现在这个项目中 参数是少 也就写个4-5行 到了有的项目中 我们要获取的表单项的参数 可能20-30个都有 我们要使用 
+- req.getParameter() x 20次
+- user.setXxx() x 20次
+
+- 要是有一个方法 能剩下上面的逻辑 就会变的很简洁了
+- BeanUtils提供了这样的功能 
+
+- BeanUtils不是jdk的类 而是第三方的工具类 所以需要导包
+- commons-beanutils-1.8.0.jar
+- commons-logging-1.1.1.jar
+
+- 然后导入module里面 然后使用BeanUtils类方法实现注入
+
+
+> BeanUtils.populate(实例对象,req.getParameterMap())
+- 作用:
+- 将请求参数 一次性的注入到 指定的对象中
+- 或者说: 将一个 map的值 注入到JavaBean中
+
+- 参数1:
+- 要注入哪个对象
+
+- 参数2:
+- map类型
+- 可以通过 req.getParameterMap() 方法获取
+- 因为请求参数 就是 name=value 的形式
+
+- 该方法有异常 需要使用 try catch 来进行处理
+
+
+> 使用方式
+```java
+protected void regist(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 之前获取请求参数 封装为 User对象的方式
+  String username = req.getParameter("username");
+  String password = req.getParameter("password");
+  String email = req.getParameter("email");
+  String code = req.getParameter("code");
+
+  // 将参数放入到 User 的构造器中
+  new User(null, username, password, email)
+
+------
+
+  // 使用 BeanUtils 的方式
+  try {
+    User user = new User();
+
+    // 就这下面这一行代码就可以完成表单项的参数 注入工作
+    BeanUtils.populate(user, req.getParameterMap());
+
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+```
+
+- 每个服务器的业务 基本上都会将请求参数 封装成 JavaBean(user对象) 的 那我们没必要每个程序都写这么一段
+
+- 我们可以把 下面的内容 写成一个工具类然后去使用就可以了
+
+```java
+try {
+  User user = new User();
+  BeanUtils.populate(user, req.getParameterMap());
+
+} catch (Exception e) {
+  e.printStackTrace();
+}
+```
+
+
+> 利用BeanUtils工具类 将请求参数封装成JavaBean的逻辑整理成一个 工具类
+
+  | - com.sam.utils
+    - WebUtils java类
+
+- 我们在调用 WebUtils 的静态copyParamToBean()方法的时候 需要传递的参数有
+- 1. req
+- 2. JavaBean对象
+
+```java
+package com.sam.utils;
+
+import org.apache.commons.beanutils.BeanUtils;
+import javax.servlet.http.HttpServletRequest;
+
+public class WebUtils {
+  public static void copyParamToBean(HttpServletRequest req, Object bean) {
+    try {
+      BeanUtils.populate(bean, req.getParameterMap());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+> 原理:
+- 为什么 BeanUtils 类可以完成 请求参数一次性的注入到 JavaBean中呢？
+
+- 1. 我们先看看 req.getParameterMap() 方法的返回值 并输出下 看看样式
+
+> req.getParameterMap()
+- 返回 请求参数的 map类型 name=value
+
+```java
+Map<String, String[]> parameterMap = req.getParameterMap();
+
+for(Map.Entry<String, String[]> entry: parameterMap.entrySet()) {
+  sout(entry.getKey() + " = " + Arrays.asList(entry.getValue()));
+}
+
+/*
+  action = [regist]
+  username = [admin]
+  password = [111111]
+  repwd = [111111]
+  email = [admin@gmail.com]
+  code = [abcd]
+*/
+```
+
+- 要点1：
+- 我们发现上面的参数 跟 User对象中的属性名 刚好对上了
+- 也就是请求参数名 和 user对象中的属性 一一对应的
+
+- 要点2:
+- 当user类中没有 setXxx()的写方法 我们发现该属性就注入不了
+
+- 注入的本质：
+- 它会找JavaBean中的写方法 然后将数据传进去 如果该类中没有写方法 那么就跳过(也就是注入不了)
+
+- el表达式里面取值 走的是get(is)读方法
+- BeanUtils的注入 走的是set写方法
+
+
+**问题:**
+- 我们将下面方法的第一个参数
+
+  HttpServletRequest req
+
+      ->
+
+        Map value
+
+- 改成了Map value 我们发现也能注入成功 那
+- HttpServletRequest req
+- Map value
+- 有什么区别么？
+
+- BeanUtils.populate()方法的本质就将一个map类型的值注入到JavaBean中
+
+- 而我们注意一下，我们的请求参数的形式本身也是键值对的形式
+
+```java
+public class WebUtils {
+  public static void copyParamToBean(HttpServletRequest req, Object bean) {
+    try {
+      // 这里是使用 req的方法获取请求参数值
+      BeanUtils.populate(bean, req.getParameterMap());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+------
+
+// 这里我们将 req 改成了 value 注入功能还是可以用的
+public class WebUtils {
+  public static void copyParamToBean(Map value, Object bean) {
+    try {
+      // 这里直接传递Map类型的value
+      BeanUtils.populate(bean, value);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+- 区别:
+- 日常开发中 将 Map类型的值 注入到JavaBean的场景是很常见的 我们的java代码是分成3层的
+
+ - dao层
+ - service层
+ - web层
+
+- 如果我们写成HttpServletRequest
+- Dao层 和 Service层 没有这个API 也用不了
+
+- 但是我写成Map的情况下 Map在3层中都可以使用 这样耦合度就会低
+- 写成 HttpServletRequest 只有 web层可以用 那么WebUtils工具类只能用在web层 耦合度太高了
+
+- 所以我们定义 WebUtils类的时候 我们要将第一个参数 写成 Map类型的 方便于解耦 也便于将 Map类型的值 注入到JavaBean的这个常见的场景 可以使用在别的层上
+
+
+
+> WebUtils工具类的最终版
+- 这样写代码的适用范围更好 耦合度更低 扩展性更强 适用更加的灵活
+
+```java
+package com.sam.utils;
+
+import org.apache.commons.beanutils.BeanUtils;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+
+public class WebUtils {
+  public static void copyParamToBean(Object bean, Map map) {
+    try {
+      BeanUtils.populate(bean, map);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+- 调用方法的时候
+```java
+User user = new User()
+WebUtils.copyParamToBean(user, req.getParameterMap());
+```
+
+- 我们还可以在写法上进行些优化:
+```java
+public class WebUtils {
+  public static Object copyParamToBean(Object bean, Map map) {
+    try {
+      BeanUtils.populate(bean, map);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  return bean
+}
+```
+
+- 调用的时候
+- 调整代码后 下面的代码一行就可以搞定
+```java
+User user = (User) WebUtils.copyParamToBean(new User(), req.getParameterMap());
+```
+
+
+- 上面的代码还需要进行类型的转换 我们发现我们传入实参的时候 传入的是User 类型就是User 传什么类型就是什么 所以我们可以使用 泛型方法
+
+```java
+public class WebUtils {
+  public static <T> T copyParamToBean(T bean, Map map) {
+    try {
+      BeanUtils.populate(bean, map);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  return bean
+}
+```
+
+- 调用的时候 我们发现不用类型转换了
+```java
+User user = WebUtils.copyParamToBean(new User(), req.getParameterMap());
+```
+
+----------------
+
+### 修改: 使用el表达式 修改表单的回显
+- 上面的逻辑中 关于表单信息的回显 我们使用的是 <%=%>表达式脚本
+- 现在我们要把它修改为 el表达式
+
+```html
+<span class="errorMsg">
+  <%= request.getAttribute("msg") == null ? "请输入用户名和密码" : request.getAttribute("msg") %>
+</span>
+
+<!-- 修改后 -->
+<span class="errorMsg">
+  ${ empty requestScope.msg ? "请输入用户名和密码" : requestScope.msg }
+</span>
+```
+
+
+- 这里看下 表达式脚本需要判断username是否为null 如果为null 我们要手动设置为""(要不然会显示null)
+
+- 但是el表达式比较简单 如果为空 默认就什么也不显示
+```html
+<input
+  value="<%=request.getAttribute("username") == null ? "" : request.getAttribute("username")%>"
+/>
+```
+
+```html
+<input
+  value="${requestScope.username}"
+/>
+```
+
+----------------
+
+### MVC概念
+- MVC全称:
+
+> Model 模型
+    将与业务逻辑相关的数据封装为具体的JavaBean类 其中不掺杂任何与数据处理相关的代码(JavaBean/Domain/entity/pojo)
+
+
+> View  视图:
+    只负责数据和界面的显示 不接受与显示数据无关的代码 便于程序员和美工的分工合作(jsp/html)
+
+
+> Controller  控制器:
+    只负责接收请求 调用业务层的代码处理请求 然后派发页面 是一个调度者的角色(servlet)
+
+
+- MVC最早出现在 JavaEE三层中的Web层 它可以有效的指导Web层的代码如何有效的分离 单独工作
+
+- MVC是一种思想
+- MVC的理念是将软件 代码 拆分成为组件 单独开发 组合使用(*目的为了降低耦合度*)
+
+<!-- 
+          MVC概念
+
+    MVC分层概念 目的就是为了降低耦合度 让各层的代码尽可能的独立工作 而不产生依赖 方便后期的升级和维护
+
+          页面 View 组件
+        -----------------
+        用户名: 
+        密码:
+        -----------------
+
+
+填充页面↗↙抽取模型                    跳转↖↘请求
+
+                  业务数据模型
+Model模型(JavaBean)   →               Controller控制器(接收 跳转)
+                     ←
+                  参数封装成Bean对象
+------------------                    ------------------
+private int xxx                       接收页面请求
+private String xxx                    封装参数成为javaBean对象
+
+get/set方法等                          转发 重定向让页面跳转
+
+ -->
+
+
+----------------
+
+### 书城项目： 图书模块 
+- 图书模块的功能包括
+- 1. 首页 
+- 图书的展示 和 下方的分页 上方有 图书价格的搜索(搜索?~?元之间的)
+
+- 2. 后台管理模块
+- 有一个图书列表的展示 是一个表格 展示图书的信息 有修改和删除等操作 还有添加图书
+
+
+> 开发流程
+- 1. 编写图书模块的数据库表
+- 2. 编写图书模块的JavaBean
+- 3. 编写图书模块的Dao和测试Dao
+- 4. 编写图书模块的Service和测试Service
+- 5. 编写图书模块的Web层和页面联调测试
+
+
+> 1. 编写图书模块的数据库表
+- 图书模块需要存储哪些数据呢？
+- 名称 价格 作者 销量 库存 图片路径
+- 每本书在首页会进行显示 这时候展示图片是需要一个路径的
+
+> 数据库代码
+```sql
+create table t_book(
+	`id` int primary key auto_increment,
+	`name` varchar(100),
+	`price` decimal(11,2),
+	`author` varchar(100),
+	`sales` int,
+	`stock` int,
+	`img_path` varchar(200)
+);
+
+-- 测试数据
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'java从入门到放弃' , '国哥' , 80 , 9999 , 9 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '数据结构与算法' , '严敏君' , 78.5 , 6 , 13 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '怎样拐跑别人的媳妇' , '龙伍' , 68, 99999 , 52 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '木虚肉盖饭' , '小胖' , 16, 1000 , 50 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'C++编程思想' , '刚哥' , 45.5 , 14 , 95 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '蛋炒饭' , '周星星' , 9.9, 12 , 53 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '赌神' , '龙伍' , 66.5, 125 , 535 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'Java编程思想' , '阳哥' , 99.5 , 47 , 36 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'JavaScript从入门到精通' , '婷姐' , 9.9 , 85 , 95 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'cocos2d-x游戏编程入门' , '国哥' , 49, 52 , 62 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'C语言程序设计' , '谭浩强' , 28 , 52 , 74 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'Lua语言程序设计' , '雷丰阳' , 51.5 , 48 , 82 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '西游记' , '罗贯中' , 12, 19 , 9999 , 'static/img/default.jpg');
+
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '水浒传' , '华仔' , 33.05 , 22 , 88 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '操作系统原理' , '刘优' , 133.05 , 122 , 188 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '数据结构 java版' , '封大神' , 173.15 , 21 , 81 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'UNIX高级环境编程' , '乐天' , 99.15 , 210 , 810 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , 'javaScript高级编程' , '国哥' , 69.15 , 210 , 810 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '大话设计模式' , '国哥' , 89.15 , 20 , 10 , 'static/img/default.jpg');
+ 
+insert into t_book(`id` , `name` , `author` , `price` , `sales` , `stock` , `img_path`) 
+values(null , '人月神话' , '刚哥' , 88.15 , 20 , 80 , 'static/img/default.jpg');
+ 
+select * from t_book;
+```
+
+
+> 2. 编写图书模块的JavaBean
+- JavaBean和表是相对应的 我们有一个什么表 就会有一个什么JavaBean
+
+- JavaBean中的属性 和 表中的字段是一一对应的
+
+  | - com.sam.pojo
+    - User
+    - Book
+
+```java
+package com.sam.pojo;
+
+import java.math.BigDecimal;
+
+public class Book {
+  private Integer id;
+  private String name;
+  private String author;
+  private BigDecimal price;
+  private Integer sales;
+  private Integer stock;
+
+  // 图书的默认地址
+  private String imgPath = "static/img/default.jpg";
+
+  
+  public Book(Integer id, String name, String author, BigDecimal price, Integer sales, Integer stock, String imgPath) {
+    this.id = id;
+    this.name = name;
+    this.author = author;
+    this.price = price;
+    this.sales = sales;
+    this.stock = stock;
+
+    // 如果没有imgPath或者赋值的是空串 才能够赋值 不然就使用默认值 保证首页图书是有封面的
+    if(imgPath != null && "".equals(imgPath)) {
+      this.imgPath = imgPath;
+    }
+  }
+
+
+  // setImgPath()方法也有必要这么设置下
+  public void setImgPath(String imgPath) {
+    if(imgPath != null && "".equals(imgPath)) {
+      this.imgPath = imgPath;
+    }
+  }
+
+  // 还有get set方法 空参构造器 toString等
+}
+ 
+```
+
+
+> 3. 编写图书模块的Dao和测试Dao
+- 实现图书模块Dao的步骤
+- 1. 创建图书模块Dao的接口
+
+  | - com.sam.dao
+    - BookDao(interface)
+    - 该接口中根据业务功能定义方法 比如有添加图书功能就在接口中定义添加方法
+    - 一共有增删改查的方法
+
+```java
+package com.sam.dao;
+import com.sam.pojo.Book;
+import java.util.List;
+
+public interface BookDao {
+  // 添加图书
+  public int addBook(Book book);
+
+  // 根据id删除图书
+  public int deleteBookById(Integer id);
+
+  // 修改图书
+  public int updateBook(Book book);
+
+  // 根据id查询指定图书
+  public Book queryBookById(Integer id);
+
+  // 查询所有图书
+  public List<Book> queryBooks();
+}
+
+```
+
+- 2. 创建 BookDao 的实现类
+
+  | - com.sam.dao.impl
+    - BookDaoImpl
+    - 它需要继承BaseDao并且实现BookDao接口
+
+<!-- 
+  回顾:
+  - BaseDao里面定义了
+  - 使用DbUtils操作数据 等方法
+
+  - update() 通过sql语句 对数据库进行 insert update delete等操作
+  - queryForOne() 通过sql语句返回一个对象
+  - queryForList() 通过sql语句返回多个对象 List
+  - queryForSingleValue() 通过sql语句返回一行中某一列的值
+ -->
+
+- BookDaoImpl类继承了BaseDao就意味着它可以通过父类中的方法操作数据库
+- BookDaoImpl类实现了BookDao接口就意味着 实现了接口中定义的方法 在实现方法中调用BaseDao里面的方法 操作数据库
+
+<!-- 
+  BaseDao里面的方法是直接操作数据库的
+
+  接口的实现方法() {
+    BaseDao继承方法()
+  }
+ -->
+
+- BookDaoImpl类的代码部分
+```java
+package com.sam.dao.impl;
+
+import com.sam.dao.BookDao;
+import com.sam.pojo.Book;
+
+import java.util.List;
+
+public class BookDaoImpl extends BaseDao implements BookDao {
+  @Override
+  public int addBook(Book book) {
+    String sql = "insert into t_book(`name`,`author`,`price`,`sales`,`stock`,`img_path`) values(?,?,?,?,?,?)";
+
+    return update(sql, book.getName(), book.getAuthor(), book.getPrice(), book.getSales(), book.getStock(), book.getImgPath());
+  }
+
+  @Override
+  public int deleteBookById(Integer id) {
+    String sql = "delete from t_book where id = ?";
+    return update(sql, id);
+  }
+
+  @Override
+  public int updateBook(Book book) {
+    String sql = "update t_book set `name` = ?,`author` = ?,`price` = ?,`sales` = ?,`stock` = ?,`img_path` = ? where id = ?";
+
+    //　我们传入的参数 和 sql语句中的 ? 一一匹配 比如最后一个id不要忘记传
+    return update(sql, book.getName(), book.getAuthor(), book.getPrice(), book.getSales(), book.getStock(), book.getImgPath(), book.getId());
+  }
+
+  @Override
+  public Book queryBookById(Integer id) {
+    // imgPath要加一个别名
+    String sql = "select `id` , `name` , `author` , `price` , `sales` , `stock` , `img_path` imgPath from t_book where id = ?";
+
+    return queryForOne(Book.class, sql, id);
+
+  }
+
+  @Override
+  public List<Book> queryBooks() {
+    String sql = "select `id` , `name` , `author` , `price` , `sales` , `stock` , `img_path` imgPath from t_book";
+
+    return queryForList(Book.class, sql);
+  }
+}
+
+```
+
+- 上面的类写完了 然后我们要进行测试
+- 以往我们都在 test 包下 写上 BookDaoTest 类 一个个方法去写的 我们也可以直接生成测试
+
+- 1. 选择 BookDao 接口
+- 2. 在接口中 按 ctrl + shift + t 创建测试
+- 3. 选择测试所在的包 destination package
+- 4. 选择测试的库 Junit 4
+- 5. 选择要测试的方法
+
+- 代码部分:
+```java
+package com.sam.test;
+
+import com.sam.dao.BookDao;
+import com.sam.dao.impl.BookDaoImpl;
+import com.sam.pojo.Book;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.junit.Assert.*;
+
+public class BookDaoTest {
+
+  // 测试的时候 需要一个 BookDao 因为我们要测的旧是它实现类的方法
+   private BookDao bookDao = new BookDaoImpl();
+
+  @Test
+  public void addBook() {
+    // id自增长为空 new BigDecimal因为类中定义的就是这个类型 imgPath为空因为使用默认值就可以
+    bookDao.addBook(new Book(null, "bookname1", "sam", new BigDecimal(99), 1000, 50, null));
+  }
+
+  @Test
+  public void deleteBookById() {
+  }
+
+  @Test
+  public void updateBook() {
+
+    bookDao.updateBook(new Book(21, "book_name1", "sam", new BigDecimal(99), 1000, 50, null));
+  }
+
+  @Test
+  public void queryBookById() {
+    System.out.println(bookDao.queryBookById(21));
+  }
+
+  @Test
+  public void queryBooks() {
+    List<Book> list = bookDao.queryBooks();
+    for(Book book: list) {
+      System.out.println(book);
+    }
+  }
+}
+```
+
+
+> 4. 编写图书模块的Service和测试Service
+- service层也是差不多 点定义一个 BookService接口
+
+  | - com.sam.service
+    - BookService(interface)
+
+- 定义 BookService接口
+```java
+package com.sam.service;
+
+import com.sam.pojo.Book;
+
+import java.util.List;
+
+public interface BookService {
+  // 添加图书
+  public void addBook(Book book);
+
+  // 删除图书
+  public void deleteBookById(Integer id);
+
+  // 修改图书
+  public int updateBook(Book book);
+
+  // 根据id查询指定图书
+  public Book queryBookById(Integer id);
+
+  // 查询所有图书
+  public List<Book> queryBooks();
+}
+
+```
+
+
+- 定义 BookService接口 的实现类
+```java
+package com.sam.service.impl;
+
+import com.sam.dao.BookDao;
+import com.sam.dao.impl.BookDaoImpl;
+import com.sam.pojo.Book;
+import com.sam.service.BookService;
+
+import java.util.List;
+
+public class BookServiceImpl implements BookService {
+
+  // service层会依赖于Dao层 通过bookDao去操作访问数据库
+  private BookDao bookDao = new BookDaoImpl();
+
+  @Override
+  public void addBook(Book book) {
+    bookDao.addBook(book);
+  }
+
+  @Override
+  public void deleteBookById(Integer id) {
+    bookDao.deleteBookById(id);
+  }
+
+  @Override
+  public void updateBook(Book book) {
+    bookDao.updateBook(book);
+  }
+
+  @Override
+  public Book queryBookById(Integer id) {
+    return bookDao.queryBookById(id);
+  }
+
+  @Override
+  public List<Book> queryBooks() {
+    return bookDao.queryBooks();
+  }
+}
+```
+
+
+- 测试 service接口
+```java
+package com.sam.test;
+
+import com.sam.pojo.Book;
+import com.sam.service.BookService;
+import com.sam.service.impl.BookServiceImpl;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+
+import static org.junit.Assert.*;
+
+public class BookServiceTest {
+  private BookService bookService = new BookServiceImpl();
+
+  @Test
+  public void addBook() {
+    bookService.addBook(new Book(null, "book_name2", "erin", new BigDecimal(199), 20, 0, null));
+  }
+
+  @Test
+  public void deleteBookById() {
+    bookService.deleteBookById(22);
+  }
+
+  @Test
+  public void updateBook() {
+    bookService.updateBook(new Book(22, "book_name2", "erin", new BigDecimal(199), 200, 0, null));
+  }
+
+  @Test
+  public void queryBookById() {
+    System.out.println(bookService.queryBookById(22));
+  }
+
+  @Test
+  public void queryBooks() {
+    for (Book queryBook : bookService.queryBooks()) {
+      System.out.println(queryBook);
+    }
+  }
+}
+```
+
+
+> 5. 编写图书模块的Web层和页面联调测试
+- 接下来我们写web层 web层的话是负责处理请求和响应 也就是servlet
+
+  | - com.sam.web
+    - BookServlet extends BaseServlet
+
+<!-- 
+  BaseServlet的逻辑是:
+  在post请求中
+  根据jsp页面中隐藏域的值 判断这次请求的动作 利用反射 调用对应的方法
+
+  String action = req.getParameter("action");
+  try {
+
+    // this是当前的对象实例 getClass() 就是获取父类(造this的类)
+    
+    Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);s
+    // this是当前的对象实例
+    method.invoke(this, req, res);
+
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+ -->
+
+
+- BookServlet程序中 每一个方法都会表示一个功能
+- 图书模块主要有:
+- 1. 添加图书
+- 2. 修改
+- 3. 删除
+- 4. 列表的展示
+
+
+> 列表的展示功能
+- 我们先完成列表的展示 列表需要数据 所以我们先完成查询图书的功能
+
+- 业务流程:
+
+- 首页开始 
+  -> 点击 后台管理 按钮后跳转 ↓
+  -> 点击 图书管理(manager.jsp) 按钮后跳转 ↓
+  -> (图书列表的页面)book_manager.jsp 
+  <!-- 
+    /pages/manager/book_manager.jsp页面 
+    该页面展示所有图书信息
+
+    这个jsp页面里面需要全部的图书信息 但是图书信息在数据库中 jsp页面是不能够查询数据库的
+    
+    但是 Dao可以 service层可以访问dao web层可以访问service
+  -->
+
+- 不应该让 点击 图书管理(manager.jsp)按钮后 直接跳到 (图书列表的页面)book_manager.jsp页面 *因为直接过去没有数据*
+
+- 整个流程就应该是这样:
+- BookServlet程序
+  - 该程序中需要提供 public void list() 该方法中应该完成如下的逻辑
+  - 1. 查询全部图书
+  - 2. 保存到request域中
+  - 3. 请求转发到 pages/manager/book_manager.jsp 页面 
+
+- 这样流程就可以了 当我们点击 图书管理 按钮后 到 BookServlet程序里面 然后servlet程序中查询了数据 保存了数据 转发页面到目标页
+
+- 这样由于请求转发是一次请求 它们共享request域中的数据 这样就有数据了
+
+- 然后 book_manager.jsp 页面 两个步骤
+- 1. 从request域中获取全部图书信息
+- 2. 使用jstl标签库遍历输出
+
+**总结**
+- 如果访问jsp无法直接得到数据 那么可以让程序先访问servlet程序 再转发
+
+
+> 1. 给 BookServlet程序 添加访问地址
+- 相当于配置路由
+
+```xml
+<servlet-mapping>
+  <servlet-name>BookServlet</servlet-name>
+  <url-pattern>/manager/book_list</url-pattern>
+</servlet-mapping>
+```
+
+**注意:**
+- 接口地址的位置 我们以前都是直接写的 /接口名
+- 现在为什么要在前面加了一层路径名?
+- 接口地址前面还加上了 /manager 这是为了后面的权限管理 用的
+
+- 一个项目是分 前台 和 后台的
+
+- 前台页面:
+- 前台是给普通用户使用 一般不需要权限检查就可以访问的资源/功能 都属于前台页面
+<!-- 
+  比如:
+  - 淘宝不登录就可以访问的首页(包含 商品的浏览)
+ -->
+
+- 后台页面:
+- 后台是给管理员使用的 一般都需要权限检查 才可以访问到的资源/页面/功能 这属于后台页面
+<!-- 
+  比如:
+  - 管理员要添加一个商品 修改价格 这必须是有权限的管理员才可以
+ -->
+
+- 后台页面一般都需要权限检查
+- 我们会通过url地址做权限检查
+
+- 前端地址 比如: /client/book_list
+- 后台地址 比如: /manager/book_list
+
+- 这样我们只要看到manager就是后台的 这时候我们就需要对它进行权限管理
+
+
+
+> 2. 修改 <a>图书管理</a> 的href地址
+- 接口地址 /manager/book_list 默认是接在工程名的后面 
+- <a href="manager/book_list?action=list">图书管理</a>
+<!-- 
+  a标签点击是get请求
+  但是我们BaseServlet里面没有doGet方法 我们可以在BaseServlet里面重写doGet()方法 在里面调用 doPost()
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    doPost(req, res);
+  }
+
+  不然的话会有405错误 这样get方法和post方法做的事情都是一样的
+ -->
+
+- 要点:
+- 1. manager/book_list 是前面没有 /
+- 2. 后面加上了action参数 值为 servlet程序中定义的方法名 因为我们程序中的逻辑是根据action的值 通过反射调用action的值的同名方法
+
+
+> 3. BookServlet程序中 list() 方法中的逻辑
+```java
+// 方法的外层需要这个对象
+private BookService bookService = new BookServiceImpl();
+
+protected void list(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 1. 创建 bookService 对象(service层) 查询全部图书
+  List<Book> books = bookService.queryBooks();
+
+  // 2. 把全部图书保存到request域中
+  req.setAttribute("books", books);
+
+  // 3. 请求转发到 /pages/manager/book_manager.jsp页面
+  // /表示到工程名也就是web目录
+  req.getRequestDispatcher("/pages/manager/book_manager.jsp").forward(req, res);
+}
+```
+
+
+> 4. 写book_manager.jsp页面的逻辑
+- 页面中需要使用jstl标签库 所以要导入jstl jar包
+
+```html
+<c:forEach items="${requestScope.books}" var="book">
+<tr>
+  <td>${book.name}</td>
+  <td>${book.price}</td>
+  <td>${book.author}</td>
+  <td>${book.sales}</td>
+  <td>${book.stock}</td>
+  <td><a href="book_edit.jsp">修改</a></td>
+  <td><a href="#">删除</a></td>
+</tr>
+</c:forEach>
+```
+
+------
+
+> 添加图书功能
+- jsp页面中 添加图书 的按钮 也是一个 <a>标签
+- <td><a href="pages/manager/book_edit.jsp">添加图书</a></td>
+
+- 点击 添加图书 后会跳转到另一个页面 编辑图书页面
+- 我们在编辑图书页面 添加图书信息 然后可以点击提交
+
+> 整体页面流程分析:
+- 在图书列表页面 点击 *添加图书* 按钮 会跳转到 编辑图书的页面
+
+- 编辑图书的页面就是一个表单 里面需要输入图书的信息 然后有*提交按钮*
+
+- 我们在表单中输入内容后 我们会点击提交 会提交到服务器(BookServlet程序)
+<!-- 
+  这里的表单还需要一个 隐藏域用于 程序中利用反射 调取隐藏域中的value的值的同名方法
+ -->
+```html
+<form action="manager/book_list" method="get">
+  <input type="hidden" name="action" value="add"> <br>
+```
+
+- BookServlet程序中 每个功能都会有一个对应的方法
+- public void add() -- 负责添加图书
+
+- add()方法中需要处理以下的逻辑
+- 1. 获取请求的参数 封装成为Book对象
+- 2. 调用bookService.addBook()方法添加 保存图书到数据库
+- 3. 上面的逻辑已经完成 但是我们点击提交后 应该跳回 图书列表页面 页面上需要展示新的图书
+- 所以3里面还要跳到图书列表页面 跳的时候的地址是
+- /manager/book_list?action=list
+
+- 这样跳过去会再走一遍list()请求数据的逻辑
+
+
+> 代码部分
+- 图书编辑jsp页面的调整
+```html
+  <div id="main">
+  <form action="manager/book_list" method="get">
+    <!-- 
+      form表单里面要用隐藏域告诉服务器调用哪个方法
+    -->
+    <input type="hidden" name="action" value="add"> <br>
+
+<!-- 表单项的name属性值 要和javaBean中的属性一致 -->
+<td><input name="name" type="text" value="时间简史"/></td>
+<td><input name="price" type="text" value="30.00"/></td>
+<td><input name="author" type="text" value="霍金"/></td>
+<td><input name="sales" type="text" value="200"/></td>
+<td><input name="stock" type="text" value="300"/></td>
+<td><input type="submit" value="提交"/></td>
+```
+
+- BookServlet程序逻辑
+```java
+protected void add(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 1. 获取请求参数 封装成book对象
+    Book book = WebUtils.copyParamToBean(new Book(), req.getParameterMap());
+
+    // 2. 调用 BookService.addBook() 保存图书
+    bookService.addBook(book);
+
+    // 3. 跳转到图书列表页面 /manager/bookServlet?action=list
+    req.getRequestDispatcher("/manager/bookServlet?action=list").forward(req, res);
+  }
+```
+
+- 当用户点击提交就会到 add() 方法内 执行里面的逻辑
+- 1 2 3 
+- 然后跳转到 图书列表 页面 这时候的页面地址如下
+- localhost:8080/book/manager/book_list?action=add&name=时间简史&price=30&author=霍金&sales=200
+
+- 但是这里有个*bug* 当用户在图书列表页面(上面的url) 刷新页面的时候 又会走 add() 方法里面的逻辑了 造成了图书再一次的被添加 再刷新又添加
+
+
+> 这就是表单重复提交
+- 当用户提交完请求 浏览器会记录下最后一次请求的全部信息 
+- 当用户按下F5刷新页面 就会发起浏览器记录的最后一次请求
+- 而我们的最后一次请求就是添加图书的操作
+
+- 所以我们add()方法的最后不应该用请求转发 因为请求转发是一次请求 我们要使用*重定向*
+<!-- 
+  // 不应该用这个
+  req.getRequestDispatcher("/manager/bookServlet?action=list").forward(req, res);
+ -->
+
+> 修改后
+```java
+protected void add(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 1. 获取请求参数 封装成book对象
+    Book book = WebUtils.copyParamToBean(new Book(), req.getParameterMap());
+
+    // 2. 调用 BookService.addBook() 保存图书
+    bookService.addBook(book);
+
+    // 3. 跳转到图书列表页面 /manager/bookServlet?action=list
+    // 请求转发会造成 表单的重复提交 这里我们使用 重定向
+    // req.getRequestDispatcher("/manager/book_list?action=list").forward(req, res);
+
+    // 请求转发的/是到web 重定向的/表示到端口号 所以我们要把工程名加上
+    res.sendRedirect(req.getContextPath() + "/manager/book_list?action=list");
+  }
 ```
