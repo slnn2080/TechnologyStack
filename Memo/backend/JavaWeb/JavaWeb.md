@@ -1415,6 +1415,15 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws S
 > req.getScheme()
 - 可以获取请求的协议
 
+
+> req.getContextPath()
+- 获取工程路径名
+
+- 返回值类型
+- String
+- /project
+
+
 > req.getInputStream()
 - 获取字节输入流对象 可以将流形式的文字读到内存中
 ```java
@@ -4592,7 +4601,7 @@ ${pageContext.九大内置对象}
 
 
 > param(Map<String, String>):
-- 可以获取请求参数的值
+- 可以获取请求参数的值 获取说地址栏后面的search值
 ```java
 // http:localhost:8080/?username=sam6age=18
 
@@ -7121,4 +7130,1834 @@ protected void add(HttpServletRequest req, HttpServletResponse res) throws Servl
     // 请求转发的/是到web 重定向的/表示到端口号 所以我们要把工程名加上
     res.sendRedirect(req.getContextPath() + "/manager/book_list?action=list");
   }
+```
+
+------
+
+> 删除图书功能
+- 图书列表页面 有删除按钮
+```html
+<tr>
+  <td>${book.name}</td>
+  <td>${book.price}</td>
+  <td>${book.author}</td>
+  <td>${book.sales}</td>
+  <td>${book.stock}</td>
+
+  <td><a href="book_edit.jsp">修改</a></td>
+  <td><a href="#">删除</a></td>
+</tr>
+```
+
+- 我们点击删除按钮的时候 要传递该行图书的id
+<td>
+<a 
+href="manager/book_list?action=delete&id=${book.id}">
+  删除
+</a>
+</td>
+
+- 我们点击删除后 发送请求带服务器
+- 请求地址 /manager/book_list?action=delete&id=?
+<!-- 我们还要告诉服务器删除哪本书所以要传递图书id -->
+
+- 服务器端收到请求处理逻辑之后 就会在delete()方法中处理逻辑
+- 逻辑为:
+- 1. 获取请求参数 图书id
+- 2. 调用bookService.deleteBookById()删除图书
+- 3. 重定向回图书列表 /project/manager/book_list?action=list
+
+
+```java
+protected void delete(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // - 1. 获取请求参数 图书id
+  String id = req.getParameter("id");
+
+  // 因为req.getParameter("id")获取的id的类型是 String 而deleteBookById()需要传递的是 Integer 类型 这就需要类型的转换
+  int bookId = 0;
+  try {
+    bookId = Integer.parseInt(id);
+  } catch (NumberFormatException e) {
+    e.printStackTrace();
+  }
+
+  // - 2. 调用bookService.deleteBookById()删除图书
+  bookService.deleteBookById(bookId);
+
+}
+```
+
+- 优化下 将转换字符串id为数字id的逻辑 抽离到工具类中
+
+- 前端传递过来的参数的类型是字符串 我们在java层面又需要将字符串转换为Integer类型 所以我们在转换的逻辑 放到工具类中
+
+  | - com.sam.utils
+    - WebUtils里面写上转换的方法
+
+```java
+public static int ParseInt(String strInt, int defaultValue) {
+  try {
+    return Integer.parseInt(strInt);
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+
+  // 当没有转换成功的时候 我们返回个默认值
+  return defaultValue;
+}
+```
+
+- 优化:
+- 为了防止用户误操作我们在删除的时候都要提示用户
+- 我们要给所有的 删除按钮 绑定单击事件 在每次点击的时候 给用户提示操作
+
+- book_manager.jsp页面
+```js
+$(function() {
+  $(".del-btn").on("click", function() {
+    // 直接return 它就可以
+    return confirm("您确定要删除 [" + $(this).parent().parent().find("td:first").text() + "] 么")
+
+    // 如果用户点击的是确定 那么就是 return true 会跳转到a标签指定的路径 如果用户点击的是false 那么会直接取消
+  })
+})
+
+// 开始我还在想 给confirm的结果用flag变量来接收 click逻辑里面使用 flag判断true 就location.href但是这么写就要涉及到怎么在js中拿到java域中的参数 一开始觉得直接使用el表达式就可以 但发现我们要拿的是一本书的信息(id) 如果真是这样就要js和java互相传递数据 和 调用方法了 这就乱了
+
+<td><a class="del-btn" href="manager/book_list?action=delete&id=${book.id}">删除</a>
+```
+
+- BookServlet程序
+```java
+protected void delete(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // - 1. 获取请求参数 图书id
+  String id = req.getParameter("id");
+  int bookId = WebUtils.ParseInt(id, 0);
+
+  // - 2. 调用bookService.deleteBookById()删除图书
+  bookService.deleteBookById(bookId);
+
+  // - 3. 重定向回图书列表 /project/manager/book_list?action=list
+  res.sendRedirect(req.getContextPath() + "/manager/book_list?action=list");
+
+}
+```
+
+------
+
+> 修改图书功能
+- 添加图书的功能的前端界面是: pages/manager/book_edit.jsp
+- 修改图书的功能的前端界面是: pages/manager/book_edit.jsp
+
+- 正常我们点击 添加图书的按钮后 会跳转到 book_edit.jsp 页面 这没有问题 但是 book_edit.jsp页面的内容最好是空的 不要有图书信息在
+
+- 而点击修改图书 跳转到 book_edit.jsp 页面的时候 该页面呈现的应该是 该行图书的信息
+
+<!-- 
+  待留问题:
+  - 添加图书 和 修改图书 都是一个页面 这个页面就一个提交按钮
+
+  - 现在的情况是 form表单中用了 隐藏域 点击提交会走 servlet程序中的 add() 方法
+
+  - 1. 怎么区分是 添加图书还是修改图书?
+    - 解决方式在下方
+
+  - 2. 怎么区分是 让添加图书的时候 表单内容为空 修改图书的时候表单中呈现该行图书的信息呢？
+      - 修改的时候 会从 request域中取值 显示
+      - 但是 添加的时候 从 request域中取值 会是空 什么也不显示
+ -->
+
+- 上面的先不管
+> 部分功能1: 点击修改按钮 跳转到 book_edit 页面 回显该行图书信息
+- 我们在图书管理页面 点击修改按钮后 不能直接跳到book_edit.jsp页面 因为直接过去 没有数据(该行图书的回显数据)
+
+- 我们要先走 servlet程序 该程序中有
+- 也就是说 我们点击 修改 按钮要先跳转到 BookServlet 程序
+- 跳转地址为:
+- manager/book_list?action=getBook&id=图书编号 
+
+BookServlet程序中有如下方法
+- public void getBook() 方法 用于获取要修改的图书信息
+
+- 该方法中的逻辑:
+- 1. 获取图书编号
+- 2. 调用BookService.queryBookById(id) 得到修改的图书信息
+- 3. 包该图书信息保存到 request域中
+- 4. 请求转发到 book_edit.jsp页面 /pages/manager/book_edit.jsp
+
+> 代码部分
+- book_manager.jsp页面
+- 当我们点击 修改按钮的时候 让它先转到到 BookServlet 程序
+- 地址:
+- manager/book_list?action=getBook&id=${book.id}
+
+```html
+<c:forEach items="${requestScope.books}" var="book">
+<tr>
+  <td>${book.name}</td>
+  <td>${book.price}</td>
+  <td>${book.author}</td>
+  <td>${book.sales}</td>
+  <td>${book.stock}</td>
+  <td><a href="manager/book_list?action=getBook&id=${book.id}">修改</a></td>
+  <td><a class="del-btn" href="manager/book_list?action=delete&id=${book.id}">删除</a></td>
+</tr>
+</c:forEach>
+```
+
+- BookServlet程序中的 getBook()
+```java
+protected void getBook(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // - 1. 获取图书编号
+  String id = req.getParameter("id");
+  int bookId = WebUtils.ParseInt(id, 0);
+
+  // - 2. 调用BookService.queryBookById(id) 得到修改的图书信息
+  Book book = bookService.queryBookById(bookId);
+
+  // - 3. 包该图书信息保存到 request域中
+  req.setAttribute("bookInfo", book);
+
+  // - 4. 请求转发到 book_edit.jsp页面 /pages/manager/book_edit.jsp
+  req.getRequestDispatcher("/pages/manager/book_edit.jsp").forward(req,res);
+}
+```
+
+- book_edit.jsp
+- 我们将request域中的数据 取出来做展示
+```html
+<tr>
+  <td><input name="name" type="text" value="${requestScope.bookInfo.name}"/></td>
+  <td><input name="price" type="text" value="${requestScope.bookInfo.price}"/></td>
+  <td><input name="author" type="text" value="${requestScope.bookInfo.author}"/></td>
+  <td><input name="sales" type="text" value="${requestScope.bookInfo.sales}"/></td>
+  <td><input name="stock" type="text" value="${requestScope.bookInfo.stock}"/></td>
+  <td><input type="submit" value="提交"/></td>
+</tr>	
+```
+
+
+> 部分功能2: 修改后 提交到数据库保存
+- 修改图书的逻辑
+- 1. 把要修改的图书信息回显到表单项中
+- 2. 提交修改后的数据给服务器保存修改(这个部分要做的)
+
+- BookServlet程序中有
+- public void update() 方法 该方法的逻辑为 保存修改图书的操作
+
+- 方法内的逻辑
+- 1. 获取请求的参数 封装成为book对象
+- 2. 调用BookService.updateBook(book) 修改图书
+- 3. 重定向到图书列表管理页面
+- /工程名/manager/book_list?action=list
+
+- book_edit.jsp页面中
+- 当我们修改完图书的信息后 我们会点击 提交 按钮 我们需要提交到BookServlet程序的 update()方法中
+
+- 这里有一个问题:
+- book_edit.jsp页面 上面我们已经用来做添加图书的功能了 我们已经在隐藏域中 设置了 action=add 但现在我们还要用它做修改操作 
+
+- 也就是说 action=? 不能是固定的 它要可变才可以
+- 也就是说 我们遇到的问题是 该页面 即要做添加操作 又要做修改操作 而到底是添加 还是修改 是由一个隐藏域来决定的
+
+- 那如果动态的修改 隐藏域 让它的值既可以实现添加 又可以实现 修改操作呢？
+
+  <input type="hidden" name="action" value="?">
+
+> 解决方法1:
+- 可以发起请求时 附带上当前要操作的值 并注入到隐藏域中
+- 我们请求发起 都是用 图书管理页面(book_manager.jsp) 的修改按钮开始
+- 我们可以在 
+- 添加图书 的href中 附带上参数
+  <a href="pages/manager/book_edit.jsp?method=add">添加图书</a>
+
+- 修改 的 href中 附带上参数
+  <a href="manager/book_list?action=getBook&id=${book.id}&method=update">修改</a>
+
+- 然后 我们在 book_edit.jsp 页面 从url上获取携带参数 动态决定action的值
+  <input type="hidden" name="action" value="${param.method}">
+
+> 解决方法2:
+- 可以通过判断当前请求参数中是否含有id参数 如果有说明是修改操作 如果没有说明是添加操作
+
+- 情况说明:
+- 我们在图书管理页面中 点击添加图书按钮 这时候跳转到book_edit.jsp页面的时候 *url后面没有参数*
+- http://localhost:8080/project/pages/manager/book_edit.jsp
+
+- 我们在图书管理页面中 点击修改按钮 这时候跳转到book_edit.jsp页面的时候 *url后面是有id参数的*
+- http://localhost:8080/project/manager/book_list?action=getBook&id=1
+
+- 那么我们就可以判断 url上有没有id参数来决定 book_edit.jsp 页面中的form表单 到底是做添加操作还是修改操作的
+
+- 我们在 book_edit.jsp 页面中 使用 el表达式来完成逻辑
+  <input type="hidden" name="action" value="${empty param.id ? "add" : "update"}">
+
+
+> 解决方法3:
+- 可以通过判断 request域中是否包含有修改的图书信息对象 如果没有说明是添加操作 如果有说明是修改操作
+
+- 我们点击 添加图书的时候 直接跳转到 book_edit.jsp 页面
+- 我们点击 修改按钮的时候 会先走servlet程序 先获取图书编号 根据图书编号查询有没有图书 然后将图书放到了request域中
+
+- 也就是说 我们在 book_edit.jsp 页面中可以判断下 如果request中有一个图书的对象的话 就说明是修改操作 如果没有图书对象的话 就是添加操作
+<!-- 
+  request域中的数据的周期是一次请求 所有不用担心存了一次 一直都有
+ -->
+
+  <input type="hidden" name="action" value="${empty requestScope.book ? "add" : "update"}">
+
+
+- 还有另外一个问题:
+- book_edit.jsp 页面中的项是
+- 名称
+- 价格
+- 作者
+- 销量
+- 库存
+
+- 没有id
+- 但是我们通过sql去修改图书信息的时候 必须要有一个id 不然id为null sql里的where id = null 没有办法过滤了
+
+- 所以我们还要在 book_edit.jsp 页面中 添加一个 id的隐藏域
+  <input type="hidden" name="id" value="${requestScope.bookInfo.id}">
+
+
+- BookServlet程序中的update方法
+```java
+protected void update(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // - 1. 获取请求的参数 封装成为book对象
+  Book book = WebUtils.copyParamToBean(new Book(), req.getParameterMap());
+
+  // - 2. 调用BookService.updateBook(book) 修改图书
+  bookService.updateBook(book);
+
+  // - 3. 重定向到图书列表管理页面
+  res.sendRedirect(req.getContextPath() + "/manager/book_list?action=list");
+}
+```
+
+------
+
+> 图书分页功能
+- 上面我们已经完成了 图书的添加 删除 修改等功能
+- 我们接下来看看图书的分页
+
+- 我们现在的 图书列表 页面是一次性的将所有的图书数据显示在页面上
+- 但是在实际的开发中是不会这么做的 因为一次性的加载全部的数据会非常的慢 而且显示在界面会显的很凌乱 在实际的项目中会对数据进行分页处理
+
+- 我们希望 每页显示5条数据 表格的下方有分页器
+
+
+> 分页的逻辑
+- 我们创建Page类 用于页面上显示数据(每页显示5条数据 表格的下方有分页器)
+
+- 页面上有什么信息 Page类中就应该有什么属性
+
+> Page类中的属性:
+- pageNo: 当前页码
+- pageToTal: 总页码
+- pageTotalCount: 总记录数
+- pageSize: 每页显示几行
+
+- items: 当前页的数据(5条数据)
+
+- pageNo: 当前页码是由客户端进行传递
+  客户端发过来是多少 就是多少 用户点击分页器的页数 就是pageNo
+
+- pageSize: 每页显示数据是由两种因素决定
+  - 1. 客户端进行传递(很多分页器可以指定每页显示几条)
+  - 2. 由页面布局决定(比如现在书城项目的布局决定了 每页只能显示4条)
+
+- pageTotalCount: 总记录数 可以由sql语句求出
+  select count(*) from 表名
+
+- pageToTal: 总页码 就由 总记录数 / pageSize
+  如果 总记录数 % 每页数量 > 0 相当于除不尽 
+  剩下的则 总页码 + 1
+
+- items: 当前页的数据(5条数据)
+  是当前页数据 也是可以由 sql 数据求的
+
+```sql
+  select * from 表名 
+  limit ,(pageNo - 1) * pageSize, pageSize
+```
+  
+> 分析:
+- 当我们点击 分页器中点选项的时候(第几页 上一页 下一页等) 就会发起请求给BookServlet 让服务器执行功能
+
+- 而每一个功能都会有一个响应的方法 所以在BookServlet程序中
+- public void page() 该方法用来处理分页
+
+- jsp页面点击 第3页 按钮的时候 会发起请求 这时候需要传递两个参数
+  - pageNo
+  - pageSize
+
+> web层 BookServlet
+- 然后 page() 方法中的逻辑
+- 1. 获取请求参数 pageNo pageSize
+- 2. 调用 BookService.page(pageNo, pageSize) 该返回会返回page分页的对象(这个对象用于我们在页面上进行数据的输出)
+- 3. 保存到request域中
+- 4. 然后请求转发到 /pages/manager/bok_manager.jsp 页面
+
+> service层 BookService
+- 因为web层page()方法中 调用了BookService.page()所以我们这里提供了一个方法 供web层来调用
+
+- public Page page(pageNo, pageSize) 内部处理分页业务
+- 求 pageTotal pageTotalCount items的属性 因为我们要拿到上述的5个属性 然后封装成一个Page对象 返回
+
+- pageTotal:
+  - select count(*) from 表名
+
+- items:
+  - select * from 表名 limit begin, pageSize
+
+
+> dao层 BookDao
+- 它是跟数据进行交互的 所以这里我们要提供跟数据库交互的方法 和 要执行的语句
+
+- 求总记录数
+- queryForPageTotaCount() 
+
+- 求当前页数据
+- queryForItems()
+
+
+- 分析完之后 我们就按照上面的逻辑开始写代码
+
+> jsp页面导航栏中
+```html
+<div>
+<a href="manager/book_list?action=page">图书管理</a>
+<a href="pages/manager/order_manager.jsp">订单管理</a>
+<a href="../../index.jsp">返回商城</a>
+</div>
+```
+
+<a href="manager/book_list?action=list">
+改成了
+<a href="manager/book_list?action=page">
+
+- 前面的逻辑都是 点击 图书管理 会跳到 BookServlet程序中的 list() 方法里面 但是我们现在要开始进行 分页了 所以我们要跳到page()里面 所以修改下
+
+
+
+> Page对象的创建
+```java
+public class Page {
+
+  // 每页显示的条数 一般都是常量
+  public static final Integer PAGE_SIZE = 5;
+
+  private Integer pageNo;
+  private Integer pageSize = PAGE_SIZE;
+  // 总页码
+  private Integer pageTotal;
+  // 总记录数
+  private Integer pageTotalCount;
+  // 当前页数据
+  private List<Book> items;
+
+  // 空参 有参的构造器 老师说暂时用不上 就不用生成先
+
+}
+```
+
+- 上面基本上就创建完了
+- 我们上面是对图书模块进行分页 items里面是图书的信息
+- 那如果说用户模块也需要分页怎么办？ items里面就应该使用户的信息 那如果还有商户模块需要分页呢？
+
+- 也就是说 items 里面的数据是由当前某块动态的发生改变的
+- 为了让我们的分页能够适应所有的模块 那么我们就应该使用*泛型*
+
+```java
+public class Page<T> {
+
+  // 每页显示的条数 一般都是常量
+  public static final Integer PAGE_SIZE = 5;
+
+  private Integer pageNo;
+  private Integer pageSize = PAGE_SIZE;
+  // 总页码
+  private Integer pageTotal;
+  // 总记录数
+  private Integer pageTotalCount;
+  // 当前页数据
+  private List<T> items;
+
+  // 空参 有参的构造器 老师说暂时用不上 就不用生成先
+
+}
+```
+
+
+> BookServlet程序
+- web层的逻辑
+
+```java
+protected void page(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 获取请求参数 pageNo pageSize  如果pageNo 没有传我们默认应该是第一页 不要填0 这种情况下是用户刚进入到这个页面默认展示第一页数据
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+  int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+  // 调用 BookService.page(pageNo,pageSize) 返回的就是page对象
+  Page<Book> page = bookService.page(pageNo, pageSize);
+
+  // 保存page对象到request域中
+  req.setAttribute("page", page);
+
+  // 请求转发到 /pages/manager/book_manager.jsp页面
+  req.getRequestDispatcher("/pages/manager/book_manager.jsp").forward(req, res);
+}
+```
+
+
+> BooKService接口
+```java
+package com.sam.service;
+
+import com.sam.pojo.Book;
+import com.sam.pojo.Page;
+
+import java.util.List;
+
+public interface BookService {
+  public void addBook(Book book);
+  public void deleteBookById(Integer id);
+  public void updateBook(Book book);
+  public Book queryBookById(Integer id);
+  public List<Book> queryBooks();
+
+  // page抽象方法
+  Page<Book> page(int pageNo, int pageSize); 
+}
+```
+
+- BookServiceImpl实现类
+```java
+public Page<Book> page(int pageNo, int pageSize) {
+
+  // page对象
+  Page<Book> page = new Page<>();
+
+  // 这里没有利用构造器来赋值 而是通过set方法 为啥呢？
+  page.setPageNo(pageNo);
+  page.setPageSize(pageSize);
+
+  // 总记录数
+  Integer pageTotalCount = bookDao.queryForPageTotalCount();
+  page.setPageTotalCount(pageTotalCount);
+
+  // 总页码
+  Integer pageTotal = pageTotalCount / pageSize;
+  if(pageTotalCount % pageSize > 0) {
+    pageTotal++;
+  }
+  page.setPageTotal(pageTotal);
+
+  // 当前页数据
+  int begin = (pageNo - 1) * pageSize;
+  List<Book> items = bookDao.queryForPageItems(begin, pageSize);
+  page.setItems(items);
+
+  return page;
+}
+```
+
+
+> BookDao接口
+```java
+package com.sam.dao;
+
+import com.sam.pojo.Book;
+
+import java.util.List;
+
+public interface BookDao {
+  public int addBook(Book book);
+  public int deleteBookById(Integer id);
+  public int updateBook(Book book);
+  public Book queryBookById(Integer id);
+  public List<Book> queryBooks();
+
+  // 总记录数
+  Integer queryForPageTotalCount();
+
+  // 当前页显示数据
+  List<Book> queryForPageItems(int begin, int pageSize);
+}
+
+```
+
+- BookDaoImpl实例类
+```java
+@Override
+public Integer queryForPageTotalCount() {
+  String sql = "select count(*) from t_book";
+
+  // queryForSingleValue(sql)方法返回的类型是 Object 这里我们可以定义为Number类型 然后调用 intValue 取到int型的数据 然后自动装箱为 Integer
+  Number count = (Number) queryForSingleValue(sql);
+  return count.intValue();
+}
+
+@Override
+public List<Book> queryForPageItems(int begin, int pageSize) {
+  // 这里面不要用 * 要写列名
+  String sql = "`id` , `name` , `author` , `price` , `sales` , `stock`, `img_path` imgPath from t_book limit ?, ?";
+  return queryForList(Book.class, sql, begin, pageSize);
+}
+```
+
+- 都写完了后 我们要开始测试
+- 测试的准则是 最小单元开始测试 我们从Dao开始测试
+
+- Dao测试
+```java
+@Test
+public void queryForPageTotalCount() {
+  System.out.println(bookDao.queryForPageTotalCount());
+}
+
+@Test
+public void queryForPageItems() {
+  for (Book book : bookDao.queryForPageItems(8, 4)) {
+    System.out.println(book);
+  }
+}
+```
+
+
+- BookService测试
+```java
+@Test
+public void page() {
+  System.out.println(bookService.page(1, 5));
+}
+```
+
+- web层测试
+- web层的测试是跟页面一起联调的
+
+- book_manager.jsp
+- 以前我们是遍历 requestScope.books 现在我们要遍历requestScope.page.items
+```html
+<c:forEach items="${requestScope.page.items}" var="book">
+<tr>
+  <td>${book.name}</td>
+  <td>${book.price}</td>
+  <td>${book.author}</td>
+  <td>${book.sales}</td>
+  <td>${book.stock}</td>
+  <td><a href="manager/book_list?action=getBook&id=${book.id}">修改</a></td>
+  <td><a class="del-btn" href="manager/book_list?action=delete&id=${book.id}">删除</a></td>
+</tr>
+</c:forEach>
+```
+
+- 分页器的部分
+```html
+<div id="page_nav">
+  <a href="#">首页</a>
+  <a href="#">上一页</a>
+  <a href="#">3</a>
+  【${requestScope.page.pageNo}】
+  <a href="#">5</a>
+  <a href="#">下一页</a>
+  <a href="#">末页</a>
+  共${requestScope.page.pageTotal}页，${requestScope.page.pageTotalCount}条记录 到第<input value="4" name="pn" id="pn_input"/>页
+  <input type="button" value="确定">
+</div>
+```
+
+------
+
+> 图书管理页面 分页器 首页 末页 上下一页功能实现
+```html
+<div id="page_nav">
+  <a href="#">首页</a>
+  <a href="#">上一页</a>
+  <a href="#">3</a>
+  【${requestScope.page.pageNo}】
+  <a href="#">5</a>
+  <a href="#">下一页</a>
+  <a href="#">末页</a>
+
+  共${requestScope.page.pageTotal}页，${requestScope.page.pageTotalCount}条记录 
+
+  到第<input value="4" name="pn" id="pn_input"/>页
+  <input type="button" value="确定">
+</div>
+```
+
+> 分析
+- 我们传递到 page() 方法里面 主要需要的就是 pageNo
+
+- 我们发现 每一个按钮其实都是一个<a>标签 这样我们点击一个<a>标签 实际上就是给BookServlet中的page()方法 发请求
+
+- 这样我们点击<a>标签的时候 只需要发送到后台的Servlet程序的页码不同就可以
+- 比如 我点击3 发送的页码就是3 我点击5 发送的页码就是5
+- 点上一页就是当前的页码-1
+- 点首页固定就是1 点末页就是总页码
+- 点下一页就是当前的页码+1
+
+- 除了发送一个固定的pageNo以外 没有什么区别 请求都是给 page() 方法
+
+- 修改后的jsp页面
+- 把href地址修改为 给BookServlet发请求 并且指定到page()方法里面 后面并携带上pageNo的参数
+```html
+<div id="page_nav">
+  <!-- 首页 pageNo 为1 -->
+  <a href="manager/book_list?action=page&pageNo=1">首页</a>
+
+  <!-- 上一页 现在的页码 - 1 -->
+  <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageNo - 1}">上一页</a>
+
+
+  <a href="#">3</a>
+  【${requestScope.page.pageNo}】
+  <a href="#">5</a>
+
+  <!-- 下一页 现在的页码 + 1 -->
+  <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageNo + 1}">下一页</a>
+
+  <!-- 末页 就是总页码 -->
+  <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageTotal}">末页</a>
+  共${requestScope.page.pageTotal}页，${requestScope.page.pageTotalCount}条记录 到第<input value="4" name="pn" id="pn_input"/>页
+  <input type="button" value="确定">
+	</div>
+```
+
+
+> 优化:
+- 如果已经是末页了 那么下一页按钮 应该禁用
+- 如果已经是首页了 那么上一页按钮 应该禁用
+
+- 百度的方案:
+- 如果是首页的时候 上一页的按钮是不显示的
+
+- 淘宝的方案:
+- 如果是首页的时候 上一页的按钮是禁用的状态
+
+- 我们这里选择使用百度的方案(简单点)
+
+```html
+<!-- 当前页码 > 1 才显示 首页和上一页 -->
+<c:if test="${requestScope.page.pageNo > 1}">
+  <a href="manager/book_list?action=page&pageNo=1">首页</a>
+  <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageNo - 1}">上一页</a>
+</c:if>
+
+
+<!-- 当前页面 < 最后一页的时候 才显示末页和下一页 -->
+<c:if test="${requestScope.page.pageNo < requestScope.page.pageTotal}">
+  <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageNo + 1}">下一页</a>
+  <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageTotal}">末页</a>
+</c:if>
+```
+
+------
+
+> 图书管理页面 分页器 跳转到指定页数功能实现
+- 分页器中 可以输入指定的页数 点击确定可以跳转到指定的页码
+
+- 1. 我们要给确定按钮绑定 click 事件
+```js
+$("#page-btn").on("click", function() {
+  // 获取页码输入框里面的值
+  let $pageNo = $("#pn_input").val()
+  
+  if($pageNo != "") {
+    // 跳转到page()方法
+    location.href = "http://localhost:8080/project/manager/book_list?action=page&pageNo=" + $pageNo
+  }
+})
+```
+
+```html
+<!-- 页码输入框里面的值 用户体验就好是回显 也就是说我们输入5了 然后跳转后 最好显示5 -->
+到第<input value="${param.pageNo}" name="pn" id="pn_input"/>页
+<input id="page-btn" type="button" value="确定">
+```
+
+
+> 优化:
+- 1. 上面js部分
+- location.href = "http://localhost:8080/project/manager/book_list?action=page&pageNo=" + $pageNo
+
+- http://localhost:8080/project/ 这个部分其实是 <base>标签的值 
+- 我们不能写死为localhost 因为写死了 别人点的时候访问的是别人的本机
+
+- 我们前端 设置 <base> 标签的时候 是这么写的
+
+```html
+<%
+  String scheme = request.getScheme();
+  String ip = request.getServerName();
+  int port = request.getServerPort();
+  String proPtah = request.getContextPath();
+
+  String path = scheme + "://" + ip + ":" + port + proPtah + "/";
+%>
+
+<base href="<%= path %>" />
+```
+
+- 我们可以把这个 path 变量 存到 pageContext 域中
+```html
+<%
+  String scheme = request.getScheme();
+  String ip = request.getServerName();
+  int port = request.getServerPort();
+  String proPtah = request.getContextPath();
+
+  String path = scheme + "://" + ip + ":" + port + proPtah + "/";
+
+  - 将path保存到pageContext域中
+  pageContext.setAttribute("basePath", path);
+%>
+```
+
+- 然后js部分从pageContext中读取使用
+
+
+- 2. 我们要对页码输入框里面输入的值进行合法性的校验 不能大于总页码 同时不能为负数
+
+```js
+$("#page-btn").on("click", function() {
+  // 获取页码输入框里面的值
+  let $pageNo = $("#pn_input").val()
+
+  // 获取总页码
+  let $pageTotal = ${requestScope.page.pageTotal}
+
+  if($pageNo == "" || $pageNo < 1 || $pageNo > $pageTotal) return false
+
+  // 这里是从pageScope里面取pageContext域中的数据
+  location.href = "${pageScope.basePath}manager/book_list?action=page&pageNo=" + $pageNo
+})
+```
+
+- 但是前端校验还是不够 因为有些人可以越过前端的js校验的
+- 因为我们的校验都是在点击按钮的时候 开始触发
+- 但是我们发现 我们直接在url上输出
+- http://localhost:8080/project/manager/book_list?action=page&pageNo=10000
+
+- 这样也可以 所以我们也要在服务器端做下校验
+
+- 服务器的校验:
+- 我们在BookServlet的page()方法中 做下校验处理
+
+- 服务端获取 pageNo 后 我们可以对该值进行判断
+- 如果 pageNo < 1 就给它设置为1
+- 如果 pageNo > 总页码 就给它设置为总页码
+
+
+- 我们在 BookServiceImpl 类中做处理
+
+- 整体逻辑:
+- 1. web层的servlet程序 从url上获取pageNo参数
+- 2. 将pageNo参数 传递到 service层的page() 方法中
+- 该方法负责给page对象进行赋值
+
+- 同时我们也是在该方法中 对传入的pageNo进行判断 判断后我们将正确的值给page对象
+
+- 3. web层会将有正确的值的page对象保存到域中 给前端页面使用
+
+```java
+// Web层 BookServlet程序的逻辑
+protected void page(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+
+  int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+  Page<Book> page = bookService.page(pageNo, pageSize);
+
+  req.setAttribute("page", page);
+
+  req.getRequestDispatcher("/pages/manager/book_manager.jsp").forward(req, res);
+}
+
+
+// service层的 BookServiceImpl程序的逻辑
+public Page<Book> page(int pageNo, int pageSize) {
+  Page<Book> page = new Page<>();
+  page.setPageSize(pageSize);
+
+  Integer pageTotalCount = bookDao.queryForPageTotalCount();
+  page.setPageTotalCount(pageTotalCount);
+
+  // 总页码
+  Integer pageTotal = pageTotalCount / pageSize;
+  if(pageTotalCount % pageSize > 0) {
+    pageTotal++;
+  }
+  page.setPageTotal(pageTotal);
+
+
+
+  // 数据边界的有效检查
+  if(pageNo < 1) pageNo = 1;
+  if(pageNo > pageTotal) pageNo = pageTotal;
+  page.setPageNo(pageNo);
+
+
+
+  int begin = (pageNo - 1) * pageSize;
+  List<Book> items = bookDao.queryForPageItems(begin, pageSize);
+  page.setItems(items);
+
+  return page;
+}
+```
+
+
+- 优化:
+- 上面的有效数据边界检查 每一个分页的地方都要做的
+- 我们可以将 
+
+  if(pageNo < 1) pageNo = 1;
+  if(pageNo > pageTotal) pageNo = pageTotal;
+
+- 写在 public void setPageNo(Integer pageNo) 方法里面就省事很多了
+
+- 这里有问题 自己做的时候好好想想吧
+
+**技巧: set方法内部还可以做有效数据边界检查**
+
+------
+
+> 图书管理页面 分页器 页码部分
+- 1 【2】 3 就这个部分
+- 现在的需求是要求显示 5个连续的页码 而且当前页面在中间 每个页码都可以跳到指定页
+
+- 这个页码的输出是有一定算法的:
+
+- 如果总页码小于等于5的情况
+- 1页:  1
+- 2页:  1, 2
+- 3页:  1, 2, 3
+- 4页:  1, 2, 3, 4
+- 5页:  1, 2, 3, 4, 5
+
+- 上述页码的范围是 1 - 总页码
+- 比如
+- 一共1页 就是 1 - 1
+- 一共2也 就是 1 - 2 依次类推
+
+
+- 如果总页码大于5的情况, 假设一共10页
+
+  - 情况1: 
+  当前页码为10页中的前面3个: 
+  p1,p2,p3的情况(页码范围是: 固定的1-5)
+
+   【1】, 2, 3, 4, 5
+    1,【2】, 3, 4, 5
+    1, 2, 【3】, 4, 5
+  
+  - 情况2: 
+  当前页码为10页中的最后3个: 
+  p8,p9,p10的情况(页码范围是: 固定的6-10  *总页码-4~总页码*)
+
+    6, 7,【8】, 9, 10
+    6, 7, 8,【9】, 10
+    6, 7, 8, 9,【10】
+
+  - 情况3:
+  - 当前页码为10页中的 p4 p5 p6 p7的情况
+  - 页码范围是: *当前页码-2~当前页码+2*
+
+  2, 3, 【4】, 5, 6
+  3, 4, 【5】, 6, 7
+  4, 5, 【6】, 7, 8
+  5, 6, 【7】, 8, 9
+
+
+> 整理
+- 要考虑的点:
+- 1. *一共需要显示5个页码*
+- 2. 总页码数是否 > 5
+
+  - 总页码 < 5 的时候: 
+  - 页码范围: 1 ~ 总页码
+
+  - 总页码 > 5 的时候
+  - 前3页
+  - 页码范围: 1 ~ 5
+
+  - 最后3页
+  - 页码范围: 总页码-4 ~ 总页码
+
+  - 剩下的页:
+  - 页码范围: 当前页码-2 ~ 当前页码+2
+
+
+- 整理好后 我们在 book_manager.jsp 中
+- 利用 forEach if when等标签操作
+
+```html
+<%-- 连续页码页范围 开始 --%>
+<c:choose>
+	<%-- 情况1: 总页码 <= 5 的情况 页码范围是: 1 - 总页码 --%>
+	<c:when test="${requestScope.page.pageTotal <= 5}">
+		<c:forEach begin="1" end="${requestScope.page.pageTotal}" var="i">
+			<c:if test="${i == requestScope.page.pageNo}">
+				<%-- 当前页码不能点 其它页码可以点--%>
+				【 ${i} 】
+			</c:if>
+
+			<%-- el表达式 没有else的写法 我们这里只能用 c if 取反的操作 模拟 else 的写法--%>
+			<c:if test="${i != requestScope.page.pageNo}">
+				<a href="manager/book_list?action=page&pageNo=${i}">${i}</a>
+			</c:if>
+		</c:forEach>
+	</c:when>
+
+	<%-- 情况2: 总页码 > 5 的情况 --%>
+	<c:when test="${requestScope.page.pageTotal > 5}">
+		<c:choose>
+			<%-- 情况2-1: 页码是1 2 3 --%>
+			<c:when test="${requestScope.page.pageNo <= 3}">
+				<c:forEach begin="1" end="5" var="i">
+					<c:if test="${i == requestScope.page.pageNo}">
+						【 ${i} 】
+					</c:if>
+					<c:if test="${i != requestScope.page.pageNo}">
+						<a href="manager/book_list?action=page&pageNo=${i}">${i}</a>
+					</c:if>
+				</c:forEach>
+			</c:when>
+			<%-- 情况2-2: 页码是最后3页 --%>
+			<c:when test="${requestScope.page.pageNo > requestScope.page.pageTotal - 3}">
+				<c:forEach begin="${requestScope.page.pageTotal - 4}" end="${requestScope.page.pageTotal}" var="i">
+					<c:if test="${i == requestScope.page.pageNo}">
+						【 ${i} 】
+					</c:if>
+					<c:if test="${i != requestScope.page.pageNo}">
+						<a href="manager/book_list?action=page&pageNo=${i}">${i}</a>
+					</c:if>
+				</c:forEach>
+			</c:when>
+			<%-- 情况2-3: 其它页码 --%>
+			<c:otherwise>
+				<c:forEach begin="${requestScope.page.pageNo - 2}" end="${requestScope.page.pageNo + 2}" var="i">
+					<c:if test="${i == requestScope.page.pageNo}">
+						【 ${i} 】
+					</c:if>
+					<c:if test="${i != requestScope.page.pageNo}">
+						<a href="manager/book_list?action=page&pageNo=${i}">${i}</a>
+					</c:if>
+				</c:forEach>
+			</c:otherwise>
+		</c:choose>
+	</c:when>
+</c:choose>
+<%-- 连续页码页范围 结束 --%>
+```
+
+- 优化:
+- 我们发现 forEach的逻辑 反复书写了好多遍
+- 但我们想象 forEach的逻辑 因为在多路选择中 不管哪种情况它只会执行一次
+
+- 而且只是 begin 和 end 的值不同
+- 也就是说 我们在 when 中保存 begin 和 end 的值 统一让最下方的forEach来做输出处理
+
+```html
+<%-- 连续页码页范围 开始 --%>
+<c:choose>
+	<%-- 情况1: 总页码 <= 5 的情况 页码范围是: 1 - 总页码 --%>
+	<c:when test="${requestScope.page.pageTotal <= 5}">
+		
+    <!-- 这个不做forEach输出 而只是记录 begin end 的值 -->
+
+	</c:when>
+
+	<%-- 情况2: 总页码 > 5 的情况 --%>
+	<c:when test="${requestScope.page.pageTotal > 5}">
+		<c:choose>
+			<%-- 情况2-1: 页码是1 2 3 --%>
+			<c:when test="${requestScope.page.pageNo <= 3}">
+        
+        <!-- 这个不做forEach输出 而只是记录 begin end 的值 -->
+
+			</c:when>
+
+			<%-- 情况2-2: 页码是最后3页 --%>
+			<c:when test="${requestScope.page.pageNo > requestScope.page.pageTotal - 3}">
+
+        <!-- 这个不做forEach输出 而只是记录 begin end 的值 -->
+
+			</c:when>
+
+			<%-- 情况2-3: 其它页码 --%>
+			<c:otherwise>
+
+        <!-- 这个不做forEach输出 而只是记录 begin end 的值 -->
+
+			</c:otherwise>
+		</c:choose>
+	</c:when>
+</c:choose>
+<%-- 连续页码页范围 结束 --%>
+
+
+
+<!-- 我们把forEach放到这里 -->
+<c:forEach begin="${requestScope.page.pageNo - 2}" end="${requestScope.page.pageNo + 2}" var="i">
+  <c:if test="${i == requestScope.page.pageNo}">
+    【 ${i} 】
+  </c:if>
+  <c:if test="${i != requestScope.page.pageNo}">
+    <a href="manager/book_list?action=page&pageNo=${i}">${i}</a>
+  </c:if>
+</c:forEach>
+```
+
+
+> 优化之后
+- 这样看起来可以简洁一些
+
+```html
+<%-- 连续页码页范围 开始 --%>
+<c:choose>
+	<%-- 情况1: 总页码 <= 5 的情况 页码范围是: 1 - 总页码 --%>
+	<c:when test="${requestScope.page.pageTotal <= 5}">
+		<c:set var="begin" value="1"/>
+		<c:set var="end" value="${requestScope.page.pageTotal}"/>
+	</c:when>
+
+	<%-- 情况2: 总页码 > 5 的情况 --%>
+	<c:when test="${requestScope.page.pageTotal > 5}">
+		<c:choose>
+			<%-- 情况2-1: 页码是1 2 3 --%>
+			<c:when test="${requestScope.page.pageNo <= 3}">
+				<c:set var="begin" value="1"/>
+				<c:set var="end" value="5"/>
+			</c:when>
+
+			<%-- 情况2-2: 页码是最后3页 --%>
+			<c:when test="${requestScope.page.pageNo > requestScope.page.pageTotal - 3}">
+				<c:set var="begin" value="${requestScope.page.pageTotal - 4}"/>
+				<c:set var="end" value="${requestScope.page.pageTotal}"/>
+			</c:when>
+
+			<%-- 情况2-3: 其它页码 --%>
+			<c:otherwise>
+				<c:set var="begin" value="${requestScope.page.pageNo - 2}"/>
+				<c:set var="end" value="${requestScope.page.pageNo + 2}"/>
+			</c:otherwise>
+		</c:choose>
+	</c:when>
+</c:choose>
+<%-- 连续页码页范围 结束 --%>
+
+<!-- 这里取出begin end来使用 -->
+<c:forEach begin="${begin}" end="${end}" var="i">
+	<c:if test="${i == requestScope.page.pageNo}">
+		【 ${i} 】
+	</c:if>
+	<c:if test="${i != requestScope.page.pageNo}">
+		<a href="manager/book_list?action=page&pageNo=${i}">${i}</a>
+	</c:if>
+</c:forEach>
+```
+
+
+> Bug
+- bug1:
+- 上面的分页效果是做好了 但是我们发现
+- 1. 在图书管理界面 点击 添加图书按钮后 添加图书后 页面上 所有数据消失了
+- 此时的 url地址为:
+- localhost:8080/project/manager/book_list?action=list
+
+- 也就是又跳到了 BookServlet程序中的 list() 方法 而我们现在已经是page()方法了 所以要调整
+- 也就是但凡是跳到 list 的 现在要全部改成 跳到 page
+
+```java
+res.sendRedirect(req.getContextPath() + "/manager/book_list?action=list");
+
+- 修改为
+
+res.sendRedirect(req.getContextPath() + "/manager/book_list?action=page");
+```
+
+
+- bug2:
+- 现在图书是可以正常的添加了 但是添加图书后 回到的是 图书管理页面的第一页 而我们添加的数据在最后一页
+- 也就是说 我们在第一页看不到我们刚才添加的记录
+
+- 解决方法:
+- 我们在jsp页面里面 给添加图书的<a>标签的href参数的最后 将最后一页的pageNo传过去
+
+- book_manager.jsp页面
+```html
+<td><a href="pages/manager/book_edit.jsp?pageNo=${requestScope.page.pageTotal}">添加图书</a></td>
+```
+
+- 然后它会跳到 book_edit.jsp 页面
+- 我们在该页面 利用隐藏域 将传递过来的pageNo 送到服务器BookServlet程序
+```html
+<input type="hidden" name="pageNo" value="${param.pageNo}">
+```
+
+- 这样 图书编辑 页面点击 添加图书 会提交表单 会送往BookServlet中对应的方法中去
+
+
+- BookServlet程序中的 add()
+- 在add的最后的重定向的逻辑中 加上了 pageNo
+- 也就是说 重定向到page()的时候 带上pageNo
+```java
+protected void add(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  Book book = WebUtils.copyParamToBean(new Book(), req.getParameterMap());
+
+  bookService.addBook(book);
+
+
+  // 这里在原来的基础上添加了 &pageNo=req.getParameter("pageNo")
+  res.sendRedirect(req.getContextPath() + "/manager/book_list?action=page&pageNo=" + req.getParameter("pageNo"));
+}
+```
+
+- 然后重定向到page() page方法内部上来就会获取url上的pageNo参数 做分页显示处理
+
+
+- bug3:
+- 我们上面处理完后 还有一个小问题
+- 当这个页面的显示数据满了之后 这时当前页数为10 满了 这时候我们再添加图书的时候 新图书就会在第11页
+
+- 解决办法
+- 我们在add()方法中
+- res.sendRedirect(req.getContextPath() + "/manager/book_list?action=page&pageNo=" + req.getParameter("pageNo"));
+
+- 我们可以让 pageNo + 1
+
+- 修改后
+```java
+protected void add(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 为了解决 添加图书的时候 跳页的问题
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 0);
+  pageNo += 1;
+
+
+  Book book = WebUtils.copyParamToBean(new Book(), req.getParameterMap());
+  bookService.addBook(book);
+
+  // 这里修改为 + pageNo
+  res.sendRedirect(req.getContextPath() + "/manager/book_list?action=page&pageNo=" + pageNo);
+  }
+```
+
+
+- bug4:
+- 图书列表页面的删除按钮 我们在删除的时候要把当前页面也发给服务器
+这样服务器可以记录当前是第几页 然后我们刷新看看这条记录在不在
+
+- 也是为了用户体验 我们要删除一条数据的时候 删除之后 还要在当前页
+
+- book_manager.jsp
+```html
+<td><a class="del-btn" href="manager/book_list?action=delete&id=${book.id}">删除</a></td>
+
+- 修改为
+<!-- 
+  最后使用${requestScope.page.pageNo} 将pageNo 发过去 
+-->
+<td><a class="del-btn" href="manager/book_list?action=delete&id=${book.id}&pageNo=${requestScope.page.pageNo}">删除</a></td>
+```
+
+- BookServlet的delete()
+```java
+res.sendRedirect(req.getContextPath() + "/manager/book_list?action=page&pageNo=" + req.getParameter("pageNo"));
+```
+
+
+- bug5:
+- 修改也是一样的 我们修改完一个图书的信息后 刷新还是要在当前页 因为用户要确认
+
+- 也就是说 在修改的时候也要将当前的页码发送过去
+- book_manager.jsp
+```html
+<td><a href="manager/book_list?action=getBook&id=${book.id}&pageNo=${requestScope.page.pageNo}">修改</a></td>
+```
+
+- BookServlet的update()
+```java
+protected void update(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  Book book = WebUtils.copyParamToBean(new Book(), req.getParameterMap());
+  bookService.updateBook(book);
+
+
+  res.sendRedirect(req.getContextPath() + "/manager/book_list?action=page&pageNo=" + req.getParameter("pageNo"));
+}
+```
+
+- bug6:
+- 我们控制台会报这样的错误:
+- java.lang.NumberFormatException: null
+- (WebUitls.java: 35)
+
+- 在这个java文件里面被调用的
+- at com.sam.web.ClientBookServlet.page(ClientBookServlet.java:21)
+
+- 原因:
+- 在page()里面 在做分页的时候 需要 pageNo 和 pageSize
+- 最开始的时候 比如登录首页的时候 url上是没有pageNo的
+- 然后它得到的就是 null 这里我们用的是默认值
+
+- 这个错误是正常的 如果不想看的话 我们可以把它注释掉
+- e.printStackTrace();  -- 注释掉这行
+
+```java
+protected void page(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // bug问题的语句是这里调用的
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+
+
+
+  int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+  Page<Book> page = bookService.page(pageNo, pageSize);
+
+  req.setAttribute("page", page);
+
+  req.getRequestDispatcher("/pages/client/index.jsp").forward(req, res);
+}
+```
+
+
+```java
+public class WebUtils {
+  
+  public static int ParseInt(String strInt, int defaultValue) {
+    try {
+      return Integer.parseInt(strInt);
+    } catch (Exception e) {
+
+      // 把这里注释掉就不打印错误了
+      // e.printStackTrace();
+    }
+
+    return defaultValue;
+  }
+}
+```
+
+
+
+----------------
+
+### 书城项目： 前台分页
+- 我们点击导航栏的后台管理 会跳到后台界面
+- 也我们登录首页就是前台页面
+
+- 接下来我们完成前端页面的分页部分
+
+- 逻辑梳理:
+- 当我们访问 index.jsp 页面的时候 需要查询好的分页数据 然后使用jstl标签库遍历输出到页面上
+
+- 但是哪来的数据呢？index.jsp没有数据
+- 我们前面说过 当我们来到一个jsp页面的没有数据的时候 要去先访问servlet程序
+
+- 我们前端也有一个servlet程序 我们叫ClientBookServlet(后台的servlet程序是 BookServlet)
+
+- 我们可以在 ClientBookServlet程序里面准备一个方法 让它处理分页
+
+- public void page() -- 处理分页
+
+- 也就是说我们不要直接访问 index.jsp 页面而是先访问ClientBookServlet
+
+- 那我们直接访问ClientBookServlet的地址是
+- http://ip:port/工程路径/client/bookServlet?action=page
+
+- 那就更奇怪了 因为基本上我们就没见过哪个网站的首页地址是这样的格式
+
+- 也就是我们没办法直接显式的访问 http://ip:port/工程路径/client/bookServlet?action=page
+
+- 我们只能直接访问 http://ip:port/工程路径/ 但是这里又没有数据？？？ 这怎么办
+
+- 解决方法
+- 我们现在创建如下的文件 没有就创建
+  
+  | - web目录
+    | - pages
+      | - client
+        - index.jsp
+
+- web/pages/client/index.jsp页面干的事情(内容)和 web/index.jsp 是一样的
+
+- 现在我们这样
+- web/pages/client/index.jsp 获取查询好的分页数据 使用jstl标签库遍历输出
+
+- 而我们正常的index.jsp页面(web/index.jsp) 只处理一件事情 就是请求转发到 ClientBookServlet程序
+
+- 流程:
+
+- web/index.jsp 
+
+    -> 请求转发到 servlet程序
+
+        ClientBookServlet程序 
+
+          -> 查询到数据后 转发到下面的页面
+
+              web/pages/client/index.jsp
+              (该页面才是负责呈现数据的页面)
+
+- 整个过程 用户方法的是 http://ip:port/工程路径/index.jsp地址 然后内部一系列的转发 我们看到的还是首页的数据
+
+
+> 按照上面的步骤我们来实现下
+- 1. web/index.jsp:
+- 首页真正的逻辑移动到 web/pages/client/index.jsp 下
+- web/index.jsp 只做jsp页面 请求转发的逻辑
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<%--这个页面只负责请求转发--%>
+<jsp:forward page="/client/book_list?action=page"></jsp:forward>
+```
+
+
+- 2. web/index.jsp页面 请求转发到 前台servlet接口 并告知执行 前台servlet程序中的哪个方法
+
+- 前台servlet程序: ClientBookServlet
+- 内部逻辑:
+- 它跟后台界面 /manager/book_list servlet程序中的page()方法一样 都是用来处理分页数据的
+
+- 1. 拿到pageNo pageSize
+- 2. 调用bookService.page强求数据
+- 3. 将分页好的数据 保存在request域中
+- 4. *请求转发到 真正有首页结构的页面: web/pages/client/index.jsp*
+
+<!-- 
+  别忘记去 web.xml 中配置路由
+ -->
+
+```java
+public class ClientBookServlet extends BaseServlet {
+
+  private BookService bookService = new BookServiceImpl();
+
+  // 处理分页功能
+  protected void page(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    
+    int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+    int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+    // 调用 BookService.page(pageNo,pageSize) 返回的就是page对象
+    Page<Book> page = bookService.page(pageNo, pageSize);
+
+    // 保存page对象到request域中
+    req.setAttribute("page", page);
+
+
+
+    // 请求转发到 真正的前台页面
+    req.getRequestDispatcher("/pages/client/index.jsp").forward(req, res);
+  }
+}
+```
+
+
+- 3. web/pages/client/index.jsp 页面就是真实的首页页面 里面有html结构等
+
+- 因为经过了前台的 /client/book_list servlet程序 这样域中就有数据了 这样我们前台页面根据数据 进行遍历输出就可以了
+
+```html
+<c:forEach items="${requestScope.page.items}" var="book">
+  <div class="b_list">
+    <div class="img_div">
+      <img class="book_img" alt="" src="static/img/default.jpg" />
+    </div>
+    <div class="book_info">
+      <div class="book_name">
+        <span class="sp1">书名:</span>
+        <span class="sp2">${book.name}</span>
+      </div>
+      <div class="book_author">
+        <span class="sp1">作者:</span>
+        <span class="sp2">${book.author}</span>
+      </div>
+      <div class="book_price">
+        <span class="sp1">价格:</span>
+        <span class="sp2">￥${book.price}</span>
+      </div>
+      <div class="book_sales">
+        <span class="sp1">销量:</span>
+        <span class="sp2">${book.sales}</span>
+      </div>
+      <div class="book_amount">
+        <span class="sp1">库存:</span>
+        <span class="sp2">${book.stock}</span>
+      </div>
+      <div class="book_add">
+        <button>加入购物车</button>
+      </div>
+    </div>
+  </div>
+</c:forEach>
+```
+
+- 前台页面的分页器 也可以copy book_manager.jsp 页面的分页器 然后改下 a标签的href地址就可以
+
+------
+
+> 优化: 分页器的抽取
+- 这里我们发现个问题 
+- 前台页面(首页)的分页器 和
+- 后台页面(图书管理)的分页器 除了请求后台servlet程序的接口地址不一样 剩下的完全一样
+
+<!-- 
+  首页 上一页 5 下一页 末页
+
+  这些都是<a>标签 a标签的href地址是不一样的
+  前台举例: 
+    <a href="client/book_list?action=page&pageNo=1">首页</a>
+
+  后台举例:
+    <a href="manager/book_list?action=page&pageNo=1">首页</a>
+ -->
+
+- 既然这样 我们首先可以把 servlet接口的地址部分抽离到Page对象(java类)当中 作为page对象的一个属性
+
+```java
+public class Page<T> {
+  public static final Integer PAGE_SIZE = 4;
+  private Integer pageNo;
+  private Integer pageSize = PAGE_SIZE;
+  private Integer pageTotal;
+  private Integer pageTotalCount;
+  private List<T> items;
+
+
+  // 分页器的请求地址
+  private String url;
+}
+```
+
+- 那怎么使用呢？
+- BookServlet程序中 和 ClientBookServlet程序中设置 page对象的url属性值
+
+- 就是我们 我们手动的在前后台的servlet程序中 设置 前后台页面对应的的请求地址 
+
+  前台设置: client/book_list?action=page
+  后台设置: manager/book_list?action=page
+
+```java
+protected void page(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+  int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+  Page<Book> page = bookService.page(pageNo, pageSize);
+
+
+  // !!!!
+  // 设置page对象url的属性值 也就是设置 请求接口的地址
+  page.setUrl("client/book_list?action=page");
+
+
+
+  // 保存page对象到request域中
+  req.setAttribute("page", page);
+
+  // 请求转发
+  req.getRequestDispatcher("/pages/client/index.jsp").forward(req, res);
+}
+```
+
+
+- 首页 html部分改成
+- manager/book_list?action=page
+
+```html
+<!-- 将原来的接口部分 -->
+<a href="manager/book_list?action=page&pageNo=1">首页</a>
+
+<!-- 替换成从 request域中获取url属性来使用 -->
+<a href="${requestScope.page.url}&pageNo=1">首页</a>
+```
+
+
+- 接下来我们把分页器的html部分也抽离出来
+- web/common/pagination.jsp
+```html
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<div id="page_nav">
+  <c:if test="${requestScope.page.pageNo > 1}">
+    <a href="${requestScope.page.url}&pageNo=1">首页</a>
+    <a href="${requestScope.page.url}&pageNo=${requestScope.page.pageNo - 1}">上一页</a>
+  </c:if>
+
+  <%-- 连续页码页范围 开始 --%>
+  <c:choose>
+    <%-- 情况1: 总页码 <= 5 的情况 页码范围是: 1 - 总页码 --%>
+    <c:when test="${requestScope.page.pageTotal <= 5}">
+      <c:set var="begin" value="1"/>
+      <c:set var="end" value="${requestScope.page.pageTotal}"/>
+    </c:when>
+
+    <%-- 情况2: 总页码 > 5 的情况 --%>
+    <c:when test="${requestScope.page.pageTotal > 5}">
+      <c:choose>
+        <%-- 情况2-1: 页码是1 2 3 --%>
+        <c:when test="${requestScope.page.pageNo <= 3}">
+          <c:set var="begin" value="1"/>
+          <c:set var="end" value="5"/>
+        </c:when>
+        <%-- 情况2-2: 页码是最后3页 --%>
+        <c:when test="${requestScope.page.pageNo > requestScope.page.pageTotal - 3}">
+          <c:set var="begin" value="${requestScope.page.pageTotal - 4}"/>
+          <c:set var="end" value="${requestScope.page.pageTotal}"/>
+        </c:when>
+          <%-- 情况2-3: 其它页码 --%>
+          <c:otherwise>
+            <c:set var="begin" value="${requestScope.page.pageNo - 2}"/>
+            <c:set var="end" value="${requestScope.page.pageNo + 2}"/>
+          </c:otherwise>
+        </c:choose>
+      </c:when>
+  </c:choose>
+  <%-- 连续页码页范围 结束 --%>
+  <c:forEach begin="${begin}" end="${end}" var="i">
+    <c:if test="${i == requestScope.page.pageNo}">
+      【 ${i} 】
+    </c:if>
+    <c:if test="${i != requestScope.page.pageNo}">
+      <a href="${requestScope.page.url}&pageNo=${i}">${i}</a>
+    </c:if>
+  </c:forEach>
+
+  <c:if test="${requestScope.page.pageNo < requestScope.page.pageTotal}">
+    <a href="${requestScope.page.url}&pageNo=${requestScope.page.pageNo + 1}">下一页</a>
+    <a href="${requestScope.page.url}&pageNo=${requestScope.page.pageTotal}">末页</a>
+  </c:if>
+
+  共${requestScope.page.pageTotal}页，${requestScope.page.pageTotalCount}条记录 到第<input value="${param.pageNo}" name="pn" id="pn_input"/>页
+  <input id="page-btn" type="button" value="确定">
+</div>
+
+<script>
+$(function() {
+  $("#page-btn").on("click", function() {
+    // 获取页码输入框里面的值
+    let $pageNo = $("#pn_input").val()
+
+    // 获取总页码
+    let $pageTotal = ${requestScope.page.pageTotal}
+
+    if($pageNo == "" || $pageNo < 1 || $pageNo > $pageTotal) return false
+    location.href = "${pageScope.basePath}manager/book_list?action=page&pageNo=" + $pageNo
+  })
+})
+</script>
+```
+
+----------------
+
+### 书城项目： 前台首页 价格搜索
+- 在价格的输入框里面输入价格 点击查询 查询出符合要求的图书 并且还要会查询出来的数据做分页的处理
+
+    价格: ___元 - ___元 查询
+
+- 功能分析
+
+- 当我们点击完查询后 会将请求发送给服务器(ClientBookServlet)
+
+\\ web层
+- ClientBookServlet程序中有 pageByPrice()
+- pageByPrice()方法 用来处理价格区间的分页
+
+- 方法内的逻辑:
+- 1. 获取参数 pageNo, pageSize min max
+- 2. 调用bookService.pageByPrice(参数如上) 处理分页得到page的分页对象
+
+- 3. 保存分页对象到 request域中
+- 4. 请求转发到/pages/client/index.jsp页面
+
+
+\\ service层
+- BookService程序
+- public Page pageByPrice(pageNo, pageSize, min, max) { }
+
+- 方法内的逻辑
+- 主要求3个数据: 总记录数 总页码 当前页数据(它们3个都是在指定价格区间内的数据)
+
+- 总记录数:
+  select count(*) from 表名
+  where price between min and max
+
+- 当前页数据:
+  select * from 表名
+  where price between min and max
+  limit begin, size
+
+
+\\ dao层
+- 我们提供两个方法 每个方法对应一个sql语句
+- queryForPageTotalCount(min, max) 求总记录数
+
+    select count(*) from 表名
+    where price between min and max
+
+
+- queryForPageItems(begin size min max) 求价格区间内的当前页数据
+
+    select * from 表名
+    where price between min and max
+    limit begin, size
+
+
+> 实现:
+> 1. pages/client/index.jsp
+- 1. 添加点击查询按钮后的 接口地址
+- 2. 然后要加入隐藏域 提交到接口程序中的哪个地址
+
+```html
+<form action="client/book_list" method="get">
+
+  <input type="hidden" name="action" value="pageByPrice">
+
+  价格：<input id="min" type="text" name="min" value=""> 元 -
+  <input id="max" type="text" name="max" value=""> 元
+  <input type="submit" value="查询" />
+</form>
+```
+
+
+> 2. web层逻辑
+- ClientBookServlet程序中
+- 最大价格 Integer.MAX_VALUE 如果我们没有传 就会是默认值
+- 当是默认值的时候 会选出数据库中书的最大价格那本
+
+
+```java
+protected void pageByPrice(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+  int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+  // 获取表单中输入的区间价格 最易最小最大的默认值
+  int min = WebUtils.ParseInt(req.getParameter("min"), 0);
+  int max = WebUtils.ParseInt(req.getParameter("max"), Integer.MAX_VALUE);
+
+  Page<Book> page = bookService.pageByPrice(pageNo, pageSize, min, max);
+
+  page.setUrl("client/book_list?action=pageByPrice");
+  req.setAttribute("page", page);
+  req.getRequestDispatcher("/pages/client/index.jsp").forward(req, res);
+}
+```
+
+
+> 3.service层逻辑
+- 在 BookServiceImpl类中 添加 pageByPrice() 方法
+
+```java
+public Page<Book> pageByPrice(int pageNo, int pageSize, int min, int max) {
+  // page对象
+  Page<Book> page = new Page<>();
+
+  // 这里没有利用构造器来赋值 而是通过set方法 为啥呢？
+  page.setPageSize(pageSize);
+
+  // 根据价格区间来查询总记录数
+  Integer pageTotalCount = bookDao.queryForPageTotalCountByPrice(min, max);
+  page.setPageTotalCount(pageTotalCount);
+
+  // 总页码
+  Integer pageTotal = pageTotalCount / pageSize;
+  if(pageTotalCount % pageSize > 0) {
+    pageTotal++;
+  }
+  page.setPageTotal(pageTotal);
+
+  // 数据边界的有效检查
+  if(pageNo < 1) pageNo = 1;
+  if(pageNo > pageTotal) pageNo = pageTotal;
+  page.setPageNo(pageNo);
+
+  // 分局价格区间查询当前页数据
+  int begin = (pageNo - 1) * pageSize;
+  List<Book> items = bookDao.queryForPageItemsByPrice(begin, pageSize, min, max);
+  page.setItems(items);
+
+  return page;
+}
+```
+
+> dao层
+- BookDaoImpl类中追加两个方法
+```java
+@Override
+public Integer queryForPageTotalCountByPrice(int min, int max) {
+  String sql = "select count(*) from t_book where price between ? and ?";
+
+  Number count = (Number) queryForSingleValue(sql, min, max);
+  return count.intValue();
+}
+
+@Override
+public List<Book> queryForPageItemsByPrice(int begin, int pageSize, int min, int max) {
+  String sql = "select `id` , `name` , `author` , `price` , `sales` , `stock`, `img_path` imgPath from t_book where price between ? and ? limit ?, ?";
+  return queryForList(Book.class, sql, min, max, begin, pageSize);
+}
+```
+
+
+> 优化:
+- 我们输入的 价格 区间 保留下来 回显
+- 我们点击查询的时候 因为是get请求 url参数上会携带 参数 我们获取这个参数 回显在页面上
+```html
+<form action="client/book_list" method="get">
+  <input type="hidden" name="action" value="pageByPrice">
+  价格：<input id="min" type="text" name="min" value="${param.min}"> 元 -
+  <input id="max" type="text" name="max" value="${param.max}"> 元
+  <input type="submit" value="查询" />
+</form>
+```
+
+
+> 优化
+- 上面进行的 输入价格的回显 但是我们点击 其它里面的时候 回显就没有了
+- 因为我们点击其它的a标签 url上就没有min max参数了 el表达式获取不到 所以就不显示了
+
+- 也就是说我们点击其它的a标签的时候 没有带上价格区间
+
+- 解决方式:
+- ClientBookServlet程序中 在设置page对象的url属性的时候要带上价格区间
+
+- 这里使用了 StringBuffer
+```java
+protected void pageByPrice(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  int pageNo = WebUtils.ParseInt(req.getParameter("pageNo"), 1);
+  int pageSize = WebUtils.ParseInt(req.getParameter("pageSize"), Page.PAGE_SIZE);
+
+  // 获取表单中输入的区间价格 最易最小最大的默认值
+  int min = WebUtils.ParseInt(req.getParameter("min"), 0);
+  int max = WebUtils.ParseInt(req.getParameter("max"), Integer.MAX_VALUE);
+
+  Page<Book> page = bookService.pageByPrice(pageNo, pageSize, min, max);
+
+
+---- 这里
+
+  // 设置url的时候要带上价格区间 为了回显
+  StringBuilder sb = new StringBuilder("client/book_list?action=pageByPrice");
+  // 如果有最小价格参数就追加到分页条的参数地址中
+  if(req.getParameter("min") != null) {
+    sb.append("&min=").append(req.getParameter("min"));
+  }
+  if(req.getParameter("max") != null) {
+    sb.append("&max=").append(req.getParameter("max"));
+  }
+  page.setUrl(sb.toString());
+
+----
+
+  req.setAttribute("page", page);
+  req.getRequestDispatcher("/pages/client/index.jsp").forward(req, res);
+}
 ```

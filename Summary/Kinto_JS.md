@@ -731,3 +731,115 @@ export default class Include {
 }
 
 ```
+
+
+###  TabChange.js
+- 下面是以 BACKLOG-1128 举例
+
+> 要点:
+- 下面的内容分别代表了什么样的含义:
+- data-module="tabToggle"
+    tab按钮 每一个tab按钮上都绑定了  data-module="tabToggle"
+
+- data-tab="private"
+    ?
+
+- data-module="tabContent"
+    内容区域
+
+
+
+```js
+export default class TabChange {
+  constructor() {
+    this.init()
+  }
+
+  
+  init() {
+    this.initTabActive()
+    this.eventBind()
+  }
+
+  /**
+   * @description
+   * queryがあった場合かつ。data-tabという属性がある場合、ロード時にタブを切り替える
+   */
+
+  initTabActive() {
+    // 比如 我们的url为 http://localhost:3000/kinto_one/payment/?corporation#
+    const activateQuery = location.search.substr(1)
+
+    console.log("location.search", location.search)   // ?corporation
+    console.log("activateQuery", activateQuery)       // corporation
+
+    // 获取 data-属性名部分为 data-tab的元素 data-tab="corporation | private"  backlog-1128中它也是内容区
+    const tabQuery = [...document.querySelectorAll("[data-tab]")]
+
+    // 如果能找到 data-tab的元素 的元素的时候 我们再进行接下来的操作 
+    if (tabQuery) {
+      // 获取页面上的 tab按钮
+      const tabToggle = [...document.querySelectorAll("[data-module=\"tabToggle\"]")]
+
+      // 给每一个tab按钮 添加 显示 和 隐藏的样式
+      tabToggle.forEach(toggle => {
+        toggle.classList.remove("is-active")
+        if (toggle.dataset.id === activateQuery) {
+          toggle.classList.add("is-active")
+        }
+      })
+
+      // コンテンツをつけかえ
+      /*
+        [data-module=tabContent] {
+          display: none;
+          opacity: 0;
+        }
+
+        内容区默认是这样的 只有加上is-active 才会显示
+      */
+      tabQuery.forEach(element => {
+        element.classList.remove("is-active")
+        if (element.dataset.tab === activateQuery) {
+          element.classList.add("is-active")
+        }
+      })
+    }
+  }
+
+  /**
+   * @description
+   * イベントの実行
+   */
+  eventBind() {
+    // 获取 tab按钮区
+    const tabTriggers = document.querySelectorAll("[data-module=\"tabToggle\"]")
+    // 获取内容区
+    const tabTargets = document.querySelectorAll("[data-module=\"tabContent\"]")
+
+    // 给每一个tab按钮绑定点击事件
+    for (let i = 0; i < tabTriggers.length; i++) {
+      tabTriggers[i].addEventListener("click", (e) => {
+        const currentMenu = e.currentTarget
+
+        // 获取 tab按钮身上的 data-id 它指向内容区
+        const currentContent = document.getElementById(currentMenu.dataset.id)
+        
+        for (let i = 0; i < tabTriggers.length; i++) {
+          tabTriggers[i].classList.remove("is-active")
+        }
+        currentMenu.classList.add("is-active")
+
+        for (let i = 0; i < tabTargets.length; i++) {
+          tabTargets[i].classList.remove("is-active")
+        }
+        if (currentContent !== null) {
+          currentContent.classList.add("is-active")
+        }
+      })
+    }
+  }
+
+}
+
+```

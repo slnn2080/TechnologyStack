@@ -2,6 +2,35 @@
 - https://www.ideajihuoma.com/
 
 
+### 补充知识:
+> Java Number类
+- Number 是一个抽象类，也是一个超类（即父类）
+- Number 类属于 java.lang 包，所有的包装类（如 Double、Float、Byte、Short、Integer 以及 Long）都是抽象类 Number 的子类。
+
+- Number 类定义了一些抽象方法，以各种不同数字格式返回对象的值
+
+> byte byteValue();  	
+- 返回 byte 类型的值
+
+> double doubleValue();	
+- 返回 double 类型的值
+
+> float floatValue();	
+- 返回 float 类型的值
+
+> int intValue();	
+- 返回 int 类型的值
+
+> long longValue();	
+- 返回 long 类型的值
+
+> short shortValue();	
+- 返回 short 类型的值
+
+- 抽象类不能直接实例化，而是必须实例化其具体的子类。
+- Number num = new Double(12.5);
+
+
 ### java学习路线
 - java基础
   - javaweb
@@ -12717,6 +12746,9 @@ public class Demo {
 
 > Integer.parseInt(String s)
 - 该方法会返回一个基本数据类型的数据
+
+- 参数2:
+- 可选 可能是转换的进制
 ```java 
   String str = "123";
   int num = Integer.parseInt(str);
