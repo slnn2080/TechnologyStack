@@ -2,6 +2,84 @@
 - 数据可视化主要目的: 借助于图形化手段, 清晰有效的传达与沟通信息
 - 数据可视化可以把数据从冰冷的数字转换为图形, 揭示蕴含在数据中的规律和道理
 
+### vuez中的使用方式:
+
+```js
+app.get("/", (req, res) => {
+  let data = {
+    title: {
+      text: 'ECharts 入门示例'
+    },
+    tooltip: {},
+    xAxis: {
+      data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+    },
+    yAxis: {},
+    series: [
+      {
+        name: '销量',
+        type: 'bar',
+        data: [5, 20, 36, 10, 10, 20]
+      }
+    ]
+  }
+
+  res.send(data)
+})
+```
+
+```html
+<template>
+  <div id="app">
+    <h3>app页面</h3>
+  </div>
+</template>
+
+<script>
+import axios from "axios"
+import * as echarts from 'echarts';
+
+export default {
+  name: 'App',
+  methods: {
+    delay(interval=0) {
+      return new Promise(resolve => {
+        let timer = setTimeout(_ => {
+          clearTimeout(timer)
+          resolve()
+        }, interval)
+      })
+    },
+
+    initEcharts(data) {
+      let echart = echarts.init(document.getElementById('app'))
+      echart.setOption(data);
+    },
+
+    async init() {
+      let {data: res} = await axios.get("http://localhost:3333/")
+
+      await this.delay(100)
+
+      // 初始化echarts
+      this.initEcharts(res)
+    }
+  },
+  mounted() {
+    this.init()
+  }
+}
+</script>
+
+<style>
+#app {
+  width: 500px;
+  height: 500px;
+}
+</style>
+
+```
+
 
 ### Echarts可视化的适配方案
 - 我们选择的是flexible.js 配合 rem来做

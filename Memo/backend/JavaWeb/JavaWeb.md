@@ -8961,3 +8961,898 @@ protected void pageByPrice(HttpServletRequest req, HttpServletResponse res) thro
   req.getRequestDispatcher("/pages/client/index.jsp").forward(req, res);
 }
 ```
+
+----------------
+
+### Cookie
+
+> 什么是Cookie
+- Cookie是服务器通知客户端保存键值对的一种技术
+- Cookie是servlet发送到Web浏览器的少量信息 这些信息由浏览器保存 然后发送回服务器
+- Cookie的值可以唯一标识客户端
+
+- 客户端有了Cookie后 每次请求都发送给服务器
+- 每个Cookie的大小不能超过4kb
+
+- 在Java中 Cookie是一个对象
+
+
+> 服务器如何创建Cookie 让客户端保存
+- 准备工作
+- 1. 创建了一个新的模块 并设置该模块为web工程
+- 2. 将cookie.html 和 session.html 放入 web目录下
+- 3. 创建servlet程序 用于接收 cookie.html 和 session.html 发送的请求
+
+- 我们把书城项目的BookServlet程序拿到新模块下
+- 然后创建了一个 CookieServlet 继承 BookServlet
+```java
+public class CookieServlet extends BaseServlet {
+
+  protected void createCookie(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  }
+}
+```
+
+- web.xml下创建 CookieServlet 的访问地址
+```xml
+<servlet>
+  <servlet-name>CookieServlet</servlet-name>
+  <servlet-class>com.sam.servlet.CookieServlet</servlet-class>
+</servlet>
+
+<servlet-mapping>
+  <servlet-name>CookieServlet</servlet-name>
+  <url-pattern>/cookieServet</url-pattern>
+</servlet-mapping>
+```
+
+- 然后修改 cookie.html 按钮中的 href地址
+```html
+<!-- 先配置下base标签 -->
+<base href="http://localhost:8080/cookie_session/">
+
+
+<!-- 
+  修改a标签的href地址为接口 并请求到该接口中的什么方法里面
+-->
+<li>
+  <a 
+    href="cookieServlet?action=createCookie" 
+    target="target">
+    Cookie的创建
+  </a>
+</li>
+```
+
+
+> Cookie的创建
+> new Cookie(String key, String value)
+- 通过 Cookie构造器 创建Cookie对象
+- 包为 import javax.servlet.http.Cookie
+
+
+> res.addCookie(cookie);
+- 通过响应对象 res 将cookie发送给前端
+
+
+> Cookie的查看
+- cookie的查看可以在 F12 -- Application -- Cookies -- 选择当前的访问地址
+
+
+> Cookie的创建 代码演示
+```java
+protected void createCookie(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 1. 创建cookie对象
+  Cookie cookie = new Cookie("key1", "value1");
+
+  // 2. 通知客户端保存Cookie 服务器发给客户端的都是通过响应来操作的
+  res.addCookie(cookie);
+  res.getWriter().write("Cookie创建成功");
+}
+```
+
+- 当我们通过 res.addCookie(cookie); 将创建的cookie对象 添加到响应头后 Response Headers 中 就会多了一个响应头Set-Cookie
+
+```js
+// Set-Cookie 中保存着服务器发回来的cookie的信息
+Set-Cookie: key1=value1
+```
+ 
+
+> 响应体乱码的问题
+- BookServlet里面 添加setContentType
+```java
+protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 解决post请求中文乱码问题 一定要在获取请求参数之前调用才有效
+  req.setCharacterEncoding("UTF-8");
+  // 解决响应体的中文乱码问题
+  res.setContentType("text/html; charset=UTF-8");
+}
+```
+
+
+> cookie的创建流程:
+- 客户端 向 服务端 发起请求
+- 一开始客户端还没有cookie
+
+- 服务器做了以下两个步骤 客户端就有cookie了
+- 1. 创建cookie对象 new Cookie("key", "value")
+- 我们这步创建的cookie是在服务器的内存里面 客户端完全不知道
+
+- 2. 通过 res.addCookie(cookie) 方法通知客户端保存cookie 
+- 有了这行代码后 就会通过响应头 Set-Cookie 告知浏览器保存Cookie
+
+- 3. 客户端收到响应后 发现有set-cookie响应头 就去看一下 有没有这个cookie 没有就创建 有就修改
+
+
+> cookie并不是一次只能创建一个 可以一次创建多个
+
+  Cookie cookie1 = new Cookie("key1", "value1")
+  res.addCookie(cookie1)
+
+  Cookie cookie2 = new Cookie("key2", "value2")
+  res.addCookie(cookie2)
+
+------
+
+> Cookie的获取
+- 从上面的部分我们知道 cookie 是保存在客户端的
+- 客户端在发送请求的时候 会携带cookie到服务器 服务器怎么获取客户端发送过来的cookie呢？
+
+
+> req.getCookies()
+- 获取*全部的*cookie
+
+- 返回值
+- Cookie[]
+
+- 拿到数组中的每个cookie对象后
+
+> cookie对象.getName()
+- cookie里面保存的是一对对的 key=value
+- getName() 返回的是 key
+
+> cookie对象.getValue()
+- 返回的是 value
+
+```java
+protected void getCookie(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  Cookie[] cookies = req.getCookies();
+
+  for (Cookie cookie : cookies) {
+    res.getWriter().write("Cookie[" + cookie.getName()  + "=" + cookie.getValue() + "] <br /><br />");
+  }
+}
+```
+
+
+- 获取cookie的流程
+- 当我们点击 获取Cookie 的按钮后 会向cookieServlet发起请求
+```html
+<li><a href="cookieServlet?action=getCookie" target="target">Cookie的获取</a></li>
+```
+
+- 在请求头中有一个 Cookie 字段 里面存放的就是一个个cookie对象 
+- 通过这个请求头 将cookie信息发送到服务器
+
+- 服务器通过 req.getCooikes() 获取cookie数组
+
+
+
+**问题:**
+- req.getCookies()是获取全部的cookie 那有没有种方法?
+- 没有 我们只能在遍历 cookie[] 数组的内部 去判断
+
+```java
+Cookie targetCookie = null;
+for (Cookie cookie : cookies) {
+  if("key1".equals(cookie.getName())) {
+    targetCookie = cookie;
+    break;
+  }
+}
+
+
+// 注意: !!!!
+// 如果找到了cookie targetCookie就不是null 这种情况下 再使用
+if(targetCookie != null) {
+  res.getWriter().write("找到了: " + targetCookie.getName() + "=" + targetCookie.getValue());
+}
+```
+
+
+- 像上面这样 遍历cookie 查找cookie的操作是非常常用的 我们可以给这些操作封装为一个工具类 将查找的操作提取出来
+
+```java
+package com.sam.utils;
+import javax.servlet.http.Cookie;
+
+public class CookieUtils {
+  // 查找指定名称的cookie对象
+  public static Cookie findCookie(String name, Cookie[] cookies) {
+    if(name == null || cookies == null || cookies.length == 0) return null;
+
+    for (Cookie cookie : cookies) {
+      if(name.equals(cookie.getName())) {
+        return cookie;
+      }
+    }
+
+    return null;
+  }
+}
+
+```
+
+------
+
+> Cookie的修改
+> 方案1:
+- 1. 先创建一个要修改的同名的cookie对象
+- 2. 在构造器 同时赋予新的cookie值 
+    new Cookie(旧cookie名, 新cookie值)
+
+- 3. 调用 res.addCookie(cookie)
+
+```java
+protected void updateCookie(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 1. 先创建一个要修改的同名的cookie对象
+  // 2. 在构造器 同时赋予新的cookie值
+  Cookie cookie = new Cookie("key1", "newValue");
+
+  res.addCookie(cookie);
+  res.getWriter().write("key1的cookie值修改好了");
+}
+```
+
+> 方案2:
+- 1. 先查找到需要修改的 Cookie对象
+- 2. 调用setValue()方法赋予新的Cookie值
+- 3. 调用res.addCookie() 通知客户端保存修改
+
+```java
+Cookie cookie = CookieUtils.findCookie("key1", req.getCookies());
+
+// 注意!!!!!
+// 在赋值前要先判断下 要不然找不到cookie
+if(cookie != null) cookie.setValue("newnewValue");
+
+res.addCookie(cookie);
+```
+
+**注意:**
+- cookie的值是*不支持中文*的 也就是不管我们使用构造器的形式 还是set的形式 
+
+**Cookie的值格式**
+- 1. 不应包含空格 方括号 圆括号 等号 逗号 双引号 斜杠 问号 at符号 冒号 分号 空值
+- 2. 如果cookie的值要是二进制 或者 汉字 或者上述的符号等情况, 则需要使用 *base64编码*
+
+
+------
+
+> Cookie存活设置 (生命控制)
+- Cookie的生命控制指的是如何管理 cookie 什么时候被销毁(被删除)
+
+- 如果没有指定cookie的生存周期 那么默认就是
+- 负数-1 -- session -- 关闭浏览器销毁
+
+
+> cookie对象.setMaxAge(int expiry)
+- 设置cookie的最大生存时间 以 秒 为单位
+- 正值:
+  表示 cookie 将在经过该值表示的秒数后过期
+
+- 负值 -1
+  表示 cookie不会被持久存储 *将在web浏览器退出的时候删除(默认 值为-1)*
+
+- 0值
+  表示马上删除cookie
+  比如找到指定的cookie 将它的maxAge设置为0 就是删除
+
+- 注意:
+- 该值是 cookie 过期的最大生存时间 不是 cookie的当前生存时间
+
+
+> 负数情况
+```html
+<li><a href="cookieServlet?action=defaultLife" target="target">Cookie的默认存活时间（会话）</a></li>
+```
+
+```java
+protected void defaultLife(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  Cookie cookie = new Cookie("defaultLifeName", "defaultLifeValue");
+
+  // 设置 cookie 的生存周期为 关闭浏览器之后删除
+  cookie.setMaxAge(-1);
+
+  // 这句是一定要调用的
+  res.addCookie(cookie);
+}
+```
+
+- F12 -- application -- expires/max-age: session
+- 设置cookie的值是负数的时候 就是session
+
+
+> 0的情况
+- 马上删除cookie的演示:
+```java
+protected void deleteNow(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 先找到我们要删除的cookie
+  Cookie targetCookie = CookieUtils.findCookie("key2", req.getCookies());
+
+  // 0表示马上删除
+  if(targetCookie != null) targetCookie.setMaxAge(0);
+
+  // 这句是一定要加的
+  res.addCookie(targetCookie);
+}
+```
+
+**addCookie()方法是一定要调用 因为只有调用它才会通知客户端对其操作**
+
+- 当我们设置了 setMaxAge(0) 后
+- 响应头的信息是
+- Set-Cookie: key2=value2; Max-Age=0; Expires=Thu, 01-Jan-1970 00:00:10 GMT
+
+- 上面将过期时间设置为 1970年 这意味着过期很长时间了 所以浏览器就删掉了
+
+
+> 正数情况
+- 可以设置 cookie 的存活时间
+- 比如我们关闭浏览器再打开 默认情况的cookie不在了 但是设置了存活时间的cookie还在
+
+```java
+protected void life3600(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  Cookie cookie = new Cookie("life", "3600");
+  // 设置cookie一小时之后被删除 无效
+  cookie.setMaxAge(60 * 60);
+  res.addCookie(cookie);
+}
+```
+
+- 设置完后 cookie的存活时间为:
+- 2022-04-05T09:27:12.840Z (格林时间)
+
+------
+
+> Cookie有效路径Path的设置
+- 在 application 的面板中 有
+- name value domain path expries size HttpOnly 等列名
+- 这里我们是讲讲 path 属性
+
+- Cookie的path属性可以有效的过滤哪些Cookie可以发送给服务器 哪些不发
+
+- path属性
+- 它是通过请求的地址来进行有效的过滤
+
+> 作用
+- 我们在服务端设置cookie 然后发送到客户端
+- 当我们设置path属性后 相当于我们定义了一个正则 只有客户端的请求地址 和 我们定义的path属性 想匹配的时候 我们在服务端设置的cookie才会被发送到客户端
+
+
+- 举例:
+- 现在有两个cookie 并设置了path属性格式
+- CookieA   path=/工程路径
+- CookieB   path=/工程路径/abc
+
+- 如果请求地址如下:
+- http://ip:port/工程路径/a.html
+
+- 那么CookieA会发送 还是 CookieB会发送
+- 答案: 
+- CookieA 会发送
+  - 因为path设置的路径中的工程路径和请求地址 匹配上了
+
+- CookieB 不会发送
+  - CookieB的path属性为 /工程路径/后面还要abc
+  - 而我们的请求地址中 /工程路径 后面没有/abc 没匹配上就没发送
+
+
+- 如果请求地址如下:
+- http://ip:port/工程路径/abc/a.html
+
+- 上面的这个情况 cookieA 和 cookieB 哪个会发送?
+- CookieA 会发送
+- CookieB 会发送
+
+**path属性设置的值**
+- path属性设置的值只要是匹配上了 就会发送
+- 比如
+- CookieA   path=/工程路径
+- http://ip:port/工程路径/abc/a.html
+
+- 只有 /工程路径 就会发送 后面的不管
+
+
+**总结:**
+- 默认情况下: path的值为当前 /工程路径
+- 比如我们要设置为
+- /工程路径
+  - 这种情况包含的范围最广 几乎什么域名都可以发送
+
+- /工程路径/其它/
+  - 那就得还匹配 /其它/
+
+
+> cookie对象.setPath(String url)
+- 给cookie设置path属性 来确保我们在服务端设置的cookie 只有在匹配path值的时候才会将cookie发送到客户端
+
+```java
+protected void testPath(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  Cookie cookie = new Cookie("path1", "pathValue");
+  // req.getContextPath() -> /工程路径
+  // 设置path的值为 /工程路径/abc
+  cookie.setPath(req.getContextPath() + "/abc");
+  res.addCookie(cookie);
+  res.getWriter().write("创建了一个带有path路径的cookie");
+}
+```
+
+- 上面的代码执行后 我们先看在 响应头信息
+- Set-Cookie: path1=pathValue; Path=/cookie_session/abc
+- 我们发现已经设置 cookie的path值为 /cookie_session/abc
+- 但是我们没有在 application 中看到名为path1的cookie
+- *因为 我们在服务端设置的 cookie path 当请求路径中的地址 匹配我们 cookie path的地址的时候 该cookie才会被发送到客户端*
+
+- 请求地址为
+- http://localhost:8080/cookie_session/cookie.html
+
+- 设置的path属性为
+- Path=/cookie_session/abc
+
+- 请求路径中 没有 /abc 所以该cookie 不会发送
+
+------
+
+> 扩展: 设置 HttpOnly
+- java ee6.0中可以通过如下方法设置 cookie的httponly属性
+
+> cookie对象.setHttpOnly(true)
+- 如果在Cookie中设置了"HttpOnly"属性，那么通过JavaScript脚本将无法读取到Cookie信息，这样能有效的防止XSS攻击，让网站应用更加安全。
+
+------
+
+> Cookie免用户名登录
+- 不用输入用户名
+
+- 思路:
+- 客户端: 
+- 首先客户端第一次访问服务器 服务器响应回登录页面(login.jsp)
+<!-- 
+  我们需要访问 登录页面 http://localhost:8080/session_cookie/login.jsp
+
+
+  login.jsp页面内容
+  用户名:
+  密码:
+          提交
+ -->
+
+- 然后用户开始输入用户名和密码
+- 客户端输入完用户名和密码后 点击提交 发送请求到LoginServlet程序
+
+- 服务端:
+- LoignServlet程序逻辑:
+- 1. 获取用户名和密码
+- 2. 判断用户名和密码是否正确
+    正确: 允许登录
+    (把用户名保存为cookie发送给客户端)
+
+    错误: 不允许登录
+
+- 当登录成功后 我们会把用户名保存为cookie响应回客户端
+- 这样响应头就会有
+- set-cookie: usernanme=用户名
+
+- 这样浏览器就有了用户名的cookie信息
+
+
+- 客户端第二次访问服务器的时候(我们登录了一定的时间后就退出这个网站了第二天我们再来登录)
+
+- 我们还是要先向服务器请求登录页面 这时候因为浏览器已经有了cookie信息 会把cookie信息也发送给服务器
+
+- login.jsp 就可以读取cookie 把带有用户名回显的login.jsp响应回去
+
+> 实现步骤
+> 1. session_cookie/web/login.jsp
+- 要点:
+- jsp页面里会有 用户名从cookie中读取后回显的设定
+- 因为第一次登录的时候 服务器还没有设置cookie
+- 当成功登录之后第二次再登录该页面 客户端的cookie就会随着请求到服务器 服务器会读取cookie中的数据
+
+> el表达式 读取cookie
+> ${cookie.key.vlaue}
+- 获取cookie中对应的key的value
+
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+<form 
+  action="http://localhost:8080/cookie_session/loginServlet"
+  method="get"
+>
+
+  用户名: <input type="text" name="username" id="username" value="${cookie.username.value}"> <br><br>
+
+  密&emsp;码: <input type="text" name="password" id="password"> <br><br>
+
+  <input type="submit" value="登录">
+
+</form>
+</body>
+</html>
+
+```
+
+> 2. 准备LoginServlet程序
+```java
+package com.sam.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class LoginServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+
+    // 验证用户名和密码是否正确
+    if("admin".equals(username) && "admin".equals(password)) {
+      // 登录成功
+      // 将用户名保存成cookie
+      Cookie cookie = new Cookie("username", username);
+      // cookie的生存周期 7天内有效
+      cookie.setMaxAge(60 * 60 * 24 * 7);
+      res.addCookie(cookie);
+      System.out.println("登录成功");
+    } else {
+      // 登录失败
+      System.out.println("登录失败");
+    }
+  }
+}
+
+```
+
+----------------
+
+### Session
+> 什么是session会话
+- 1. Session是一个接口(HttpSession interface)
+- 2. Session是会话 它是用来维护一个客户端和服务器之间关联的技术(y一个session就维护一个客户端和服务器的关联)
+- 3. 每个客户端都有自己session会话
+
+- 4. *session*会话中 我们经常*用来保存用户登录之后的信息*
+<!-- 
+  cookie是保存在客户端
+  session是保存在服务器端
+ -->
+
+
+> session的创建 和 获取
+- 使用的是同一个api
+
+> req.getSession()
+- *第一次*调用是*创建*session会话
+- *之后调用*都是*获取*前面创建好的session会话对象
+
+- 返回值:
+- HttpSession session
+
+
+> session对象.isNew()
+- 判断到底是不是刚创建出来的session对象
+<!-- 新创建的还没有值 -->
+
+- 返回值
+- true: 表示刚创建
+- false: 表示获取之间创建好的(不是新的)
+
+
+> session的特点
+- 每一个会话都有自己的身份证号码 也就是 id
+- 这个id值是唯一的
+
+> session对象.getId()
+- 得到session会话的id值
+
+- 返回值:
+- String id
+
+```java
+protected void createOrGetSession(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 创建和获取 session 对象
+  HttpSession session = req.getSession();
+
+  // 验证该session是不是新创建的
+  boolean isNew = session.isNew();
+
+  // 获取 session id
+  String id = session.getId();
+}
+```
+
+
+> 代码演示
+- 1. 创建一个SessionServlet程序
+```java
+protected void createOrGetSession(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 创建和获取 session 对象
+  HttpSession session = req.getSession();
+
+  // 验证该session是不是新创建的
+  boolean isNew = session.isNew();
+
+  // 获取 session id
+  String id = session.getId();
+
+  res.getWriter().write("得到的session: id" + id + "<br />");
+  res.getWriter().write("该session是否是新创建的: " + isNew + "<br />");
+}
+
+// 得到的session: id4FC462C0A87B78F3B47783847BEAAAE8
+
+// 该session是否是新创建的: true
+```
+
+
+> 往 Session 域中 存取数据
+- 上面我们获取了session对象
+- 这个session对象也是 我们4个域对象之一
+- 域对象就是像map一样存取数据的
+
+> session对象.setAttribute(String "key", Object value)
+- 存数据
+
+> session对象.getAttribute(String "key", Object value)
+- 取数据
+
+```java
+protected void setAttribute(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 往session域保存数据
+  req.getSession().setAttribute("key1", "value1");
+}
+
+protected void getAttribute(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 获取session域中的数据
+  Object attribute = req.getSession().getAttribute("key1");
+  res.getWriter().write("从session中获取的 key1 的数据是: " + attribute);
+}
+```
+
+------
+
+> Session生命周期控制(超时时长)
+- 也是通过api来控制
+- session的超时时长是说 客户端的两次请求之间的间隔时长
+
+> session对象.getMaxInactiveInterval()
+- 获取 session 的超时时间
+
+- 返回值
+- int
+
+> session默认的超时时长为:
+- session的默认时长为: 1800秒 (半小时)
+- 因为在Tomcat中默认就配置过了
+<!-- 
+<session-config>
+  <session-timeout>30</session-timeout>
+</session-config>
+
+- 因为在tomcat服务器 web.xml 中默认有如上的配置 它就表示配置了当前tomcat服务器下所有的session超时配置默认时长为 30分钟
+ -->
+
+```java
+protected void defaultLife(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 获取session对象 再获取超时时长
+  int maxInactiveInterval = req.getSession().getMaxInactiveInterval();
+
+  res.getWriter().write("session的默认时长为: " + maxInactiveInterval);
+}
+```
+
+> 修改 web工程下 所有session的默认超时时长
+
+- 如果说我们希望自己的web工程 默认的session的超时时长为其它时长 你可以在自己的 web.xml 配置文件中 像以上相同的配置 就可以修改你的web工程 就可以修改我们的web工程的所有session的默认超时时长
+
+```xml
+<!-- 
+  表示当前web工程 创建出来的所有session默认是20分钟 
+-->
+<session-config>
+  <session-timeout>30</session-timeout>
+</session-config>
+```
+
+
+> 修改 某个 session 的超时时长
+- 就可以使用下面的api来进行单独的设置
+- session对象.setMaxInactiveInterval(int interval)
+
+> session对象.setMaxInactiveInterval(int interval)
+- 设置 session 的超时时间 超过指定的时长 session就会被销毁
+
+- 设置 正数:
+- 表示设定session的超时时长
+
+- 设置 负数
+- 表示session永不超时
+<!-- 
+  如果设置负数 那么服务器就会有越来越多的session
+  session不销毁 那就会占内存 慢慢的服务器就会出现问题
+ -->
+
+- 返回值
+- void
+
+- 单位:
+- 秒
+
+```java
+protected void life3(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 获取session对象
+  HttpSession session = req.getSession();
+  res.getWriter().write("当前session原有的超时时间为: " + session.getMaxInactiveInterval() + "<br>");
+
+  // 设置当前session 3秒后超时
+  session.setMaxInactiveInterval(3);
+  res.getWriter().write("当前session已经设置了3秒后超时 <br>");
+  res.getWriter().write("现在session的超时时间为: " + session.getMaxInactiveInterval() + "<br>");
+}
+```
+
+
+- 有一个现象 如果当前的session对象 被设置为 3秒后超时的时候 那3秒后
+```java
+// 创建和获取 session 对象
+HttpSession session = req.getSession();
+
+// 验证该session是不是新创建的
+boolean isNew = session.isNew();
+```
+- 3秒后 session.isNew()就应该是: true
+
+- 但是我们连续点击 按钮后 发现都是false 只有真正的等3秒后再点击才是true 为什么？
+
+> 超时的概念
+- 当客户端通过点击 <a>标签 然后内部逻辑会访问 servlet程序 程序中设置了session 3秒超时 这次点击的请求会到服务器
+
+- 服务器底层有一个 session 对象 它当中有一个类似计时器的东西
+  timeout = 3
+
+- 每个一秒 timeout - 1
+
+  timeout = 3
+  timeout = 2
+  timeout = 1
+  timeout = 0 的时候就超时 被删掉了
+
+- 当我们连续点击a标签的时候 相当于连续的发起了请求 导致了重新设定为3 懂了吧
+
+> session的超时指的是
+- *客户端两次请求的最大间隔时长*
+
+- 一旦超过这个时长 session就被销毁了
+
+
+> 删除session
+> session对象.invalidate()
+- 使session马上超时(删除session 使此会话无效)
+
+- 异常:
+- IllegalStateException
+- 如果对已经失效的会话调用此方法
+
+```java
+protected void deleteNow(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 获取session对象
+  HttpSession session = req.getSession();
+
+  // 让session会话马上超时
+  session.invalidate()
+  
+  res.getWriter().write("session已经设置为无效");
+}
+```
+
+------
+
+> 浏览器和session之间怎么关联
+- 老师以前说 打开浏览器 关闭浏览器后 session就没了
+- 但是通过上面的学习我们知道 session是有超时时长的 那如果我们在给定的超时时长内我们关闭了浏览器 session为什么就没了 session不还没有超时么？
+
+- 客户端 -> 服务器
+- 为了实验 我们上来先将 客户端的cookie全部清掉
+- 在没有cookie的情况下 我们往服务器去发送请求
+
+- 服务器端调用的api是 req.getSession()
+- 这个api第一次的时候 会创建 会话对象
+
+- 该被创建的session对象在服务器的内存中
+- 服务器的内存中 有很多的session
+
+  session1
+  session2
+  session3
+  session4
+  session5
+  ...
+  session n
+
+- 我们创建的session也会放在服务器的内容中
+
+
+- 服务器 -> 客户端
+- 然后服务器会给客户端响应(前台页面点击按钮 发送创建session的请求 服务器肯定要响应)
+
+- 这时候我们观察下响应头
+- Set-Cookie: JSESSIONID=91A25AFFC342A86B0A631D42026DD0CE
+
+- 我们发现服务器响应到客户端一个cookie
+- cookie的key: JSESSIONID
+- cookie的val: 就是我们刚才服务器里创建的session的id值
+
+- 也就是说:
+- 服务器每次创建session会话的时候 都会创建一个cookie对象 这个cookie对象的key永远是*JSESSIONID* 值是新创建出来的session的id值
+
+- 也就是说:
+- 服务器通过响应把新创建出来的session的id值返回给客户端
+
+
+- 浏览器
+- 浏览器看到set-cookie响应头后 就会解析收到的数据 马上创建一个cookie对象
+
+- 上面也说了 当客户端有了cookie之后 每次发请求都会把cookie发送给服务器
+
+- 浏览器后面有了cookie之后 每次请求都会把session的id以cookie的形式发送服务器
+
+- 服务器
+- 服务器来是会调用 req.getSession()
+- 这个api之后的每次调用都是获取session 拿到session id的值去服务器内存中找对应的session
+
+- 服务器通过cookie中的id值找到自己之前创建好的session对象并返回
+
+- 以上就是服务器怎么获取之前创建好的session
+
+---
+
+- 比如我们现在的session的超时时间为20分钟
+- 我们在这个20分钟内做如下的动作
+- 然后我们还是删除客户端的所有cookie 在没有cookie的请求下 我们发送创建session的请求
+
+- 服务器
+- 还是上来 req.getSession()
+
+- 这时候我们思考 req.getSession() 是创建一个新的 还是返回已经创建好的那个
+
+- 答案
+- 它给我们创建了一个新的session 是session没有超时 但是客户端里没有cookie了 我们在这情况下发送请求的时候 这里是没有携带任何的cookie信息 同样包括没有之前的session id
+
+- 没有id就找不到原来的session会话了 所以服务器会给你创建一个新的session
+
+
+- 这也说明了 为什么session的存活时间没过 我们关闭了浏览器 session也没了
+- 因为cookie的默认周期是关闭浏览器自动销毁 也就是连带session id也被销毁了
+
+- 这就是说明
+- **session技术底层其实是基于cookie技术来实现的**
