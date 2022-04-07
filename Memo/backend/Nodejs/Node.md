@@ -2342,7 +2342,7 @@ console.log(info);
 let http = require("http")
 
 http.get("http://www.baidu.com", (res) => {
-  // 设置相应体的编码格式
+  // 设置响应体的编码格式
   res.setEncoding("utf8")
 
   // 监听res的data事件 当有数据回来的时候会触发该事件

@@ -4,6 +4,116 @@
 ### if else 减少嵌套
 - https://www.jianshu.com/p/ea22123d4f62
 
+> 场景1:
+```js
+if(a为真) {
+    a = a
+} else {
+    a = b
+}
+
+-- 修改为:
+
+a = a || b
+```
+
+> 场景2:
+```js
+if(a==b){
+    a = c
+}else{
+    a = d
+}
+
+-- 修改
+
+a = (a == b) ? c : d
+```
+
+
+> 场景3:
+- 后台接口通常会返回这种数据：
+```js
+task: 0 // 0=紧急， 1=日常， 2=临时
+
+-- 这种时候不能用判断 我们可以这样
+
+let mapData = ["紧急", "日常", "临时"]
+let res = mapData[task]
+```
+
+> 优化 if 逻辑
+- 把最可能出现的情况放在最前面，最不可能出现的情况放在最后面
+
+> 使用Array的方法或者Map等数据结构
+- 如果是苹果 或者 草莓的话 输出 red
+```js
+function test(){
+    if(fruit == 'apple' || fruit == 'strawberry'){
+        console.log('red');
+    }
+}
+```
+
+- 那如果我们要添加更多的条件的时候 怎么办？ 不能一直 || || || || || || 吧
+- 所以我们可以修改成如下的逻辑
+```js
+function test(fruit) {
+    const redFruit = ['apple','strawberry','cherry','cranberry'];
+    if(redFruit.includes(fruit)) {
+        console.log("red")
+    }
+}
+```
+
+- 那如果我们有更多的颜色呢 不光光只输出红色的水果 我们可以将
+- 颜色 : 水果 
+- 组织成键值对的形式 根据key 去找对应的value
+
+```js
+const fruitColor = new Map()
+fruitColor.set("red", ['apple','strawberry'])
+fruitColor.set('yellow',['banana','pineapple']);
+fruitColor.set('purple',['grape','plum']);
+
+function test(color) {
+    return fruitColor.get(color) || []
+}
+```
+
+> 策略模式
+```js
+function func() {
+  if (type === 'a') {
+    // 执行内容 1
+  } else if (type === 'b') {
+    // 执行内容 2
+  } else if (type === 'c') {
+    // 执行内容 3
+  }
+  // 后续代码
+}
+
+-- 修改为
+
+// 使用策略模式优化
+function func() {
+  let handlerA = () => { console.log('执行内容1') }
+  let handlerB = () => { console.log('执行内容2') }
+  let handlerC = () => { console.log('执行内容3') }
+  
+  let handlerMap = {
+    a: handlerA,
+    b: handlerB,
+    c: handlerC
+  }
+  handlerMap[type] && handlerMap[type]()
+  // 后续代码
+}
+```
+
+
+
 
 ### 栈结构
 - 栈是一种特殊的线性表,它的存储空间是连续的。
@@ -8151,22 +8261,22 @@ prototype(ox123)   ↗
 
 - 需求:
 - 当我们有一个按钮, 当我们点击了之后, 就禁用这个按钮, 3秒钟之后开启这个按钮
-<!-- 
+```js 
     let button = document.querySelector('button');
     button.onclick = function(){
     
-    事件函数的this指向的是btn
+    // 事件函数的this指向的是btn
     this.disabled = true;
 
     setTimeout(function(){
-        我能这么写么? 不能因为定时器函数this指向的是window
+        // 我能这么写么? 不能因为定时器函数this指向的是window
         this.disabled = false;  
     }, 3000)
     }
 
     // 以前的做法
     button.onclick = function(){
-        以前我们的做法是
+        // 以前我们的做法是
         let that = this;
         this.disabled = true;
 
@@ -8181,18 +8291,16 @@ prototype(ox123)   ↗
 
         setTimeout(function(){
         
-        现在我就想让定时器函数里面的this指向btn
-        同时定时器里面的函数并不是马上执行 所以我们选择bind(), bind()写在定时器的外面
+        // 现在我就想让定时器函数里面的this指向btn 同时定时器里面的函数并不是马上执行 所以我们选择bind(), bind()写在定时器的外面
             this.disabled = false;  
         }.bind(this), 3000)
 
-        这个bind()是在定时器函数的外面, 这个this又是在button函数的里面, 这个this指向的就是btn
+        // 这个bind()是在定时器函数的外面, 这个this又是在button函数的里面, 这个this指向的就是btn
 
         setTimeout(funcion(){}.bind(button), 3000)
-        给定时器函数绑定了一个bind方法, 它不会立即调用函数, 同时我让这个定时器函数里面的this 指向了btn
-        因为点了谁, 谁就是this, 说以bind(button) 里面不要写button 改成this
+        // 给定时器函数绑定了一个bind方法, 它不会立即调用函数, 同时我让这个定时器函数里面的this 指向了btn 因为点了谁, 谁就是this, 说以bind(button) 里面不要写button 改成this
     }
- -->
+```
 
 ### 总结 call apply bind总结
 > 相同点

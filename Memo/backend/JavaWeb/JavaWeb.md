@@ -4457,6 +4457,9 @@ ${person.map.key1}
 ${empty emptyNull}
 ```
 
+> empty运算 ${not empty 要检查的对象}
+- 检查数据是否是 非空
+
 
 > 三元运算 表达式 ? 值1 : 值2
 - 跟我们熟悉的用法是一样的
@@ -9856,3 +9859,185 @@ protected void deleteNow(HttpServletRequest req, HttpServletResponse res) throws
 
 - 这就是说明
 - **session技术底层其实是基于cookie技术来实现的**
+
+----------------
+
+### 书城项目： 登录成功后的细节问题
+
+> 问题1: 导航栏上的欢迎提示
+- 1. 书城项目在登录成功后 要欢迎界面要显示用户的昵称 而不是韩总
+- 2. 如果没有昵称的话 就要显示用户账号信息
+<!-- 我们这个项目里面是没有昵称的 所以要显示用户账户信息 -->
+
+- 位置:
+- web/common/login_success_menu.jsp
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<div>
+  <span>欢迎<span class="um_span">韩总</span>光临尚硅谷书城</span>
+  <a href="pages/order/order.jsp">我的订单</a>
+  <a href="index.jsp">注销</a>&nbsp;&nbsp;
+  <a href="index.jsp">返回</a>
+</div>
+```
+
+- 我们要将 韩总 显示为 登录者的账号信息
+- 登录我们走的是 UserServlet 程序
+
+```java
+protected void login(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  String username = req.getParameter("username");
+  String password = req.getParameter("password");
+
+  User loginUser = userService.login(new User(null, username, password, null));
+  if(loginUser == null) {
+    // 登录失败
+    // 将错误信息 和 回显的表单项信息 保存到Request域中
+    req.setAttribute("msg", "用户名和密码错误");
+    req.setAttribute("username", username);
+    req.getRequestDispatcher("/pages/user/login.jsp").forward(req, res);
+
+  } else {
+    // 登录成功
+    req.getRequestDispatcher("/pages/user/login_success.jsp").forward(req, res);
+  }
+}
+```
+
+- 我们可以在登录成功的逻辑中 将登录用户的信息保存到 request域中
+- 但是还有一个问题 不光光是登录界面要用 还有我的订单界面也有 要显示用户登录信息的位置
+- 这时候我们就不能将其保存到request域中了 我们上面说过 4个域从小到大 如果request域已经不足以解决问题 我们可以放到session域中*session经常用来保存用户登录之后的信息*
+
+```java
+else {
+  // 登录成功 后将用户的信息保存到session域中
+  req.getSession().setAttribute("user", loginUser);
+  req.getRequestDispatcher("/pages/user/login_success.jsp").forward(req, res);
+}
+```
+
+- 将用户的信息保存到session域中后 jsp页面就可以利用它输出用户的昵称了
+
+```html
+<span>欢迎<span class="um_span">${sessionScope.user.username}</span>光临尚硅谷书城</span>
+```
+
+------
+
+> 问题2: 登录成功返回首页 还是显示 登录 | 注册
+- 如果用户还没登录 显示的是 登录 | 注册
+- 如果用户已经登录 应该显示 用户登录成功后的信息 如
+
+  欢迎 XX 光临尚硅谷书城 我的订单 注销 返回
+
+- web/pages/client/index.jsp
+```html
+<span class="wel_word">网上书城</span>
+<div>
+  <a href="pages/user/login.jsp">登录</a> |
+  <a href="pages/user/regist.jsp">注册</a> &nbsp;&nbsp;
+  <a href="pages/cart/cart.jsp">购物车</a>
+  <a href="pages/manager/manager.jsp">后台管理</a>
+</div>
+```
+
+- 要改成
+- 要点:
+- 1. 利用 c:if 标签
+- 2. 利用 ${empty} ${not empty} 表达式
+- 3. 判断session域中有没有值
+
+```html
+<span class="wel_word">网上书城</span>
+  <div>
+  <%-- 如果用户还没有登录显示 登录 和 注册 的菜单 --%>
+  <c:if test="${empty sessionScope.user}">
+    <a href="pages/user/login.jsp">登录</a> |
+    <a href="pages/user/regist.jsp">注册</a>
+  </c:if>
+
+  <%-- 已经登录的时候 应该显示的菜单 --%>
+  <c:if test="${not empty sessionScope.user}">
+    <span>欢迎<span class="um_span">${sessionScope.user.username}</span>光临尚硅谷书城</span>
+    <a href="index.jsp">注销</a>&nbsp;&nbsp
+  </c:if>
+    <a href="pages/cart/cart.jsp">购物车</a>
+    <a href="pages/manager/manager.jsp">后台管理</a>
+</div>
+```
+
+- 检测
+- 当我们重启服务器后 session 就没有了 可以看看没有的时候的显示状态
+
+----------------
+
+### 书城项目： 注销登录
+- 一旦我们点击注销 登录的信息 马上就没有了 又回到了登录 | 注册
+
+> 步骤:
+- 1. 销毁 session中用户登录的信息(或者销毁session)
+- 2. 重定向到首页(登录页面)
+
+- 我们要在服务器这边定义一个方法 让它处理注销的逻辑
+- 我们在 UserServlet 程序中 定义 loginOut()
+
+```java
+protected void loginOut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  req.getSession().invalidate();
+  res.sendRedirect(req.getContextPath());
+}
+```
+
+- 修改 注销按钮 的href
+```html
+<a href="user?action=loginOut">注销</a>
+```
+
+----------------
+
+### 书城项目： 表单重复提交的3种情况
+- 我们第一次遇到表单重复提交是在后台添加图书的时候 我们见到过
+
+> 表单重复提交有3种常见的情况
+
+- 情况1: 
+- 提交完表单 服务器使用请求转发来进行页面的跳转 这个时候 用户按下功能键 f5 就会发起最后一次的请求 造成表单重复提交的问题
+
+**解决方法**
+- 使用重定向来进行跳转
+
+- 模拟:
+- 前台有一个简单的登录表单
+
+- 后台有一个 RegistServlet 程序
+```java
+protected void regist(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 获取请求的参数
+  String username = req.getParameter("username");
+
+  // 这里模拟 保存到数据库的逻辑
+  
+  // 进行转发
+  req.getRequestDispatcher("/ok.jsp").forward(req, res);
+}
+```
+
+- 准备工作做好了之后 我们测试下
+- 输入用户名后 点击提交 然后 F5 我们发现 这条数据保存到数据库好多次
+
+- 如上的情况我们使用重定向就可以了
+```java
+res.sendRedirect(req.getContextPath());
+```
+
+
+- 情况2:
+- 用户正常提交服务器 但是由于网络延迟等原因 迟迟未收到服务器的响应 这个时候用户以为提交失败就会着急 然后多点了几次提交 也会造成表单重复提交
+
+- 情况3:
+- 用户正常提交服务器 服务器也没有延迟 但是提交完成后 用户回退浏览器 重新提交 也会造成表单重复提交
+
+- 第一种情况我们可以使用重定向来解决 那情况2 和 情况3怎么办？
+
+- *使用验证码!*

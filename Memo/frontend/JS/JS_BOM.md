@@ -31,7 +31,7 @@ document   location   navigation   screen   history
 
 
 ### BOM的构成
-- 它是js访问浏览器窗口的一个借口
+- 它是js访问浏览器窗口的一个接口
 - 它是一个全局对象, 定义在全局作用域中的变量, 函数都会变成window对象的属性和方法
 <!-- 
     在调用的时候可以省略window, 前面学习的对话框都属于window对象方法, 入alert(), prompt()等

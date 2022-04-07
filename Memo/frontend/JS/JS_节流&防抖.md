@@ -53,14 +53,14 @@
 
     2. 现在我们需要延迟执行addEvent里面的函数, 就需要加入setTimeout 但是仅仅进行延迟执行是不够的, 因为在这个延时里如果用户继续点击的话, 并不会重新计时
 
-    3. 因此我们还需要假如clearTimeout来清除延迟, 我们来看看程序的大致流程
+    3. 因此我们还需要加入clearTimeout来清除延迟, 我们来看看程序的大致流程
 
         首先点击 --- 清除延迟 --- 清除以后要重新设置定时
 
         - 如果在规定时间内又有点击事件  那么就重新返回到清除延迟的操作  然后再次设置定时
 
         - 如果在规定时间内没有点击事件  那么就可以执行表达的提交了, 我们只需要理清楚这个流程就可以写代码了
-<!-- 秒内不管多少次操作只会成为一次, 因为5秒内只要有事件的触发 就会重新计时, 5秒后才会提交 -->
+<!-- 5秒内不管多少次操作只会成为一次, 因为5秒内只要有事件的触发 就会重新计时, 5秒后才会提交 -->
 
 <!-- 
     const btn = document.querySelector('input');
@@ -87,7 +87,7 @@
     }
 
     // 难点1:
-    如果再回调函数后加小括号debounce()会自动执行函数, 怎么解决
+    如果在回调函数后加小括号debounce()会自动执行函数, 怎么解决
     btn.addEventListener('click', debounce(payMoney));
 
     // 解决思路:
@@ -264,11 +264,11 @@
 
 
 > 再次整理
-<!-- 
+```js 
     let btn = $("button")[0]
     btn.addEventListener("click", debounce(action, 1000, "sam"))
 
-    function action(args) {
+    function action(...args) {      // 这里必须要展开 不然只能接到一个参数
         console.log("this", this)
         console.log("args", args)
     }
@@ -276,14 +276,14 @@
     function debounce(fn, delay, ...args) {
         let timer = null
 
-        return function() {
+        return function() {         // 这里必须是function的写法 不然this是window
             clearTimeout(timer)
             timer = setTimeout(() => {
                 fn.apply(this, args)
             }, delay)
         }
     }
- -->
+```
 
 
 ### 防抖的总结要点

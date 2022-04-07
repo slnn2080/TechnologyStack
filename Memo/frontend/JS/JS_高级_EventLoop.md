@@ -170,7 +170,7 @@
     情况3 
     - 我们再在定时器里面加上 new Promise
     setTimeout(function () {
-        congsole.log('定时器')                      它
+        console.log('定时器')                      它
         new Promise(resolve => {                        是一起执行的
             console.log('setTimeout promise')       它
             resolve()
@@ -188,7 +188,7 @@
 
     console.log('console')
 
-    执行顺序  promise console then setTimeout promise setTimeout then
+    执行顺序  promise - console - then - 定时器 - setTimeout promise - setTimeout then
  -->
 
 - new Promise() 括号中的代码是会立即执行的 这个部分的代码是同步代码
@@ -341,9 +341,31 @@
 ### 这里我们使用promise解决上面的问题
 - 我们希望把数字的累加的过程在异步来完成而不是同步
 
+```js
+let num = 99999
+let count = 0
 
+function hd() {
+  for(let i=0; i<num; i++) {
+    count += num--
+  }
+  console.log(count)
+}
 
+function handle() {
+  return new Promise(resolve => {
+    setTimeout(
+      resolve(hd)
+    )
+  })
+}
 
+handle().then(res => {
+  res()
+})
+
+console.log('laoshi')
+```
 
 ------------------------
 

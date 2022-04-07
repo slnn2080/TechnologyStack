@@ -421,3 +421,153 @@ afterEach(() => {
 ```
 
 
+> 场景:
+- 我们现在要测试的库 不是依赖于一个库 而是依赖于别的文件 这种情况下我们应该怎么做呢？
+
+- 比如 我们现在有两个人同时开发
+- A 负责请求数据  getData.js
+```js
+const getData = () => {}
+
+module.exports = getData
+```
+
+- B 负责拿到A的结果后进行继续操作(比如对A的数据 进行二次包装) normalizeData.js
+```js
+const getData = require("./getData")
+
+const normalizeData = () => {
+
+  const data = getData()
+
+  return {
+    status: 0,
+    data
+  }
+}
+
+module.exports = normalizeData
+```
+
+- 现在 A 的数据迟迟没有回来 我们却要对B的代码进行测试 这时候我们应该怎么操作呢？
+
+
+- 测试逻辑:
+- normalizeData.test.js
+- 因为normalizeData.js文件中 对A的数据进行了2次包装 仅仅是添加了一个status: 0 所以我们刨除A的数据 我们能测试的就是 status是否为0
+```js
+const normalizeData = require("./normalizeData")
+
+test("normalizeData测试", () => {
+  const status = normalizeData().status
+  expect(status).toBe(0)
+})
+```
+
+- 但是我们想测试A的getData怎么办呢？
+- jest中提供了一个方法 它可以对一个模块进行mock(比如我们就可以模拟A的逻辑)
+- 我们在首行添加 如下语句
+
+- jest.mock("./getData")
+- const getData = require("./getData")
+- 这时候我们就可以通过 getData 来进行私人测试定制了
+
+```js
+jest.mock("./getData")
+
+const normalizeData = require("./normalizeData")
+const getData = require("./getData")
+
+// 私人定制
+getData.mockReturnValue({
+  name: "zzc"
+})
+
+test("normalizeData测试", () => {
+  const status = normalizeData().status
+  expect(status).toBe(0)
+})
+
+
+// 我们预期得到的就是mock出来的结果
+test("normalizeData data测试", () => {
+  const data = normalizeData().data
+  expect(data).toBe({
+    name: "zzc"
+  })
+})
+```
+
+> 要点
+- toBe()这个比较器 不能比较引用类型的值 下面的写法是不行的 所以我们要换一个比较器
+```js
+expect(data).toBe({
+    name: "zzc"
+  })
+```
+
+> toEqual({})
+- 用来比较引用类型的值
+
+```js
+test("normalizeData data测试", () => {
+  const data = normalizeData().data
+  expect(data).toEqual({
+    name: "zzc"
+  })
+})
+```
+
+
+> demo4: UI的快照测试
+- 进行ui测试 需要引入一个额外的库 这个库的作用是把ui组件 序列化成为可以比较的对象 这个库的名字是 react-test-renderer
+
+
+- 我们先创建一个组件
+```js
+import React from "react"
+
+const BaiduLink = () => {
+  const url = "www.baidu.com"
+  const text = "百度一下"
+
+  return (
+    <a href={url}>{text}</a>
+  )
+}
+
+export default BaiduLink
+```
+
+- 测试文件
+```js
+// 引入组件
+import BaiduLink from "./baiduLink";
+import renderer from "react-test-renderer"
+import React from "react"
+
+test("测试baidulink被正常的渲染", () => {
+  // 将ui组件序列化成可以比较的对象
+  const tree = renderer.create(<BaiduLink />).toJSON()
+  expect(tree).toMatchSnapshot()
+})
+```  
+
+
+- 因为我们使用了es6的语法 我们要创建 .babelrc
+```js
+{
+  "presets": ["@babel/preset-env", "babel/preset-react"]
+}
+```
+
+- npm i @babel/core @babel/preset-env @babel/preset-react -D
+- npm i react
+- npm i react-test-renderer
+
+
+> 注意:
+- 我们我们使用了快照 这时候我们要修改了内容的话 会要求先进行快照的验证 通过了后才可以进行下一步
+- 这时候我们就要通过如下的命令
+
+- npx jest --updateSnapshot
