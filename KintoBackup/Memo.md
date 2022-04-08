@@ -34,3 +34,11 @@
 - c.liu@hu-rang.com
 - xl5467426
 
+
+> Jira
+- 邮箱的第一条可以进入
+
+- 也可能是slack的账号
+- love - 不对
+- .net - 不对
+- .com - 不对

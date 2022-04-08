@@ -1,6 +1,19 @@
 ### 待看前端的设计模式
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
+### defaultValue
+- 场景
+- 我想让文本框中的值 进行 修改前 和 修改后的对比
+- 关于修改前的值 可以用 this.defaultValue 来获取
+
+- defautValue是页面加载出来后input中的初始值
+- value是当前input中的值
+
+- 当input中的值未修改时，value == defaultValue，
+- 当修改input值时，value为修改后的值，defaultValue仍为之前的。
+
+
+
 ### if else 减少嵌套
 - https://www.jianshu.com/p/ea22123d4f62
 

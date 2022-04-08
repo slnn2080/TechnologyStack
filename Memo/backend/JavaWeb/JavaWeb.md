@@ -9534,6 +9534,10 @@ public class LoginServlet extends HttpServlet {
 ----------------
 
 ### Session
+- 我们会往session中保存数据 那能保存多大的数据?
+- session是占用的服务器内存，所以内存越大，能存的值就越大，原则上讲无上限，一般用于存储对安全要求较高的重要数据
+
+
 > 什么是session会话
 - 1. Session是一个接口(HttpSession interface)
 - 2. Session是会话 它是用来维护一个客户端和服务器之间关联的技术(y一个session就维护一个客户端和服务器的关联)
@@ -9555,6 +9559,11 @@ public class LoginServlet extends HttpServlet {
 
 - 返回值:
 - HttpSession session
+
+
+> session对象.getAttribute("key")
+> session对象.removeAttribute("key")
+- 对session域中的数据进行获取 和 删除操作
 
 
 > session对象.isNew()
@@ -10041,3 +10050,1286 @@ res.sendRedirect(req.getContextPath());
 - 第一种情况我们可以使用重定向来解决 那情况2 和 情况3怎么办？
 
 - *使用验证码!*
+
+- 那验证码是怎么解决表单重复提交的问题呢?
+
+- 这里要明确一个概念:
+- 页面不是客户端 可以把客户端理解成一个空白容器
+- 当客户端键入 url 向服务器请求资源 服务器根据资源名找到页面响应回客户端
+- 然后客户端才会有页面
+
+- 也就是资源都在服务器 客户端发起请求才能得到对应的东西
+
+
+- 服务器端有2个元素
+- 1. jsp页面里面的表单
+<!-- 
+  // 注册页面
+  
+    用户名: _________
+    验证码: _________
+
+    提交
+ -->
+
+- 2. 表单提交对应的servlet
+
+- 要点:
+- 1. 当用户第一次访问表单的时候 就要给表单生成一个随机的验证码字符串
+<!-- (假设生成的验证码为: abcd) -->
+
+- 2. 要把验证码保存到session域中
+- 3. 要把验证码生成为验证码图片显示在表单中
+
+
+- 当用户请求回 注册页面的时候 并填写完 用户名 和 验证码 点击提交后 会提交到服务器端的RegistServlet程序
+
+- RegistServlet程序中的逻辑:
+- 1. 获取session中的验证码 *并删除session中的验证码*(为了保证第二次刷新页面的时候 session中的验证码是最新的 删除旧的)
+
+- 2. 获取表单中的表单项信息
+- 3. 比较session中的验证码和表单项中的验证码是否相等
+
+    相等:   
+        允许操作
+
+    不相等:
+        阻止操作
+
+- 比如 我们第一次请求回来的 注册页面 中的验证码是 abcde
+- 然后我们RegistServlet程序里面分别从session域中和表单项中获取验证码信息 进行对比
+
+- 这样 
+  abcde == abcde -- 允许操作
+
+
+- 然后上面进行了一次比较 而且regist程序在获取session域中的验证码之后 立马进行了删除 所以比较完一次后 session域中的验证码就是null
+
+- 之后用户要是回退页面再次点击提交 或者 多次点击提交 这时候session域中是 null 表单中的验证码是abcde 
+  null != abcde -- 阻止操作 提示请不要重复提交数据
+
+- 这就是验证码解决表单重复提交的问题的原理
+
+
+> 实现:
+- 验证码的需求是非常常见的 我们也不需要自己来写
+- 这里我们使用 谷歌提供的验证码方案
+
+> 谷歌验证码 kaptcha 使用步骤
+- 1. 导入谷歌验证码的jar包
+- 2. kaptcha-2.3.2.jar
+- 3. 在web.xml中配置用于生成验证码的servlet程序
+<!-- 
+  这个servlet程序是 kaptcha jar包中配置好的
+  我们点开jar包
+  com
+   - googlt.code.kaptcha
+    - servlet
+      - KaptchaServlet
+
+   在这个类中 拿到全类名 然后去web.xml中进行配置
+   package com.google.code.kaptcha.servlet;
+ -->
+
+
+**注意:**
+- url-pattern 的位置 要写成 /kaptcha.jpg
+```xml
+<servlet>
+  <servlet-name>KaptchaServlet</servlet-name>
+  <servlet-class>com.google.code.kaptcha.servlet.KaptchaServlet</servlet-class>
+</servlet>
+
+<servlet-mapping>
+  <servlet-name>KaptchaServlet</servlet-name>
+  <url-pattern>/kaptcha.jpg</url-pattern>
+</servlet-mapping>
+```
+
+- 配置好后 等我们访问 /kaptcha.jpg 程序 就会帮我们处理以下逻辑
+  - 1. 生成验证码
+  - 2. 生成验证码图片
+  - 3. 保存到session域中
+  <!-- 
+    session域中 验证码的key为
+    KAPTCHA_SESSION_KEY
+
+    这个常量是jar包的常量类里面定义的
+   -->
+
+<!-- 
+  当遇到
+  java.lang.ClassNotFoundException: com.google.code.kaptcha.servlet.KaptchaServlet
+
+  错误的时候:
+
+  ctrl + ; atrifacts - fix - add 下
+ -->
+
+- 而且每次访问或刷新下面的页面都会生成一张新的验证码
+- http://localhost:8080/project/kaptcha.jpg
+
+- 4. 在表单中使用img标签去显示验证码图片并使用它
+<!-- 
+  使用方式 img标签的src指向
+  http://localhost:8080/project/kaptcha.jpg
+ -->
+
+```html
+<form action="http://localhost:8080/project/registServlet" method="get">
+  <div class="form-item">
+    用户名: <input type="text" name="username">
+  </div>
+  <div class="form-item">
+    <div class="form-item-code">
+      验证码: <input type="text" name="code" id="code">
+    </div>
+    <div class="form-item-img">
+      <img src="http://localhost:8080/project/kaptcha.jpg" alt="">
+    </div>
+  </div>
+  <input type="submit" value="登录">
+</form>
+```
+
+- 5. 在RegistServlet程序中获取谷歌生成的验证码和客户端发送过来的验证码 进行比较
+
+- 要点:
+- 1. 获取session域中的数据
+- String token = (String) req.getSession().getAttribute(KAPTCHA_SESSION_KEY);
+
+- 2. 删除session域中的数据
+- req.getSession().removeAttribute(KAPTCHA_SESSION_KEY);
+
+- 整体逻辑
+```java
+public class RegistServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    // 获取表单项中的信息
+    String username = req.getParameter("username");
+    String code = req.getParameter("code");
+
+    // 获取session中的验证码
+    String token = (String) req.getSession().getAttribute(KAPTCHA_SESSION_KEY);
+    // 获取完后 马上删除 session域中的验证码
+    req.getSession().removeAttribute(KAPTCHA_SESSION_KEY);
+
+    // 在保存到数据库之前要进行比较
+    if(token != null && token.equalsIgnoreCase(code)) {
+      System.out.println("保存到数据库: " + username);
+      resp.sendRedirect(req.getContextPath() + "/ok.jsp");
+    } else {
+      System.out.println("请不要重复提交表单");
+    }
+  }
+}
+```
+
+----------------
+
+### 书城项目： 将验证码功能加入到书城的项目中
+- 我们书城项目的注册页面也用了验证码
+- 步骤和上面一样 我们主要记录下 servlet程序中的逻辑
+
+```java
+ protected void regist(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+// 1. 获取请求的参数
+String username = req.getParameter("username");
+String password = req.getParameter("password");
+String email = req.getParameter("email");
+String code = req.getParameter("code");
+
+
+User user = WebUtils.copyParamToBean(new User(), req.getParameterMap());
+
+
+// 获取验证码信息
+String token = (String) req.getSession().getAttribute(KAPTCHA_SESSION_KEY);
+// 删除session域中的验证码
+req.getSession().removeAttribute(KAPTCHA_SESSION_KEY);
+
+
+// 2. 检查验证码是否正确(验证码由服务器生成 先写死) 要求验证码为: abcd
+if(token != null && token.equalsIgnoreCase(code)) {
+  if(userService.existsUsername(username)) {
+    req.setAttribute("msg", "用户名已存在");
+    req.setAttribute("username", username);
+    req.setAttribute("email", email);
+
+    req.getRequestDispatcher("/pages/user/regist.jsp").forward(req, res);
+
+  } else {
+    userService.registUser(new User(null, username, password, email));
+    req.getRequestDispatcher("/pages/user/regist_success.jsp").forward(req, res);
+  }
+
+} else {
+  req.setAttribute("msg", "验证码错误");
+  req.setAttribute("username", username);
+  req.setAttribute("email", email);
+
+  req.getRequestDispatcher("/pages/user/regist.jsp").forward(req, res);
+}
+}
+```
+
+----------------
+
+### 书城项目： 验证码的切换
+- 验证码是有可能出现看不清的状态 这时候我们是要刷新验证码的
+- 一般我们点击图片的时候它就要刷新一下
+
+- 步骤:
+- 我们给图片绑定点击事件
+```js
+$("#code_img").on("click", () => {
+  this.src = "${basePath}kaptcha.jpg"
+})
+```
+
+- 但是上面的写法在火狐浏览器中 验证码只刷新了一次 因为浏览器做了缓存
+
+> 缓存的理解:
+- 浏览器为了让请求速度更快 就会每次请求的内容缓存到了浏览器端(要么硬盘上 要么磁盘中)
+
+- 每次点击刷新验证码 都会访问
+- http://localhost:8080/project/kaptcha.jpg
+
+- 上面的地址就是访问服务器中的servlet程序的 servlet程序会将验证码图片返回给前端页面
+
+- 浏览器收到这张图片后 为了让下次请求再快一点
+- 它会拿 资源路径 和 后面的参数 做文件名
+
+- 缓存文件的名称 = 资源名 + 参数
+- kaptcha.jpg = 返回的图片内容
+
+- 当我们再发一模一样的请求的时候(一样的地址和参数的请求时)
+- http://localhost:8080/project/kaptcha.jpg
+
+- 会直接从缓存中找 直接从浏览器缓存中获取原来的图片返回
+
+- 这就是我们在点击刷新验证码的时候只刷新一次的原因
+
+> 如何跳过浏览器的缓存 而发起请求呢？
+- 缓存文件的名称 = 资源名 + 参数
+- 那每次的参数部分不一样不就不走缓存了么
+
+- http://localhost:8080/project/kaptcha.jpg?*d=每次都不同的值*
+
+- 注意格式: key=value
+
+```js
+this.src = "${basePath}kaptcha.jpg?d=" + new Date();
+```
+
+----------------
+
+### 书城项目： 购物车模块的分析
+- 购物车的界面:
+
+  商品名称 数量 单价 总价 操作
+  时间简史 2    30  60  删除
+
+购物车中共有4件商品 总金额x元 清空购物车 去结账
+
+
+- 首先 我们要有一个 购物车对象 Cart
+- Cart中需要有如下的属性:
+- 1. totalCount:
+- 总商品数量
+
+- 2. totalPrice
+- 总商品金额
+
+- 3. items
+- 购物车商品
+- 真实的开发中items中不仅仅是图书可能还有电子产品 纺织用品 因为是购物车嘛
+
+- 这时候我们就要对购物车中的商品项进行抽取和封装
+
+  - 3.1 CartItem 购物车商品项
+    id
+      商品编号
+    
+    name
+      商品名称
+
+    count
+      商品数量
+
+    price
+      商品单价
+
+    totalPrice
+      商品总价
+
+> 市面上购物车的实现技术版本有 
+- 1. session版本
+- 把购物车信息保存到session域中
+
+- 2. 数据库版本
+- 把购物车信息保存到数据库中
+
+- 3. redis + 数据库 + cookie
+- 使用cookie + redis缓存 + 数据库
+
+- 其中session版本是对初学者而言必学的一个版本 我们这里使用session版本方案
+
+
+> 分析购物车都有哪些功能
+- 1. 加入购物车的逻辑
+- 2. 删除购物车的商品项
+- 3. 清空购物车
+- 4. 商品数量的修改
+
+
+**注意:**
+- 结账 不属于购物车的模块
+- 一般我们去点击结账 会跳出一个支付的页面 这时候不管是支付了还是取消了 都会生成一个订单
+
+- 所以结账属于订单模块(生成订单 保存订单 添加订单)
+
+
+- 每个模块都会有自己的servlet程序 Cart模块也一样 对应有CartServlet程序
+
+- 在这个servlet程序中 每一个功能对应一个方法
+
+> CartServlet程序
+- 1. addItem()
+  添加商品项
+
+- 2. deleteItem()
+  删除商品项
+
+- 3. clear()
+  清空购物车
+
+- 4. updateCount()
+  修改商品数量
+
+- 比如我们点击页面上的 加入购物车 按钮 会触发 加入购物车的功能 随之调用 addItem() 方法
+
+
+- 我们前面的开发是 调用servlet以后 然后调用service 然后service调用dao
+
+- 但是我们今天讲的session版本是 将购物车的信息保存到session中 没有保存到数据库 所以没有跟数据库交互的话 就没有dao
+
+- 我们只需要跟session来做交互 session是web层的api 所以也没有service 我们直接在web层进行操作
+
+- 我们还要对购物车中的数据进行增删改 这些操作我们放在哪里?
+- 我们放在购物车的对象中
+
+- Cart购物车类
+- addItem(CartItem)
+  添加商品项
+
+- deleteItem(id)
+  删除商品项
+
+- clear()
+  清空购物车
+
+- updateCount(id, count)
+  修改商品数量
+
+
+- 也就是说 当页面中触发 加入购物车 按钮的时候 会走 servlet程序中的 addItem()
+
+- servlet程序的addItem()方法 会调用Cart类中的addItem()
+
+
+> 先创建 购物车模型
+- com.sam.pojo
+
+> 创建CartItem模型对象(购物车的商品项)
+- id
+- name
+- count
+- price
+- totalPrice
+
+```java
+package com.sam.pojo;
+
+import java.math.BigDecimal;
+
+public class CartItem {
+  private Integer id;
+  private String name;
+  private Integer count;
+  private BigDecimal price;
+  private BigDecimal totalPrice;
+
+  public CartItem() {
+  }
+
+  public CartItem(Integer id, String name, Integer count, BigDecimal price, BigDecimal totalPrice) {
+    this.id = id;
+    this.name = name;
+    this.count = count;
+    this.price = price;
+    this.totalPrice = totalPrice;
+  }
+
+  // 还有 get set toString
+}
+```
+
+> 创建购物车对象 Cart
+- 我们这个地方看购物车的整体
+- 购物车中共有 4 件商品
+    -- 总数量: totalCount
+
+- 总金额: 90元
+    -- totalPrice
+
+- 商品列表(商品信息)
+   -- items
+
+
+**注意:**
+- 1. 这里我们不生成 空参 和 有参的构造器
+- 2. totalCount totalPrice 属性的set方法 我们都不用
+- 理由在注释里面
+
+```java
+package com.sam.pojo;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Cart {
+  private Integer totalCount;
+  private BigDecimal totalPrice;
+  private List<CartItem> items = new ArrayList<>();
+
+  @Override
+  public String toString() {
+    return "Cart{" +
+        "totalCount=" + totalCount +
+        ", totalPrice=" + totalPrice +
+        ", items=" + items +
+        '}';
+  }
+
+  public Integer getTotalCount() {
+    return totalCount;
+  }
+
+// 这个set方法不应该存在 因为商品的数量 是根据列表中的图书项的数量 累加出来的 不应该让别人去设置
+  public void setTotalCount(Integer totalCount) {
+    this.totalCount = totalCount;
+  }
+
+  public BigDecimal getTotalPrice() {
+    return totalPrice;
+  }
+
+// 这个set方法不应该存在 理由同上
+  public void setTotalPrice(BigDecimal totalPrice) {
+    this.totalPrice = totalPrice;
+  }
+
+  public List<CartItem> getItems() {
+    return items;
+  }
+
+  public void setItems(List<CartItem> items) {
+    this.items = items;
+  }
+}
+
+```
+
+----------------
+
+### 书城项目： (购物车模块) 购物车功能方法的实现和测试
+- 我们上面准备好了对象 现在开始写代码 上面我们整理出来的逻辑是
+
+  页面 -- CartServlet程序 -- Cart购物车
+
+- 我们从 Cart 开始 写功能和方法
+
+> com.sam.pojo.Cart
+> 添加商品的逻辑 
+- 下面我们讲了 items属性的类型 由List转换为Map的原因
+
+```java
+package com.sam.pojo;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Cart {
+  private Integer totalCount;
+  private BigDecimal totalPrice;
+
+  // items 集合的情况
+  private List<CartItem> items = new ArrayList<>();
+
+  // 添加商品项
+  public void addItem(CartItem cartItem) {
+   
+    // items是集合
+    items.add(cartItem);
+
+/*
+上面的这种添加方式不行 因为这种添加方式相当于当我们添加了两次时间简史的时候 会成2项呈现在页面上
+
+商品名称   数量   单价   金额
+时间简史   1      30    30
+时间简史   1      30    30
+
+如果我们添加的商品已经存在的情况下 我们不是在页面上列出两个 而是在数量上面进行累加
+*/
+
+---
+
+/*
+  所以正确的逻辑是:
+
+  先查看购物车中是否已经添加过此商品 如果已添加 则数量累加 总金额更新 如果没有添加过 直接放到集合中即可
+
+  如何判断要添加的商品是否在集合中呢？ 因为商品的编号是唯一的 所以我们可以判断编号
+
+  这样还需要自己遍历判断 不是不可以 而是有另外一种更加简单的方式
+  
+  items我们换种方式存储 不用 ArrayList 而用 linkedHashMap
+*/
+    for (CartItem item : items) {
+      item.getId() == item.getId()
+    }
+  }
+```
+
+- 修改之后
+- 要点:
+- item.getPrice().multiply(new BigDecimal(item.getCount()))
+
+- 上面的 multiply() 是乘法的意思 它的参数是BigDecimal类型
+
+```java
+// 添加商品项
+public void addItem(CartItem cartItem) {
+  // 当我们把 items 的数据类型变成 Map 后 我们判断添加商品的id是否已经在Map中的逻辑就不用自己for循环判断了
+  CartItem item = items.get(cartItem.getId());
+  if(item == null) {
+    // 之前没有添加过此商品
+    items.put(cartItem.getId(), cartItem);
+
+  } else {
+    // 已经添加过的情况 数量累加 总金额更新
+    // 取出原来的数量 + 1
+    item.setCount(item.getCount() + 1);
+    // 单价 X 数量
+    item.setTotalPrice(item.getPrice().multiply(new BigDecimal(item.getCount())));
+  }
+}
+```
+
+
+> 删除商品逻辑
+```java
+public void deleteItem(Integer id) {
+  items.remove(id);
+}
+```
+
+
+> 清空购物车逻辑
+```java
+public void clear() {
+  items.clear();
+}
+```
+
+
+> 修改商品数量的逻辑
+```java
+public void updateCount(Integer id, Integer count) {
+  // 先查看购物车中是否有此商品 如果有修改商品数量更新总价格
+  CartItem cartItem = items.get(id);
+  if(cartItem != null) {
+    // 修改商品数量 更新总金额
+    cartItem.setCount(count);
+    cartItem.setTotalPrice(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount())));
+  }
+}
+```
+
+> 购物车中商品的数量 和 总金额
+- 也就是下面的两个属性 该怎么得到值呢？
+- 我们只需要在 getTotalCount() 和 getTotalPrice() 这两个方法里面累加就可以了
+
+> 要点
+- new BigDecimal可能有很多用于计算的方法 我们等着去整理一下
+
+```java
+public class Cart {
+  // 这两个属性我们不用定义在这里 直接在get方法里面创建局部变量 定义在这里还占内存
+  private Integer totalCount;
+  private BigDecimal totalPrice;
+}
+```
+
+```java
+public Integer getTotalCount() {
+  // 在这里定义 图书总数量的局部变量
+  Integer totalCount = 0;
+
+
+  // 遍历map集合中的每一个entry
+  for(Map.Entry<Integer, CartItem> entry: items.entrySet()) {
+    totalCount += entry.getValue().getCount();
+  }
+  return totalCount;
+}
+
+public BigDecimal getTotalPrice() {
+  // 在这里定义 图书总金额的局部变量
+  BigDecimal totalPrice  = new BigDecimal(0);
+
+
+  for(Map.Entry<Integer, CartItem> entry: items.entrySet()) {
+
+    // 当前的总金额 + 每一个商品项的总金额 add() 是加法的意思
+    totalPrice = totalPrice.add(entry.getValue().getTotalPrice());
+  }
+  return totalPrice;
+}
+```
+
+
+> 测试:
+- 我们发现 每次测试的时候 都是复制上一个方法的内部逻辑 在这基础上进行的测试
+
+- 这就是累加测试
+
+```java
+package com.sam.test;
+
+import com.sam.pojo.Cart;
+import com.sam.pojo.CartItem;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+
+import static org.junit.Assert.*;
+
+public class CartTest {
+
+  @Test
+  public void addItem() {
+    // 创建购物车对象
+    Cart cart = new Cart();
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+
+    // 添加一个一模一样的看看 是不是 数量会累加
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+    cart.addItem(new CartItem(2, "数据结构与算法", 1, new BigDecimal(100), new BigDecimal(100)));
+
+    // 打印购物车 看看购物车中的数据是否正确
+    System.out.println(cart);
+  }
+
+  @Test
+  public void deleteItem() {
+    Cart cart = new Cart();
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+    cart.addItem(new CartItem(2, "数据结构与算法", 1, new BigDecimal(100), new BigDecimal(100)));
+
+    // 删除 1 这时候不是数量-1 而是把整个的商品项 删掉了
+    cart.deleteItem(1);
+
+    System.out.println(cart);
+  }
+
+  @Test
+  public void clear() {
+    Cart cart = new Cart();
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+    cart.addItem(new CartItem(2, "数据结构与算法", 1, new BigDecimal(100), new BigDecimal(100)));
+
+    // 删除 1 这时候不是数量-1 而是把整个的商品项 删掉了
+    cart.deleteItem(1);
+    cart.clear();
+    System.out.println(cart);
+  }
+
+  @Test
+  public void updateCount() {
+    Cart cart = new Cart();
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+    cart.addItem(new CartItem(2, "数据结构与算法", 1, new BigDecimal(100), new BigDecimal(100)));
+
+    cart.deleteItem(1);
+    cart.clear();
+
+    // 清空之后又添加了一次商品
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+    // 然后我们对这个商品的数量进行修改
+    cart.updateCount(1, 10);
+    
+    System.out.println(cart);
+  }
+}
+```
+
+----------------
+
+### 书城项目： (购物车模块) 添加商品到购物车的功能实现
+- 我们先完成加入购物车的功能 只有将商品添加到购物车 才能够将商品在购物车的页面 展示出来
+
+- 逻辑:
+- 在首页的jsp页面中 当点击 加入购物车的按钮的时候 我们把请求发给CartServlet程序 调用 addItem()的方法
+
+> jsp页面 逻辑:
+- 要点:
+- 1. 使用了data-id属性
+<!-- 
+  利用遍历或者模板来生成的结构 在每一个dom对象上添加属性的时候 可以利用data-id
+ -->
+
+ - 2. jq对象.data()
+ - 可读可写
+ - 一个参数 输入-后面的值
+ - 二个参数 输入 "key", "value"
+
+ - 3. 点击按钮后的内部逻辑 从data-属性上获取该本书的id 然后通过url的缀参数的形式 将参数传递到后端
+
+```html
+<div class="book_add">
+  <button data-id="${book.id}" class="add-btn">
+    加入购物车
+  </button>
+</div>
+
+<script>
+$(function() {
+  $(".add-btn").on("click", function() {
+    // 点击 加入购物车的按钮后 我们要将商品的编码 传递给服务器 服务器才知道我们要添加哪个商品
+    let $id = $(this).data("id")
+    console.log($id)
+
+    // 给加入购物车按钮绑定单击事件
+    location.href = "${basePath}cartServlet?action=addItem&id=" + $id
+  })
+})
+</script>
+```
+
+> CartServlet程序中的逻辑:
+- 1. 获取请求的参数: 商品编号
+
+- 2. 根据 商品id 查询数据库得到图书 也就是调用bookService.queryBookById() 得到该本图书的信息 只有得到图书的信息我们才能在购物车展示列表中呈现这本书的 名称 数量 单价 金额等信息
+
+- 3. 把图书信息转换为CartItem商品项
+- 4. 有了CartItem商品项后调用 cart.addItem(CartItem) 添加商品项
+
+- 5. 重定向回商品列表页面
+
+```java
+protected void addItem(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // - 1. 获取请求的参数: 商品编号
+  int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+
+  // - 2. 根据 商品id 查询数据库得到图书 也就是调用bookService.queryBookById() 得到该本图书的信息
+  Book book = bookService.queryBookById(id);
+
+  // - 3. 把图书信息转换为CartItem商品项 最后一个参数是总价 也就是一本书的价格
+  CartItem cartItem = new CartItem(book.getId(), book.getName(), 1, book.getPrice(), book.getPrice());
+
+  // - 4. 有了CartItem商品项后调用 cart.addItem(CartItem) 添加商品项
+  Cart cart = new Cart();
+  cart.addItem(cartItem);
+
+  System.out.println(cartItem);
+
+  // - 5. 重定向回商品列表页面(重定向回首页)
+  res.sendRedirect(req.getContextPath());
+}
+```
+
+- 但是上面的代码有问题 问题出在 步骤4 这里
+- 当我们添加第一本书的时候没有问题 
+- 当我们添加第二本数的时候发现 购物车对象里的图书总数量(购物车有n件商品)并不是2 还是1
+
+- 因为在第4步的位置 Cart cart = new Cart();
+- 导致每次都是一个新的购物车 就好像我们去超市 我们每次想往购物车里面装商品的时候 就换了一辆车 那每次车里面就只有一个商品
+
+- 所以我们的购物车一直都不换才可以 所以这个Cart肯定不能直接new的(我们只new一次 有就用原来的 没有就new一个) 
+
+- 我们一开始就说了 购物车的信息 要放在*session*中
+
+- 解决上面问题的代码如下:
+```java
+public class CartServlet extends BaseServlet {
+
+  private BookService bookService = new BookServiceImpl();
+
+  // 加入购物车
+  protected void addItem(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // - 1. 获取请求的参数: 商品编号
+    int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+
+    // - 2. 根据 商品id 查询数据库得到图书 也就是调用bookService.queryBookById() 得到该本图书的信息
+    Book book = bookService.queryBookById(id);
+
+    // - 3. 把图书信息转换为CartItem商品项 最后一个参数是总价 也就是一本书的价格
+    CartItem cartItem = new CartItem(book.getId(), book.getName(), 1, book.getPrice(), book.getPrice());
+
+    // - 4. 有了CartItem商品项后调用 cart.addItem(CartItem) 添加商品项
+    // 从session当中获取购物车(如果取不到cart就是null那么下面的if里就会创建cart)
+    Cart cart = (Cart) req.getSession().getAttribute("cart");
+    if(cart == null) {
+      // 说明session中没有购物车 那我们就创建一个
+      cart = new Cart();
+      // 创建好的购物车放在session中
+      req.getSession().setAttribute("cart", cart);
+    }
+
+    cart.addItem(cartItem);
+    System.out.println(cart);
+
+    // - 5. 重定向回商品列表页面(重定向回首页)
+    res.sendRedirect(req.getContextPath());
+  }
+}
+```
+
+- 核心代码: 
+```java
+  Cart cart = (Cart) req.getSession().getAttribute("cart");
+  if(cart == null) {
+    cart = new Cart();
+    req.getSession().setAttribute("cart", cart);
+  }
+
+  cart.addItem(cartItem);
+```
+
+- 第一次添加商品的时候 cart是null 所以我们创建了一个cart 并放在了session中 并添加了商品
+
+- 第二次添加商品从session中获取的 cart 添加的商品(没有走if)
+
+------
+
+> bug
+- 上面 我们在逻辑的最后 
+- res.sendRedirect(req.getContextPath());
+
+- 添加图书后重定向回了首页
+- 但是 假如我们点击了第2页的商品 加入购物车 我们正常应该仍然在第2页 但是我们跳回了首页
+
+  http://localhost:8080/project/client/book_list?action=page&pageNo=2
+
+    -- >  我们跳回了首页
+
+      http://localhost:8080/project
+
+
+- 再比如我们逛淘宝 淘宝左侧有导航栏 点击导航栏后 会展示对应的页面
+- 这时候我们会发现 点击不同的连接 跳转的域名是不同的
+<!-- 
+    电子产品    -- http://dzcp.xxx.com
+
+    纺织用品    -- http://fzyp.xxx.com
+
+    床上用品    -- http://csyp.xxx.com
+ -->
+
+- 也就是说 我们在对应的商品展示页面 点击加入购物车后 跳回去的页面是不同的
+
+- 我们点击的是
+  电子产品 就要跳回 http://dzcp.xxx.com
+  纺织用品 就要跳回 http://fzyp.xxx.com
+
+- 所以我们要跳回的地址是完全不同的 并不是简单的重定向到首页就可以
+- res.sendRedirect(req.getContextPath());
+
+- 那是不是说 我们点击 电子产品的时候 我把当前的url也发给服务器 这样点击加入购物车后 根据这个url再重定向回来是不是就可以了
+
+> 怎么做? 请求头referer
+- 在http协议中有一个请求头叫Referer 它可以把请求发起时 浏览器地址栏中的地址发送给服务器
+
+- 就是说我们可以根据 referer 得到(服务器得到) 点击按钮发起请求时 当前url的地址
+
+```java
+System.out.println(req.getHeader("Referer"));
+
+-- 当我点击<a>购物车</a>的时候 如果我身处
+-- 首页跳到 CartServlet程序的话
+-- http://localhost:8080/project/
+
+-- 首页第3页跳到 CartServlet程序的话
+-- http://localhost:8080/project/client/book_list?action=page&pageNo=3
+```
+
+
+> 这个功能的完整代码 (利用referer重定向回原商品所在的页面)
+- 主要是修改了第5步
+
+```java
+private BookService bookService = new BookServiceImpl();
+
+// 加入购物车
+protected void addItem(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // - 1. 获取请求的参数: 商品编号
+  int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+
+  // - 2. 根据 商品id 查询数据库得到图书 也就是调用bookService.queryBookById() 得到该本图书的信息
+  Book book = bookService.queryBookById(id);
+
+  // - 3. 把图书信息转换为CartItem商品项 最后一个参数是总价 也就是一本书的价格
+  CartItem cartItem = new CartItem(book.getId(), book.getName(), 1, book.getPrice(), book.getPrice());
+
+  // - 4. 有了CartItem商品项后调用 cart.addItem(CartItem) 添加商品项
+  // 从session当中获取购物车(如果取不到cart就是null那么下面的if里就会创建cart)
+  Cart cart = (Cart) req.getSession().getAttribute("cart");
+  if(cart == null) {
+    // 说明session中没有购物车 那我们就创建一个
+    cart = new Cart();
+    // 创建好的购物车放在session中
+    req.getSession().setAttribute("cart", cart);
+  }
+
+  cart.addItem(cartItem);
+  System.out.println(cart);
+
+  // - 5. 重定向回原来商品所在的地址页面
+  // res.sendRedirect(req.getContextPath());
+  res.sendRedirect(req.getHeader("Referer"));
+}
+```
+
+----------------
+
+### 书城项目： (购物车模块) 购物车的展示
+- 上面我们已经把购物车的功能做好了 接下来我们要将购物车里面的数据 展示到页面上
+
+- 目标url
+- localhoost:8080/pages/cart/cart.jsp
+
+- 上面我们说过 如果在jsp页面 得不到数据 那我们可以先让其经过servlet程序 由servlet程序进行转发到真实jsp页面
+
+- 但是这个购物车模块是可以得到数据的 因为我们把数据都放在了session中
+- 我们在首页里将商品添加到了购物车中 并没有关闭浏览器 这时候我们到 localhoost:8080/pages/cart/cart.jsp 页面
+
+- session里面是有购物车的数据的 这样我们就可以遍历数据来生成页面中的信息 遍历 sessionScope.items
+
+- items是一个map 接下来我们就遍历这个map
+
+```html
+<table>
+  <tr>
+    <td>商品名称</td>
+    <td>数量</td>
+    <td>单价</td>
+    <td>金额</td>
+    <td>操作</td>
+  </tr>
+
+
+  <c:if test="${empty sessionScope.cart.items}">
+  <%-- 购物车没有数据的时候 --%>
+    <td colspan="5">
+      <a href="index.jsp">亲 当前购物车为空哦</a>
+    </td>
+  </c:if>
+
+
+  <c:if test="${not empty sessionScope.cart.items}">
+  <%-- 购物车有数据的时候 --%>
+    <c:forEach items="${sessionScope.cart.items}" var="entry">
+      <tr>
+        <td>${entry.value.name}</td>
+        <td>${entry.value.count}</td>
+        <td>${entry.value.price}</td>
+        <td>${entry.value.totalPrice}</td>
+        <td><a href="#">删除</a></td>
+      </tr>
+    </c:forEach>
+  </c:if>
+</table>
+
+
+<c:if test="${not empty sessionScope.cart.items}">
+  <div class="cart_info">
+    <span class="cart_span">购物车中共有<span class="b_count">${sessionScope.cart.totalCount}</span>件商品</span>
+    <span class="cart_span">总金额<span class="b_price">${sessionScope.cart.totalPrice}</span>元</span>
+    <span class="cart_span"><a href="#">清空购物车</a></span>
+    <span class="cart_span"><a href="pages/cart/checkout.jsp">去结账</a></span>
+  </div>
+</c:if>
+```
+
+----------------
+
+### 书城项目： (购物车模块) 删除购物车中的商品项
+- 当我们点击删除按钮 会请求 CartServlet程序中的 deleteItem() 去执行删除购物车商品项的操作 
+
+- CartServlet程序中的deleteItem()逻辑
+- 我们要将图书表格当前行的图书编号发送给服务器 服务器接收到后 调用 cart的deleteItem(id)方法
+
+- jsp页面中:
+```html
+<td>
+  <a class="del-btn" href="cartServlet?action=deleteItem&id=${entry.value.id}">删除</a>
+</td>
+
+<script>
+  $(".del-btn").on("click", function() {
+    let text = $(this).parent().parent().find("td:first").text()
+    return confirm("您确认要删除" + text + "么?")
+  })
+</script>
+```
+
+- CartServlet程序中的deleteItem()中
+- 要点:
+- 1. 第2步中 因为我们要使用Cart中的方法 但是我们千万不能new Cart这样出来的cart是新的 我们要从session中获取唯一的那个cart
+
+- 2. res.sendRedirect(req.getHeader("Referer"));
+- 使用 referer 重定向回 从哪来回哪去
+
+```java
+protected void deleteItem(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 1. 获取商品编号
+  int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+
+  // 2. 找到session中的购物车对象 调用购物车的方法
+  Cart cart = (Cart)req.getSession().getAttribute("cart");
+  if(cart != null) {
+    // 删除了购物车商品项
+    cart.deleteItem(id);
+
+    // 删除了之后我们一般会希望请求再次的跳回原来的页面刷新下看看删除之后的结果
+    res.sendRedirect(req.getHeader("Referer"));
+  }
+}
+```
+
+----------------
+
+### 书城项目： (购物车模块) 清空购物车
+- 页面 <a>清空购物车</a>
+    - CartServlet - clear()
+        - Cart cart.clean()
+
+
+> jsp页面
+- 修改 href 的地址
+
+```html
+<span class="cart_span">
+  <a 
+    class="clear-cart" 
+    href="cartServlet?action=clear">
+  清空购物车</a>
+</span>
+
+<script>
+  $(".clear-cart").on("click", function() {
+    return confirm("您确认要清空购物车么?")
+  })
+</script>
+```
+
+
+> CartServlet程序:
+- 这个逻辑比较简单
+- 1. 获取购物车对象
+- 2. 清空购物车
+
+```java
+protected void clear(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  Cart cart = (Cart) req.getSession().getAttribute("cart");
+  if(cart != null) cart.clear();
+  
+  res.sendRedirect(req.getHeader("Referer"));
+}
+```
+
+----------------
+
+### 书城项目： (购物车模块) 修改购物车商品数量
+- 前端逻辑:
+- 我们把 商品数量 的html结构 改成了 input 
+
+- 当用户离开输入框之后
+- 1. 需要提示 用户是否确认修改
+
+- 2. 
+  blur事件: 离开输入框后触发
+  change事件: 离开输入框后 并 文本发生变化才触发
+
+- 如果我们使用 blur事件 要进行如下的判断
+<!-- 
+  判断现在输入框里面的数量是否和原来的相同 不同才提示用户是否需要修改
+ -->
+
+- 如果我们使用 change事件 不用进行判断了
+
+- 确定:
+  - 发起请求给服务器保存修改
+  - 要发送 商品编号 id
+  - 要修改的商品数量
+
+- 取消:
+  - 恢复原商品数量
+
+- jsp页面:
+```html
+<!-- 这就是 商品数量 的列 -->
+<td style="text-align: center">
+  <input
+    -- 这里是为了获取当前行图书的id
+    data-id="${entry.value.id}"
+
+    class="item-count"
+    style="width: 50px; text-align: center;"
+    type="text"
+    value="${entry.value.count}">
+</td>
+```
+
+- 前端js逻辑
+```js
+$(".item-count").on("change", function() {
+  let name = $(this).parent().parent().find("td:first").text()
+  let count = $(this).val()
+  let id = $(this).data("id")
+
+  // 当 input 中的值发生变化的时候 并离开输入框的时候 我们要提示用户是否确认修改
+  let flag = confirm("您确定要修改【"+ name +"】商品数量为【"+ count +"】么？")
+
+  flag
+    ? send("http://localhost:8080/project/cartServlet?action=updateCount&id=" + id + "&count=" + count)
+    : this.value = this.defaultValue
+})
+
+function send(url) {
+  location.href = url
+}
+```
+
+- CartServlet程序中的逻辑:
+```java
+protected void updateCount(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // 获取参数
+  int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+  int count = WebUtils.ParseInt(req.getParameter("count"), 1);
+
+  // 获取cart购物车对象
+  Cart cart = (Cart) req.getSession().getAttribute("cart");
+  if(cart != null) cart.updateCount(id, count);
+
+  // 回到原页面查看结果
+  res.sendRedirect(req.getHeader("Referer"));
+
+}
+```
+
+----------------
+
+### 书城项目： (购物车模块) 首页购物车数据显示
+- 首页 有提示 
+  您的购物车中有3件商品
+  您刚刚将 时间简史 加入到了购物车中
+
+- 上面的内容是写死的 我们要回显实际的数据
+
+- 我们要回显:
+- 1. 总数量
+- 2. 最后一个商品的名称
+<!-- 
+// 方式1:
+  我们可以给购物车里面加一个属性 记录 最后一个商品的名称
+
+// 方式2:
+  我们将最后一个添加的信息保存到session域中 -- 我们选择这个
+
+  - 问题:
+  - 为什么不添加到request域中 而是要放到session中呢？
+  - 因为我们servlet程序里面 大部分的跳转都是 重定向 
+  - 重定向是不支持 request域 的数据共享的
+ -->
+
+
+> CartServlet程序中的 addItem()
+- 我们在addItem方法的最后写一行逻辑 这样每次添加图书会保存一次 每次都会覆盖掉上一个图书的信息
+
+```java
+protected void addItem(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+
+  Book book = bookService.queryBookById(id);
+
+  CartItem cartItem = new CartItem(book.getId(), book.getName(), 1, book.getPrice(), book.getPrice());
+
+  Cart cart = (Cart) req.getSession().getAttribute("cart");
+  if(cart == null) {
+    cart = new Cart();
+    req.getSession().setAttribute("cart", cart);
+  }
+
+  cart.addItem(cartItem);
+  res.sendRedirect(req.getHeader("Referer"));
+
+
+
+
+  // 将最后添加的图书放入到session域中 这里
+  req.getSession().setAttribute("lastBookName", cartItem.getName());
+}
+```
+
+
+> pages/client/index.jsp
+- 输出信息
+```html
+<div style="text-align: center">
+  <span>
+    您的购物车中有 ${sessionScope.cart.totalCount} 件商品
+  </span>
+  <div>
+    您刚刚将
+    <span style="color: red">
+      ${sessionScope.lastBookName}
+    </span>
+    加入到了购物车中
+  </div>
+</div>
+```
+
+- 简单的回显是完成了
+- 但是 如果我们清空购物车中的商品 首页的展示数据并没有发生变化
+
+- 所以我们要加上 if 的判断 如果购物车中有数据 和 没有数据的分别展示不同的结构
+
+```html
+<c:if test="${empty sessionScope.cart.items}">
+  <span></span>
+  <div>
+    <span style="color: red">当前购物车为空</span>
+  </div>
+</c:if>
+
+<c:if test="${not empty sessionScope.cart.items}">
+  <span>您的购物车中有 ${sessionScope.cart.totalCount} 件商品</span>
+  <div>
+    您刚刚将<span style="color: red"> ${sessionScope.lastBookName} </span>加入到了购物车中
+  </div>
+</c:if>
+```
