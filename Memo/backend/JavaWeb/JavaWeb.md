@@ -3295,6 +3295,9 @@ public abstract class HttpJspBase extends HttpServlet implements HttpJspPage { .
 > session
 - 设置访问当前jsp页面 是否会创建 HttpSession对象
 - 默认是true
+<!-- 
+  session的类型： HttpSession
+ -->
 
 > extends
 - 设置jsp翻译出来的ajva类默认继承谁
@@ -11332,4 +11335,1043 @@ protected void addItem(HttpServletRequest req, HttpServletResponse res) throws S
     您刚刚将<span style="color: red"> ${sessionScope.lastBookName} </span>加入到了购物车中
   </div>
 </c:if>
+```
+
+----------------
+
+### 书城项目： (订单模块) 订单模块的分析
+- 点击我的订单 会跳到订单页面
+- localhost:8080/project/pages/order/order.jsp
+
+  日期    金额    状态    详情
+  2015    90     未发货  查看详情
+
+
+- 通过上面订单的界面分析订单的模型(pojo -- Order)
+
+> Order 订单类 中的属性:
+- orderId: 
+  订单号(唯一)
+
+- userId:
+  用户编码(我们要知道这个订单属于谁)
+
+- createTime: 
+  下单时间
+
+- price: 
+  金额
+
+- status: 
+  0(0未发货, 1已发货, 2已签收)
+
+
+> OrderItem 订单项
+- 当我们点击 订单详情 的时候 会把该订单里面的购买信息展示出来(就能看到该订单里面买了什么东西 也是一个列表)
+
+- id:
+  主键编号
+
+- orderId:
+  订单号
+  (为了让我们知道单独的一个商品是属于哪个订单的)
+
+- name:
+  商品名称
+
+- count:
+  数量
+
+- price:
+  单价
+
+- totalPrice:
+  总价
+
+
+> 订单功能
+- 1. 生成订单
+- 点击 去结账 按钮的时候 就会生成订单
+
+- 2. (管理员) 查看所有订单
+- 3. (管理员) 发货(修改订单的状态 未发 已发 已签等)
+- 4. (管理员 / 普通用户) 查看订单详情
+<!-- 
+  列出的是 这个订单中各个商品的信息 这些商品的信息其实就是订单项
+ -->
+
+- 5. (普通用户) 查看我的订单
+- 6. (普通用户) 签收订单
+
+
+- 每个模块都有自己的servlet程序 所以会对应一个 OrderServlet
+
+> OrderServlet程序 -- Web层
+- 一个功能对应着 servlet程序中的一个方法
+
+- createOrder()
+- 生成订单
+
+- showAllOrders()
+- 查看所有订单
+
+- sendOrder()
+- 发货
+
+- showOrderDetail()
+- 查看订单详情
+
+- showMyOrder()
+- 查看我的订单
+
+- receiveOrder()
+- 签收dingdan(确认收货)
+
+
+> OrderService -- service层
+- createOrder(Cart, userId)
+- 要传递过来购物车信息 和 用户id
+- 生成订单
+
+- showAllOrders()
+- 查询所有订单
+
+- sendOrder(orderId)
+- 发货
+- 我们要告诉人家哪个订单发货了
+- 映射到数据库的操作就是修改订单中的status的状态
+
+
+- showOrderDetail(orderId)
+- 查看指定订单详情
+
+
+- showMyOrder(userId)
+- 查看我的订单
+- 给出userId到数据库查询
+
+
+- receiveOrder(orderId)
+- 签收订单(确认收货)
+- 其实也是修改订单状态
+
+
+> OrderDao -- dao层
+- 一个javaBean对应着一个dao
+- 生成订单要往数据库中保存订单的信息 还要保存订单项的信息
+
+- saveOrder(Order)
+- 保存订单
+
+- queryOrders()
+- 查询全部订单
+
+- changeOrderStatus(orderId, status)
+- 发货其实是修改订单中的status状态
+- 修改哪个订单
+- 状态是什么
+
+- queryOrdersByUserId(userId)
+- 根据用户编号查询订单信息
+
+
+> OrderItemDao -- dao层
+- 一个javaBean对应着一个dao
+
+- savaOrderItem(OrderItem)
+- 保存订单项
+
+- queryOrderItemsById(orderId)
+- 根据id(订单号)查询指定的订单的明细
+
+
+
+- 对上解释:
+- 我们针对一个流程用文字的形式 演示下:
+- jsp页面点击 去结账 触发 生成订单 的功能 会请求到 servlet程序中的 createOrder()
+
+- servlet程序中的 createOrder() 会调用 service层的 createOrder(Cart, userId)
+
+- 这时我们在service层的createOrder(Cart, userId)中
+
+- 既要调用 OrderDao程序的 saveOrder(Order) 方法保存订单
+
+- 又要调用 OrderItemDao程序的 saveOrderItem(OrderItem)保存订单项
+
+
+jsp页面 生成订单-- 
+    web createOrder() -- 
+        service createOrder(Cart, userId) -- 
+            -- OrderDao saveOrder(Order)
+            -- OrderItemDao saveOrderItem(OrderItem)
+
+
+jsp页面 查询所有订单
+    web showAllOrders() -- 
+        service showAllOrders() --
+            -- OrderDao queryOrders()
+
+
+jsp页面 发货
+    web sendOrder() -- 
+        service sendOrder(orderId) --
+            -- OrderDao changeOrderStatus(orderId, status)
+
+
+jsp页面 查看订单详情
+<!-- 
+  列出的是 这个订单中各个商品的信息 这些商品的信息其实就是订单项
+ -->
+    web showOrderDetail() -- 
+        service showOrderDetail(orderId) --
+            -- OrderItemDao queryOrderItemsById(orderId)
+
+
+jsp页面 查询我的订单
+    web showMyOrders() -- 
+        service showMyOrders(userId) --
+            -- OrderDao queryOrdersByUserId(userId)
+
+
+jsp页面 签收订单
+    web receiveOrder() -- 
+        service receiveOrder(orderId) --
+            -- OrderDao changeOrderStatus(orderId, status)
+
+
+> 订单模块的实现
+> 1. 创建订单模型的数据库表
+```sql
+create table t_order(
+	-- 一般订单号就是订单模块的主键 因为是唯一的
+	`order_id` varchar(50) PRIMARY KEY,
+	`create_time` datetime,
+	`price` decimal(11,2),
+	`status` int,
+	`user_id` int,
+	-- 一般user_id要加上外键约束 这个值必须是用户表中存在的
+	FOREIGN KEY(`user_id`) REFERENCES t_user(`id`)
+	);
+
+create table t_order_item(
+	`id` int PRIMARY KEY auto_increment,
+	`name` varchar(100),
+	`count` int,
+	`price` decimal(11,2),
+	`total_price` decimal(11,2),
+	`order_id` varchar(50),
+	FOREIGN KEY(`order_id`) REFERENCES t_order(`order_id`)
+);
+```
+
+> 2. 创建订单模块的数据模型
+- com.sam.pojo
+
+- Order
+```java
+package com.sam.pojo;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+public class Order {
+  private String orderId;
+
+  // java.util.Date;
+  private Date createTime;
+
+  private BigDecimal price;
+
+  // 默认值为0 订单一开始肯定是未发货
+  private Integer status = 0;
+  private Integer userId;
+
+  // 省略空参 有参 get set
+```
+
+- OrderItem
+```java
+package com.sam.pojo;
+
+import java.math.BigDecimal;
+
+public class OrderItem {
+  private Integer id;
+  private String name;
+  private Integer count;
+  private BigDecimal price;
+  private BigDecimal totalPrice;
+  private String orderId;
+}
+
+```
+
+------
+
+> 编写订单模块的Dao程序和测试
+- 教学视频里面只有 生成订单 的功能
+
+- com.sam.dao
+  - OrderDao(interface)
+  - OrderItemDao(interface)
+
+```java
+package com.sam.dao;
+import com.sam.pojo.Order;
+
+public interface OrderDao {
+  public int saveOrder(Order order);
+}
+
+---
+
+package com.sam.dao;
+import com.sam.pojo.OrderItem;
+
+public interface OrderItemDao {
+  public int saveOrderItem(OrderItem orderItem);
+}
+
+```
+
+- com.sam.dao.impl
+  - OrderDaoImpl
+  - OrderDaoItemImpl
+
+```java
+package com.sam.dao.impl;
+
+import com.sam.dao.OrderDao;
+import com.sam.pojo.Order;
+
+public class OrderDaoImpl extends BaseDao implements OrderDao {
+  @Override
+  public int saveOrder(Order order) {
+    // 这里是保存的操作
+    String sql = "insert into t_order(`order_id`, `create_time`, `price`, `status`, `user_id`) values(?,?,?,?,?)";
+    return update(sql, order.getOrderId(), order.getCreateTime(), order.getPrice(), order.getStatus(), order.getUserId());
+  }
+}
+
+---
+
+package com.sam.dao.impl;
+
+import com.sam.dao.OrderItemDao;
+import com.sam.pojo.OrderItem;
+
+public class OrderDaoItemImpl extends BaseDao implements OrderItemDao {
+  @Override
+  public int saveOrderItem(OrderItem orderItem) {
+    String sql = "insert into t_order_item(`name`, `count`, `price`, `total_price`, `order_id`) values(?,?,?,?,?)";
+    return update(sql, orderItem.getName(), orderItem.getCount(), orderItem.getPrice(), orderItem.getTotalPrice(), orderItem.getOrderId());
+  }
+}
+
+```
+
+
+> 测试:
+```java
+package com.sam.test;
+
+import com.sam.dao.OrderDao;
+import com.sam.dao.impl.OrderDaoImpl;
+import com.sam.pojo.Order;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import static org.junit.Assert.*;
+
+public class OrderDaoTest {
+
+  @Test
+  public void saveOrder() {
+    OrderDao orderDao = new OrderDaoImpl();
+    // 注意 user_id 是不能乱写的 必须是用户表里面存在的
+    orderDao.saveOrder(new Order("123457890", new Date(), new BigDecimal(100), 0, 1));
+  }
+}
+
+--- 
+
+package com.sam.test;
+
+import com.sam.dao.OrderItemDao;
+import com.sam.dao.impl.OrderDaoItemImpl;
+import com.sam.pojo.OrderItem;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+
+import static org.junit.Assert.*;
+
+public class OrderItemDaoTest {
+
+  @Test
+  public void saveOrderItem() {
+    OrderItemDao orderItemDao = new OrderDaoItemImpl();
+    // 注意 订单号 也有外键约束
+    orderItemDao.saveOrderItem(new OrderItem(null, "java从入土到放弃", 1, new BigDecimal(100), new BigDecimal(100), "123457890"));
+    orderItemDao.saveOrderItem(new OrderItem(null, "javascript从入土到放弃", 2, new BigDecimal(100), new BigDecimal(200), "123457890"));
+    orderItemDao.saveOrderItem(new OrderItem(null, "ts从入土到放弃", 1, new BigDecimal(100), new BigDecimal(100), "123457890"));
+  }
+}
+
+```
+
+------
+
+> 编写订单模块的service程序和测试 
+- 都是先有接口 然后再有实现类
+
+- com.sam.service
+  - OrderService(interface)
+
+- com.sam.service
+  - OrderServiceImpl
+
+- createOrder() 方法中
+- 既要调用 OrderDao程序的 saveOrder(Order) 方法保存订单
+
+- 又要调用 OrderItemDao程序的 saveOrderItem(OrderItem)保存订单项
+
+```java
+package com.sam.dao.impl;
+
+import com.sam.dao.OrderDao;
+import com.sam.dao.OrderItemDao;
+import com.sam.dao.OrderService;
+import com.sam.pojo.Cart;
+import com.sam.pojo.CartItem;
+import com.sam.pojo.Order;
+import com.sam.pojo.OrderItem;
+
+import java.util.Date;
+import java.util.Map;
+
+public class OrderServiceImpl implements OrderService {
+
+  private OrderDao orderDao = new OrderDaoImpl();
+
+  private OrderItemDao orderItemDao = new OrderDaoItemImpl();
+
+  @Override
+  public String createOrder(Cart cart, Integer userId) {
+    // - 保存订单
+
+/*
+  因为外键约束的原因 我们要先创建订单 才能创建订单项
+
+  价格: 就是购物车总价
+  订单号: 要确保唯一性
+
+    唯一性的解决方式:
+    时间戳 + userId
+
+    时间戳是唯一的(但是双11那天不行 好多人都是将商品保存到购物车 然后12点疯狂点结账 并发过来的 所以时间戳也会出现重复的情况 所以我们使用 时间戳 + 用户id 的方式
+*/
+    String orderId = System.currentTimeMillis() + "" + userId;
+
+    Order order = new Order(orderId, new Date(), cart.getTotalPrice(), 0, userId);
+
+    orderDao.saveOrder(order);
+
+
+
+    //-  保存订单项
+    /*
+      购物车中的商品项就是订单项 所以我们要将 CartItem 转成 OrderItem
+
+      遍历购物车中 每一个商品项 转化成为订单项 保存到数据库
+    */
+    for(Map.Entry<Integer, CartItem> entry: cart.getItems().entrySet()) {
+      CartItem cartItem = entry.getValue();
+      OrderItem orderItem = new OrderItem(null, cartItem.getName(), cartItem.getCount(), cartItem.getPrice(), cartItem.getTotalPrice(), orderId);
+
+      // 保存订单项
+      orderItemDao.saveOrderItem(orderItem);
+    }
+
+    // 点击去结账 就会走这个逻辑 最后我们要清空购物车
+    cart.clear();
+
+    // 我们要返回订单号 别人要用
+    return orderId;
+  }
+}
+```
+
+
+> 测试
+```java
+package com.sam.test;
+
+import com.sam.dao.OrderService;
+import com.sam.dao.impl.OrderServiceImpl;
+import com.sam.pojo.Cart;
+import com.sam.pojo.CartItem;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+
+import static org.junit.Assert.*;
+
+public class OrderServiceTest {
+
+  @Test
+  public void createOrder() {
+    Cart cart = new Cart();
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+
+    // 添加一个一模一样的看看 是不是 数量会累加
+    cart.addItem(new CartItem(1, "java从入门到精通", 1, new BigDecimal(1000), new BigDecimal(1000)));
+    cart.addItem(new CartItem(2, "数据结构与算法", 1, new BigDecimal(100), new BigDecimal(100)));
+
+    OrderService orderService = new OrderServiceImpl();
+    // 返回的订单号 我们看看返回的 和 数据库的一样不
+    String orderId = orderService.createOrder(cart, 1);
+    System.out.println(orderId);
+  }
+}
+```
+
+------
+
+> 编写订单模块的 web层 OrderServlet
+- com.sam.web
+  - OrderServlet
+
+- 逻辑:
+- cart.jsp页面点击 去结账 按钮(去结账就是要生成订单) 就会发起请求到OrderServlet 程序
+
+- 访问 createOrder() 然后将创建的订单号保存造域中在页面上显示
+
+- cart.jsp页面:
+- 修改去结账的href地址
+```html
+<span class="cart_span">
+  <a 
+  href="orderServlet?action=createOrder">
+  去结账</a>
+</span>
+```
+
+- checkout.jsp
+```html
+<h1>
+  你的订单已结算，订单号为: ${requestScope.orderId}
+</h1>
+```
+
+- createOrder()方法中 需要调用 orderService.createOrder(Cart, userId)
+
+- 我们需要得到 Cart购物车对象 和 用户的id
+- cart购物车对象在session中
+
+> 要点:
+- 一般转发和重定向后 后面不需要执行任何代码里 一般都会加上return
+
+```java
+package com.sam.web;
+
+import com.sam.dao.OrderService;
+import com.sam.dao.impl.OrderServiceImpl;
+import com.sam.pojo.Cart;
+import com.sam.pojo.User;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class OrderServlet extends BaseServlet {
+
+  private OrderService orderService = new OrderServiceImpl();
+  // 生成订单
+  protected void createOrder(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    // 先获取Cart购物车对象
+    Cart cart = (Cart) req.getSession().getAttribute("cart");
+
+    // userId 用户登录后也在session中 所以我们也可以从session获取
+    User user = (User) req.getSession().getAttribute("user");
+
+    // 这里注意 没有登录的话 是取不到userId的 一般我们在结账的时候会要求用户先登录
+    if(user == null) {
+      // 没有登录 跳转到登录页面
+      req.getRequestDispatcher("/pages/user/login.jsp").forward(req, res);
+      // 如果出现这样的情况 下面的代码不用执行了 要加上return
+      return;
+    }
+    // 能走到这里 说明用户登录过了 就有用户id了
+    Integer userId = user.getId();
+
+    // 调用service层里面的createOrder 生成订单
+    String orderNum = orderService.createOrder(cart, userId);
+
+    // 将订单号保存到域中
+    req.setAttribute("orderId", orderNum);
+
+    // 请求转发到 点击去结账后弹出的页面
+    // req.getRequestDispatcher("/pages/cart/checkout.jsp").forward(req, res);
+  }
+}
+
+
+```
+
+
+> 优化:
+- 我们上面的代码的最后 使用的是请求转发 为了防止表单的重复提交 我们要使用重定向
+
+- 部分代码演示:
+```java
+// 将订单号保存到域中 如果下面使用重定向的话 我们这里就不能保存到request域中了
+// req.setAttribute("orderId", orderNum);
+
+// 保存到session中
+req.getSession().setAttribute("orderId", orderNum);
+
+// 请求转发到 点击去结账后弹出的页面
+// req.getRequestDispatcher("/pages/cart/checkout.jsp").forward(req, res);
+
+// 使用重定向 上面的请求转发会造成表单的重复提交
+res.sendRedirect(req.getContextPath() + "/pages/cart/checkout.jsp");
+```
+
+
+> 优化2:
+- 首页上有商品列表展示:
+
+  书名: 
+  作者:
+  价格: 
+  销量: 100
+  库存: 100
+  加入购物车
+
+- 当我们点击加入购物车后结账的时候 销量 和 库存应该有变化
+
+- 也就是说在结账的时候 我们还要修改库存和销量
+
+- com.sam.service.OrderServiceImpl
+
+```java
+// 我们需要用到bookDao
+private BookDao bookDao = new BookDaoImpl();
+
+@Override
+public String createOrder(Cart cart, Integer userId) {
+
+  String orderId = System.currentTimeMillis() + "" + userId;
+  Order order = new Order(orderId, new Date(), cart.getTotalPrice(), 0, userId);
+  orderDao.saveOrder(order);
+
+  for(Map.Entry<Integer, CartItem> entry: cart.getItems().entrySet()) {
+    CartItem cartItem = entry.getValue();
+    OrderItem orderItem = new OrderItem(null, cartItem.getName(), cartItem.getCount(), cartItem.getPrice(), cartItem.getTotalPrice(), orderId);
+
+    orderItemDao.saveOrderItem(orderItem);
+
+    // 更新库存和销量
+    Book book = bookDao.queryBookById(cartItem.getId());
+    // 销量 = 原来的销量 和 图书的数量(买了几本)
+    book.setSales(book.getSales() + cartItem.getCount());
+    // 库存 = 原来的库存 - 图书的数量(买了几本)
+    book.setStock(book.getStock() - cartItem.getCount());
+
+    // 修改后 我们还要将修改结果保存下
+    bookDao.updateBook(book);
+  }
+
+  cart.clear();
+  return orderId;
+}
+```
+
+----------------
+
+### Filter (interface) 过滤器
+- Filter过滤器它是JavaWeb的三大组件之一
+- servlet程序
+- Listener监听器
+- Filter过滤器
+
+- Filter过滤器它是JavaEE的规范 也就是接口
+
+> Filter过滤器作用:
+- 拦截请求(主要) 
+- 过滤响应(冷门的高级应用)
+
+
+> 拦截请求常见的应用场景
+- 1. 权限检查
+- 2. 日记操作
+- 3. 事务管理
+- ...
+
+
+> Filter初体验
+- 我们就以权限检查来演示下Filter过滤器的使用场景
+
+- 要求:
+- 在我们的web工程下 有一个admin目录
+- 这个admin目录下的所有资源(html jpg jsp)都必须使用户登录之后才允许访问
+
+  | - web
+    | - admin
+      - a.html
+      - b.jsp
+      - c.jpg
+
+- 现在我们通过
+- http://localhost:8080/admin/a.html
+
+- 键入url的形式都能访问到上述的资源
+- 因为我们并没有加上权限管理
+
+- 我们希望的是 admin目录 必须是我们登录后才能访问
+
+> 怎么区分登录和不登录呢？
+- 根据之前我们学过的内容我们知道 用户登录之后都会把用户登录的信息保存到session域中 所以要检查用户是否登录, 可以判断session中是否包含用户登录的信息即可！
+
+- 在上面的页面中能够检查session域的只有jsp页面
+
+> 权限管理的思路
+- 比如我们可以这样
+- 通过url访问 b.jsp 页面 然后该页面中做以下的逻辑
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+<%
+  Object user = session.getAttribute("user");
+
+  // 如果user == null说明还没有登录
+  if(user == null) {
+    request.getRequestDispatcher("/login.jsp").forward(request, response);
+
+    // 一般请求转发之后就不会执行其它的代码了
+    return;
+  }
+%>
+  <h3>我是 b.jsp 页面</h3>
+</body>
+</html>
+```
+
+- 如果还没有登录 那我们就重定向到 login.jsp 页面
+  | - web
+    - login.jsp 
+
+<!-- 
+  标记:
+  - 这时候我们确实访问的是 login.jsp 页面的内容 但是 地址栏中地址是
+
+  - http://localhost:8080/admin/b.jsp
+
+  - 还是b.jsp的地址 这里做下备注
+ -->
+
+- 也上就是权限管理的思路
+
+- 但是有个问题 上述的方案 仅仅只能用在jsp页面中 因为只有在jsp页面中才能去写java代码去进行判断用户是否能登录
+
+- 那html 和 jpg怎么办？
+- 我们可以使用 filter
+
+
+> filter实现 权限管理 的原理
+
+- 客户端(浏览器)
+- 服务器(tomcat)
+
+- 客户端发起请求的格式
+- http://ip:port/工程路径/资源路径
+
+- 然后这次请求会到服务器
+- 以前是 如果服务器有对应的目标资源(html jsp servlet jpg txt mp4)就会直接访问了
+
+- 如果我们想在访问目标资源之前做权限检查怎么办？ 我们可以使用filter过滤器
+
+- *filter的执行是在 访问目标资源之前*  
+<!-- 
+  客户端            服务器
+  -----     ---------------------
+
+  请求   ->   Filter过滤器  目标资源
+            ------------  --------
+
+
+  -----     ---------------------
+ -->
+
+- 这样我们就可以在filter过滤器中 来检查用户是否有登录(也就是检查权限)
+
+  有权限
+      - 放行:
+      - 让程序默认执行(它想访问啥就去访问啥)
+
+  无权限 
+      - 控制程序的流转
+      - 比如我们*可以指定一个页面* 让它跳到登录页面 或者 不允许其访问
+
+
+> 基本应用的步骤
+> 1. 编写 Filter 类 
+- 用于设置判断条件(哪些情况下放行)
+
+- 1. 编写 adminFilter 类
+- 2. 继承 Filter 接口
+  | - src
+    | - com.sam.filter
+      - adminFilter
+      (注意: 我们要让类实现Filter接口)
+
+**注意:**
+- filter的包是: javax servlet 里面的
+
+- import javax.servlet.*;
+- import java.io.IOException;
+
+```java
+package com.sam.filter;
+
+
+import javax.servlet.*;
+import java.io.IOException;
+
+public class AdminFilter implements Filter {
+  @Override
+  public void init(FilterConfig filterConfig) throws ServletException {
+
+  }
+
+  @Override
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+
+  }
+
+  @Override
+  public void destroy() {
+
+  }
+}
+
+```
+
+> 非常重要的方法
+> public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+- 专门用于拦截请求 过滤响应
+
+- ServletRequest servletRequest
+- 请求对象
+
+- ServletResponse servletResponse
+- 响应对象
+
+<!-- 
+  如果要使用 HttpServlet 的方法的话 要强转
+ -->
+
+- FilterChain filterChain
+- 过滤器对象
+
+- filterChain.doFilter(servletRequest, servletResponse);
+- 当条件符合的时候 放行 相当于 next()
+- 让程序继续往下访问用户的目标资源
+
+
+> 2. 配置 web.xml 文件
+- <url-pattern>
+- 主要用来配置 当访问指定路径下的资源的时候 都要执行filter过滤器里面的逻辑
+
+
+```xml
+<!-- 用于配置一个filter过滤器 -->
+<filter>
+
+  <!-- 给 filter 起一个别名 -->
+  <filter-name>AdminFilter</filter-name>
+
+  <filter-class>com.sam.filter.AdminFilter</filter-class>
+
+</filter>
+
+
+<!-- 配置拦截路径 对哪些路径进行拦截 -->
+<filter-mapping>
+
+  <!-- 
+    表示当前的拦截路径给哪个filter使用 
+  -->
+  <filter-name>AdminFilter</filter-name>
+
+  <!--
+    配置拦截路径:
+    /: 表示请求地址为: http://ip:port/工程路径/ - > 映射到web目录
+
+    /admin/*: 表示拦截 /admin/ 下的全部资源(*)
+  -->
+  <url-pattern>/admin/*</url-pattern>
+</filter-mapping>
+```
+
+- 上面配置到了 filter 和 web.xml 接下来我们写下 login.jsp 页面和处理登录的servlet程序
+
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+  <h3>这是 login.jsp 页面</h3>
+  <form action="http://localhost:8080/loginServlet" method="get">
+    用户名: <input type="text" name="username"> <br>
+    密&emsp;码: <input type="text" name="password"> <br>
+    <input type="submit" value="提交">
+  </form>
+</body>
+</html>
+```
+
+- servlet程序
+```java
+package com.sam.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class LoginServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    res.setContentType("text/html; charset=UTF-8");
+    String username = req.getParameter("username");
+    String password = req.getParameter("password");
+
+
+    if("admin".equalsIgnoreCase(username) && "111111".equalsIgnoreCase(password)) {
+      // 登录成功后放用户的信息
+      req.getSession().setAttribute("user", username);
+      res.getWriter().write("登录成功");
+
+    } else {
+      // 登录失败让它跳转登录页面
+      req.getRequestDispatcher("/login.jsp").forward(req, res);
+    }
+  }
+}
+
+```
+
+> filter过滤器的使用
+- 1. 编写一个类去实现Filter接口
+- 2. 实现接口中的过滤方法doFilter()
+- 3. 到 web.xml 中取配置Filter的拦截路径
+
+----------------
+
+### Filter 的生命周期
+- filter的生命周期 包含几个方法
+- 1. 自定义Filter类的构造器方法
+- 2. init初始化方法
+  - 1, 2在web工程启动的时候执行 filter已经创建
+
+- 3. doFilter() 过滤的方法
+  - 每次只要拦截到请求就会执行
+
+- 4. destroy() 销毁的方法
+  - 停止web工程的时候会执行(停止web工程也会销毁filter过滤器)
+
+
+
+```java
+
+public class AdminFilter implements Filter {
+  // 构造器方法
+  public AdminFilter() {
+    sout("AdminFilter()")
+  }
+
+
+  public void init(FilterConfig filterConfig) throws ServletException {
+    sout("init()")
+  }
+
+
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    sout("doFilter()")
+  }
+
+
+  public void destroy() {
+    sout("destroy()")
+  }
+}
+
+```
+
+> FilterConfig 类
+- 我们在 init() 方法中的参数就是FilterConfig类的对象
+
+- 它是filter过滤器的配置文件类 tomcat每次创建filter的时候 也会同时创建一个filterConfig类 这里包含了filter配置文件的配置信息
+
+> 作用:
+- 获取filter过滤器的配置内容
+> 1. 获取filter的名称 <filter-name> 的内容
+```java
+public void init(FilterConfig filterConfig) throws ServletException {
+
+  String filterName = filterConfig.getFilterName();
+
+  System.out.println(filterName);
+
+}
+```
+
+
+> 2. 获取在web.xml中配置的 init-param 初始化参数
+```xml
+<filter>
+<filter-name>AdminFilter</filter-name>
+
+<filter-class>com.sam.filter.AdminFilter</filter-class>
+
+<!-- 这里哦 -->
+<init-param>
+  <param-name>username</param-name>
+  <param-value>root</param-value>
+</init-param>
+</filter>
+```
+
+```java
+public void init(FilterConfig filterConfig) throws ServletException {
+
+  String username = filterConfig.getInitParameter("username");
+
+  System.out.println(username);
+
+}
+```
+
+
+> 3. 获取servletCont对象
+```java
+public void init(FilterConfig filterConfig) throws ServletException {
+
+  ServletContext servletContext = filterConfig.getServletContext();
+
+  System.out.println(servletContext);
+
+}
 ```
