@@ -146,7 +146,7 @@ export default {
 - 每一个盒子的样式都差不多 我们把每一个盒子的样式提取出来 .panel
 - .panel 有4个角, 做法是左上和右上角是通过.panel的before 和 after实现的
 - 左下 右下是在.panel 里面放了一个.panel-footer的div 通过它的before after实现的
-<!-- 
+```css 
   <div class="panel">
     <div class="panel-footer"></div>
   </div>
@@ -207,7 +207,7 @@ export default {
       }
     }
   }
- -->
+```
 
 - 上面公共样式建立好了之后, 假如还需要有自己的样式 panel的后面添加自己的类名
 <!-- 

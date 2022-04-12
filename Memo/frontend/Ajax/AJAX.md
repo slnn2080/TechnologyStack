@@ -7,6 +7,20 @@
 
 - 但是实际我们后端要求的 'Content-Type': 'application/x-www-form-urlencoded' 为多见
 
+### 阻塞的解释 或者 异步的优点
+- 比如页面上又5个按钮 我们将一个按钮设置为请求数据 并且是同步的 那么 第一个按钮 数据没有回来之前 其它按钮 或者说整个页面是卡死的状态
+
+- 异步就是其它的功能并不影响整个页面的交互
+
+### jq中修改为同步
+- async: false
+
+### 原生ajax修改为同步
+- open最后一个参数设置为false
+
+### send()要在最后
+- https://blog.csdn.net/github_38222702/article/details/70160109
+
 
 
 ### 使用Ajax要先使用express框架 创建服务器 然后使用node来运行这个.js文件

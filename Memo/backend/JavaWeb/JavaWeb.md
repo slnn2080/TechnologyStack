@@ -13462,8 +13462,9 @@ public class OrderServlet extends BaseServlet {
       JdbcUtils.commitAndClose();
 
     } catch (Exception e) {
-
-      JdbcUtils.rollbackAndClose();  // 回滚事务
+      
+      // 有异常的时候 回滚事务
+      JdbcUtils.rollbackAndClose();
       e.printStackTrace();
     }
 
@@ -13480,4 +13481,638 @@ public class OrderServlet extends BaseServlet {
 
 ----------------
 
-### 使用Filter统一给所有的service方法都加上try catch来管理事务
+### 使用Filter统一给所有的service方法都加上try catch来管理事务 (也是对上面的部分的优化)
+
+- 我们上面只是对 去结账 -- 创建订单的 OrderService 中对 createOrder进行了事务管理
+
+- 但在实际的开发中 项目里面会有很多的service 每个service都有很多的方法 每个方法都有需要用到事务的情况
+
+- 那我们是不是 对每个方法都要加上
+```java
+try {
+  orderNum = orderService.createOrder(cart, userId);
+
+  // 没有异常 我们手动提交 有异常我们回滚
+  JdbcUtils.commitAndClose();
+
+} catch (Exception e) {
+
+  // 有异常的时候 回滚事务
+  JdbcUtils.rollbackAndClose();  
+  e.printStackTrace();
+}
+```
+
+- 上面我们是在 orderService.createOrder() 方法上加的 这种处理方式比较笨拙
+
+- 因为这样做 我们就需要在每一个servlet程序中 调用 xxxService.xxx() 方法的地方都需要加上 try...catch
+
+- 那有没有一种方式给所有的 xxxService.xxx()方法 都加上 try...catch 呢？
+
+
+> 使用 Filter 过滤器 实现事务的管理
+- 统一给所有的service方法都加上 try...catch
+
+- 分析:
+- 比如我们有一个TransactionFilter事务的Filter过滤器
+
+- TransactionFilter 过滤器中 会有 doFilter() 方法
+
+```java
+// 过滤器中的 doFilter() 方法中 逻辑是分3段的
+public void doFilter(req, res, filterChain) {
+
+  - 1. 前置代码
+
+  - 2. filterChain.doFilter()
+
+  - 3. 后置代码
+  
+}
+```
+
+- filterChain.doFilter()的作用是:
+- 1. 调用下一个filter过滤器
+- 2. 调用目标资源
+     html
+     jsp
+     txt
+     jpg
+     servlet
+
+
+- 我们看下 2 部分 调用目标资源 那么 servlet也是目标资源吧
+
+- 那也就是说 我们在调用
+  filterChain.doFilter() 的时候 实际上是在间接的调用 Servlet程序中的业务方法
+
+- 那我们以生成订单为示例 
+  filterChain.doFilter() 访问servlet程序的时候 会调用到 OrderServlet程序中的 createOrder() 方法 而createOrder() 又直接调用 OrderServie中的 createOrder()方法
+
+  filterChain.doFilter() -- >
+      OrderServlet - createOrder() -- >
+          OrderServie - createOrder()
+
+- 总结 Filter里面间接的调用了 OrderService.createOrder()
+
+- 那是不是说 我们可以filterChain.doFilter()加上try...catch就等于给OrderService.createOrder()加了try...catch
+
+```java
+// 过滤器中的 doFilter() 方法中 逻辑是分3段的
+public void doFilter(req, res, filterChain) {
+
+  - 1. 前置代码
+
+  - 2. 
+    try {
+      filterChain.doFilter()
+
+      // 这里可以提交事务
+
+    } catch(e) {
+
+      // 这里可以回滚事务
+
+    }
+  
+  - 3. 后置代码
+  
+}
+```
+
+- 如果是上面的逻辑的话我们是不是相当于给所有的service层的方法都加上了事务管理的逻辑
+          
+- 按照上面的分析示意 那么就可以使用一个filter一次性 统一的给所有的XxxService.xxx()方法都统一的加上 try...catch... 来实现事务的管理
+
+
+> 实现:
+
+- 1. 
+  com.sam.filter
+    - TransactionFilter
+
+```java
+package com.sam.filter;
+
+import com.sam.utils.JdbcUtils;
+
+import javax.servlet.*;
+import java.io.IOException;
+
+public class TransactionFilter implements Filter {
+  @Override
+  public void init(FilterConfig filterConfig) throws ServletException {
+
+  }
+
+  @Override
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    try {
+
+      filterChain.doFilter(servletRequest, servletResponse);
+
+      // 提交事务
+      JdbcUtils.commitAndClose();
+
+    } catch (Exception e) {
+      // 回滚事务
+      JdbcUtils.rollbackAndClose();
+      
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void destroy() {
+
+  }
+}
+
+```
+
+- 2. 配置 web.xml
+- 为了让上面的类生效
+```xml
+<filter>
+  <filter-name>TransactionFilter</filter-name>
+  <filter-class>com.sam.filter.TransactionFilter</filter-class>
+</filter>
+
+<filter-mapping>
+  <filter-name>TransactionFilter</filter-name>
+
+  <!-- /* 表示当前工程下所有请求 -->
+  <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+> 要点: 
+- <url-pattern> 是 /* 表示当前工程下所有请求
+- 意味着 我们对所有的请求(换个方法说也就是对所有的业务)都进行的try catch 以后我们不管是写什么地址 做什么业务 哪个模块 我们统统都加上了事务管理
+
+- 我们在这里面写了 那么OrderServlet中 就不用写了 同样的逻辑就可以删掉了
+
+
+**注意:**
+- 事务管理这块的异常一定要抛出去 比如我们的项目中OrderServletImpl出现了异常 被 BaseServlet 接收到吃掉了
+
+- 所以BaseServlet里面的catch里面也要把异常抛出去
+```java
+// BaseServlet程序中的doPost方法
+
+protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    String action = req.getParameter("action");
+    try {
+      Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);
+      method.invoke(this, req, res);
+    } catch (Exception e) {
+      e.printStackTrace();
+
+      // 这里也要将异常抛出去 把异常抛给Filter过滤器
+      throw new RuntimeException(e);
+    }
+  }
+```
+
+- BaseServlet还是 资源层 资源层的异常要抛出去 filter层才能接收到 它自己要是将异常吃掉 那filter层就接收不到了
+<!-- 
+    -------   -------     -------
+    filter1   filter2     目标资源
+                          html
+                          jsp ...
+ -->
+
+- 以上就是 事务管理的全部逻辑
+
+----------------
+
+### 书城项目: 使用Tomcat统一管理异常 展示友好的错误页面
+- 上面我们使用了事务管理了所有的service操作 这样要么都成功 要么都失败 但是也存在了一个小问题 
+
+- 就是当我们点击去结账之后 事务失败的时候 页面上是一片空白
+- 这样用户会想 我结账了但页面空白 是不是上当受骗了
+
+- 这时候我们最好准备一些404错误页面 或者500错误页面
+- 然后将所有异常都统一交给Tomcat 让其展示友好的错误信息页面
+
+> web.xml 中配置错误页面进行管理
+- 我们先配置一个放有错误页面的文件夹
+
+  - | - book
+      | - web
+        | - pages
+          | - error
+            - error500.jsp
+
+- 怎么样才能在出现异常后跳到 error500 页面中呢? 去web.xml中配置
+
+```xml
+<!-- 配置服务器出错之后 自动跳转的页面 -->
+<error-page>
+  <!-- 错误类型 -->
+  <error-code>500</error-code>
+  <!-- 要跳转去的页面 / 表示工程路径 映射到 web -->
+  <location>/pages/error/error500.jsp</location>
+</error-page>
+```
+
+> 将异常抛到 目标层
+- 比如:
+- 上面我们将异常抛到了 filter层 让filter知道并处理
+- 这里我们要将异常抛到 tomcat层 让tomcat知道并处理
+
+- 比如:
+- 书城案例中将异常继续往上抛给了tomcat服务器
+- 我们在 Filter过滤器中 doFilter() 方法中 将异常继续往上抛
+```java
+@Override
+public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+  try {
+
+    filterChain.doFilter(servletRequest, servletResponse);
+    JdbcUtils.commitAndClose();
+
+  } catch (Exception e) {
+    JdbcUtils.rollbackAndClose();
+    e.printStackTrace();
+    
+    // 将异常继续往上抛 抛到Tomcat服务器 让其知道后并错错误页面提示处理
+    throw new RuntimeException(e);
+  }
+}
+```
+
+----------------
+
+### Json
+- 一种轻量级的数据交换格式 采用完全独立于语言的文本格式 很多语言都提供了对json的支持
+<!-- 
+  包括c c++ c# java javascript perl python等
+ -->
+
+- 轻量级指的是跟xml进行比较
+<!-- 
+    xml没有json快 解析起来也慢
+ -->
+
+- 数据交换指的是客户端和服务器之间业务数据的传递格式
+
+
+> json的定义
+- *这里说的json就是对象 并不是序列化之后的json*
+
+- json是由键值对组成 并且由大括号包围 每个键由引号引起来 键和值之间使用冒号进行分隔
+
+- 多组键值对之间使用逗号进行分隔
+
+```js
+// json的定义
+let obj = {
+  "key1": 12,
+  "key2": "sam",
+  "key3": [11, "arr", false],
+  "key4": true,
+  "key5": {
+    "key5_1": 55
+  }
+}
+```
+
+- json的存在有两种形式:
+- 1. 对象的形式 我们叫json对象
+- 2. 字符串的形式 我们叫json字符串
+
+- 这两种状态是可以互相转换的
+
+
+> Json的常用方法
+- 一般我们要操作json中的数据的时候 我们需要json对象的格式
+- 一般我们要在客户端和服务器之间进行数据交换的时候 我们使用 json字符串
+
+
+> JSON.stringify()
+- json对象 转为 json字符串 (java中对象中的toString())
+
+> JSON.parse()
+- json字符串 转为 json对象
+
+
+> Json在客户端的使用
+- 
+
+
+> Json在服务器端(java)的使用
+- 在java中 数据和json的转换 主要是以下3种常见的情况
+- 在java中 我们要想要*操作json*的话 我们要*先导入 json的 jar包*
+
+- 我们这里使用的是由谷歌提供的jar包
+- gson-2.2.4.jar
+
+
+> 情况1: JavaBean 和 Json 之间的转换
+- 1. 我们先准备一个 JavaBean
+
+  - com.sam.pojo
+    - Person
+
+```java
+// 完成的JaveBean get set 构造器 toString 全
+package com.sam.pojo;
+
+public class Person {
+  private Integer id;
+  private String name;
+
+  ...
+}
+
+```
+
+- 2. 我们再准备一个 Json测试类
+
+  - com.sam.json
+    - JsonTest
+
+> 要点:
+- 1. 实例化 Gson对象
+- 2. 通过其对象调用对应的方法
+
+> gson.toJson(javabean对象);
+- toJson方法可以把java对象转换为json字符串
+- 返回值:
+- json字符串
+
+```java
+import com.google.gson.Gson;
+Gson gson = new Gson();
+
+String personJsonString = gson.toJson(person);
+```
+
+> gson.fromJson(json字符串, 指定类类型(Person.class));
+- 把json字符串转换为java对象
+- 参数1: json字符串
+- 参数2: 转换回去的java对象类型
+
+- 返回值
+- 对应的类型
+
+```java
+import com.google.gson.Gson;
+Gson gson = new Gson();
+
+Person person1 = gson.fromJson(personJsonString, Person.class);
+```
+
+
+- 完整代码: 
+```java
+@Test
+public void test1() {
+  // 创建一个 Person 对象
+  Person person = new Person(1, "sam");
+
+  // 我们要将 person对象转换为Json 需要用到gson.jar里面提供的一个类 和 其中的方法
+  // 实例化Gson
+  Gson gson = new Gson();
+
+  // 将指定对象转换为 json字符串
+  String personJsonString = gson.toJson(person);
+  System.out.println(personJsonString); 
+  // {"id":1,"name":"sam"}
+
+  // 将json字符串转为对应的JavaBean
+  // 参数1: json字符串
+  // 参数2: 将json字符串转换为哪个类类型 Xxx.class
+  Person person1 = gson.fromJson(personJsonString, Person.class);
+  System.out.println(person1.toString());
+} 
+```
+
+
+> 情况2: List 和 Json 之间的转换
+- 如果是多个JavaBean对象在一个List集合中 怎么转
+
+> List 转为 Json
+- List转换为Json和上面一样 调用
+- gson.toJson()方法
+
+
+```java
+// 先准备一个集合
+List<Person> personList = new ArrayList<>();
+personList.add(new Person(1, "sam"));
+personList.add(new Person(2, "erin"));
+personList.add(new Person(3, "nn"));
+
+// 将 List 集合转为 Json
+Gson gson = new Gson();
+
+// 将List集合转换为Json字符串
+String personListJsonString = gson.toJson(personList);
+System.out.println(personListJsonString);
+// [{"id":1,"name":"sam"},{"id":2,"name":"erin"},{"id":3,"name":"nn"}]
+```
+
+
+> Json 转回 List
+- Json转回List集合 有些特殊 要是使用Gson.jar包中的一个类
+- com.google.gson.reflect
+  - TypeToken
+
+- 这个类就是帮助我们将json字符串转回List集合的
+
+- 1. 我们要写一个类
+  - com.sam.json
+    - PersonListType
+
+- 2. PersonListType类要继承 TypeToken类
+- 3. 然后指定泛型, 该泛型就是:
+  *就是将json字符串转回去的类型 在这里的泛型中指定*
+
+```java
+import com.google.gson.reflect.TypeToken;
+
+public class PersonListType extends TypeToken<List<Person>> {
+  // 这个类中什么都不用写 目的就是通过泛型指明json转回去的类型
+}
+```
+
+- 4. 我们在
+  gson.fromJson(json字符串, new 步骤2中创建的类.getType())
+
+```java
+gson.fromJson(personListJsonString, new PersonListType().getType());
+```
+
+- 完整代码:
+```java
+@Test
+public void test2() {
+  // 先准备一个集合
+  List<Person> personList = new ArrayList<>();
+  personList.add(new Person(1, "sam"));
+  personList.add(new Person(2, "erin"));
+  personList.add(new Person(3, "nn"));
+
+  // 将 List 集合转为 Json
+  Gson gson = new Gson();
+
+  // 将List集合转换为Json字符串
+  String personListJsonString = gson.toJson(personList);
+
+  System.out.println(personListJsonString);
+  // [{"id":1,"name":"sam"},{"id":2,"name":"erin"},{"id":3,"name":"nn"}]
+
+  List<Person> list = gson.fromJson(personListJsonString, new PersonListType().getType());
+
+  Person person = list.get(0);
+  System.out.println(person.toString());
+  // Person{id=1, name='sam'}
+}
+```
+
+
+> 情况3: Map 和 Json 之间的转换
+> Map 转成 Json
+- 和上面的方式一样 调用 gson.toJson()
+```java
+Gson gson = new Gson();
+
+String personMapJsonString = gson.toJson(personMap);
+
+System.out.println(personMapJsonString);
+```
+
+
+> Json 转回 Map
+- 创建一个类 去继承官方给的 TypeToken 并在泛型处指明Map的类型
+
+```java
+package com.sam.json;
+
+import com.google.gson.reflect.TypeToken;
+import com.sam.pojo.Person;
+
+import java.util.HashMap;
+
+public class PersonMapType extends TypeToken<HashMap<Integer, Person>> {
+}
+
+```
+
+```java
+@Test
+public void test3() {
+  Map<Integer, Person> personMap = new HashMap<>();
+  personMap.put(1, new Person(1, "sam"));
+  personMap.put(2, new Person(2, "erin"));
+  personMap.put(3, new Person(3, "nn"));
+
+  Gson gson = new Gson();
+  String personMapJsonString = gson.toJson(personMap);
+  System.out.println(personMapJsonString);
+  // {"1":{"id":1,"name":"sam"},"2":{"id":2,"name":"erin"},"3":{"id":3,"name":"nn"}}
+
+  // 将mapJson字符串 转回 Map对象
+  Map<Integer, Person> personMap1 = gson.fromJson(personMapJsonString, new PersonMapType().getType());
+  Person person = personMap1.get(1);
+  System.out.println(person);
+  // Person{id=1, name='sam'}
+}
+```
+
+**问题:**
+- 我们上面的方式在json字符串转回List Map的时候 我们是创建了一个类继承 TypeToken
+
+- 但在实际开发中 我们这么操作就会产生大量的 类似这样的类(TypeToken的实现类)
+
+- 所以我们还有一种方式 就是写成匿名内部类的形式
+
+> 注意: 我们使用这个方式 来将 Json字符串转回 Map List
+- 匿名内部类
+  - 注意要有{}
+  - new TypeToken<类型>(){}
+
+  new TypeToken<<Map<Integer, Person>>(){}.getType()
+
+```java
+  Map<Integer, Person> personMap1 = gson.fromJson(personMapJsonString, new TypeToken<HashMap<Integer, Person>>(){}.getType());
+```
+
+----------------
+
+### Ajax
+- ajax是一种创建交互式网页应用的网页开发技术
+- ajax是一种浏览器通过js异步发起请求 局部更新页面的技术
+
+> 演示:
+
+> 服务器端逻辑
+- 1. 创建一个servlet程序 用于接收 ajax 请求
+- 我们拿书城项目中的BaseServlet程序 然后创建一个Servlet程序 继承BaseServlet 并在 web.xml 中进行配置
+
+- BaseServlet中的逻辑:
+- 1. 获取?action参数的值
+- 2. 通过反射去调用 action后面的值的对应的方法
+
+- 2. 在servlet程序中
+  - 创建数据
+  - 转成json 响应回前端
+  - 响应数据的方式 获取字符输出流
+  - res.getWriter().write(json);
+
+```java
+package com.sam.servlet;
+
+import com.google.gson.Gson;
+import com.sam.pojo.Person;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class AjaxServlet extends BaseServlet {
+  protected void javaScriptAjax(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    System.out.println("ajax请求过来了");
+
+    Person person = new Person(1, "sam");
+    // 客户端和服务器不在同一台电脑上 这时候我们将数据传递到客户端 我们需要将对象转为json字符串
+
+    Gson gson = new Gson();
+    String json = gson.toJson(person);
+
+    // 将数据返回给客户端 得到响应的字符输出流
+    res.getWriter().write(json);
+  }
+}
+
+```
+
+
+> 前端代码
+```js
+function ajaxRequest() {
+  let xhr = new XMLHttpRequest()
+
+  xhr.open("get", "http://localhost:8080/ajaxServlet?action=javaScriptAjax")
+
+
+  xhr.onreadystatechange = function() {
+    if(xhr.readyState == 4 && xhr.status == 200) {
+      console.log(xhr.responseText)
+    }
+  }
+
+  // 最好最后调用 send() 方法
+  xhr.send()
+}
+```
+
+> 广告
+- 解决响应乱码的问题
+```java
+req.setCharacterEncoding("UTF-8");
+res.setContentType("text/html; charset=UTF-8");
+```
