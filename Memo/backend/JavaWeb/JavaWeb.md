@@ -12375,3 +12375,1109 @@ public void init(FilterConfig filterConfig) throws ServletException {
 
 }
 ```
+
+----------------
+
+### FilterChain 过滤器链
+- doFilter()方法的形参中 有一个参数就是FilterChain类型的对象
+
+> FilterChain
+- 就是过滤器链 也就是多个过滤器如何一起工作
+
+- 多个过滤器是什么意思？
+- 我们说filter是在目标资源之前执行的
+<!-- 
+    -------   -------     -------
+    filter1   filter2     目标资源
+                          html
+                          jsp ...
+ -->
+
+- 当客户端有请求来到服务器的时候
+- http://ip:port/工程路径/资源
+
+- 请求过来的时候 先经过的是filter
+- 每一个filter都会有doFilter()方法来做拦截的 而doFilter()方法的内部 都会通过filterChain参数调用filterChain.doFilter()
+*FilterChain类中就一个doFilter()方法*
+
+- 上面我们在放行的时候 用过
+
+<!-- 
+    -------
+    filter1
+
+
+    doFilter(filterChain) {
+
+      filterChain.doFilter()
+    }
+
+
+    -------
+    filter2
+
+
+    doFilter(filterChain) {
+
+      filterChain.doFilter()
+    }
+ -->
+
+> filterChain.doFilter(servletRequest, servletResponse)
+- 形参filterChain对象的doFilter()方法
+- 作用:
+- 1. 执行下一个filter过滤器(如果有)
+- 2. 执行目标资源(当没有下一个filter的时候)
+
+
+- 一般情况下我们会在 doFilter() 中还要加些其它的逻辑代码
+<!-- 
+    -------
+    filter1
+
+
+    doFilter(filterChain) {
+      
+      // Filter1的前置代码1
+
+      filterChain.doFilter()
+
+      // Filter1的后置代码2
+    }
+
+---
+
+    -------
+    filter2
+
+
+    doFilter(filterChain) {
+
+      // Filter2的前置代码1
+
+      filterChain.doFilter()
+
+      // Filter2的后置代码2
+    }
+ -->
+
+> 执行流程
+- 先走 Filter1 过滤器
+- 在Filter1过滤器的 doFilter() 方法中
+- 1. 先执行 Filter1的前置代码1
+- 2. 然后执行 Filter1的 filterChain.doFilter()
+- 这时它会判断有没有下一个过滤器 如果有 直接开始执行下一个过滤器Filter2
+
+- 执行 Filter2 过滤器中的逻辑
+- 在Filter2过滤器的 doFilter() 方法中
+- 1. 先执行 Filter2的前置代码1
+- 2. 然后执行 Filter2的 filterChain.doFilter()
+- 这时它也会判断有没有下一个过滤器 如果没有 就访问目标资源 
+
+- 然后从目标资源开始一路返回到前端页面
+
+- 客户端 <- Filter1的后置代码2 <- Filter2的后置代码2 <- 目标资源
+
+
+> 代码演示:
+- 1. 定义两个Filter过滤器
+```java
+package com.sam.filter;
+
+import javax.servlet.*;
+import java.io.IOException;
+
+public class Filter1 implements Filter {
+  @Override
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    System.out.println("Filter1 -- 前置逻辑");
+    filterChain.doFilter(servletRequest, servletResponse);
+    System.out.println("Filter1 -- 后置逻辑");
+  }
+}
+
+--- 几乎是一样的
+
+public class Filter2 implements Filter {
+  @Override
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    System.out.println("Filter2 -- 前置逻辑");
+    filterChain.doFilter(servletRequest, servletResponse);
+    System.out.println("Filter2 -- 后置逻辑");
+  }
+}
+```
+
+
+- 2. 创建测试jsp页面
+- /web/target.jsp
+```html
+<html>
+<head>
+  <title>Title</title>
+</head>
+<body>
+  <%
+    System.out.println("target.jsp页面执行了");
+  %>
+</body>
+</html>
+```
+
+- 3. 配置 web.xml 
+- 要点:
+- <url-pattern> 里面要写 当我们访问什么的时候 进行拦截
+- 这里我们要对 target.jsp 页面进行拦截 所以我们写 
+- <url-pattern>/target.jsp</url-pattern>
+
+```xml
+<filter>
+  <filter-name>Filter2</filter-name>
+  <filter-class>com.sam.filter.Filter1</filter-class>
+</filter>
+
+<filter-mapping>
+  <filter-name>Filter2</filter-name>
+  <url-pattern>/target.jsp</url-pattern>
+</filter-mapping>
+```
+
+- 执行结果:
+  Filter1 -- 前置逻辑
+  Filter2 -- 前置逻辑
+  target.jsp页面执行了
+  Filter2 -- 后置逻辑
+  Filter1 -- 后置逻辑
+
+
+> 扩展情况
+- 1. 当Filter2 没有chain.doFilter() 和 Filter2的后置逻辑的时候
+
+- 它的执行结果是
+  Filter1 -- 前置逻辑
+  Filter2 -- 前置逻辑
+  Filter1 -- 后置逻辑
+
+- 我们可以看到 当Filter2中没有chain.doFilter()的时候 会从Filter1中的chain.doFilter到Filter2中的doFilter 但是执行完了 Filter2中的前置逻辑1之后 没有走目标资源 而是直接返回到了 Filter1中的后置逻辑
+
+
+- 2. 当Filter1 没有chain.doFilter() 的时候 后面的Filter2都不会执行了 
+
+
+> filter过滤器的执行顺序
+- 是根据 web.xml 的配置顺序
+- 在多个过滤器执行的时候 它们执行的优先顺序是由它们在web.xml中从上到下的配置顺序决定
+
+
+> 多个filter过滤器执行的特点
+- 1. 所有filter和目标资源默认都执行在同一个线程中
+
+- 2. 多个filter共同执行的时候 它们都使用同一个request对象 也就是request域中的数据是共享的
+<!-- 因为是同一个请求 -->
+
+----------------
+
+### Filter过滤器的拦截路径
+> 精确匹配
+- <url-pattern>/target.jsp</url-pattern>
+- 以上配置的路径 表示请求地址必须为
+- http:ip:port/工程路径/target.jsp
+
+- 我们一般地址都会从工程路径开始算
+
+
+> 目录匹配
+- <url-pattern>/admin/*</url-pattern>
+- 以上配置的路径 表示请求地址必须为
+- http:ip:port/工程路径/admin/*
+
+
+> 后缀名匹配
+- <url-pattern>*.html</url-pattern>
+- 以上配置的路径 表示请求地址必须以.html结尾才会拦截到
+
+
+- <url-pattern>*.do</url-pattern>
+- 表示必须以 .do 才能拦截到
+
+- 也就是说 后缀名 并不是必须有do这种类型才行 而是任意字符串 比如我们可以写成 *.abc
+
+**后缀名匹配不能以 / 开头**
+
+**注意:**
+- Filter过滤器它只关系请求的地址是否匹配 不关心请求的资源是否存在
+
+----------------
+
+### 书城项目： 权限检查
+- 使用 Filter 过滤器拦截 /pages/manager/ 所有内容 实现权限检查
+
+- manager/目录下的所有页面都必须是登录后才可以访问 这里我们使用 filter 进行拦截 不登录 我让进
+
+- com.sam.filter
+  - ManagerFilter
+
+
+> 1. 配置 拦截路径
+- 对 /pages/manager/* 下的所有文件 进行拦截
+
+```xml
+<filter>
+  <filter-name>ManagerFilter</filter-name>
+  <filter-class>com.sam.filter.ManagerFilter</filter-class>
+</filter>
+
+<filter-mapping>
+  <filter-name>ManagerFilter</filter-name>
+  <url-pattern>/pages/manager/*</url-pattern>
+</filter-mapping>
+```
+
+2. 编写 Filter类
+```java
+package com.sam.filter;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+
+public class ManagerFilter implements Filter {
+  @Override
+  public void init(FilterConfig filterConfig) throws ServletException {
+
+  }
+
+  @Override
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+
+    // 获取 session 对象
+    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+
+    // 用户登录后 session 中就会有 user
+    Object user = httpServletRequest.getSession().getAttribute("user");
+
+    if(user == null) {
+      // 说明没有登录 让它跳回登录页面
+      httpServletRequest.getRequestDispatcher("/pages/user/login.jsp").forward(servletRequest, servletResponse);
+    } else {
+      // 如果登录了 就放行
+      filterChain.doFilter(servletRequest, servletResponse);
+    }
+  }
+
+  @Override
+  public void destroy() {
+
+  }
+}
+```
+
+- 这样拦截之后 当我们没有登录的时候访问后台界面 
+<!-- 
+  http://localhost:8080/project/pages/manager/manager.jsp 
+-->
+
+- 会跳到登录页面
+
+
+> BUG
+- 但是上面的写发有bug
+- 如果我们直接在url上输入 
+- http://localhost:8080/project/pages/manager/manager/book_list?action=page
+
+- 就直接跳进后台了
+
+
+> 原因
+- 上面我们配置的拦截地址
+- /pages/manager/*
+
+- 而我们bug里访问的地址是
+- /pages/manager/manager/book_list?action=page
+
+- 拦截路径里面没有包含 /manager/book_list
+- 也就是说 /manager/book_list 也是需要拦截的
+
+- 补充 web.xml 配置
+```xml
+<filter>
+  <filter-name>ManagerFilter</filter-name>
+  <filter-class>com.sam.filter.ManagerFilter</filter-class>
+</filter>
+
+<filter-mapping>
+  <filter-name>ManagerFilter</filter-name>
+  <url-pattern>/pages/manager/*</url-pattern>
+  <!-- 
+    添加一个拦截目标 对book_listservlet程序的访问进行拦截
+   -->
+  <url-pattern>/manager/book_list</url-pattern>
+</filter-mapping>
+```
+
+----------------
+
+### ThreadLocal的使用
+- 它是jdk当中用来解决线程安全的工具类
+- 作用:
+- 它可以解决多线程的数据安全问题
+- 它可以*给当前线程关联一个数据*(数据可以是普通变量 可以是对象 可以是数组 集合等)
+
+- 这样就避免其它的线程访问这个数据
+
+
+> ThreadLocal特点:
+- 1. ThreadLocal可以为当前线程关联一个数据
+- 它可以像Map一样存取数据 key为当前线程
+
+- 2. 每一个ThreadLocal对象 只能为当前线程关联一个数据 如果要为当前线程关联多个数据 就需要使用多个ThreadLocal对象实例
+
+- 3. 每个ThreadLocal对象实例定义的时候 一般都是static类型
+
+- 4. ThreadLocal中保存的数 据 在线程销毁后 会由jvm虚拟机自动释放
+
+
+> 先看看使用map是如何将数据和线程关联在一起的
+- 要点:
+- 我们创建了一个ThreadLocalTest测试类
+- 目的是:
+- 使用map 将当前线程和数据关联在一起
+
+- 1. map使用的是线程安全的map Hashtable
+- 2. 随机数数据和map都是static的
+- 3. 我们创建了一个随机数 让后让随机数作为value key为当前线程 这样数据和线程就关联在一起了
+
+- 4. 然后我们在main方法中创建几个线程 并看看绑定数据的结果
+
+```java
+package com.sam.threadlocal;
+
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class ThreadLocalTest {
+  // 我们先演示下 Map
+  // new ConcurrentHashMap<>()是一个线程安全的map 高并发下使用的 类似的还有Hashtable
+  public final static Map<String, Object> data = new Hashtable<>();
+
+  // 定义一个随机数对象
+  private static Random random = new Random();
+
+
+  // 创建一个类 实现线程接口 Runnable
+  public class Task implements Runnable {
+    @Override
+    public void run() {
+      // 在run方法中 随机生成一个变量(该变量就是线程要关联的数据) 然后以当前线程名为key保存到map中
+      Integer i = random.nextInt(1000);// 0-999
+      String name = Thread.currentThread().getName();
+      System.out.println("线程["+ name +"]生成的随机数是: " + i);
+
+      // 保存到map中 相当于让数据和线程关联在一起
+      data.put(name, i);
+
+      // 模拟一些操作 比如我们睡一会 代表这段时间内进行了一些操作
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      // 在run方法结束之前 以当前线程名获取出数据并打印 查看是否可以取出
+      Object o = data.get(name);
+      System.out.println("在线程["+ name +"]快结束时取出关联的数据是" + o);
+    }
+  }
+
+
+  // 测试下
+  public static void main(String[] args) {
+    // 在这里创建几个线程 for循环开启了3个线程 每一个线程都会生成一个随机数 并和自己的线程进行绑定
+    for(int i=0; i<3; i++) {
+      new Thread(new Task()).start();
+    }
+  }
+
+}
+
+```
+
+
+- 执行结果:
+  线程[Thread-2]生成的随机数是: 977
+  线程[Thread-1]生成的随机数是: 185
+  线程[Thread-0]生成的随机数是: 667
+
+  在线程[Thread-2]快结束时取出关联的数据是977
+  在线程[Thread-1]快结束时取出关联的数据是185
+  在线程[Thread-0]快结束时取出关联的数据是667
+
+
+- 绑定后 取出的时候也是对应的 数据只要跟线程形成了对应关系 就绑定在一起了
+
+------
+
+- 上面的代码中 我们是使用 sleep() 方法睡了5秒 模拟进行了一些操作 下面我们就演示下 实际上进行的真实操作
+
+> 在别的类中 想获取当前线程的数据的时候
+- 因为map数据声明为static的 所以在使用的时候 要通过类名.data的方式来获取
+
+- 我们创建一个模拟一些操作的类
+```java
+package com.sam.threadlocal;
+public class OrderService {
+
+  // 创建订单
+  public void createOrder() {
+    // 我们在这个方法中要取 ThreadLocalTest中Task 当前线程中存取的数据(随机数) 怎么取
+
+    // 我们通过当前线程名取 它对应的数据
+    String name = Thread.currentThread().getName();
+
+    // ThreadLocalTest.data.get(name)
+    // data是static的 所以通过类名来获取
+    System.out.println("OrderService 当前线程["+ name +"]中保存的数据是: " + ThreadLocalTest.data.get(name));
+  }
+}
+
+```
+
+
+- 然后回到 ThreadLocalTest类中做测试
+```java
+package com.sam.threadlocal;
+
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class ThreadLocalTest {
+  public final static Map<String, Object> data = new Hashtable<>();
+
+  private static Random random = new Random();
+
+
+  // 创建一个类 实现线程接口 Runnable
+  public static class Task implements Runnable {
+    @Override
+    public void run() {
+      Integer i = random.nextInt(1000);
+      String name = Thread.currentThread().getName();
+      System.out.println("线程["+ name +"]生成的随机数是: " + i);
+
+      data.put(name, i);
+
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      // 我们在这里调用 OrderService 中的方法 该方法内部会从当前线程中取出数据 并进行使用
+      new OrderService().createOrder();
+
+
+      Object o = data.get(name);
+      System.out.println("在线程["+ name +"]快结束时取出关联的数据是" + o);
+    }
+  }
+
+  public static void main(String[] args) {
+    for(int i=0; i<3; i++) {
+      new Thread(new Task()).start();
+    }
+  }
+}
+
+```
+
+- 输出结果
+  线程[Thread-1]生成的随机数是: 424
+  线程[Thread-0]生成的随机数是: 912
+  线程[Thread-2]生成的随机数是: 141
+
+  OrderService 当前线程[Thread-2]中保存的数据是: 141
+  OrderService 当前线程[Thread-1]中保存的数据是: 424
+  OrderService 当前线程[Thread-0]中保存的数据是: 912
+
+  在线程[Thread-1]快结束时取出关联的数据是424
+  在线程[Thread-2]快结束时取出关联的数据是141
+  在线程[Thread-0]快结束时取出关联的数据是912
+
+- 也就是说 只要是在当前线程中的操作 不管执行多少代码 只要还是这个线程执行的 都可以随时的取出数据来
+
+
+> 使用ThreadLocal进行数据与当前线程的关联
+> 1. 创建
+- private static ThreadLocal<Object> threadLocal = new ThreadLocal<>();
+
+- 要点:
+- 1. ThreadLocal类是lang包下定义的 所以不用导包
+- 2. ThreadLocal对象要声明为static
+<!-- 
+  是private 还是public 要看你在哪里用
+ -->
+
+- 3. ThreadLocal的返回只有<Object>一个 主要是针对value的类型 因为key就是当前线程
+
+- 4. 这样 threadLocal 就作为 该类的一个静态属性了 在别的类调用的时候 可以通过 该类.threadLocal.get() 方法 调用当前线程绑定的数据
+
+
+> threadLocal.set(数据);
+- 将指定数据和当前线程进行绑定
+
+> threadLocal.get();
+- 取出当前线程绑定的数据
+
+
+> 代码演示
+```java
+package com.sam.threadlocal;
+
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class ThreadLocalTest {
+
+  private static Random random = new Random();
+
+  // ThreadLocal只有一个泛型 就是value的类型 因为key就是当前线程
+  // ThreadLocal是lang包下定义的
+  public static ThreadLocal<Object> threadLocal = new ThreadLocal<>();
+
+
+  // 创建一个类 实现线程接口 Runnable
+  public static class Task implements Runnable {
+    @Override
+    public void run() {
+      Integer i = random.nextInt(1000);
+      String name = Thread.currentThread().getName();
+      System.out.println("线程["+ name +"]生成的随机数是: " + i);
+
+
+      // 通过 ThreadLocal.set() 方法 将数据传到 ThreadLocal里面
+      threadLocal.set(i);
+
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      new OrderService().createOrder();
+
+      // 取数据的时候 直接 get()
+      Object o = threadLocal.get();
+
+      System.out.println("在线程["+ name +"]快结束时取出关联的数据是" + o);
+    }
+  }
+
+  public static void main(String[] args) {
+    for(int i=0; i<3; i++) {
+      new Thread(new Task()).start();
+    }
+  }
+}
+
+-- 别的类在使用当前线程绑定的数据的时候
+
+Object o = ThreadLocalTest.threadLocal.get();
+
+System.out.println("OrderService 当前线程["+ name +"]中保存的数据是: " + o);
+```
+
+**注意:**
+- ThreadLocal只能关联一个数据 以最后的为准
+  threadLocal.set("abc");
+  threadLocal.set("bcd");
+
+- 后面的会覆盖上面的
+
+- 如果想关联多个数据那就要创建多个 ThreadLocal对象
+
+```java
+public static ThreadLocal<Object> threadLocal1 = new ThreadLocal<>();
+
+public static ThreadLocal<Object> threadLocal2 = new ThreadLocal<>();
+```
+
+
+**注意:**
+- 使用完 ThreadLocal 一定要进行
+- *ThreadLocal对象.remove()操作*
+
+- 因为Tomcat服务器底层使用了线程池技术
+
+
+----------------
+
+### 使用Filter 和 ThreadLocal 组合管理事务
+- 有一种情况:
+- 当我们在书城购买图书后 点击去结账 然后就会创建订单和订单项
+
+- 假如我们在创建订单后的逻辑里面 有报错的情况(12/0) 那么就会出现创建了订单 但是没有订单项
+
+- 那客户付了钱了 要发货的时候却不知道客户买了什么东西 这样行么？
+
+- 不行, 所以我们希望订单 订单项 图书的销量 和 库存的修改是一次性成功的 *要么一起成功 要么一起失败*
+
+- 这里就需要数据库当中讲的事务
+
+> 回顾jdbc的数据库事务管理
+```java
+// 首先要有一个连接对象 得到连接
+Connection conn = JdbcUtils.getConnection();
+
+try {
+  // 首先连接要设置手动管理事务
+  conn.setAutoCommit(false);
+
+  ...执行一系列的jdbc操作
+
+  // 如果中间没有任何异常 那我们手动提交事务
+  conn.commit();
+
+} catch() {
+  // 如果出现异常 那我们回滚事务
+  conn.rollback();
+}
+```
+
+
+> 要点:
+- 从上面我要知道一个点 我们要确保所有操作要么都成功 要么都失败 就必须要使用数据库的事务
+
+- 要确保所有操作都在一个事务内 就必须*要确保 所有操作都使用同一个Connection连接对象*
+
+> 问题:
+- 那如何确保所有操作都使用同一个Connection连接对象呢？
+
+
+> 解决方案: ThreadLocal
+- 我们可以使用ThreadLocal对象 来确保所有操作都使用同一个Connection对象
+
+- ThreadLocal要确保所有操作都使用同一个Connection对象的*前提条件:*
+
+- 所有的操作必须再同一个线程中完成
+<!-- 
+  ThreadLocal只能为当前线程绑定一个数据 其它线程再使用的时候就是另一个数据了 
+ -->
+
+- 回到书城项目 我们来验证下 生成订单的相关逻辑是否都在同一个线程下完成的
+
+- OrderServiceImpl类中的 createOrder() 生成订单的方法中的逻辑是不是都在同一个线程中完成
+<!-- 
+  怎么验证？
+  我们在所有跟生成订单的代码 相关联的 web层 service层 dao层中 找个位置打印线程名就是可以了
+
+  我们看看线程名是否一致就知道生成订单的逻辑是不是都在同一个线程中
+ -->
+
+- 我们在 
+  com.sam.web / 
+    OrderServlet类中打印线程名
+
+  com.sam.service / 
+    OrderSeriveImpl类中打印线程名
+
+  com.sam.dao /
+    OrderDaoImpl类中打印线程名
+
+- System.out.println("OrderServlet程序在线程: " + Thread.currentThread().getName());
+
+- 结果我们能发现 上面的所有操作都是在一个线程中完成的 也就是说 我们要使用 ThreadLocal确保所有操作都使用同一个connection连接对象的前提条件我们已经满足了 有了这个前提条件后 我们怎么用呢？
+
+- 演示代码:
+```java
+ThreadLocal<Connection> threadLocal = new ThreadLocal<>();
+
+Connection conn = JdbcUtils.getConntection()
+
+// 我们将连接对象放进来 保存从数据库连接池中获取的连接对象
+threadLocal.set(conn)
+
+-- 我们下面所有的操作都要使用conn连接对象
+
+// 下面的逻辑1 2 3 4 都调用get()得到前面保存的Connection连接对象 这样就能保存都使用的是同一个conn对象
+threadLocal.get()
+
+
+
+
+try {
+  // 1
+  conn.setAutoCommit(false);
+
+
+  // 2
+  // ...执行一系列的jdbc操作 可以替换成如下逻辑 下面的3个操作我们要使用同一个连接怎么办？
+  OrderDao.saveOrder()
+  OrderItemDao.saveOrderItem()
+  BooKDao.updateBook()
+
+
+  // 3
+  conn.commit();
+
+} catch(Exception e) {
+  conn.rollback();
+
+} finall {
+
+  // 4
+  JdbcUtils.close(conn)
+}
+```
+
+- 这样我们就可以使用ThreadLocal让所有的逻辑代码从始至终都使用同一个Connection连接对象了
+
+
+> 实际代码演示:
+- 我们修改了 
+- com.sam.utils
+  - JdbcUtils
+
+- com.sam.dao
+  - BaseDao
+
+- com.sam.web
+  - OrderServlet
+
+
+> JdbcUtils中的修改
+```java
+package com.sam.utils;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceFactory;
+
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Properties;
+
+
+public class JdbcUtils {
+
+  private static DruidDataSource dataSource;
+
+  // 创建一个 ThreadLocal
+  private static ThreadLocal<Connection> conns = new ThreadLocal<>();
+
+  static {
+    try {
+      Properties properties = new Properties();
+      InputStream inputStream = JdbcUtils.class.getClassLoader().getResourceAsStream("jdbc.properties");
+      properties.load(inputStream);
+
+      dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  // 获取连接操作
+  public static Connection getConnection() {
+    // 从ThreadLocal中将保存的连接对象取出来
+    Connection conn = conns.get();
+
+    // 判断下 因为ThreadLocal中 第一次的时候 没保存连接的时候为null
+    if(conn == null) {
+      // 如果为空 那么我们的连接就从数据库连接池里面取
+      try {
+        conn = dataSource.getConnection();
+
+        // 这样从连接池中获取到后 ThreadLocal中就有连接对象了 我们将这个连接对象保存到ThreadLocal中 供后面的jdbc操作使用
+        conns.set(conn);
+
+        // 设置为手动管理事务
+        conn.setAutoCommit(false);
+
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+
+    // 如果返回的是null 说明获取连接失败 有值就是成功
+    return conn;
+  }
+
+
+  public static void close(Connection conn) {
+    if(conn != null) {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
+
+
+// 添加了如下的两个方法
+// 提交事务 并关闭释放连接
+  public static void commitAndClose() {
+    // 先得到连接对象
+    Connection connection = conns.get();
+    if(connection != null) {
+      // 说明以前用过这个连接操作过数据库
+
+      try {
+        // 手动提交事务
+        connection.commit();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          // 关闭连接 释放资源
+          connection.close();
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    // 一定要执行remove操作 否则就会出错(因为Tomcat服务器底层使用了线程池)
+    conns.remove();
+  }
+
+  // 回滚事务 并关闭释放连接
+  public static void rollbackAndClose() {
+    Connection connection = conns.get();
+    if(connection != null) {
+
+      try {
+        connection.rollback();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    // 一定要执行remove操作 否则就会出错(因为Tomcat服务器底层使用了线程池)
+    conns.remove();
+  }
+```
+
+
+> BaseDao中的修改
+- 接下来我们就要在各个Dao文件中 在获取连接的位置上 进行修改
+
+
+**注意1:**
+- BaseDao中有如下的代码 我们要说的是finally的部分 下面的代码是在finally中关闭连接池
+
+```java
+try {
+  return queryRunner.update(connection, sql, args);
+} catch (SQLException e) {
+  e.printStackTrace();
+} finally {
+  JdbcUtils.close(connection);
+}
+```
+
+- 我们上面说 创建订单 保存订单项 修改销量和库存 他们要门一起执行成功 要么都失败
+
+- 也就是下面的3个方法
+- OrderDao.saveOrder()  -- 在这关闭了连接
+- OrderItemDao.saveOrderItem()
+- BookDao.updateBook()
+
+- 如果我们在Dao中执行一次 我们就将连接关闭了的话
+- 那么后面的两个操作
+- OrderItemDao.saveOrderItem()
+- BookDao.updateBook()
+- 就得不到连接了
+
+
+**要点:**
+- 所以注意Dao中所有的操作都不能在关闭连接 这个连接必须是在事务提交conn.commit() 或者 回滚事务的时候 conn.rollback()的时候 才能关闭
+
+- 也就是说 书城项目中 Dao层面的 finall { JdbcUtils.close(connection)} 这样的操作都不能有了
+
+
+**注意2:**
+- BaseDao中有如下的代码 
+- finally的部分我们删掉了 接下来我们要说 catch 的部分
+
+```java
+try {
+  return queryRunner.update(connection, sql, args);
+} catch (SQLException e) {
+  e.printStackTrace();
+}
+```
+
+- BaseDao中 catch的部分 我们是将异常捕获到了 捕获不正常么？
+
+- 还是上面的3个方法
+- OrderDao.saveOrder()  -- 在这里出现了异常
+- OrderItemDao.saveOrderItem()
+- BookDao.updateBook()
+
+- 如果 OrderDao.saveOrder() 中出现了异常 
+- OrderItemDao.saveOrderItem()
+- BookDao.updateBook()
+
+- 后面的两个方法也不会知道(后面的2个方法知道有异常才能调用回滚操作) 同时 也不能进行有效的回滚 
+
+- *所以Dao中要是有异常一定要往外抛 把异常抛到外面 别人捕获到好回滚 或者说我们可以捕获 但是一定要将异常抛出去 这样别的类中能接收到异常信息 方便别的类调用回滚操作*
+
+- BaseDao修改后的代码
+```java
+package com.sam.dao.impl;
+
+import com.sam.utils.JdbcUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+public abstract class BaseDao {
+  // 使用 DbUtils 操作数据库
+  private QueryRunner queryRunner = new QueryRunner();
+
+  public int update(String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.update(connection, sql, args);
+    // 改这里了
+    } catch (SQLException e) {
+      e.printStackTrace();
+      // 一定要抛
+      throw new RuntimeException(e);
+    }
+    // 返回-1表示执行失败 返回其它表示影响的行数 上面throw异常了 下面的返回值就不要了
+    // return -1;
+  }
+
+
+
+  public <T> T queryForOne(Class<T> type, String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.query(connection, sql, new BeanHandler<T>(type), args);
+    // 改这里了
+    } catch (SQLException e) {
+      e.printStackTrace();
+      // 一定要抛
+      throw new RuntimeException(e);
+    }
+  }
+
+
+
+  public <T> List<T> queryForList(Class<T> type, String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.query(connection, sql, new BeanListHandler<T>(type), args);
+
+    // 改这里了
+    } catch (SQLException e) {
+      e.printStackTrace();
+      // 一定要抛
+      throw new RuntimeException(e);
+    }
+  }
+
+
+
+  public Object queryForSingleValue(String sql, Object ... args) {
+    Connection connection = JdbcUtils.getConnection();
+    try {
+      return queryRunner.query(connection, sql, new ScalarHandler(), args);
+    } 
+    
+    // 改这里了
+    } catch (SQLException e) {
+      e.printStackTrace();
+      // 一定要抛
+      throw new RuntimeException(e);
+    }
+  }
+}
+
+```
+
+
+> OrderServlet中的修改
+- 我们要对下面的部分进行try catch操作
+- orderService.createOrder(cart, userId);
+
+- 如果上面的方法出现错误 我们就回滚 没有出现错误 我们就提交
+
+```java
+package com.sam.web;
+
+import com.sam.dao.OrderService;
+import com.sam.dao.impl.OrderServiceImpl;
+import com.sam.pojo.Cart;
+import com.sam.pojo.User;
+import com.sam.utils.JdbcUtils;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class OrderServlet extends BaseServlet {
+
+  private OrderService orderService = new OrderServiceImpl();
+  // 生成订单
+  protected void createOrder(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    Cart cart = (Cart) req.getSession().getAttribute("cart");
+    User user = (User) req.getSession().getAttribute("user");
+    if(user == null) {
+      req.getRequestDispatcher("/pages/user/login.jsp").forward(req, res);
+      return;
+    }
+
+    Integer userId = user.getId();
+
+
+
+    String orderNum = null;
+    try {
+      orderNum = orderService.createOrder(cart, userId);
+
+      // 没有异常 我们手动提交 有异常我们回滚
+      JdbcUtils.commitAndClose();
+
+    } catch (Exception e) {
+
+      JdbcUtils.rollbackAndClose();  // 回滚事务
+      e.printStackTrace();
+    }
+
+
+
+    req.getSession().setAttribute("orderId", orderNum);
+    res.sendRedirect(req.getContextPath() + "/pages/cart/checkout.jsp");
+  }
+}
+
+```
+
+- 上面我们要达成的效果就是在生成订单的时候那些关联操作要么都成功要么都失败
+
+----------------
+
+### 使用Filter统一给所有的service方法都加上try catch来管理事务

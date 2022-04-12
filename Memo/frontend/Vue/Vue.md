@@ -17192,14 +17192,14 @@ VueRouter.prototype.push = function push(location) {
 
 > vue3中挂载组件 app.mount('#app')
 > vue3中卸载组件 app.unmount('#app')
-<!-- 
+```js 
   import { createApp } from 'vue'
   import App from './App.vue'
 
   const app = createApp(App)
   app.mount('#app')
   app.unmount('#app')
- -->
+```
 
 
 > Vue3中组件中的模板结构可以没有根标签
@@ -17209,14 +17209,105 @@ VueRouter.prototype.push = function push(location) {
 - vue3中不支持以前的vue2中入口文件的写法了
 - vetur.validation.template 当我们页面出现语法提示错误 可以将它改为false看下
 
+
+> Vue3中 main.js
+- 1. 从vue身上拿到 createApp() 
+- 2. 将要加载的组件 放入createApp()中 然后后面调用mount("节点的选择器") 
+
+```js
+import { createApp } from 'vue'
+import App from './App.vue'
+
+createApp(App).mount('#app')
+```
+
+
+> Vue3中的 router
+- 1. 从vue-router身上取出 createRouter createWebHashHistory
+```js
+import { createRouter, createWebHashHistory } from 'vue-router'
+import Home from '../views/Home.vue'
+
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/about',
+    name: 'About',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+  }
+]
+
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
+})
+
+export default router
+```
+
+
+> Vue3中的 store
+```js
+import { createStore } from 'vuex'
+
+export default createStore({
+  state: {
+  },
+  mutations: {
+  },
+  actions: {
+  },
+  modules: {
+  }
+})
+
+```
+
+
+> Vue3中的 script 模板
+- vue3默认的script模板
+```js
+export default {
+  setup() {
+    
+  }
+}
+```
+
+
+- 这是使用 @vue/composition-api 的模板
+```html
+<script>
+import { defineComponent } from '@vue/composition-api'
+
+export default defineComponent({
+  setup() {
+    
+  },
+})
+</script>
+```
+
 --------------------------
 
 ### 常用的 composition API  ---  setup
 - 我们先学下 setup 它是所有组合API表演的舞台
 
-> setup
+> setup() { ... }
 - 它是vue3中的一个新的配置项 值为一个函数
-- 组件中所用到的：数据 方法 计算属性等等 均要配置在setup中
+- 组件中所用到的：
+  数据 
+  方法 
+  计算属性等等 
+  均要配置在setup中
+
 - 在该配置项内的函数调用数据的时候不用this直接读取 因为在同一作用域
 <!-- 
   export default {
@@ -17459,6 +17550,8 @@ setup() {
       }
     }
   )
+
+  // 多层级的对象 也是 obj.value.job.backend
 
   function handleClick(e) {
     console.dir(obj)
@@ -17812,6 +17905,8 @@ setup() {
 - 如果我们在子组件中声明接收了 那么数据就会挂载在vc身上 $attrs 中就会没有，如果没有声明接收 那么数据就会在 $attrs 中
 
 - 当我们父组件使用props传递数据后 如果我们没有在子组件里面声明接收 数据就会在 $attrs对象里面
+
+> 问题：
 - 但是如果我们没有使用props声明接收 那么我们传递的数据 会被认为是 attribute 会被当作字符串内联到html文档里
 
 ```html
@@ -17900,21 +17995,12 @@ export default {
     }
   },
 
-  emits: {
-    "my-close": null
-  },
-
   setup(props, context) {
-    const btnClose = () => {
-      context.emit("my-close")
-    }
-
+    
     return {
 
     }
   }
-
-
 }
 ```
 
@@ -18207,7 +18293,7 @@ setup(props, context) {
     console.log("person变化了", n, o)
   })
   
-  - 注意： 当我们输出newValue 和 oldValue 的时候发现n 和 o是一样的
+  - 注意： 当我们输出newValue 和 oldValue 的时候发现n 和 o是一样的 都是修改后的值
 ```
 
 **注意：**
@@ -18338,7 +18424,7 @@ setup(props, context) {
 
 --------------------------
 
-### Vue3的声明周期
+### Vue3的生命周期
 - beforeUnmount unmounted 最后两个生命周期换了下名字 剩下的并没有太多的改变
 <!-- 
   beforeDestroy 改名为 beforeUnmount
@@ -18354,7 +18440,7 @@ setup(props, context) {
 > 使用组合api的形式 使用生命周期 函数
 - vue3也提供了composition Api形式的生命周期钩子 与vue2中钩子对应关系如下
 <!-- 
-    beforeCreate  -- setup()
+    beforeCreate  -- setup()    -- setup比beforeCreate还要早
     created       -- setup()
 
     beforeMount   -- onBeforeMount
@@ -18475,22 +18561,23 @@ setup(props, context) {
 
 > 2. 在App组件中我们引入这个js模块 接收 usePoint 返回出来的数据
 ```js 
-  setup() {
+import usePoint from "./hooks/usePoint"
+
+setup() {
     
-    // 该变量内部才是hooks里面定义的数据对象 需要.出来
-    let point = usePoint()
+  // 该变量内部才是hooks里面定义的数据对象 需要.出来
+  let dataWrap = usePoint()
 
-    return {
-      point
-    }
-  },
+  let handleClick = () => {
+    console.log(dataWrap)    // 我们定义的point是一个对象 里面有point属性
+    console.log(dataWrap.point);  // point属性本身也是一个对象
+    console.log(dataWrap.point.x, point.point.y);
+  }
 
-
-let handleClick = () => {
-  console.log(point)    // 我们定义的point是一个对象 里面有point属性
-  console.log(point.point);  // point属性本身也是一个对象
-  console.log(point.point.x, point.point.y);
-}
+  return {
+    
+  }
+},
 ```
 
 --------------------------
@@ -18509,8 +18596,10 @@ let handleClick = () => {
   setup() {
     
     let person = reactive({
-      name: "erin", age: 18,
-      job: { j1: { salary: 20 } }
+      name: "erin", 
+      age: 18,
+      job: { 
+        j1: { salary: 20 } }
     })
 
     return { person }
@@ -19197,7 +19286,7 @@ export default {
 - suspense里面准备了两个插槽 一个用于放置我们异步引入的组件 一个插槽放置当异步组件还没有回来的时候展示的内容
 
 - 也就是说 <Suspense> 的结构是这样的
-<!-- 
+```html 
   <Suspense>
 
     <template v-slot:default>
@@ -19209,10 +19298,10 @@ export default {
     </template> 
 
   </Suspense>
- -->
+```
 
 
-<!-- 
+```html 
   <template>
     <div class="app">
       <h3>App</h3>
@@ -19230,6 +19319,7 @@ export default {
     </div>
   </template>
 
+<script>
   // 下面方式 只能是异步组件 和 suspense 搭配使用的时候才能这么干
   // 为了查看效果 我们可以这样 在child组件中
   setup() {
@@ -19240,7 +19330,8 @@ export default {
       }, 3000)
     })
   }
- -->
+</script>
+```
 
 --------------------------
 
@@ -19684,7 +19775,7 @@ export default class HelloWorld extends Vue {
   // Declared as component data
   message = 'Hello World!'
 }
-</script>
+</>
 ```
 
 > 方式2:

@@ -1,6 +1,19 @@
 ### 待看前端的设计模式
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
+
+
+### 奇葩的初始化逻辑
+- 我们可以先从一个地方取出一个变量先用 然后会其进行空判断 如果为空就赋初始值 然后在放回那个地方
+```js
+let obj = {}
+
+let res = obj.num + 1
+```
+
+
+
+
 ### defaultValue
 - 场景
 - 我想让文本框中的值 进行 修改前 和 修改后的对比

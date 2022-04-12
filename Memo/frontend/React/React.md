@@ -11982,6 +11982,7 @@ params > search > state
 - 全局安装
 - npm i serve -g
 - 然后进入到这个文件夹 开启终端 输入 serve 命令
+- serve -s dist
 
 
 - 假如我们现在在test文件夹里 想让a做为根目录开启一台服务器 我们可以输入 两种方式都可以
