@@ -18013,6 +18013,15 @@ attrs: (...)
 emit: (event, ...args) => instance.emit(event, ...args)
 expose: exposed => {…}
 slots: (...)
+
+-- 新增了
+
+isServer: (...)         // 可以判断是否是服务端
+listeners: Object       
+parent: VueComponent    // 父组件
+refs: (...)             // dom节点
+root: Vue               // 根组件
+ssrContext: undefined
 ```
 
 - attrs：
@@ -19731,6 +19740,64 @@ export default {
   }
 }
 ```
+
+---------------
+
+> vue3.0中的this : getCurrentInstance 获取组件实例
+- getCurrentInstance代表全局上下文，ctx相当于Vue2的this
+
+**注意:**
+- ctx代替this只适用于开发阶段，等你放到服务器上运行就会出错，后来查阅资料说的得用proxy替代ctx，才能在你项目正式上线版本正常运行
+
+> 获取 proxy
+- 使用方式:
+```js
+import {getCurrentInstance} from "vue"
+
+setup() {
+  let {proxy} = getCurrentInstance()
+}
+```
+
+> proxy身上就是组件实例身上的属性和方法
+```js
+console.log("proxy", proxy)
+console.log("proxy.$nuxt", proxy.$nuxt)
+
+console.log("proxy.$router", proxy.$router)
+console.log("proxy.$route", proxy.$route)
+
+console.log("proxy.$axios", proxy.$axios)
+console.log("proxy.$config", proxy.$config)
+
+console.log("proxy.$data", proxy.$data)   // 这个没有
+```
+
+
+> 在 setup 中访问路由和当前路由
+- https://router.vuejs.org/zh/guide/advanced/composition-api.html#%E5%AF%BC%E8%88%AA%E5%AE%88%E5%8D%AB
+- 因为我们在 setup 里面没有访问 this，所以我们不能再直接访问 this.$router 或 this.$route。作为替代，我们使用 useRouter 函数：
+- import { useRouter, useRoute } from 'vue-router'
+```js
+import { useRouter, useRoute } from 'vue-router'
+
+export default {
+  setup() {
+    const router = useRouter()
+    const route = useRoute()
+
+    function pushWithQuery(query) {
+      router.push({
+        name: 'search',
+        query: {
+          ...route.query,
+        },
+      })
+    }
+  },
+}
+```
+
 
 ---------------
 

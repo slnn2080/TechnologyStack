@@ -1,3 +1,96 @@
+### 更新补足
+- 文档:
+- https://v3.cn.vuejs.org/guide/composition-api-introduction.html#setup-%E7%BB%84%E4%BB%B6%E9%80%89%E9%A1%B9
+
+- setup:
+- https://v3.cn.vuejs.org/guide/composition-api-setup.html#%E5%8F%82%E6%95%B0
+
+- 个人文档
+- http://www.liulongbin.top:8085/#/
+
+- 资料:
+- https://www.jianshu.com/p/0791fc7e120c
+
+- composition api文档
+- https://composition-api.nuxtjs.org/getting-started/introduction
+
+- mixin 和 hooks 的区别
+- https://www.jianshu.com/p/b1695fd3cc3a
+
+
+
+> vue3.0中注入全局方法
+- 1. 引入 createApp 创建 实例
+- 2. 通过实例对象 app 进行全局挂载 config.globalProperties
+```js
+import {createApp} from "vue"
+import App from "./App.vue"
+
+import api from "./http/api/api" // 后端数据接口
+const app = createApp(App)
+app.config.globalProperties.$api = api
+
+app.mount("#app")
+```
+
+
+> vue3.0中的this : getCurrentInstance 获取组件实例
+- getCurrentInstance代表全局上下文，ctx相当于Vue2的this
+
+**注意:**
+- ctx代替this只适用于开发阶段，等你放到服务器上运行就会出错，后来查阅资料说的得用proxy替代ctx，才能在你项目正式上线版本正常运行
+
+> 获取 proxy
+- 使用方式:
+```js
+import {getCurrentInstance} from "vue"
+
+setup() {
+  let {proxy} = getCurrentInstance()
+}
+```
+
+> proxy身上就是组件实例身上的属性和方法
+```js
+console.log("proxy", proxy)
+console.log("proxy.$nuxt", proxy.$nuxt)
+
+console.log("proxy.$router", proxy.$router)
+console.log("proxy.$route", proxy.$route)
+
+console.log("proxy.$axios", proxy.$axios)
+console.log("proxy.$config", proxy.$config)
+
+console.log("proxy.$data", proxy.$data)   // 这个没有
+```
+
+
+> 在 setup 中访问路由和当前路由
+- https://router.vuejs.org/zh/guide/advanced/composition-api.html#%E5%AF%BC%E8%88%AA%E5%AE%88%E5%8D%AB
+- 因为我们在 setup 里面没有访问 this，所以我们不能再直接访问 this.$router 或 this.$route。作为替代，我们使用 useRouter 函数：
+- import { useRouter, useRoute } from 'vue-router'
+```js
+import { useRouter, useRoute } from 'vue-router'
+
+export default {
+  setup() {
+    const router = useRouter()
+    const route = useRoute()
+
+    function pushWithQuery(query) {
+      router.push({
+        name: 'search',
+        query: {
+          ...route.query,
+        },
+      })
+    }
+  },
+}
+```
+
+
+
 > 这是使用 @vue/composition-api 的模板
 ```html
 <script>
@@ -168,6 +261,17 @@ return {
     }
   }
 </script>
+```
+
+> 扩展
+- context中新增了好多 也可能是nuxt这边特有的
+```js
+isServer: (...)         // 可以判断是否是服务端
+listeners: Object       
+parent: VueComponent    // 父组件
+refs: (...)             // dom节点
+root: Vue               // 根组件
+ssrContext: undefined
 ```
 
 ----------------

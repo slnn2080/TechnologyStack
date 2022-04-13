@@ -16,11 +16,12 @@
 > name属性
 - 该属性用于描述网页 对应于content(网页内容)
 - 它在标签体中的体现是
-- name="内容" content="内容对应的值"
+
+> name="内容" content="内容对应的值"
 
 - name属性主要用于描述网页，与之对应的属性值为content，content中的内容主要是便于搜索引擎机器人查找信息和分类信息用的。 
 
-- 常用的有:
+> 常用的有:
 - 关键字
 - name="keywords" content="关键字1 关键字2 关键字3"
 
@@ -29,6 +30,15 @@
 
 - 用以说明生成的工具
 - name="generator" content="Microsoft FrontPage4.0"
+
+- 用以说明网页的作者
+- name="author" content="root,root@xxxx.com"
+
+- 用以告诉浏览器你的渲染模式
+- name="renderer" content="webkit"
+
+- 用以说明viewport(视图模式）
+- name="viewport" content="width=device-width,initial-scale=1"
 
 
 
@@ -106,17 +116,17 @@
 - Meta标签是用来描述网页属性的一种语言，标准的Meta标签可以便于搜索引擎排序，提高搜索引擎网站权重排名。要想网站做的更符合搜索引擎标准就必须了解meta标签，下面由Seoer惜缘于大家讲讲meta标签含义与使用方法： 
 
 - 1. META标签的keywords 
-- 写法为：<metaname="Keywords"content="信息参数"/> 
+- 写法为：<meta name="Keywords" content="信息参数"/> 
 - meat标签的Keywords的的信息参数，代表说明网站的关键词是什么。 
 
 - 2. META标签的Description 
-- <metaname="Description"content="信息参数"/> 
+- <meta name="Description" content="信息参数"/> 
 - meta标签的Description的信息参数，代表说明网站的主要内容，概况是什么。 
 
 - 3. META标签的http-equiv=Content-Typecontent="text/html 
 - http-equiv=Content-Type代表的是HTTP的头部协议，提示浏览器网页的信息， 
 
-<metahttp-equiv="Content-Type"content="text/html;charset=信息参数"/> 
+<meta http-equiv="Content-Type" content="text/html;charset=信息参数"/> 
 
 - meta标签的charset的信息参数如GB2312时，代表说明网站是采用的编码是简体中文； 
 
@@ -132,40 +142,40 @@
 
 
 - 4. META标签的generator 
-- <metaname="generator"content="信息参数"/> 
+- <meta name="generator"content="信息参数"/> 
 - meta标签的generator的信息参数，代表说明网站的采用的什么软件制作。 
 
 
 - 5. META标签的author 
-<metaname="author"content="信息参数"> 
+<meta name="author" content="信息参数"> 
 - meta标签的author的信息参数，代表说明网页版权作者信息。 
 
 
 - 6. META标签的http-equiv="Refresh" 
-<Metahttp-equiv="Refresh"Content="时间;Url=网址参数"> 
+<Meta http-equiv="Refresh" Content="时间;Url=网址参数"> 
 - meta标签的Refresh代表多少时间网页自动刷新，加上Url中的网址参数就代表，多长时间自动链接其他网址。 
 
 
 - 7. META标签的HTTP-EQUIV="Pragma"CONTENT="no-cache" 
-- <METAHTTP-EQUIV="Pragma"CONTENT="no-cache">代表禁止浏览器从本地计算机的缓存中访问页面内容,这样设定，访问者将无法脱机浏览。 
+- <META HTTP-EQUIV="Pragma" CONTENT="no-cache">代表禁止浏览器从本地计算机的缓存中访问页面内容,这样设定，访问者将无法脱机浏览。 
 
 - 8. META标签的COPYRIGHT 
-<METANAME="COPYRIGHT"CONTENT="信息参数"> 
+<META NAME="COPYRIGHT" CONTENT="信息参数"> 
 - meta标签的COPYRIGHT的信息参数，代表说明网站版权信息。 
 
 - 9. META标签的http-equiv="imagetoolbar" 
-- <metahttp-equiv="imagetoolbar"content="false"/> 
+- <meta http-equiv="imagetoolbar" content="false"/> 
 - 指定是否显示图片工具栏，当为false代表不显示，当为true代表显示。 
 
 - 10. META标签的Content-Script-Type 
-- <Metahttp-equiv="Content-Script-Type"Content="text/javascript"> 
+- <Meta http-equiv="Content-Script-Type" Content="text/javascript"> 
 - W3C网页规范，指明页面中脚本的类型。 
 
 - 11. META标签的revisit-after 
-<METAname="revisit-after"CONTENT="7days"> 
+<META name="revisit-after" CONTENT="7days"> 
 revisit-after代表网站重访,7days代表7天，依此类推。 
 
-- 12. META标签的Robots<metaname="Robots"contect="信息参数"> 
+- 12. META标签的Robots<meta name="Robots" contect="信息参数"> 
 - Robots代表告诉搜索引擎机器人抓取哪些页面 
 
 - 其中的属性说明如下： 

@@ -22,6 +22,175 @@ head: {
 }
 ```
 
+------
+
+> nuxt里面怎么使用 事件总线
+
+```js
+// plugin-bus.js
+import Vue from 'vue' // 或者使用mitt
+
+export default (_, inject) => {
+  inject('bus', new Vue())
+}
+```
+
+```js
+// 绑定事件
+this.$nuxt.$on('init', () => {
+  console.log('init')
+})
+
+// 获取事件
+this.$nuxt.$emit('init')
+```
+
+------
+
+> composition API下怎么使用的事件总线
+```js
+import {defineComponent, reactive, onBeforeMount, getCurrentInstance, watchEffect} from "@nuxtjs/composition-api"
+
+setup() {
+  let {proxy} = getCurrentInstance()
+
+  function updateLayout() {
+    proxy.$nuxt.$emit("updateLayout", layoutData)
+  }
+  function updateHeader() {
+    proxy.$nuxt.$emit("updateHeader", meta)
+  }
+  
+  onBeforeMount(() => {
+    updateLayout()
+    updateHeader()
+  })
+}
+```
+
+------
+
+> nuxt下使用 composition API
+- https://composition-api.nuxtjs.org/getting-started/setup
+
+> 安装:
+- 1. npm i @nuxtjs/composition-api
+
+- 2. nuxt.config.js
+```js
+{
+  buildModules: [
+    '@nuxtjs/composition-api/module', // 追加
+  ],
+}
+```
+
+
+> 使用 composition api 调节head标签里面的内容
+
+- 1. 导入 useMeta defineComponent
+- import { useMeta, defineComponent } from '@nuxtjs/composition-api'
+
+- 2. 先定义一个 head: {} 配置项 用以激活用 为空就可以
+- 3. 
+```js
+export default defineComponent({
+  
+  head: {},
+
+  setup() {
+    // 1. 从useMeta中解构出 对应的 内容
+    const { title } = useMeta()
+    title.value = 'My page'
+
+    // 2. 定义初始值
+    const { title } = useMeta({ title: 'My page' })
+
+    // 3. 我们传递一个对象放进 useMeta() 函数里面  该对象就是meta中的 内容
+    useMeta({ title: 'My page', ... })
+
+    // 4. 想让 meta的值是响应式的 或者说 取其它响应数据里面的值的话 我们可以传入一个函数
+    const message = ref('')
+    useMeta(() => ({ title: message.value }))
+  }
+})
+```
+
+> 扩展
+- 我们能从 useMeta() 里面解构出来什么
+- 1. const { script } = useMeta()
+```js
+const { script } = useMeta()
+script.value = [
+  {
+    src: '/redirect.js'
+  }
+]
+```
+
+- 2. 我们可以在 useMeta({配置项}) 里面写什么?
+
+    charset (default utf-8)
+    viewport (default width=device-width, initial-scale=1 ?)
+    name
+    description
+    author
+    lang
+    ogSiteName / ogTitle / ogDescription / ogHost (more)
+
+```js
+useMeta({
+  author: 'Jon Doe'
+})
+```
+
+- 3. meta标签中的name content 怎么写
+```js
+// 默认配置吧
+useMeta({
+  title: 'My title',
+  meta: [
+    {
+      hid: 'description',
+      name: 'description',
+      content: 'My description',
+    },
+  ],
+})
+
+
+// 赋值形态
+const { meta } = useMeta()
+meta.value = [
+  {
+    hid: 'og:description',
+    property: 'og:description',
+    content: 'OGPの説明',
+  },
+  {
+    hid: 'og:url',
+    property: 'og:url',
+    content: 'OGPのURL',
+  },
+  {
+    hid: 'og:image',
+    property: 'og:image',
+    content: 'OGPの画像',
+  },
+]
+
+
+// 普通的 name content
+meta: [
+  // hid は一意の識別子として使用されます。 `vmid` は動作しないので使わないでください。
+  {
+    hid: 'description',
+    name: 'description',
+    content: 'My custom description'
+  }
+]
+```
+
 
 
 > <no-ssr>
