@@ -1096,8 +1096,24 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
 - 参数是一个对象 通过属性来设置内部的参数
 - url:      给谁发
 - data:     发送参数
+    - data: {action: "jQueryAjax"}
+    - data: "action=jQueryAjax"
+    
 - type:     请求类型
-- dataType: 响应体结果的设置
+
+- dataType: *响应的*数据类型
+    - xml
+    - text
+    (如果我们定义为text是需要自己JSON.parse())
+
+    - json
+    (如果我们定义为json 不需要自己JSON.parse())
+
+    - html
+    - script
+    - jsonp
+
+
 - success:  成功的回调 这里对响应体的结果做一个处理
 - timeout:  超时时间
 - error:    失败的回调

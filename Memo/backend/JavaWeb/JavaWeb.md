@@ -14116,3 +14116,362 @@ function ajaxRequest() {
 req.setCharacterEncoding("UTF-8");
 res.setContentType("text/html; charset=UTF-8");
 ```
+
+----------------
+
+### jQ - Ajax
+
+> $.ajax({配置对象})
+- 常用的参数:
+- 1. url
+  请求地址
+
+- 2. type
+  请求类型
+
+- 3. data
+  发送给服务器的数据
+  书写的数据格式(两种都可以):
+
+  - data: {action: "jQueryAjax"}
+  - data: "action=jQueryAjax"
+
+- 4. success
+  请求成功响应的回调的函数
+
+- 5. dataType
+  *响应的*数据类型
+  如果不指定 http包会对mime信息来智能判断
+  - xml
+  - text
+  (如果我们定义为text是需要自己JSON.parse())
+
+  - json
+  (如果我们定义为json 不需要自己JSON.parse())
+
+  - html
+  - script
+  - jsonp
+
+
+> 演示:
+- 要点:
+- 使用jQ发请求的时候 原来?action=method 这样的参数 在data配置项里面写的
+```js
+$.ajax({
+  url: "http://localhost:8080/ajaxServlet",
+
+  data: "action=jQueryAjax",
+  data: {action: "jQueryAjax"}
+
+  type: "get",
+  success: function(data) {
+    // data服务器返回来的数据
+    console.log(data)
+  },
+  dataType: "json"
+})
+```
+
+> $.get(url, [data], [callback], [type])
+> $.post(url, [data], [callback], [type])
+- type: 是响应数据的类型
+  - xml
+  - html
+  - text
+  - json ...
+
+**注意:**
+- 按照顺序去传递
+
+
+> $.getJSON(url, [data], [callback])
+- 固定的get请求, 返回的数据也是固定的json
+
+
+> 表单对象.serialize()
+- 可以把表单中所有表单项的内容都获取到
+- 并以name=value&name=value的形式进行拼接
+
+    let content = $("from").serialize()
+
+```js
+
+$.ajax({
+  url: "http://localhost:8080/ajaxServlet",
+  type: "get",
+  data: "action=jQuerySerialize&" + $("from").serialize(),
+  success: function() {
+
+  }
+})
+```
+
+----------------
+
+### 书城项目: 使用ajax验证用户名是否可用
+- 需求:
+- 当我们输入用户名之后 离开 就将用户名的信息发送给后台
+- 让后台校验用户名是否可以用 根据后台返回的结果 提示用户是否可用
+
+> 分析:
+- 当用户名的输入框 失去焦点后 就将请求发送给 UserServlet程序
+
+- UserServlet中的方法
+- 该方法用户处理用户的请求 验证用户名是否可用
+```java
+public void ajaxExistsUserName() {
+  1. 获取请求参数 username
+
+  2. 调用 UserService.existsusername()
+  - 验证用户名是否可用
+
+  3. 把客户端需要的结果 封装成为 map对象 然后回传给客户端
+}
+```
+
+**总结:**
+- 也就是说 我们后台查询到的数据 
+- 如果jsp页面要用 我们就保存包域中
+- 如果前端页面ajax类要用 我们就用map类型的数据 通过json格式响应回客户端
+
+
+- 回传的数据:
+- 用户名是否可用
+
+- 客户端逻辑:
+- 根据回传的结果 提示用户
+
+
+> 客户端代码:
+- 1. web/user/regist.jsp
+- 我们给 用户名 的输入框绑定失去焦点事件
+```js
+$("#username").on("blur", function() {
+  let username = this.value
+  $.ajax({
+    url: "http://localhost:8080/project/user",
+    type: "get",
+
+    // 注意这里
+    data: "action=ajaxExistsUserName&username=" + username,
+
+
+    dataType: "json",
+    success: function (data) {
+      if(data.existsUsername) {
+        $(".errorMsg").text("用户名已注册");
+      } else {
+        $(".errorMsg").text("用户名可用");
+      }
+    }
+  })
+})
+```
+
+
+> 服务器逻辑
+- com.sam.web
+  - UserServlet
+
+```java
+protected void ajaxExistsUserName(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+  // 1. 获取请求的参数 username
+  String username = req.getParameter("username");
+
+  // 2. 调用 userService.existsUserName()
+  boolean existsUsername = userService.existsUsername(username);
+
+  // 3. 把返回的结果封装成为map对象
+  Map<String, Object> result = new HashMap<>();
+  result.put("existsUsername", existsUsername);
+
+  Gson gson = new Gson();
+  String json = gson.toJson(result);
+  res.getWriter().write(json); 
+
+}
+```
+
+----------------
+
+### 书城项目: 使用ajax 将图书添加到购物车
+- 我们项目中之前 每点击一次 加入购物车 是刷新页面提交请求的 现在我们要将其修改为 ajax的提交方式
+
+- 原来的逻辑:
+```html
+<div class="book_add">
+  <button data-id="${book.id}" class="add-btn">加入购物车</button>
+</div>
+```
+
+```js
+$(".add-btn").on("click", function() {
+  let $id = $(this).data("id")
+
+  // 页面会刷新
+  location.href = "${basePath}cartServlet?action=addItem&id=" + $id
+})
+```
+
+- 现在要换成ajax请求
+
+- 分析:
+- com.sam.web
+  - CartServlet程序
+
+- 当用户点击 加入购物车 后向CartServlet程序发起请求 该程序中的 ajaxAddItem() 方法 负责处理
+
+```java
+public void ajaxAddItem() {
+  1. 获取商品编号
+
+  2. 调用 bookService.queryBookById() 的到book
+
+  3. 将得到的book对象 转换为CartItem
+
+  4. 获取session中的购物车对象Cart
+
+  5. 调用cart.addItem() 添加商品项 
+
+  6. 将页面中需要显示的信息返回 返回购物车总的商品数量和最后一个添加的商品的名称
+  - 这里 您的购物车有 ? 件
+  - 最后一本书的名字
+  - 原先我们是利用jsp从session域中获取的
+}
+```
+
+> 服务器端的逻辑
+```java
+protected void ajaxAddItem(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+  // - 1. 获取请求的参数: 商品编号
+  int id = WebUtils.ParseInt(req.getParameter("id"), 0);
+
+  // - 2. 根据 商品id 查询数据库得到图书 也就是调用bookService.queryBookById() 得到该本图书的信息
+  Book book = bookService.queryBookById(id);
+
+  // - 3. 把图书信息转换为CartItem商品项 最后一个参数是总价 也就是一本书的价格
+  CartItem cartItem = new CartItem(book.getId(), book.getName(), 1, book.getPrice(), book.getPrice());
+
+  // - 4. 有了CartItem商品项后调用 cart.addItem(CartItem) 添加商品项
+  // 从session当中获取购物车(如果取不到cart就是null那么下面的if里就会创建cart)
+  Cart cart = (Cart) req.getSession().getAttribute("cart");
+
+  if(cart == null) {
+    // 说明session中没有购物车 那我们就创建一个
+    cart = new Cart();
+    // 创建好的购物车放在session中
+    req.getSession().setAttribute("cart", cart);
+  }
+
+  cart.addItem(cartItem);
+
+  // 将最后添加的图书放入到session域中
+  req.getSession().setAttribute("lastBookName", cartItem.getName());
+
+
+---
+
+  // 使用 ajax 所以忽略下面的步骤5
+  Map<String, Object> result = new HashMap<>();
+  result.put("totalCount", cart.getTotalCount());
+  result.put("lastBookName", cartItem.getName());
+
+  Gson gson = new Gson();
+  String json = gson.toJson(result);
+  res.getWriter().write(json);
+
+---
+
+
+
+  // - 5. 重定向回原来商品所在的地址页面
+  // res.sendRedirect(req.getContextPath());
+  // res.sendRedirect(req.getHeader("Referer"));
+  }
+```
+
+
+> 客户端逻辑
+```js
+$(".add-btn").on("click", function() {
+
+  let $id = $(this).data("id")
+
+  $.ajax({
+    url: "${basePath}cartServlet",
+    type: "get",
+    data: "action=ajaxAddItem&id=" + $id,
+    dataType: "json",
+    success: function(data) {
+      console.log(data)
+      $("#cart_total_count").text("您的购物车中有" + data.totalCount + "件商品")
+      $("#cart_last_name").text(data.lastBookName)
+    }
+  })
+
+})
+```
+
+----------------
+
+### i18n国际化
+- 国际化指的是同一个网站可以支持多种不同的语言 以方便不同国家 不同语种的用户访问
+
+- 关于国际化我们想到的最简单的方案就是为不同的国家创建不同的网站
+
+- 比如:
+- 苹果公司 
+- 它的英文官网是 http://www.apple.com
+- 它的中国官网是 http://www.apple.com.cn
+
+- 但是这种方案并不适合全部公司 而我们希望相同的一个网站 而不同人访问的时候可以根据用户所在的区域显示不同的语言文字 而网站的布局样式等不发生改变
+
+- 于是就有了我们说的国际化 国际化总的来说就是同一个网站不同国家的人来访问可以显示出不同的语言 但实际上这种需求并不强烈 一般真的有国际化需求的公司 主流采用的依然是苹果公司的那种方案 为不同的国家创建不同的页面
+
+
+> 国际化 3要素
+
+> 1. local对象 
+- 表示不同的时区 位置 语言
+- 这也是一个类
+
+- local对象主要有
+- zh_CN: 中国 中文
+- en_US: 英文 美国
+
+
+> 2. Properties属性配置文件
+- 用来存放不同语言的配置信息
+
+- 国际化配置文件命名规则:
+- baseName_local(就是1中的).properties
+
+- 比如: baseName是 i18n 
+- 中文的配置文件名是
+- i18n_zh_CN.properties
+
+- 英文的配置文件名是
+- i18n_en_US.properties
+
+<!-- 
+  配置文件中的内容是键值对
+ -->
+
+
+> 3. ResourceBundle资源包
+- 该类用来管理 上面的配置文件 这是一个*工具类* 它会根据我们给定的baseName和local它会读取相应的配置文件得到国际化的信息
+
+- 根据给定的baseName和Local读取相应的配置文件 得到文字信息
+
+- 这个工具类中有一个方法:
+> ResourceBundle.getBundle()
+
+- 返回值:
+- ResourceBundle类
+- 这个类中就包含了配置文件中的相应的信息
+
+
+> ResourceBundle.getString(key)
+- 得到我们想要的不同国家的语言信息
