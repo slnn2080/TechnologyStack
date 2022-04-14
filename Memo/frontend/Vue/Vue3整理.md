@@ -2,6 +2,9 @@
 - 文档:
 - https://v3.cn.vuejs.org/guide/composition-api-introduction.html#setup-%E7%BB%84%E4%BB%B6%E9%80%89%E9%A1%B9
 
+- *这个文档也不错*
+- https://vue3.chengpeiquan.com/update.html#%E4%BD%BF%E7%94%A8-vue-2
+
 - setup:
 - https://v3.cn.vuejs.org/guide/composition-api-setup.html#%E5%8F%82%E6%95%B0
 
@@ -16,6 +19,114 @@
 
 - mixin 和 hooks 的区别
 - https://www.jianshu.com/p/b1695fd3cc3a
+
+
+> Vue3中的事件总线
+- Vue 3.x 移除了 $on 、 $off 和 $once 这几个事件 API ，应用实例不再实现事件触发接口。
+
+- 我们可以用 mitt 或者 tiny-emitter 等第三方插件来实现 EventBus 。
+
+> 创建 3.x 的 EventBus
+- 这里以 mitt 为例，示范如何创建一个 Vue 3.x 的 EventBus 。
+
+> 安装:
+- 1. npm install --save mitt
+
+- 2. 然后在 libs 文件夹下，创建一个 bus.ts 文件，内容和旧版写法其实是一样的，只不过是把 Vue 实例，换成了 mitt 实例。
+```js
+import mitt from 'mitt';
+export default mitt();
+```
+
+- 然后就可以定义发起和接收的相关事件了，常用的 API 和参数如下：
+- on: 注册一个监听事件，用于接收数据
+    - 参数:
+    - type: 方法名
+    - handler: 回调
+
+- emit: 调用方法发起数据传递
+    - type: 与 on 对应的方法名
+    - data: 与 on 对应的，允许接收的数据
+
+
+- off: 用来移除监听事件
+    - type: 与 on 对应的方法名
+    - handler: 要删除的，与 on 对应的 handler 函数名
+
+> 创建和移除监听事件
+- 在需要暴露交流事件的组件里，通过 on 配置好接收方法，同时为了避免路由切换过程中造成事件多次被绑定，多次触发，需要在适当的时机 off 掉：
+```js
+import { defineComponent, onBeforeUnmount } from 'vue'
+import bus from '@libs/bus'
+
+export default defineComponent({
+  setup () {
+    // 定义一个打招呼的方法
+    const sayHi = (msg: string = 'Hello World!'): void => {
+      console.log(msg);
+    }
+
+    // 启用监听
+    bus.on('sayHi', sayHi);
+
+    // 在组件卸载之前移除监听
+    onBeforeUnmount( () => {
+      bus.off('sayHi', sayHi);
+    })
+  }
+})
+```
+
+> 调用监听事件
+```js
+import { defineComponent } from 'vue'
+import bus from '@libs/bus'
+
+export default defineComponent({
+  setup () {
+    // 调用打招呼事件，传入消息内容
+    bus.emit('sayHi', '哈哈哈哈哈哈哈哈哈哈哈哈哈哈');
+  }
+})
+```
+
+> 旧项目升级 EventBus
+- 在 Vue 3.x 的 EventBus，我们可以看到它的 API 和旧版是非常接近的，只是去掉了 $ 符号。
+
+- 如果你要对旧的项目进行升级改造，因为原来都是使用了 $on 、 $emit 等旧的 API ，一个一个组件去修改成新的 API 肯定不现实。
+
+- 我们可以在创建 bus.ts 的时候，通过自定义一个 bus 对象，来挂载 mitt 的 API 。
+
+- 在 bus.ts 里，改成以下代码：
+```js
+import mitt from 'mitt';
+
+// 初始化一个 mitt 实例
+const emitter = mitt();
+
+// 定义一个空对象用来承载我们的自定义方法
+const bus: any = {};
+
+// 把你要用到的方法添加到 bus 对象上
+bus.$on = emitter.on;
+bus.$emit = emitter.emit;
+
+// 最终是暴露自己定义的 bus
+export default bus;
+
+```
+
+- 这样我们在组件里就可以继续使用 bus.$on 、bus.$emit 等以前的老 API 了，不影响我们旧项目的升级使用。
+
+------
+
+
+> 引入 composition api 的位置
+- 如果是vue3的项目 我们可以从 vue 里面引入 api
+- 如果是nuxt或者下了composition api的包的话 我们要从 包里面引入
+```js
+import {defineComponent, reactive, getCurrentInstance} from "@nuxtjs/composition-api"
+```
 
 
 
@@ -51,6 +162,8 @@ setup() {
 ```
 
 > proxy身上就是组件实例身上的属性和方法
+- $nuxt 就可以用来做事件总线
+
 ```js
 console.log("proxy", proxy)
 console.log("proxy.$nuxt", proxy.$nuxt)
@@ -780,6 +893,13 @@ setup() {
 
 }
 ```
+
+**要点**
+- 1. 自定义hooks里面可以用组合式 api 但是不知道能不能使用setup 其实也没有必要使用setup不是么
+
+- 2. 组件里的自定义hooks调用代码最好放在setup里第一行位置，这样比较明确，不容易被遗漏。
+
+- 3. 导出的function只需要return组件里要引用的数据；对于组件里不需要引用的就不需要return，组件里只调用导入的函数即可。
 
 ----------------
 

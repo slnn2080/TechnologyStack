@@ -930,6 +930,23 @@ let b: { name:string, age?: number }
 - 想随意些的时候可以这样
 - let arr: any[] = [1, "a"]
 
+
+> 数组对象的举例
+```js
+[{name: "sam", age: 18}, {name: "sam", age: 18}]
+
+let docs: {}[]
+
+let docs: {
+  text: string,
+  flag: boolean,
+  id: number,
+  children: Array<any>
+}[]
+```
+
+
+
 ------------------
 
 > 变量类型: tuple 元组

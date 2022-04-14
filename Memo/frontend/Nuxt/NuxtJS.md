@@ -22,6 +22,21 @@ head: {
 }
 ```
 
+> head里面添加 link标签
+```js
+head: {
+  link: [
+    {
+      as: "style",
+      rel: 'stylesheet preload prefetch',
+      type: "text/css",
+      // crossorigin: "anonymous",
+      href: 'https://fonts.googleapis.com/css2?family=Oswald:wght@300&display=swap',
+    }
+  ],
+},
+```
+
 ------
 
 > nuxt里面怎么使用 事件总线

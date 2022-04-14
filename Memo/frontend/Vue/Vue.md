@@ -18589,6 +18589,13 @@ setup() {
 },
 ```
 
+**要点**
+- 1. 自定义hooks里面可以用组合式 api 但是不知道能不能使用setup 其实也没有必要使用setup不是么
+
+- 2. 组件里的自定义hooks调用代码最好放在setup里第一行位置，这样比较明确，不容易被遗漏。
+
+- 3. 导出的function只需要return组件里要引用的数据；对于组件里不需要引用的就不需要return，组件里只调用导入的函数即可。
+
 --------------------------
 
 ### toRef
@@ -20174,4 +20181,32 @@ import {Watch} from "vue-property-decorator";
  getValue(val: string, oldVal: string) {
       console.log("val:", val, "  oldVal:", oldVal);
 }
+```
+
+---------------
+
+### routes 中的hidden
+```js
+[
+  {
+    path: "/page1",
+    component: Page1,
+    hidden: true
+  }
+]
+```
+- 该属性主要是用在 该路由是否应该被渲染
+- 可能会用在权限管理的逻辑中
+
+- 要点:
+- 我们可以通过
+- $router.options.routes 获取 routes 路由数组
+- 他们身上都会有hidden值
+
+- 另外 路由权限 还可以让 
+- hidden: 从本地存储中取出一个字段 == 1
+- 动态决定 hidden的值是什么
+
+```js
+hidden: localStorage.role === '1',
 ```
