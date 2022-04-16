@@ -4,6 +4,9 @@
 - 由动态的js语言变成了静态的js语言, 扩展了js并添加了类型
 - TS不能被JS解析器直接执行, 要编译后才能通过js执行
 
+> 资料:
+- https://mp.weixin.qq.com/s/NpDAZb07x9nlThf_Ow3Ddw
+
 
 > 安装Ts编译器
 - 将我们的ts文件转换为js文件
@@ -12,12 +15,14 @@
   输入命令 tsc 看看安装成功没
  -->
 
+
 > 通过 tsc .ts文件 编译
 - 在.ts文件的目录下
 - tsc 文件名.ts
 <!-- 
   同目录下会出现js文件
  -->
+
 
 > tsc -v
 - 查看版本
@@ -890,6 +895,79 @@ let b: { name:string, age?: number }
   }
  -->
 
+
+> interface和对象的搭配使用
+- 在定义对象的类型时，我们通常会使用 interface。如果我们需要检查多个对象是否具有相同的特定属性和值类型时，是很有用的：
+
+```js
+interface Person {
+  name: string;
+  age: number;
+  isProgrammer: boolean;
+}
+
+let person1: Person = {
+  name: 'ConardLi',
+  age: 17,
+  isProgrammer: true,
+};
+
+let person2: Person = {
+  name: 'Tom',
+  age: 3,
+  isProgrammer: false,
+};
+```
+
+- 我们还可以用函数的类型签名声明一个函数属性，通用函数(sayHi)和箭头函数(sayBye)都可以声明：
+```js
+interface Animal {
+  eat(name: string): string;
+  speak: (name: string) => string;
+}
+
+let tom: Animal = {
+  eat: function (name: string) {
+    return `eat ${name}`;
+  },
+  speak: (name: string) => `speak ${name}`,
+};
+
+console.log(tom.eat('Jerry'));
+console.log(tom.speak('哈哈哈'));
+```
+
+------------------
+
+> DOM 和类型转换 !
+- TypeScript 没办法像 JavaScript 那样访问 DOM。这意味着每当我们尝试访问 DOM 元素时，TypeScript 都无法确定它们是否真的存在。
+
+- 使用非空断言运算符 (!)，我们可以明确地告诉编译器一个表达式的值不是 null 或 undefined。当编译器无法准确地进行类型推断时，这可能很有用：
+
+```js
+// 我们明确告诉 TS a 标签肯定存在
+const link = document.querySelector('a')!;
+
+```
+
+- 这里我们没必要声明 link 变量的类型。这是因为 TypeScript 可以通过类型推断确认它的类型为 HTMLAnchorElement。
+
+- 但是如果我们需要通过 class 或 id 来选择一个 DOM 元素呢？这时 TypeScript 就没办法推断类型了：
+```js
+const form = document.getElementById('signup-form');
+
+console.log(form.method);
+// ERROR: Object is possibly 'null'.
+// ERROR: Property 'method' does not exist on type 'HTMLElement'.
+```
+
+- 我们需要告诉 TypeScript form 确定是存在的，并且我们知道它的类型是  HTMLFormElement。我们可以通过类型转换来做到这一点：
+```js
+const form = document.getElementById('signup-form') as HTMLFormElement;
+
+console.log(form.method); // post
+```
+
 ------------------
 
 > 变量类型: array
@@ -931,7 +1009,7 @@ let b: { name:string, age?: number }
 - let arr: any[] = [1, "a"]
 
 
-> 数组对象的举例
+> 数组对象的举例1
 ```js
 [{name: "sam", age: 18}, {name: "sam", age: 18}]
 
@@ -946,6 +1024,25 @@ let docs: {
 ```
 
 
+> 数组对象的举例2
+```js
+let books: object[] = [
+  { name: 'Tom', animal: 'cat' },
+  { name: 'Jerry', animal: 'mouse' },
+]; // 只能包含对象
+```
+
+
+> 啥都行的数组
+```js
+let arr: any[] = ['hello', 1, true]; // 啥都行，回到了 JS
+```
+
+
+> 联合类型的数组
+```js
+let person: (string | number | boolean)[] = ['ConardLi', 1, true];
+```
 
 ------------------
 

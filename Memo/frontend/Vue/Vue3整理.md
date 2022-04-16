@@ -20,6 +20,7 @@
 - mixin 和 hooks 的区别
 - https://www.jianshu.com/p/b1695fd3cc3a
 
+------
 
 > Vue3中的事件总线
 - Vue 3.x 移除了 $on 、 $off 和 $once 这几个事件 API ，应用实例不再实现事件触发接口。
@@ -120,7 +121,6 @@ export default bus;
 
 ------
 
-
 > 引入 composition api 的位置
 - 如果是vue3的项目 我们可以从 vue 里面引入 api
 - 如果是nuxt或者下了composition api的包的话 我们要从 包里面引入
@@ -128,7 +128,7 @@ export default bus;
 import {defineComponent, reactive, getCurrentInstance} from "@nuxtjs/composition-api"
 ```
 
-
+------
 
 > vue3.0中注入全局方法
 - 1. 引入 createApp 创建 实例
@@ -144,6 +144,7 @@ app.config.globalProperties.$api = api
 app.mount("#app")
 ```
 
+------
 
 > vue3.0中的this : getCurrentInstance 获取组件实例
 - getCurrentInstance代表全局上下文，ctx相当于Vue2的this
@@ -177,6 +178,7 @@ console.log("proxy.$config", proxy.$config)
 console.log("proxy.$data", proxy.$data)   // 这个没有
 ```
 
+------
 
 > 在 setup 中访问路由和当前路由
 - https://router.vuejs.org/zh/guide/advanced/composition-api.html#%E5%AF%BC%E8%88%AA%E5%AE%88%E5%8D%AB
@@ -202,7 +204,7 @@ export default {
 }
 ```
 
-
+------
 
 > 这是使用 @vue/composition-api 的模板
 ```html
@@ -997,7 +999,7 @@ let data = reactive({
 data = markRaw(data)
 ```
 
---------------------------
+----------------
 
 ### provide 与 inject
 
@@ -1025,7 +1027,7 @@ setup() {
 }
 ```
 
---------------------------
+----------------
 
 ### 对响应式数据进行判断的api
 
@@ -1045,7 +1047,7 @@ setup() {
 - 检查一个对象是否是由reactive 或者 readonly 方法创建的代理
 - readonly加工后的对象仍然是proxy类型的数据
 
---------------------------
+----------------
 
 ### Teleprot组件
 
@@ -1058,7 +1060,7 @@ setup() {
 
 - 2. to属性的值 可以是htm标签 或者 css选择器
 
---------------------------
+----------------
 
 ### Suspense组件
 
@@ -1115,3 +1117,276 @@ setup() {
 
 </Suspense>
 ```
+
+----------------
+
+### 路由的配置
+> 路由的目录结构
+- 3.x 引入路由的方式和 2.x 一样，如果你也是在创建 Vue 项目的时候选择了带上路由，那么会自动帮你在 src 文件夹下创建如下的目录结构。如果创建时没有选择，那么也可以按照这个结构自己创建对应的文件。
+<!-- 
+  | - router
+    - index.js
+    - routes.js
+
+- 其中 index.ts 是路由的入口文件，系统安装的时候也只有这个文件，routes.ts 是我自己加的，主要用于集中管理路由，index.ts 只用于编写路由的创建、拦截等逻辑功能。
+
+- 因为大型项目来说，路由树是很粗壮的，往往需要配置上二级、三级路由，逻辑和配置都放到一个文件的话，太臃肿了。
+ -->
+
+**注意:**
+- 需要注意的是，与 Vue 3.x 配套的路由版本是 vue-router 4.x 以上，也就是如果一开始创建没有选择路由的话，后续自己安装，需要选择 vue-router@4 或者 vue-router@latest 才可以正确匹配。
+
+```js
+import Vue from 'vue'
+import VueRouter, { RouteConfig } from 'vue-router'
+
+Vue.use(VueRouter)
+
+const routes: Array<RouteConfig> = [
+  // ...
+]
+
+const router = new VueRouter({
+  mode: 'history',
+  base: process.env.BASE_URL,
+  routes
+})
+
+export default router
+```
+
+> 属性详解:
+- mode:
+    决定访问路径模式，可配置为 hash 或者 history
+
+
+> Vue 3.x 的引入方式如下（其中 RouteRecordRaw 是路由项目的 TS 类型定义）。
+```js
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+
+const routes: Array<RouteRecordRaw> = [
+  // ...
+]
+
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
+  routes
+})
+
+export default router
+```
+
+> 属性详解
+- history:
+    在 3.x ，使用 history 来代替 2.x 的 mode ，但功能是一样的
+
+
+> 公共路径
+- 在配置路由之前，需要先了解公共路径（publicPath）的概念，在 添加项目配置 部分，我们里面有一个参数，叫 publicPath，其实就是用来控制路由的公共路径，那么它有什么用呢？
+
+- publicPath 的默认值是 /，也就是说，如果你不配置它，那么所有的资源文件都是从域名根目录读取，如果你的项目部署在域名根目录那当然好，但是如果不是呢？那么就必须来配置它了。
+
+- 配置很简单，只要把项目要上线的最终地址，去掉域名，剩下的那部分就是 publicPath 。
+
+<!-- 
+  如果你的路由只有一级，那么 publicPath 也可以设置为相对路径 ./，这样你可以把项目部署到任意地方。
+
+  如果路由不止一级，那么请准确的指定 publicPath，并且保证它是以 / 开头， / 结尾
+ -->
+
+- 假设你的项目是部署在 https://chengpeiquan.com/vue3/ ，那么 publicPath 就可以设置为 /vue3/。
+
+- 通常我们开发环境，也就是本机ip访问的时候，都是基于根目录，但上线后的就不一定是根目录了，那么你在 vue.config.js 里可以通过环境变量来指定不同环境使用不同的 publicPath
+
+```js
+const IS_DEV = process.env.NODE_ENV === 'development' ? true : false;
+
+module.exports = {
+  publicPath: IS_DEV ? '/' : '/vue3/'
+}
+```
+
+
+> 使用 route 获取路由信息
+- 1. 导入路由组件
+- 2. import { useRoute } from 'vue-router'
+
+- 3. const route = useRoute();
+- 刚刚导入的 useRoute 是一个函数，*需要在 setup 里定义*一个变量来获取路由信息。
+
+
+> 使用 router 操作路由
+- 1. import { useRouter } from 'vue-router'
+- 2. const router = useRouter();
+
+
+> 不生成 a 标签
+- vue2中不生成a标签的使用方式:
+```js
+<template>
+  <router-link tag="span" to="/home">首页</router-link>
+</template>
+```
+
+- vue3中不生成a标签的使用方式:
+- 需要通过 custom 和 v-slot 的配合来渲染为其他标签
+```js
+<template>
+  <router-link
+    to="/home"
+    custom
+    v-slot="{ navigate }"
+  >
+    <span
+      class="link"
+      @click="navigate"
+    >
+      首页
+    </span>
+  </router-link>
+</template>
+```
+
+> 属性详解:
+- custom:
+    一个布尔值，用于控制是否需要渲染为 a 标签，当不包含 custom 或者把 custom 设置为 false 时，则依然使用 a 标签渲染。
+
+- v-slot:
+    是一个对象，用来决定标签的行为，它包含了：
+    href:  
+        解析后的URL，将会作为一个 a 元素的 href 属性
+
+    route:
+        解析后的规范化的地址
+
+    navigate:
+        触发导航的函数，会在必要时自动阻止事件，和 router-link 同理
+
+    isActive:
+        如果需要应用激活的 class 则为 true，允许应用一个任意的 class
+
+    isExactActive:
+        如果需要应用精确激活的 class 则为 true，允许应用一个任意的 class
+
+<!-- 
+  一般来说，v-slot 必备的只有 navigate ，用来绑定元素的点击事件，否则元素点击后不会有任何反应，其他的可以根据实际需求来添加。
+
+
+  要渲染为非 a 标签，切记两个点：
+
+  router-link 必须带上 custom 和 v-slot 属性
+  最终要渲染的标签，写在 router-link 里，包括对应的 className 和点击事件
+ -->
+
+----------------
+
+### Vue3 + TypeScript
+- 怎么在创建项目后 添加 TS
+
+- 1. vue create my-project-name
+- 2. vue add typescript
+
+---
+
+- 或者在创建项目的时候 就选择集成ts
+
+- 推荐配置
+- 1. use class style component ... 
+-> No
+
+- 2. use babel alongeide typescript
+-> Yes
+
+- 3. convart all .js files to .ts
+-> Yes
+
+- 4. allow .js files to be compiled
+-> Yes
+
+
+> 使用方式:
+- 1. <script lang="ts">
+- 2. 
+    import {defineComponent} from "vue"
+
+    export default defineComponent({
+
+    })
+
+- 3. 给data中的数据 定义类型
+```ts
+// 方式1:
+// 给title确定类型
+let title: string = "我是Home组件"
+
+export default defineComponent({
+  data() {
+    return {
+      title
+    }
+  },
+  methods: {
+    // 无返回值
+    setTitle(): viod {
+      this.title = "修改后的Home - Tile"
+    }
+  }
+})
+```
+
+> 通过泛型一次配置所有属性的类型
+```js
+{
+  title,
+  userInfo: {
+    username: "sam",
+  },
+  age: 20,
+  sex: "男"
+}
+
+---
+
+// 定义接口
+interface News {
+  title: string,
+  desc: string,
+  count: number,
+
+  // 可选参数
+  content?: string
+}
+
+// 让一份数据实现这个News接口
+let newsData: News = {
+  title: "新闻",
+  desc: "新闻描述",
+  count: 12,
+  content: "新闻内容"
+}
+
+export default defineComponent({
+  data() {
+
+    // 还能这么写
+    return newsData
+  }
+})
+```
+
+> 计算属性的ts写法
+```js
+computed: {
+  reverseTitle(): string {
+    return "返回个字符串"
+  }
+}
+```
+
+> 要点:
+- 1. Ts中 引入组件的时候 要加上 .vue
+
+------
+
+> 组合式api 怎么指定ts
+

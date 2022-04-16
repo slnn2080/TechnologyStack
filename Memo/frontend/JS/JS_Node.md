@@ -2627,6 +2627,30 @@ function fileinfo(files) {
 
 > 下载文件
 - AJAX 请求时，如果指定responseType属性为blob，下载下来的就是一个 Blob 对象
+
+<!-- 
+    比如 然后我们可以通过URL.createObjectURL 方法将blob对象转成一个url对象 给有src href属性的 
+
+    function download(url) {
+        const xhr = new XMLHttpRequest()
+        xhr.open("get", url)
+        xhr.responseType = "blob"
+        xhr.send()
+        xhr.onload = function() {
+            const fileBlob = xhr.response
+            let imgUrl = URL.createObjectURL(fileBlob)
+
+            let a = document.createElement("a")
+            a.href = imgUrl
+            a.download = "testImg"
+            a.innerHTML = "hello"
+            document.querySelector("body").appendChild(a)
+        }
+    }
+    let url = "https://img1.baidu.com/it/u=2648389307,756086504&fm=26&fmt=auto"
+    download(url)
+-->
+
 ```js
 function getBlob(url, callback) {
   var xhr = new XMLHttpRequest();
@@ -7319,31 +7343,77 @@ console.log(flag)       // 1
 - 我们可以在sort()中添加一个回调函数，来指定排序规则
 - 回调函数需要定义两个形参
 
-<!-- 
+ 
     浏览器会根据回调函数的返回值来决定元素的顺序
+    
     如果返回一个大于0的值，则会交换位置
     如果返回一个小于0的值，则元素位置不变
     如果返回一个等于0的值，则认为两个元素相等，位置也不变
     
     return a-b;     升序排列          
     return b-a;     降序排列
-    -->
 
+
+> 定义排序规则
 - 我们可以自己指定排序的规则
-<!-- 
-    var arr = [5,4,2,1,3,6,8,7];
-    arr.sort(function(a,b){
-        if(a>b{
-            return 1;
-        }else if(a<b){
-            return -1;
-        }else{
-            return 0;
-        }
-        )
-    });
-    console.log(arr);
- -->
+```js
+var arr = [5,4,2,1,3,6,8,7];
+arr.sort(function(a,b){
+    if(a>b{
+        return 1;
+
+    }else if(a<b){
+        return -1;
+        
+    }else{
+        return 0;
+    })
+});
+
+console.log(arr);
+```
+
+**注意:**
+- 1. 元素数组为字符串的时候
+- 方式1:
+- 我们可以直接使用 sort()
+
+- 方式2:
+- 我们可以按照 字符串的length进行排序 但是 字符一样的时候 没办法
+- (a, b) => a.length - b.length
+
+- 方式3:
+> str1.localeCompare(str2)
+- 如果 str1 < str2 则返回-1
+- 如果 str1 > str2 则返回 1
+- 如果相当 则返回0 
+
+```js
+arr.sort((a, b) => {
+  return b.localeCompare(a)
+})
+```
+
+- vue里
+```js
+<li><button @click="changeSort(true)">升序</button></li>
+<li><button @click="changeSort(false)">降序</button></li>
+
+data() {
+    return {
+        list: ["abc", "zan", "bde", "cdf"],
+    }
+},
+
+changeSort(flag) {
+    flag
+        ? this.list.sort((a, b) => a.localeCompare(b))
+        : this.list.sort((a, b) => b.localeCompare(a))
+} 
+```
+
+
+
     
 
 > indexOf()     根据元素 返回索引

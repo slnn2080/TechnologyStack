@@ -14436,10 +14436,45 @@ $(".add-btn").on("click", function() {
 > 1. local对象 
 - 表示不同的时区 位置 语言
 - 这也是一个类
+- import java.util.Locale;
+
 
 - local对象主要有
 - zh_CN: 中国 中文
 - en_US: 英文 美国
+- ja_JP: 日本 日文
+
+
+> Locale.getDefault();
+- 获取默认的所在的时区和位置 它会根据我们操作系统安装的语言版本获取 国家信息
+
+- 返回值:
+- Locale
+
+```java
+Locale locale = Locale.getDefault();
+System.out.println(locale);   // ja_JP
+```
+
+> Locale.getAvailableLocales()
+- 获取可用的所有国家信息 是一个数组
+
+- 返回值:
+- Locale[]
+
+```java
+Locale[] locales = Locale.getAvailableLocales();
+for (Locale locale : locales) {
+  System.out.println(locale);
+}
+```
+
+> Locale china = Locale.CHINA;
+> Locale japan = Locale.JAPAN;
+> Locale japan = Locale.US;
+- 通过常量 获取中国 日本 美国的Locale对象 还有很多
+
+---
 
 
 > 2. Properties属性配置文件
@@ -14459,6 +14494,34 @@ $(".add-btn").on("click", function() {
   配置文件中的内容是键值对
  -->
 
+> 演示:
+- 创建中文 英文的配置文件
+
+  | - src
+    - i18n_zh_CN.properties
+    - i18n_en_US.properties
+
+- 这两个国家的信息中的 key 是相同的 value 要换成对应的语言
+
+- i18n_zh_CN.properties:
+```java
+username=用户名
+password=密码
+sex=性别
+age=年龄
+```
+
+- i18n_en_US.properties
+```java
+username=username
+password=password
+sex=sex
+age=age
+```
+
+- 上面就配置好了两份不同的国家语言信息
+
+---
 
 > 3. ResourceBundle资源包
 - 该类用来管理 上面的配置文件 这是一个*工具类* 它会根据我们给定的baseName和local它会读取相应的配置文件得到国际化的信息
@@ -14466,12 +14529,243 @@ $(".add-btn").on("click", function() {
 - 根据给定的baseName和Local读取相应的配置文件 得到文字信息
 
 - 这个工具类中有一个方法:
-> ResourceBundle.getBundle()
+> ResourceBundle.getBundle("basename", 语言对象)
 
 - 返回值:
 - ResourceBundle类
-- 这个类中就包含了配置文件中的相应的信息
+- 这个类中就包含了配置文件中的相应的信息 我们可以通过该对象调用方法获取 语言配置文件中的信息
 
 
-> ResourceBundle.getString(key)
+> ResourceBundle实例对象.getString(key)
 - 得到我们想要的不同国家的语言信息
+
+- 返回值:
+- String
+
+
+> 代码演示:
+- com.sam.i18n
+  - I18nTest
+
+```java
+public void testI18n() {
+  // 先创建一个语言对象
+  Locale us = Locale.US;
+  Locale zh = Locale.CHINA;
+
+  // basename: 就是properties文件的文件名的前面的部分
+  // 参数2: 语言对象
+  // 通过指定的basename和locale对象读取相应的配置文件
+  ResourceBundle bundle = ResourceBundle.getBundle("i18n", us);
+
+  ResourceBundle bundle = ResourceBundle.getBundle("i18n", zh);
+
+  
+
+  // 传入key 获取 配置文件中对应的value 因为它会自去找对应的语言配置文件 我们会得到不同国家的文本
+  String username = bundle.getString("username");
+
+  System.out.println(username); // username
+  System.out.println(username); // 用户名
+}
+```
+
+----------------
+
+### 通过请求头 实现 国际化
+- 上面我们是通过java代码的方式 做了一个简单的国际化的例子
+- 这里我们关注下 页面上的国际化怎么实现 
+
+- 国际化测试:
+- 1. 访问页面，通过浏览器设置请求头信息确定国际化语言。
+- 2. 通过左上角 手动切换语言
+
+  中文 | English
+
+
+> req.getLocale()
+- 获取请求头中的语言信息
+- 返回值:
+- Locale对象
+
+```js
+Accept-Language: zh-CN,zh;q=0.9, en-US,en;q=0.4
+
+// 我们在请求头中会有这个字段 这个字段表示客户端可以接收的语言 默认就是zh-CN 权重是0.9 
+
+
+// 浏览器 -- 设置 -- 高级设置 -- 语言 我们在这里添加什么 上面Accept-Language里面就会有什么 还可以调整上下顺序
+
+- 也就是说 我们 req.getLocale() 获取到的 Locale 对象跟浏览器设置的值有关系
+- 如果 中文正在上面(权重最高) 那么我们获取到的就是 中文
+- 如果 英文正在上面(权重最高) 那么我们获取到的就是 英文
+
+```
+
+
+- 我们可以通过 req.getLocale() 获取浏览器的语言的默认设置 换句话说 我们就能知道 用户浏览器希望显示什么语言
+
+- 然后我们知道客户端 要显示什么语言了 我们再用
+- ResourceBundle实例对象.getString(key) 方法读取对应的资源包就可以了
+
+
+> 点击 按钮 切换语言
+- 1. 要先准备语言配置文件
+```js
+// 英文
+username=username
+password=password
+sex=sex
+age=age
+regist=regist
+boy=boy
+girl=girl
+email=email
+reset=reset
+submit=submit
+
+// 中文
+username=用户名
+password=密码
+sex=性别
+age=年龄
+regist=注册
+boy=男
+girl=女
+email=邮箱
+reset=重置
+submit=提交
+```
+
+
+- 2. jsp页面中:
+- java部分:
+```java
+<%
+	// 从请求头中获取 locale 信息(语言信息)
+	Locale locale = null;
+
+  // 从请求参数中获取 信息
+	String country = request.getParameter("country");
+
+  // 根据参数进行判断
+	if("cn".equalsIgnoreCase(country)) {
+		locale = Locale.CHINA;
+	} else if("usa".equalsIgnoreCase(country)) {
+		locale = Locale.US;
+	} else {
+		// 按照请求头中获取默认的
+		locale = request.getLocale();
+	}
+
+	// 根据指定的baseName 和 语言对象 获取语言信息 得到语言对象
+	ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
+%>
+```
+
+
+- 页面模板部分:
+```html
+<!-- meta部分 -->
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+
+
+<!-- 携带请求参数 -->
+<a href="i18n.jsp?country=cn">中文</a>|
+<a href="i18n.jsp?country=usa">english</a>
+
+<h1><%=bundle.getString("regist")%></h1>
+<table>
+<form>
+  <tr>
+    <td><%=bundle.getString("username")%></td>
+    <td><input name="username" type="text" /></td>
+  </tr>
+  <tr>
+    <td><%=bundle.getString("password")%></td>
+    <td><input type="password" /></td>
+  </tr>
+  <tr>
+    <td><%=bundle.getString("sex")%></td>
+    <td><input type="radio" /><%=bundle.getString("boy")%><input type="radio" /><%=bundle.getString("girl")%></td>
+  </tr>
+  <tr>
+    <td><%=bundle.getString("email")%></td>
+    <td><input type="text" /></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+    <input type="reset" value="<%=bundle.getString("reset")%>" />&nbsp;&nbsp;
+    <input type="submit" value="<%=bundle.getString("submit")%>" /></td>
+  </tr>
+  </form>
+</table>
+```
+
+
+> 我们使用 JSTL 标签库 替代掉上面的 表达式脚本 代码脚本
+- 要到包 前面有
+
+```html
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<%--1 使用标签设置Locale信息--%>
+	<fmt:setLocale value="${param.locale}" />
+  
+	<%--2 使用标签设置baseName--%>
+	<fmt:setBundle basename="i18n"/>
+
+
+	<a href="i18n_fmt.jsp?locale=zh_CN">中文</a>|
+	<a href="i18n_fmt.jsp?locale=en_US">english</a>
+	<center>
+		<h1><fmt:message key="regist" /></h1>
+		<table>
+		<form>
+			<tr>
+				<td><fmt:message key="username" /></td>
+				<td><input name="username" type="text" /></td>
+			</tr>
+			<tr>
+				<td><fmt:message key="password" /></td>
+				<td><input type="password" /></td>
+			</tr>
+			<tr>
+				<td><fmt:message key="sex" /></td>
+				<td>
+					<input type="radio" /><fmt:message key="boy" />
+					<input type="radio" /><fmt:message key="girl" />
+				</td>
+			</tr>
+			<tr>
+				<td><fmt:message key="email" /></td>
+				<td><input type="text" /></td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center">
+				<input type="reset" value="<fmt:message key="reset" />" />&nbsp;&nbsp;
+				<input type="submit" value="<fmt:message key="submit" />" /></td>
+			</tr>
+			</form>
+		</table>
+		<br /> <br /> <br /> <br />
+	</center>
+</body>
+</html>
+```

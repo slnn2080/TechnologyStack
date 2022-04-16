@@ -104,10 +104,9 @@
 ```
 
 - Cache-Control指定请求和响应遵循的缓存机制。 
-- 设定页面使用的字符集。 
+- 不缓存
 ```html
-<!-- 用来防止别人在框架里调用自己的页面。    -->
-<meta http-equiv="Content-Language" content="zh-cn">
+<meta http-equiv="cache-control" content="no-cache" />
 ```
 
 

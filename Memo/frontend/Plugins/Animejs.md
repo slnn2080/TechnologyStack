@@ -1080,3 +1080,33 @@ anime({
 });
 ```
 
+
+> 示例部分:
+- 页面元素上用的position absolute
+
+```js
+let div2 = document.querySelector(".temp-right")
+    
+let tl = anime.timeline({
+  easing: 'easeInOutQuad',
+})
+
+tl.add({
+  targets: '.temp-left',
+  keyframes: [
+    {translateX: -300},
+    {translateX: 0}
+  ],
+  opacity: ["0.5", "1"],
+  duration: "2000"
+}, 0)
+.add({
+  targets: '.temp-right',
+  keyframes: [
+    {translateX: 300 },
+    {translateX: 0}
+  ],
+  opacity: ["0.5", "1"],
+  duration: "2000"
+}, 0)
+```
