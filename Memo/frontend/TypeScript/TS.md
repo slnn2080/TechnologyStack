@@ -845,7 +845,7 @@ module.exports = {
 
 - 一般我们使用{ } 给一个变量指定类型, 类面指定必须包含有哪些的属性
 - 语法:
-- let b = { name : string | 里面可以指定多个属性名和属性值 }
+- let b: { name : string | 里面可以指定多个属性名和属性值 }
 - 指定变量b的类型是对象, 同时里面必须有name属性, 且类型为string
 <!-- 
   let b: {name : string};

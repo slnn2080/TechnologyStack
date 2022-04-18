@@ -1,5 +1,126 @@
 ### Js技巧
 
+### 获取图片主色调 添加到背景中
+- https://mp.weixin.qq.com/s/fAXiE3cVnbGCOO3-37iWwg
+
+- 首先如何给一个容器设置宽高比呢？
+- 通过padding-top设置对应的百分比值
+- 通过新属性aspect-ratio(safari不支持)
+- 这里，为了兼容性，我用的第一种。设置一个长宽比为2:1的盒子：
+```css
+div{
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* 2:1 ，panding百分比值是相对于盒子的宽度的*/
+    padding-top: 50%;
+}
+
+```
+
+- 再次，如何获取图片的主色呢？我们借助Canvas的ctx.getImageData方法。
+- 分一下几个步骤：
+- 将图片绘制到一个canvas元素上
+- 获取图像所有的rgba像素点
+- 取某个区域颜色的均值，并找出这个区域最接近均值的rgba颜色，作为该区域的主色
+
+```js
+var imgSrc = "XXXXX"
+const imgEle = document.createElement('img')
+const canvas = document.createElement('canvas')
+imgEle.src = imgSrc
+imgEle.onload = () => {
+    var ctx = canvas.getContext("2d");
+    var naturalImgSize = [imgEle.naturalWidth, imgEle.naturalHeight];
+    canvas.width = naturalImgSize[0];
+    canvas.height = naturalImgSize[1];
+    
+    //绘制到canvas
+    ctx.drawImage(imgEle, 0, 0);
+    //获取imageData：rgba像素点
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const leftSectionData = []
+    const rightSectionData = []
+    const oneLineImgDataLen = canvas.width * 4;
+
+    imgData.data.forEach((colorVal, i) => {
+        if (i % onelineImgDataLen <= 0.5 * onelineImgDataLen || i % onelineImgDataLen >= 0.6 * onelineImgDataLen) {
+            const inLeft = i % onelineImgDataLen <= 0.5 * onelineImgDataLen
+            if (i % 4 === 0) {
+                // 获取rgb均值
+                const curAverageRGB = (imgData.data[i] + imgData.data[i + 1] + imgData.data[i + 2]) / 3;
+                let leftOrRightRef = inLeft ? leftSectionData : rightSectionData;
+                //每个数组里存四个值：本颜色值中的r、g、b的均值，以及r、g、b三个值。
+                //均值一方面用于累加计算本区域的整体均值，然后再跟每个均值对比拿到与整体均值最接近的项的索引，再取该数组里的后三个值：rgb，对应着颜色
+                leftOrRightRef[leftOrRightRef.length] = [curAverageRGB, imgData.data[i], imgData.data[i + 1], imgData.data[i + 2]]
+            }
+        }
+    })
+    //generate average rgb
+    const averageOfLeft = Math.round(leftSectionData.reduce((_cur, item) => {
+        return _cur + item[0]
+    }, 0) / leftSectionData.length)
+    const averageOfRight = Math.round(rightSectionData.reduce((_cur, item) => {
+        return _cur + item[0]
+    }, 0) / rightSectionData.length)
+    //find the most near color
+    const findNearestIndex = (averageVal, arrBox) => {
+        let _gapValue = Math.abs(averageVal - arrBox[0])
+        let _nearColorIndex = 0
+        arrBox.forEach((item, index) => {
+            const curGapValue = Math.abs(item - averageVal)
+            if (curGapValue < _gapValue) {
+                _gapValue = curGapValue
+                _nearColorIndex = index
+            }
+        })
+        return _nearColorIndex
+    }
+
+    const leftNearestColor = leftSectionData[findNearestIndex(averageOfLeft, leftSectionData)]
+    const rightNearestColor = rightSectionData[findNearestIndex(averageOfRight, rightSectionData)]
+    console.log(leftNearestColor,rightNearestColor)
+}
+```
+
+- 取到颜色，实现元素的渐变：
+```js
+element.style.backgroundImage = `url("XXXX"),linear-gradient(90deg,rgba(${leftNearestColor[1]},${leftNearestColor[2]},${leftNearestColor[3]},1) 0%,rgba(${rightNearestColor[1]},${rightNearestColor[2]},${rightNearestColor[3]},1) 100%`
+
+```
+
+
+### a=1&b=2&c=3
+- 将上面的键值对组成一个对象
+- 如果有同名的key 就会放到一个数组中
+
+```js
+function parseQueryString(queryStr) {
+    if (!queryStr || !queryStr.length) {
+        return {};
+    }
+    const queryObj = {};
+    const items = queryStr.split('&');
+    items.forEach(item => {
+        const [key, value] = item.split('=');
+        if (queryObj[key]) {
+            if(Array.isArray(queryObj[key])) {
+                queryObj[key].push(value);
+            } else {
+                queryObj[key] = [queryObj[key], value]
+            }
+        } else {
+            queryObj[key] = value;
+        }
+    });
+    return queryObj;
+}
+```
+
+- 这段代码很容易看出来就是做 query string 的 parse 的，会把 'a=1&b=2&c=3' 的字符串 parse 成 { a: 1, b: 2, c: 3 } 返回。如果有同名的 key 的话，就合并到一个数组里。
+
+
+
 ### 填写的数据 跳转页面消失
 - 解决方法:
 - 1. 返回按钮使用window.history.back(-1)
