@@ -766,6 +766,9 @@ WHERE user = '1' or ' and password = '=1 or '1' = '1'
 - 增删改操作: 完成后是不需要有什么返回的 相当于 void
 - 查询操作: 一定是由返回的
 
+---
+
+### 使用 PreparedStatement 向数据库表中 插入数据
 
 > 要点:
 > 1. 关于 sql 语句的要点
@@ -807,7 +810,7 @@ ps.setDate(3, new Date(date.getTime()));
 - 2. 我们存入什么类型的数据 x的位置也对应是什么类型的数据
 
 - ps.setString()
-- ps.setObject()
+> ps.setObject()   存什么都可以 setObject 通用
 - ps.setDate()
 - ps.setArray()
 - ps.setString()
@@ -885,4 +888,227 @@ public void testInsert() {
     }
   }
 }
+```
+
+-----------------
+
+### 封装数据库连接和关闭操作
+- 我们不管说 增加 修改 删除 不管哪个操作 有几件事情是一定要做的
+- 1. 先要获取连接
+- 2. 中间是增删改查的操作
+- 3. 关闭连接
+
+- 我们把 1 3 封装到一个方法当中 抽离到一个包里面
+
+  | - com.sam.utils
+    - JDBCUtils  
+
+- 工具类中都是静态方法
+
+- 需要的包:
+```java
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Properties;
+```
+
+> 获取连接的方法
+- 最后return一个连接对象
+```java
+public static Connection getConnection() throws Exception {
+  // 利用 ClassLoader 获取系统类加载器 这样
+  InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("jdbc.properties");
+
+  Properties properties = new Properties();
+  properties.load(is);
+
+  String user = properties.getProperty("user");
+  String password = properties.getProperty("password");
+  String url = properties.getProperty("url");
+  String driverClass = properties.getProperty("driverClass");
+
+  Class.forName(driverClass);
+  Connection connection = DriverManager.getConnection(url, user, password);
+
+  return connection;
+}
+```
+
+
+> 关闭连接的方法
+- 要点:
+- 1. 参数的定义:
+- Connection connection
+- PreparedStatement ps
+- 参数2可以定义为 Statement
+- 因为PreparedStatement是Statement的子接口 参数我们也可以定义的大一些
+
+- 2. 方法没有返回值
+
+```java
+public void closeResource(Connection connection, PreparedStatement ps) {
+  try {
+    if(ps != null) ps.close();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+  try {
+    if(connection != null) connection.close();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+}
+```
+
+-----------------
+
+### 使用 PreparedStatement 修改数据库表中的数据
+- 操作数据库的5步
+
+```java
+// 1. 获取数据库的连接
+
+// 2. 通过连接对象 获取 preparedstatement对象 预编译sql语句
+
+// 3. 填充占位符
+
+// 4. 执行
+
+// 5. 资源的关闭
+```
+
+- 步骤2中我们提到了 预编译 什么是预编译?
+```java
+String sql = "update customers set name = ? where id = ?";
+
+PreparedStatement ps = connection.prepareStatement(sql);
+```
+- 在我们根据sql生成PrepareStatement实例的时候(也就是得到ps的时候) ps中已经携带了我们要做的事情(sql语句体现的) 这就是预编译
+
+- 跟statement比较起来 statement的实例出生的时候不知道它要做什么 但是 ps 出生的时候就知道它要做什么
+
+
+- 其实我们看看 增删改 的操作中 1 4 5 都是固定的 维度 2 3 需要有变化 等我们做完修改的操作 我们会尝试封装个通用的 增删改 
+
+
+> 修改数据库的操作
+```java
+@Test
+public void testUpdate() throws Exception {
+  // 1. 获取数据库的连接
+  Connection connection = JDBCUtils.getConnection();
+
+  // 2. 通过连接对象 获取 preparedstatement对象 预编译sql语句
+  String sql = "update customers set name = ? where id = ?";
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 3. 填充占位符
+  // 我们填充String name 和 int id也可以用setObject()
+  ps.setObject(1, "莫扎特");
+  ps.setObject(2, 18);
+
+  // 4. 执行
+  ps.execute();
+
+  // 5. 资源的关闭
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+- 加上 try catch 的逻辑
+```java
+@Test
+public void testUpdate() throws Exception {
+  Connection connection = null;
+  PreparedStatement ps = null;
+  try {
+    // 1. 获取数据库的连接
+    connection = JDBCUtils.getConnection();
+
+    // 2. 通过连接对象 获取 preparedstatement对象 预编译sql语句
+    String sql = "update customers set name = ? where id = ?";
+    ps = connection.prepareStatement(sql);
+    // 什么叫预编译sql语句 在我们生成PrepareStatement实例的时候(也就是得到ps的时候) ps中已经携带了我们要做的事情(sql语句体现的)
+
+    // 3. 填充占位符
+    // 我们填充String name 和 int id也可以用setObject()
+    ps.setObject(1, "莫扎特");
+    ps.setObject(2, 18);
+
+    // 4. 执行
+    ps.execute();
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    // 5. 资源的关闭
+    JDBCUtils.closeResource(connection, ps);
+  }
+}
+```
+
+-----------------
+
+### 使用 PreparedStatement 实现通用的增删改操作
+- 上面也说了 只是sql语句和填充占位符的地方不一样
+- 我们把随时可能会变的信息定义为参数
+
+> 要点:
+- 参数:
+- String sql: sql语句
+- Object ...args: 占位符
+- 类型都可以定义为Object
+- 要求: 有几个占位符 我们就传入几个实参 可变形参的个数 要与 sql中占位符的个数是一样的
+
+```java
+// 这里不要忘记要try catch
+public void update(String sql, Object ...args) {
+  Connection connection = JDBCUtils.getConnection();
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 使用 ...args 填充占位符
+  for(int i = 0; i < args.length; i++) {
+    // 小心index从1开始 args数组要从0开始
+    ps.setObject(i + 1, args[i]);
+  }
+
+  ps.execute();
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+
+- 测试1:  OK
+```java
+@Test
+public void testCommonUpdate() {
+  // 删除表中数据
+  String sql = "delete from customers where id = ?";
+
+  update(sql, 3);
+}
+```
+
+
+- 测试2:  报错
+```java
+@Test
+public void testCommonUpdate() {
+  String sql = "update order set order_name = ? where order_id = ?";
+
+  update(sql, "DD", "2");
+}
+```
+
+- 错误信息:
+- java.sql.SQLSyntaxErrorException: *You have an error in your SQL syntax; check the manual that corresponds to your MySQL* server version for the right syntax to use near 'from order set order_name = 'DD' where order_id = '2'' at line 1
+
+
+- 上面的sql语句写的有问题
+- order是表名 order还是关键字 所以记得使用 ``
+```java
+String sql = "update `order` set order_name = ? where order_id = ?";
 ```
