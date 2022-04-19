@@ -1351,7 +1351,7 @@ export default defineComponent({
 interface News {
   title: string,
   desc: string,
-  count: number,
+  count: number | string,
 
   // 可选参数
   content?: string
@@ -1388,5 +1388,166 @@ computed: {
 
 ------
 
-> 组合式api 怎么指定ts
+> 如何在调用方法的时候传值
+```html
+<button @click="setTile('改变后的title')">
+```
 
+```js
+// 定义接口
+interface News {
+  title: string,
+  desc: string,
+  count: number | string,
+
+  // 可选参数
+  content?: string
+}
+
+// 让一份数据实现这个News接口
+let newsData: News = {
+  title: "新闻",
+  desc: "新闻描述",
+  count: 12,
+  content: "新闻内容"
+}
+
+
+// 上面定义类型 下面写配置项
+export default defineComponent({
+  data() {
+    return newsData
+  },
+  methods: {
+
+    // 返回值类型
+    setCount():void {
+      this.count = "123456"
+    },
+
+    // 函数的参数
+    setTitle(title:string):void {
+      this.title = title
+    }
+  },
+
+  // 返回值类型
+  computed: {
+    reverseTile():string {
+      return this.title.split("").reverse().join("")
+    }
+  }
+})
+```
+
+
+**注意:**
+- 上面我们在 setTitle() 方法中 对形参进行了 类型的鉴定 但是我们发现个问题
+
+- 当我们在 html 模板中 传入 123 'abc' 都好用
+- 也就是当我们在 模板中 调用方法 它不会对类型做校验 但是在js部分里面调用方法 才会进行类型的校验
+
+------
+
+> 如何在组合式api中使用ts
+```html
+<!-- 
+  因为我们使用 toRefs 将对象中的属性单独拿出来了
+ -->
+<div>
+    username={{username}} <br>
+    <button @click="setUsername">click
+</div>
+```
+```js
+export default defineComponent({
+  // 所有的组合式api都放在 setup 中 
+  setup() {
+
+    let user = reactive({
+      username: "张三",
+      age: 20,
+      setUserName() {
+        this.username = "李四"
+      }
+    })
+
+
+    return {
+      // 使用toRefs返回 响应式 数据
+      ...toRefs(user)
+    }
+  }
+})
+```
+
+- 上面还没有使用ts 如果我们想使用ts应该怎么操作呢？
+- 步骤:
+- 1. 在 export default 的外侧 定义一个接口
+- 2. 让reactive的对象实现接口
+
+```js
+interface User {
+  username: string,
+  age: number | string,
+  setUsername(username: string): void,
+  getUsername(): string
+}
+
+export default defineComponent({
+  setup() {
+    // 方式1: 
+    let user: User = reactive({
+      username: "张三",
+      age: 20,
+      setUserName(username: string) {
+        this.username = name
+      }
+    })
+
+
+    // 方式2:
+    // reactive底层使用了泛型 继承了 T 所以我们可以通过泛型指定类型 User类对参数进行了约束
+    let user = reactive<User>({
+      username: "张三",
+      age: 20,
+      setUserName(username: string) {
+        this.username = name
+      }
+    })
+
+
+    // 方式3:
+    // 使用 as
+    let user = reactive({
+      username: "张三",
+      age: 20,
+      setUserName(username: string) {
+        this.username = name
+      } 
+    }) as User
+
+
+
+    // ref的ts -- 只有这一种方式
+    // ref底层是也继承了泛型 T 所以我们也可以传入泛型
+    let count = ref<number | string>(20)
+
+
+
+    // 计算属性的ts
+    // 在形参()的后面指定
+    let reverseUserName = computed(():stirng => {
+      return user.username.split("").reverse().join("")
+    })
+
+
+
+    return {
+      ...toRefs(user),
+      count,
+      reverseUserName
+    }
+  }
+})
+```

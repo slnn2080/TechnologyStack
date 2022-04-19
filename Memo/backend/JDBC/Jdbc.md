@@ -778,6 +778,8 @@ WHERE user = '1' or ' and password = '=1 or '1' = '1'
 String sql = "insert into customers(name,email,birth)values(?,?,?)";
 ```
 
+- 占位符的使用位置 就是 过滤条件那
+
 
 > 2. 获取 PreparedStatement接口 的实例对象
 > 连接对象.prepareStatement(String sql)
@@ -1112,3 +1114,1058 @@ public void testCommonUpdate() {
 ```java
 String sql = "update `order` set order_name = ? where order_id = ?";
 ```
+
+-----------------
+
+### 使用 PreparedStatement 实现 查询操作
+- 整体来说套路是一样的 但是查询的话 还要处理查询到的结果
+- 因为查询结果会有结果集 结果集在java中万事万物都是对象 也就是说我们查到的结果集 要拿一个java类的对象来充当 我们要操作java对象
+
+- jdbc中对于结果集 有 ResultSet 我们要知道怎么处理 ResultSet
+
+> 针对于 具体的表(Customers) 的查询操作
+
+  | - com.sam.preparedstatement
+    - CustomersForQuery
+
+- 前面的步骤都一样
+- 1. 获取连接
+- 2. 预编译 sql 创建 PreparedStatement
+
+- 在增删改的时候我们调用的都是 ps.execute() 但是因为我们这里是查询 我们要对查询回来的结果集做处理 所以要调用
+
+> ps.executeQuery();
+- 执行sql 并返回结果集
+
+- 返回值:
+- ResultSet resultSet
+- resultSet也是资源 也需要关闭
+
+```java
+ResultSet resultSet = ps.executeQuery();
+```
+
+- 遍历数据:
+- java基础部分的时候 我们讲过怎么使用 遍历器来遍历集合
+```java
+while(iterator.hasNext()) {
+  // iterator.hasNext()判断当前集合中是否还有元素 有元素就进入循环体 没有就不要进去了
+  System.out.println(iterator.next());
+}
+```
+
+- 回顾下:
+- 指针会在集合首位元素的前面 hasNext() 会判断下面有没有元素 有元素 我们在调用 next() 获取元素
+
+- 结果集也有一个指针 它也指向第一条数据的上面 我们也是调用某一个方法 判断下面还有没有数据 有的话接着操作 没有的话就退出了 这个方法就是next() 
+
+> resultSet.next()
+- 作用:
+- 1. 判断结果集的下一条是否有记录
+- 2. 指针下移(如果是true 说明下面有元素 指针自动下移, false指针不下移直接结束)
+
+- 返回值:
+- boolean 
+<!-- 
+  - 有点类似 hasNext() 但是还不同与 hasNext() 
+  - hasNext()的作用就一个 判断下面还有没有元素 而指针下移的事儿 是iterater.next() 做的 
+ -->
+
+
+> resultSet.getInt(从1开始的索引)
+> resultSet.getString(从1开始的索引)
+> resultSet.getObject(从1开始的索引) - 通用
+- 每个字段是什么类型 我们就对应的调用 getXxx()
+- 索引的位置就要看你读取的是哪个字段的数据
+<!-- 
+    id    name    email   birth
+    1       2       3       4
+ -->
+
+```java
+// 处理结果集
+if(resultSet.next()) {
+  // 进来说明下一条是有记录的 然后我们就要获取当前这条数据的各个字段值
+
+  int id = resultSet.getInt(1);
+
+  String name = resultSet.getString(2);
+
+  String email = resultSet.getString(3);
+  // 是sql下的Date
+
+  Date birth = resultSet.getDate(4);
+}
+```
+
+
+> Java 与 SQL 对应数据类型的转换表
+
+    java类型            sql类型
+    boolean             BIT
+    byte                TINYINT
+    short               SMALLINT
+    int                 INTEGER
+    long                BIGINT
+    String              CHAR VARCHER LONGVARCHAR
+    byte array          BINARY VAR BINARY
+    java.sql.Date       DATE
+    java.sql.Time       TIME
+    java.sql.Timestamp  TIMESTAMP
+
+<!-- 
+  Blob类型 在java中 没有对应的类型
+  比如有个视频4个g java不能拿个属性去对接4个g吧
+
+  可以是个file
+ -->
+
+
+> 处理结果集中每个字段的数据
+- 上面我们从结果集中拿到了 每个字段的数据 那我们把这些数据保存到哪里？
+
+- 方式1: (不推荐)
+- 保存到数组中
+
+- 方式2: 
+- 将每一个属性封装到java对象中
+- 一个java类对应数据库中的一个表 
+- 表中有什么字段 类中就对应有什么属性
+- 表中是什么类型 类中的属性就对应什么类型
+<!-- 
+  ORM映射:
+    一个数据表 对应 一个java类
+    表中的一条记录 对应 java类中的一个对象
+    表中的一个字段 对应 java类中的一个属性
+ -->
+
+    customers表 -> Customer类
+
+ | - com.sam.bean
+   - Customer
+
+- JavaBean类中public的属性是private
+```java
+package com.sam.bean;
+
+import java.sql.Date;
+
+public class Customer {
+   private int id;
+   private String name;
+   private String email;
+   private Date birth;    // 这里和数据库的Date类型对接 也是 java.sql.Date
+
+  public Customer() {
+  }
+
+  public Customer(int id, String name, String email, Date birth) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+    this.birth = birth;
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public Date getBirth() {
+    return birth;
+  }
+
+  public void setBirth(Date birth) {
+    this.birth = birth;
+  }
+
+  @Override
+  public String toString() {
+    return "Customer{" +
+        "id=" + id +
+        ", name='" + name + '\'' +
+        ", email='" + email + '\'' +
+        ", birth=" + birth +
+        '}';
+  }
+}
+
+```
+
+
+> 使用 PreparedStatement 查询数据库 代码部分
+```java
+package com.sam.preparedstatement;
+
+import com.sam.bean.Customer;
+import com.sam.utils.JDBCUtils;
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+// 针对 Customers 表的查询操作
+public class CustomersForQuery {
+
+  @Test
+  public void testQuery1() throws Exception {
+    Connection connection = JDBCUtils.getConnection();
+
+    String sql = "select id, name, email, birth from customers where id = ?";
+    PreparedStatement ps = connection.prepareStatement(sql);
+
+    // 补充 占位符
+    ps.setObject(1, 1);
+
+    // 增删改的操作的时候 这里我们调用的是 ps.execute() 我们这里要执行后还要返回一个结果集 所以我们要调用
+    // 调用ps对象的 执行并返回结果集的方法
+    ResultSet resultSet = ps.executeQuery();
+
+    // 处理结果集
+    if(resultSet.next()) {
+      // 进来说明下一条是有记录的 然后我们就要获取当前这条数据的各个字段值
+      int id = resultSet.getInt(1);
+      String name = resultSet.getString(2);
+      String email = resultSet.getString(3);
+      // 是sql下的Date
+      Date birth = resultSet.getDate(4);
+
+      // 上面拿到了每个字段的数据 我们怎么处理这些数据
+      // 方式1: 保存到数组中
+      // Object[] data = new Object[] {id, name, email, birth};
+
+      // 方式2: 保存到对象中(封装到类的对象中)
+      Customer customer = new Customer(id, name, email, birth);
+      System.out.println(customer);
+    }
+
+    // 关闭资源
+    JDBCUtils.closeResource(connection, ps, resultSet);
+  }
+}
+```
+
+- 改成 try catch 的形式
+```java
+@Test
+public void testQuery1() {
+  Connection connection = null;
+  PreparedStatement ps = null;
+  ResultSet resultSet = null;
+  try {
+    connection = JDBCUtils.getConnection();
+
+    String sql = "select id, name, email, birth from customers where id = ?";
+    ps = connection.prepareStatement(sql);
+
+    // 补充 占位符
+    ps.setObject(1, 1);
+
+    // 增删改的操作的时候 这里我们调用的是 ps.execute() 我们这里要执行后还要返回一个结果集 所以我们要调用
+    // 调用ps对象的 执行并返回结果集的方法
+    resultSet = ps.executeQuery();
+
+    // 处理结果集
+    if(resultSet.next()) {
+      // 进来说明下一条是有记录的 然后我们就要获取当前这条数据的各个字段值
+      int id = resultSet.getInt(1);
+      String name = resultSet.getString(2);
+      String email = resultSet.getString(3);
+      // 是sql下的Date
+      Date birth = resultSet.getDate(4);
+
+      // 上面拿到了每个字段的数据 我们怎么处理这些数据
+      // 方式1: 保存到数组中
+      // Object[] data = new Object[] {id, name, email, birth};
+
+      // 方式2: 保存到对象中(封装到类的对象中)
+      Customer customer = new Customer(id, name, email, birth);
+      System.out.println(customer);
+    }
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    // 关闭资源
+    JDBCUtils.closeResource(connection, ps, resultSet);
+  }
+}
+```
+
+-----------------
+
+### 封装 某一张表的 通用的 查询操作
+- 我们在查询一张表的时候 每次查询的字段多少可能不一样
+<!-- select ? from -->
+
+- 上面的字段不一样 也会影响到 我们通过 resultSet 对象 去取字段的数据 也不一样
+
+- 写成通用的也就是将这些变的东西 写成通用的
+
+- 首先我们想想 哪部分应该提取为参数部分
+- sql:
+- 因为查几个字段不确定 有的情况查2个 有的情况查3个
+
+- args:
+- 用于补充占位符 我们在sql中写了几个 ? 就要传递几个实参 该实参都会在 args数组中
+
+```java
+public Customer queryForCustomers(String sql, Object ...args) throws Exception {
+  
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+
+  // 传入sql参数 进行预编译
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 补充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i + 1, args[i]);
+  }
+
+  // 获取结果集
+  ResultSet rs = ps.executeQuery();
+
+  ...
+
+```
+
+- ok 现在我们根据sql得到了结果集 接下来我们就要 通过调用 rs.getObject() 方法 将结果集中的每一个列(字段)的值 拿出来封装到java的对象中
+
+- 那我们考虑下 我们需要什么信息
+> 问题1. 我们要调用 rs.getObject() 几次?
+<!-- 
+  调用几次是由 select 几个字段 form 决定的
+  这几个字段决定了我们结果集有几列 结果集有几列就意味着我们要调用几次 rs.getObject() 方法
+
+  那怎么获取结果集的列数？ 
+  获取结果集的列数的方法被封装到结果集的元数据当中了
+ -->
+
+> rs.getMetaData();
+- 获取 结果集 的元数据
+- 用来修饰结果集的数据 叫做元数据
+<!-- 
+  结果集如果看成 td 里面的具体数据
+  那么元数据 相当于 theah 表头啊 列数啊 这些附加的信息
+ -->
+
+- 返回值
+- ResultSetMetaData rsmd
+
+
+> rsmd.getColumnCount()
+- 获取 结果集 的*总列数*
+
+- 返回值
+- int
+
+
+> rsmd.getColumnName(int column)
+- 获取 结果集中 指定列数的 *列名*
+
+> rsmd.getColumnLabel(int column)
+- 获取 结果集中 指定列数的 *别名*
+- *当没有给表指定别名的时候 检索结果就是列名 所以这个方法通用*
+
+- 返回值
+- String
+
+- ok 知道了上面的这些 我们写下逻辑
+```java
+public Customer queryForCustomers(String sql, Object ...args) throws Exception {
+  
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+
+  // 传入sql参数 进行预编译
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 补充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i + 1, args[i]);
+  }
+
+  // 获取结果集
+  ResultSet rs = ps.executeQuery();
+
+
+  // 获取结果集的元数据
+  ResultSetMetaData rsmd = rs.getMetaData();
+
+  // 获取结果集中的列数 用于遍历使用
+  int columnCountcount = rsmd.getColumnCount();
+
+  // 判断结果集中有数据
+  if(rs.next()) {
+    // 判断有数据后 我们创建 customer 对象 用于接收查询到的结果到 对象中
+
+    Customer customer = new Customer();
+
+    // 根据列数决定调用几次 rs.getObject()
+    for(int i=0; i<columnCountcount; i++) {
+      // 获取每个字段的值
+      Object columnValue = rs.getObject(i + 1); 
+
+      // 获取每个字段的列名(也就是属性名)
+      String columnName = rsmd.getColumnName(i + 1);
+
+      ... 
+    }
+  }
+```
+
+
+> 问题2: 我们现在也拿到字段名(属性名) 也知道属性值了 现在就要添加到对象中
+
+- 通过反射 给customer对象指定的columnName属性 赋值为columnValue
+
+- 下面的代码添加到 ... 的部分
+```java
+// 获取运行时类的指定属性
+Field field = Customer.class.getDeclaredField(columnName);
+field.setAccessible(true);
+
+// 将这个属性名的值设置为
+field.set(customer, columnValue);
+```
+
+
+> 完整代码
+```java
+public Customer queryForCustomers(String sql, Object ...args) throws Exception {
+  
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+
+  // 传入sql参数 进行预编译
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 补充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i + 1, args[i]);
+  }
+
+  // 获取结果集
+  ResultSet rs = ps.executeQuery();
+
+
+  // 获取结果集的元数据
+  ResultSetMetaData rsmd = rs.getMetaData();
+
+  // 获取结果集中的列数 用于遍历使用
+  int columnCountcount = rsmd.getColumnCount();
+
+  // 判断结果集中有数据 使用if意味着我们查询结果只有一条数据
+  if(rs.next()) {
+    // 判断有数据后 我们创建 customer 对象 用于接收查询到的结果到 对象中
+
+    Customer customer = new Customer();
+
+    // 根据列数决定调用几次 rs.getObject()
+    for(int i=0; i<columnCountcount; i++) {
+      // 获取每个字段的值
+      Object columnValue = rs.getObject(i + 1); 
+
+      // 获取每个字段的列名(也就是属性名)
+      String columnName = rsmd.getColumnName(i + 1);
+
+      // 通过反射 给customer对象指定的columnName属性 赋值为columnValue
+      // 获取运行时类的指定属性
+      Field field = Customer.class.getDeclaredField(columnName);
+
+      field.setAccessible(true);
+
+      // 将这个属性名的值设置为
+      field.set(customer, columnValue);
+    }
+    return customer;
+  }
+
+  // 关闭资源
+  JDBCUtils.closeResource(connection, ps, rs);
+  return null;
+}
+```
+
+- 加入 try catch 的代码
+```java
+public Customer queryForCustomers(String sql, Object ...args) {
+  Connection connection = null;
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  try {
+    connection = JDBCUtils.getConnection();
+    ps = connection.prepareStatement(sql);
+    // 填充占位符
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i + 1, args[i]);
+    }
+
+    rs = ps.executeQuery();
+
+
+    // 获取结果集的元数据 修饰结果集的数据 都在 rsmd 中
+    ResultSetMetaData rsmd = rs.getMetaData();
+
+    // 通过 rsmd 获取结果集中的列数
+    int columnCountcount = rsmd.getColumnCount();
+
+    if(rs.next()) {
+
+      // 写到if里面 当有结果的时候 我们再造对象
+      Customer customer = new Customer();
+
+      // 处理结果集一行数据中的每一个列
+      for(int i=0; i<columnCountcount; i++) {
+        // 获取每个字段的值
+        Object columnValue = rs.getObject(i + 1);
+
+        // 获取 每个列的列名 也在结果集的元数据中
+        String columnName = rsmd.getColumnName(i + 1);
+        // 通过反射 给customer对象指定的columnName属性 赋值为columnValue
+        // 获取运行时类的指定属性
+        Field field = Customer.class.getDeclaredField(columnName);
+        field.setAccessible(true);
+
+        // 将这个属性名的值设置为
+        field.set(customer, columnValue);
+      }
+
+      return customer;
+    }
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(connection, ps, rs);
+  }
+
+  return null;
+}
+```
+
+- 测试:
+```java
+@Test
+public void testQueryForCustomers() {
+  // 字段的顺序 这里无所谓 因为上面我们是利用反射 set value的
+  String sql = "select id, name, birth, email from customers where id = ?";
+  Customer customer = queryForCustomers(sql, 13);
+  System.out.println(customer);
+}
+```
+
+-----------------
+
+### 针对 order 表 通用的 查询操作
+
+- 看看 表中的字段 的类型 好用来定义JavaBean中属性的类型
+```sql
+CREATE TABLE `order` (
+  `order_id` int NOT NULL AUTO_INCREMENT,
+  `order_name` varchar(20) DEFAULT NULL,
+  `order_date` date DEFAULT NULL,
+  PRIMARY KEY (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=gb2312
+```
+
+> 要点:
+- 1. 表中的字段名是 order_id 
+- java类中属性的定义方式:
+  - 和表中的字段名 保持一致: order_id 不推荐
+
+  - java中定义为驼峰 orderId
+  - 1. 指定sql语句的时候 我们给字段起别名 *别名要保证和java类中的属性名一致都是驼峰*
+  ```sql
+    String sql = "select order_id orderId, order_name orderName, order_date orderDate from `order` where order_id = ?";
+  ```
+
+
+  - 2. rsmd.getColumnLabel(int column)
+  - 使用该方法 替换 下面的 getColumnName()
+
+
+```java
+package com.sam.preparedstatement;
+
+import com.sam.bean.Customer;
+import com.sam.bean.Order;
+import com.sam.utils.JDBCUtils;
+import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+
+public class OrdersForQuery {
+
+@Test
+public void testQueryForOrder() {
+  String sql = "select order_id, order_name, order_date from `order` where order_id = ?";
+  Order order = queryForOrder(sql, 1);
+  System.out.println(order);
+}
+
+public Order queryForOrder(String sql, Object ...args) {
+
+  Connection connection = null;
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  try {
+    connection = JDBCUtils.getConnection();
+    ps = connection.prepareStatement(sql);
+
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i + 1, args[i]);
+    }
+
+    rs = ps.executeQuery();
+    ResultSetMetaData rsmd = rs.getMetaData();
+    int columnCount = rsmd.getColumnCount();
+
+    // 一条数据(记录)的时候用 if
+    if(rs.next()) {
+      Order order = new Order();
+
+      for(int i=0; i<columnCount; i++) {
+        Object columnValue = rs.getObject(i + 1);
+
+
+        // String columnName = rsmd.getColumnName(i + 1);
+
+        // 以后就使用该方法来获取列名 或者 列的别名
+        // 优点 在java类中 可以将属性设置为 驼峰
+        String columnName = rsmd.getColumnLabel(i + 1);
+
+
+        Field field = Order.class.getDeclaredField(columnName);
+        field.setAccessible(true);
+        field.set(order, columnValue);
+      }
+
+      return order;
+    }
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(connection, ps, rs);
+  }
+  return null;
+}
+}
+
+```
+
+-----------------
+
+### 使用 PreparedStatement 实现 针对不同表的通用查询操作
+
+  | - com.sam.preparedstatement
+    - PreparedStatementQueryTest
+
+> 通过 PreparedStatement 查询数据库 获取 一条记录(一个对象)
+
+> 问题1: 
+- 因为是通用的表的查询操作 那么我们方法的返回值类型是什么？
+- 比如:
+- 我们查询 order表 返回的是 Order类型
+- 我们查询 user表  返回的是 User类型
+
+
+- 我们先看看 指定表的通用查询操作 看看 哪些部分可以改成通用的代码
+
+```java
+// **问题1**: 方法的返回值
+public Object getInstance(String sql, Object ...args) throws Exception {
+
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+  // 预编译sql
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 填充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i+1, args[i]);
+  }
+
+  // 执行并获取结果集
+  ResultSet rs = ps.executeQuery();
+
+  // 获取列数
+  ResultSetMetaData rsmd = rs.getMetaData();
+  int columnCount = rsmd.getColumnCount();
+
+  // 一条数据
+  if(rs.next()) {
+
+    // **问题2**: 我们创建的不知道是哪个类的对象
+    Order order = new Order();
+
+    for(int i=0; i<columnCount; i++) {
+      // 获取列名
+      String columnLabel = rsmd.getColumnLabel(i + 1);
+
+      // 获取列值
+      Object columnValue = rs.getObject(i + 1);
+
+      // 通过反射 将查询到的结果添加到对象的属性里
+      Field field = Order.class.getDeclaredField(columnLabel);
+      field.setAccessible(true);
+      field.set(order, columnValue);
+    }
+    return order;
+  }
+
+  JDBCUtils.closeResource(connection, ps, rs);
+  return null;
+}
+```
+
+- 获取连接
+- 预编译sql
+- 填充占位符
+- 执行并获取结果集
+- 获取列数
+- 一条数据 if(rs.next())
+- 这些都是通用的
+
+> 问题1: 方法的返回值
+- 那我们定义方法的返回值类型应该是什么？ 
+- 修改为 泛型方法 为什么结合问题2再看
+```java
+public <T> T getInstance(Class<T> clazz, String sql, Object ...args) throws Exception { }
+```
+
+- 传参的时候: Order.class
+
+
+> 问题2: 
+- 我们创建的不知道是哪个类的对象
+- 或者换句话说 这个位置 我们造的对象 就决定了 整个方法的返回值的类型
+
+- 所以这个部分我们不能直接 new Order 不能在编译的期间确定 所以这个部分 我们要替换成反射
+
+- 那反射的话 我们要告诉程序 造哪个类的对象 哪个类的对象也可以由参数传递进来
+
+  Class clazz
+
+- 并且 Class 都带泛型 所以我们在定义形参的时候 可以带上泛型 
+
+  Class<T> clazz
+
+- 这样问题1也能解决 返回值就是 T 类型的
+- 也就是说 我们整个方法 就是泛型方法
+
+```java
+// 之前:
+if(rs.next()) {
+  // **问题2**: 我们创建的不知道是哪个类的对象
+  Order order = new Order();
+}
+
+
+// 之后:
+// 加形参 Class clazz
+public <T> T getInstance(Class<T> clazz, String sql, Object ...args) throws Exception {
+  
+  ...
+
+  if(rs.next()) {
+    // 返回值类型就是 T 类型
+    T t = clazz.newInstance();
+
+    for(int i=0; i<columnCount; i++) {
+
+      String columnLabel = rsmd.getColumnLabel(i + 1);
+      Object columnValue = rs.getObject(i + 1);
+
+      // 这里是clazz 因为clazz相当于Order 而t相当于order对象 不一样的
+      Field field = clazz.getDeclaredField(columnLabel);
+      field.setAccessible(true);
+      field.set(t, columnValue);
+
+    }
+
+    return t;
+}
+``` 
+
+- 也就是说 我们上面解决完 问题1 问题2 就ok了
+- 测试 + 完整代码:
+```java
+package com.sam.preparedstatement;
+
+import com.sam.bean.Customer;
+import com.sam.bean.Order;
+import com.sam.utils.JDBCUtils;
+import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+
+public class PreparedStatementQueryTest {
+
+@Test
+public void testGetInstance() throws Exception {
+  String sql = "select id, name, email, birth from customers where id = ?";
+  Customer customer = getInstance(Customer.class, sql, 1);
+  System.out.println(customer);
+}
+
+public <T> T getInstance(Class<T> clazz, String sql, Object ...args) throws Exception {
+
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+  // 预编译sql
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 填充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i+1, args[i]);
+  }
+
+  // 执行并获取结果集
+  ResultSet rs = ps.executeQuery();
+
+  // 获取列数
+  ResultSetMetaData rsmd = rs.getMetaData();
+  int columnCount = rsmd.getColumnCount();
+
+  // 一条数据
+  if(rs.next()) {
+
+    // **问题**: 我们创建的不知道是哪个类的对象
+    // Order order = new Order();
+    T t = clazz.newInstance();
+
+    for(int i=0; i<columnCount; i++) {
+      String columnLabel = rsmd.getColumnLabel(i + 1);
+      Object columnValue = rs.getObject(i + 1);
+
+      // 这里是clazz 因为clazz相当于Order 而t相当于order对象 不一样的
+      Field field = clazz.getDeclaredField(columnLabel);
+      field.setAccessible(true);
+      field.set(t, columnValue);
+    }
+    return t;
+  }
+
+  JDBCUtils.closeResource(connection, ps, rs);
+  return null;
+}
+}
+
+```
+
+--- 
+
+> 通过 PreparedStatement 查询数据库 获取 多条记录(多个对象)
+- 多个对象的话 我们就应该返回一个集合
+
+- 要点:
+- 1. 上面一系列的方法中 我们使用的都是 if(rs.next()) 这是如果有数据(一条数据)的情况下 我们执行 { 逻辑 }
+
+- 现在 我们要使用 while 来进行多条数据的逻辑
+
+- if(rs.next())   改成:
+- while(rs.next()) 
+- 当没有数据的时候 就是false
+
+- 2. 我们在 while循环的外面 创建一个 list 结合
+
+- 3. 查询如果没有查到 的情况
+  - 1. 抛异常了
+  - 2. 可能是没查到数据 list.size() == 0
+
+```java
+public <T> List<T> getForList(Class<T> clazz, String sql, Object ...args) throws Exception {
+
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+  // 预编译sql
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 填充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i+1, args[i]);
+  }
+
+  // 执行并获取结果集
+  ResultSet rs = ps.executeQuery();
+
+  // 获取列数
+  ResultSetMetaData rsmd = rs.getMetaData();
+  int columnCount = rsmd.getColumnCount();
+
+  // 创建一个承装对象的结合
+  ArrayList<T> list = new ArrayList<>();
+
+
+  // 多条记录
+  while(rs.next()) {
+
+    // 循环中 每次都创建一个t对象
+    T t = clazz.newInstance();
+
+    // 通过 for 将t对象的所有的属性都附上值了
+    for(int i=0; i<columnCount; i++) {
+      String columnLabel = rsmd.getColumnLabel(i + 1);
+      Object columnValue = rs.getObject(i + 1);
+
+      Field field = clazz.getDeclaredField(columnLabel);
+      field.setAccessible(true);
+      field.set(t, columnValue);
+    }
+
+    // 把对象添加到集合中
+    list.add(t);
+  }
+
+  JDBCUtils.closeResource(connection, ps, rs);
+
+  // while循环结束后
+  return list;
+}
+```
+
+- 加上 try catch 的代码 + 测试
+```java
+@Test
+public void testGetForList() {
+  String sql = "select id, name, email, birth from customers where id < ?";
+  List<Customer> list = getForList(Customer.class, sql, 12);
+
+  // lamda表达式
+  list.forEach(System.out :: println);
+}
+
+public <T> List<T> getForList(Class<T> clazz, String sql, Object ...args) {
+  Connection connection = null;
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  ArrayList<T> list = null;
+
+  try {
+    // 获取连接
+    connection = JDBCUtils.getConnection();
+    // 预编译sql
+    ps = connection.prepareStatement(sql);
+
+    // 填充占位符
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i+1, args[i]);
+    }
+
+    // 执行并获取结果集
+    rs = ps.executeQuery();
+
+    // 获取列数
+    ResultSetMetaData rsmd = rs.getMetaData();
+    int columnCount = rsmd.getColumnCount();
+
+    // 创建一个承装对象的结合
+    list = new ArrayList<>();
+
+
+    // 多条记录
+    while(rs.next()) {
+      // 循环中 每次都创建一个t对象
+      T t = clazz.newInstance();
+
+      // 通过 for 将t对象的所有的属性都附上值了
+      for(int i=0; i<columnCount; i++) {
+        String columnLabel = rsmd.getColumnLabel(i + 1);
+        Object columnValue = rs.getObject(i + 1);
+
+        Field field = clazz.getDeclaredField(columnLabel);
+        field.setAccessible(true);
+        field.set(t, columnValue);
+      }
+
+      // 把对象添加到集合中
+      list.add(t);
+    }
+
+    // while循环结束后
+    return list;
+
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(connection, ps, rs);
+  }
+
+  return null;
+}
+```
+
+-----------------
+
+### 使用 PreparedStatement 解决 sql注入的问题
+- 我们在上面封装sql的时候 都会使用占位符 而不是将sql语句写死
+```java
+// 有占位符
+String sql = "select id, name, email, birth from customers where id < ?";
+
+
+// 写死
+String sql = "select id, name, email, birth from customers where id < 12";
+```
+
+- 占位符的使用 就是PreparedStatement才有的
+- Statement没有 正因为Statement没有才会有sql注入的问题
+
+- 那为什么 PreparedStatement 这么写不会有sql注入的问题呢？
+
+> 原理:
+- 核心点就是占位符起到了很大的作用
+- PreparedStatement是预编译 就是说 当我们上面定义完sql
+- 并把sql丢到里面 生成ps的时候
+
+  String sql = "select id, name, email, birth from customers where id < ?";
+
+  
+  ps = connection.prepareStatement(sql);
+
+
+- ps里面的sql就执行过了 预编译了 它会把 ? 的地方空不来 相当于挖了一个坑 但是sql语句的其它结构都是确定的 规定的 是 & 就是 & 的关系 是 | 就是 | 的关系 不会因为我们拼串传入恶意代码 就能改变这样的关系
+
+- 所以 PreparedStatement 比 Statement 更加的安全
+
+
+> 其它优点
+- 1. 可以操作Blob类型的数据 比如 图片 视频 
+- 因为 是一个 ? 占位符 所以我们可以拿一个流的方式去填充
+<!-- 
+  要是普通的sql语句 想往里面写一个流不现实
+ -->
+
+- 2. 可以实现更高效的批量插入
+- Statement因为sql是写死的 没有? 所以我们要写1万条sql 并且 都有校验功能 所以也需要校验1万次
+
+- PreparedStatement 当预编译的时候 就有校验的功能 因为结构都是固定的 只是 ？ 的部分不一样 当预编译的时候 它已经校验完了 只校验了一遍 剩下的我们就是往里丢数据就可以了 所以更加的高效
