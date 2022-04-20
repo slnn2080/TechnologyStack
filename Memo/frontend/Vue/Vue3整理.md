@@ -1120,6 +1120,53 @@ setup() {
 
 ----------------
 
+### Vue3中 路由的使用
+- https://next.router.vuejs.org/
+- 根据用户输入的地址 动态的挂载组件 
+
+> 安装
+- npm i vue-router@next --save
+
+
+> 配置
+```js
+import Vue from 'vue'
+import {
+  createRouter, 
+  createWebHashHistory
+} from 'vue-router'
+
+Vue.use(VueRouter)
+
+// 准备组件
+import Test from "./components/Test.vue"
+
+const routes = [
+  {
+    path: "/",
+    component: Test
+  }
+]
+
+const router = createRouter({
+  mode: createWebHashHistory(),
+  routes
+})
+
+export default router
+
+
+// 挂载router
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from "./router/index.js"
+
+createApp(App).use(router).mount('#app')
+
+```
+
+----------------
+
 ### 路由的配置
 > 路由的目录结构
 - 3.x 引入路由的方式和 2.x 一样，如果你也是在创建 Vue 项目的时候选择了带上路由，那么会自动帮你在 src 文件夹下创建如下的目录结构。如果创建时没有选择，那么也可以按照这个结构自己创建对应的文件。

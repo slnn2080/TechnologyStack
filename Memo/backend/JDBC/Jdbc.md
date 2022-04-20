@@ -831,6 +831,26 @@ ps.setDate(3, new Date(date.getTime()));
 > 4. ps.execute();
 - 执行操作
 
+- 返回值: boolean
+- 如果是查询操作 有返回结果 该方法会return true
+- 如果是增删改操作 没有返回结果 该方法会return false
+
+
+> 扩展: ps.executeUpdate()
+- 我们这个部分封装的 增删改 操作没有返回值
+- 这样就会有一个问题 就是我们不知道操作成功没有 比如我们想如果操作成功返回true 如果操作失败返回false
+
+- 返回值:
+- int
+- 影响的行数:
+- 增删改操作后影响的行数(比如修改了多少条 删除了多少条)
+
+- 0:
+- 增删改操作失败了
+
+
+
+
 > 5. 最后要关闭资源 使用 try catch
 - 我们要关闭 ps connection
 
@@ -1082,6 +1102,39 @@ public void update(String sql, Object ...args) {
 }
 ```
 
+> 通用的增删改操作 -- 带有返回值的写法:
+- 我们可以 让 update() 方法具有返回值
+- 这样我们就可以根据返回值 来判断操作是否成功
+
+- 要点:
+- 1. update()方法的返回值类型 定义为 int
+- 2. 使用 ps.executeUpdate() 代替 ps.execute()
+
+```java
+public int update(String sql, Object ...args) {
+  Connection connection = null;
+  PreparedStatement ps = null;
+  try {
+    connection = JDBCUtils.getConnection();
+    ps = connection.prepareStatement(sql);
+
+    for(int i = 0; i < args.length; i++) {
+      ps.setObject(i + 1, args[i]);
+    }
+
+    // ps.execute(); 换成下面的这个方法
+    return ps.executeUpdate();
+
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(connection, ps);
+  }
+  
+  return 0;
+}
+```
+
 
 - 测试1:  OK
 ```java
@@ -1181,6 +1234,10 @@ while(iterator.hasNext()) {
     id    name    email   birth
     1       2       3       4
  -->
+
+- 参数:
+- 1. 可以是索引
+- 2. 可以是字段的别名(列名) -- 这个比较好一些
 
 ```java
 // 处理结果集
@@ -2169,3 +2226,688 @@ String sql = "select id, name, email, birth from customers where id < 12";
 - Statement因为sql是写死的 没有? 所以我们要写1万条sql 并且 都有校验功能 所以也需要校验1万次
 
 - PreparedStatement 当预编译的时候 就有校验的功能 因为结构都是固定的 只是 ？ 的部分不一样 当预编译的时候 它已经校验完了 只校验了一遍 剩下的我们就是往里丢数据就可以了 所以更加的高效
+
+-----------------
+
+### JDBC小结
+
+> 两种思想
+- 1. 面向接口编程的思想
+<!-- 
+  对于java程序员来讲 我们只需要面向jdbc这套接口编程就可以了 我们代码里面不会出现第三方的api
+
+  第三方的api 比如 mysql的驱动 都是在 .properties文件中配置的
+
+  我们读取这个配置文件的 第三方的数据库驱动的位置 创建的连接
+
+  我们编写代码的时候 返回的都是 接口类型
+
+  Connection conn = JDBCUtils.getConnection()
+
+  但是我们运行代码的时候返回的是Connection接口的具体实现类对象
+
+  我们调用方法也是 接口去调用方法 conn.
+  PreparedStatement ps = conn.prepareStatement(sql)
+
+  但是在执行的时候我们拿的mysql具体的实现类对象的重写的prepareStatement()
+
+  所以返回的ps也是 在mysql当中实现了PreparedStatement接口的实现类的对象
+
+  下面一系列的都是接口在调方法 也执行的时候 都是具体的实现类的对象重写后的方法
+
+  这样就是面向接口编程 而切具有很好的移植性
+ -->
+
+- 2. ORM的思想
+  - 一个数据表 对应 一个java类
+  - 表中的一条记录对应java类的一个对象
+  - 表中的一个字段对应java类的一个属性
+<!-- 
+  sql是需要结合列名和表的属性名来写 注意起别名
+ -->
+
+
+> 两种技术
+- 1. jdbc结果集的元数据 ResultSetMetaData
+  - 获取列数: getColumnCount()
+  - 获取列的别名: getColumnLabel()
+
+- 2. 通过反射 创建指定类的对象 获取指定的属性并赋值
+
+-----------------
+
+### 练习1:
+- 从控制台向数据库的表 customers 中插入一条数据 
+
+> 要点:
+- 1. 这里可以根据 update() 的返回值 来判断是否添加数据成功
+- 我们用到了 ps.executeUpdate() 方法
+
+
+```java
+package com.sam.exer;
+
+import com.sam.utils.JDBCUtils;
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.Scanner;
+
+// 课后练习1:
+public class Exer1 {
+
+  public static void main(String[] args) {
+
+    // 如果是main方法 就要创建当前类的对象来调用方法
+    Exer1 exer1 = new Exer1();
+
+    Scanner scanner = new Scanner(System.in);
+    System.out.print("请输入用户名: ");
+    String name = scanner.next();
+
+    System.out.print("请输入邮箱: ");
+    String email = scanner.next();
+
+    System.out.print("请输入生日: ");
+    // 生日也是字符串类型 但是有隐式的转换 1992-09-08 注意格式
+    String birth = scanner.next();
+
+    String sql = "insert into customers(name, email, birth) values(?,?,?)";
+    int insertCount = exer1.update(sql, name, email, birth);
+
+    if(insertCount > 0) {
+      System.out.println("添加成功");
+    } else {
+      System.out.println("添加失败");
+    }
+  }
+
+
+  @Test
+  public void testInsert() {
+    // 使用测试方法 测逻辑 控制台不能使用 scanner 
+  }
+
+
+  public int update(String sql, Object ...args) {
+    Connection connection = null;
+    PreparedStatement ps = null;
+    try {
+      connection = JDBCUtils.getConnection();
+      ps = connection.prepareStatement(sql);
+
+      for(int i = 0; i < args.length; i++) {
+        ps.setObject(i + 1, args[i]);
+      }
+
+      // ps.execute();
+      return ps.executeUpdate();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, ps);
+    }
+
+    return 0;
+  }
+}
+
+```
+
+-----------------
+
+### 练习2:
+> 1. 在 examstudent 表中 插入一个新的student信息
+```java
+public static void main(String[] args) {
+
+    Exer2 exer2 = new Exer2();
+
+    Scanner scanner = new Scanner(System.in);
+    System.out.print("4级 / 6级: ");
+    int type = scanner.nextInt();
+
+    System.out.print("身份证号: ");
+    String IDCard = scanner.next();
+
+    System.out.print("准考证号: ");
+    String examCard = scanner.next();
+
+    System.out.print("学生姓名: ");
+    String studentName = scanner.next();
+
+    System.out.print("所在城市: ");
+    String location = scanner.next();
+
+    System.out.print("考试成绩: ");
+    int grade = scanner.nextInt();
+
+    String sql = "insert into examstudent(type, IDCard, examCard, studentName, location, grade) values(?,?,?,?,?,?)";
+    int insertCount = exer2.update(sql, type, IDCard, examCard, studentName, location, grade);
+
+    if(insertCount > 0) {
+      System.out.println("添加成功");
+    } else {
+      System.out.println("添加失败");
+    }
+  }
+```
+
+
+> 2. 创建一个java程序 输入身份证号 或 准考证号 可以查询到学生的基本信息
+
+- 思路:
+- 我们查询出来的是一个学生的信息 我们可以封装为一个学生的对象 JavaBean
+ | - javabean
+   - Student
+
+
+> 要点:
+- 1. flowId可以不设置set() 意思就是不建议修改 流水号
+- 2. 其实就是根据用户输入的号码去查询数据库
+- 3. 我们查询到的是一一条记录 所以可以封装为一个 javabean对象
+
+
+- Student的javabean
+```java
+package com.sam.bean;
+
+public class Student {
+  private int flowId;   // 流水号
+  private int type;     // 考试类型
+  private String IDCard;    // 身份证号
+  private String examCard;  // 准考证
+  private String name;      // 姓名
+  private String location;  // 城市
+  private int grade;        // 成绩
+
+  public Student() {
+  }
+
+  public Student(int flowId, int type, String IDCard, String examCard, String name, String location, int grade) {
+    this.flowId = flowId;
+    this.type = type;
+    this.IDCard = IDCard;
+    this.examCard = examCard;
+    this.name = name;
+    this.location = location;
+    this.grade = grade;
+  }
+
+  public int getFlowId() {
+    return flowId;
+  }
+
+  public void setFlowId(int flowId) {
+    this.flowId = flowId;
+  }
+
+  public int getType() {
+    return type;
+  }
+
+  public void setType(int type) {
+    this.type = type;
+  }
+
+  public String getIDCard() {
+    return IDCard;
+  }
+
+  public void setIDCard(String IDCard) {
+    this.IDCard = IDCard;
+  }
+
+  public String getExamCard() {
+    return examCard;
+  }
+
+  public void setExamCard(String examCard) {
+    this.examCard = examCard;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getLocation() {
+    return location;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  public int getGrade() {
+    return grade;
+  }
+
+  public void setGrade(int grade) {
+    this.grade = grade;
+  }
+
+  @Override
+  public String toString() {
+    return "Student{" +
+        "flowId=" + flowId +
+        ", type=" + type +
+        ", IDCard='" + IDCard + '\'' +
+        ", examCard='" + examCard + '\'' +
+        ", name='" + name + '\'' +
+        ", location='" + location + '\'' +
+        ", grade=" + grade +
+        '}';
+  }
+}
+
+```
+
+
+- 逻辑部分:
+```java
+// 我们查询出来的是一个学生的信息 我们可以封装为一个学生的对象
+public static void main(String[] args) throws Exception {
+
+  System.out.println("请选择你要输入的类型: ");
+  System.out.println("a. 准考证号 ");
+  System.out.println("b. 身份证号 ");
+
+  Exer2 exer2 = new Exer2();
+  Scanner scanner = new Scanner(System.in);
+  String selection = scanner.next();
+
+  if("a".equalsIgnoreCase(selection)) {
+    System.out.println("请输入准考证号: ");
+
+    // 拿到准考证号 查询数据库
+    String examCard = scanner.next();
+
+    // mysql中不区分大小写 表中的字段名可以不区分大小写 但是别名一定要和javabean中属性名保持一致
+    String sql = "select FlowID flowId, Type type, IDCard, ExamCard examCard, StudentName name, Location location, Grade grade from examstudent where examCard = ?";
+
+    Student student = exer2.getInstance(Student.class, sql, examCard);
+
+    System.out.println(student);
+
+    // 这里还可以根据 查询到的结果 是不是 null 做判断输出
+
+  } else if("b".equalsIgnoreCase(selection)) {
+
+  } else {
+    System.out.println("您的输入有误, 请重新进入程序");
+  }
+}
+
+
+public <T> T getInstance(Class<T> clazz, String sql, Object ...args) throws Exception {
+
+  // 获取连接
+  Connection connection = JDBCUtils.getConnection();
+  // 预编译sql
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  // 填充占位符
+  for(int i=0; i<args.length; i++) {
+    ps.setObject(i+1, args[i]);
+  }
+
+  // 执行并获取结果集
+  ResultSet rs = ps.executeQuery();
+
+  // 获取列数
+  ResultSetMetaData rsmd = rs.getMetaData();
+  int columnCount = rsmd.getColumnCount();
+
+  // 一条数据
+  if(rs.next()) {
+
+    // **问题**: 我们创建的不知道是哪个类的对象
+    // Order order = new Order();
+    T t = clazz.newInstance();
+
+    for(int i=0; i<columnCount; i++) {
+      String columnLabel = rsmd.getColumnLabel(i + 1);
+      Object columnValue = rs.getObject(i + 1);
+
+      // 这里是clazz 因为clazz相当于Order 而t相当于order对象 不一样的
+      Field field = clazz.getDeclaredField(columnLabel);
+      field.setAccessible(true);
+      field.set(t, columnValue);
+    }
+    return t;
+  }
+
+  JDBCUtils.closeResource(connection, ps, rs);
+  return null;
+}
+```
+
+ 
+> 3. 完成学生信息的删除功能
+- 方式1:
+- 我们先利用准考证号查到这个学生 
+- 然后根据查询结果做判断 如果查到这个学生 那么再次与数据库交互 做删除的逻辑
+
+- 但这样我们相当于与数据库进行了两次交互
+
+```java
+public static void main(String[] args) throws Exception {
+  Exer2 exer2 = new Exer2();
+
+  System.out.println("请输入学生的考号: ");
+  Scanner scanner = new Scanner(System.in);
+  String examCard = scanner.next();
+
+  // 查询指定准考证号的学生
+  String sql = "select FlowID flowId, Type type, IDCard, ExamCard examCard, StudentName name, Location location, Grade grade from examstudent where examCard = ?";
+  Student student = exer2.getInstance(Student.class, sql, examCard);
+
+  if(student != null) {
+    String sql2 = "delete from examstudent where examCard = ?";
+    int i = exer2.update(sql2, examCard);
+    if(i > 0) System.out.println("删除成功");
+  } else {
+    System.out.println("查无此人");
+  }
+}
+```
+
+- 方式2:
+- 我们可以直接就调用 update() 方法 有这个人就删除 没有就默默的结束 没有必要还要先去查询 
+
+```java
+public static void main(String[] args) throws Exception {
+  Exer2 exer2 = new Exer2();
+
+  System.out.println("请输入学生的考号: ");
+  Scanner scanner = new Scanner(System.in);
+  String examCard = scanner.next();
+
+  String sql = "delete from examstudent where examCard = ?";
+
+  int i = exer2.update(sql, examCard);
+  if(i > 0) {
+    System.out.println("删除成功");
+  } else {
+    System.out.println("查无此人");
+  }
+}
+```
+
+-----------------
+
+### 向数据表中插入Blob类型的数据
+- 我们上面说过 PreparedStatement 可以操作 Blob 的数据
+
+- 在 test数据库中的 customers 表中有一个字段 叫做photo 该字段的类型是 mediumblob
+
+> mysql blob 类型
+- mysql中 blob是一个二进制大型对象 是一个可以存储大量数据的容器 它能容纳不同大小的数据
+
+- 插入blob类型的数据必须使用 PreparedStatement 因为Blob类型的数据 无法使用字符串拼接写的
+
+- mysql的4中blob类型(除了在存储的最大信息量上不同外 没有其它的不同)
+
+    类型            大小(字节)
+
+    TinyBlob        最大 255
+
+    Blob            最大 65k
+
+    MediumBlob      最大 16m
+
+    LongBlob        最大 4g
+
+- 实际使用中根据需要存入的数据大小定义不同的blob类型
+
+
+- **注意：**
+- *如果存储的文件过大 数据库的性能会下降*
+
+- 如果在指定了相关的blob类型以后 还报错: xxx too large
+
+- 那么在mysql的安装目录下 找my.ini文件加上如下的配置参数
+
+  max_allowed_packet=16M
+
+- 同时注意：
+- 修改了my.ini文件之后，需要重新启动mysql服务。
+
+
+> 使用 PreparedStatement 操作 Blob类型 的数据
+- 也就是向数据库中插入一条的数据 这条数据是包含Blob字段的
+- 或者修改 别人的图片不好看 我们重新上传一张
+
+
+
+> 向customers中 插入 Blob类型的字段
+
+> 要点:
+> ps.setBlob(int index, InputStream is)
+- 参数2:
+- InputStream 我们对文件的内容都是以流的方式传输的
+<!-- 
+  也就是本地有一个 文件类型 的 我们会创建一个流 以流的形式来传输到数据库
+ -->
+```java
+// Test下 相对路径应该是module
+FileInputStream is = new FileInputStream(new File("pic.jpg"));
+
+ps.setBlob(4, is);
+```
+
+
+```java
+public void testInsert() throws Exception {
+  
+  Connection connection = JDBCUtils.getConnection();
+  String sql = "insert into customers(name, email, birth, photo) values(?,?,?,?)";
+  PreparedStatement ps = connection.prepareStatement(sql);
+  ps.setObject(1, "琳琳");
+  ps.setObject(2, "linlin@gmail.com");
+  ps.setObject(3, "1986-10-22");
+
+  // 这个字段是一个blob 我们就不能简单的填入一个变量了
+  FileInputStream is = new FileInputStream(new File("pic.jpg"));
+  ps.setBlob(4, is);
+
+  ps.execute();
+
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+
+> 查询 customers中 Blob类型的字段
+- 前端的都差不多
+- 1. 获取连接
+- 2. 写sql 填充占位符 得到结果集
+
+- 得到结果集后 我们要知道 photo字段是二进制的大对象 不可能封装到 javabean中
+
+- 也就是说我们要把 能封装到javabean中的 封装为对象 blob字段单独处理 比如以流的形式 保存到本地之类的
+
+> 要点:
+- 1. 在得到结果集 ResultSet 对象 rs 后
+- 我们可以通过下面的方式获取字段对应的数据 里面不仅仅能添写index 还可以添写 字段名或列的别名
+
+    rs.getObject(index)
+
+    rs.getObject(columnName)
+
+
+- 2. 我们获取图片字段的使用 使用
+
+    rs.getBlob("photo")
+
+- 该方法返回的就是blob对象
+
+> blob对象.getBinaryStream()
+- 返回的是一个inputStream流 可以将图片以流的形式读到内存中
+
+- 返回值:
+- InputStream
+
+
+> 代码部分:
+- 这个部分没用try catch
+```java
+public void testQuery() throws Exception {
+  Connection connection = JDBCUtils.getConnection();
+  String sql = "select id, name, email, birth, photo from customers where id = ?";
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  ps.setObject(1, 21);
+  ResultSet rs = ps.executeQuery();
+
+  if(rs.next()) {
+    // 将前4个属性(name, email...)封装到Customer对象中 最后面的一个数据(photo) 以流的方式从数据库读出来
+
+    int id = rs.getInt(1);
+    String name = rs.getString(2);
+    String email = rs.getString(3);
+    Date birth = rs.getDate(4);
+    // 还可以写列名
+    // Date birth = rs.getDate("birth");
+
+    Customer customer = new Customer(id, name, email, birth);
+    System.out.println(customer);
+
+    // photo字段 它是一个大的数据 需要以流的方式来获取
+    Blob photo = rs.getBlob("photo");
+
+    // 将这个字段下载下来 以文件的方式保存为本地图片
+    InputStream is = photo.getBinaryStream();
+
+    FileOutputStream fos = new FileOutputStream("dog.jpg");
+
+    byte[] buf = new byte[1024];
+    int len;
+    while ((len = is.read(buf)) != -1) {
+      fos.write(buf, 0, len);
+    }
+
+    is.close();
+    fos.close();
+  }
+
+  JDBCUtils.closeResource(connection, ps, rs);
+}
+```
+
+
+> 特殊说明:
+- 我们上面的案例中 photo字段 声明的是 mediumblob (16m)
+
+- 但是我们发向当我们把一个 1m 的图片上传到数据库都会报错
+<!-- 
+  packet for query is too large 
+ -->  
+
+- 虽然我们的类型是mediumblob 16m 但是还有一个*packet*的限制 
+- packet默认是1m 所以我们要修改下配置文件 这样大于1m的数据我们才能添加成功
+
+- *max_allowed_packet=16M*
+- 上面这就 放到配置文件的最后一行就可以
+
+- https://blog.csdn.net/u011146511/article/details/107381451
+
+-----------------
+
+### 批量插入数据的操作
+- 我们上面说过 preparedstatement 还可以实现更高效的*批量操作*
+
+- 操作来说无外呼就是增删改查 其中
+- update 和 delete 天然就具有 批量操作的效果
+
+- 我们这里说说 insert 我们以前在学数据库的时候一种方式是一条条的添加 这样的话可能有些慢 接下来看看如何批量添加
+
+- 我们这里说的批量操作 主要指的是批量插入
+
+- 需求:
+- 我们在数据库中造一个表 并要插入2万条数据 看看花多少时间
+
+```sql
+create table goods(
+	id int PRIMARY KEY auto_increment,
+	`name` varchar(25)
+);
+
+select count(*) from goods;
+```
+
+> 方式1: 使用 Statement 
+- 一个废弃的方式 写写看看 涨涨见识
+```java
+Connection conn = JDBCUtils.getConnection();
+Statement st = conn.createStatement();
+
+for(int i=1; i<=20000; i++) {
+  // sql放在里面了 每插入一次都要生成一次sql
+  String sql = "insert into goods(name) values('name_" + i + "')";
+  st.execute(sql)
+}
+```
+
+
+> 方式2: 使用 preparedstatement 
+```java
+@Test
+public void testInsert1() throws Exception {
+  Connection connection = JDBCUtils.getConnection();
+
+  // sql放在外面了 大家统一用的都是一个模块 只是占位符不同而已 从内存的角度来说 sql 就一份
+
+  // 另外这毕竟是一个sql语句 sql语句在数据库执行的时候会进行校验 这个sql会被缓存下来 我们只需要填充占位符的部分就可以了
+  String sql = "insert into goods(name)values(?)";
+
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  for(int i=1; i<=20000; i++) {
+    // 只有一个占位符 所以是1
+    ps.setObject(1, "name_" + i);
+
+    // 每插入一条数据执行一次 20000次
+    ps.execute();
+  }
+
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+
+- **PreparedStatement 能最大可能提高性能：**
+  - DBServer会对**预编译**语句提供性能优化。因为预编译语句有可能被重复调用，所以语句在被DBServer的编译器编译后的执行代码被缓存下来，那么下次调用时只要是相同的预编译语句就不需要编译，只要将参数直接传入编译过的语句执行代码中就会得到执行。
+
+  - 在statement语句中,即使是相同操作但因为数据内容不一样,所以整个语句本身不能匹配,没有缓存语句的意义.事实是没有数据库会对普通语句编译后的执行代码缓存。这样每执行一次都要对传入的语句编译一次。
+
+  - (语法检查，语义检查，翻译成二进制命令，缓存)
+
+- PreparedStatement 可以防止 SQL 注入 
+
+-----------------
+
+### 优化: preparedstatement 的批量插入操作
+```java
+public void testInsert1() throws Exception {
+  Connection connection = JDBCUtils.getConnection();
+  String sql = "insert into goods(name)values(?)";
+
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  for(int i=1; i<=20000; i++) {
+    ps.setObject(1, "name_" + i);
+    ps.execute();
+  }
+
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+- 上面我们尝试使用preparedstatement进行了 2万条数据的插入 但是也不是很快 接下来我们看看怎么进行优化操作

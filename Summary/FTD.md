@@ -1195,6 +1195,36 @@ import Print from "vue-print-nb"
     }
     let url = "https://img1.baidu.com/it/u=2648389307,756086504&fm=26&fmt=auto"
     download(url)
+
+
+
+
+
+    let url = "https://scontent.cdninstagram.com/v/t50.2886-16/272191393_2442582522551257_2916888858297340776_n.mp4?_nc_ht=instagram.fkix2-2.fna.fbcdn.net&_nc_cat=101&_nc_ohc=4HZwga3zYfgAX91Z2qM&edm=AABBvjUBAAAA&ccb=7-4&oe=6261DA3E&oh=00_AT9f7zzwZIsD_VoDmSYvcZVHTNuFVYP60-CciyIxG7O_gA&_nc_sid=83d603"
+    let btn = document.querySelector("button")
+
+    btn.addEventListener("click", download)
+
+    function download() {
+
+      const xhr = new XMLHttpRequest()
+      xhr.open("get", url)
+      xhr.responseType = "blob"
+
+      xhr.onload = function() {
+        console.log("xhr.response", xhr.response)
+
+        let source = URL.createObjectURL(xhr.response)
+        console.log("source", source)
+        let a = document.createElement("a")
+        a.href = source
+        a.download = "testName"
+        a.innerHTML = "测试"
+        a.click()
+      }
+
+      xhr.send()
+    }
 -->
 
 
