@@ -7,6 +7,12 @@
 
 - 但是实际我们后端要求的 'Content-Type': 'application/x-www-form-urlencoded' 为多见
 
+
+### 跨域原理:
+- 待整理
+- https://blog.csdn.net/liuerchong/article/details/107593141
+
+
 ### 阻塞的解释 或者 异步的优点
 - 比如页面上又5个按钮 我们将一个按钮设置为请求数据 并且是同步的 那么 第一个按钮 数据没有回来之前 其它按钮 或者说整个页面是卡死的状态
 

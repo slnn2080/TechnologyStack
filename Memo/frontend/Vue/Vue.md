@@ -2958,6 +2958,32 @@ computed: {
 
 --------------------------
 
+### v-for 与 v-if
+- 同时使用 v-if 和 v-for 是不推荐的，因为这样二者的优先级不明显。请转阅风格指南查看更多细节。
+- 当它们同时存在于一个节点上时，v-if 比 v-for 的优先级更高。这意味着 v-if 的条件将无法访问到 v-for 作用域内定义的变量别名：
+
+```html
+<!--
+ 这会抛出一个错误，因为属性 todo 此时
+ 没有在该实例上定义
+-->
+<li v-for="todo in todos" v-if="!todo.isComplete">
+  {{ todo.name }}
+</li>
+```
+
+- 在外新包装一层 <template> 再在其上使用 v-for 可以解决这个问题 (这也更加明显易读)：
+```html
+<template v-for="todo in todos">
+  <li v-if="!todo.isComplete">
+    {{ todo.name }}
+  </li>
+</template>
+```
+
+
+--------------------------
+
 ### 列表过滤(模糊搜索)
 - 案例：
 - 需求：
@@ -6584,7 +6610,7 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
 - 要点：
 - 因为要让所有的组件都能够看到 所以 我们将事件总线添加到 Vue的原型对象上
 
-- 方式1：
+> 方式1：
 - 在 beforeCreate() 生命周期函数中 定义事件总线
 - 理由： 因为这个生命周期中 模板还没有解析，数据 和 结构还没挂载到页面上 我们提前准备好 事件总线
 
@@ -6603,7 +6629,7 @@ num1 = cnum1 = dnum1 界面上显示的是dnum1
  -->
 
 
-- 方式2：
+> 方式2：
 - 我们在Vue实例的外侧 在Vue的原型对象上添加事件总线 让它等于 new Vue()
 <!-- 
   Vue.prototype.$bus = new Vue()
@@ -7686,7 +7712,7 @@ module.exports = {
 
 **注意:**
 - 1. 前端发请求的时候 一定要http开头
-- 2. 我们要往前端所在的服务器端口号发请求8080
+- 2. 我们要往前端所在的服务器端口号发请求 8080
 - 3. 主机地址:端口号 + /api + /接口
 ```js
 axios.get("http://127.0.0.1:8080/api/word")
@@ -8223,7 +8249,7 @@ axios.get("http://127.0.0.1:8080/api/word")
 - 我们通过 :is 属性 绑定对应的组件
 
 - 比如完成上述的 点击tabs按钮展现不同的组件 可以这样
-<!-- 
+```js 
   // 1. 引入组件
   import Home from "./components/Child/Home.vue"
   import Login from "./components/Child/Login.vue"
@@ -8258,7 +8284,7 @@ axios.get("http://127.0.0.1:8080/api/word")
       this.index = (++this.index) % 3
     }
   },
- -->  
+``` 
 
 --------------------------
 
