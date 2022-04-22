@@ -2881,16 +2881,6 @@ public void testInsert1() throws Exception {
 }
 ```
 
-
-- **PreparedStatement 能最大可能提高性能：**
-  - DBServer会对**预编译**语句提供性能优化。因为预编译语句有可能被重复调用，所以语句在被DBServer的编译器编译后的执行代码被缓存下来，那么下次调用时只要是相同的预编译语句就不需要编译，只要将参数直接传入编译过的语句执行代码中就会得到执行。
-
-  - 在statement语句中,即使是相同操作但因为数据内容不一样,所以整个语句本身不能匹配,没有缓存语句的意义.事实是没有数据库会对普通语句编译后的执行代码缓存。这样每执行一次都要对传入的语句编译一次。
-
-  - (语法检查，语义检查，翻译成二进制命令，缓存)
-
-- PreparedStatement 可以防止 SQL 注入 
-
 -----------------
 
 ### 优化: preparedstatement 的批量插入操作
@@ -2911,3 +2901,1275 @@ public void testInsert1() throws Exception {
 ```
 
 - 上面我们尝试使用preparedstatement进行了 2万条数据的插入 但是也不是很快 接下来我们看看怎么进行优化操作
+
+- 优化:
+- 我们在io流的时候 一开始我们使用的是
+  read()
+
+> 思考
+- 后来我们使用 带参数的 相当于一次我们可以读一波数据 减少跟磁盘的io
+  read(byte[])
+
+- 我们再来看看上面代码的逻辑
+- 每次循环 ps.execute(); 我们都跟数据库交互一次 相当于跟数据库io了20000次 所以整个逻辑执行完一共是花了80秒
+
+```java
+for(int i=1; i<=20000; i++) {
+  // 填充占位符
+  ps.setObject(1, "name_" + i);
+  ps.execute();
+}
+```
+
+- 那能不能不要每次填充完占位符就执行 攒一波执行一次 这也是我们要提升效率的一个方面
+
+
+**注意: 批处理**
+- 使用 batch() 但是默认mysql是不支持batch的(批处理) 我们需要同一个参数 让mysql开启批处理的支持
+
+> mysql8.0默认支持
+> 参数: 
+- ?rewriteBatchedStatements=true 
+- &rewriteBatchedStatements=true 
+- 写在配置文件url的后面
+
+```sql
+user=root
+password=qwer6666
+
+-- 接在这个的后面
+url=jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC
+
+driverClass=com.mysql.cj.jdbc.Driver
+```
+
+> ps.addBatch()
+- "攒" sql
+
+> ps.executeBatch()
+- 执行 攒够 的sql
+
+> ps.clearBatch()
+- 执行完毕后 要清空batch
+
+
+> 优化1: 
+- 思路: 
+- 利用上面的3个方法 来减少与数据库的交互次数
+
+```java
+@Test
+public void testInsert2() throws Exception {
+  Connection connection = JDBCUtils.getConnection();
+  String sql = "insert into goods(name)values(?)";
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  for(int i=1; i<=20000; i++) {
+    ps.setObject(1, "name_" + i);
+
+    // 当我们填充完占位符后不要马上执行
+    // ps.execute();
+
+    // 1. "攒" sql
+    ps.addBatch();
+
+    // 攒到什么时候呢？ 攒够500 每隔500次执行一遍
+    if(i % 500 == 0) {
+      // 2. 执行 攒够 的sql
+      ps.executeBatch();
+
+      // 3. 执行完毕后 要清空batch
+      ps.clearBatch();
+    }
+  }
+
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+
+- 在上面的代码上继续优化: *终极方案*
+
+
+> 优化2:
+- 思考:
+- Connection connection = JDBCUtils.getConnection();
+
+- 上面这句相当于获取了数据库的连接
+
+- 当我们调用
+  - ps.executeBatch();
+  - 相当于我们把很多的sql语句 都执行insert了
+
+- 我们在说数据库的时候 在演示 truncate table 的时候 truncate是自动的数据提交 所以在我们回滚的时候它就失效了
+
+- 我们在演示 delete from 的时候 我们说 delete from 是可以实现数据库回滚的 但是前提我们要做一件事
+
+- set autocommit = false
+
+- 因为默认情况下dml的增删改操作 autocommit = true 的 言外之意我们每次进行一次 dml 操作 它就自己提交了一次 我们加上 set autocommit = false 就使得 dml操作后 就不提交了
+
+- 我们再看上面的代码 每到500个的时候 我们insert了一次 这时候默认的 都提交数据了 每提交一次就需要把它写死到数据库中 这个写入的过程也是需要花费时间的
+
+```java
+for(int i=1; i<=20000; i++) {
+ps.setObject(1, "name_" + i);
+
+ps.addBatch();
+
+if(i % 500 == 0) {
+  ps.executeBatch();
+  ps.clearBatch();
+}
+```
+
+> 解决方法:
+- 我们在获取连接后 先不要提交 当我们把2万条数据都传完之后 再提交 
+
+- 思路:
+- 减少 提交(commit) 的次数
+
+- 1. 在获取连接后 先设置 不允许自动提交
+- connection.setAutoCommit(false);
+
+- 2. 跟数据库交互完毕后
+- connection.commit();
+
+```java
+@Test
+public void testInsert3() throws Exception {
+  Connection connection = JDBCUtils.getConnection();
+
+
+  // 设置不允许自动提交数据
+  connection.setAutoCommit(false);
+
+
+  String sql = "insert into goods(name)values(?)";
+  PreparedStatement ps = connection.prepareStatement(sql);
+
+  for(int i=1; i<=20000; i++) {
+    ps.setObject(1, "name_" + i);
+
+    // 1. "攒" sql
+    ps.addBatch();
+
+    // 每隔一波 执行一次
+    if(i % 500 == 0) {
+      // 2. 执行 攒够 的sql
+      ps.executeBatch();
+
+      // 3. 执行完毕后 要清空batch
+      ps.clearBatch();
+    }
+  }
+
+
+  // 统一提交所有数据(2万条)
+  connection.commit();
+
+
+  JDBCUtils.closeResource(connection, ps);
+}
+```
+
+-----------------
+
+### PreparedStatement vs Statement
+
+- 代码的可读性和可维护性。
+
+- **PreparedStatement 能最大可能提高性能：**
+  - DBServer会对**预编译**语句提供性能优化。因为预编译语句有可能被重复调用，所以<u>语句在被DBServer的编译器编译后的执行代码被缓存下来，那么下次调用时只要是相同的预编译语句就不需要编译，只要将参数直接传入编译过的语句执行代码中就会得到执行。</u>
+  - 在statement语句中,即使是相同操作但因为数据内容不一样,所以整个语句本身不能匹配,没有缓存语句的意义.事实是没有数据库会对普通语句编译后的执行代码缓存。这样<u>每执行一次都要对传入的语句编译一次。</u>
+  - (语法检查，语义检查，翻译成二进制命令，缓存)
+
+- PreparedStatement 可以防止 SQL 注入 
+
+
+> Statement操作数据表存在弊端：
+
+  - **问题一：存在拼串操作，繁琐**
+  - **问题二：存在SQL注入问题**
+
+- SQL 注入是利用某些系统没有对用户输入的数据进行充分的检查，而在用户输入数据中注入非法的 SQL 语句段或命令(如：SELECT user, password FROM user_table WHERE user='a' OR 1 = ' AND password = ' OR '1' = '1') ，从而利用系统的 SQL 引擎完成恶意行为的做法。
+
+- 对于 Java 而言，要防范 SQL 注入，只要用 PreparedStatement(从Statement扩展而来) 取代 Statement 就可以了。
+
+-----------------
+
+### 什么时候 try catch 什么时候 throws
+- 情况:
+- 我们在整个的操作中先后要执行好几个方法 每一个方法中可能都会出现一些异常 建议这几个方法中的异常都throws
+
+<!-- 
+    method1
+    ------
+    |    |   - throws
+    ------
+
+
+    method2
+    ------
+    |    |   - throws    3个方法统一 t - c
+    ------
+
+
+    method3
+    ------
+    |    |   - throws
+    ------
+ -->
+
+- 这样能保证其中的一个方法出现异常后 我们可以直接到 catch这 后面的两个方法就不执行了
+
+- 因为这3个方法都是递进操作的 前一个出问题了 后面本身也不应该执行的
+
+- 所以我们就不要在这几个方法中try catch 要是我们使用 try catch的话 异常被我们catch住了 就没有办法通知外面了
+
+- 我们的JDBCUtils.getConnect()也是这个逻辑 该方法里面选择throws 然后在测试方式里面 统一使用try catch来操作
+
+-----------------
+
+### 数据库的事务
+
+  | - com.sam.transaction
+    - TransactionTest
+
+- 我们先来观察个问题
+- test数据库下的user_table表:
+
+  user    password    balance
+
+  AA      123456      1000
+  BB      654321      1000
+  CC      abcd        2000
+  DD      abcde       3000
+
+- 其中 AA 和 BB 的balance各是1000 现在我们要做一个操作 AA -> BB 转账100
+<!-- 
+  这里涉及到两个Update操作
+  AA -> update  1000-100
+  BB -> update  1000+100
+ -->
+
+- 这里我们说 AA的update操作 和 BB的update操作 要作为整体出现 要么它们都执行 要么就都别执行 不能分开
+<!-- 
+  AA把钱扣了 BB还没有收到
+ -->
+
+\\ 这就是事务的问题
+
+> 代码演示:
+```java
+@Test
+public void testUpdate() {
+  String sqlAA = "update user_table set balance = balance - 100 where user = ?";
+  update(sqlAA, "AA");
+
+  // 模拟网络异常
+  System.out.println(10 / 0);
+
+  String sqlBB = "update user_table set balance = balance + 100 where user = ?";
+  update(sqlBB, "BB");
+
+  System.out.println("转账成功");
+}
+```
+
+- 上面就是转账的逻辑 但是我们要保证两个update操作要么都执行 要么都不执行 这就是事务 以及 事务的处理原则
+
+- 上面我们模拟了下网络异常:
+- AA执行了update操作 -100 变成了 900
+- 然后碰到了异常 后续的程序终止
+- BB还是1000 没增
+
+- 这时候正常我们应该让 AA update 操作回滚一下 保证AA的钱还能再回来
+
+
+> 数据库事务介绍
+- 事务：
+- *一组逻辑操作单元*, 使数据从一种状态变换到另一种状态。
+<!-- 
+  一组逻辑操作单元:
+    - 一个或多个dml操作 就是增删改的操作
+    - 比如我们上面的例子中的操作 就构成了一个事务
+
+  使数据从一种状态变换到另一种状态
+    - AA 1000 -> 900
+    - BB 1000 -> 1100
+ -->
+
+
+> 事务处理的原则
+- 保证所有事务都作为一个工作单元来执行，即使出现了故障，都不能改变这种执行方式。当在一个事务中执行多个操作时
+
+- 要么所有的事务都**被提交(commit)**，那么这些修改就永久地保存下来；
+
+- 要么数据库管理系统将放弃所作的所有修改，整个事务**回滚(rollback)**到最初状态。
+
+- **一个事务中的DML操作要么都执行 要么都不执行**
+
+
+- 结合上面说的 我们看看上面的代码 怎么进行事务的处理
+```java
+@Test
+public void testUpdate() {
+  String sqlAA = "update user_table set balance = balance - 100 where user = ?";
+  update(sqlAA, "AA");
+  
+  // 模拟网络异常 导致转账在这失败
+  System.out.println(10 / 0);
+
+  String sqlBB = "update user_table set balance = balance + 100 where user = ?";
+  update(sqlBB, "BB");
+
+  System.out.println("转账成功");
+}
+```
+
+- 上面的代码 想要进行事务的处理有困难
+- 我们在说数据库的时候也说过 回滚也是回滚到最近的一次commit之后
+
+- 现在要想 在出现异常后 回滚到 下面语句之前
+  - update(sqlAA, "AA");
+
+- 那么我们就要保证update(sqlAA, "AA")操作之后不要提交
+<!-- 
+  因为数据一旦提交就可回滚
+
+  操作1 del
+      --- commit
+  操作2 del
+  操作3 del
+      --- rollback
+
+  现在我们要进行回滚 只能回到 操作2的上面
+  也就是操作 2 3 能够复原 但是操作1 不能复原了
+
+  --- 
+
+  结合上面的示例代码 我们要保证
+  update(sqlAA, "AA")
+      --- 在这里不能 commit
+  update(sqlBB, "BB")
+ -->
+
+
+- 既然数据一旦提交 就不能回滚了 那哪些操作会导致数据的自动提交？
+
+> 1. DDL操作: 
+  - 一旦执行 都会自动提交(设置 set autocommit 也没有用)
+
+
+> 2. DML操作: 
+  - 默认情况下 一旦执行 就会自动提交
+  - set autocommit = false
+  - 取消DML操作的自动提交
+
+
+> 3. 默认关闭连接的时 会自动提交数据
+- 比如我们上面做了n多的操作 一直没有提交 但当我们关闭连接的时候 上面的操作都会提交
+
+
+- 也就是说 我们要保证回滚成功上面的3条都不能做
+- 1. 我们上面的事务逻辑中没有涉及到 DDL 操作
+- 2. 我们要进入update()里面 加上 set autocommit = false 的逻辑
+- 3. 当我们执行完update()操作后 连接不要关
+<!-- 
+  update()里面 我们开始 造了一个连接
+  connection = JDBCUtils.getConnection();
+
+  然后执行完操作后我们就给关了
+  finally {
+    JDBCUtils.closeResource(connection, ps);
+  }
+
+  这里要是关了 就没有办法进行数据回滚了
+
+  相当于我们要用一个连接将 AA-100 BB+100的操作完成
+ -->
+
+
+> update()中现在的逻辑
+- 每一次update操作都是 先获取(造)连接然后关闭连接
+
+    ----------
+    获取连接
+
+    update操作 -- AA-100
+
+    关闭连接
+    ----------
+
+    ----------
+    获取连接
+
+    update操作 -- BB+100
+
+    关闭连接
+    ----------
+
+
+> update()中应该的逻辑
+- 相当于我们用一个连接操作一个事务逻辑 这样如果出现错误在一个连接中还能回滚
+
+    ----------
+    获取连接
+
+    update操作 -- AA-100
+
+    update操作 -- BB+100
+
+    关闭连接
+    ----------
+
+
+> update() -- 考虑事务后的代码实现
+- update()部分的代码
+- 我们把原先获取连接的逻辑 删掉了 哪里用update 哪里再造一个连接对象传递进来
+
+- 要点:
+- 1. 我们新增了一个参数 connection 我们在调用update()方法的时候 传递进去一个连接
+
+```java
+public int update(Connection connection, String sql, Object ...args) {
+  PreparedStatement ps = null;
+  try {
+    // 1.
+    ps = connection.prepareStatement(sql);
+    for(int i = 0; i < args.length; i++) {
+      // 2.
+      ps.setObject(i + 1, args[i]);
+    }
+    // 3.
+    return ps.executeUpdate();
+
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    // 4.
+    // 因为连接是从外面传递进来的 连接不要关 第一个参数传入null 什么时候造的 统一进行关闭
+    JDBCUtils.closeResource(null, ps);
+  }
+
+  return 0;
+}
+```
+
+
+- 测试转账的代码
+> 要点:
+> 1. 在调用update()方法之前 先造一个连接 将连接传入update()方法中
+
+> 2. 获取到连接后 通过连接对象调用方法
+- 取消数据的自动提交
+- connection.setAutoCommit(false);
+<!-- 
+  sout(connection.getAutoCommit());
+  // 可以检查下 它的状态
+ -->
+
+> 3. 逻辑完成(转账成功)后 再提交
+- connection.commit();
+
+> 4. 当出现异常的时候我们要回滚数据
+- 也就是当出现类似网络异常的时候 会进入到catch
+- 所以我们要在catch的逻辑里面 调用方法 回滚数据
+- connection.rollback();
+
+
+> 5. 关闭connection之前 恢复commit的状态
+- connection.setAutoCommit(true);
+<!-- 
+  因为后期我们不是自己造一个连接 传入update()方法里面 而是从数据库连接池中取一个连接使用
+
+  因为考虑到事务 我们在获取连接后会
+  connection.setAutoCommit(false);
+
+  当我们做connection关闭操作的时候 并不是真正的关闭 而是将其还回连接池 所以我们在还回连接池前 将连接的commit的状态要改回去
+ -->
+
+> 6. 转账成功后 关闭connection
+
+```java
+@Test
+public void testUpdateWithTx() {
+  Connection connection = null;
+  try {
+    // 获取连接
+    connection = JDBCUtils.getConnection();
+
+    // 获取连接对象后 取消数据的自动提交
+    connection.setAutoCommit(false);
+
+--- 转账的逻辑
+    String sqlAA = "update user_table set balance = balance - 100 where user = ?";
+    update(connection, sqlAA, "AA");
+
+    // 模拟网络异常 导致转账在这失败
+    System.out.println(10 / 0);
+
+    String sqlBB = "update user_table set balance = balance + 100 where user = ?";
+    update(connection, sqlBB, "BB");
+---
+
+    System.out.println("转账成功");
+
+    // 逻辑完成(转账成功)后 再提交
+    connection.commit();
+
+  } catch (Exception e) {
+    e.printStackTrace();
+
+    // 当出现异常的时候我们要回滚数据 rollback()有异常我们再try catch下
+    try {
+      connection.rollback();
+    } catch (SQLException ex) {
+      ex.printStackTrace();
+    }
+
+  } finally {
+    // 关闭连接之前 恢复commit的状态 主要针对使用数据库连接池的使用
+      try {
+        connection.setAutoCommit(true);
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+
+    // 关闭资源 参数2为空 我们仅需要关闭 connection
+    JDBCUtils.closeResource(connection, null);
+  }
+}
+```
+
+> 总结
+- 数据一旦提交，就不可回滚。
+- 数据什么时候意味着提交？
+- **当一个连接对象被创建时，默认情况下是自动提交事务**：每次执行一个 SQL 语句时，如果执行成功，就会向数据库自动提交，而不能回滚。
+
+- **关闭数据库连接，数据就会自动的提交。**如果多个操作，每个操作使用的是自己单独的连接，则无法保证事务。即同一个事务的多个操作必须在同一个连接下。
+- **JDBC程序中为了让多个 SQL 语句作为一个事务执行：**
+
+- 调用 Connection 对象的 **setAutoCommit(false);** 以取消自动提交事务
+
+- 在所有的 SQL 语句都成功执行后，调用 **commit();** 方法提交事务
+
+- 在出现异常时，调用 **rollback();** 方法回滚事务
+
+
+**建议:**
+- 若此时 Connection 没有被关闭，还可能被重复使用，则需要恢复其自动提交状态 setAutoCommit(true)。尤其是在使用数据库连接池技术时，执行close()方法前，建议恢复自动提交状态。
+
+-----------------
+
+### 事务的ACID属性
+
+> 1. 原子性（Atomicity）
+- 原子性是指事务是一个不可分割的工作单位，事务中的操作要么都发生，要么都不发生。 
+
+--- 
+
+> 2. 一致性（Consistency）
+- 事务必须使数据库从一个一致性状态变换到另外一个一致性状态。
+
+--- 
+
+> 3. 隔离性（Isolation）
+- 事务的隔离性是指一个事务的执行不能被其他事务干扰，即一个事务内部的操作及使用的数据对并发的其他事务是隔离的，并发执行的各个事务之间不能互相干扰。
+<!-- 
+  隔离性类似于java基础中的多线程 我们操作共享数据的时候 有说到线程的安全问题 一个线程还没有操作完共享数据 另外一个线程就来操作了 就会导致数据的安全性问题 当时我们说要使用同步机制来解决线程安全问题
+
+  隔离性有些类似 比如我们现在有一张表 现在好几个用户都用权限操作这张表 都有可能进行dml操作 当一个用户还没有操作完呢 别的事务就过来了 这时候就需要保证我们的操作要具有一定的隔离性 在数据库中的高并发场景下 这是很常见的
+
+  那能不能在我操作的时候 使用类似同步方法将数据表锁起来？ 锁起来的话 隔离性特别好但是并发性就极差了 一个事务在操作 其它的事务都要等着
+
+  所以在数据库这块 我们对隔离性 提供了4中隔离的级别
+ -->
+
+> 数据库的并发问题
+
+- 对于同时运行的多个事务, 当这些事务访问数据库中相同的数据时, 如果没有采取必要的隔离机制, 就会导致各种并发问题:
+
+- 我们可以把下面的 T1 T2 理解为两个线程
+
+> 问题1:  **脏读**: 
+- 对于两个事务 T1, T2
+- T1读取了已经被T2更新 但还**没有被提交**的字段。
+- 之后, 若 T2 回滚, T1读取的内容就是临时且无效的。
+<!-- 
+  T1读表中的一个字段 比如是1
+  T2对表中的改字段进行了修改 1 -> 2
+
+  T2虽然修改了该字段 但是T2还没有提交 也就是2是临时的
+  但是T在读的时候 还把2读出来了
+
+  这种情况叫脏读 因为这种没有提交的数据是不应该被读到的 这种情况一定是要解决的(所以没有一个数据库使用隔离级别1)
+ -->
+
+> 问题2:  **不可重复读**: 
+- 对于两个事务T1, T2
+- T1 读取了一个字段, 然后 T2 **更新**了该字段。
+- 之后, T1再次读取同一个字段, 值就不同了。
+<!-- 
+  我们有一张表 表中有一个数据 为1
+  T1读表中的这个数据 将1读取出来了
+
+  T2对表中的数据进行了修改 1 -> 2
+  T2还提交了这次修改 
+
+  提交之后按理说数据库就应该写入了
+  T1假如还没有关闭事务 当没有关闭事务再去读的时候 发现原来是1 现在变成2了
+
+  有点类似于我们在购物网站买商品 库存为1 然后我们的连接还没有断开的情况下 我们刷新了页面 发现库存从1变成100了 说白了后台增加库存了 我们会想怎么两次数据不一样了
+
+  这种不一样的情况称之为不可重复读
+
+  这种情况不挺正常么 所以我们在使用数据库的时候 都没有解决不可重复读 我们认为这个事儿是正常的
+
+  隔离级别3就解决了不可重复读
+  解决了是什么效果?
+
+  表中有条数据是1
+  T1读取了表中的这个数据
+  T2将数据修改为2 T2还commit了 然后数据库写入了 彻底变成了2
+  T1事务没有关闭的时候 重新再查 还是1 只要在事务内T1查询都是1 除非我们关闭事务 重新再开新的事务了 再去查 查到的才是2
+
+  也就是说 只要T1还在事务中 我们还占用了对表的操作 即使别人提交commit了 我们再查还是1
+ -->
+
+> 问题3:  **幻读**:
+- 对于两个事务T1, T2, 
+- T1 从一个表中读取了一个字段, 然后 T2 在该表中**插入**了一些新的行。
+- 之后, 如果 T1 再次读取同一个表, 就会多出几行。
+<!-- 
+  T1查询了一张表中有10条数据
+  T2对这张表进行插入操作 插入了5条
+
+  T1再去查发现变成15条了 跟出现了幻觉一样 这就是幻读
+
+  隔离级别4把幻读也解决了
+  其实我们觉得 不可重复读和幻读都是正常的
+  不可重复度 针对 update 操作
+  幻读 针对 insert 操作
+ -->
+
+
+- **数据库事务的隔离性**: 
+- 数据库系统必须具有隔离并发运行各个事务的能力, 使它们不会相互影响, 避免各种并发问题。
+
+- 一个事务与其他事务隔离的程度称为隔离级别。数据库规定了多种事务隔离级别, 不同隔离级别对应不同的干扰程度, **隔离级别越高, 数据一致性就越好, 但并发性越弱。**
+
+
+> 总结
+- 我们只需要解决脏读就可以了 别的事务没有提交的数据不要读取 读取到也不合适 因为它是临时的数据 因为别的事务随时可能回滚 毕竟没有提交 所以最好不要让用户看到脏读的数据
+
+
+> 4种隔离性的级别:
+- 4种隔离级别针对它想解决的问题不一样 问题就是上面的3种问题
+
+> 1. read uncommitted(读未提交数据)
+- 允许事务读取未被其它事务提交的变更 脏读 不可重复读和幻读的问题都会出现
+<!-- 
+  上面的3种问题 一个都没解决
+ -->
+
+> 2. read committed(读已提交数据)  -- 可取
+- 只允许事务读取已经被其它事务提交的变成 可以避免脏读 但不可重复度和幻读问题仍然可能出现
+<!-- 
+  该级别解决了 脏读的问题
+ -->
+
+> 3. repeatable read(可重复读)
+- 确保事务可以多次从一个字段中读取相同的值 在这个事务持续期间 禁止其他事务对这个字段进行更新 可以避免脏读和不可重复读 但幻读的问题仍然存在
+<!-- 
+  该级别解决了 脏读 和 不可重复读的问题
+ -->
+
+> 4. serializable(串行化)
+- 确保事务可以从一个表中读取相同的行 在这个事务持续期间 禁止其他事务对该表执行插入 更新 和 删除操作 所有并发问题都可以避免 但性能十分低下
+<!-- 
+  该级别解决了 上面的3种问题
+ -->
+
+
+> 一般我们不会选1 4级别 我们会从2 3当中选
+
+> Oracle 支持的 2 种事务隔离级别：
+- **READ COMMITED**, SERIALIZABLE。 
+
+- Oracle 默认的事务隔离级别为: **READ COMMITED** 。
+<!-- 
+  该级别解决了 脏读的问题
+ -->
+
+
+> Mysql 支持 4 种事务隔离级别。
+- Mysql 默认的事务隔离级别为: **REPEATABLE READ。**
+<!-- 
+  该级别解决了 脏读 和 不可重复读的问题
+ -->
+
+--- 
+
+> 4. 持久性（Durability）
+- 持久性是指一个事务一旦被提交，它对数据库中数据的改变就是永久性的，接下来的其他操作和数据库故障不应该对其有任何影响。
+
+---
+
+
+### 在MySql中设置隔离级别
+
+- 每启动一个 mysql 程序, 就会获得一个单独的数据库连接. 每个数据库连接都有一个全局变量 @@tx_isolation, 表示当前的事务隔离级别。
+
+> 查看当前的隔离级别: 
+```sql
+SELECT @@tx_isolation;
+```
+
+> 设置当前 mySQL 连接的隔离级别:  
+```sql
+set transaction isolation level read committed;
+```
+
+> 设置数据库系统的全局的隔离级别:
+```sql
+set global transaction isolation level read committed;
+```
+
+**注意:**
+- 设置完后要关闭当前数据库的连接 再连接
+
+-----------------
+
+### 命令行验证 mysql 的隔离级别
+- 现在我们的数据库里只有一个用户 root 用户
+- 我们要再创建一个用户 两个用户各自用一个事务去操作数据库中某一个表中的数据
+
+> 数据库中 创建一个新的用户
+```sql
+create user 用户名 identified by '密码';
+
+-- 示例
+create user tom identified by 'abc123';
+```
+
+- 这样我们就可以在两个终端中 以root用户 和 tom用户来登录数据库
+```sql
+mysql -utom -pabc123
+```
+
+```sql
+mysql -uroot -pabc123
+```
+
+> 给新创建的用户分配权限
+- 上面刚创建的tom用户 使用 show databases; 查看数据口后 发现很多数据库都看不见 也就是说tom用户的权限是不够的
+
+- 我们可以通过系统用户给tom用户 赋予权限
+
+```sql
+-- 将 select,insert,delete,update 操作 atguigudb.* 数据库下所有的表 的权限 给 tom@localhost
+grant select,insert,delete,update on atguigudb.* to tom@localhost identified by 'abc123'; 
+
+
+-- 全部权限的设置方式
+-- 授予通过网络方式登录的tom用户，对所有库所有表的全部权限，密码设为abc123.
+grant all privileges on *.* to tom@'%'  identified by 'abc123'; 
+```
+
+- 怎么保证事务不会断(一致处于开着的状态) 还是用 set autocommit = false 这样事务就处于不会关闭的状态
+
+- 在命令行执行 commit 操作 一提交 相当于一次事务就结束了
+
+- 也就是说在数据库中 一条语句的查询就是一次事务
+
+-----------------
+
+### Java层面 演示并设置数据库的隔离级别
+
+> 查询当前数据库的隔离级别
+> connection.getTransactionIsolation()
+- 返回值:
+- int
+
+```java
+Connection connection = JDBCUtils.getConnection();
+
+// 查询当前数据库的隔离级别
+int isolation = connection.getTransactionIsolation();
+
+System.out.println(isolation);
+// 这台电脑的隔离级别是 4
+```
+
+> 1: read uncommitted(读未提交数据)
+<!-- 
+  上面的3种问题 一个都没解决(脏读 不可重复读和幻读)
+ -->
+
+
+> 2: read committed(读已提交数据)  -- 可取
+<!-- 
+  该级别解决了 脏读的问题
+ -->
+
+> 3: repeatable read(可重复读)
+<!-- 
+  该级别解决了 脏读 和 不可重复读的问题
+ -->
+
+> 4: serializable(串行化)
+<!-- 
+  该级别解决了 上面的3种问题
+ -->
+
+
+> 设置数据库的隔离级别
+> connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+- 假如我们当前数据库的隔离级别是3
+- 这里我们用代码修改为2 修改的是当前的链接
+
+- 参数:
+- int型的值
+- 或者 常量值
+
+
+> 通用的查询操作 返回一条记录 -- 考虑事务后的
+```java
+public <T> T getInstance(Connection connection, Class<T> clazz, String sql, Object ...args) {
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+
+  try {
+    // 预编译sql
+    ps = connection.prepareStatement(sql);
+
+    // 填充占位符
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i+1, args[i]);
+    }
+
+    // 执行并获取结果集
+    rs = ps.executeQuery();
+
+    // 获取列数
+    ResultSetMetaData rsmd = rs.getMetaData();
+    int columnCount = rsmd.getColumnCount();
+
+    // 一条数据
+    if(rs.next()) {
+
+      // **问题**: 我们创建的不知道是哪个类的对象
+      // Order order = new Order();
+      T t = clazz.newInstance();
+
+      for(int i=0; i<columnCount; i++) {
+        String columnLabel = rsmd.getColumnLabel(i + 1);
+        Object columnValue = rs.getObject(i + 1);
+
+        // 这里是clazz 因为clazz相当于Order 而t相当于order对象 不一样的
+        Field field = clazz.getDeclaredField(columnLabel);
+        field.setAccessible(true);
+        field.set(t, columnValue);
+      }
+      return t;
+    }
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(null, ps, rs);
+  }
+
+  return null;
+}
+```
+
+> 开始演示
+- 我们当前的数据库的隔离级别是 
+- 我们创建了两个测试方法 这两个测试方法相当于两个线程 用来负责针对同一张表的同一条数据进行 查询 和 修改
+
+```java
+// 演示一条事务
+@Test
+public void testTransactionSelect() {
+
+}
+// 演示另一条事务
+@Test
+public void testTransactionUpdate() {
+
+}
+```
+
+- 测试代码:
+```java
+// 演示一条事务
+@Test
+public void testTransactionSelect() throws Exception {
+
+  // 查询操作
+  Connection connection = JDBCUtils.getConnection();
+
+  // 查询当前数据库的隔离级别
+  int isolation = connection.getTransactionIsolation();
+  System.out.println(isolation);
+
+  // 禁止自动提交 保证我们的查询在事务中 保证当前事务没有断
+  connection.setAutoCommit(false);
+
+  String sql = "select user, password, balance from user_table where user = ?";
+  User user = getInstance(connection, User.class, sql, "CC");
+
+  System.out.println(user);
+}
+
+
+// 演示另一条事务
+@Test
+public void testTransactionUpdate() throws Exception {
+  // 更新操作
+  Connection connection = JDBCUtils.getConnection();
+  connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+  // 禁止自动提交 保证我们的查询在事务中 保证当前事务没有断
+  connection.setAutoCommit(false);
+
+  String sql = "update user_table set balance = ? where user = ?";
+  update(connection, sql, 5000, "CC");
+
+  Thread.sleep(15000);
+  System.out.println("修改结束");
+}
+```
+
+-----------------
+
+### 提供操作数据表的 BaseDAO
+- 我们在书城项目的时候还没有涉及到框架 也就是说这个部门的操作都是基于JDBC来连接数据库
+
+- 我们会将各种查询数据库的方法 封装成DAO
+
+  | - com.sam.dao
+    - BaseDAO
+
+
+> BaseDAO
+- 基础的DAO 这个DAO主要作为父类出现的
+- 作用:
+- 封装了针对数据表的通用操作 也就是考虑到事务后的增删改查
+
+- 比如:
+- 我们会在BaseDAO中 定义如下的方法:
+
+> 1. update() 增删改操作
+```java
+// 包含事务: 增删改
+public int update(Connection connection, String sql, Object ...args) throws SQLException {
+  PreparedStatement ps = null;
+  try {
+    ps = connection.prepareStatement(sql);
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i + 1, args[i]);
+    }
+
+    return ps.executeUpdate();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(null, ps);
+  }
+
+  return 0;
+}
+```
+
+
+> 2. query()  查询操作 查询一个对象
+```java
+// 包含事务: 查询一条记录 返回一个对象
+public <T> T getInstance(Connection connection, Class<T> clazz, String sql, Object ...args) {
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  try {
+    ps = connection.prepareStatement(sql);
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i + 1, args[i]);
+    }
+
+    rs = ps.executeQuery();
+    ResultSetMetaData rsmd = rs.getMetaData();
+
+    int columnCount = rsmd.getColumnCount();
+    if(rs.next()) {
+      T t = clazz.newInstance();
+
+      for (int i=0; i<columnCount; i++) {
+        String columnLabel = rsmd.getColumnLabel(i+1);
+        Object columnValue = rs.getObject(i+1);
+
+        Field field = clazz.getDeclaredField(columnLabel);
+        field.setAccessible(true);
+        field.set(t, columnValue);
+      }
+      return t;
+    }
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(null, ps, rs);
+  }
+  return null;
+}
+```
+
+> 3. queryList()  查询操作 查询多个个对象
+```java
+// 包含事务: 查询多条记录 返回多条记录构成的集合
+public <T> List<T> getForList(Connection connection, Class<T> clazz, String sql, Object ...args) {
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  ArrayList<T> list = null;
+
+  try {
+    // 预编译sql
+    ps = connection.prepareStatement(sql);
+
+    // 填充占位符
+    for(int i=0; i<args.length; i++) {
+      ps.setObject(i+1, args[i]);
+    }
+
+    // 执行并获取结果集
+    rs = ps.executeQuery();
+
+    // 获取列数
+    ResultSetMetaData rsmd = rs.getMetaData();
+    int columnCount = rsmd.getColumnCount();
+
+    // 创建一个承装对象的结合
+    list = new ArrayList<>();
+
+
+    // 多条记录
+    while(rs.next()) {
+      // 循环中 每次都创建一个t对象
+      T t = clazz.newInstance();
+
+      // 通过 for 将t对象的所有的属性都附上值了
+      for(int i=0; i<columnCount; i++) {
+        String columnLabel = rsmd.getColumnLabel(i + 1);
+        Object columnValue = rs.getObject(i + 1);
+
+        Field field = clazz.getDeclaredField(columnLabel);
+        field.setAccessible(true);
+        field.set(t, columnValue);
+      }
+
+      // 把对象添加到集合中
+      list.add(t);
+    }
+
+    // while循环结束后
+    return list;
+
+  } catch (Exception e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(null, ps, rs);
+  }
+
+  return null;
+}
+```
+
+> 4. 返回表中有多少条数据呀 类似组函数的特殊需求
+- 比如:
+- select count(*) from ...
+- select Max(*) from ...
+
+```java
+// 先定义为 void 因为是通用的父类 我们定义的方法 也不知道子类到底要获取什么
+
+// 不写 void 写什么? 比如count(*) 返回值是int Max(date) 返回值是个日期 不确定 所以我们使用泛型
+
+public <E> E getValue(Connection connection, String sql, Object ...args) {
+
+  PreparedStatement ps = null;
+  ResultSet rs = null;
+  try {
+    ps = connection.prepareStatement(sql);
+    for (int i=0; i<args.length; i++) {
+      ps.setObject(i+1, args[i]);
+    }
+
+    rs = ps.executeQuery();
+    // 对于特殊需求的来讲 我们只会查出来一列数据 比如 count(*)
+    if(rs.next()) {
+      // 得到这一列数据 需要强转下
+      return (E)rs.getObject(1);
+    }
+  } catch (SQLException e) {
+    e.printStackTrace();
+  } finally {
+    JDBCUtils.closeResource(null, ps, rs);
+  }
+
+  return null;
+}
+```
+
+- BaseDAO就写完了 回头我们不会造这个类的对象 它的作用只是给我们提供通用的方法 既然不造对象 所以我们可以把BaseDAO设置为抽象类 虽然里面没有抽象方法 但是表示就是不能造对象了
+
+- 该类的完整代码:
+```java
+package com.sam.dao;
+
+import com.sam.utils.JDBCUtils;
+
+import java.lang.reflect.Field;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class BaseDAO  {
+  // 包含事务: 增删改
+  public int update(Connection connection, String sql, Object ...args) throws SQLException {
+    PreparedStatement ps = null;
+    try {
+      ps = connection.prepareStatement(sql);
+      for(int i=0; i<args.length; i++) {
+        ps.setObject(i + 1, args[i]);
+      }
+
+      return ps.executeUpdate();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps);
+    }
+
+    return 0;
+  }
+
+
+  // 包含事务: 查询一条记录 返回一个对象
+  public <T> T getInstance(Connection connection, Class<T> clazz, String sql, Object ...args) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = connection.prepareStatement(sql);
+      for(int i=0; i<args.length; i++) {
+        ps.setObject(i + 1, args[i]);
+      }
+
+      rs = ps.executeQuery();
+      ResultSetMetaData rsmd = rs.getMetaData();
+
+      int columnCount = rsmd.getColumnCount();
+      if(rs.next()) {
+        T t = clazz.newInstance();
+
+        for (int i=0; i<columnCount; i++) {
+          String columnLabel = rsmd.getColumnLabel(i+1);
+          Object columnValue = rs.getObject(i+1);
+
+          Field field = clazz.getDeclaredField(columnLabel);
+          field.setAccessible(true);
+          field.set(t, columnValue);
+        }
+        return t;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps, rs);
+    }
+    return null;
+  }
+
+  // 包含事务: 查询多条记录 返回多条记录构成的集合
+  public <T> List<T> getForList(Connection connection, Class<T> clazz, String sql, Object ...args) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    ArrayList<T> list = null;
+
+    try {
+      // 预编译sql
+      ps = connection.prepareStatement(sql);
+
+      // 填充占位符
+      for(int i=0; i<args.length; i++) {
+        ps.setObject(i+1, args[i]);
+      }
+
+      // 执行并获取结果集
+      rs = ps.executeQuery();
+
+      // 获取列数
+      ResultSetMetaData rsmd = rs.getMetaData();
+      int columnCount = rsmd.getColumnCount();
+
+      // 创建一个承装对象的结合
+      list = new ArrayList<>();
+
+
+      // 多条记录
+      while(rs.next()) {
+        // 循环中 每次都创建一个t对象
+        T t = clazz.newInstance();
+
+        // 通过 for 将t对象的所有的属性都附上值了
+        for(int i=0; i<columnCount; i++) {
+          String columnLabel = rsmd.getColumnLabel(i + 1);
+          Object columnValue = rs.getObject(i + 1);
+
+          Field field = clazz.getDeclaredField(columnLabel);
+          field.setAccessible(true);
+          field.set(t, columnValue);
+        }
+
+        // 把对象添加到集合中
+        list.add(t);
+      }
+
+      // while循环结束后
+      return list;
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps, rs);
+    }
+
+    return null;
+  }
+
+
+  // 先定义为 void 因为是通用的父类 我们定义的方法 也不知道子类到底要获取什么
+  // 不写 void 写什么? 比如count(*) 返回值是int Max(date) 返回值是个日期 不确定 所以我们使用泛型
+  public <E> E getValue(Connection connection, String sql, Object ...args) {
+
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = connection.prepareStatement(sql);
+      for (int i=0; i<args.length; i++) {
+        ps.setObject(i+1, args[i]);
+      }
+
+      rs = ps.executeQuery();
+      // 对于特殊需求的来讲 我们只会查出来一列数据 比如 count(*)
+      if(rs.next()) {
+        // 得到这一列数据 需要强转下
+        return (E)rs.getObject(1);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps, rs);
+    }
+
+    return null;
+  }
+}
+```

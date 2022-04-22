@@ -1,4 +1,10 @@
 ### 技巧
+
+> mock
+- https://blog.csdn.net/qq_21567385/article/details/108251232
+- https://zhuanlan.zhihu.com/p/30583316
+
+
 > 组件内部 给html部分添加 script 标签
 - 场景:
 - 在Kinto的项目中 nuxt 环境下 有一个功能是必须在html页面里面引入 script 标签的
