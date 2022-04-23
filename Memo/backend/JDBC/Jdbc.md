@@ -4020,6 +4020,7 @@ public <E> E getValue(Connection connection, String sql, Object ...args) {
 
 - BaseDAO就写完了 回头我们不会造这个类的对象 它的作用只是给我们提供通用的方法 既然不造对象 所以我们可以把BaseDAO设置为抽象类 虽然里面没有抽象方法 但是表示就是不能造对象了
 
+
 - 该类的完整代码:
 ```java
 package com.sam.dao;
@@ -4033,7 +4034,7 @@ import java.util.List;
 
 public abstract class BaseDAO  {
   // 包含事务: 增删改
-  public int update(Connection connection, String sql, Object ...args) throws SQLException {
+  public int update(Connection connection, String sql, Object ...args) {
     PreparedStatement ps = null;
     try {
       ps = connection.prepareStatement(sql);
@@ -4173,3 +4174,1522 @@ public abstract class BaseDAO  {
   }
 }
 ```
+
+
+**注意: count(*)**
+- 我们上面还定义了一个 返回一列数据的方法 getValue
+- 比如我们会想返回表中一共有多少条数据 count(*)
+- count(*) 返回值的类型是 long 型 
+
+-----------------
+
+### CustomerDAO 及 CustomerDAOImpl的实现
+- 上面我们创建了BaseDAO 它只是用来提供基本的方法
+- 而具针对于具体的表(Customer表 Order表) 我们提供具体的DAO 而具体的DAO中我们使用的是 BaseDAO 中的增删改查的方法
+
+- 既然是具体的DAO 按说我们直接new一个class 让它直接继承BaseDAO就可以了
+
+- 但是我们从后续的逻辑上来看的话 我们可以让代码的结构更加的规范一些 我们先造一个接口
+
+- 接口是定义一种规范的
+
+> BaseDAO -- 抽象类
+- 该抽象类中封装了操作数据库的增删改查的通用方法
+- 我们需要调用这些方法来完成操作数据库的逻辑
+
+> CustomerDAO -- 接口
+- 每一个具体的表 都应该有一个相对应的接口
+- 比如我们有 customers表 那么就应该有 customerDAO接口
+
+- 该接口的作用:
+- 我们要考虑针对于 具体的表(customers表)会有什么样的操作 把这些操作定义为抽象方法
+<!-- 
+  (该接口中要想针对customers表我们能做什么事儿呢)
+ -->
+
+- 用于规范针对于customers表的常用操作 每张表的操作可能都不一样 主要是看我们做的项目在浏览器端我们需要呈现哪些特殊的值 有什么样的述求 我们在接口中就规范对应的功能
+<!-- 
+  该接口的实现类 在实现该接口的方法内部 调用的还是BaseDAO的方法去完成具体的逻辑
+ -->
+
+- 比如针对customer表我们就想提供如下的功能
+- 1. 将 一个对象(一条数据) 添加到数据库中
+
+- 2. 根据指定的id删除表中的一条记录
+
+- 3. 把指定id的记录 修改为新的对象
+
+- 4. 查询 根据指定的id查询 得到对应的Customer对象
+- 解释：
+<!-- 
+  比如Java层面有一个customer对象里面是最新的数据 我们要根据customer对象id去找到数据库表中的记录 将其修改为我们java层面customer对象中的最新数据
+  
+  针对内存中的customer对象 去修改数据表中的指定记录 我们可以根据customer.id去找数据库中的指定记录
+ -->
+
+- 5. 查询表中的所有记录
+
+- 6. 查询表中有多少条记录
+- 要点:
+  - 注意我们拿的是Long来接收count(*) 因为表中的记录可能非常的多
+
+- 7. 返回数据表中最大的生日
+- 要点:
+  - sql下的Date
+  - 2010 和 1986 我们说的最大就是比数 所以是2010
+
+> 接口中的代码:
+**要点:**
+- 每一次查询我属于一条事务 所以我们每一个操作都将 connection 传递进去
+- 因为一个连接可能要做好几个事儿 以一个事务出现的
+
+- 外面利用connection对象来进行关闭自动commit commit提交 以及rollback回滚等逻辑
+
+```java
+package com.sam.dao;
+
+import com.sam.bean.Customer;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.util.List;
+
+public interface CustomerDao {
+  // 插入一条数据 将customer对象添加到数据库中
+  void insert(Connection connection, Customer customer);
+
+  // 根据指定的id删除表中的一条记录
+  void deleteById(Connection connection, int id);
+
+  // 把指定id的记录 修改为新的对象
+  void update(Connection connection, Customer customer);
+
+  // 查询 根据指定的id查询 得到对应的Customer对象
+  Customer getCustomerById(Connection connection, int id);
+
+  // 查询表中的所有记录
+  List<Customer> getAll(Connection connection);
+
+  // 查询表中有多少条记录
+  Long getCount(Connection connection);
+
+  // 返回数据表中最大的生日
+  Date getMaxBirth(Connection connection);
+}
+
+```
+
+
+> CustomerDAOImpl实现类
+- 接口创建完了 我们要提供该接口的具体的实现类了
+- CustomerDAOImpl
+- 我们要让CustomerDAOImpl继承BaseDAO实现CustomerDAO接口
+<!-- 
+  这样我们就有了BaseDAO中定义的与数据库进行交互的方法 也有了CustomerDAOImpl接口中规范的功能
+ -->
+
+- 该实现类中需要完成的逻辑是 写具体的代码完成对应的功能 比如我们需要提供具体的sql语句等 然后调用该实现类方法的人只需要传入参数(不需要提供sql语句)就能完成功能
+
+- 框架代码:
+```java
+package com.sam.dao;
+
+import com.sam.bean.Customer;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.util.List;
+
+public class CustomerDAOImpl extends BaseDAO implements CustomerDao {
+  @Override
+  public void insert(Connection connection, Customer customer) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+  }
+
+  @Override
+  public void deleteById(Connection connection, int id) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+  }
+
+  @Override
+  public void update(Connection connection, Customer customer) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+  }
+
+  @Override
+  public Customer getCustomerById(Connection connection, int id) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+    return null;
+  }
+
+  @Override
+  public List<Customer> getAll(Connection connection) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+    return null;
+  }
+
+  @Override
+  public Long getCount(Connection connection) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+    return null;
+  }
+
+  @Override
+  public Date getMaxBirth(Connection connection) {
+    // 在方法体内部使用 BaseDAO 定义的通用的增删改查等方法 操作数据库
+    return null;
+  }
+}
+```
+
+
+- 填充具体逻辑后的代码:
+- 实现类的方法一般看来都要求传递进来一个customer对象 或者具体的id
+
+```java
+package com.sam.dao;
+
+import com.sam.bean.Customer;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.util.List;
+
+public class CustomerDAOImpl extends BaseDAO implements CustomerDao {
+  @Override
+  public void insert(Connection connection, Customer customer) {
+    String sql = "insert into customers(name, email, birth) values(?,?,?)";
+    // BaseDAO中的方法
+    update(connection, sql, customer.getName(), customer.getEmail(), customer.getBirth());
+  }
+
+  @Override
+  public void deleteById(Connection connection, int id) {
+    String sql = "delete from customers where id = ?";
+    update(connection, sql, id);
+  }
+
+  @Override
+  public void update(Connection connection, Customer customer) {
+    String sql = "update customers set name = ?, email = ?, birth = ? where id = ?";
+    update(connection, sql, customer.getName(), customer.getEmail(), customer.getBirth(), customer.getId());
+  }
+
+  @Override
+  public Customer getCustomerById(Connection connection, int id) {
+    String sql = "select id, name, email, birth from customers where id = ?";
+    Customer customer = getInstance(connection, Customer.class, sql, id);
+    return customer;
+  }
+
+  @Override
+  public List<Customer> getAll(Connection connection) {
+    String sql = "select id, name. email, birth from customers";
+    List<Customer> list = getForList(connection, Customer.class, sql);
+    return list;
+  }
+
+  @Override
+  public Long getCount(Connection connection) {
+    String sql = "select count(*) from customers";
+    return getValue(connection, sql);
+  }
+
+  @Override
+  public Date getMaxBirth(Connection connection) {
+    String sql = "select max(birth) from customers";
+    return getValue(connection, sql);
+  }
+}
+```
+
+- 上面虽然写完了 但是我们还要进行测试
+
+-----------------
+
+### CustomerDAOImpl的单元测试
+- com.sam.dao.junit 
+- 在这里测试下 CustomerDAOImpl 里面的方法 
+
+```java
+package com.sam.dao.junit;
+
+import com.sam.bean.Customer;
+import com.sam.dao.CustomerDAOImpl;
+import com.sam.utils.JDBCUtils;
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.util.List;
+
+public class CustomerImplTest {
+  // 我们要测 impl 类中的方法 需要先提供一个对象
+  CustomerDAOImpl dao = new CustomerDAOImpl();
+
+  @Test
+  public void testInsert() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+      // id是自增长的 我们传递个1 也没用 但是传递null不行
+      Customer customer = new Customer(1, "who", "who@gmail.com", new Date(5235262626L));
+      dao.insert(connection, customer);
+      System.out.println("添加成功");
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+  @Test
+  public void testDeleteById() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+      dao.deleteById(connection, 22);
+      System.out.println("删除成功");
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+  @Test
+  public void testUpdate() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+      // 修改是要根据id修改 这时候对象中的id就要指定
+      Customer customer = new Customer(18, "贝多芬", "beiduofen@gamil.com", new Date(34532543L));
+      dao.update(connection, customer);
+      System.out.println("修改成功");
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+  @Test
+  public void testGetCustomerById() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+      Customer customer = dao.getCustomerById(connection, 19);
+      System.out.println(customer);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+  @Test
+  public void testGetAll() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+      List<Customer> list = dao.getAll(connection);
+      list.forEach(System.out :: println);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+  @Test
+  public void testGetCount() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+      Long count = dao.getCount(connection);
+      System.out.println(count);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+  @Test
+  public void testGetMaxBirth() {
+    Connection connection = null;
+
+    try {
+      connection = JDBCUtils.getConnection();
+
+      Date maxBirth = dao.getMaxBirth(connection);
+      System.out.println(maxBirth); 
+      // 2014-01-17
+      
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(connection, null);
+    }
+  }
+}
+
+```
+
+-----------------
+
+### 优化BaseDAO, CustomerDAO, CustomerDAOImpl
+
+- com.sam.dao_optimize
+
+- 我们先看 CustomerDAOImpl 的 getCustomerById() 我们发现我们竟然传递了一个 *Customer.class*
+
+- 因为我们要操作customers表 又因为我们就在CustomerDAOImpl的实现类里面 所以这个参数就没有意义 因为在customer的实现类里面 用户也不可能写别的表 所以我们不想传递这个参数 优化点
+
+```java
+@Override
+public Customer getCustomerById(Connection connection, int id) {
+  String sql = "select id, name, email, birth from customers where id = ?";
+
+  // 这里
+  Customer customer = getInstance(connection, Customer.class, sql, id);
+
+  return customer;
+}
+```
+
+- 那这个参数 追溯到 BaseDAO 里参数 Class<T> clazz 的位置
+
+- 想要优化掉可以 但是总归的告诉我要造哪个类的对象
+- 所以这里面就要用到 *获取父类泛型的问题*
+```java
+public <T> T getInstance(Connection connection, Class<T> clazz, String sql, Object ...args) { ... }
+```
+
+> 解决方法
+- 1. 在 BaseDAO 里面我们给类加上泛型参数 T
+```java
+public abstract class BaseDAO<T> { ... }
+```
+
+- 2. 在 CustomerDAOImpl 继承BaseDAO 的时候 指明我们要操作的是哪个表对应的类 BaseDAO<Customer>
+- 这里我们指明要操作的就是Customer类
+```java
+public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {}
+```
+
+- 既然我们指明我们要操作的是Customer类了 我们就可以在CustomerDAOImpl里面的下面的方法中 去掉 Customer.class 参数了
+
+```java
+@Override
+public Customer getCustomerById(Connection connection, int id) {
+  String sql = "select id, name, email, birth from customers where id = ?";
+
+  Customer customer = getInstance(connection, Customer.class, sql, id);
+
+  return customer;
+}
+
+
+@Override
+public List<Customer> getAll(Connection connection) {
+  String sql = "select id, name, email, birth from customers";
+
+  List<Customer> list = getForList(connection, Customer.class, sql);
+
+  return list;
+}
+
+
+-- 去掉 Customer.class
+
+@Override
+public Customer getCustomerById(Connection connection, int id) {
+  String sql = "select id, name, email, birth from customers where id = ?";
+
+  Customer customer = getInstance(connection, sql, id);
+
+  return customer;
+}
+
+@Override
+public List<Customer> getAll(Connection connection) {
+  String sql = "select id, name, email, birth from customers";
+
+  List<Customer> list = getForList(connection, sql);
+
+  return list;
+}
+```
+
+- 同时 因为 CustomerDAOImpl 调用的是 BaseDAO 中 getInstance() 和 getForList() 方法 这两个方法中的 形参 Class<T> clazz 也要去掉
+
+- BaseDAO中
+```java
+public <T> T getInstance(Connection connection, Class<T> clazz, String sql, Object ...args) { ... }
+
+
+public <T> List<T> getForList(Connection connection, Class<T> clazz, String sql, Object ...args) {}
+
+-- 去掉 Class<T> clazz
+
+public <T> T getInstance(Connection connection, String sql, Object ...args) { ... }
+
+
+public <T> List<T> getForList(Connection connection, String sql, Object ...args) {}
+```
+
+- 但是去掉了Class<T> clazz后 我们方法里面还要通过 clazz获取对象呢 怎么办?
+- 我们要想办法获取class到底是谁 比如针对CustomerDAO来说 class就应该是 Customer
+```java
+T t = clazz.newInstance();
+```
+
+- 那Customer在哪里出现的呢？ 是不是在 CustomerDAOImpl声明的时候的泛型里 BaseDAO<Customer>
+```java
+public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {
+}
+```
+
+- 那是不是说 我们要想办法获取 CustomerDAOImpl 的父类 BaseDAO 的泛型<Customer>
+<!-- 
+  CustomerDAOImpl extends BaseDAO<Customer>
+
+                                      ↑
+                                   获取到它
+
+  也就在站在CustomerDAOImpl类的角度来讲 要获取到当前类的父类的泛型
+ -->
+
+- 我们拿到泛型 泛型也对应一个类型 让它给我们父类中的class做一个实例化
+- 我们在 BaseDAO 中 声明一个
+```java
+public abstract class BaseDAO<T>  {
+
+  private Class<T> clazz = null;
+
+}
+```
+
+- 注意: 我们这里指明了泛型了 下面的两个泛型方法中的<T>就没有必要了 因为我们要用类指明的泛型
+
+```java
+public <T> List<T> getForList(Connection connection, String sql, Object ...args) {}
+
+public <T> T getInstance(Connection connection, String sql, Object ...args) {}
+
+
+-- 删掉 <T>
+
+public List<T> getForList(Connection connection, String sql, Object ...args) {}
+
+public T getInstance(Connection connection, String sql, Object ...args) {}
+```
+
+- 上面我们这么写的
+```java
+public abstract class BaseDAO<T>  {
+
+  private Class<T> clazz = null;
+
+}
+```
+
+- 接下来我们要对 clazz 进行实例化 实例化的时候完全取决于子类在实现BaseDAO时候指明的泛型
+<!-- 
+public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {
+}
+          ↑ 说的就是这里
+ -->
+
+- 我们要在BaseDAO中 对 clazz 进行赋值 保证在调用 getInstance() 方法之前 clazz只要有值就可以 调用方法我们是通过对象来调用的 那就是说 我们要在获取对象之前 clazz有值就可以  
+
+- 那么出现对象之前可以给属性赋值的位置有哪些？
+- 1. 可以显式赋值
+- 2. 代码块中赋值
+- 3. 构造器中也可以 
+- 4. 代码块中也可以
+
+```java
+public abstract class BaseDAO<T>  {
+
+  private Class<T> clazz = null;
+
+  // 在造子类对象的时候 构造器 和 代码块就会被执行
+  {
+    // 在造子类对象的时候 要获取当前对象的父类的泛型
+    // 当前对象this this.getClass()获取自己的类(子类对象所在类) 然后自己的类的带泛型的父类
+    Type genericSuperclass = this.getClass().getGenericSuperclass();
+
+    // 我们做下强转
+    ParameterizedType paramType = (ParameterizedType) genericSuperclass;
+
+    // 该方法用于获取父类的泛型参数 泛型可能会有多个 所以返回的是一个数组
+    Type[] actualTypeArguments = paramType.getActualTypeArguments();
+    // 获取了泛型的第一个参数 也就是 BaseDAO<Customer> 中的 Customer
+    clazz = (Class<T>) actualTypeArguments[0];
+  }
+
+}
+
+
+-- 注意:
+- 这里面的this是子类对象
+```
+
+- 其实上面的代码 写在 CustomerDAOImpl 类中更容易理解一些 因为 this 指的就是 CustomerDAOImpl 我们要获取的也就 BaseDAO<Customer> 里面的Customer
+
+- 之所以写在父类中 是因为写在父类中 我们子类在继承的时候 这样的结构就都有了 不至于每个Impl类里面都写重复的逻辑
+```java
+public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {
+  {
+    // 在造子类对象的时候 要获取当前对象的父类的泛型
+    // 当前对象this this.getClass()获取自己的类 然后自己的类的带泛型的父类
+    Type genericSuperclass = this.getClass().getGenericSuperclass();
+
+    // 我们做下强转
+    ParameterizedType paramType = (ParameterizedType) genericSuperclass;
+
+    // 该方法用于获取父类的泛型参数 泛型可能会有多个 所以返回的是一个数组
+    Type[] actualTypeArguments = paramType.getActualTypeArguments();
+    // 获取了泛型的第一个参数 也就是 BaseDAO<Customer> 中的 Customer
+    clazz = (Class<T>) actualTypeArguments[0];
+  }
+}
+
+```
+
+> 优化后的BaseDAO
+```java
+package com.sam.dao_optimize;
+
+import com.sam.utils.JDBCUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class BaseDAO<T>  {
+
+  private Class<T> clazz = null;
+
+  // 在造子类对象的时候 构造器 和 代码块就会被执行
+  {
+    // 在造子类对象的时候 要获取当前对象的父类的泛型
+    // 当前对象this this.getClass()获取自己的类 然后自己的类的带泛型的父类
+    Type genericSuperclass = this.getClass().getGenericSuperclass();
+
+    // 我们做下强转
+    ParameterizedType paramType = (ParameterizedType) genericSuperclass;
+
+    // 该方法用于获取父类的泛型参数 泛型可能会有多个 所以返回的是一个数组
+    Type[] actualTypeArguments = paramType.getActualTypeArguments();
+    // 获取了泛型的第一个参数 也就是 BaseDAO<Customer> 中的 Customer
+    clazz = (Class<T>) actualTypeArguments[0];
+  }
+
+  // 包含事务: 增删改
+  public int update(Connection connection, String sql, Object ...args) {
+    PreparedStatement ps = null;
+    try {
+      ps = connection.prepareStatement(sql);
+      for(int i=0; i<args.length; i++) {
+        ps.setObject(i + 1, args[i]);
+      }
+
+      return ps.executeUpdate();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps);
+    }
+
+    return 0;
+  }
+
+
+  // 包含事务: 查询一条记录 返回一个对象
+  public T getInstance(Connection connection, String sql, Object ...args) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = connection.prepareStatement(sql);
+      for(int i=0; i<args.length; i++) {
+        ps.setObject(i + 1, args[i]);
+      }
+
+      rs = ps.executeQuery();
+      ResultSetMetaData rsmd = rs.getMetaData();
+
+      int columnCount = rsmd.getColumnCount();
+      if(rs.next()) {
+        T t = clazz.newInstance();
+
+        for (int i=0; i<columnCount; i++) {
+          String columnLabel = rsmd.getColumnLabel(i+1);
+          Object columnValue = rs.getObject(i+1);
+
+          Field field = clazz.getDeclaredField(columnLabel);
+          field.setAccessible(true);
+          field.set(t, columnValue);
+        }
+        return t;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps, rs);
+    }
+    return null;
+  }
+
+  // 包含事务: 查询多条记录 返回多条记录构成的集合
+  public List<T> getForList(Connection connection, String sql, Object ...args) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    ArrayList<T> list = null;
+
+    try {
+      // 预编译sql
+      ps = connection.prepareStatement(sql);
+
+      // 填充占位符
+      for(int i=0; i<args.length; i++) {
+        ps.setObject(i+1, args[i]);
+      }
+
+      // 执行并获取结果集
+      rs = ps.executeQuery();
+
+      // 获取列数
+      ResultSetMetaData rsmd = rs.getMetaData();
+      int columnCount = rsmd.getColumnCount();
+
+      // 创建一个承装对象的结合
+      list = new ArrayList<>();
+
+
+      // 多条记录
+      while(rs.next()) {
+        // 循环中 每次都创建一个t对象
+        T t = clazz.newInstance();
+
+        // 通过 for 将t对象的所有的属性都附上值了
+        for(int i=0; i<columnCount; i++) {
+          String columnLabel = rsmd.getColumnLabel(i + 1);
+          Object columnValue = rs.getObject(i + 1);
+
+          Field field = clazz.getDeclaredField(columnLabel);
+          field.setAccessible(true);
+          field.set(t, columnValue);
+        }
+
+        // 把对象添加到集合中
+        list.add(t);
+      }
+
+      // while循环结束后
+      return list;
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps, rs);
+    }
+
+    return null;
+  }
+
+
+  // 先定义为 void 因为是通用的父类 我们定义的方法 也不知道子类到底要获取什么
+  // 不写 void 写什么? 比如count(*) 返回值是int Max(date) 返回值是个日期 不确定 所以我们使用泛型
+  public <E> E getValue(Connection connection, String sql, Object ...args) {
+
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = connection.prepareStatement(sql);
+      for (int i=0; i<args.length; i++) {
+        ps.setObject(i+1, args[i]);
+      }
+
+      rs = ps.executeQuery();
+      // 对于特殊需求的来讲 我们只会查出来一列数据 比如 count(*)
+      if(rs.next()) {
+        // 得到这一列数据 需要强转下
+        return (E)rs.getObject(1);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      JDBCUtils.closeResource(null, ps, rs);
+    }
+
+    return null;
+  }
+}
+
+```
+
+> 优化后的CustomerDAOImpl
+```java
+package com.sam.dao_optimize;
+
+import com.sam.bean.Customer;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.util.List;
+
+public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {
+  @Override
+  public void insert(Connection connection, Customer customer) {
+    String sql = "insert into customers(name, email, birth) values(?,?,?)";
+    // BaseDAO中的方法
+    update(connection, sql, customer.getName(), customer.getEmail(), customer.getBirth());
+  }
+
+  @Override
+  public void deleteById(Connection connection, int id) {
+    String sql = "delete from customers where id = ?";
+    update(connection, sql, id);
+  }
+
+  @Override
+  public void update(Connection connection, Customer customer) {
+    String sql = "update customers set name = ?, email = ?, birth = ? where id = ?";
+    update(connection, sql, customer.getName(), customer.getEmail(), customer.getBirth(), customer.getId());
+  }
+
+  @Override
+  public Customer getCustomerById(Connection connection, int id) {
+    String sql = "select id, name, email, birth from customers where id = ?";
+    Customer customer = getInstance(connection, sql, id);
+    return customer;
+  }
+
+  @Override
+  public List<Customer> getAll(Connection connection) {
+    String sql = "select id, name, email, birth from customers";
+    List<Customer> list = getForList(connection, sql);
+    return list;
+  }
+
+  @Override
+  public Long getCount(Connection connection) {
+    String sql = "select count(*) from customers";
+    return getValue(connection, sql);
+  }
+
+  @Override
+  public Date getMaxBirth(Connection connection) {
+    String sql = "select max(birth) from customers";
+    return getValue(connection, sql);
+  }
+}
+
+```
+
+-----------------
+
+### 数据库连接池 技术
+
+> JDBC数据库连接池的必要性
+- 在使用开发基于数据库的web程序时，传统的模式基本是按以下步骤：　　
+- 在主程序（如servlet、beans）中建立数据库连接
+- 进行sql操作
+- 断开数据库连接
+
+- 上面的连接如果是自己创建的话 是能够完成对数据库的连接 但是这种模式开发，存在的问题:
+
+- 1. 普通的JDBC数据库连接使用 DriverManager 来获取，每次向数据库建立连接的时候都要将 Connection 加载到内存中，再验证用户名和密码(得花费0.05s～1s的时间)。需要数据库连接的时候，就向数据库要求一个，执行完成后再断开连接。这样的方式将会消耗大量的资源和时间。**数据库的连接资源并没有得到很好的重复利用。**若同时有几百人甚至几千人在线，频繁的进行数据库连接操作将占用很多的系统资源，严重的甚至会造成服务器的崩溃。
+
+- 2. **对于每一次数据库连接，使用完后都得断开。**否则，如果程序出现异常而未能关闭，将会导致数据库系统中的内存泄漏，最终将导致重启数据库。（回忆：何为Java的内存泄漏？）
+<!-- 
+  c
+  里面的内存泄漏是说将指针弄丢了 指针没了 就不能去调用指针指向的对象了 c里面是我们主动回收内存的 指针没了 我们就找不到该对象了 就没有办法主动回收了 所以导致的内存泄漏
+
+  java
+  内存中有对象 但是不能被回收 这就是内存泄漏 比如连接对象一致没有被关闭 导致一直存在 所以产生的内存泄漏的问题
+ -->
+
+- 3. **这种开发不能控制被创建的连接对象数**，系统资源会被毫无顾及的分配出去，如连接过多，也可能导致内存泄漏，服务器崩溃。 
+<!-- 
+  服务器再强大也有一个上限 一旦超出上限应该怎么处理呢 
+
+  超出上限后 如果还有人访问 就不让他获取连接了 这样服务器就不会出现崩溃和重启的问题
+  但是我们没有一个很好的管理 只要用户去请求 服务器就去创建 即使超出服务器的负载能力 就会崩溃
+ -->
+
+
+> 数据库连接池技
+- 为解决传统开发中的数据库连接问题，可以采用数据库连接池技术。
+
+> 数据库连接池的基本思想:
+- 就是为数据库连接建立一个“缓冲池”。预先在缓冲池中放入一定数量的连接，当需要建立数据库连接时，只需从“缓冲池”中取出一个，使用完毕之后再放回去。
+
+- **数据库连接池**负责分配、管理和释放数据库连接，它**允许应用程序重复使用一个现有的数据库连接，而不是重新建立一个**。
+
+- 数据库连接池在初始化时将创建一定数量的数据库连接放到连接池中，这些数据库连接的数量是由**最小数据库连接数来设定**的。无论这些数据库连接是否被使用，连接池都将一直保证至少拥有这么多的连接数量。连接池的**最大数据库连接数量**限定了这个连接池能占有的最大连接数，当应用程序向连接池请求的连接数超过最大连接数量时，这些请求将被加入到等待队列中。
+
+<!-- 
+    假设数据库连接池中只提供了4个连接
+    conn1 free
+
+        conn2 free
+
+            conn3 free
+            
+                conn4 free
+
+    java程序从连接池中拿到连接 该连接的状态就从free变成busy 也就是说我们可以有4个程序一人拿一个 假设峰值就只有4个 如果第5个程序来了 它就要等着 当有一个连接从busy变成free 这时候第5个程序再去拿着这个连接去做操作数据库
+
+    当我们用完一个连接后做close操作 conn的状态就会有busy变成free
+
+    我们以前自己创建的连接做close操作叫做释放内存空间 对于数据库连接池来讲只是将conn的状态由busy改为free 连接会还到连接池中供其它的java程序使用
+ -->
+
+
+
+> 数据库连接池技术的优点
+- 1. 资源重用
+- 由于数据库连接得以重用，避免了频繁创建，释放连接引起的大量性能开销。在减少系统消耗的基础上，另一方面也增加了系统运行环境的平稳性。
+
+- 2. 更快的系统反应速度
+- 数据库连接池在初始化过程中，往往已经创建了若干数据库连接置于连接池中备用。此时连接的初始化工作均已完成。对于业务请求处理而言，直接利用现有可用连接，避免了数据库连接初始化和释放过程的时间开销，从而减少了系统的响应时间
+
+- 3. 新的资源分配手段
+- 对于多应用共享同一数据库的系统而言，可在应用层通过数据库连接池的配置，实现某一应用最大可用数据库连接数的限制，避免某一应用独占所有的数据库资源
+
+- 4. 统一的连接管理，避免数据库连接泄漏
+- 在较为完善的数据库连接池实现中，可根据预先的占用超时设定，强制回收被占用连接，从而避免了常规数据库连接操作中可能出现的资源泄露
+
+
+> 多种开源的数据库连接池
+- JDBC 的数据库连接池使用 javax.sql.DataSource 来表示，DataSource 只是一个接口，该接口通常由服务器(Weblogic, WebSphere, Tomcat)提供实现，也有一些开源组织提供实现：
+
+- **DBCP** 
+- 是Apache提供的数据库连接池。tomcat 服务器自带dbcp数据库连接池。**速度相对c3p0较快**，但因自身存在BUG，Hibernate3已不再提供支持。
+<!-- 
+  速度快 不稳定 bug
+ -->
+
+- **C3P0** 
+- 是一个开源组织提供的一个数据库连接池，**速度相对较慢，稳定性还可以。**hibernate官方推荐使用
+<!-- 
+  稳定 但是速度差
+ -->
+
+- Proxool :
+- 是sourceforge下的一个开源项目数据库连接池，有监控连接池状态的功能，**稳定性较c3p0差一点**
+
+- BoneCP :
+- 是一个开源组织提供的数据库连接池，速度快
+
+- **Druid** 
+- 是阿里提供的数据库连接池，据说是集DBCP 、C3P0 、Proxool 优点于一身的数据库连接池，但是速度不确定是否有BoneCP快
+<!-- 
+  主流 既兼顾的稳定性 同时来兼顾了效率
+ -->
+
+---
+
+> DataSource 
+- 通常被称为数据源，它包含连接池和连接池管理两个部分，习惯上也经常把 DataSource 称为连接池
+
+- **DataSource用来取代DriverManager来获取Connection，获取速度快，同时可以大幅度提高数据库访问速度。**
+
+- 特别注意：
+- 数据源和数据库连接不同，数据源无需创建多个，它是产生数据库连接的工厂，因此**整个应用只需要一个数据源即可。**
+
+- 当数据库访问结束后，程序还是像以前一样关闭数据库连接：conn.close(); 但conn.close()并没有关闭数据库的物理连接，它仅仅把数据库连接释放，归还给了数据库连接池。
+
+-----------------
+
+### c3p0数据库连接池的两种实现方式 
+
+> 引入 jar 包
+- 既然是第三方的开始的时候就要导入第三方的jar包
+- c3p0-0.9.1.2.jar
+- 添加到 lib 中 
+<!-- 
+  jar包中的doc里面有index.html文件 就是用来说明这个jar怎么用的
+
+  同时这个index.html中也是说明文档 比如
+  连接池的初始的连接数量 峰值 最大 最小的数据库连接数量 最大的空闲时间 等 都可以在这个index.html中找到
+ -->
+
+
+> 使用C3P0连接池获取连接的两种方式
+> 方式1:
+> 1. 获取 C3P0连接池 
+- 得到连接池对象
+```java
+// ComboPooledDataSource是 DataSource接口的具体实现类
+ComboPooledDataSource cpds = new ComboPooledDataSource();
+```
+
+- 拿到连接池对象 cpds 后
+- 我们可以通过该对象来调用方法获取连接池 和 通过该对象调用方法来设置连接池
+
+> 2. 让连接池连接myql数据库
+- 这里相当于 我们写的properties文件
+```java
+cpds.setDriverClass( "com.mysql.cj.jdbc.Driver" );
+cpds.setJdbcUrl( "jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC" );
+cpds.setUser("root");
+cpds.setPassword("qwer6666");
+```
+
+> 3. 可以通过 cpds 对连接池进行设置
+- 具体的设置可以在index.html文件中查找
+- 都是通过 setXxxx() 方法设置
+```java
+cpds.setInitialPoolSize(10);
+```
+
+> 获取连接
+```java
+Connection connection = cpds.getConnection();
+System.out.println(connection);
+```
+
+
+> 销毁C3P0数据库连接池
+> DataSources.destroy( cpds );
+- 一般情况下我们是不会关闭连接池的
+
+
+
+> 完整代码
+```java
+package com.sam.connection;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.junit.Test;
+
+import java.beans.PropertyVetoException;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class C3P0Test {
+  @Test
+  public void testGetConnection() throws PropertyVetoException, SQLException {
+    // 获取C3P0数据库连接池
+    ComboPooledDataSource cpds = new ComboPooledDataSource();
+
+    // 这里相当于 我们写的properties文件
+    cpds.setDriverClass( "com.mysql.cj.jdbc.Driver" );
+    cpds.setJdbcUrl( "jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC" );
+    cpds.setUser("root");
+    cpds.setPassword("qwer6666");
+
+    // Appendix A: Configuration Properties
+    cpds.setInitialPoolSize(10);
+
+    // 通过 cpds 获取连接
+    Connection connection = cpds.getConnection();
+    System.out.println(connection);
+  }
+}
+```
+
+
+> 方式2:
+- 我们将配置信息写入到xml文件中
+- 文件名*必须*是: c3p0-config.xml
+
+- 我们在模块的src文件夹下创建 c3p0-config.xml
+
+> 官方下的xml模板 
+- 我们就是在这个的基础上 修改我们自己的配置
+- 因为这个配置文件是c3p0自动去读 
+- <property name="checkoutTimeout">
+- 这里的name必须要人家定义好的 不能自己所以更改
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<c3p0-config>
+  <default-config>
+    <property name="automaticTestTable">con_test</property>
+    <property name="checkoutTimeout">30000</property>
+    <property name="idleConnectionTestPeriod">30</property>
+    <property name="initialPoolSize">10</property>
+    <property name="maxIdleTime">30</property>
+    <property name="maxPoolSize">100</property>
+    <property name="minPoolSize">10</property>
+    <property name="maxStatements">200</property>
+
+    <user-overrides user="test-user">
+      <property name="maxPoolSize">10</property>
+      <property name="minPoolSize">1</property>
+      <property name="maxStatements">0</property>
+    </user-overrides>
+
+  </default-config>
+
+  <!-- This app is massive! -->
+  <named-config name="intergalactoApp">
+    <property name="acquireIncrement">50</property>
+    <property name="initialPoolSize">100</property>
+    <property name="minPoolSize">50</property>
+    <property name="maxPoolSize">1000</property>
+
+    <!-- intergalactoApp adopts a different approach to configuring statement caching -->
+    <property name="maxStatements">0</property>
+    <property name="maxStatementsPerConnection">5</property>
+
+    <!-- he's important, but there's only one of him -->
+    <user-overrides user="master-of-the-universe">
+      <property name="acquireIncrement">1</property>
+      <property name="initialPoolSize">1</property>
+      <property name="minPoolSize">1</property>
+      <property name="maxPoolSize">5</property>
+      <property name="maxStatementsPerConnection">50</property>
+    </user-overrides>
+  </named-config>
+</c3p0-config>
+```
+
+- 根据上面的模板 以下的内容是我们需要的
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<c3p0-config>
+  <!-- 
+    指定配置的文件名 通过该名字 java层面好进行调用 
+  -->
+  <named-config name="c3p0Test">
+
+    <!-- 提供获取连接的4个基本信息 -->
+    <property name="driverClass">com.mysql.cj.jdbc.Driver</property>
+
+    <!-- 这里注意: & -> &amp; -->
+    <property name="jdbcUrl">jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC</property>
+    <property name="user">root</property>
+    <property name="password">qwer6666</property>
+
+    <!-- 进行数据库连接管理的基本信息 -->
+    <!-- 
+      当数据库连接池中的连接数不够时 c3p0一次性向数据库服务器申请的连接数 
+    -->
+    <property name="acquireIncrement">5</property>
+
+    <!-- c3p0数据库连接池中初始化时的连接数 -->
+    <property name="initialPoolSize">10</property>
+
+    <!-- c3p0数据库连接池维护的最少连接数 -->
+    <property name="minPoolSize">10</property>
+
+    <!-- c3p0数据库连接池维护的最多连接数 -->
+    <property name="maxPoolSize">100</property>
+
+    <!--
+      c3p0数据库连接池最多维护的statement的个数
+      拿到连接接下来我们要传递 sql 语句 我们就需要用到statement 通过它我们传输sql语句并且执行 这里最多维护50个
+    -->
+    <property name="maxStatements">50</property>
+
+    <!-- 每一个连接最多可以使用的statement的个数 -->
+    <property name="maxStatementsPerConnection">5</property>
+  </named-config>
+</c3p0-config>
+```
+
+- 在配置好文件后 我们java层面就可以根据文件来获取连接池对象了
+
+**注意:**
+- 这里我们传入的是 自定义的配置文件名
+```java
+@Test
+public void testGetConnection2() throws SQLException {
+  // 指定xml配置文件 然后获取 c3p0连接池
+  ComboPooledDataSource cpds = new ComboPooledDataSource("c3p0Test");
+  Connection connection = cpds.getConnection();
+  System.out.println(connection);
+}
+```
+
+-----------------
+
+### 使用c3p0数据库连接池技术 重构JDBCUtils 获取连接的方法
+ 
+- java代码如下:
+```java
+package com.sam.utils;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+import java.io.InputStream;
+import java.sql.*;
+import java.util.Properties;
+
+public class JDBCUtils {
+
+  // 注意: 
+  // 下面都是静态方法 这里也要定义为静态的
+  private static ComboPooledDataSource cpds = new ComboPooledDataSource("c3p0Test");
+
+
+  // 使用c3p0数据库连接池技术
+  public static Connection getConnection() throws Exception {
+    
+    Connection connection = cpds.getConnection();
+
+    return connection;
+  }
+
+  // 关闭资源的方法没有改
+
+}
+
+```
+
+- 注意的部分解释如下:
+- 我们要把 new ComboPooledDataSource() 的逻辑提取到类中 作为一个静态的变量
+
+- 如果我们放在方法中 那么每次调用方法都会new一个连接池 而我们放到外面是静态的 别的地方调用方法的时候 我们用的都是唯一的 cpds 对象
+
+- 池子不用造很多 一个就够
+
+-----------------
+
+### DBCP数据库连接池的两种实现方式
+- 使用DBCP也需要先引入 jar 包 导两个包 这两个jar包有依赖的关系
+- commons-dbcp-1.4.jar
+- commons-pool-1.5.5.jar
+
+  | - com.sam.connection
+    - DBCPTest
+
+
+- 不管是DBCP还是C3P0起始 我们都需要通过 DataSource
+```java
+import javax.sql.DataSource;
+```
+
+- DataSource有很多的实现类
+- 我们在DataSource上 ctrl+options+b 能到看 commons.dbcp有一个实现类 BasicDataSource
+
+- 这里我们通过 BasicDataSource 创建数据库连接池对象
+
+```java
+@Test
+public void testGetConnection() {
+  BasicDataSource source = new BasicDataSource();
+}
+```
+
+> BasicDataSource的使用方式
+- 在jar包中还是由 index.html 文件 这个文件就告诉我们该jar包的使用方式
+
+> 常用的关于设置数据库连接池的属性
+> initialSize
+  连接池启动时创建的饿初始化连接数量 默认值0
+
+> maxActive
+  连接池中可同时连接的最大连接数 默认值8 
+  *调整为20* 高峰单机器在20并发左右，自己根据应用场景定
+
+> maxIdle
+  连接池中最大的空闲的连接数 默认为8个
+  超过的空闲连接将被释放 如果设置为负数表示不限制
+
+  maxIdle不能设置太小，因为假如在高负载的情况下，连接的打开时间比关闭的时间快，会引起连接池中idle的个数 上升超过maxIdle，而造成频繁的连接销毁和创建，类似于jvm参数中的Xmx设置
+
+> minIdle
+  连接池中最小的空闲的连接数 默认为0
+  低于这个数量会被创建新的连接 *调整为5*
+
+  该参数越接近maxIdle，性能越好，因为连接的创建和销毁，都是需要消耗资源的；但是不能太大，因为在机器很空闲的时候，也会创建低于minidle个数的连接，类似于jvm参数中的Xmn设置
+
+> maxWait
+  最大等待时间 当没有可用连接时 连接池等待连接释放的最大时间 超过该时间限制会抛出异常
+
+  如果设置-1表示无限等待（默认为无限，*调整为60000ms*，避免因线程池不够用，而导致请求被无限制挂起
+
+> poolPreparedStatements
+  开启池的prepared 默认是false
+  默认是false *不用调整* 经过测试 开启后的性能没有关闭的好
+
+> maxOpenPreparedStatements
+  开启池的prepared后的同时最大连接数 默认无限制
+  *不用配置*
+
+> minEvictableIdleTimeMillis
+  连接池中连接 在时间段内一直空闲 被逐出连接池的时间
+
+> removeAbandonedTimeout
+  超过时间限制 回收没有用的连接 默认为 300 *调整到180*
+
+> removeAbandoned
+  超过removeAbandonedTimeout时间后 是否进行没用连接的回收 
+  默认为false *调整为true*
+
+
+> 方式1:
+```java
+@Test
+public void testGetConnection() throws SQLException {
+  // 创建了 DBCP 数据库连接池
+  BasicDataSource source = new BasicDataSource();
+
+  // 设置基本信息
+  source.setDriverClassName("com.mysql.cj.jdbc.Driver");
+  source.setUrl("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC");
+  source.setUsername("root");
+  source.setPassword("qwer6666");
+
+  // 设置其它涉及数据库连接池管理的相关属性 查看文档
+  source.setInitialSize(10);
+  source.setMaxActive(10);
+
+  Connection connection = source.getConnection();
+  System.out.println(connection);
+}
+```
+
+
+> 方式2:
+- 使用配置文件
+
+- 使用 BasicDataSourceFactory 用来创建 BasicDataSource的
+
+- 1. 模块的sql下创建配置文件
+```.properties
+username=root
+password=qwer6666
+url=jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC
+driverClassName=com.mysql.cj.jdbc.Driver
+
+initialSize=10
+```
+
+> BasicDataSourceFactory.createDataSource(properties配置文件)
+- 获取连接池
+
+- 返回值
+- BasicDataSource
+
+```java
+@Test
+public void testGetConnection2() throws Exception {
+  //
+  Properties prop = new Properties();
+  // 获取配置文件的方式1:
+  // InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("dbcp.properties");
+
+  // 获取配置文件的方式2: 注意这里是以工程下 所以前面要加上 src/
+  FileInputStream is = new FileInputStream(new File("src/dbcp.properties"));
+
+  prop.load(is);
+
+  DataSource source = BasicDataSourceFactory.createDataSource(prop);
+
+  Connection connection = source.getConnection();
+  System.out.println(connection);
+}
+```
+
+> 使用 DBCP 来对 JDBCUtils中获取连接的方法进行调整
+```java
+public class JDBCUtils {
+  private static DataSource source;
+
+  // 静态代码随着类的加载而加载 就只执行一次 相当于对上面source进行赋值
+  static {
+    try {
+      Properties prop = new Properties();
+      FileInputStream is = new FileInputStream(new File("src/dbcp.properties"));
+      prop.load(is);
+
+      // 创建一个dbcp连接池
+      source = BasicDataSourceFactory.createDataSource(prop);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  // 使用 DBCP 技术获取连接池
+  public static Connection getConnection2() throws Exception {
+    Connection connection = source.getConnection();
+    return connection;
+  }
+}
+```
+
+- 也是跟c3p0中的问题一样 我们要确保只有一个连接池 所以将source拿到了外面 通过静态代码块来进行赋值
+
+-----------------
+
+### Druid(德鲁伊)数据库连接池技术的实现
+- Druid是阿里巴巴开源平台上一个数据库连接池实现，它结合了C3P0、DBCP、Proxool等DB池的优点，同时加入了日志监控，可以很好的监控DB池连接和SQL的执行情况，可以说是针对监控而生的DB连接池，**可以说是目前最好的连接池之一。**
+
+  | - com.sam.connection
+    - DruidTest
+
+- 1. 加载驱动
+- druid-1.1.10.jar
+
+- 2. 在jar包中查看index.html文件 查看使用方式
+- 使用 
+
+
+> Druid常见的配置信息
+> name:
+  配置这个属性的意义在于，如果存在多个数据源，监控的时候可以通过名字来区分开来。
+  如果没有配置，将会生成一个名字，格式是：”DataSource-” +   System.identityHashCode(this)
+
+> url:
+  连接数据库的url，不同数据库不一样。
+  例如：
+  mysql:  jdbc:mysql://10.20.153.104:3306/druid2
+  oracle: jdbc:oracle:thin:@10.20.149.85:1521:ocnauto
+
+> username
+  连接数据库的用户名 
+  
+> password 
+  连接数据库的密码。如果你不希望密码直接写在配置文件中，可以使用ConfigFilter。
+  详细看这里：<https://github.com/alibaba/druid/wiki/%E4%BD%BF%E7%94%A8ConfigFilter>
+  
+> driverClassName
+  根据url自动识别   这一项可配可不配，如果不配置druid会根据url自动识别dbType，然后选择相应的driverClassName(建议配置下)
+  
+> initialSize
+  默认值 0
+  初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
+  
+> maxActive
+  默认值 8
+  最大连接池数量
+  
+> maxIdle
+  默认值 8
+  已经不再使用，配置了也没效果
+  
+> minIdle
+  最小连接池数量
+
+> maxWait 
+  获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，
+  如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
+  
+> poolPreparedStatements
+  默认值好 false
+  是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。*在mysql下建议关闭。*
+  
+> maxOpenPreparedStatements
+  默认值 -1
+  要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true。
+  在Druid中，不会存在Oracle下PSCache占用内存过多的问题，可以把这个数值配置大一些，比如说100
+  
+> validationQuery
+  用来检测连接是否有效的sql，要求是一个查询语句。
+  如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会其作用。
+  
+> testOnBorrow
+  默认值 true
+  申请连接时执行validationQuery检测连接是否有效，*做了这个配置会降低性能。*
+  
+> testOnReturn
+  默认值 false
+  归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能
+  
+> testWhileIdle
+  默认值 false
+  建议配置为true，不影响性能，并且保证安全性。
+  申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
+  
+> timeBetweenEvictionRunsMillis
+  有两个含义： 
+  1)Destroy线程会检测连接的间隔时间
+  2)testWhileIdle的判断依据，详细看testWhileIdle属性的说明
+  
+> numTestsPerEvictionRun
+  不再使用，一个DruidDataSource只支持一个EvictionRun
+  
+> minEvictableIdleTimeMillis
+
+> connectionInitSqls
+  物理连接初始化的时候执行的sql
+  
+> exceptionSorter
+  根据dbType自动识别   当数据库抛出一些不可恢复的异常时，抛弃连接
+  
+> filters
+  属性类型是字符串，通过别名的方式配置扩展插件，
+  常用的插件有：   监控统计用的filter:stat日志用的filter:log4j防御sql注入的filter:wall
+  
+> proxyFilters
+  类型是List，如果同时配置了filters和proxyFilters，是组合关系，并非替换关系
+
+
+> 方式1: 
+- 通过下面的方法 获取连接池 调用set方法 设置 跟DBCP 完全一样
+> new DruidDataSource()
+- 创建连接池
+
+
+> 方式2:
+- 使用配置文件的方式 这里我们直接使用这种方式
+> DruidDataSourceFactory.createDataSource(properties配置文件)
+
+- src/druid.properties
+```js
+username=root
+password=qwer6666
+jdbcUrl=jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC
+driverClassName=com.mysql.cj.jdbc.Driver
+
+initialSize=10
+```
+
+> 代码部分
+```java
+@Test
+public void getConnection() throws Exception {
+
+  // 读取配置文件
+  Properties prop = new Properties();
+  InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("druid.properties");
+  prop.load(is);
+
+  // 创建 连接池
+  DataSource source = DruidDataSourceFactory.createDataSource(prop);
+
+  // 获取连接
+  Connection connection = source.getConnection();
+  System.out.println(connection);
+}
+```
+
+> 修改 JDBCUtils 中的逻辑
+```java
+// 将连接池声明在类中 static
+private static DataSource source2;
+// 赋值
+static {
+  try {
+    Properties prop = new Properties();
+    InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("druid.properties");
+    prop.load(is);
+    // 创建 连接池
+    source2 = DruidDataSourceFactory.createDataSource(prop);
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+}
+
+// 使用 Druid 技术获取连接池
+public static Connection getConnection3() throws Exception {
+  Connection connection = source2.getConnection();
+  return connection;
+}
+```
+
+-----------------
