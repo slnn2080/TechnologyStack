@@ -3463,7 +3463,7 @@ public void testUpdateWithTx() {
 
 -----------------
 
-### 事务的ACID属性
+### 事务的ACID属性 - 4大属性
 
 > 1. 原子性（Atomicity）
 - 原子性是指事务是一个不可分割的工作单位，事务中的操作要么都发生，要么都不发生。 
@@ -4748,17 +4748,28 @@ public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {
     // 当前对象this this.getClass()获取自己的类 然后自己的类的带泛型的父类
     Type genericSuperclass = this.getClass().getGenericSuperclass();
 
-    // 我们做下强转
+    // 我们做下强转 ParameterizedType 是带泛型参数的type 还是BaseDAO<Customer> 强转的目的是为了调用方法
     ParameterizedType paramType = (ParameterizedType) genericSuperclass;
 
     // 该方法用于获取父类的泛型参数 泛型可能会有多个 所以返回的是一个数组
     Type[] actualTypeArguments = paramType.getActualTypeArguments();
+
     // 获取了泛型的第一个参数 也就是 BaseDAO<Customer> 中的 Customer
+    // 正常actualTypeArguments的类型是一个 type类型 但我们知道 Customer它是一个Class类 所以我们进行了强转
     clazz = (Class<T>) actualTypeArguments[0];
   }
 }
 
 ```
+
+
+> 解析:
+- this.getClass().getGenericSuperclass();
+- this是当前类的对象
+- this.getClass()  -- CustomerDAOImpl
+- getGenericSuperclass() -- BaseDAO<Customer>
+
+
 
 > 优化后的BaseDAO
 ```java
@@ -5693,3 +5704,480 @@ public static Connection getConnection3() throws Exception {
 ```
 
 -----------------
+
+### Apache-DBUtils实现CRUD操作
+- Apache下有一个DBUtils的jar包 这个jar包也能实现CRUD的操作
+
+- 上面我们讲了数据库连接池 有了它后我们就不用自己创建连接了 相当于把我们创建连接的事儿给替换了
+
+- 而这个部分我们就可以将自己写的preparedStatement的通用的增删改查的操作给替换了
+<!-- 
+  其实源码是和我们上面写的通过的增删改查是一样的
+ -->
+
+
+> Apache-DBUtils简介
+- commons-dbutils 是 Apache 组织提供的一个开源 JDBC工具类库，它是对JDBC的简单封装，学习成本极低，并且使用dbutils能极大简化jdbc编码的工作量，同时也不会影响程序的性能。
+
+> 使用方式
+- 1. 导包
+- commons-dbutils-1.3.jar
+
+- 2. 使用方式查看api文档 在jar包中的 index.html 中
+- 我们要使用 QueryRunner 类
+
+- 3. new QueryRunner()
+- 得到 runner 对象 我们通过调用 runner对象身上的方法来完成增删改查的操作
+
+
+> runner对象身上的方法
+
+> runner.update():
+- 主要是用来完成 增删改 的操作
+- 这里面有很多的重载的方法
+<!-- 
+  update(String sql, Object ...args)
+  update(String sql)
+  update(String sql, Object param)
+
+  update(Connecttion conn, String sql,)
+  update(Connecttion conn, String sql, Object param)
+  update(Connecttion conn, String sql, Object ...args)
+ -->
+
+- 如果是我们要考虑事务的话 我们可以传入一个 conn
+- 如果本次操作单独是一个事务了 就不用传了 里面会自动帮我们造一个连接
+
+- 返回值
+- int
+- 表示影响了几条记录
+
+
+
+> 演示带事务的 插入操作
+- 注意 try catch
+```java
+@Test
+public void testInsert() throws Exception {
+  // 创建 QueryRunner
+  QueryRunner runner = new QueryRunner();
+
+  // 增删改的操作 我们使用 update()
+  // 插入数据 我们演示带事务的
+  Connection connection = JDBCUtils.getConnection3();
+
+  String sql = "insert into customers(name, email, birth) values(?,?,?)";
+
+  int i = runner.update(connection, sql, "蔡徐坤", "cxk@gmail.com", "1997-09-08");
+
+  System.out.println("添加了" + i + "条记录");
+}
+```
+
+- 删 和 改 跟插入是一样的 区别就是sql语句不一样
+
+
+> runner.query()
+- 主要用来完成 查询操作
+- 这里面也有很多的重载方法
+<!-- 
+  query(String sql, ResultSetHandler<T> rsh)
+  query(Connection conn, String sql, ResultSetHandler<T> rsh)
+
+  query(String sql, ResultSetHandler<T> rsh, Object param)
+  query(Connection conn, String sql, ResultSetHandler<T> rsh, Object ...args)
+ -->
+
+- 如果我们是以事务的形式去操作 那我们就需要传入连接
+- 注意上面的参数的位置
+
+- 示例：
+- 我们要以事务的形式进行查询
+```java
+// 注意实参的位置
+runner.query(conn, sql, rsh, "可变形参");
+```
+- 上面我们注意到了 还需要传入 rsh
+
+> ResultSetHandler<T> rsh
+- 参数:
+- ResultSetHandler<T> rsh 结果集的处理器
+- 指定怎么处理返回的数据 它是一个接口 我们只能传入该接口的实现类 
+
+- 因为结果集返回的情况不一样 为了对应多种情况 我们创建了这个接口 下面提供了各种实现类 来应对我们的实际需求
+
+```java
+// 该接口的实现类有
+AbstractKeyedHandler
+AbstractListHandler
+
+// 封装的也是一个对象 但是该对象是以数组的方式呈现的
+ArrayHandler
+ArrayListHandler
+
+// 返回一条记录的时候
+// 用户封装表中的一条记录 返回具体的对象
+BeanHandler<T> ... new BeanHandler(T.class)
+
+// 返回多条记录的时候
+// 一个对象是一个Bean 多个对象就是list
+BeanListHandler<T> ... new BeanHandler(T.class)
+
+ColumnListHandler
+KeyedHandler
+
+// 该处理器没有泛型 结果不是以一个对象的形式呈现的 而是一个map的方式
+// 该处理器对应表中的一条记录 将字段以及响应的字段的值 作为map中的key和value
+MapHandler
+MapListHandler
+
+
+// 用于返回特殊的值 没有泛型
+ScalarHandler
+```
+
+- 上面的所有handler都是可以传入泛型的
+- 但是好像都没有空参构造器 在new 它们的时候 我们要传入 具体的哪个类的类型
+```java
+// 前面传入了 泛型 后面指定了 类.class
+BeanHandler<Customer> handler = new BeanHandler<>(Customer.class);
+```
+
+
+> 返回单个对象的示例:  BeanHandler
+```java
+@Test
+public void testQuery1() throws Exception {
+  QueryRunner runner = new QueryRunner();
+  Connection connection = JDBCUtils.getConnection3();
+  String sql = "select id, name, email, birth from customers where id = ?";
+
+  // ResultSetHandler - 我们选择使用 BeanHandler 返回一个对象
+  BeanHandler<Customer> handler = new BeanHandler<>(Customer.class);
+
+  Customer customer = runner.query(connection, sql, handler, 23);
+
+  System.out.println(customer);
+  // Customer{id=23, name='蔡徐坤', email='cxk@gmail.com', birth=1997-09-08}
+}
+```
+
+
+> 返回多个对象的示例:  BeanListHandler
+```java
+@Test
+public void testQuery2() throws Exception {
+  QueryRunner runner = new QueryRunner();
+  Connection connection = JDBCUtils.getConnection3();
+  String sql = "select id, name, email, birth from customers where id < ?";
+
+  // BeanListHandler 返回多个对象的集合
+  BeanListHandler<Customer> handler = new BeanListHandler<>(Customer.class);
+
+  List<Customer> list = runner.query(connection, sql, handler, 23);
+
+  list.forEach(System.out :: println);
+}
+```
+
+
+> 返回一个对象的示例:   MapHandler
+- MapHandler没有泛型
+
+```java
+@Test
+public void testQuery3() throws Exception {
+  QueryRunner runner = new QueryRunner();
+  Connection connection = JDBCUtils.getConnection3();
+  String sql = "select id, name, email, birth from customers where id = ?";
+
+  // BeanListHandler 返回多个对象的集合
+  MapHandler handler = new MapHandler();
+
+  Map<String, Object> map = runner.query(connection, sql, handler, 23);
+
+  System.out.println(map);
+  // {name=蔡徐坤, birth=1997-09-08, id=23, email=cxk@gmail.com}
+
+}
+```
+
+
+> 返回一个对象的示例:   MapListHandler
+- MapListHandler没有泛型
+```java
+@Test
+public void testQuery4() throws Exception {
+  QueryRunner runner = new QueryRunner();
+  Connection connection = JDBCUtils.getConnection3();
+  String sql = "select id, name, email, birth from customers where id < ?";
+
+  // BeanListHandler 返回多个对象的集合
+  MapListHandler listHandler = new MapListHandler();
+
+  List<Map<String, Object>> list = runner.query(connection, sql, listHandler, 23);
+
+  list.forEach(System.out :: println);
+}
+```
+
+
+> 返回特殊的值的操作:  ScalarHandler
+- 比如我们返回 count(*) max(birth) 等
+```java
+@Test
+public void testQuery5() throws Exception {
+  QueryRunner runner = new QueryRunner();
+  Connection connection = JDBCUtils.getConnection3();
+  String sql = "select count(*) from customers";
+
+  // 查询这个表中的总记录数
+  ScalarHandler handler = new ScalarHandler();
+
+  // 返回值是Object 我们需要强转
+  Long query = (Long) runner.query(connection, sql, handler);
+
+  System.out.println(query);
+}
+```
+
+-----------------
+
+### 自定义ResultSetHandler的实现类 完成查询操作
+- 当我们上面预定义的 ResultSetHandler 的实现类中没有能够满足我们需求的时候 我们可以自己提供一个ResultSetHandler的实现类
+
+- 下面演示下 怎么自定义 ResultSetHandler 实现类
+
+> 要点:
+- 1. 我们创建一个 ResultSetHandler 的匿名实现类对象
+- 2. 重写 handle 方法
+- 该方法中的return 结果 就会作为 query()的查询结果返回
+- 该方法中能够拿到 sql语句查询到的rs结果集 拿到结果集 rs 然后我们对rs进行操作 将操作后的结果return出去
+
+```java
+ResultSetHandler<Customer> handler = new ResultSetHandler<Customer>() {
+  @Override
+  public Customer handle(ResultSet rs) throws SQLException {
+    // 这样相当于写死了
+    return new Customer(12, "成龙", "jackey@gmail.com", new Date(234425425L));
+
+
+    // 正常是这样
+    if(rs.next()) {
+      int id = rs.getInt("id");
+      String name = rs.getString("name");
+      String email = rs.getString("email");
+      Date birth = rs.getDate("birth");
+
+      return new Customer(id, name, email, birth);
+    }
+
+    return null;
+  }
+};
+```
+
+```java
+@Test
+public void testQuery6() throws Exception {
+  QueryRunner runner = new QueryRunner();
+  Connection connection = JDBCUtils.getConnection3();
+
+  String sql = "select id, name, email, birth from customers where id = ?";
+
+  // 实现类匿名
+  ResultSetHandler<Customer> handler = new ResultSetHandler<Customer>() {
+    @Override
+    public Customer handle(ResultSet rs) throws SQLException {
+      ... 这个部分看上面
+    }
+  };
+
+  Customer customer = runner.query(connection, sql, handler, "23");
+
+  System.out.println(customer);
+}
+```
+
+-----------------
+
+### 老师使用 QueryRunner 封装的 BaseDAO
+```java
+package com.atguigu.bookstore.dao;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+
+
+/**
+ * 定义一个用来被继承的对数据库进行基本操作的Dao
+ * 
+ * @author HanYanBing
+ *
+ * @param <T>
+ */
+public abstract class BaseDao<T> {
+	private QueryRunner queryRunner = new QueryRunner();
+	// 定义一个变量来接收泛型的类型
+	private Class<T> type;
+
+	// 获取T的Class对象，获取泛型的类型，泛型是在被子类继承时才确定
+	public BaseDao() {
+		// 获取子类的类型
+		Class clazz = this.getClass();
+		// 获取父类的类型
+		// getGenericSuperclass()用来获取当前类的父类的类型
+		// ParameterizedType表示的是带泛型的类型
+		ParameterizedType parameterizedType = (ParameterizedType) clazz.getGenericSuperclass();
+		// 获取具体的泛型类型 getActualTypeArguments获取具体的泛型的类型
+		// 这个方法会返回一个Type的数组
+		Type[] types = parameterizedType.getActualTypeArguments();
+		// 获取具体的泛型的类型·
+		this.type = (Class<T>) types[0];
+	}
+
+	/**
+	 * 通用的增删改操作
+	 * 
+	 * @param sql
+	 * @param params
+	 * @return
+	 */
+	public int update(Connection conn,String sql, Object... params) {
+		int count = 0;
+		try {
+			count = queryRunner.update(conn, sql, params);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		return count;
+	}
+
+	/**
+	 * 获取一个对象
+	 * 
+	 * @param sql
+	 * @param params
+	 * @return
+	 */
+	public T getBean(Connection conn,String sql, Object... params) {
+		T t = null;
+		try {
+			t = queryRunner.query(conn, sql, new BeanHandler<T>(type), params);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		return t;
+	}
+
+	/**
+	 * 获取所有对象
+	 * 
+	 * @param sql
+	 * @param params
+	 * @return
+	 */
+	public List<T> getBeanList(Connection conn,String sql, Object... params) {
+		List<T> list = null;
+		try {
+			list = queryRunner.query(conn, sql, new BeanListHandler<T>(type), params);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		return list;
+	}
+
+	/**
+	 * 获取一个但一值得方法，专门用来执行像 select count(*)...这样的sql语句
+	 * 
+	 * @param sql
+	 * @param params
+	 * @return
+	 */
+	public Object getValue(Connection conn,String sql, Object... params) {
+		Object count = null;
+		try {
+			// 调用queryRunner的query方法获取一个单一的值
+			count = queryRunner.query(conn, sql, new ScalarHandler<>(), params);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		return count;
+	}
+}
+```
+-----------------
+
+### DBUtils类关闭资源的操作
+- 上面我们在JDBCUtils里面有关闭资源的逻辑 这个逻辑是我们自己写的
+```java
+public static void closeResource(Connection connection, Statement ps, ResultSet rs) {
+  try {
+    if(ps != null) ps.close();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+  try {
+    if(connection != null) connection.close();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+  try {
+    if(rs != null) rs.close();
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+}
+```
+
+- 我们导入的 Apache-DBUtils jar包中有一个类 就叫做DBUtils
+
+> 使用 dbutils.jar 中提供的 DbUtils 工具类 实现资源的关闭
+
+> DbUtils.close(connection);
+> DbUtils.close(ps);
+> DbUtils.close(rs);
+- 每关闭一个资源调用一次方法
+- 这个方法需要try catch
+
+```java
+public static void closeResource2(Connection connection, Statement ps, ResultSet rs) {
+  try {
+    DbUtils.close(connection);
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+  try {
+    DbUtils.close(ps);
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+  try {
+    DbUtils.close(rs);
+  } catch (SQLException e) {
+    e.printStackTrace();
+  }
+}
+```
+
+
+> DbUtils.closeQuietly(connection);
+> DbUtils.closeQuietly(ps);
+> DbUtils.closeQuietly(rs);
+- 这个方式也是资源关闭 不用try catch
+
+```java
+public static void closeResource2(Connection connection, Statement ps, ResultSet rs) {
+  DbUtils.closeQuietly(connection);
+  DbUtils.closeQuietly(ps);
+  DbUtils.closeQuietly(rs);
+}
+```
