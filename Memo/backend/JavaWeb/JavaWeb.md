@@ -14555,7 +14555,7 @@ public void testI18n() {
 
   // basename: 就是properties文件的文件名的前面的部分
   // 参数2: 语言对象
-  // 通过指定的basename和locale对象读取相应的配置文件
+  // 通过指定的basename和locale对象读取相应的配置文件 
   ResourceBundle bundle = ResourceBundle.getBundle("i18n", us);
 
   ResourceBundle bundle = ResourceBundle.getBundle("i18n", zh);
