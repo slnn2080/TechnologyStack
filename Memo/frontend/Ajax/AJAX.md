@@ -8,6 +8,22 @@
 - 但是实际我们后端要求的 'Content-Type': 'application/x-www-form-urlencoded' 为多见
 
 
+### jq发送form的时候
+- 要加上下面的2行配置
+- 告诉jQuery不要去处理发送的数据(必须设置)
+- 告诉jQuery不要去设置Content-Type请求头（必须设置）
+
+
+> processData: false
+- 默认值: true
+- 默认情况下，通过data选项传递进来的数据，如果是一个对象(技术上讲只要不是字符串)，都会处理转化成一个查询字符串，以配合默认内容类型 "application/x-www-form-urlencoded"。如果要发送 DOM 树信息或其它不希望转换的信息，请设置为 false。
+
+> contentType: false  -- 不设置内容类型
+- (默认: "application/x-www-form-urlencoded") 发送信息至服务器时内容编码类型。默认值适合大多数情况。如果你明确地传递了一个content-type给 $.ajax() 那么他必定会发送给服务器（即使没有数据要发送）
+
+
+
+
 ### 跨域原理:
 - 待整理
 - https://blog.csdn.net/liuerchong/article/details/107593141

@@ -1,3 +1,31 @@
+### 官方文档
+- https://www.nuxtjs.cn/api/configuration-generate
+
+- 日文文档
+- https://nuxtjs.org/ja/docs/directory-structure/nuxt-config/
+
+
+### cross-env
+- 是运行跨平台设置和使用环境变量的脚本
+
+> 为什么需要cross-env?
+- 我们在自定义配置环境变量的时候，由于在不同的环境下，配置方式也是不同的。
+- 当设置环境变量为 NODE_ENV=production 时，易造成 Windows 命令的阻塞。（除了 Windows 上的 Bash，因其使用本机 Bash）
+- cross-env 使用单个命令，而不用担心环境变量的设置。像运行在 POSIX系统 上一样进行设置，cross-env 可以进行正确的设置
+
+
+
+> 安装
+- npm install --save-dev cross-env
+<!-- 
+  NOTE:
+  cross-env 7 仅支持 Node.js >=10
+  cross-env 6 需要使用 npm install --save-dev cross-env@6
+ -->
+
+
+------
+
 ### 技巧
 
 > mock
@@ -595,18 +623,18 @@ plugins: [
 ---------------
 
 ### nuxt.config.js 中的配置项
-- 1. build
+> 1. build
 <!-- 
   Nuxt.js 允许你在自动生成的 vendor.bundle.js 
   文件中添加一些模块，以减少应用 bundle 的体积。
   如果你的应用依赖第三方模块，这个配置项是十分实用的。
  -->
 
-- 2. css
+> 2. css
 - 该配置项用于定义应用的*全局（所有页面均需引用的）样式文件*、*模块或第三方库*。
 
 
-- 3. env
+> 3. env
 - 该配置项用于定义应用客户端和服务端的环境变量。
 ```js
 env: {
@@ -617,33 +645,320 @@ env: {
 },
 ```
 
-- 4. generate
+> 4. generate
 - 该配置项用于定义每个动态路由的参数，Nuxt.js 依据这些路由配置生成对应目录结构的静态文件。
+- 做过seo的同学都知道，一些不是实时变化的页面（比如一个星期更新一次内容）我们可以生成静态的站点去让爬虫去爬去，这样就无需一次次地调用接口了。
+- 那么在nuxt中我们怎么去做呢？
+- nuxt为我们提供了一次generate的钩子，在nuxt.config.js中，我们去添加generate钩子
+
+```js
+generator: {
+  dir: "html",      // 
+  concurrency: 10   // ，
+  interval: 100,    // 
+  crawler: false    // 
+  routes() {}       // 我们想要生成静态页面对应的vue文件路由，它返回一个数组对象，如下图实战代码：
+```
+
+\\ dir:
+  我们生成的静态文件的目录 静态文件就会生成在html文件夹内
+
+\\ concurrency:
+  我们在批量生成文件的时候一次产生的文件数量
+
+\\ interval:
+  批量生成文件间隔
+
+\\ crawler:
+  比如我们的页面中有a链接的话，会生成a链接指向的页面的静态页面
+
+\\ routes:
+  们想要生成静态页面对应的vue文件路由，它返回一个数组对象
+  在 Nuxt.js 执行 generate 命令时，动态路由 会被忽略。
+<!-- 
+  -| pages/
+    ---| index.vue
+    ---| users/
+    -----| _id.vue
+ -->
+
+- 上面的目录结构，Nuxt.js 只会生成路由 / 对应的静态文件。（译者注：因为 /users/:id 是动态路由）如果想让 Nuxt.js 为动态路由也生成静态文件，你需要指定动态路由参数的值，并配置到 routes 数组中去。
+
+- 例如，我们可以在 nuxt.config.js 中为 /users/:id 路由配置如下：
+```js
+module.exports = {
+  generate: {
+    routes: ['/users/1', '/users/2', '/users/3']
+  }
+}
+```
+
+- 但是如果路由动态参数的值是动态的而不是固定的，应该怎么做呢？
+- 1. 使用一个返回 Promise 对象类型 的 函数。
+```js
+const axios = require('axios')
+
+module.exports = {
+  generate: {
+    routes() {
+      return axios.get('https://my-api/users').then(res => {
+        return res.data.map(user => {
+          return '/users/' + user.id
+        })
+      })
+    }
+  }
+}
+```
+
+- 2. 使用一个回调是 callback(err, params) 的 函数。
+```js
+module.exports = {
+  generate: {
+    routes(callback) {
+      axios
+        .get('https://my-api/users')
+        .then(res => {
+          const routes = res.data.map(user => {
+            return '/users/' + user.id
+          })
+          callback(null, routes)
+        })
+        .catch(callback)
+    }
+  }
+}
 
 
-- 5. head
+// 另一种演示
+module.exports = {
+  generate: {
+    routes(callback) {
+      const blogData = require('./assets/json/blog.json')
+      let routes = blogData.map(blog => `/blog/${blog.id}`)
+      callback(null, routes)
+    }
+  }
+}
+```
+
+\\ subFolders: bool
+- 默认: true
+- 默认情况下，运行nuxt generate将为每个路由创建一个目录并生成index.html文件。
+- 也就是说 假如我们有一个 about文件夹 那他下面就会生成一个 index.html 文件
+
+<!-- 
+  | - pages
+    | - about
+      - index.html
+ -->
+
+- 设置为false时，将根据路由路径生成 HTML 文件：
+- 当我们设置为 false 的时候 那么 about 文件夹就没有了 本身就会变成 about.html
+<!-- 
+  | - pages
+    - about.html
+ -->
+
+
+
+> 5. head
 - 该配置项用于配置应用默认的 meta 标签。
 
 
-- 6. loading
+> 6. loading
 - 该配置项用于个性化定制 Nuxt.js 使用的加载组件。
 
 
-- 7. plugins
+> 7. plugins
 - 该配置项用于配置那些需要在 根vue.js应用 *实例化之前需要运行的 Javascript 插件*。
 
 
-- 8. rootDir
+> 8. rootDir
 - 该配置项用于配置 Nuxt.js 应用的根目录。
 
 
-- 9. router
+> 9. router
 - 该配置项可用于覆盖 Nuxt.js 默认的 vue-router 配置。
+```js
+module.exports = {
+  router: {
+    base: process.env.NODE_ENV === 'dev' ? '/' : '/test/'
+  }
+}
+```
 
 
-- 10. server
+> 10. server
 - 此选项允许您配置 Nuxt.js 应用程序的服务器实例变量。
 
+> 11. hooks
+- 回调中的形参详解:
+- 1. generator
+- 2. generateOptions
+
+- generator形参是一个对象
+```js
+{
+  nuxt: { ... },
+  options: { ... }    // config.js
+  setPayload: () => {}
+}
+```
+
+- generateOptionsx形参是一个对象
+- 它就是 generate 配置项里面的信息 完整信息
+
+
+
+- https://qiita.com/teriyakisan/items/bdd7079cf4ab3f285a64  -- 使用方式2
+- 1. 创建 generator_hooks.js 文件
+- this.nuxt.hook() 方法 我们需要传递进 钩子名 和 对应的 回调
+```java
+module.exports = function() {
+  this.nuxt.hook("generate:before", (param1, param2) => {
+    console.log("param1", param1)
+    console.log("param2", param2)
+  })
+}
+```
+
+- 2. 在 config 文件里面配置
+```js
+modules: [
+"@nuxtjs/axios",
+"@nuxtjs/pwa",
+"@/plugins/generator_hooks"
+],
+```
+
+- 3. 运行 npm run generate
+
+--- 
+
+- 使用方式1:
+- 它是一个对象:
+- hooks 是Nuxt 事件的监听器，这些事件通常在 Nuxt 模块中使用，但也可以在 nuxt.config.js 中使用
+
+- hooks里面的属性有:
+- Nuxt hooks
+- Renderer hooks
+- ModulesContainer hooks
+- Builder hooks
+- Generator hooks
+
+- 而每个hooks类别中 又提供了多种hooks
+
+- 我们拿build来举例使用:
+- hooks: {
+  hooks是一个函数
+}
+
+- hooks: {
+  // 指定具体的hook
+  build: {
+    它又是一个对象 里面有一个函数作为回调 这个函数是提供好的
+    done() {...}
+  }
+}
+
+```js
+import fs from 'fs'
+import path from 'path'
+
+export default {
+  hooks: {
+    build: {
+      done(builder) {
+        const extraFilePath = path.join(
+          builder.nuxt.options.buildDir,
+          'extra-file'
+        )
+        fs.writeFileSync(extraFilePath, 'Something extra')
+      }
+    }
+  }
+}
+```
+
+
+\\ generate hook
+
+- generate:before	 
+  - 形参: (generator, generateOptions)	
+  - 作用: 生成前的回调
+```js
+hooks: {
+  generate: {
+    before(generator, generateOptions) {
+
+    }
+  }
+}
+```
+
+- 应用:
+```js
+// nuxt.config
+export default {
+  target: 'static',
+  hooks: {
+    export: {
+      async before ({ setPayload }) {
+        const categories = await backend.getCategories()
+        setPayload({ categories })
+      }
+    }
+  }
+}
+
+// pages/index.vue
+export default {
+  async asyncData({ params, error, payload }) {
+
+    // 如果有就拿负载里面的
+    if (payload) { return { categories: payload.categories } }
+
+    // 如果没有就请求新的
+    return { categories: await backend.getCategories() }
+  }
+}
+```
+
+
+- generate:distRemoved	
+  - 形参: (generator)	
+  - 作用: dis文件夹(我们指定的文件夹)当被删除的时候 触发的回调
+
+
+- generate:route
+  - 形参: ({ route, setPayload })	
+  - 作用: 页面生成前的回调 便于动态的设置负载
+
+
+- generate:page
+  - 形参: ({ route, path, html })	
+  - 作用: 用户更新生成后的path和html时 触发的回调
+
+
+- generate:routeCreated
+  - 形参: ({ route, path, errors })
+  - 作用: 成功保存生成的页面时的钩子
+
+
+- generate:extendRoutes
+  - 形参: (routes)
+  - 作用: 更新用户生成的route时的钩子
+
+
+- generate:routeFailed
+  - 形参: ({ route, errors })
+  - 作用: 保存生成的页面失败时的钩子
+
+
+- generate:done
+  - 形参: (generator, errors)
+  - 作用: 生成完了時のフック
 
 ---------------
 
@@ -1320,6 +1635,7 @@ module.exports = {
 
 - asyncData()：
 - 适合渲染组件前 获取异步数据 它可以选择把数据返回 之后交由组件内部处理
+**注意: 它只有在页面组件里面才有**
 
 - fetch()
 - 它也适合渲染组件前 获取异步数据 *可以用来填充vuex状态树*

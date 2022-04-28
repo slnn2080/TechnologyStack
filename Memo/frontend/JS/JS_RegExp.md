@@ -1,6 +1,9 @@
 ### https://www.bilibili.com/video/BV12J41147fC?p=33&spm_id_from=pageDriver
 - 看到这里
 
+
+### 关联java的笔记 看看 有一些注意事项是共同的
+
 -------------------
 
 ### 正则资料整理
