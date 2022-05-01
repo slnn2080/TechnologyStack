@@ -371,12 +371,13 @@
     | - WEB-INF
       - web.xml
   
-  - .html等
+    - .html等
 
 > 那如何将 web项目部署到 tomcat呢？
 - 点击 edit configurations
+- 点击 + 号 选择 Tomcat Server
 - 添加 local 的tomcat 实例
-- 点击 deployment 将web项目部署到idea上
+- 点击 deployment选项卡 点击 + 号 选择 artifact 选择web项目 将web项目部署到idea上
 - application context 就是服务器上的web工程名 也是我们指定web工程的入口
 
 - 一般情况下 我们会将 application context 修改为 /
@@ -413,6 +414,9 @@
 - 方式2:
 - 1. ctrl + ；
 - 2. Libraries -- 点击加号 -- 选择 JAVA (添加到类库的作用) -- 找到要添加的jar包 然后给该jar lib 起个name 比如 book_lib
+<!-- 
+  相当于创建了一个 libray 库 做统一的jar包管理 我们可以将这个 自定义的libray应用到指定module种
+ -->
 - 3. Modules -- 找到要操作的module -- 右侧点击 Dependencies 点击 + -- Library -- 选择步骤2中创建的 book_lib
 
 - 步骤4可以这样: 将jar包添加到类库后 将jar指定给哪个module使用 选择我们指定的web工程
@@ -536,7 +540,7 @@ interface Servlet
 - Filter过滤器
 - Listener监听器
 
-- 3. servlet是运行在服务器上的一个java小型程序 它可以*接收客户端发送过来的请求 并相应数据给客户端*
+- 3. servlet是运行在服务器上的一个java小型程序 它可以*接收客户端发送过来的请求 并响应数据给客户端*
 
 
 > servlet程序的作用
@@ -605,7 +609,7 @@ public void service(ServletRequest servletRequest, ServletResponse servletRespon
  -->
 
 
-- 在 <web-app> 里面添加 <servlet> 配置标签标签
+- 在 <web-app> 里面添加 <servlet> 配置标签
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1139,8 +1143,8 @@ public class ContextServlet1 extends HttpServlet {
 > 作用:
 > 1. 获取 web.xml 中配置的上下文参数 context-param
 > 2. 获取当前的工程路径, 格式: /工程路径
-
 > 3. 获取工程部署后在服务器硬盘上的绝对路径
+
 > context.getRealPath("/")
 - 返回的是*项目在服务器的绝对路径*
 ```java
@@ -1349,9 +1353,16 @@ System.out.println("爱好: " + Arrays.toString(hobbies));
 
 
 > req.getParameterNames()
-- 获取请求参数的 key
+- 请求参数的key会封装到 Enumeration 的类型中
 
-- 返回值应该是一个String[]数组
+- 返回值:
+- Enumeration<String> 
+
+```java
+Enumeration<String> names = req.getParameterNames();
+String element1 = names.nextElement();  // username
+String element2 = names.nextElement();  // age
+```
 
 
 ```html
@@ -1636,7 +1647,7 @@ public class Servlet2 extends HttpServlet {
 ### base标签
 - 作用:
 - 它可以设置一个当前页面中所有相对路径工作时 参照哪个路径来进行跳转
-- 当设置了base后我们在跳转的时候 会先看有没有base值 如果有的话则忽略相对路径跳转参考浏览器地址栏中的url规则 也base指定的值为基准
+- 当设置了base后我们在跳转的时候 会先看有没有base值 如果有的话则忽略相对路径跳转参考浏览器地址栏中的url规则 也按照base指定的值为基准
 
 - 位置:
 ```html
@@ -1848,7 +1859,7 @@ public class forwardC extends HttpServlet {
 
 > 响应有两个流:
 - 1. 字节流: 
-  常用语下载(传递二进制数据)
+  常用于下载(传递二进制数据)
   res.getOutputStream()
 
 - 2. 字符流: 
@@ -2044,7 +2055,7 @@ public class ResponseIO extends HttpServlet {
 
 
 > res.sendRedirect("新地址")
-- 302是规定的 该方法默认的会设置 响应状态码为302 并重定向到指定的资源或地址
+- 该方法默认的会设置 响应状态码为302 并重定向到指定的资源或地址
 
 
 > 方案1:
@@ -2253,7 +2264,7 @@ public class Response1 extends HttpServlet {
 - 后面我们整个项目就在这里面完成
 
 > 代码环节的流程
-> 1. 县创建书城需要的 数据库 和 表
+> 1. 先创建书城需要的 数据库 和 表
 <!-- 
   注册页面:
     需要保存的数据
@@ -2829,7 +2840,7 @@ public class UserServiceTest {
 }
 ```
 
-
+> 书签
 > 实现用户注册功能
 - 逻辑整理:
 - 当我们访问到 用户注册页面 的时候 我们会开始输入信息
