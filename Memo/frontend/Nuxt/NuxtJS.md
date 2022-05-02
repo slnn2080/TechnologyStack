@@ -5,25 +5,6 @@
 - https://nuxtjs.org/ja/docs/directory-structure/nuxt-config/
 
 
-### cross-env
-- 是运行跨平台设置和使用环境变量的脚本
-
-> 为什么需要cross-env?
-- 我们在自定义配置环境变量的时候，由于在不同的环境下，配置方式也是不同的。
-- 当设置环境变量为 NODE_ENV=production 时，易造成 Windows 命令的阻塞。（除了 Windows 上的 Bash，因其使用本机 Bash）
-- cross-env 使用单个命令，而不用担心环境变量的设置。像运行在 POSIX系统 上一样进行设置，cross-env 可以进行正确的设置
-
-
-
-> 安装
-- npm install --save-dev cross-env
-<!-- 
-  NOTE:
-  cross-env 7 仅支持 Node.js >=10
-  cross-env 6 需要使用 npm install --save-dev cross-env@6
- -->
-
-
 ------
 
 ### 技巧
@@ -636,6 +617,7 @@ plugins: [
 
 > 3. env
 - 该配置项用于定义应用客户端和服务端的环境变量。
+- 省去了在根目录写 .env.development 文件的方式
 ```js
 env: {
   apiUrl: process.env.API_BASE_URL + "/api/v1",
