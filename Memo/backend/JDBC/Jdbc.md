@@ -4585,7 +4585,7 @@ public class CustomerImplTest {
 
 - 我们先看 CustomerDAOImpl 的 getCustomerById() 我们发现我们竟然传递了一个 *Customer.class*
 
-- 因为我们要操作customers表 又因为我们就在CustomerDAOImpl的实现类里面 所以这个参数就没有意义 因为在customer的实现类里面 用户也不可能写别的表 所以我们不想传递这个参数 优化点
+- 因为我们要操作customers表 又因为我们就在CustomerDAOImpl的实现类里面 所以这个参数就没有意义 因为在customer的实现类里面 用户也不可能写别的表 所以我们不想传递这个参数 优化掉
 
 ```java
 @Override
@@ -4749,7 +4749,6 @@ public class CustomerDAOImpl extends BaseDAO<Customer> implements CustomerDao {
 - 1. 可以显式赋值
 - 2. 代码块中赋值
 - 3. 构造器中也可以 
-- 4. 代码块中也可以
 
 ```java
 public abstract class BaseDAO<T>  {
@@ -5963,6 +5962,7 @@ public void testQuery4() throws Exception {
 
 
 > 返回特殊的值的操作:  ScalarHandler
+- 查询一列中的某个值 或者是 聚合函数的结果
 - 比如我们返回 count(*) max(birth) 等
 ```java
 @Test

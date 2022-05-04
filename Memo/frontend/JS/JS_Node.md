@@ -1037,7 +1037,8 @@ DoublyLinkedList.prototype.getTail = function () {
 - 例如: 
 - 下面代码一共使用了四个装饰器，一个用在类本身，另外三个用在类方法。
 ```js
-@frozen class Foo {
+@frozen 
+class Foo {
 
   @configurable(false)
   @enumerable(true)

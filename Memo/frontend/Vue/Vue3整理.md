@@ -24,6 +24,10 @@
 - mixin 和 hooks 的区别
 - https://www.jianshu.com/p/b1695fd3cc3a
 
+- setup注意点
+- https://www.cnblogs.com/bingcola/p/15507847.html
+- https://cloud.tencent.com/developer/article/1981016
+
 ------
 
 ### 禁用 Attribute 继承
@@ -1173,9 +1177,11 @@ onMounted(() => {
 
 **注意:**
 - 如果子组件使用的是 option api 或 没有使用 <script setup> 这样父组件对子组件的每一个属性和方法都有完全的访问权 通过 ref
+
 - 如果子组件使用了 <script setup> 那么子组件就是私有的 一个父组件无法访问到一个使用了 <script setup> 的子组件中的任何东西
 
 - 但是可以通过 defineExpose宏显式 暴露
+- 也就是说子组件中使用setup标签属性 父组件要使用子组件中的属性和方法的时候 就要通过 defineExpose 显式暴露
 
 
 > defineExpose({})

@@ -3042,7 +3042,7 @@ public class RegistServlet extends HttpServlet {
   停止调试(都停了)
 
 - resume program:
-  程序一直跑 知道下一个断点停下来 如果没有断点就一直往下跑
+  程序一直跑 直到下一个断点停下来 如果没有断点就一直往下跑
 
 - mute:
   临时禁用所有的断点
@@ -3050,7 +3050,7 @@ public class RegistServlet extends HttpServlet {
 ----------------
 
 ### 用户登录功能实现
-- 登录页面也是一样 用户一行来需要输入内容
+- 登录页面也是一样 用户需要输入内容
  - 用户名:
  - 密码: 
  - 登录
@@ -3118,7 +3118,7 @@ public class LoginServlet extends HttpServlet {
 
 ### JSP
 - jsp的全称是 java server pages
-- java的服务器页面
+-  
 
 - jsp的主要作用是代替servlet程序回传html页面的数据
 - 因为servlet程序回传html页面数据时一件非常繁琐的事情 开发成本和维护成本都极高
@@ -3311,7 +3311,7 @@ public abstract class HttpJspBase extends HttpServlet implements HttpJspPage { .
  -->
 
 > extends
-- 设置jsp翻译出来的ajva类默认继承谁
+- 设置jsp翻译出来的java类默认继承谁
 - 就跟 java类中类的继承是一样的 相当于修改了 java类继承的位置
 
 ```java
@@ -3394,7 +3394,7 @@ public abstract class HttpJspBase extends HttpServlet implements HttpJspPage { .
 ------
 
 > 表达式脚本 (常用)
-- 表达式脚本的作用是: *在jsp页面上输出数据*
+- 表达式脚本的作用是: *在jsp页面上输出数据 相当于{{}}*
 - 也就是直接往页面上输出信息 *在底层上*表达式都会通过 print() 方法输出在页面上
 
 - out.print( 表达式 )
