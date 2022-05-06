@@ -3982,7 +3982,7 @@ application域是否有值:
 
 - 通过上面的代码去调用被包含的jsp页面执行输出
 
-- 3. 动态包含还可以传递参数 到引入的页面里(传值到另一个页面)
+- 3. 动态包含还可以传递参数 到引入的页面里(传值到另一个页面的request对象中)
 ```html
 <jsp:include page="/include/footer.jsp">
   <jsp:param name="key1" vlaue="value1">
@@ -4015,7 +4015,7 @@ application域是否有值:
 - <jsp:forward page=""></jsp:forward>
 - 它的功能跟上面的java代码一样就是请求转发的标签形式的语法糖
 
-- page请求设置路径
+- page请求设置目标路径
 
 ----------------
 
@@ -4735,6 +4735,10 @@ ${cookie.JSESSIONID.value}  // javax.servlet.http.Cookie@8fd4c3b
 - 相当于通过 uri 来引入 对应的标签库
 - 1. 先导入 jstl 标签库的jar包
 - 老师提供的文件夹里面有 我放到sam里面了
+<!-- 
+  taglibs-standard-impl-1.2.1.jar
+  taglibs-standard-spec-1.2.1.jar
+ -->
 
 - 2. 使用 taglib 指令引入标签库
 <%@ taglib prefix="前缀" uri="对应的uri" %>
@@ -4871,7 +4875,7 @@ ${requestScope.username}   // sam
 
 > 标签属性
 - begin: 设置遍历开始的索引 从begin开始
-- end: 设置结束的索 到end结束
+- end: 设置结束的索 到end结束(包括结束)
 - var: 循环中的变量 也是当前正在遍历的数据
 
 - 输出内容要用 el 表达式
@@ -5140,6 +5144,7 @@ ServletFileUpload servletFileUpload = new ServletFileUpload(fileItemFactory);
 
 > 该类提供的方法:
 > boolean ServletFileUpload.isMultipartContent(HttpServletRequest req)
+- 静态方法
 - 作用:
 - 判断当前上传的数据格式是否是多段的格式(如果不是多段的格式是解析不了的)
 
@@ -5148,6 +5153,7 @@ ServletFileUpload servletFileUpload = new ServletFileUpload(fileItemFactory);
 
 
 > public List<FileItem> parseRequest(HttpServletRequest req)
+- 实例对象身上的方法
 - 作用:
 - 解析上传的数据(解析的是文件的二进制数据)
 - 解析好后得到的是多个 FileItem
@@ -5541,7 +5547,7 @@ if(req.getHeader("User-Agent").contains("Firefox")) {
 - 方法:
 - let 变量名 = <%= java变量 %>
 
-> java代表获取js变量的值
+> java中获取js变量的值
 - 说明:
 - 在jsp中 java部分是在服务器端执行的
 - js部分是在客户端的浏览器执行的
@@ -6889,7 +6895,7 @@ public class BookServiceTest {
 
     // this是当前的对象实例 getClass() 就是获取父类(造this的类)
     
-    Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);s
+    Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);
     // this是当前的对象实例
     method.invoke(this, req, res);
 
@@ -7301,7 +7307,7 @@ BookServlet程序中有如下方法
 - 该方法中的逻辑:
 - 1. 获取图书编号
 - 2. 调用BookService.queryBookById(id) 得到修改的图书信息
-- 3. 包该图书信息保存到 request域中
+- 3. 把该图书信息保存到 request域中
 - 4. 请求转发到 book_edit.jsp页面 /pages/manager/book_edit.jsp
 
 > 代码部分

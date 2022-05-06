@@ -10805,6 +10805,71 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
     art-template也不用了 因为我只需要负责传递数据就好了 vue自己本身有模板语法
  -->
 
+
+> Rest
+- 全称: resource representational state transfer
+- 对资源的访问状态的变化 通过url的变化表述出来
+
+- Resource:
+- 资源
+- 资源rest架构 或者说 整个网络处理的核心
+
+- Representational:
+- 某种表现形式 比如用 json xml jpg等
+
+- state transfer:
+- 状态变化
+- 通过 http method 实现
+
+- rest描述的是在网络中client和server的一种交互形式
+
+- 用大白话来说 就是
+    - 通过url就知道要什么资源 
+    - 通过http methods就知道要干什么 
+    - 通过http status code就知道结果何如
+
+- 比如:
+- GET: 
+    /task -- 获取所有任务
+
+- POST: 
+    /task -- 创建新的任务
+
+- GET: 
+    /task{id} -- 通过任务id获取任务
+
+- PUT: 
+    /task{id} -- 更新指定id的任务
+
+- DELETE: 
+    /task{id} -- 删除指点id的任务
+
+- GET:
+- 代表获取一个资源
+
+- POST:
+- 代表添加一个资源
+
+- PUT:
+- 代表修改一个资源
+
+- DELETE:
+- 代表删除一个资源
+
+- server提供的restful api中 url中只使用名词来指定资源 原则上不使用动词
+
+- 用HTTP Status Code 传递server的状态信息
+- 比如最常用的200表示成功 500表示server内部的错误
+
+- 总结下 就是用url定义资源用http描述操作
+
+> 优势：
+- 1. 风格统一 不会出现 delUser deleteUser removeUser 各种命名的代码了
+- 2. 面向资源 一目了然 具有自解释性
+- 3. 充分利用HTTP协议本身语义
+
+
+
 ----------------------
 
 ### JWT token 三大部分介绍

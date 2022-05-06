@@ -6,6 +6,8 @@
 - https://www.cnblogs.com/zhuhuoxingguang/p/11759001.html
 - https://www.jianshu.com/p/27e304884459
 
+- https://router.vuejs.org/zh/api/#addroute-1
+
 
 > v-bind 的知识点
 - https://juejin.cn/post/6844904101298323470
@@ -20227,7 +20229,7 @@ import {Watch} from "vue-property-decorator";
 
 ---------------
 
-### routes 中的hidden
+### routes 中的hidden 获取 routes数组
 ```js
 [
   {
@@ -20242,6 +20244,9 @@ import {Watch} from "vue-property-decorator";
 
 - 要点:
 - 我们可以通过
+
+> $router.options.routes
+- 可以拿到初始化时配置的路由规则
 - $router.options.routes 获取 routes 路由数组
 - 他们身上都会有hidden值
 

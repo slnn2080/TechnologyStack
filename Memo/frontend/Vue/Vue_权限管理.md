@@ -1,3 +1,198 @@
+### 权限控制
+- 什么是权限控制
+- 在我们开发项目的时候，尤其是管理后台项目中，都会遇到根据用户角色来进行相关功能的展示和隐藏。比如超级管理员可以查看所有的模块，普通用户只能看一部分模块，而且还可能会有一个菜单管理模块，可以对不同用户的角色进行相关配置。根据系统中各个角色进行相关的访问权限限制，就是我们这里说的权限控制。
+
+
+> 权限控制的两种方案
+- 一般我们进行权限控制的话，有两种方案，
+- 一种是前端也保存一套路由表，
+- 一种是前端不保存路由表，路由表信息全部由后端返回。
+
+
+> 我们先看第一种的实现思路：
+- 1. 前端保存全部页面的路由信息，并且在每个路由信息中保存当前路由对应的权限关键字。
+- 2. 每次用户登录成功的时候，后台返回当前用户对应的权限关键字
+- 3. 前端根据后台返回的权限关键字，遍历自己前端保存的路由表
+- 4. 将符合用户权限的路由，通过addRoute()动态添加到路由表中
+
+
+> 具体实现
+> 1. 第一步，在前端保存一套路由表
+- 我们保存的有
+  常用路由表
+  动态路由表
+
+- 常用路由表
+- 为我们注册路由的时候 填写到路由配置项里面的路由表
+```js
+const constantRoutes = [
+  {
+    path: "/login",
+    name: "login",
+    component: () => import("@/views/login")
+  },
+  {
+    path: "/home",
+    component: () => import("@/views/home"),
+    redirect: "/home",
+    name: "首页",
+    meta: { title: "首页", icon: "el-icon-s-help" }
+  }
+];
+```
+
+- 动态路由表
+- 动态路由表中的meta配置项里有 roles:["admin", "ordinaryUsers"] 权限关键字
+```js
+export const asyncRoute = [
+  {
+    path: "/asyncRoute1",
+    name: "asyncRoute1",
+    component: () => import("@/views/asyncRoute1"),
+    meta: { 
+      title: "动态路由1", 
+      icon: "el-icon-s-help",
+      roles: ['admin', 'ordinaryUsers']  
+      // 当前路由对应的权限关键字，超级管理员和普通用户
+    }
+  },
+  {
+    path: "/asyncRoute2",
+    component: () => import("@/views/asyncRoute2"),
+    name: "asyncRoute2",
+    meta: { 
+      title: "动态路由2", 
+      icon: "el-icon-s-help",
+      roles: ['admin'],  
+      // 当前路由对应的权限关键字，超级管理员
+    }
+  }
+]
+```
+
+- 我们正常在路由配置对象中传入的只是常用路由表
+```js
+
+const createRouter = () =>
+    new Router({
+        routes: constantRoutes // 这里只有常用路由，并没有动态路由
+    });
+    
+const route = createRouter()
+export default route
+```
+
+
+> 2. 用户登录的时候 拿到后台返回的权限关键字 这里是admin或者ordinaryUsers 然后遍历动态路由表 动态添加路由
+```js
+// 引入路由对象和前端保存的动态路由表
+import router,{ asyncRoute } from '@/router'
+// 过滤符合用户权限的路由表
+let arr = asyncRoute.filter(item=>{
+  return item.meta.roles.includes('这里后台返回的权限关键字')
+})
+// 遍历符合权限的路由表，动态添加路由
+arr.forEach(item=>{
+  route.addRoute(item)
+})
+```
+
+
+> 我们先看第二种的实现思路：
+- 前端不保存，全部由后台返回
+
+> 实现思路：
+- 1. 前端只保存常用路由，比如登录页面、首页等。
+- 2. 每次用户登录成功的时候，后台返回一个路由数组，数组中每个对象包含的信息就是我们的路由对象
+- 3. 前端根据后台返回路由数组，通过addRoute()动态添加到路由表中
+
+- 注意：
+- 这里有一个地方需要注意，就是路由对象中的component字段，后台只会返回给我们一个字符串，但这里前端需要的是一个组件对象。所以前端需要将对象字段转换为前端组件，然后才能创建动态路由。
+
+
+> 1. 第一步，前端只保存常用路由。
+```js
+// route.js
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+Vue.use(VueRouter)
+ 
+ 
+const constantRoutes = [
+    {
+        path: "/login",
+        name: "login",
+        component: () => import("@/views/login")
+    },
+    {
+        path: "/home",
+        component: () => import("@/views/home"),
+        redirect: "/home",
+        name: "首页",
+        meta: { title: "首页", icon: "el-icon-s-help" }
+    }
+];  // 常用路由表
+ 
+ 
+ 
+ 
+const createRouter = () =>
+    new Router({
+        routes: constantRoutes // 这里只有常用路由
+    });
+    
+const route = createRouter()
+export default route // 导出路由对象
+```
+
+> 2. 每次登录的时候，遍历后台返回的路由数组，然后动态添加路由。
+```js
+//  遍历后台传来的路由字符串，转换为组件对象
+function filterAsyncRouter(asyncRouterMap) {
+  const accessedRouters = asyncRouterMap.filter(route => {
+    if (route.component) {
+      if (route.component === "Layout") {
+        route.component = Layout;
+      } else {
+        route.component = loadView(route.component); // 导入组件
+      }
+    }
+    route.meta = { title: route.title, icon: route.icon || "el-icon-s-help" };
+    route.name = route.label;
+    if (route.children && route.children.length) {
+      route.children = filterAsyncRouter(route.children);
+    } else {
+      route.children = [];
+    }
+    return true;
+  });
+  return accessedRouters;
+}
+ 
+ 
+const loadView = view => {
+  // 路由懒加载
+  return resolve => require([`@/views/${view}`], resolve);
+};
+ 
+ 
+//过滤路由
+const menus = filterAsyncRouter('后台返回的路由数组');
+//动态添加路由
+router.addRoutes(menus);
+```
+
+
+> 两种方式的对比
+- 第一种前端自己保存一套路由表，里面的name、path、icon等字段都是前端自己控制的，这样在前端页面跳转时，更加的稳定，但是icon字段不能动态改变，也不能动态增删路由对象，每次对应角色的权限有变化的时候，前端也需要进行改动。菜单之间的顺序是固定的。
+
+- 第二种全部由后台决定，里面的name、path、icon等字段都是后台返回的，路由之间的顺序也是后台决定的。所以前台菜单的icon、顺序、名称都是可以动态改变的，这里就可以做一个叫做菜单管理的模块，用来动态配置前端菜单。
+
+- 但是这里需要注意，path字段和组件也是后台返回的，此时如果后台返回的path字段和前端页面跳转的path不一样的时候，会影响前端页面的跳转，组件不一样也会导致页面无法渲染出来。所以菜单管理中，对于path和组件字段是通过下拉框形式绑定的，用户不可以根据自己的意愿随意更改，以此来减少对前端页面的影响。
+
+---
+
+### 网上视频的一种思路 里面有很有意思的技巧
 > 路由的入口文件
 ```js
 import Vue from "vue"
@@ -35,7 +230,7 @@ export default router
 
 - 每一个用户的权限所能看到的页面是不同的 所以我们要根据不用的用户去加载不用的页面
 
---- 
+---------
 
 > 动态路由
 - 我们通过条件判断 和 addRouter() 的方式 让里面添加路由
@@ -781,7 +976,7 @@ export default new Vuex.Stroe({
 
 ------ 
 
-> 另一种 权限管理的思路
+### 使用 directives 实现权限管理
 - 1. 在 本地存储 中设置 所有权限的列表 类型是数据
 - permission : ["create", "edit"]
 
@@ -833,4 +1028,113 @@ export default {
     has: hasDirectives
   }
 }
+```
+
+------
+
+### 使用 router.addRoutes(数组) 实现权限管理
+- 参数：
+- 我们在配置routes的时候 配置的形式是一个数组 这里面我们也要添加一个routes数组
+
+- 格式：
+- routes = [
+  {
+    path:
+    name:
+    components:
+  }
+]
+
+> router.addRoute({一条路由})
+> router.addRoutes(路由数组)  -- vue3 中已经废弃
+- 动态添加更多的路由规则。参数必须是一个符合 routes 选项要求的数组。
+
+- 当原路由表中有name属性 且新添加的路由也有name属性 则会覆盖
+
+> 回顾下普通路由的配置
+```js
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  }
+]
+const router = new VueRouter({
+  routes
+})
+export default router
+
+
+// 使用router.addRoutes改造上面的配置,实现动态添加pageA
+const router = new VueRouter({
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  }
+})
+
+let route=[
+  {
+    path: '/pageA',
+    name: 'pageA',
+    component: pageA,
+  }
+]
+
+router.addRoutes(route);
+export default router
+
+
+// 添加之后等效于:
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/pageA',
+    name: 'pageA',
+    component: pageA,
+  }
+]
+const router = new VueRouter({
+  routes
+})
+export default router
+```
+
+> 利用该方法实现权限管理
+- 设置一个路由数组，设置用户权限
+  commonUser = ['pageA','pageB']
+- 这样就可以访问pageA，pageB路由了
+
+```js
+let route=[
+  {
+    path: '/pageA',
+    name: 'pageA',
+    component: pageA,
+  },
+  {
+    path: '/pageB',
+    name: 'pageB',
+    component: pageB,
+  },
+  {
+    path: '/pageC',
+    name: 'pageC',
+    component: pageC,
+  }
+]
+
+let commonUser=['pageA','pageB']
+let commonUserRoute=route.filter(function(page){
+    return commonUser.includes(page.name)
+})
+
+console.log(commonUserRoute);
+router.addRoutes(commonUserRoute);
 ```
