@@ -8,6 +8,96 @@
 - 但是实际我们后端要求的 'Content-Type': 'application/x-www-form-urlencoded' 为多见
 
 
+
+### jQ - Ajax
+
+> $.ajax({配置对象})
+- 常用的参数:
+- 1. url
+  请求地址
+
+- 2. type
+  请求类型
+
+- 3. data
+  发送给服务器的数据
+  书写的数据格式(两种都可以):
+
+  - data: {action: "jQueryAjax"}
+  - data: "action=jQueryAjax"
+
+- 4. success
+  请求成功响应的回调的函数
+
+- 5. dataType
+  *响应的*数据类型
+  如果不指定 http包会对mime信息来智能判断
+  - xml
+  - text
+  (如果我们定义为text是需要自己JSON.parse())
+
+  - json
+  (如果我们定义为json 不需要自己JSON.parse())
+
+  - html
+  - script
+  - jsonp
+
+
+> 演示:
+- 要点:
+- 使用jQ发请求的时候 原来?action=method 这样的参数 在data配置项里面写的
+```js
+$.ajax({
+  url: "http://localhost:8080/ajaxServlet",
+
+  data: "action=jQueryAjax",
+  data: {action: "jQueryAjax"}
+
+  type: "get",
+  success: function(data) {
+    // data服务器返回来的数据
+    console.log(data)
+  },
+  dataType: "json"
+})
+```
+
+> $.get(url, [data], [callback], [type])
+> $.post(url, [data], [callback], [type])
+- type: 是响应数据的类型
+  - xml
+  - html
+  - text
+  - json ...
+
+**注意:**
+- 按照顺序去传递
+
+
+> $.getJSON(url, [data], [callback])
+- 固定的get请求, 返回的数据也是固定的json
+
+
+> 表单对象.serialize()
+- 可以把表单中所有表单项的内容都获取到
+- 并以name=value&name=value的形式进行拼接
+
+    let content = $("from").serialize()
+
+```js
+
+$.ajax({
+  url: "http://localhost:8080/ajaxServlet",
+  type: "get",
+  data: "action=jQuerySerialize&" + $("from").serialize(),
+  success: function() {
+
+  }
+})
+```
+
+
 ### jq发送form的时候
 - 要加上下面的2行配置
 - 告诉jQuery不要去处理发送的数据(必须设置)
@@ -20,13 +110,6 @@
 
 > contentType: false  -- 不设置内容类型
 - (默认: "application/x-www-form-urlencoded") 发送信息至服务器时内容编码类型。默认值适合大多数情况。如果你明确地传递了一个content-type给 $.ajax() 那么他必定会发送给服务器（即使没有数据要发送）
-
-
-
-
-### 跨域原理:
-- 待整理
-- https://blog.csdn.net/liuerchong/article/details/107593141
 
 
 ### 阻塞的解释 或者 异步的优点

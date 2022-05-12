@@ -352,3 +352,56 @@ export default {
 - 通过该方法可以 点击小圆点 控制 切换到第几张
 
 - 1代表第一张 不是从0开始的那种
+
+----------------
+
+### vue-awesome-swiper
+- 这个插件是依托于swiper来实现的
+
+> 安装
+- npm i vue-awesome-swiper swiper --save
+
+> 全局注册
+```js
+// main.js
+import Vue from "vue"
+import VueAwesomeSwiper from "vue-awesome-swiper"
+
+import "swiper/css/swiper.css"
+
+Vue.use(VueAwesomeSwiper, [{配置对象}])
+```
+
+
+> 局部注册
+```js
+import {Swiper, SwiperSlide, direcive} from "vue-awesome-swiper"
+
+import "swiper/css/swiper.css"
+
+export default {
+  components: {Swiper, SwiperSlide},
+  data() {
+    return {
+      swOptions: {
+        pagination: {
+          el: ".swiper-pagination"
+        }
+      }
+    }
+  }
+}
+```
+
+> 前端模板
+```html
+<template>
+  <swiper ref="sw" :options="swOption">
+    <swiper-slide>Slide 1</swiper-slide>
+    <swiper-slide>Slide 2</swiper-slide>
+    <swiper-slide>Slide 3</swiper-slide>
+  </swiper>
+
+  <div class="swiper-pagination" slot="pagination"></div>
+</template>
+```

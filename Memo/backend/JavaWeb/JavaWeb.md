@@ -1,3 +1,22 @@
+### CS / BS 架构模式的区别
+> Cs: 客户端服务器架构模式
+- 优点:
+- 充分利用客户端机器的资源 减轻服务器的负荷
+- 一部分安全要求不高的计算任务 存储任务放在客户端执行 不需要把所有的计算和存储都在服务器端执行 从而能够减轻服务器的眼里 也能减轻网络的负荷
+
+- 缺点：
+- 需要安装 升级维护成本较高
+
+
+> Bs: 浏览器服务器架构模式
+- 优点：
+- 客户端不需要安装 维护成本低
+
+- 缺点:
+- 所有的计算和存储任务都是放在服务器 服务器的负荷较重 在服务端计算完成之后把结果再传输给客户端 因此客户端和服务器端会进行非常频繁的数据通信 从而网络负荷较重
+
+----------------
+
 ### idea 创建 web工程
 - New Project - web
 
@@ -110,7 +129,7 @@
   专门用来存放 tomcat 服务器运行时临时的数据
 
 - webapps:
-   部署空间 我们部署项目就可以部署到这里
+  部署空间 我们部署项目就可以部署到这里
   专门用来存放部署的web工程(用来放我们的工程的)
   这里面一个目录就是一个工程
 
@@ -160,6 +179,7 @@
 
 > 如何将 Web工程部署到 Tomcat 服务器上
 - Tomcat是服务器 服务器上可以放一个工程 供很多人去访问
+- 我们把项目丢到tomcat容器里面的过程叫做 deploy(部署)
 
 - 我们在访问 localhost:8080 的时候 访问到的其实就是 webapps目录
 
@@ -2840,7 +2860,7 @@ public class UserServiceTest {
 }
 ```
 
-> 书签
+
 > 实现用户注册功能
 - 逻辑整理:
 - 当我们访问到 用户注册页面 的时候 我们会开始输入信息
@@ -7849,7 +7869,7 @@ public void page() {
   <a href="manager/book_list?action=page&pageNo=${requestScope.page.pageTotal}">末页</a>
   共${requestScope.page.pageTotal}页，${requestScope.page.pageTotalCount}条记录 到第<input value="4" name="pn" id="pn_input"/>页
   <input type="button" value="确定">
-	</div>
+</div>
 ```
 
 
@@ -8067,7 +8087,7 @@ public Page<Book> page(int pageNo, int pageSize) {
 - 上述页码的范围是 1 - 总页码
 - 比如
 - 一共1页 就是 1 - 1
-- 一共2也 就是 1 - 2 依次类推
+- 一共2页 就是 1 - 2 依次类推
 
 
 - 如果总页码大于5的情况, 假设一共10页
@@ -9347,14 +9367,14 @@ protected void life3600(HttpServletRequest req, HttpServletResponse res) throws 
 - name value domain path expries size HttpOnly 等列名
 - 这里我们是讲讲 path 属性
 
-- Cookie的path属性可以有效的过滤哪些Cookie可以发送给服务器 哪些不发
+- Cookie的path属性可以有效的过滤哪些Cookie可以发送给浏览器 哪些不发
 
 - path属性
 - 它是通过请求的地址来进行有效的过滤
 
 > 作用
 - 我们在服务端设置cookie 然后发送到客户端
-- 当我们设置path属性后 相当于我们定义了一个正则 只有客户端的请求地址 和 我们定义的path属性 想匹配的时候 我们在服务端设置的cookie才会被发送到客户端
+- 当我们设置path属性后 相当于我们定义了一个正则 只有客户端的请求地址 和 我们定义的path属性 相匹配的时候 我们在服务端设置的cookie才会被发送到客户端
 
 
 - 举例:
@@ -9388,7 +9408,7 @@ protected void life3600(HttpServletRequest req, HttpServletResponse res) throws 
 - CookieA   path=/工程路径
 - http://ip:port/工程路径/abc/a.html
 
-- 只有 /工程路径 就会发送 后面的不管
+- 只要 /工程路径 就会发送 后面的不管
 
 
 **总结:**
@@ -9956,7 +9976,7 @@ else {
 
 > 问题2: 登录成功返回首页 还是显示 登录 | 注册
 - 如果用户还没登录 显示的是 登录 | 注册
-- 如果用户已经登录 应该显示 用户登录成功后的信息 如
+- 如果用户已经登录 应该显示 用户登录成功后的信息 如 
 
   欢迎 XX 光临尚硅谷书城 我的订单 注销 返回
 
@@ -11442,7 +11462,7 @@ protected void addItem(HttpServletRequest req, HttpServletResponse res) throws S
 - 查看我的订单
 
 - receiveOrder()
-- 签收dingdan(确认收货)
+- 签收订单(确认收货)
 
 
 > OrderService -- service层
@@ -12288,6 +12308,31 @@ public class LoginServlet extends HttpServlet {
   }
 }
 
+```
+
+
+- filter 类中的逻辑
+```java
+@Override
+public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+  // 这里我们只要使用这个方法实现 拦截请求 做权限检查
+  HttpSession session = null;
+
+  // 我们把ServletRequest 强转成HttpServletRequest 这样才能调用HttpServletRequest中的方法获取session
+  HttpServletRequest req = (HttpServletRequest) servletRequest;
+  // 获取session
+  session = req.getSession();
+
+  Object user = session.getAttribute("user");
+  if(user == null) {
+    servletRequest.getRequestDispatcher("/login.jsp").forward(servletRequest, servletResponse);
+    return;
+  } else {
+    // 登录的情况
+    // 让程序继续往下访问用户的目标资源 放行
+    filterChain.doFilter(servletRequest, servletResponse);
+  }
+}
 ```
 
 > filter过滤器的使用

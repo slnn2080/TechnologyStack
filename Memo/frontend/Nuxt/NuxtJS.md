@@ -9,6 +9,59 @@
 
 ### 技巧
 
+> CDN的理解
+- https://zhuanlan.zhihu.com/p/51842336
+
+
+> nuxt generate 静态页面内容
+- package.json: "generate": "nuxt generate"
+
+- 运行 npm run generate (打包)命令后 每个对应的页面都会生成一个html
+- 该方式打包出来的结果 每个页面会对应一个html页面 只有首屏的数据是渲染好的
+- 可以理解为静态的页面 当首屏数据发生更改的时候 它显示的还是之前的数据
+<!-- 
+  你在打包的时候不能关闭后台，他会请求后台数据生成首屏的数据
+  这样打包有一个弊端，当你首屏的数据发生更改的时候，他还是显示的是之前的数据，要想改变的话，需要重新打包发布才行
+
+  所以， 如果你的首屏是动态的就不建议使用这种打包方式了
+
+  ---
+
+  打包之后每个页面都生成了HTML页面，只有首屏的数据是之前渲染好了，
+  但是其它数据还是从后台获取，比如翻页，第二页数据是重新请求后台的，你再次返回第一页也是再次请求的
+ -->
+
+
+> nuxt build 动态页面内容
+- package.json: "build": "nuxt build",
+- build打包生成的是动态页面，当然是同样具有SEO功能
+
+
+> 上述两个命令 在发布上的区别：
+- generate:
+- 打包方式简单，执行 npm run generate 会生成dist文件夹，放到服务器就好了。
+
+- build:
+- 1. build打包方式比较复杂，执行npm run build命令。
+- 2. 执行命令之后需要把下面这几个文件/文件夹放到服务器上
+- .nuxt
+- static
+- nuxt.config.js
+- package.json
+
+- 3. 放到服务器上面之后执行npm i,把需要安装的包给安装了
+- 4. 然后执行命令npm start项目就可以运行了
+<!-- 
+  但是服务器上不可能用命令窗口来启动项目的，万一命令窗口关闭的话我们的项目就跑不起来了，然后就要使用pm2进行进程托管了。这样命令窗口关闭也不会影响项目运行
+ -->
+
+
+> 安装pm2
+- npm i -g pm2
+- https://blog.csdn.net/qq_33315564/article/details/107523958
+
+
+
 > mock
 - https://blog.csdn.net/qq_21567385/article/details/108251232
 - https://zhuanlan.zhihu.com/p/30583316
@@ -604,18 +657,102 @@ plugins: [
 ---------------
 
 ### nuxt.config.js 中的配置项
-> 1. build
+
+> 1. target
+- 在介绍这个属性之前 我们要先了解 怎么生成 静态网站
+- 如果我们想要使用静态网站的话 那么整个应用就会在构建的阶段被渲染
+- 我们可以将静态站部署到 使用すると、类似 Netlify、GitHub pages、Vercel 这样的 托管服务器上 这就意味着我们不需要服务器了
+
+- 当我们将 target: static 设置为 static后 所有的.vue文件都是以html和js文件生成的
+
+- 而页面中所有对api的调用 都被缓存再生成的内容中一个名为static的文件夹中 从而消除了在客户端转换时调用api的需求
+
+
+- 值为: static | server
+- 对于静态网站，需要在你的nuxt.config文件中 标识为 static
+
+```js
+export default {
+  target: 'static' // デフォルトは 'server'
+}
+```
+
+- 当我们设置为 static 后:
+- 在运行 npm run dev 命令后
+- 1. 会从 context 上 删除 req res
+- 2. 对于服务器端的渲染，$route.query和{}总是相等的
+- 3. process.static は true になります
+
+
+- 当我们设置为 server 后：
+- 所谓的服务器托管 就是运行在后台的nodejs服务器上
+- 用户打开我们的页面的时候 用户的浏览器从服务器上请求该页面
+- nuxt负责处理这次请求 将页面进行渲染 并生成所有内容的页面进行返回
+
+- 可能我们在使用 static 静态页面的时候 我们打包的时候使用 nuxt generate
+- 如果我们是动态的服务器渲染的时候 我们打包的时候使用 nuxt build
+
+
+> 2. build
+- Nuxt允许你定制你的webpack配置，并按照你的意愿构建你的web应用。
 <!-- 
   Nuxt.js 允许你在自动生成的 vendor.bundle.js 
   文件中添加一些模块，以减少应用 bundle 的体积。
   如果你的应用依赖第三方模块，这个配置项是十分实用的。
  -->
 
-> 2. css
+- 类型: {}
+- 也就是说它里面有属性 属性可以叫做子配置项
+
+\\ corejs
+- nuxt v2.14以后
+- Nuxt会自动检测Core-js的当前版本。 你还可以指定使用哪个版本。
+
+- 类型: number | string
+- 有效值: 2 3 auto
+- 默认值: "auto"
+
+---
+
+\\ babel
+- 为JavaScript和Vue文件定制Babel设置。 默认情况下，.babelrc被忽略。
+
+- 类型: {}
+- 默认:
+```js
+{
+  babelrc: false,
+  cacheDirectory: undefined,
+  presets: ['@nuxt/babel-preset-app']
+}
+```
+- @nuxt/babel-preset-app的默认目标是ie: '9' 用于客户端构建，node: 'current' 用于服务器构建。
+
+
+
+
+
+
+> 3. css
 - 该配置项用于定义应用的*全局（所有页面均需引用的）样式文件*、*模块或第三方库*。
+<!-- 
+  如果想使用sass的情况下 需要安装 node-sass sass-loader
+ -->
 
+```js
+export default {
+  css: [
+    // Node.js モジュールを直接ロードする（ここでは Sass ファイル）
+    'bulma',
+    // プロジェクト内の CSS ファイル
+    '~/assets/css/main.css',
+    // プロジェクト内の SCSS ファイル
+    '~/assets/css/main.scss'
+  ]
+}
+```
 
-> 3. env
+> 4. env
 - 该配置项用于定义应用客户端和服务端的环境变量。
 - 省去了在根目录写 .env.development 文件的方式
 ```js
@@ -627,11 +764,22 @@ env: {
 },
 ```
 
-> 4. generate
+> 5. generate
+- 这个配置项 是在我们的应用程序 被设为静态站的时候 使用的配置项
+- 在我们使用 nuxt generate 命令后 会使用该配置项中定义的内容
+
+- nuxt generate 命令可以生成静态文件 这样在没有服务器的时候 也可以访问这些文件的内容 而这个命令可以按照路由来生成 html文件 并且这些html文件会在 /dist 文件夹中
+
 - 该配置项用于定义每个动态路由的参数，Nuxt.js 依据这些路由配置生成对应目录结构的静态文件。
-- 做过seo的同学都知道，一些不是实时变化的页面（比如一个星期更新一次内容）我们可以生成静态的站点去让爬虫去爬去，这样就无需一次次地调用接口了。
-- 那么在nuxt中我们怎么去做呢？
-- nuxt为我们提供了一次generate的钩子，在nuxt.config.js中，我们去添加generate钩子
+<!-- 
+  做过seo的同学都知道，一些不是实时变化的页面（比如一个星期更新一次内容）我们可以生成静态的站点去让爬虫去爬去，这样就无需一次次地调用接口了。
+
+  那么在nuxt中我们怎么去做呢？
+
+  nuxt为我们提供了一次generate的钩子，在nuxt.config.js中，我们去添加generate钩子
+ -->
+
+- generate: 的值为 { ... }
 
 ```js
 generator: {
@@ -639,43 +787,213 @@ generator: {
   concurrency: 10   // ，
   interval: 100,    // 
   crawler: false    // 
-  routes() {}       // 我们想要生成静态页面对应的vue文件路由，它返回一个数组对象，如下图实战代码：
-```
 
-\\ dir:
-  我们生成的静态文件的目录 静态文件就会生成在html文件夹内
+  // 我们想要生成静态页面对应的vue文件路由，它返回一个数组对象，如下图实战代码：
+  routes() {},
 
-\\ concurrency:
-  我们在批量生成文件的时候一次产生的文件数量
-
-\\ interval:
-  批量生成文件间隔
-
-\\ crawler:
-  比如我们的页面中有a链接的话，会生成a链接指向的页面的静态页面
-
-\\ routes:
-  们想要生成静态页面对应的vue文件路由，它返回一个数组对象
-  在 Nuxt.js 执行 generate 命令时，动态路由 会被忽略。
-<!-- 
-  -| pages/
-    ---| index.vue
-    ---| users/
-    -----| _id.vue
- -->
-
-- 上面的目录结构，Nuxt.js 只会生成路由 / 对应的静态文件。（译者注：因为 /users/:id 是动态路由）如果想让 Nuxt.js 为动态路由也生成静态文件，你需要指定动态路由参数的值，并配置到 routes 数组中去。
-
-- 例如，我们可以在 nuxt.config.js 中为 /users/:id 路由配置如下：
-```js
-module.exports = {
-  generate: {
-    routes: ['/users/1', '/users/2', '/users/3']
+  cache: {
+    ignore: [
+      '.nuxt',  // buildDir
+      'static', // dir.static
+      'dist',   // generate.dir
+      'node_modules',
+      '.**/*',
+      '.*',
+      'README.md'
+    ]
   }
 }
 ```
 
+\\ cache:
+- 类型: Object | false
+
+- 作用：
+- 如果被追踪的文件没有发生变化 那么这个选项可以避免 rebuild
+
+- 该配置项内有属性 ignore 值类型为数组
+- ignore里面位置的文件名 即使内容发生了改变 也不会进行 rebuild
+
+- 注意：
+- 该选项在 nuxt generate 命令下 并且 target被设置为 static的时候用的
+
+---
+
+\\ concurrency:
+- 我们在批量生成文件的时候一次产生的文件数量
+- 如果我们的路由生成的时候是并行的时候 该配置项指定一个线程中执行的路由数量
+- 英文: 并发 同时的
+
+- 类型: number
+- 默认值: 500
+
+---
+
+\\ dir:
+- 在我们使用 nuxt generate 命令后 我们生成的静态文件的目录 静态文件就会生成在html文件夹内
+
+- 类型: String
+- 默认值: dist
+
+---
+
+\\ devtools
+- 设置是否允许由vue-devtools检查。
+- 如果你已经在nuxt.config.js或其他地方启用了它，不管这个标志如何，devtools都会被启用。
+
+- 类型: boolean
+- 默认值: false
+
+---
+
+\\ exclude
+- 可以在数组中指定字符串 或者 正则 可以防止匹配的路由的生成 
+- 在使用 fallback的时候 可以继续访问该路由
+
+- 类型: array 内部元素为 string 或 regexp
+
+```js
+// 准备工作
+-| pages/
+---| index.vue
+---| admin/
+-----| about.vue
+-----| index.vue
+
+
+- 默认的情况下 我们使用 nuxt generate 命令后 会根据路由生成对应的html文件
+// nuxt generate 结果
+-| dist/
+---| index.html
+---| admin/
+-----| about.html
+-----| index.html
+
+
+// 这么设定后 可以防止 admin下的路由生成 html 文件
+export default {
+  generate: {
+    exclude: [
+      /^\/admin/ // /admin で始まるパス
+    ]
+
+    // 这样也可以
+    exclude: ['/my-secret-page']
+  }
+}
+
+
+// 结果
+-| dist/
+---| index.html
+```
+
+---
+
+\\ fallback
+- 感觉是发生错误的时候 指定的页面
+<!-- 
+  要回溯的HTML文件的路径。 必须设置为错误页。 这个设置确保了未知路线也会通过Nuxt呈现。 如果没有设置或者设置了可以处理falsy的值，那么回退的HTML文件就被命名为200.html。 如果设置为真，文件名将是404.html。 如果指定了一个字符串作为值，则使用该字符串代替。
+ -->
+- 当我们设置为 true 的时候 就是404.html
+
+- 类型: String | Boolean
+- 默认值: 200.html
+
+- 注意:
+- 必须设置为 错误页面
+
+- 示例:
+```js
+export default {
+  generate: {
+    fallback: '404.html'
+  }
+}
+```
+
+---
+
+\\ interval:
+  批量生成文件间隔
+
+---
+
+\\ crawler:
+- nuxt v2.13以后
+- 比如我们的页面中有a链接的话，会生成a链接指向的页面的静态页面
+<!-- 
+  在nuxt里面会爬取相对路径 然后根据这个路径生成动态的连接
+ -->
+
+- 类型： boolean
+- 如果不希望使用该功能 那么我们将其设置为false
+
+--- 
+
+
+\\ subFolders: bool
+- 默认: true
+- 默认情况下，运行nuxt generate将为每个路由创建一个目录并生成index.html文件。
+- 也就是说 假如我们有一个 about文件夹 那他下面就会生成一个 index.html 文件
+
+<!-- 
+  | - pages
+    | - about
+      - index.html
+ -->
+
+- 设置为false时，将根据路由路径生成 HTML 文件：
+- 当我们设置为 false 的时候 那么 about 文件夹就没有了 本身就会变成 about.html
+<!-- 
+  | - pages
+    - about.html
+ -->
+
+---
+
+\\ routes:
+- 当我们运行 nuxt generate 命令后 nuxt会开始爬取页面中的 连接标签 根据它会安装一个边爬边生成路由的玩意
+
+- 如果我们也想生成非连接的页面 可以使用这个属性
+
+- 类型: array
+
+- 注意:
+- Nuxt v2.12 以下的版本 在运行上面的命令后 会忽视动态路由
+
+- 比如:
+```js
+-| pages/
+---| index.vue
+---| users/
+-----| _id.vue
+```
+
+- nuxt只会对非动态路由生成静态文件
+- 如果我们也想对带有 动态参数的路由 生成静态文件的话 我们需要将动态路由 放入到 routes数组中
+
+- 当我们知道 动态路由都有哪些是 可以直接传入
+```js
+export default {
+  generate: {
+    routes: ['/users/1', '/users/2', '/users/3']
+  }
+}
+
+// 当我们执行 nuxt generate 的时候
+/users/1/index.html
+/users/2/index.html
+/users/3/index.html
+```
+
 - 但是如果路由动态参数的值是动态的而不是固定的，应该怎么做呢？
+- 1. 使用返回 promise 的函数
+- 2. callback(err, params) と一緒に Function を使う。
+
+
+
+
 - 1. 使用一个返回 Promise 对象类型 的 函数。
 ```js
 const axios = require('axios')
@@ -724,43 +1042,52 @@ module.exports = {
 }
 ```
 
-\\ subFolders: bool
-- 默认: true
-- 默认情况下，运行nuxt generate将为每个路由创建一个目录并生成index.html文件。
-- 也就是说 假如我们有一个 about文件夹 那他下面就会生成一个 index.html 文件
 
-<!-- 
-  | - pages
-    | - about
-      - index.html
- -->
-
-- 设置为false时，将根据路由路径生成 HTML 文件：
-- 当我们设置为 false 的时候 那么 about 文件夹就没有了 本身就会变成 about.html
-<!-- 
-  | - pages
-    - about.html
- -->
-
-
-
-> 5. head
+> 6. head
 - 该配置项用于配置应用默认的 meta 标签。
 
 
-> 6. loading
+> 7. loading
 - 该配置项用于个性化定制 Nuxt.js 使用的加载组件。
 
 
-> 7. plugins
+> 8. plugins
 - 该配置项用于配置那些需要在 根vue.js应用 *实例化之前需要运行的 Javascript 插件*。
 
 
-> 8. rootDir
+> 9. rootDir
 - 该配置项用于配置 Nuxt.js 应用的根目录。
 
 
-> 9. router
+> 10. modules
+- modules 是 Nuxt.js 扩展，可以扩展它的核心功能并添加无限的集成。
+- 类型: Array
+
+```js
+export default {
+  modules: [
+    // パッケージ名を使う
+    '@nuxtjs/axios',
+
+    // プロジェクトの srcDir からの相対パス
+    '~/modules/awesome.js',
+
+    // オプションを渡す
+    ['@nuxtjs/google-analytics', { ua: 'X1234567' }],
+
+    // インラインで定義
+    function () {}
+  ]
+}
+```
+
+
+> 11. buildModules
+- 有些模块只在开发和构建时需要。 buildModules可以用来加速生产启动，并大大减少部署到生产环境的node_modules的大小。
+
+
+
+> 10. router
 - 该配置项可用于覆盖 Nuxt.js 默认的 vue-router 配置。
 ```js
 module.exports = {
@@ -770,11 +1097,10 @@ module.exports = {
 }
 ```
 
-
-> 10. server
+> 11. server
 - 此选项允许您配置 Nuxt.js 应用程序的服务器实例变量。
 
-> 11. hooks
+> 12. hooks
 - 回调中的形参详解:
 - 1. generator
 - 2. generateOptions
@@ -808,9 +1134,9 @@ module.exports = function() {
 - 2. 在 config 文件里面配置
 ```js
 modules: [
-"@nuxtjs/axios",
-"@nuxtjs/pwa",
-"@/plugins/generator_hooks"
+  "@nuxtjs/axios",
+  "@nuxtjs/pwa",
+  "@/plugins/generator_hooks"
 ],
 ```
 
