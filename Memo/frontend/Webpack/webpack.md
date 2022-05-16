@@ -814,6 +814,7 @@ import "./index.less"
 ```
 
 - 4. 因为我们要解析html页面 img引入的图片资源 所以要配置html-loader
+**这个就必须配置 不配置会报错 也就是说 处理图片资源的时候 就配置这两个loader**
 ```js
 {
   test: /\.html$/,
@@ -995,6 +996,7 @@ devServer: {
 
   open: true 自动打开默认浏览器,
 
+  // 控制台上会有输出效果 [WDS] 96%
   progress: true 打包进度
 
 }
@@ -1178,9 +1180,15 @@ module.exports = {
 ----------------
 
 ### 生产环境: 提取css成单独文件
+- 开发环境中 我们使用的是 style-loader 因为其内部实现了*HMR功能* 可以局部更新 
+
+- 而生产环境中 我们要提取css单独的文件
+
+
 - 之前通过 style-loader 和 css-loader 的方式 是将样式通过style标签的形式引入到项目中的
 
 - 提取成css文件后 会通过link标签引入css文件
+
 
 
 - 准备工作:
@@ -1735,6 +1743,8 @@ console.log(add(3, 3));
 ### js兼容性的处理
 - 我们做下准备工作 index.js 我们使用了 es6 语法
 
+**最终方案看最下面 babel扩展部分**
+
 ```js
 const add = (x, y) => x + y
 console.log(add(3, 3))
@@ -2229,13 +2239,15 @@ module.exports = {
 
 --- 
 
-> 这个才是我们配置兼容性的最终方式吧
-- corejs3的时候的配置方式
+**js兼容的最终方案:**
+- @babel/cli: babel-cli是通过命令行输入指令执行
+
 ```js
 npm install --save @babel/runtime-corejs3
 npm install --save-dev @babel/cli @babel/core  @babel/preset-env @babel/plugin-transform-runtime
 
-{
+// babel.config.js
+module.exports = {
   "presets": [
     "@babel/env"
   ],
@@ -2267,10 +2279,36 @@ module.exports = {
     }]
   ]
 }
+
+
+// 我以为的按需加载的配置 实际上打包的结果比上面的大
+module.exports = {
+  presets: [
+    ["@babel/preset-env", 
+      {
+        useBuiltIns: "usage",
+        corejs: 3,
+        targets: {
+          "chrome": "58", 
+          "ie": "11", 
+          "firefox": "60", 
+          "safari": "11", 
+          "edge": "11"
+        }
+      }
+    ]
+  ],
+  plugins: [
+    ["@babel/plugin-transform-runtime", {
+      "corejs": 3
+    }]
+  ]
+}
 ```
 
 - 2. webpack.config.js
 ```js
+// loader配置项
 module: {
   rules: [
     {
@@ -2290,5 +2328,481 @@ module: {
   "@babel/preset-env": "^7.14.7",
   "@babel/runtime-corejs3": "^7.17.9",
   "babel-loader": "^8.0.6",
+  "core-js": "^3.22.5",
 },
 ```
+
+- 其实我们感觉 都使用项目根目录 配置文件 的方式可能会更清晰些
+
+----------------
+
+### 压缩 js
+- js压缩很简单 在最初始的webpack配置下 只需要将 
+- mode: development -> production 就可以启动js压缩
+
+- 因为生产环境下会自动压缩js代码 我们不需要操心这些事
+- 上面说过在生产环境中 webpack会加载很多的插件 其中有一个 UglifyJsPlugin插件 该插件就会压缩js代码
+
+```js
+const {resolve} = require("path")
+const HtmlWebpackPlugin = require("html-webpack-plugin")
+
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "build.js",
+    path: resolve(__dirname, "build")
+  },
+  module: {
+
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: "./src/index.html"
+    }),
+  ],
+
+  // 修改为 production
+  mode: "production"
+}
+```
+
+- 如果我们不写 mode 配置项 默认就是 production
+
+----------------
+
+### 压缩 html
+- 前面css做了兼容性处理 postcss-preset-env js做了兼容性处理 @babel/preset-env 
+- html没办法做兼容性处理 浏览器认识就认识 不认识就是不认识 所以我们不需要对html做兼容性处理 只需要考虑html的压缩
+
+- 通过我们前面的插件: HtmlWebpackPlugin插件来压缩 html代码
+<!-- 
+  htmlWebpackPlugin:
+  前面我们使用该插件用来进行html资源的打包
+ -->
+
+- 我们在该插件的配置项里面添加 minify
+
+> minify
+- 类型: {}
+
+- 对象内的选项:
+- collapseWhitespace: true
+- removeComments: true
+
+```js
+plugins: [
+  new HtmlWebpackPlugin({
+    template: "./src/index.html",
+
+    // 压缩html代码的配置项
+    minify: {
+      // 移除空格
+      collapseWhitespace: true,
+      // 移除注释
+      removeComments: true
+    }
+  }),
+],
+```
+
+----------------
+
+### 生产环境: 对上述的知识的整合
+- 结合上面的所有知识体系 然后完成一个生产环境的配置 
+
+> 要点
+- 1. less的loader配置中 也要做css的兼容性处理
+
+- 2. 我们对 .js 文件做了 eslint 处理 又对 .js 文件做了兼容性的处理 正常来讲 一个文件只能被一个loader处理 当一个文件要被多个loader处理的时候 那么一定要指定loader的执行先后顺序
+
+- 我们要先执行 eslint 再执行 babel
+  - 1. eslint-loader是做语法检查的 一旦我们检查出语法错误 后面的操作就没有意义了
+
+  - 2. babel-loader会将es6语法转换为es5语法 一旦转换之后再进行eslint检查就会报语法错误
+
+  - 我们要在 loader 配置项中 和 test 同级 加上 *enforce: "pre"*
+  - 加上这个属性后 这个类型的文件对应的loader会是 加上该属性的loader先执行
+
+```js
+{
+  test: //,
+  exclude: //,
+
+  // 优先执行
+  enforce: "pre",
+
+  loader: ""
+  ...
+}
+```
+
+> 完整的代码展示部分
+```js
+// package.json
+{
+  "name": "webpack_pro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jquery": "^3.6.0",
+    "webpack-dev-server": "^3.10.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/plugin-transform-runtime": "^7.17.10",
+    "@babel/preset-env": "^7.14.7",
+    "@babel/runtime-corejs3": "^7.17.9",
+    "babel-loader": "^8.0.6",
+    "core-js": "^3.22.5",
+    "css-loader": "^3.4.2",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-loader": "^4.0.2",
+    "eslint-plugin-import": "^2.26.0",
+    "file-loader": "^5.0.2",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "less-loader": "^5.0.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "postcss": "^7.0.39",
+    "postcss-loader": "^3.0.0",
+    "postcss-preset-env": "^6.7.0",
+    "style-loader": "^1.1.3",
+    "url-loader": "^3.0.0",
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
+  },
+  "browserslist": {
+    "development": [
+      "defaults",
+      "last 2 version",
+      "not ie <= 11",
+      ">1%"
+    ],
+    "production": [
+      ">0.1%",
+      "not dead",
+      "not op_mini all"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "airbnb-base"
+  }
+}
+
+
+
+// webpack.config.js
+const { resolve } = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin")
+const MniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin")
+
+
+// 配合css js兼容性处理
+process.env.NODE_ENV = "production"
+
+// 生成环境配置
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "build.js",
+    path: resolve(__dirname, "build")
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          MniCssExtractPlugin.loader,
+          "css-loader",
+          // css的兼容性处理 还需要在定义 browserslist
+          {
+            loader: "postcss-laoder",
+            options: {
+              ident: "postcss",
+              plugins: () => [
+                require("postcss-preset-env")()
+              ]
+            }
+          }
+        ]
+      },
+
+      // less文件也需要做兼容性处理 位置倒数第二位
+      {
+        test: /\.less$/,
+        use: [
+          MniCssExtractPlugin.loader,
+          "css-loader",
+          {
+            loader: "postcss-laoder",
+            options: {
+              ident: "postcss",
+              plugins: () => [
+                require("postcss-preset-env")()
+              ]
+            }
+          },
+          // 经过less-loader就是css文件了
+          "less-loader"
+        ]
+      },
+      // js的语法检查 在package.json中要添加eslintConfig配置项
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        // 优先执行
+        enforce: "pre",
+        loader: "eslint-loader",
+        options: {
+          fix: true
+        }
+      },
+      // js兼容性处理 项目根目录下要创建babel-config.js
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader",
+      },
+      // 图片的处理
+      {
+        test: /\.(jpg|png|gif)$/,
+        loader: "url-laoder",
+        options: {
+          limit: 8 * 1024,
+          name: "[hash:10].[ext]",
+          outputPath: "imgs",
+          esModule: false
+        }
+      },
+      // 处理html结构中的图片
+      {
+        test: /\.html$/,
+        loader: "html-loader",
+      },
+      // 处理其他资源s
+      {
+        exclude: /\.(js|jpg|png|gif|html|css|less)/,
+        loader: "file-loader",
+        options: {
+          outputPath: "media"
+        }
+      }
+    ]
+  },
+  plugins: [
+    // 提取css文件
+    new MniCssExtractPlugin({
+      filename: "build.css"
+    }),
+    // html文件打包 以及 压缩
+    new HtmlWebpackPlugin({
+      template: "./src/index.html",
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true
+      }
+    }),
+    // 压缩css文件
+    new OptimizeCssAssetsWebpackPlugin()
+  ],
+  // 压缩js
+  mode: "production"
+}
+
+
+// babel.config.js
+module.exports = {
+  presets: ["@babel/preset-env"],
+  plugins: [
+    ["@babel/plugin-transform-runtime", {
+      "corejs": 3
+    }]
+  ]
+}
+```
+
+----------------
+
+### webpack 性能优化: 
+- 从环境的角度 谈性能优化 分两种
+- 1. 开发环境性能优化
+- 2. 生产环境性能优化
+
+
+> 开发环境性能优化
+- 优化webpack的性能 这里我们从两个角度来看
+- 1. 优化打包构建速度(能够更快的看到效果)
+- 2. 优化代码调试 让其更加友好
+<!-- 
+  代码出错了 要告诉我们错在哪里 sourceMap
+ -->
+
+
+> 生产环境性能优化
+- 1. 优化打包构建速度
+- 2. 优化代码运行的性能(代码在浏览器端运行的性能)
+
+----------------
+
+### 优化 开发环境 的打包构建速度 HMR
+- 我们现在项目中存在的问题
+- 描述:
+- 我们在入口文件中 index.js
+```js
+import "./assets/style/index.less"
+
+console.log("js文件被加载了")
+const add = (x, y) => x + y
+console.log(add(3,3))
+```
+
+- 我们发现当我们修改 index.less 文件里面的内容时 index.js 文件也会被加载
+
+- 看似我们只修改了样式文件 实际上是把js文件也重新打包了一次
+- 假如我们js文件中 引入了其它的模块 当其它模块的内容被修改后 整个关系树也会被重新渲染
+
+- 问题:
+- 假如我们有100个js模块 100个样式模块 只要我修改了其中的某一个模块 整个这200个模块都要重新打包 这样的话 打包构建速度是非常慢的
+<!-- 
+  假如有 10000 个模块是不是更加的恐怖
+ -->
+
+- 我们想实现的是 当只有一个模块发现了变化 仅只打包这一个文件就可以了 其他模块是不变的 相当达到这点 就要使用webpack中的HMR功能
+
+
+> HMR (hot module replacement) 热模块替换
+- 作用:
+- 一个模块发生变化 只会重新打包这一个模块 而不是打包所有
+- 极大的提升代码的构建速度
+ 
+> 实现:
+- devServer中支持HMR功能 我们只需要在 devServer配置项中 添加 hot 属性 设置为 true 即可
+```js
+// 服务器
+devServer: {
+  contentBase: resolve(__dirname, "build"),
+  port: 3000,
+  compress: true,
+  open: true,
+  progress: true,
+
+  // 开启 HMR 功能
+  hot: true
+}
+```
+
+- 新配置项要生效 必须要重启 webpack 服务
+- npx webpack-dev-server
+
+- 检查是否开启了 HMR 功能:
+- 在 console 面板上会有
+- [WDS] Hot Module Replacement enabled
+
+
+> 我们要检测的目标文件有
+- 1. 样式文件
+- 2. html文件
+- 3. js文件
+
+- 当我们开启了 HMR后 (hot: true) 我们看下上述的3种文件类型有什么样的变化
+
+> 1. 样式文件
+- 当我们修改样式文件后 可以热更新了
+- 因为 style-loader 里面实现了 HMR功能 它会自动的做 所以我们不需要做了
+<!-- 
+  所以这也是我们在开发环境使用的style-loader 而生产环境中我们提取css单独文件
+
+  因为开发环境借助style-loader可以让我们的性能更好 打包速度更快
+  但是上线的时候我们考虑的是代码的性能优化 所以不能用style-loader
+ -->
+
+---
+
+> 2. js文件
+**问题:**
+- 当我们修改js文件后 发现没有热更新 所有模块全部打包了
+- 所以 默认情况下 js文件不能使用HMR功能的
+
+> ↑ 解决 js文件的 问题: module.hot.accept()方法包裹目标js文件
+- 比如:
+- 我们在 index.js 文件中 引入了 print.js 文件
+- 要想修改 print.js 文件不会更新整个依赖树的话 我们需要在 调用print() 的外成做判断处理
+
+```js
+if(module.hot) {
+  module.hot.accept("要导入(监视)的js文件路径", function() {
+    // 当监视的js文件发生变化的时候 执行回调里面的逻辑
+  })
+}
+```
+
+- 整体代码
+```js
+import print from "./assets/js/print"
+
+import "./assets/style/a.css"
+import "./assets/style/b.css"
+
+const add = (x, y) => x + y;
+console.log(add(3, 3));
+
+
+// 会去全局找 module 变量 看看 module 上面有没有 hot属性
+if(module.hot) {
+  // 一旦有 hot 说明: 说明开启了HMR功能
+  module.hot.accept("./assets/js/print", function() {
+    // module.hot.accept() 会监听 print.js 文件的变化 一旦发生变化 其他模块不会重新打包构建 会执行回调函数 回调函数中 我们执行 引入js文件的相关代码
+    print()
+  })
+}
+
+// 如果我们不使用 module.hot.accept() 一旦一个js模块发生变化 所有的模块都会重新打包
+```
+
+- 当还有其他js模块的时候 继续写 if(module.hot) { ... }
+
+**注意:**
+- js文件的HMR 我们只会针对非入口文件的js文件去做HMR功能
+
+---
+
+> 3. html文件
+- 当我们修改html文件后(<h3>title</h3> -> <h3>title!!!</h3>)发现
+- [HMR] Nothing hot updated
+
+**问题1:**
+- 默认情况下 html文件不能使用HMR功能的 会将所有模块全部打包重新渲染
+
+**问题2:**
+- html文件不能热更新了(我们本地修改的代码 它并没有重新编译 并没有重新刷新浏览器)
+- 页面上没有显示我们修改后的结果 没有出现 !!!
+
+> ↑ 解决 html文件的 问题2: 修改 entry 的写法
+- 当我们设置了 devServer - hot: true 后 入口文件的书写方式 要改成 这样当我们修改html页面的内容后 页面会实时更新了
+```js
+// 换成数组的写法 元素1为入口文件 元素2为模版html文件
+// 将html文件引入(是不是说 也将html文件添加到依赖关系树里)
+entry: ["./index.js", "./src/index.html"],
+```
+
+
+> ↑ 解决 html文件的 问题1: html文件不需要 HMR 功能
+- html文件只有一个 所以一旦html文件发生变化 它没有其他文件 所以它只需要更新这一个文件 就是不管怎么做 这一个html文件肯定会发生变化的 既然一定要变化 那就意味着没有办法优化
+<!-- 
+  不像js js模块有n个 其中一个变 那其他的不变
+ -->
+
+----------------
+
+### 优化 开发环境 sourceMap
