@@ -12,7 +12,7 @@
 ### Webpack是什么
 - webpack是一种前端资源构建工具 一个静态模块打包器 在webpack看来 *前端的所有资源文件都会作为模块处理* 它将根据模块的依赖关系进行静态分析 打包生成对应的静态资源(bundle)
 
-> 演示:
+> 示例:
 - 我们创建了一个 html 页面 当中使用了
 - 1. less
 - 2. import es6的语法
@@ -20,13 +20,13 @@
 - 但是上述的东西 浏览器是解析不了的 为了解决上面的需求 我们会维护一个个的小工具 
 
 > 构建工具的概念:
-- 找一个大的工具 这个大的工具将小的工具的功能都包含进来了 这样我们只需要关系大的工具如何使用就ok了
+- 找一个大的工具 这个大的工具将小的工具的功能都包含进来了 这样我们只需要关心大的工具如何使用就ok了
 <!-- 
   它将前端要做的一系列的小操作 把它整合成了一个大的工具 使其一次性的能处理所有的需求 webpack就是构建工具中的一种
  -->
 
 
-> 静态模块打包器
+> 静态模块打包器概念:
 - 我们在开发vue react的时候 喜欢在main.js文件中 引入所有的资源 引入的资源都需要交给构建工具去处理
 ```js
 // 引入js资源
@@ -37,11 +37,11 @@ import "./index.less"
 
 // 引入 图片 字体 等其他的资源
 
-
 ......
+
 ```
 
-- 那webpack怎么处理呢？
+> 那webpack怎么处理呢？ 指定入口文件
 - 首先 我们要告诉webpack打包的起点, 也就是入口文件
 - 接下来webpack就会根据这个入口文件作为起点开始进行打包 它会将main.js中的每一个依赖记录好 形成一个依赖关系树状结构图
 <!-- 
@@ -103,7 +103,14 @@ import "./index.less"
 - production(生成模式)
 - 描述:
 - 会将 process.env.NODE_ENV的值设为 production
-- 在生产模式中会自动的启用 FlagDependencyUsagePlugin, FlagIncludedChunksPlugin, ModuleConcatenationPlugin, NoEmitOnErrorsPlugin, OccurrenceOrderPlugin, SideEffectsFlagPlugin 和 UglifyJsPlugin
+- 在生产模式中会自动的启用 
+  FlagDependencyUsagePlugin
+  FlagIncludedChunksPlugin
+  ModuleConcatenationPlugin
+  NoEmitOnErrorsPlugin
+  OccurrenceOrderPlugin
+  SideEffectsFlagPlugin
+  UglifyJsPlugin
 
 - 特点:
 - 能让代码优化上线运行的环境 考虑优化措施 以及兼容性处理 这时候我们就要写些生产环境的配置 把项目做好
@@ -147,7 +154,9 @@ module.exports = {
 - webpack指令 + 要加工的文件(入口文件开始打包) -o 将以加工的文件输出到 + 目标目录路径
 
 > 解析:
-- --mode 来指定打包环境
+- --mode参数:
+- 用来指定打包环境
+
 - --mode=development 会只用开发环境去打包
 
 - *在根目录下执行上面的命令*
@@ -161,13 +170,12 @@ module.exports = {
 
 
 > 安装 + 准备
-- 我们先进行全局安装
-
 - 1. npm i webpack webpack-cli -g
+- 我们先进行全局安装
 <!-- 
   webpack-cli 可以让大家可以通过指令去使用webpack的功能
 
-  我们安装的是
+  最新的版本是
   webpack: 5.72.1
   webpack-cli: 4.9.2
 
@@ -176,13 +184,14 @@ module.exports = {
   webpack-cli: 3.3.11
  -->
 
- - 然后再在项目内安装下 (开发时依赖)
- - 2. npm i webpack webpack-cli -D
+ 
+- 2. npm i webpack webpack-cli -D
+- 然后再进行局部安装 项目内安装下 (开发时依赖)
 
- - 3. 我们整理一个项目的结构
-    | - src       (源代码目录)
-      - index.js  (入口起点文件)
-    | - build     (webpack处理后输出的目录)
+- 3. 我们整理一个项目的结构
+  | - src       (源代码目录)
+    - index.js  (入口起点文件)
+  | - build     (webpack处理后输出的目录)
 
 
 > 验证: webpack可以处理 js 文件
@@ -221,7 +230,7 @@ eval("let add = (x, y) => {\n  return x + y\n}\n\nconsole.log(add(1, 2))\n\n//# 
 /***/ })
 ```
 
-- 我们还可以输出下 打包后的文件 node ./build.js
+- 我们还可以通过 node命令来执行下打包后的js文件 node ./build.js
 
 
 > 总结:
@@ -233,7 +242,7 @@ eval("let add = (x, y) => {\n  return x + y\n}\n\nconsole.log(add(1, 2))\n\n//# 
 
 - 2. json文件不用显示暴露 默认就暴露了 所以可以直接import
 <!-- 
-  improt data "./src/data.json"
+  improt data from "./src/data.json"
  -->
 
 - 3. webpack不能处理css文件 img文件
@@ -258,6 +267,17 @@ import "./index.css"
 
 > Loader的使用
 - 我们前面说过一个概念叫做loader 帮助webpack解析一些它不能识别的模块
+- 当我们配置loadere后 loader会自动读取对应的配置文件 
+
+
+> 配置文件可以写在
+- 1. package.json中
+- 2. .xxxrc
+- 3. .xxxrc.js
+<!-- 
+  写在 js 文件中比较灵活 因为可以写代码来动态的设置值
+ -->
+
 
 > webpack.config.js
 - webpack的配置文件 
@@ -266,7 +286,7 @@ import "./index.css"
 - 指示webpack干哪些活(当运行webpack指令的时候 会加载里面的配置 以里面的配置去干活)
 
 - *注意*:
-- 在配置文件中 我们要使用commonjs的语法
+- *在配置文件中 我们要使用commonjs的语法*
 - 所有的构建工具都是基于nodejs平台运行的 而node的模块化标准采用commonjs
 <!-- 
   src: 是项目的源代码
@@ -290,7 +310,20 @@ module.exports = {
 > 1. entry
 - 入口起点 指示webpack以哪个文件为起点开始打包的
 - 它会分析入口文件中的内部依赖图
-- 类型: String
+- 类型: String | [字符串数组]
+```js
+module.exports = {
+  entry: "./index.js",
+}
+```
+
+- 使用 String 的时候 指定的是入口文件
+- 使用 array 的时候 入口文件写在最后的位置 前面的js文件是引入到入口文件中的js文件
+```js
+module.exports = {
+  entry: ['./polyfill.js', './index.js'],
+}
+```
   
 
 > 2. output
@@ -299,6 +332,7 @@ module.exports = {
 - 对象中的属性值:
 - filename: string 输出到的文件名
 - path: string 输出的路径
+- path一般使用resolve()函数来拼接路径
 <!-- 
   这里会利用path模块 来拼写绝对路径
   const {resolve} = require("path")
@@ -316,16 +350,18 @@ module.exports = {
 > 3. module
 - loader的配置
 - 类型: {}
+
 - 对象中的属性值:
 - rules: []
-- 数组中写loader的详细配置
+
+- 数组中写loader的详细配置 每一个loader都是一个对象
 ```js
 module: {
   rules: [
     // 写详细的loader配置
     {
       test: 正则,
-      use: [] | string,
+      use: [] | loader: ""
       options: {loader的配置}
     }
   ]
@@ -334,9 +370,15 @@ module: {
 
 
 > 4. plugins
-- 配置插件 loader帮webpack做翻译 插件帮助webpack扩展功能
+- 配置插件 
+- loader帮webpack做翻译 插件帮助webpack扩展功能
+
 - 类型: []
 - 数组中写详细的配置
+- 如果是一个插件 那么我们可以直接new 或者写 ""
+- 如果插件需要有配置对象 那么plugins数组里面 每一个插件的类型也是一个数组
+[["插件",{插件的配置对象}]]
+
 ```js
 plugins: [
   // 写详细的插件配置
@@ -354,7 +396,7 @@ mode: "development",
 ```
 
 > webpack来处理css样式资源
-- 我们需要的是
+- 这里我们需要使用到
   - css-loader 
   - style-loader
 
@@ -386,8 +428,9 @@ module: {
 - 值为 数组 是要对匹配文件使用多个loader
   - 对匹配的文件 使用loader
   - use数组中配置的选项的执行顺序为: 从右往左(从下到上)
+  - 当要使用 css兼容的时候 less-loader在最后 兼容loader在倒数第二个位置
 
-**loader** : 使用一个loader的时候用
+- **loader** : 使用一个loader的时候用
 - 值为 字符串 是只使用一个loader
 
 - **options** : 配置loader
@@ -408,7 +451,7 @@ module: {
 - 创建一个style标签 将js中的样式资源插入进去 添加到head中生效
 
 **注意：**
-- 了解了 两个loader的作用 那么他们的顺序就应该是 先进行css-laoder 然后进行 style-loader
+- 了解了 两个loader的作用 那么他们的顺序就应该是 先进行css-loader 然后进行 style-loader
 
 ---
 
@@ -416,7 +459,7 @@ module: {
 **技巧:**
 - 1. node在找包的时候 会先在当前的目录找 如果找不到会向上一级目录找 所以我们可以在根目录中下包 这样内部的文件目录里面都可以用
 
-- 2. 我们下载的laoder看来都是开发依赖
+- 2. 我们下载的loader看来都是开发依赖
 
 - 3. 我们用的是webpack 4.41.6 cli 3.3.1 所以会出现loader的版本可能过高 跟现在的webpack版本不符合的情况 
 - 这时我们可以去github找loader的版本 tags(在分支那)
@@ -426,7 +469,7 @@ module: {
 - webpack-cli -v
 
 
-- 1. 下包
+> 1. 下包
 - npm i style-loader@1.1.3 css-loader@3.4.2 -D
 <!-- 
   这里应该是 
@@ -436,7 +479,7 @@ module: {
   但是由于我们webpack版本的问题 所以我们在下loader的时候要指定版本
  -->
 
-- 2. 执行 webpack 指令
+> 2. 执行 webpack 指令
 - 当我们执行webpack指令之后 就会读取配置文件中的信息 按照配置执行
 ```js
 // 结果
@@ -515,9 +558,9 @@ module: {
 - 作用:
 - 默认会创建一个空的html文件 引入打包输出的所有资源(js/css)
 
-- 如果我们需要有结构的html文件 我们可以在 new htmlWebpackPlugin() 中传入配置项 template 
+- 如果我们需要有结构的html文件 我们可以在 new htmlWebpackPlugin({}) 中传入配置项 template 
 
-- template属性
+> template属性
 - 根据指定的html文档作为打包后的html页面(复制指定的html文档中的内容 并自动引入打包输出的所有资源)
 
 **注意:**
@@ -526,10 +569,15 @@ module: {
 ```js
   plugins: [
     new htmlWebpackPlugin({
-      template: "指向一个有结构的.html"
+      template: "指向一个有结构的.html",
+      title: ""
+      favicon: ""
     })
   ]
 ```
+> title
+> favicon
+- 字面意思
 
 
 > 2. 引入 插件
@@ -555,7 +603,7 @@ const htmlWebpackPlugin = require("html-webpack-plugin")
   ],
 ```
 
-- 4. webpack 打包 查看结果
+> 4. webpack 打包 查看结果
 
 
 > 代码部分:
@@ -624,7 +672,7 @@ module.exports = {
 - url-loader
 - file-loader: 这个loder不用配置到 module配置项中
 
-- url-loader依赖于file-load做事情
+- url-loader依赖于file-loader做事情
 - npm i url-loader file-loader -D
 <!-- 
   url-loader :  @3.0.0
@@ -635,6 +683,7 @@ module.exports = {
 > 我们先做些准备工作
 - 1. index.less
 - 我们在样式文件中也引入了图片
+
 ```less
 #box1 {
   width: 100px;
@@ -693,7 +742,7 @@ import "./index.less"
 
 - **file-loader**
 - url-loader要依赖于file-loader 该loader不用配置在 module 中
-- url-loader比file-laoder多了一个limit功能
+- url-loader比file-loader多了一个limit功能
 - file-loader就是将资源原封不动的输出出去
 <!-- 
   @5.0.2
@@ -803,6 +852,8 @@ module.exports = {
           name: "[name].[ext]"
         },
       },
+
+      // html文件中的img src
       {
         test: /\.html$/,
         loader: "html-loader"
@@ -835,11 +886,11 @@ module.exports = {
   loader:
 
   // 现在又多了一个 
-  exclude: 正则
+  exclude: /正则/
 }
 ```
 
-- exclude属性:
+> exclude属性:
 - 排除正则匹配的文件 相当于打包其他资源
 - 不用经过特殊处理的资源都可以用 file-loader 来进行处理
 
@@ -848,6 +899,7 @@ module.exports = {
 - iconfont - 选择 - 购物车 - 下载代码
 - 打开 压缩包 中的 index.html
 
+> 图标字体的使用
 - 我们可以看到有3种用法
 - 1. unicode 
 <!-- 支持ie6 但是不支持多色 -->
@@ -1006,8 +1058,8 @@ devServer: {
 
 > 要点:
 - 每一个loader配置项里面都会有 options选项 用于配置loader
-
 - options - outputPath 用于将对应的资源输出到 打包目录下的哪个目录
+
 ```js
 module: {
   rules: [
@@ -1032,7 +1084,7 @@ module: {
 ```
 
 **注意:**
-- 样式没有outputPath 因为样式会打包到js里面去 在样式的loader里面配置outputPath会报错
+- 样式loader下没有outputPath 因为样式会打包到js里面去 在样式的loader里面配置outputPath会报错
 
 ```js
 const HtmlWebpackPlugin = require("html-webpack-plugin")
@@ -1099,23 +1151,23 @@ module.exports = {
 
 - 前面我们说过
 
-  开发环境:
+> 开发环境:
   就是能保证代码在本地调试运行的环境 比如
   源代码中的es6的语法 less文件 -- webpack处理后 -- 资源文件
   将资源文件在浏览器端运行 我们还做了自动化的操作 自动刷新 自动打开浏览器 让开发的效率更高
 
-  生产环境:
+> 生产环境:
   让代码能够优化上线的环境 比如
   样式问题:
   我们的样式资源在经过webpack处理后是整合在js中的(css-loader将样式文件整合到js中了) 我们的样式在js中就会让js的体积变大 加载的速度就会很慢 因为它是先加载js 才能通过创建style标签 插入到页面中 所以会出现闪屏现象 我们需要做的是将css文件从js中提取出来
 
-  代码压缩问题:
+> 代码压缩问题:
   html css js代码都在一起 所以要对其进行压缩
 
-  样式和js代码是有兼容性问题: 
+> 样式和js代码是有兼容性问题: 
   比如flex和animation等需要加前缀 在低版本的浏览器中运行
 
-  生产环境目的:
+> 生产环境目的:
   让我们的代码更好的运行 速度更快 性能更好
   让我们的代码在各个浏览器中都能平稳的运行
 
@@ -1160,7 +1212,7 @@ module.exports = {
   style-loader
   css-loader
 
-- 之后:
+- 现在:
   MiniCssExtractPlugin.loader
   css-loader
 
@@ -1260,10 +1312,16 @@ module: {
 - 除了postcss库 我们要需要使用插件 postcss-preset-env
 - 这个插件能够帮助postcss识别某些环境从而加载指定的配置 能够让我们的兼容性做的精确到某一个浏览器的版本
 
-- webpack的网址:
-- https://webpack.docschina.org/loaders/postcss-loader
+- 所以我们需要
+  - postcss
+  - postcss-loader
+  - postcss-preset-env
 
-- 版本不同 写配置的方式也不同 我们这里使用的是视频老师的webpack一系列的版本
+<!-- 
+  - webpack的网址:
+  - https://webpack.docschina.org/loaders/postcss-loader
+  - 版本不同 写配置的方式也不同 我们这里使用的是视频老师的webpack一系列的版本
+ -->
 
 
 > postcss-loader
@@ -1321,6 +1379,8 @@ module: {
   我们也可以去github上去搜索browserslist 上面有介绍这里可以写哪些参数
  -->
 
+- 该配置项 还可以写在 项目根目录下 .browserslistrc 配置文件中 在运行loader的时候会自动读取
+
 
 > 兼容性处理的位置:
 - 既然是css的兼容性处理 肯定要写在 css的loader配置里面
@@ -1333,7 +1393,8 @@ module: {
       use: [
         MiniCssExtractPlugin.loader,
         "css-loader",
-        **这里是postcss-loader的配置位置**
+        **这里是postcss-loader的配置位置**,
+        *后面如果有less, scss等可以加在这个不分*
       ]
     }
   ]
@@ -1342,6 +1403,8 @@ module: {
 
 > 配置写法:  -- 不使用该方式
 - 默认的loader写法 就是以字符串的方式 下面的方式我们不用
+- 如果使用下面的方式还有使用配置对象的话就要在项目的根目录中 创建 postcss.config.js 文件 写法参照官网
+
 ```js 
 module: {
   rules: [
@@ -1678,7 +1741,7 @@ console.log(add(3, 3))
 ```
 
 > 问题:
-- 我们直接用 webpack打包 查看打包后的结果 发现在build.js文件中 还是 es6的语法 并没有做兼容性的处理
+- 我们直接用 webpack打包 查看打包后的结果 发现在build.js文件中 还是es6的语法 并没有做兼容性的处理
 ```js
 // 能看到还是箭头函数
 eval("const add = (x, y) => x + y\nconsole.log(add(3, 3))\n\n//# sourceURL=webpack:///./index.js?");
@@ -1718,7 +1781,7 @@ module: {
       loader: "babel-loader",
       // 在options写清楚 babel-loader 的配置
       options: {
-        // 预设 babel-laoder 要进行何种转换 何种兼容性处理 预设环境的兼容性处理 "@babel/preset-env"
+        // 预设 babel-loader 要进行何种转换 何种兼容性处理 预设环境的兼容性处理 "@babel/preset-env"
         presets: [
           ["@babel/preset-env", {targets: {"chrome": "58", "ie": "11", "firefox": "60", "safari": "11", "edge": "11"}}]
         ]
@@ -1766,6 +1829,7 @@ options: {
 
 > js兼容性的处理 阶段2: 处理全部的兼容性问题(相当于引入全部的element-ui组件样式)
 - 上面的配置只能转换一些基本的语法 一些高级的es6语法仍然不能转换 所以当我们 new Promise 所以ie会报 promise 未定义的错误
+
 ```js 
   eval("var add = function add(x, y) {\n  return x + y;\n};\n\nconsole.log(add(3, 3));\nvar p = new Promise(function (resolve) {\n  setTimeout(function () {\n    console.log(\"定时器执行完了\");\n    resolve(\"成功\");\n  }, 1000);\n});\nconsole.log(p);\n\n//# sourceURL=webpack:///./index.js?");
 ``` 
@@ -1840,45 +1904,391 @@ rules: [
 ]
 ```
 
+> 预设的配置项中的可传属性
+> targets
+- 该参数项可以取值为字符串、字符串数组或对象，不设置的时候取默认值空对象{}。
+- 该参数项的写法与browserslist是一样的，下面是一个例子
+
+```js
+module.exports = {
+  presets: [["@babel/env", {
+    targets: {
+      "chrome": "58",
+      "ie": "11"
+    }
+  }]],
+  plugins: []
+}
+```
+
+- 如果写了 targets 配置项会忽略 根目录中的 browserslist的配置
+- 如果没写 targets 配置项 会使用browserslist的配置
+- 如果都没写 那么@babel/preset-env就对所有ES6语法转换成ES5的。
+
+---
+
+> useBuiltIns
+- 可选值:
+- "usage" | "entry" | false(默认值)
+
+- useBuiltIns这个参数项主要和polyfill的行为有关。
+- 默认会将polyfill中的所有兼容性处理都引入打包后的代码中
+- useBuiltIns取值为"entry"或"usage"的时候，会根据配置的目标环境找出需要的polyfill进行部分引入
+
+**entry:**
+- 这种方式不会根据我们实际用到的API进行针对性引入polyfill
+- 在使用的时候，'entry'需要我们在项目入口处手动引入polyfill
+
+- 我们在入口文件用import语法引入polyfill（也可以在webpack的entry入口项）。此时的Babel配置文件如下：
+```js
+npm install --save-dev @babel/cli @babel/core  @babel/preset-env
+npm install --save @babel/polyfill
+
+module.exports = {
+  presets: [["@babel/env", {
+    useBuiltIns: "entry"
+  }]],
+  plugins: []
+}
+```
+
+- 注意:
+- 使用'entry'这种方式的时候，只能import polyfill一次，一般都是在入口文件。如果进行多次import，会发生错误。
+
+
+**usage:**
+- 这种方式可以根据我们实际用到的API进行针对性引入polyfill
+- 在使用的时候，'usage'不需要我们在项目入口处手动引入polyfill
+
+
+- "usage"在Babel7.4之前一直是试验性的，7.4之后的版本稳定。
+- 这种方式不需要我们在入口文件（以及webpack的entry入口项）引入polyfill，Babel发现useBuiltIns的值是"usage"后，会自动进行polyfill的引入。
+
+```js
+npm install --save-dev @babel/cli @babel/core  @babel/preset-env
+npm install --save @babel/polyfill
+
+module.exports = {
+  presets: [["@babel/env", {
+    useBuiltIns: "usage"
+  }]],
+  plugins: []
+}
+```
+
+- 使用useBuiltIns:"usage"后，Babel除了会考虑目标环境缺失的API模块，同时考虑我们项目代码里使用到的ES6特性。只有我们使用到的ES6特性API在目标环境缺失的时候，Babel才会引入core-js的API补齐模块。
+
+---
+
+> corejs
+- 可选值: 2(默认值) | 3
+- 这个参数项只有useBuiltIns设置为'usage'或'entry'时，才会生效。
+
+- 2:
+- Babel转码的时候使用的是core-js@2版本（即core-js2.x.x）
+
+- 3:
+- 某些新API只有core-js@3里才有，例如数组的flat方法，我们需要使用core-js@3的API模块进行补齐，这个时候我们就把该项设置为3。
+<!-- 
+  corejs取值为2的时候，需要安装并引入core-js@2版本，或者直接安装并引入polyfill也可以。
+
+  如果corejs取值为3，必须安装并引入core-js@3版本才可以，否则Babel会转换失败并提示：
+ -->
+
+---
+
+> modules
+- 可选值:
+- "amd"
+  "umd"
+  "systemjs"
+  "commonjs"
+  "cjs"
+  "auto"    -- 默认值
+  false
+
+<!-- 
+  - 我们常见的模块化语法有两种：
+  （1）ES6的模块法语法用的是import与export；
+  （2）commonjs模块化语法是require与module.exports。
+ -->  
+
+- 设置为 false:
+- 不会对ES6模块化进行更改，还是使用import引入模块。（不转）
+
+- 设置为 auto | 其他
+- 会将es6模块化转换为commonjs或其他指定的模块化方式
+
+
 **注意:**
 - 我们使用了这种方案 就不能用 @babel/polyfill 方案 要把index.js 引入@babel/polyfill的代码注释掉
 
+--- 
+
+> 扩展:
+
+> babel的配置文件
+- 1. babel.config.js    -- 采取这个比较好
+- babel在执行的时候会默认在当前目录寻找babel的配置文件
+
+- 2. .babelrc | .babelrc.js 配置文件
+
+- 3. package.json 配置文件
+
+- 上述的3种配置方式使用一种就可以 作用都是一样的
 
 
-**注意: 全局污染**
-- @babel-polyfill 解决了 Babel 不转换新 API 的问题，但是直接在代码中插入帮助函数，会导致污染了全局环境，并且不同的代码文件中包含重复的代码，导致编译后的代码体积变大。虽然这对于应用程序或命令行工具来说可能是好事，
+> @babel/core
+- @babel/cli依赖@babel/core，因此也需要安装@babel/core这个Babel核心npm包。
 
-- 但如果已有代码打算发布为可以供其他人使用的库，或我们无法完全控制代码运行的环境，则会成为问题。
+> @babel/preset-env
+- ES6转换ES5的语法转换规则，我们在Babel配置文件里指定使用它。
 
-- 需要注意的是从 Babel 7.4.0 开始，不再推荐使用 @babel/polyfill 包，
+> Babel的主要工作有两部分
+- 1. 语法转换
+- 2. 补齐API
 
-- 为解决全局污染的问题，我们可以使用@babel/plugin-transform-runtime来避免这个问题。
+> 理解:
+- Babel默认只转换新的JavaScript语法（syntax），而不转换新的 API。
 
-- 安装@babel/plugin-transform-runtime
-- npm install --save-dev @babel/plugin-transform-runtime
-- npm install --save @babel/runtime
+- 新的API分类两类:
+- 1. Promise、Map、Symbol、Proxy、Iterator等全局对象及其对象自身的方法
+- 例如Object.assign，Promise.resolve
 
-- 配置.babelrc
+- 2. 新的实例方法
+- 例如数组实例方法[1, 4, -5, 10].find((item) => item < 0)
+- 如果想让ES6新的API在低版本浏览器正常运行，我们就不能只做语法转换。
+
+- 3. babel7的命名是 @babel/ babel6的命名是 babel- 本质是一样的 只是版本不一样
+
+
+- presets: 预设数组 (所有的预设都要先npm i 然后才能使用)
+- plugins: 插件数组 (所有的插件都要先npm i 然后才能使用)
+
+- 每一个插件或预设都是一个npm包
+- 这些插件或者预设在编译过程中将我们的es6代码转成es5 但是babel插件的数量非常的多 处理es2015的就好几个 es2018也有很多 如果只配置插件数组 那么我们的plugins配置项中就会特别的臃肿
+
+- presets预设就是帮我们解决这个问题的 预设是一组babel的插件集合(插件包) 这样我们只需要用一个预设代替就可以了
+
+
+> 插件和预设的配置
+- 每个插件是插件数组的一成员项
+- 每个预设是预设数组的一成员项
+- 默认情况下，成员项都是用字符串来表示的，例如"@babel/preset-env"。
+
+- 如果我们要对插件或预设进行设置参数的话 那么成员项就要写成["插件或预设名",{配置项}]
+
+- 例如:
 ```js
-{
+ {
   "presets": [
     [
-      "@babel/preset-env"
-    ]
-  ],
-  "plugins": [
-    [
-      "@babel/plugin-transform-runtime",
+      "@babel/preset-env",
       {
-        // 配置corejs为3，需要预先安装@babel/runtime-corejs3
-      	// 配置corejs为2，需要预先安装@babel/runtime-corejs2
-      	// 配置corejs为false，需要预先安装@babel/runtime
-        "corejs": false
+        "useBuiltIns": "entry"
       }
     ]
   ]
 }
 ```
 
-----------------
+- Babel官方的preset，我们实际可能会用到的其实就只有4个：
+  @babel/preset-env   -- 一般这个就够用了
+  @babel/preset-flow
+  @babel/preset-react
+  @babel/preset-typescript
 
+
+> @babel/polyfill
+- 由两个npm包*core-js*与*regenerator-runtime*组合而成的
+
+- 上面我们就使用它进行了js兼容性的处理(全部引入)
+
+> 使用方式
+- 1. 直接在html文件引入Babel官方的polyfill.js脚本文件
+- 2. 在前端工程的入口文件里引入polyfill.js
+```js
+import './polyfill.js';
+import '@babel/polyfill';
+
+// 还可以在 webpack 的配置文件中引入
+const path = require('path');
+module.exports = {
+  // 这里
+  entry: ['./polyfill.js', './a.js'],
+  output: {
+    filename: 'b.js',
+    path: path.resolve(__dirname, '')
+  },
+  mode: 'development'
+};
+```
+
+- 3. 在前端工程的入口文件里引入core-js/stable与regenerator-runtime/runtime
+- 该方法需要我们单独安装单独安装core-js与regenerator-runtime这两个npm包，这种方式core-js是默认是3.x.x版本
+<!-- 
+  注意:
+  - 如果选择该方式 就不能再安装 @babel/polyfill
+
+  npm install --save core-js regenerator-runtime
+
+  import "core-js/stable";
+  import "regenerator-runtime/runtime";
+ -->
+
+> 4. (推荐) 在前端工程构建工具的配置文件入口项引入core-js/stable与regenerator-runtime/runtime
+```js
+npm install --save core-js regenerator-runtime
+
+const path = require('path');
+module.exports = {
+  entry: ['core-js/stable', 'regenerator-runtime/runtime', './a.js'],
+  output: {
+    filename: 'b.js',
+    path: path.resolve(__dirname, '')
+  },
+  mode: 'development'
+};
+```
+
+**注意:**
+- 从babel7.4开始，官方不推荐再使用@babel/polyfill了
+
+-----------
+
+> @babel/plugin-transform-runtime
+- 在我们利用babel做语法转换的时候 babel内部需要在转换后的代码里面注入一些函数才能正常工作
+- _classCallCheck
+- _defineProperties
+- _createClass
+
+- 我们会看到转换后的代码上面 会有这些函数的声明 这些函数就是辅助函数
+- @babel/preset-env在做语法转换的时候，注入了这些函数声明，以便语法转换后使用。
+
+- 但样这做存在一个问题。在我们正常的前端工程开发的时候，少则几十个js文件，多则上千个。如果每个文件里都使用了class类语法，那会导致每个转换后的文件上部都会注入这些相同的函数声明。这会导致我们用构建工具打包出来的包非常大。
+
+
+> 使用方式:
+- 1. 下载
+- npm install --save @babel/runtime
+  npm install --save-dev @babel/core  @babel/preset-env @babel/plugin-transform-runtime
+
+- 2. 在 *babel.config.js* 里面进行配置
+```js
+{
+  "presets": [
+    "@babel/env"
+  ],
+  "plugins": [
+    "@babel/plugin-transform-runtime"
+  ]
+}
+
+//  或者这样
+module.exports = {
+  presets: ["@babel/preset-env"],
+  plugins: [
+    ["@babel/plugin-transform-runtime", {
+      "corejs": 3
+    }]
+  ]
+}
+```
+
+- 还可以传入配置
+```js
+{
+  "plugins": [
+    ["transform-runtime", {
+      "helpers": false,
+      "polyfill": false,
+      "regenerator": true,
+      "moduleName": "babel-runtime"
+    }]
+  ]
+}
+```
+
+- helpers:
+- 默认值: true
+- 表示是否开启内联的babel helpers(即babel或者环境本来的存在的垫片或者某些对象方法函数)(clasCallCheck,extends,etc)在调用模块名字(moduleName)时将被替换名字。
+
+- polyfill:
+- 默认值: true
+- 表示是否把内置的东西(Promise,Set,Map,tec)转换成非全局污染垫片。
+
+- regenerator:
+- 默认值: true
+- 是否开启generator函数转换成使用regenerator runtime来避免污染全局域。
+
+- moduleName
+- 默认值: babel-runtime
+- 当调用辅助（内置垫片）设置模块（module）名字/路径.
+
+- https://lequ7.com/guan-yu-babelbabeltransformruntime.html
+
+--- 
+
+> 这个才是我们配置兼容性的最终方式吧
+- corejs3的时候的配置方式
+```js
+npm install --save @babel/runtime-corejs3
+npm install --save-dev @babel/cli @babel/core  @babel/preset-env @babel/plugin-transform-runtime
+
+{
+  "presets": [
+    "@babel/env"
+  ],
+  "plugins": [
+    ["@babel/plugin-transform-runtime", {
+      "corejs": 3
+    }]
+  ]
+}
+```
+
+> @babel/plugin-transform-runtime
+- 而 @babel/plugin-transform-runtime 有3大作用
+- 1. 自动移除语法转换后内联的辅助函数（inline Babel helpers），使用@babel/runtime/helpers里的辅助函数来替代。这样就减少了我们手动引入的麻烦。
+
+- 2. 当代码里使用了core-js的API，自动引入@babel/runtime-corejs3/core-js-stable/，以此来替代全局引入的core-js/stable;
+
+- 3. 当代码里使用了Generator/async函数，自动引入@babel/runtime/regenerator，以此来替代全局引入的regenerator-runtime/runtime；
+
+
+> 演示 js兼容方案的最终处理方式
+- 1. 使用 babel.config.js 
+```js
+module.exports = {
+  presets: ["@babel/preset-env"],
+  plugins: [
+    ["@babel/plugin-transform-runtime", {
+      "corejs": 3
+    }]
+  ]
+}
+```
+
+- 2. webpack.config.js
+```js
+module: {
+  rules: [
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: "babel-loader",
+    }
+  ]
+},
+```
+
+- 3. package.json里面使用的版本
+```js
+"devDependencies": {
+  "@babel/core": "^7.17.10",
+  "@babel/plugin-transform-runtime": "^7.17.10",
+  "@babel/preset-env": "^7.14.7",
+  "@babel/runtime-corejs3": "^7.17.9",
+  "babel-loader": "^8.0.6",
+},
+```

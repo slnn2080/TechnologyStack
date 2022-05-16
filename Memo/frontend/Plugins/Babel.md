@@ -40,7 +40,7 @@ var fn = function fn(num) {
 - 2. 补齐API
 
 - 什么是补齐API？ 
-- 简单解释就是，通过 Polyfill 的方式在目标环境中添加缺失的特性 。
+- 简单解释就是，通过 Polyfill 的方式在目标环境中添加缺失的特性。
 
 - 我们上一节的操作对var promise = Promise.resolve('ok')进行转换，会发现转换后的代码并没有改变，过程如下。
 ```js
