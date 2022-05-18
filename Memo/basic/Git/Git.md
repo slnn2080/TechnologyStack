@@ -1424,6 +1424,9 @@ git push origin master
 - 现在，你的小伙伴要在dev分支上开发，就必须创建远程origin的dev分支到本地，于是他用这个命令创建本地dev分支：
 
 > git checkout -b dev origin/dev
+<!-- 
+    git checkout -b dev remotes/origin/develop
+ -->
 - 现在，他就可以在dev上继续修改，然后，时不时地把dev分支push到远程：
 <!-- 
     $ git add env.txt

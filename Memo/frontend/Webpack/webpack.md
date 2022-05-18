@@ -1632,9 +1632,21 @@ plugins: [
 ```js
 // package.json
 "eslintConfig": {
-  "extends": "airbnb-base"
+  "extends": "airbnb-base",
+
+  // 注意: eslint不认识全局变量 实际上浏览器在运行的时候肯定是有window这个全局变量的 所以要让eslint认识这些变量 就这么配置
+  "env": {
+    // 让eslint支持浏览器的全局变量
+    "browser": true,
+
+    // 让eslint支持node中的全局变量
+    "node": true
+  }
 }
 ```
+<!-- 
+   以上注意的部分 当终端报 window is not defind 错误的时候 可以这么加上
+ -->
 
 - 视频中说还可以通过 .eslintrc 文件中配置
 - 以下是kinto项目的 .eslintrc.json 文件
@@ -2527,7 +2539,7 @@ module.exports = {
           "css-loader",
           // css的兼容性处理 还需要在定义 browserslist
           {
-            loader: "postcss-laoder",
+            loader: "postcss-loader",
             options: {
               ident: "postcss",
               plugins: () => [
@@ -2545,7 +2557,7 @@ module.exports = {
           MniCssExtractPlugin.loader,
           "css-loader",
           {
-            loader: "postcss-laoder",
+            loader: "postcss-loader",
             options: {
               ident: "postcss",
               plugins: () => [
@@ -2577,7 +2589,7 @@ module.exports = {
       // 图片的处理
       {
         test: /\.(jpg|png|gif)$/,
-        loader: "url-laoder",
+        loader: "url-loader",
         options: {
           limit: 8 * 1024,
           name: "[hash:10].[ext]",
@@ -2655,7 +2667,7 @@ module.exports = {
 
 ----------------
 
-### 优化 开发环境 的打包构建速度 HMR
+### HMR
 - 我们现在项目中存在的问题
 - 描述:
 - 我们在入口文件中 index.js
@@ -2682,6 +2694,9 @@ console.log(add(3,3))
 
 
 > HMR (hot module replacement) 热模块替换
+- 注意:
+- HMR只是在开发环境中使用 因为是配置在 devServer配置项中的
+
 - 作用:
 - 一个模块发生变化 只会重新打包这一个模块 而不是打包所有
 - 极大的提升代码的构建速度
@@ -2805,4 +2820,1593 @@ entry: ["./index.js", "./src/index.html"],
 
 ----------------
 
-### 优化 开发环境 sourceMap
+### sourceMap
+- 这个部分是解决开发环境下调试代码的问题
+
+> source-map
+- 提供源代码到构建后代码的映射技术
+- 如果构建后代码出错了 通过映射关系可以追踪到源代码错误 便于我们寻找错误的原因
+<!-- 
+  源代码和构建后的代码区别是很大的 比如源码有100个模块 但是构建后代码只有一个模块 这样找代码出错的位置就会比较难
+ -->
+
+> 添加 source-map 功能
+- 在 webpack.config.js 配置文件中 添加一个新的配置项
+```js
+module.exports = {
+  mode: "development",
+  devtool: "source-map"
+}
+```
+
+---
+
+> devtool可选值:
+> source-map
+- source-map部分的代码 会单独成为一个文件 build.js.map
+
+\\ 作用 & 效果:
+- 可以提示到: 错误代码的准确信息 和 源代码的错误位置
+- xxx ---  print.js:5
+
+- 描述:
+- 当我们源代码中出错后 控制台会报错 报错信息的右侧 会有哪个文件出错了 并且是第几行出错 同时我们点击该部分*会跳到出错文件的出错位置*
+<!--                      
+                                                 ↓
+  console.log(...) is not a function    ---  print.js:5
+ -->
+
+- 如果没有加source-map的话 我们js代码被压缩后都会在一行 当我们代码出错后 仅会提示在打包后文件的第一行 也不会跳到指定的位置
+<!-- 
+  console.log(...) is not a function    ---  build.js:1
+  可要知道这一行当中的位置特别难确认
+ -->
+
+- 控制台 sources 面板的左侧 有个目录结构树 有云彩的图标
+- localhost:3000 目录下是打包后的代码
+- webpack//      目录下是源代码
+
+- 因为我们有了 source-map 所以可以由构建后的代码映射到源代码 从而提示源代码的错误
+
+---
+
+> inline-source-map
+- source-map部分的代码 会和 build.js 文件 在一起(在打包代码的下方是一块整体) 没有 build.js.map文件
+- 也叫做内联: *内联的构建速度更快*
+
+\\ 作用 & 效果:
+- 作用和 source-map 一致
+- xxx ---  print.js:5
+- 只不过内联构建速度更快
+
+---
+
+> hidden-source-map
+- source-map部分的代码 会单独成为一个文件 build.js.map
+- 也叫做外联
+
+\\ 作用 & 效果:
+- 提示错误文件 和 错误位置 是构建后代码的位置 不能追踪到源代码的错误 只能提示到构建后代码的错误位置
+- 我们点击进入后跳入的也是 构建后的代码位置 (倒是也能跳进入) 但是需要我们自己通过构建后的代码 去源代码里面找
+- xxx ---  build.js:11419
+
+---
+
+> eval-source-map
+- 也属于内联 
+- 所有的js文件都打包在 build.js 文件中 该文件中的每一个js模块部分会单独生成source-map代码(*sourceMappingURL=data:xxx;base64*) 并且都在 eval() 中
+
+\\ 作用 & 效果:
+- 能够提示到准备的错误文件 和 错误位置 也能跳入到源代码中的错误的准确的位置
+
+- xxx ---  print.js?8da3:5
+
+---
+
+> nosource-source-map
+- 生成一个外部的source-map文件 build.js.map
+
+\\ 作用 & 效果:
+- 能够提示到准备的错误文件 和 错误位置
+- 但是关联不到源代码上
+
+- xxx ---  print.js:5
+
+<!-- 
+  nosource
+  hidden
+  的作用都是为了隐藏源代码 防止程序员通过调试能找到源代码 照成源代码泄露 有些隐患
+ -->
+
+---
+
+> cheap-source-map
+- 生成一个外部的source-map文件 build.js.map
+
+\\ 作用 & 效果:
+- 效果上和source-map一样
+- 但是 source-map 的提示更加的准确 *cheap只是精确到行*
+
+- xxx ---  print.js:5
+
+---
+
+> cheap-module-source-map
+- 生成一个外部的source-map文件 build.js.map
+
+\\ 作用 & 效果:
+- 效果上和cheap-source-map一样
+- module会将loader的source-map也加进来
+<!-- 
+  cheap-source-map 不会添加loader的只会添加自己的source-map
+ -->
+
+---
+
+> 选哪个值?
+- 这里我们要考虑生产环境和开发环境
+
+- 开发环境: 
+- 考虑: 速度快一点 调试更友好
+
+- 速度方面: 
+- eval > inline > cheap > source-map
+
+- 比如我们可以选择
+- eval-source-map       很快
+- eval-cheap-source-map 更快 因为它只精确到行
+
+
+- 调试方面:
+- source-map: 调试最友好
+- cheap-module-source-map: 其次
+- cheap-source-map: 再其次
+
+
+> 总结: 开发环境下 选择 
+- eval-source-map(调试最友好)
+- eval-cheap-module-source-map(很快)
+<!-- 
+  vue react 脚手架中 默认使用的是 eval-source-map
+ -->
+
+---
+
+- 生产环境:
+- 考虑: 源代码是否要隐藏 调试要不要更友好
+
+- 是否隐藏:
+- nosource-source-map(全部隐藏)
+- hidden-source-map(只隐藏构建后代码 会提示构建后代码错误)
+
+- 调试友好:
+- source-map
+
+**问题:**
+- 内联会让代码体积变的非常大 所以在生产环境中是不用 内联的 一定要用外部的
+
+
+> 总结: 生产环境下 选择 
+- source-map(调试更加友好)
+- cheap-module-source-map(速度稍微快点)
+<!-- 
+  如果要隐藏源代码 可以选择
+  - nosource-source-map
+  - hidden-source-map
+ -->
+
+> 开发环境中我们可以选择 eval-source-map 生产环境中选择 source-map
+
+
+
+
+> 验证:
+- 当我们输入 webpack 打包命令后 我们会发现 build目录下 出现了
+  | - build
+    - build.js
+    - build.js.map
+
+- 它提供了源代码和构建后代码的映射关系 有了source-map文件后 我们在运行 npx webpack-dev-server 后就可以通过点击跳到出错的位置了
+
+----------------
+
+### oneOf
+- 我们在写loader的时候 rules里面有多少朵的loader规则
+- 有处理 css文件的
+- 有处理 js文件的 ...
+
+- 我们项目中的一个文件都会过一遍loader 有些loader处理不了 有些loader会被命中 这样不太好
+
+- 这时候我们不希望一个文件要过遍所有的loader 希望的是遇到一个匹配的就停止(好像 if(){...} 只会进入匹配的loader) 这时候我们可以使用 oneOf 选项
+
+> oneOf
+- 它能够提升构建速度 避免一个文件被多个loader都过一遍
+- 优化环境下打包的构建速度的
+
+- 类型: []
+- 类面是一个个的loader配置项
+
+```js
+module: {
+  rules: [
+    {
+      单独的loader配置
+    },
+
+    // 注意 rules数组中还有一个对象 对象里面才是oneOf
+    {
+      oneOf: [
+        {loader配置1},
+        {loader配置2},
+        {loader配置3},
+      ]
+    }
+  ]
+}
+```
+
+**注意:**
+- 不能有两个配置处理同一个类型的文件
+- 比如有两个loader eslint-loader 和 babel-loader 都处理的是js类型的文件
+
+- 如果把这两个loader都放在都放在 oneOf 里面那么只会匹配一个
+- 所以我们要把其中的一个loader拿到外面去
+
+```js
+module: {
+  rules: [
+    {
+      // 因为兼容性 和 eslint 都是对js文件做loader处理 所以要拿出来一个
+
+      // eslint-loader单独的拿到外面 而且它还有 enforce 优先执行
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        // 优先执行
+        enforce: "pre",
+        loader: "eslint-loader",
+        options: {
+          fix: true
+        }
+      },
+
+      // 剩下的loader放在里面做一一匹配
+      oneOf: [
+        {
+          test: /\.css$/,
+          use: [
+            MniCssExtractPlugin.loader,
+            "css-loader",
+            {
+              loader: "postcss-loader",
+              options: {
+                ident: "postcss",
+                plugins: () => [
+                  require("postcss-preset-env")()
+                ]
+              }
+            }
+          ]
+        },
+        {
+          test: /\.less$/,
+          use: [
+            MniCssExtractPlugin.loader,
+            "css-loader",
+            {
+              loader: "postcss-loader",
+              options: {
+                ident: "postcss",
+                plugins: () => [
+                  require("postcss-preset-env")()
+                ]
+              }
+            },
+            "less-loader"
+          ]
+        },
+        
+        {
+          test: /\.js$/,
+          exclude: /node_modules/,
+          loader: "babel-loader",
+        },
+        // 图片的处理
+        {
+          test: /\.(jpg|png|gif)$/,
+          loader: "url-loader",
+          options: {
+            limit: 8 * 1024,
+            name: "[hash:10].[ext]",
+            outputPath: "imgs",
+            esModule: false
+          }
+        },
+        {
+          test: /\.html$/,
+          loader: "html-loader",
+        },
+        {
+          exclude: /\.(js|jpg|png|gif|html|css|less)/,
+          loader: "file-loader",
+          options: {
+            outputPath: "media"
+          }
+        }
+      ]
+    }
+  ]
+},
+```
+
+----------------
+
+### 缓存
+- 生产环境中 缓存的配置 缓存我们会从两个点出发
+- 1. 从 babel入手 对babel进行缓存
+- 2. 对我们加载的资源进行缓存
+
+> babel缓存
+- babel的意思是 我们在写代码的时候 永远是js代码是最多的 结构和样式比较少
+- 对babel进行缓存的原因是 因为babel要对我们写的js代码作编译处理 编译成我们浏览器能够识别的语法 在编译的过程中假设我们有100个js模块 当我们只改动了1个js模块 不可能将100个模块重新编译一遍 其他的99个应该是不变的(这点和HMR功能比较像 但是*生产环境中又不能使用HMR功能*, 因为HMR是基于devServer的 生产环境中不需要devServer)
+
+- 我们期望的是 当babel做编译的时候 如果只有一个文件发生变化 那么应该只有这一个文件发生重编译其他的文件不变
+
+- 这里我们就要开启babel缓存 它会将100个js文件编译后的文件进行缓存处理 将来再去做的时候 发现文件没有变化的时候 会直接使用缓存 不会再重新构建一次
+
+> 开启 babel 缓存: cacheDirectory
+- 在webpack.config.js配置文件中的babel-loader的配置项里面 添加 cacheDirectory: true 就好了
+```js
+// babel.config.js
+module.exports = {
+  presets: ["@babel/preset-env"],
+  plugins: [
+    ["@babel/plugin-transform-runtime", {
+      "corejs": 3
+    }]
+  ]
+}
+
+
+// webpack.config.js
+{
+  test: /\.js$/,
+  exclude: /node-modules/,
+  loader: "babel-loader",
+  options: {
+    presets: [
+      [
+        "@babel/preset-env",
+        {
+          useBuiltIns: "usage",
+          corejs: {version: 3},
+          targets: {
+            chrome: "60",
+            firefox: "50"
+          }
+        }
+      ]
+    ],
+    // 开启 babel 缓存
+    cacheDirectory: true
+  }
+}
+
+
+// 要是我们使用的是babel.config.js文件的话就这样
+{
+  test: /\.js$/,
+  exclude: /node_modules/,
+  loader: "babel-loader",
+  options: {
+    cacheDirectory: true
+  }
+},
+```
+
+- 开启之后 当第二次构建时 会读取之前的缓存 这样速度会更快
+
+---
+
+> 文件资源缓存
+- 服务端设置了 静态资源文件的缓存时间
+
+- 我们为了测试缓存 我们要写一段服务器的代码
+```js
+// 服务器代码
+const express = require("express")
+const app = express()
+
+// 创建静态资源文件夹
+app.use(express.static("build", {maxAge: 1000 * 3600}))
+
+app.listen(3000, () => {
+   console.log("服务器已开启")
+})
+```
+
+- 然后我们先进行次 webpack 打包
+- 然后我们启动服务器 观察页面效果 观察下 NetWork
+
+- 发现打包后的 build.js 文件的 *size列* 中会显示 
+(memory cache)	
+
+- 同时我们可以关注下 build.js 文件的ResponseHeaders
+- 我们会发现 响应头有 Cache-Control: public, max-age=3600
+- 该资源会被浏览器强制缓存一个小时
+
+- 我们知道当我们的代码上线的时候都需要对资源进行缓存处理 因为做了缓存后 用户在第二次访问的时候就不会发很长的时间
+
+
+**问题:**
+- 但是这种缓存还会有其他的问题
+- 当我们修改js代码 或者 css样式的之后 重新webpack构建 但是我们发现浏览器并没有发生变化
+
+- 因为在缓存期(1小时)间浏览器是不会访问服务器的 它会直接读取本地的缓存
+
+- 那就是说假使我们的资源在强缓存期间出现了严重的bug 我们开发会紧急修复 但是因为被强制缓存 所以没有办法进行修复 这个时候怎么办？
+
+> 解决方式1: 利用 hash 值 修改资源文件名(js css)
+- 这个时候我们可以在资源名称的后面做些处理 比如在资源名称的后面加上版本号 当我们下次更新的时候 会更新版本号 资源名称变了 这个资源就会重新提交 如果资源名称没有变才会走缓存
+
+- 因为*每次打包后 webpack都会产生一个hash值* 我们将这个hash值放到 js文件 和 css文件 的名字里面
+
+```js
+// webpack.config.js
+output: {
+  filename: "build.[hash:10].js",
+  path: resolve(__dirname, "build")
+},
+plugins: [
+  // 提取css文件
+  new MniCssExtractPlugin({
+    filename: "build.[hash:10].css"
+  }),
+],
+```
+
+- 这样设置后 我们修改源代码 重新构建之后 资源的名称都不同 所以当每次构建后都会重新请求服务器获取最新的资源
+<!-- 
+  build.91bb16bf2b.css
+  build.91bb16bf2b.js
+ -->
+
+**hash值产生的问题**
+- 我们对js 和 css的打包后的文件上添加了hash值
+- 当我们只改动css文件 一旦重新打包 js文件也会重新构建缓存就失效了
+
+- 因为js和css同时使用了一个hash值 如果重新打包会导致所有缓存失效(我却只改动了一个文件)
+
+
+> 解决方式2: 利用 chunkhash 值
+- 修改方式 就是将 hash -> chunkhash
+- 根据chunk生成的hash值 如果打包来源于同一个chunk hash值就一样
+
+**这里有个小问题**
+- 我们发现打包后的js和css的文件名上的hash值还是一样 因为css是在js中被引进来的 所以同属于一个chunk 所以chunkhash还是一样的
+
+- chunk的概念:
+- 一个入口文件 这个入口文件中引入了其它依赖 所有根据入口文件引入的东西都会生成为一个chunk
+<!--    
+              ↗ css
+  入口文件.js  → js     → 这些依赖最后会形成一个文件(chunk)
+              ↘ ...
+ -->
+
+
+> 解决方式3: 利用 contenthash 值  -- 最终
+- 它会根据文件的内容生成hash值 不同的文件hash值一定不一样
+```js
+// webpack.config.js
+output: {
+  filename: "build.[contenthash:10].js",
+  path: resolve(__dirname, "build")
+},
+plugins: [
+  // 提取css文件
+  new MniCssExtractPlugin({
+    filename: "build.[contenthash:10].css"
+  }),
+],
+```
+
+- babel缓存是让第二次访问的速度更快
+- contenthash让代码上线运行缓存更好使用(开发环境的时候可以配置 HMR)
+
+----------------
+
+### tree shaking (树摇)
+- 生产环境
+
+- 我们可以将我们的应用程序想象成一棵树 而在应用程序中引入的源代码或者是jq react这些库就是一个活的树叶 这个库里面没有引用的代码就是枯萎的树叶 为了去掉这些枯萎的树叶 我们可以摇晃这棵树 这就是树摇
+
+> 树摇的目的:
+- 就是去除应用程序中 没有使用的代码 这样能让代码的体积变的更小
+- 去除无用的代码(js代码或者css代码)
+- 减少代码体积 请求更小 加载速度就越快
+
+> 前提:
+- 1. js文件里面必须使用es6模块化
+- 2. 开启 mode: "production" 环境
+
+- 满足前面的两个前提 就会*自动启动树摇* 
+
+> 测试:
+- 我们定义了一个js文件 入口文件中只引入了 mul 并没有引入 count
+- count对应我们的应用来讲就是 枯萎的叶子
+- 当我们处于生产环境下 同时入口文件还是es6的模块化 这时候就会开启树摇
+```js
+// 入口文件 末尾加了.js 还报错呢
+import { mul } from './test';
+
+
+// 测试js文件
+export function mul(x, y) {
+  return x * y;
+}
+
+export function count(x, y) {
+  return x - y;
+}
+
+```
+
+> 结果:
+- 我们观察了打包后的js代码 发现确实没有 x - y 的count()了
+
+
+**注意:**
+- 在不同的版本间 tree shaking 会有一些差异 它可能会无意间 将我们的css文件 当做未经引用的代码给干掉了
+
+- 我们可以模拟下这个问题:
+- 在 *package.json* 中 我们添加一个配置项
+
+  "sideEffects": false
+
+- 作用:
+- 设置完后代表所有的代码是没有副作用的代码(都可以进行tree shaking)
+
+- 如上设置完后 我们再进行 webpack打包 我们发现打包后的目录中 没有css文件了
+<!-- 
+  也就是说 它可能会将 css文件 或者 @babel/polyfill 文件都干掉
+  因为它们只是引入 没有使用
+ -->
+
+> 为了避免不同的版本之间的差异 可以会将 css等在入口文件中引入但并没有使用的文件 干掉 我们可以进行如下配置
+```json
+"sideEffects": ["*.css", "@babel/polyfill"]
+```
+- 写在上面数组中的文件就不会被 tree shaking
+
+> 总结:
+- 最好是配置一下 sideEffects 将一些代码标记为没有副作用的代码 避免webpack版本的原因出现一些问题
+
+----------------
+
+### code split (代码分割)
+- 将我们打包的一个chunk(输出的一个文件) 分割为多个文件
+- 这样我们就可以实现各种功能 比如一个文件分割成3个 这样当我们加载的时候就可以并行加载
+
+- 分割成多个文件后还可以实现按需加载的功能 需要再用 不需要就不用
+<!-- 
+  比如我们在开发单页面应用的时候 我们整个文件是特别大的 我们是按照路由去拆分一些文件 从而实现按需加载
+
+  这里就要使用webpack技术 来代码分隔
+ -->
+
+- 代码分隔是针对 js代码 
+
+- 代码分隔有很多种做法:
+
+> 代码分割方式1: entry多入口方式 代码分割
+- 场景描述:
+- 我们有两个js文件 index.js 文件中 引入了 test.js 文件
+
+```js
+// 入口文件中引入了 test.js 文件
+import { mul } from './test';
+
+
+function sum(...args) {
+  return args.reduce((pre, item) => pre + item, 0);
+}
+console.log(sum(1, 2, 3, 4, 5, 6));
+console.log(mul(2, 3))
+```
+
+- 以上的代码中 当我们运行 webpack 后会将
+  index.js
+  test.js
+
+- 打包成一个build.js文件 也就是它们两个js文件的内容都结合在一个build.js文件中了
+
+- 现在我的需求是 这两个js文件 分别输出两个 bundle
+- 这时候我们可以从webpack.config.js中的 入口配置项 进行操作
+
+> entry: 多入口的时候配置成一个对象
+- 这里我们把它的值设置为 {}
+- key为打包后的文件名 
+```js
+output: {
+  filename: "[name].js",
+  path: resolve(__dirname, "build")
+},
+
+/*
+  output配置项中的filename: 
+  1. 可以用hash来区分文件名 build.[contenthash:10].js
+  2. 可以用 [name].js 这样取的就是 我们自定义的 key
+
+  不然会报错!!!! 重名
+*/
+```
+
+- 特点:
+- 有一个入口 最终输出就会有一个bundle
+- 有二个入口 最终输出就会有二个bundle
+
+```js
+module.exports = {
+  entry: {
+    main: "./index.js",
+    test: "./assets/js/test.js"
+  },
+}
+```
+
+- 同时我们设置了两个入口文件 那么在 index.js 中 就不要引入test.js文件了
+
+```js
+// 不要引入了 因为我们把test.js也设置为了入口文件
+// import { mul } from './assets/js/test';
+
+
+
+function sum(...args) {
+  return args.reduce((pre, item) => pre + item, 0);
+}
+// eslint-disable-next-line
+console.log(sum(1, 2, 3, 4, 5, 6));
+
+// eslint-disable-next-line
+console.log(mul(2, 3))
+
+```
+
+> 结果:
+- build.a578ea469f.js
+- build.dfb067e9d4.js
+- 或者
+- main.js
+- test.js
+
+- entry的写法是字符串还是对象 也体现了单页面应用的配置(单入口) 和 多页面应用的配置(多入口)
+
+--- 
+
+> 代码分割方式2: optimization - 单入口 提取node_modules 多入口 提取node_modules & 多入口中的公共文件
+
+- 跟entry同级的配置项： optimization
+
+**entry入口文件为 单入口 字符串形式**
+- 既然现在的情景是单入口 那么我们就需要在 index.js 入口文件中引入第三方(node_modules)中的库
+
+```js
+// webpack.config.js
+optimization: {
+  splitChunks: {
+    chunks: "all"
+  }
+}
+```
+
+> optimization作用:
+- 可以将 node_modules 中的代码单独打包为一个chunk
+
+> 优点:
+- 最终打包成一个js文件的话 js文件的体积会非常的大
+- 这个配置项可以将别人的*第三方的东西(库)*提取出来为一个chunk *自己写的东西*提取出来单独放在一起为一个chunk
+
+
+> 情景演示:
+- webpack.config.js中没有进行代码分割的处理
+
+- 我们在入口文件中引入了 jq 然后输出了下$
+- 然后我们webpack命令打包 发现jq和index.js文件会打包生成在一个js文件里面
+```js
+// index.js 入口文件
+import $ from "jquery"
+
+console.log($)
+```
+
+- 结果:
+- main.js   88.9 KiB       0  [emitted]  main
+- index.js 和 jq 打包在了一个 main.js 文件中 体积是 89kb
+
+
+- 当我们使用了 optimization 配置项后 webpack打包结果为
+- main.js   1.61 KiB       0  [emitted]  main
+- vendors~main.js     88 KiB       1  [emitted]  vendors~main
+
+- 能看到 index.js 和 jq 分别被打包成了两个js文件
+
+
+> 情景演示2:
+- 如果 entry 为对象形式 也就是我们用了多入口的写法
+```js
+entry: {
+  main: "./index.js",
+  test: "./assets/js/test.js"
+},
+
+// index.js
+import $ from "jquery"
+console.log($)
+
+// test.js
+import $ from "jquery"
+console.log($)
+
+-- 
+webpack
+```
+
+- 同时 index.js 和 test.js 文件中都引入了jq库
+- 然后我们webpack打包 会发现
+- index.js + jq = 生成了一个打包后的js文件 89kb
+- test.js + jq = 生成了一个打包后的js文件 89kb
+
+- 也就是说 jq被多次打包到构建后的js文件中了 这样会产生一个问题 以后我在a组件里面引入了jq b组件里面引入了jq 这样就会导致这个库被重复的加载
+
+- 我们通常的做法都是将jq弄成单独的一个chunk 
+- 这时候我们就是可以在*多入口文件*的同时 配合 *optimization配置项*来完成 提取node_modules里面的库为单独的一个chunk 
+<!-- 
+  optimizaion提取对象:
+  1. node_modules
+  2. 多个入口文件中的公共文件 (多入口的场景下)
+ -->
+
+- 这样jq就不会被打包多次
+
+```js
+// webpack.config.js
+
+entry: {
+  main: "./index.js",
+  test: "./assets/js/test.js"
+},
+
+
+optimization: {
+  splitChunks: {
+    chunks: "all"
+  }
+}
+```
+
+
+> optimization配置项的总结:
+- 1. 可以将node_modules中代码单独打包成一个chunk最终单独输出
+- 2. 如果是多入口文件的时候 optimization会自动分析多入口文件中 有没有公共的依赖(公共的文件) 如果有会打包成单独的一个chunk
+
+- 如果我们的应用是单页面应用 entry为单入口 那么加上optimization配置项可以将node_modules里面的东西打包出来
+
+- 如果我们的应用是多页面应用 entry为多入口 那么它会帮我们自动分析多入口文件中的公共文件 将其提取出来进行打包 就不会重复的加载公共的东西了 同时多入口的时候也会提取node_modules里面的东西哦
+
+
+**注意:**
+- 这个公共的文件至少要求几十kb以上 太小也不行
+
+--- 
+
+> 代码分割方式3: 通过import() 让某个文件单独打包为一个chunk
+- 上面我们说了 
+- 如果我们配置的是 多入口形式
+- 那么打包的时候 就会按照 各个入口文件来进行分别打包
+
+- 如果我们是 单入口形式 
+- 配合 optimization配置项 那么只能提取node_modules中的代码进行打包
+
+- 那有没有 单入口形式 但是我们也想将指定的js文件(比如上面的test.js文件)单独打包呢？
+
+- 如果我们在 index.js 文件中 引入 test.js 那么它们最终会打包在一起
+
+- 想要完成上面的事情 我们可以通过 写js代码来完成
+
+- 我们通过
+
+> import("要单独打包的文件路径")
+- import()动态导入语法, 能将某个文件单独打包
+
+- 特点:
+- 我们发现test.js文件被打包成 1.js
+- 因为它会根据id去命名 该id会随着文件数量的递增id可能会变
+- 所以 一般我们会用下面的语法
+
+> import(/* webpackChunkName: 'test' */"./test")
+- 在路径前面 使用了 webpack特殊注释 来指定打包后的文件名
+- /* webpackChunkName: 'test' */ 
+
+```js
+// index.js 入口文件 通过下面的方式引入
+import("./assets/js/test").then(
+  module => {
+    console.log("文件加载成功");
+    console.log(module)
+  }
+).catch(
+  () => {
+    console.log("文件加载失败")
+  }
+) 
+
+function sum(...args) {
+  return args.reduce((pre, item) => pre + item, 0);
+}
+// eslint-disable-next-line
+console.log(sum(1, 2, 3, 4, 5, 6));
+```
+
+- 上面的then()方法中的module 就是test文件
+- 如果我们想要拿到 test文件中的内容 要 解构出来
+```js
+import("./assets/js/test").then(
+  // 从 module 中 解构出来 mul count
+  ({mul, count}) => {
+    ...
+  }
+)
+```
+
+- 我们发现通过上面的方式引入的文件 会被单独打包为 1.js 文件
+- 1.js      226 bytes   1  [emitted]
+- main.js   2.23 KiB    0  [emitted]  main
+
+**修改打包后文件名为id的1.js为指定文件名**
+```js
+import(/* webpackChunkName: 'test'*/"./assets/js/test").then(
+  res => {
+    console.log("文件加载成功");
+    console.log(res)
+  }
+).catch(
+  () => {
+    console.log("文件加载失败")
+  }
+) 
+
+```
+
+> 总结:
+- 单页面应用的时候我们更多的是选择第三种配置方式
+```js
+单入口 + optimization + [import(/* webpackChunkName: ''*/ "文件路径")]
+```
+- 能够保证将node_modules的代码进行分割的同时 其次其它文件也希望单独打包成一个chunk 通过import()的方式去控制
+
+- 这样我们将来的代码不会是一个巨大的js文件 而是拆分成多个小的js文件 从而实现并行加载 速度更快
+
+----------------
+
+### 懒加载(lazy_loading) 和 预加载(webpack注释: webpackPrefetch)
+- 这里的懒加载指的是js代码的懒加载 
+- 懒加载也可以叫做延迟加载 不是一上来就全部加载 而是触发了一定条件后才开始加载
+
+- 演示:
+- html部分
+```html
+<body>
+  <h3>hello lazy loading</h3>
+  <button>click</button>
+</body>
+</html>
+```
+
+- js部分
+```js
+console.log("index.js文件被加载了")
+
+import {mul} from "./assets/js/test"
+
+let btn = document.querySelector("button")
+btn.addEventListener("click", () => {
+  console.log(mul(3, 3));
+})
+```
+
+- 没做懒加载处理的情况下
+- 我们发现 我们并没有点击按钮但是 index.js test.js 文件一上来就被加载了 控制台显示
+```js
+test.js文件被加载了
+index.js文件被加载了
+```
+
+- 但是 test.js 文件一上来是不需要加载的 而是当我们点击按钮的时候 它才应该被加载 所以我们的需求是想对test.js文件进行懒加载
+<!-- 
+  不要一上来就加载 而是等我点击按钮的时候再加载
+ -->
+
+> 懒加载: import().then()
+- 使用 import() 动态加载的语法 然后在then()中成功的回调内相应的事情 哪个地方需要 目标js文件 哪个地方 引入和使用一起进行
+
+```js
+console.log("index.js文件被加载了")
+
+let btn = document.querySelector("button")
+btn.addEventListener("click", () => {
+  
+  import("./assets/js/test").then(({mul}) => {
+    console.log(mul(3, 3))
+  })
+
+})
+```
+
+> 要点:
+- 1. 这时我们发现当页面加载时 仅加载了index.js文件 而test.js是我们点击按钮后才加载的
+
+- 2. 懒加载可以理解为 引入和使用引入文件的部分 都是通过 import().then() 来完成的
+
+- 3. 也可以通过 /* webpackChunkName: 文件名 */ 来指定test文件打包后的名称
+```js
+import(/* webpackChunkName: 'test' */"./assets/js/test").then(({mul}) => {
+  console.log(mul(3, 3))
+})
+```
+
+- 4. 我们使用了 import() 动态加载的js文件 所以一定会进行分割代码的
+- 因为要先进行分割把test.js文件从打包后的大js文件中分割出来 然后才能懒加载
+
+- 5. test.js文件 并不会重新加载 第二次的时候会先走js缓存
+
+
+> 预加载: 特殊注释 webpackPrefetch: true
+- 我们在上面懒加载 import() 的代码中 添加 *特殊注释webpackPrefetch: true*
+```js
+import(/* webpackChunkName: 'test', webpackPrefetch: true */"./assets/js/test").then(({mul}) => {
+  console.log(mul(3, 3))
+})
+```
+
+- 加上特殊注释后我们发现 打包 webpack 后 打包信息里有一句代码:
+
+  main.js   2.43 KiB       0  [emitted]  main
+  test.js   267 bytes      1  [emitted]  test
+
+  Entrypoint main = main.js *(prefetch: test.js)*
+
+- chunk还是2个 但是下面多了prefetch代码 也就是说 test文件使用 prefetch 技术
+
+
+> 作用:
+- 页面第一次加载的时候 test.js 文件已经被加载了(可以看network)
+- 当我们点击按钮调用的时候 走的都是 test.js 的缓存(预加载的)
+
+> 和只用懒加载的区别
+- 懒加载的时候 我们看network 页面加载的时候 test.js 文件并没有被加载 而是等到按钮被点击的时候 才加载的
+
+- 而预加载是 页面加载的时候 test.js 文件已经被加载了 等我们点击按钮的时候 走的是预加载时候缓存起来的js文件
+
+
+> 总结:
+- 正常加载: 
+- 可以理解为并行加载 同一时间加载很多文件(比如并行加载的时候一次只能加载6个文件) 文件越多加载速度就越慢(其他文件会靠后加载) 并行加载的时候也没有先后顺序 也就是说 test.js 文件假如被先加载了 可能test.js文件先加载进来但是并没有什么用 这样浪费时间 浪费有用的文件的名额
+
+
+- 预加载 prefetch:  
+- 会在使用之前 提前加载js文件
+- 预加载是加载时机是 *等其他的资源加载完毕 等浏览器空闲了* 再偷偷的加载资源 
+**兼容性很差(只能在pc段高版本的浏览器中使用 移动端和ie会有相当大的兼容性问题 慎用！！！)**
+
+
+- 懒加载: 当文件需要用的时候才加载
+- 如果要加载的文件体积比较大 就会需要等一段较长的时间才会有反应 配合预加载就可以完成 当用户点击的时候 已经偷偷的加载好了 不会有不好的体验
+
+> 总结: 可以考虑懒加载 预加载慎用
+
+----------------
+
+### PWA (渐进式网络开发应用程序)
+- 让我们的应用 离线也可以访问的技术
+
+- 作用:
+- 让我们的网页像app应用程序一样 离线也可以访问 性能也更好
+- 但是因为兼容性问题 普及起来的话还需要一定的时间
+<!-- 
+  淘宝都在使用 pwa
+
+  我们可以登录一个网站 在network中 调节成 离线状态 刷新 正常我们就访问不了任何东西了
+
+  所有网页如果没有pwa技术都是这样的结果 但是有pwa技术的网站 调节成 离线状态 刷新后 仍然可以浏览淘宝页面
+
+  当然访问的内容是有限的 并不是所有内容都能访问
+
+  我们观察 network 发现
+  有红色未加载的 和 黑色已加载的 黑色已加载的就是 离线的时候仍可以访问的内容
+
+  而这些黑色已加载的部分 基本上都来自于为 ServiceWorker(pwa提供的技术)
+ -->
+
+
+> 使用方式:
+- pwa技术主要是通过 workbox库 来实现的 而我们在webpack中主要使用插件: workbox-webpack-plugin 来使用
+
+> 1. 下载
+- npm i workbox-webpack-plugin -D
+<!-- 
+  @5.0.0
+ -->
+
+
+> 2. 引入
+```js
+const WorkboxWebpackPlugin = require("workbox-webpack-plugin")
+```
+
+> 3. 在 plugins 配置项中配置
+- 配置对象中的操作的作用:
+- 1. 帮助 serviceworker 快速启动
+- 2. 删除旧的 serviceworker 
+
+- 这样插件就会帮我们生成一个 servicework 的配置文件
+- 接下来我们就要通过这个配置文件 注册servicework
+```js
+plugins: [
+  
+  new WorkboxWebpackPlugin.GenerateSW({
+    clientsClaim: true,
+    skipWaiting: true
+  })
+
+],
+```
+
+
+> 4. 在入口js文件中注册servicework
+> navigator.serviceWorker.register("配置文件")
+- 注册 serviceWorker
+- 该配置文件由第3步中的插件自动生成
+
+```js
+// index.js 里面写下面的代码
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').then(() => {
+      // eslint-disable-next-line
+        console.log('servicework注册成功');
+    }).catch(() => {
+      // eslint-disable-next-line
+        console.log('servicework注册失败');
+    });
+  });
+}
+
+// 注意: 链式调用的.最好连上
+```
+
+- 这时候为了避免eslint不认识 window等全局变量 要这么配置 package.json
+```js
+"eslintConfig": {
+  "extends": "airbnb-base",
+  "env": {
+    "browser": true,
+    "node": true
+  }
+}
+```
+
+
+> 5. sw代码必须运行在服务器上 所以我们必须通过服务器的方式启动构建后的文件
+- 1. node.js
+
+- 2. npm i serve -g
+<!-- 
+  方式2可以帮我们快速的创建一个静态资源服务器
+ -->
+
+- 安装了serve包后 全局就会多了一个指令 serve
+- serve -s build(要运行代码的目录 - 一般是构建后的目录)
+<!-- 
+  这样就会将指定文件夹下的资源 部署成静态资源
+  将build目录下的所有资源作为静态资源暴露出去
+ -->
+
+
+> 验证:
+- 我们可以在 application 面板中 左侧的菜单来中有 Service Workers
+- 我们可以看到服务器的信息
+
+- 左侧菜单栏中的 cache storage中能看到 workbox 缓存的数据
+- 然后将网络调节成offline 我们发现我们的页面还是可以访问的 因为资源会从 Service Worker 中获取
+
+----------------
+
+### 多进程打包 thread loader
+- js的主线程是单线程的 也就是说它同一时间只能处理一件事 如果事情比较多就需要排队一件事情处理完成后才能处理下一件事情
+
+- 所以我们可以通过多进程的方式优化打包速度 同一时间我们可以用两三个进程处理这件事情 速度会更快
+
+> 使用方式: 
+- 我们需要下载 thread-loader
+
+> 1. 下载
+- npm i thread-loader -D
+<!-- 
+  @2.1.3
+ -->
+
+> 2. 在loader的配置项中 将要多进程打包的loader 放到 thread-loader 的后面
+- 默认启动的进程为 cup核数-1
+- 如果想调整 开启的进程数 可以将 thread-laoder 写成一个对象
+```js
+  {
+    loader: "thread-loader",
+    options: {
+      workers: 2 // 指定开启两个进程
+    }
+  }
+```
+
+
+> 示例:
+- 我们对babel-loader使用多进程处理 将babel-loader放在thread-loader的后面 都是对同一类型的文件进行loader处理 所以用use
+
+```js
+rules: [
+  {
+    test: /\.js$/,
+    exclude: /node_modules/,
+    use: [
+      {
+        loader: 'thread-loader',
+        options: {
+          workers: 2 // 进程2个
+        }
+      },
+      {
+        loader: 'babel-loader',
+      }
+    ]
+  },
+]
+```
+
+- 如果还要对js文件进行eslint验证的话 那么eslint要放在前面 使用oneOf比较好
+```js
+// rules里面都是对象
+rules: [
+  {
+    test: /\.js$/,
+    loader: "eslint-loader"
+  }
+  {
+    // 对象里面有oneOf属性值为数组 数组里面和rules是一样的一个个{}
+    oneOf: [
+      {
+        test: /\.js$/,
+        use: [
+          {
+            loader: "thread-loader"
+          },
+          {
+            后面的这个loader就是要开启多进程的loader
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+**注意:**
+- 开启多进程打包是有利有弊的如果用的好速度会很快 如果用不好反而会非常的慢 因为进程的开启是有时间的 启动时间大概为600ms 进程通信(进程间会进行通信 比如进程1告诉别的进程这件事情我干完了)也需要花时间
+
+- 比如这件事情本来需要100ms就干完了 结果我们让该事情进行多进程打包 反而慢了 只有工作消耗时间比较长 才需要多进程打包 所以一般是js文件 babel一般需要编译和转换所以消耗时间比较长
+
+
+> 完整示例:
+```js
+const { resolve } = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
+
+process.env.NODE_ENV = 'production';
+
+// 复用loader
+const commonCssLoader = [
+  MiniCssExtractPlugin.loader,
+  'css-loader',
+  {
+    // 还需要在package.json中定义browserslist
+    loader: 'postcss-loader',
+    options: {
+      ident: 'postcss',
+      plugins: () => [require('postcss-preset-env')()]
+    }
+  }
+];
+
+module.exports = {
+  entry: './index.js',
+  output: {
+    filename: 'build.[contenthash:10].js',
+    path: resolve(__dirname, 'build')
+  },
+  module: {
+    rules: [
+      {
+        // 在package.json中eslintConfig --> airbnb
+        test: /\.js$/,
+        exclude: /node_modules/,
+        // 优先执行
+        enforce: 'pre',
+        loader: 'eslint-loader',
+        options: {
+          fix: true
+        }
+      },
+      {
+        // 以下loader只会匹配一个
+        oneOf: [
+          {
+            test: /\.css$/,
+            use: [...commonCssLoader]
+          },
+          {
+            test: /\.less$/,
+            use: [...commonCssLoader, 'less-loader']
+          },
+
+          // 对js类型的文件进行babel兼容性处理的同时 开启多进程打包
+          {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: [
+              /* 
+                开启多进程打包。 
+                进程启动大概为600ms，进程通信也有开销。
+                只有工作消耗时间比较长，才需要多进程打包
+              */
+              {
+                loader: 'thread-loader',
+                options: {
+                  workers: 2 // 进程2个
+                }
+              },
+              {
+                loader: 'babel-loader',
+              }
+            ]
+          },
+          {
+            test: /\.(jpg|png|gif)/,
+            loader: 'url-loader',
+            options: {
+              limit: 8 * 1024,
+              name: '[hash:10].[ext]',
+              outputPath: 'imgs',
+              esModule: false
+            }
+          },
+          {
+            test: /\.html$/,
+            loader: 'html-loader'
+          },
+          {
+            exclude: /\.(js|css|less|html|jpg|png|gif)/,
+            loader: 'file-loader',
+            options: {
+              outputPath: 'media'
+            }
+          }
+        ]
+      }
+    ]
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'build.[contenthash:10].css'
+    }),
+    new OptimizeCssAssetsWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: './src/index.html',
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true
+      }
+    }),
+    new WorkboxWebpackPlugin.GenerateSW({
+      clientsClaim: true,
+      skipWaiting: true
+    })
+  ],
+  mode: 'production',
+  devtool: 'source-map'
+};
+```
+
+----------------
+
+### externals 配置项
+- 作用:
+- 防止将某些包 打包进最终我们输出的bundle.js中
+- 打包的时候将会忽略我们指定的包
+<!-- 
+  比如我们用了jq依赖 而jq我们希望它是通过cdn连接引入进来的 这时候我们就可以利用externals给它禁止掉 这样jq就不会被打包了
+  我们会从cdn链接中使用jq
+ -->
+
+- 之后该包会通过手动 通过cdn引入该资源
+
+> 使用场景:
+- 比如我们的项目中有一些包可以通过cdn的方式使用 那么我们可以通过 externals 将这些包 在打包的时候忽略掉
+- 用的时候可以从node_modules里面引入 但是不用担心会打包进bundle里面
+
+
+> externals配置项
+- 类型: {}
+
+- 作用：
+- 如果我们可以通过cdn来引入的包 我们就可以通过 externals 来进行忽略 然后在html文件中 通过cdn引入
+
+```js
+mode: "production",
+
+// 指定的包 将不会打包进最终的文件中
+externals: {
+  // key: npm包下的包名, value: 是页面引入jq时提供的变量 jQuery or $ 都可以
+  jquery: "jQuery",
+}
+
+
+// index.js
+import $ from "jquery"
+console.log($)
+```
+
+- 我们打包的时候忽略jq了 那我们还想用的话 可以在html文件中 使用cdn来引入
+
+```html
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+```
+
+<!-- 
+  为什么cdn更快？
+ -->
+
+----------------
+
+### dll动态连接库
+- 它类似externals一样 会指示webpack 哪些库是不参与打包的
+
+- 区别是我们会通过 webpack.dll.js 配置文件 来指定哪些 库或者包 不参与打包
+- 将这些不参数打包的库 各自生成为各自的chunk
+- 然后通过 AddAssetHtmlWebpackPlugin 插件 将这些不参与打包的库自动在html文件中引入 供我们使用
+
+
+> 使用场景：
+- 正常情况下当我们在入口文件中引入了 node_modules 下的包的时候 最终会将引入的包 打包成一个chunk(build.js) 
+- 但是我们第三方库又非常的多 如果全部打包成一个文件 文件的体积就太大了 
+
+- 所以通过dll技术 我们可以将这些库各自打包成各自的chunk 然后通过插件 在html中引入 这样就从build.js中分离出去了 build.js就体积就很小
+- 这样更加有利于我们性能的优化
+
+
+> 使用方式
+> 1. webpack.dll.js 配置文件
+- 要想使用 dll 的话 那我们就要使用另一种配置文件
+- 文件名任意
+- 当我们执行 该配置文件的时候 是通过
+
+- 作用:
+- 使用dll技术对某些库(第三方的库: jq react vue)单独进行打包为一个chunk文件 
+- 将该第三方库从最终js文件中分离 方便我们通过插件将该库在html文件中引入
+
+> webpack --config webpack.dll.js
+- 这个命令执行的 所以文件名任意
+
+
+> webpack.dll.js 配置文件 的内容
+
+```js
+const { resolve } = require('path');
+
+// 引入webpack自带的插件webpack 该插件不用下载
+const webpack = require('webpack');
+
+module.exports = {
+  entry: {
+    jquery: ["jquery"]
+  },
+  output: {
+    filename: "[name].js",
+    path: resolve(__dirname, "dll"),
+    library: "[name]_[hash:5]"
+  },
+
+
+  plugins: [
+    new webpack.DllPlugin({
+      name: "[name]_[hash:5]", // 映射库的暴露的内容是什么,
+      path: resolve(__dirname, "dll/manifest.json") 
+    })
+  ],
+
+  mode: "production"
+}
+```
+
+- 解析:
+- entry 和 output 配置项:
+- 用于将 某个第三方库单独打包成一个chunk文件 
+
+\\ entry:
+```js
+// key为打包后的文件名 
+// value为 将哪些库进行打包 比如在添加属性就可以 ， ， ， 
+entry: {
+  jquery: ["jquery"]
+},
+```
+
+\\ output:
+```js
+output: {
+  // 指明打包后的名字 
+  filename: "[name].js",
+  // 指明打包后文件存在的路径
+  path: resolve(__dirname, "dll"),
+  // 指明打包后文件的内容 叫什么 比如我们将jq打包出去了 那么jquery的文件内容里面就有 jquery_hasdf 
+  library: "[name]_[hash:5]"
+},
+```
+
+\\ plugins
+- 这里面我们使用了 webpack身上的一个插件 new webpack.DllPlugin()
+- 作用:
+- 它会生成一个映射文件manifest.json 我们单独打包出去的库 都会在这个映射文件中 这个映射文件当中包含了所有单独打包出去的第三方库
+
+- 该配置文件用于告诉 webpack.config.js 文件 打包的时候参考 manifest.json 不要将里面的库打包
+```js
+plugins: [
+  new webpack.DllPlugin({
+    // 需要和 library 的名字一样
+    name: "[name]_[hash:5]", 
+    // manifest.json输出在哪里
+    path: resolve(__dirname, "dll/manifest.json") 
+  })
+],
+```
+
+
+> 2. webpack --config webpack.dll.js
+- 运行 webpack.dll.js 文件 将配置的第三方库进行打包处理
+```js 
+  // manifest.json
+  {"name":"jquery_d468b","content":{"./node_modules/jquery/dist/jquery.js":{"id":1,"buildMeta":{"providedExports":true}}}}
+```
+
+> 3. 配置 webpack.config.js 文件
+- npm i add-asset-html-webpack-plugin -D
+<!-- 
+  @5.0.2
+ -->
+
+```js
+const webpack = require("webpack")
+const AddAssetHtmlWebpackPlugin = require("add-asset-html-webpack-plugin")
+
+plugins: [
+  new HtmlWebpackPlugin({
+    template: "./src/index.html"
+  }),
+
+  // 通过 webpack 身上的该插件 找到 manifest.json 文件 告诉webpack.config.js 程序打包的时候 忽略manifest.json中的库
+  new webpack.DllReferencePlugin({
+    manifest: resolve(__dirname, "dll/manifest.json")
+  }),
+
+  // 通过该插件 指明单独打包出去的第三方库 自动在html文件中引入使用
+  new AddAssetHtmlWebpackPlugin({
+    filepath: resolve(__dirname, "dll/jquery.js")
+  })
+],
+```
+
+- 然后我们通过 webpack 打包后 会发现第三方的库没有打包进build.js中
+
+> 总结:
+- 也就是说我们知道dll 和 externals后 就可以考虑第三方的库怎么处理了 在不打包进最终的bundle的同时 怎么处理
+- externals: 彻底不打包第三方库 需要手动cdn引入
+- dll: 需要打包第三方库 需要打包一次 将来就不用重复打包了
+
+- 也就是说假如我们是通过cdn引入的话 我们使用 externals
+- 如果是第三的库我们打包之后的js文件 用自己的服务器暴露出去 从静态资源文件夹中自动引入到html文件中的话 使用dll
+
+---
+
+> 完整代码:
+- webpack.dll.js
+```js
+const { resolve } = require('path');
+// 引入webpack自带的插件webpack
+const webpack = require('webpack');
+
+module.exports = {
+  entry: {
+    // 最终打包生成的[name] --> 是jquery
+    // ["jquery"] 要打包的库名是jquery 因为是个数组 跟jquery相关的库都可以写里面
+    jquery: ["jquery"]
+  },
+  output: {
+    // 打包后的名字 指定为 jquery
+    filename: "[name].js",
+    // 将单独打包的库 打包到dll目录下
+    path: resolve(__dirname, "dll"),
+    // 打包的库里面向外暴露出去的内容叫什么名字
+    library: "[name]_[hash:5]"
+  },
+
+  // 上面的两个配置是用来专门打包jquery的 同时jquery向外暴露的名称是"[name]_[hash:5]"
+
+
+  // 上面我们将jquery单独进行打包 但是需要跟webpack建立起依赖关系 需要告诉webpack将来你在打包的时候 不要再打包jquery了 这时候我们要借助一个插件生成一个文件
+  plugins: [
+    // 这个插件的作用是帮我们生成一个 manifest.json 文件 该文件提供和jquery的一个映射关系 通过这个映射就能知道 webpack在打包的时候 就不用打包jquery了 并且告诉我们不需要打包的包的名称是 [name]_[hash:5]
+    new webpack.DllPlugin({
+      // 这个name要和上面 libray 中的值一样
+      name: "[name]_[hash:5]", // 映射库的暴露的内容是什么,
+      // 最终这个文件输出到哪里去
+      path: resolve(__dirname, "dll/manifest.json") 
+    })
+  ],
+
+  // 指定生产模式
+  mode: "production"
+}
+
+// 一旦我们进行webpack 就会对jquery这个库单独打包 并生成一个 manifest.json 文件 提供和单独打包的这个库的映射关系
+// 这里注意我们的库名是 webpack.dll.js 
+// 当我们运行webpack指令的时候 默认会查找 webpack.config.js 这个文件 而现在我们需要运行的是 webpack.dll.js 文件
+// 我们通过 webpack --config webpack.dll.js --config参数来指定我们运行的配置文件是哪一个
+```
+
+
+- webpack.config.js
+```js
+const HtmlWebpackPlugin = require("html-webpack-plugin")
+const {resolve} = require("path")
+const webpack = require("webpack")
+const AddAssetHtmlWebpackPlugin = require("add-asset-html-webpack-plugin")
+
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "build.js",
+    path: resolve(__dirname, "build")
+  },
+  module: {
+    
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: "./src/index.html"
+    }),
+    // 告诉webpack哪些库不参与打包 同时使用的时候名称也得变
+    new webpack.DllReferencePlugin({
+      manifest: resolve(__dirname, "dll/manifest.json")
+    }),
+    // 将某个文件打包输出去 并在html中自动引入该文件
+    new AddAssetHtmlWebpackPlugin({
+      filepath: resolve(__dirname, "dll/jquery.js")
+    })
+  ],
+  mode: "production",
+}
+
+
+// npm i add-asset-html-webpack-plugin -D
+```
