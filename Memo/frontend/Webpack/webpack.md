@@ -2548,8 +2548,8 @@ plugins: [
   test: //,
   exclude: //,
 
-  // 优先执行
-  enforce: "pre",
+  // 优先执行: 优先 | 正常 | 其次 | 最后
+  enforce: "pre | normal | inline | post",
 
   loader: ""
   ...
@@ -3762,13 +3762,22 @@ console.log(sum(1, 2, 3, 4, 5, 6));
 
 - 上面的then()方法中的module 就是test文件
 - 如果我们想要拿到 test文件中的内容 要 解构出来
+**单独暴露的话我们直接结构暴露对象 默认暴露的话我们结构default属性**
 ```js
+// export 暴露
 import("./assets/js/test").then(
   // 从 module 中 解构出来 mul count
   ({mul, count}) => {
     ...
   }
 )
+
+// export default 暴露
+import("./assets/js/add")
+  // 因为是默认暴露 所以我们提取的是 default 然后重命名
+  .then(({defaule: add}) => {
+
+  })
 ```
 
 - 我们发现通过上面的方式引入的文件 会被单独打包为 1.js 文件
@@ -4358,10 +4367,14 @@ module.exports = {
 \\ entry:
 ```js
 // key为打包后的文件名 
-// value为 将哪些库进行打包 比如在添加属性就可以 ， ， ， 
+// value为 将哪些库打包成一个chunk 再有别的库再添加属性就可以 ， ， ， 
 entry: {
-  jquery: ["jquery"]
+  jquery: ["jquery"],
+  // 这样可以把react相关的库 打包成一个chunk
+  react: ["react", "react-dom", "react-router-dom"]
 },
+
+// 
 ```
 
 \\ output:
@@ -4522,3 +4535,431 @@ module.exports = {
 
 // npm i add-asset-html-webpack-plugin -D
 ```
+
+----------------
+
+### 性能优化总结篇
+> 开发环境性能优化:
+- 1. 优化打包构建速度:
+- 开发环境下使用的是 HMR 功能 热模块替换
+<!-- 
+  如果只有一个模块发生变化 那只会构建这一个模块 
+  而其他的模块会用之前的缓存
+ -->
+
+- HMR功能会针对
+- css  -> 开发环境下会使用 *style-loader* 默认就会开启 HMR 功能
+- js   -> 需要通过js代码来完成 if(module.hot) { ... }
+<!-- 
+  当内部这个文件发生变化的时候 其他的模块就不会打包了
+ -->
+
+- html -> 它不需要做HMR
+
+- 2. 优化代码调试:
+- 这里我们使用了 source-map 技术 让我们在开发环境下的调试更加的友好
+<!-- 
+  提供源代码到构建后代码的映射技术 一旦构建后的代码出错了 我们不利于去看到底出了什么错 所以就提供了一个跟构建后代码和源代码映射的东西
+
+  通过source-map就能找到源代码哪里出错了 方便去修改代码
+ -->
+
+- 一般开发模式下会选择内联(eval-source-map) 生产模式下会选择(source-map)
+
+> 总结:
+- 我们对开发环境的优化 考虑的点没有太多 最关键的点就是打包速度让它更快些
+
+
+> 生产环境性能优化
+> 1. 优化打包构建速度
+> 1.1 oneOf 
+- 注意: 一个文件类型 通过两个loader来处理的时候 要把其中的一个loader拿出oneOf
+<!-- 
+  默认情况下我们设置了很多loader 每一个文件都要通过这些loader一起处理
+  使用 oneOf 匹配一个loader后 后面的loader就不用匹配了 能够提升一定的性能
+
+  那开发环境为啥不用oneOf? 可以吧
+ -->
+
+> 1.2 缓存
+- babel缓存: 是用来优化打包构建速度 第二次打包的时候速度就会快一些 开启babel缓存会更加
+<!-- 
+  js代码多就意味着多js的处理花费的时间是最长的
+ -->
+
+> 1.3 多进程打包
+- 能够提升打包速度 缺点就是每个进程的开启和通信都会有开销600ms左右
+
+> 1.4 externals
+- 让指定的库不参与打包 通过手动cdn来引入
+<!-- 
+  比如 react 和 vue 库我们不打包了 我们通过cdn直接引入
+ -->
+
+> 1.5 dll
+- 让指定的库不参与打包到bundle 通过插件引入 
+<!-- 
+  它会将 vue react 先打包好 后面我们就直接用打包好的库就好了
+  有人说dll过时了
+
+  dll可以将node_modules中的指定库分别进行拆分成不同的js 剩下的可以通过 externals打包成一个js
+ -->
+
+
+> 2. 优化代码运行的性能 (重要)
+> 2.1 设置强制缓存处理 但要搭配hash值(hash - chunkhash - contenthash)
+- chunkhash: 如果打包是来自于同一个入口 就同属于同一个chunk 共享同一个hash值
+- contenthash: 根据内容生产hash值 文件内容不同 hash就不一样
+
+> 2.2 tree shaking
+- 去除我们应用程序中没有使用的代码 让我们应用的代码的体积更小 体积小请求速度就快
+- 前提: es6 + production + [package.json - sideEffect]
+<!--  
+  有一种代码 只是在入口文件中 引入但没有使用 比如 obeserver
+  这种代码可能会被 树摇摇下去 所以要搭配 sideEffect
+ -->
+
+> 2.3 code split
+- 用来优化代码性能
+\\ 场景1: 单入口
+- 单入口默认情况下输出只有一个bundle 将来所有的js文件会被打包成一个bundle 要是1000个模块输出到一个bundle中 代码体积就会变的非常的大 所以要进行代码分隔 将一个大的js文件拆分成多个小js文件
+
+- 这样可以并行加载多个js文件 这样比加载一个大的js文件速度更快
+- 单入口文件的代码分隔方案
+  - 1. optimization 将node-modules里面的东西单独打包成一个chunk
+  - 2. import()语法 对指定的js代码进行分割
+
+\\ 场景2: 多入口
+- 有几个入口就会输出几个bundle文件
+- 多入口的话也会加上 optimization 来提取多入口的公共文件成为一个文件
+- 如果没有 optimization 的话多入口会打包重复的代码
+- 同时 optimization 也可以提取node_modules里面的代码
+- 多入口的场景下 也可以用 import()语法来分割指定js代码
+
+
+- 然后我们还可以对上面分割出来的第三方库的代码 通过 dll 技术再次的对它们进行打包 这样可以对第三方库再次的细化 比如我们引用了10个第三方库打包成一个文件的话 那就比较大 通过dll技术 我们就可以把这10个库单独分割成10个js 这样又会细化一些
+
+<!-- 
+  optimization: 是将node-modules里面的东西打包成一个js 
+  dll: 是对第三方库 再次的细化 一个库 对应一个 js
+ -->
+
+
+> 2.4 懒加载 / 预加载
+- js代码的懒加载 也是利用了代码分割的技术 
+- 预加载的技术比懒加载更好些 但是有严重的兼容性问题
+
+
+> 2.5 PWA
+- 离线可访问技术 让我们的程序变的更加的友好 兼容性不太好 缓存需要自己考虑怎么处理
+
+
+
+> 总结:
+- 对于生产环境我们需要考虑的点就非常的复杂 我们要考虑的面面俱到 目的是让我们将来上线的代码 性能能够达到最好 从而让用户体验好
+
+----------------
+
+### webpack配置详解 - entry
+
+> entry:
+- 代表入口文件的起点:
+
+> 1. 值为 string: "入口文件的路径"
+- 单入口
+
+\\ 特点: 
+- 入口文件中依赖文件 会打包成一个chunk 输出为一个bundle
+
+
+\\ 输出bundle的文件名:
+- 如果 output 中filename为指定 那么输出的bundle的文件名为指定文件名 如: build.js
+
+- 如果 output 中filename为 [name] 那么值为string的情况下 输出的bundle名为 *mian*
+
+
+```js
+entry: "./index.js",
+output: {
+  filename: "build.js" | "[name].js",
+  path: resolve(__dirname, "build")
+},
+```
+
+> 2. 值为 array: ["文件路径","文件路径"]
+- 多入口
+- 数组形式指定的多入口文件 所有的入口文件最终只会形成一个chunk 输出出去只有一个bundle
+
+\\ 特点:
+- 数组中的所有文件都会打包到*元素1*的js文件里面去 第一个js文件默认叫main
+<!-- 
+  比如下面代码中 add.js 会打包进 index.js 文件中
+  注意: 这时候就不用再在index.js文件中引入add.js了
+ -->
+
+\\ 使用场景：
+- 1. HMR功能的时候发现html文件不能热更新了 所以将html文件也放入数组中
+<!-- 
+  entry: ["./index.js", "./src/index.html"],
+ -->
+
+- 2. 写babel的时候 我们需要在入口文件中引入babel文件的时候 也可以利用entry的数组格式
+<!-- 
+  entry: ['./polyfill.js', './a.js'],
+ -->
+
+```js
+entry: ["./index.js", "./assets/js/add/js"],
+output: {
+  filename: "build.js" | "[name].js",
+  path: resolve(__dirname, "build")
+},
+```
+
+> 3. 值为 object:
+- 多入口
+- key为文件名称 value为文件路径
+
+\\ 特点:
+- 有几个入口文件就会有几个chunk 输出的时候也会对应有几个bundle
+- chunk的名称为 key
+
+```js
+entry: {
+  index: "./index.js",
+  add: "./assets/js/add,js"
+},
+output: {
+  // 这时候就不能指定文件名了
+  filename: "[name].js",
+  path: resolve(__dirname, "build")
+},
+
+
+// 特殊用法:
+entry: {
+  // 将多个js文件打包成一个bundle
+  index: ["./index.js", "./assets/js/count.js"],
+  // 这个js文件单独进行打包
+  add: "./assets/js/add,js"
+},
+```
+
+----------------
+
+### webpack配置详解 - output
+
+> output:
+```js
+output: {
+  filename: 打包后的文件的名称(还可以指定文件的目录 js/build.js),
+
+  path: 指定输出的文件目录(将来所有资源输出的公共目录),
+
+  publicPath: "/",
+
+}
+```
+
+\\ filaname:
+
+---
+
+\\ path:
+
+---
+
+\\ publicPath:
+- 决定资源引入时候的路径
+- 值一般为 / 在生产环境中使用 当我们代码上线的时候 更倾向于使用这种路径
+```html 
+<img src="/assest/imgs/a.jpg">
+```
+- 表示所有资源引入的公共路径的前缀 当设置了 publicPath之后 我们例如图片src里面的路径前 就要加上/
+- 加上了就是在当前服务器的根目录找对应的资源
+<!-- 
+  比如:
+  - 有一张图片 imgs/a.jpg
+  - 因为我们设置了 publicPath 为 / 它又是所有引入资源的路径的前缀
+
+  - 就会变成
+  - imgs/a.jpg    
+      -- 在当前路径下直接找imgs目录
+
+  - /imgs/a.jpg   
+      -- / 会以当前的服务器地址去补充 会去服务器根目录下找imgs目录
+ -->
+
+> 示例:
+- 当我们不加 publicPath 属性的时候 html里的结果为
+```js
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "js/build.js",
+    path: resolve(__dirname, "build")
+  },
+}
+```
+
+```html
+<!-- 在当前目录下找js目录 -->
+<script type="text/javascript" src="js/build.js"></script>
+```
+
+
+- 当我们加上 publicPath 属性的时候 html里面的结果为
+```js
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "js/build.js",
+    path: resolve(__dirname, "build"),
+
+    // 加上
+    publicPath: "/"
+  },
+}
+```
+
+```html
+<script type="text/javascript" src="/js/build.js"></script>
+```
+
+---
+
+\\ chunkFilename: "[name]_chunk.js"
+- 决定非入口chunk文件的名称(也可以指定文件目录)
+<!-- 
+  entry指定的是入口文件 入口文件的命名是通过 filename属性
+  而非入口文件的命名就是通过 chunkFilename属性
+
+  // 指定文件目录
+  chunkFilename: "js/[name]_chunk.js"
+ -->
+
+- 场景:
+- 通过 import() 语法 会将js文件单独的分割成一个chunk 这个js文件就会通过 chunkFilename 来命名
+
+- 通过 optimization 将node_modules里面的库分割为一个chunk 这个也会通过 chunkFilename 来命名
+
+> 示例: 
+- 我们没有使用 chunkFilename 属性 打包index.js文件 我们观察下 add.js 文件打包后的名字
+```js
+// index.js
+import count from "./assets/js/count"
+
+import("./assets/js/add")
+  // 因为是默认暴露 所以我们提取的是 default 然后重命名
+  .then(({defaule: add}) => {
+    console.log("add", add(1, 2))
+  })
+
+console.log("count", count(2, 1))
+
+
+// webpack.config.js
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "js/[name].js",
+    path: resolve(__dirname, "build"),
+    publicPath: "/",
+    // chunkFilename: "[name]_chunk.js"
+  },
+}
+```
+
+- 结果为 0.js 没有加chunkFilename 和 使用 webpack特殊注释的时候 会是通过id来命名的
+
+- 当我们加上 chunkFilename之后
+- 结果为 0_chunk.js
+
+<!-- 
+  晕 这不都是 id 命名么 还不如 webpack特殊注释呢
+ -->
+
+---
+
+\\ library: "[name]"
+- 入口文件文件被打包后 将其打包后的内容供外部使用
+- 它会向全局暴露出去一个变量[name] 这就是整个库向外暴露的变量名
+<!--  
+  我们打包后的bundle文件的格式为
+
+    (function(modules)){}({ 这里是我们打包后的代码})
+
+  打包后的代码是通过参数传递到 这个自调用函数中的 都在函数作用域在里面 外面引用是不能的 如果我们想把打包后的内容暴露出去供外部使用的话 就可以使用这个配置项
+
+  当我们指定了这个配置项后 打包后的bundle文件的格式为
+
+    var main = 
+      (function(modules)){}({ 这里是我们打包后的代码})
+
+  我们打包后的文件默认就是main 它想全局暴露出去一个 main 的变量
+  所以外界在引入这个js文件后就能找到main这个变量 从而使用里面的值
+ -->
+
+
+\\ libraryTarget: "window"
+- 将 library配置项 暴露出去的变量挂载到哪里 比如我们挂载到window下
+- browser: 可以是window
+- nodejs: 可以是global
+<!-- 
+  当我们指定了这个配置项后 打包后的bundle文件的格式为
+
+    window["main"] = 
+      (function(modules)){}({ 这里是我们打包后的代码})
+ -->
+
+- libraryTarget: "commonjs | amd | ..."
+- 变量会用commonjs的模块化方法进行暴露 这样以后就可以通过 commonjs 的语法引入
+<!-- 
+  exports["main"] = 
+    (function(modules)){}({ 这里是我们打包后的代码})
+ -->
+
+- 场景:
+- 通常都是向外暴露哪个库的时候使用 比如配合dll
+
+----------------
+
+### webpack配置详解 - module
+
+> module
+- 常用属性:
+
+```js
+module: {
+  rules: [
+    {
+      test: /\.css$/,
+      use: ["style-loader", "css-loader"]
+    },
+    {
+      test: /\.js$/,
+
+      // 排除 指定文件夹
+      exclude: /node_modules/,
+
+      // 只检查 src 下的 js文件
+      include: resolve(__dirname, "src"),
+
+      // 优先执行 | 最后执行
+      enforce: "pre | post"
+
+      loader: "eslint-loader",
+
+      options: {}
+    },
+    {
+      // 以下配置只会生效一个
+      oneOf: []
+    }
+  ]
+}
+```
+
+----------------
+
+### webpack配置详解 - resolve
