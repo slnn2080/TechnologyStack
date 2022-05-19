@@ -28,22 +28,24 @@
 
 > 静态模块打包器概念:
 - 我们在开发vue react的时候 喜欢在main.js文件中 引入所有的资源 引入的资源都需要交给构建工具去处理
+
+- 入口文件中 引入各种资源
 ```js
-// 引入js资源
-import $ from "jquery"
+  // 引入js资源
+  import $ from "jquery"
 
-// 引入样式资源
-import "./index.less"
+  // 引入样式资源
+  import "./index.less"
 
-// 引入 图片 字体 等其他的资源
+  // 引入 图片 字体 等其他的资源
 
-......
+  ...
 
 ```
 
 > 那webpack怎么处理呢？ 指定入口文件
-- 首先 我们要告诉webpack打包的起点, 也就是入口文件
-- 接下来webpack就会根据这个入口文件作为起点开始进行打包 它会将main.js中的每一个依赖记录好 形成一个依赖关系树状结构图
+- 1. 我们要告诉webpack打包的起点, 也就是入口文件
+- 2. webpack就会根据这个入口文件作为起点开始进行打包 它会将main.js中的每一个依赖记录好 形成一个依赖关系树状结构图
 <!-- 
     index.js
     ↙     ↘
@@ -51,47 +53,48 @@ import "./index.less"
 
        ↓
 
-     chunk  --  将上面的依赖形成代码块
+     chunk  --  将上面的依赖的文件提取出来形成一个代码块
 
        ↓    --  对代码块进行处理 形成 bundle
 
      boudle
  -->
 
-- 然后它会根据这个树状的结构图中的先后顺序 依次将资源引入进来形成一个chunk(代码块) 然后再对这个代码块进行各项的处理 比如将less编译为css js资源编译成浏览器可以识别的语法等 这些操作统一的概括一下 这个处理的过程 就可以称之为打包 将打包好的资源输出出去(输出出去的东西叫做bundle)
+- 然后它会根据这个树状的结构图中的先后顺序 依次将资源引入进来形成一个chunk(代码块) 然后再对这个代码块进行各项的处理 
+- 比如将less编译为css js资源编译成浏览器可以识别的语法等 这些操作统一的概括一下 这个处理的过程 就可以称之为打包 将打包好的资源输出出去(输出出去的东西叫做bundle)
 <!-- 
-  将代码都引进来形成一个代码块 
+  将代码都引进来形成一个代码块 加工代码块 形成一个bundle
  -->
 
 ----------------
 
 ### webpack的五个核心概念
-- 这5个核心的概念也是我们要在 webpack.config.js 中*必须要写*的5个属性(配置项)
+- 这5个核心的概念也是我们要在 webpack.config.js 中的5个属性(配置项)
 
-> 1. Entry
+> 1. entry
 - 指示webpack从哪个文件作为入口起点开始打包 分析构建内部依赖图
 
-> 2. Output
+> 2. output
 - 指示webpack打包后的资源 bundles 输出到哪里去 以及如何命名
 
 > 3. module (翻译官) 用于配置Loader
 - loader让webpack能够去处理那些非js文件(webpack自身只理解js)
 <!-- 
-  webpack只认识js 那么它在处理css和图片等资源的时候 就处理不了 会报错 所以要借助loader将它们转化为webpack能看懂的东西 这样webpack才能处理这些资源
+  webpack只认识js 那么它在处理css和图片等资源的时候 就处理不了 会报错 
+  所以要借助loader将它们转化为webpack能看懂的东西 这样webpack才能处理这些资源
  -->
 
-> 4. Plugins
+> 4. plugins
 - 用于执行范围更广的任务 插件的范围包括 从打包优化和压缩一直到重新定义环境中的变量等
 <!-- 
   上述的loader只能翻译一下 如果还想做些功能更加强大的事儿 还要借助与 plugins
-
-  它也是配合让webpack能够认识更多的东西 让webpack可以对其打包处理 通过安装插件的方式
+  它也是配合webpack 让webpack能够认识更多的东西 让webpack可以对其打包处理 通过安装插件的方式
  -->
 
-> 5. Mode
+> 5. mode
 - webpack使用相应模式的配置 内置的两种模式 
 
-- development(开发模式)
+> development(开发模式)
 - 描述:
 - 会将 process.env.NODE_ENV的值设为 development
 - 在开发模式中会自动的启用 NamedChunksPlugin 和 NamedModulesPlugin 
@@ -100,7 +103,7 @@ import "./index.less"
 - 能让代码本地调试运行的环境
 
 
-- production(生成模式)
+> production(生产模式)
 - 描述:
 - 会将 process.env.NODE_ENV的值设为 production
 - 在生产模式中会自动的启用 
@@ -120,11 +123,12 @@ import "./index.less"
 ```js
 module.exports = {
 
-  entry: "",
+  entry: "" | [] | {},
 
   output: {
     
   },
+
   module: {
     rules: [
       {
@@ -145,7 +149,7 @@ module.exports = {
 ### 开发环境: webpack基础演示
 - 这节我们不通过 配置文件 的方式 输出打包命令
 
-> webpack的指令分为 开发环境指令 和 生产环境指令
+> webpack --mode="环境" 通过该指令区分 开发环境指令 和 生产环境指令
 
 > 开发环境指令:
 - webpack ./src/index.js -o ./build/build.js --mode=development
@@ -169,8 +173,9 @@ module.exports = {
  -->
 
 
-> 安装 + 准备
-- 1. npm i webpack webpack-cli -g
+> webpack使用:
+> 1. 全局安装
+- npm i webpack webpack-cli -g
 - 我们先进行全局安装
 <!-- 
   webpack-cli 可以让大家可以通过指令去使用webpack的功能
@@ -185,10 +190,11 @@ module.exports = {
  -->
 
  
-- 2. npm i webpack webpack-cli -D
-- 然后再进行局部安装 项目内安装下 (开发时依赖)
+> 2. 局部安装(项目内安装)
+- npm i webpack webpack-cli -D
 
-- 3. 我们整理一个项目的结构
+
+> 3. 准备工作: 整理一个项目的结构
   | - src       (源代码目录)
     - index.js  (入口起点文件)
   | - build     (webpack处理后输出的目录)
@@ -196,9 +202,10 @@ module.exports = {
 
 > 验证: webpack可以处理 js 文件
 > 终端的结果:
-- Hash:
-- 每次打包的时候 都会生成一个唯一的hash 相当于id
-- 将来我们可以利用上它作为文件命令的一种方式
+
+> Hash:
+- 每次打包的时候 webpack会针对这次打包结果 生成一个唯一的hash 相当于id
+- 将来我们可以利用它作为文件名的一个部分
 
 ```js
 webpack ./src/index.js -
@@ -216,7 +223,7 @@ build.js  3.84 KiB    main  [emitted]  main
 
 
 > build.js 里面的结果:
-
+- 我们能看到 es6 语法并没有进行转换 直接打包js文件是为了让js文件中的代码 让浏览器认识为主
 ```js
 /***/ "./src/index.js":
 /*!**********************!*\
@@ -238,6 +245,8 @@ eval("let add = (x, y) => {\n  return x + y\n}\n\nconsole.log(add(1, 2))\n\n//# 
 <!-- 
   我们发现 es6的语法并没有被转 也就是说仅仅是打包了
   疑问: 那既然没转 打包是干嘛用的
+
+  解答: js文件中 有 import等语法 正常浏览器是不认的 但是 打包后 浏览器可以识别了
  -->
 
 - 2. json文件不用显示暴露 默认就暴露了 所以可以直接import
@@ -248,9 +257,6 @@ eval("let add = (x, y) => {\n  return x + y\n}\n\nconsole.log(add(1, 2))\n\n//# 
 - 3. webpack不能处理css文件 img文件
 - 4. 我们的代码被包含在 eval() 函数里面去了
 - 5. 生产环境和开发环境将*es6模块化*编译成浏览器成识别的模块化
-<!-- 
-  比如 js文件中 有 import等语法 正常浏览器是不认的 但是 打包后 浏览器可以识别了
- -->
 
 ----------------
 
@@ -267,7 +273,7 @@ import "./index.css"
 
 > Loader的使用
 - 我们前面说过一个概念叫做loader 帮助webpack解析一些它不能识别的模块
-- 当我们配置loadere后 loader会自动读取对应的配置文件 
+- 当我们配置loader后 loader会自动读取对应的配置文件 
 
 
 > 配置文件可以写在
@@ -280,13 +286,13 @@ import "./index.css"
 
 
 > webpack.config.js
-- webpack的配置文件 
+- webpack的配置文件 一般在项目的跟目录中创建
 
 - 作用：
 - 指示webpack干哪些活(当运行webpack指令的时候 会加载里面的配置 以里面的配置去干活)
 
-- *注意*:
-- *在配置文件中 我们要使用commonjs的语法*
+- *注意*
+- *在配置文件中 我们要使用commonjs的语法 require()*
 - 所有的构建工具都是基于nodejs平台运行的 而node的模块化标准采用commonjs
 <!-- 
   src: 是项目的源代码
@@ -296,7 +302,7 @@ import "./index.css"
   配置代码因为基于的node平台所以使用的是commonjs
  -->
 
-- 方式:
+- webpack.config.js 中配置的形式:
 - 在 配置文件我们 我们要先暴露一个对象 在对象中我们写webpack的配置
 ```js
 module.exports = {
@@ -307,38 +313,59 @@ module.exports = {
 - 我们可以在 配置对象中 写webpack的5个核心配置 和 其他的配置项
 
 
-> 1. entry
-- 入口起点 指示webpack以哪个文件为起点开始打包的
-- 它会分析入口文件中的内部依赖图
-- 类型: String | [字符串数组]
+> 配置项: entry
+- 入口起点:
+- 指示webpack以哪个文件为起点 分析文件中的内部依赖图开始打包的
+
+- 类型: 
+- String | [字符串数组] | {}
+
 ```js
 module.exports = {
   entry: "./index.js",
+  entry: ["./index.js", "./index.html"],
+  entry: {
+    build: "./index.js"
+  }
 }
 ```
 
-- 使用 String 的时候 指定的是入口文件
-- 使用 array 的时候 入口文件写在最后的位置 前面的js文件是引入到入口文件中的js文件
+- 使用 String 的时候 : 
+- 指定的一个入口文件
+
+- 使用 array 的时候 : 
+- 入口文件写在最后的位置 前面的js文件是引入到入口文件中的js文件
+- 或者说 写在数组中的两个文件 都会成为最终 bundle 的一个部分?
 ```js
 module.exports = {
   entry: ['./polyfill.js', './index.js'],
 }
 ```
-  
 
-> 2. output
+- 使用 object 的时候 :
+- 指定多入口文件的时候使用, key为入口文件的文件名 可以在output中利用[name]的方式输出
+  
+--- 
+
+> 配置项: output
 - 输出到哪里
 - 类型: {}
-- 对象中的属性值:
-- filename: string 输出到的文件名
-- path: string 输出的路径
-- path一般使用resolve()函数来拼接路径
+
+- 对象中的属性:
+```js
+{
+  filename: <string> 输出到的文件名
+  path: <string> 输出的路径 path一般使用resolve()函数来拼接路径
+}
+```
+
 <!-- 
   这里会利用path模块 来拼写绝对路径
   const {resolve} = require("path")
   path: resolve(__dirname, "build")
 
   __dirname: nodejs的变量 代表当前文件的目录的绝对路径
+
   比如: 
     | - webpack_local
       - webpack.config.js
@@ -347,7 +374,7 @@ module.exports = {
  -->
 
 
-> 3. module
+> 配置项: module
 - loader的配置
 - 类型: {}
 
@@ -369,15 +396,14 @@ module: {
 ```
 
 
-> 4. plugins
+> 配置项: plugins
 - 配置插件 
 - loader帮webpack做翻译 插件帮助webpack扩展功能
 
 - 类型: []
+
 - 数组中写详细的配置
 - 如果是一个插件 那么我们可以直接new 或者写 ""
-- 如果插件需要有配置对象 那么plugins数组里面 每一个插件的类型也是一个数组
-[["插件",{插件的配置对象}]]
 
 ```js
 plugins: [
@@ -385,30 +411,47 @@ plugins: [
 ],
 ```
 
+<!-- 
+  如果插件需要有配置对象 那么plugins数组里面 每一个插件的类型也是一个数组
+  [["插件",{插件的配置对象}]]
+ -->
 
-> 5. mode
+
+> 配置项: mode
 - 配置环境
 - 类型: string
 - 值为: development | production 只能写一个
 ```js
-mode: "development",
-// mode: "production"
+mode: "development | production",
 ```
+
+---
 
 > webpack来处理css样式资源
 - 这里我们需要使用到
-  - css-loader 
   - style-loader
+  - css-loader 
 
-- 在 module - rules 中 每一个loader都是以一个对象的形式出现
-- loader会去遍历所有的文件 一旦发现 *test属性匹配的文件(css结尾的文件)* 就会对它*进行use属性中定义的loader来处理文件*
+- 位置:
+```js
+module: {
+  rules: [
+    {
+      ... 位置: 每一个loader配置 都是以一个对象的形式出现
+    }
+  ]
+}
+```
+
+- loader会去遍历所有的文件 或者说所有文件都会过一遍 rules 中配置的各种loader
+- 当有 test 指定项匹配的文件类型的时候 就会对它*进行use属性中定义的loader来处理文件*
 
 ```js
 module: {
   rules: [
     {
-      // 用来匹配哪些文件
-      test: /\.文件后缀名$/  // 匹配以xxx后缀名结尾的文件
+      // 用来匹配哪些文件 匹配以xxx后缀名结尾的文件
+      test: /\.文件后缀名$/
 
       // 使用哪些loader来处理文件
       use: [
@@ -421,20 +464,22 @@ module: {
 ```
 
 > rules数组中的对象中的属性:
+
 - **test** : 对哪些文件进行匹配
 - 值为正则
 
 - **use** : 使用多个loader的时候用
-- 值为 数组 是要对匹配文件使用多个loader
-  - 对匹配的文件 使用loader
-  - use数组中配置的选项的执行顺序为: 从右往左(从下到上)
-  - 当要使用 css兼容的时候 less-loader在最后 兼容loader在倒数第二个位置
+- 值为 数组 是要对匹配文件使用多个loader 一个loader就是一个对象
+
+- use数组中配置的选项的执行顺序为: 
+- 从右往左(从下到上)
+- 当要对css文件做 兼容的时候 兼容性处理的loader 要写在less-loader的前面 作为倒数第二个位置出现
 
 - **loader** : 使用一个loader的时候用
 - 值为 字符串 是只使用一个loader
 
-- **options** : 配置loader
-- loader的配置项
+- **options** : loader的配置项
+- 值为 对象
 
 
 > 处理样式文件要使用 如下的loader
@@ -453,34 +498,41 @@ module: {
 **注意：**
 - 了解了 两个loader的作用 那么他们的顺序就应该是 先进行css-loader 然后进行 style-loader
 
+- style-loader在前 css-loader在后
+
 ---
 
 > 测试下打包样式资源
 **技巧:**
 - 1. node在找包的时候 会先在当前的目录找 如果找不到会向上一级目录找 所以我们可以在根目录中下包 这样内部的文件目录里面都可以用
 
-- 2. 我们下载的loader看来都是开发依赖
+- 2. 我们下载的loader看来都是开发依赖 -D
 
-- 3. 我们用的是webpack 4.41.6 cli 3.3.1 所以会出现loader的版本可能过高 跟现在的webpack版本不符合的情况 
-- 这时我们可以去github找loader的版本 tags(在分支那)
-- 然后查看 package.json 文件 看看webpack的版本 
-- https://github.com/webpack-contrib/style-loader
-- webpack -v
-- webpack-cli -v
+- 3. 我们用的是webpack@4.41.6 webpack-cli@3.3.1 在下载别的loader的时候可能会出现loader的版本可能过高 跟现在的webpack版本不符合的情况 
+
+- 查看目标loader是否符合项目webpack中的版本:
+
+- 1. 去github找loader的版本 tags(在分支那)
+- 2. 然后查看 package.json 文件 看看webpack的版本 
+- 3. https://github.com/webpack-contrib/style-loader
+<!-- 
+  查看webpack工具的版本命令
+  - webpack -v
+  - webpack-cli -v
+ -->
+
 
 
 > 1. 下包
-- npm i style-loader@1.1.3 css-loader@3.4.2 -D
+- npm i style-loader css-loader -D
+- npm i   -D
 <!-- 
-  这里应该是 
-  npm i webpack webpack-cli -D
-  npm i style-loader css-loader -D
-
-  但是由于我们webpack版本的问题 所以我们在下loader的时候要指定版本
+  style-loader: 1.1.3
+  css-loader: 3.4.2
  -->
 
-> 2. 执行 webpack 指令
-- 当我们执行webpack指令之后 就会读取配置文件中的信息 按照配置执行
+> 2. 终端执行 webpack 指令
+- 当我们执行webpack指令之后 就会读取配置文件webpack.config.js的信息 按照配置执行
 ```js
 // 结果
 [./node_modules/css-loader/dist/cjs.js!./src/index.css] 329 bytes {main} [built]
@@ -499,13 +551,18 @@ module: {
 > webpack来处理less资源
 - 对不同的文件打包那么就要配置不同的loader
 
+- 准备工作
 ```js
 // 入口文件中 引入样式资源
 import "./index.css"
 import "./index.less"
 ```
 
-- 1. 下载需要的loader 这里我们需要 less less-loader css-loader style-loader 其中less不用配置到webpack.config.js中
+> 1. 下载需要的loader 
+- less         (不用配置到webpack.config.js中)
+- less-loader 
+- css-loader 
+- style-loader
 <!-- 
   vscode的插件会将less文件在保存的时候自动变成css文件 所以我们还需要下载less
  -->
@@ -525,7 +582,7 @@ import "./index.less"
   less@3.11.1
   less-loader@5.0.0
 
-- 2. 在rules中配置翻译less的loader
+> 2. 在rules中配置翻译less的loader
 ```js
 module: {
   rules: [
@@ -541,7 +598,7 @@ module: {
 },
 ```
 
-- 3. 执行 webpack
+> 3. 执行 webpack
 
 ----------------
 
@@ -556,15 +613,20 @@ module: {
 
 - html-webpack-plugin:
 - 作用:
-- 默认会创建一个空的html文件 引入打包输出的所有资源(js/css)
+- 默认会创建一个空的html文件 *自动引入打包输出的所有资源(js/css)*
 
 - 如果我们需要有结构的html文件 我们可以在 new htmlWebpackPlugin({}) 中传入配置项 template 
 
 > template属性
-- 根据指定的html文档作为打包后的html页面(复制指定的html文档中的内容 并自动引入打包输出的所有资源)
+- 值为: string 模本html文件的路径
+- 根据指定的html文档作为模版 生产打包后的html页面(复制指定的html文档中的内容 并自动引入打包输出的所有资源)
 
 **注意:**
 - 模版html页面中不要自己再引入资源 不然会引入两次
+
+> title
+> favicon
+- 字面意思
 
 ```js
   plugins: [
@@ -575,9 +637,7 @@ module: {
     })
   ]
 ```
-> title
-> favicon
-- 字面意思
+
 
 
 > 2. 引入 插件
@@ -605,6 +665,7 @@ const htmlWebpackPlugin = require("html-webpack-plugin")
 
 > 4. webpack 打包 查看结果
 
+---
 
 > 代码部分:
 ```js
@@ -620,7 +681,7 @@ module.exports = {
   output: {
     // 输出到的文件名
     filename: "build.js",
-    // 输出的路径 这里我们会利用path模块来写绝对路径]
+    // 输出的路径 这里我们会利用path模块来写绝对路径
     // __dirname: nodejs的变量代表当前文件的目录的绝对路径 
     path: resolve(__dirname, "build")
   },
@@ -659,7 +720,6 @@ module.exports = {
 
   // 模式
   mode: "development",
-  // mode: "production"
 }
 ```
 
@@ -667,12 +727,13 @@ module.exports = {
 
 ### 开发环境: 打包 图片资源
 - 当有webpack不识别的资源的时候 我们第一时间要考虑的就是 loader
-- 这里我们需要下载两个包
+- 图片资源的打包 我们需要下载两个包
 
 - url-loader
-- file-loader: 这个loder不用配置到 module配置项中
+- file-loader (这个loder不用配置到 module配置项中)
 
 - url-loader依赖于file-loader做事情
+
 - npm i url-loader file-loader -D
 <!-- 
   url-loader :  @3.0.0
@@ -767,12 +828,28 @@ import "./index.less"
 },
 ```
 
-- 3. 因为我们要解析url()引入的图片资源 所以要配置url-loader
+- 3. 因为我们要解析less文件中 url()引入的图片资源 所以要配置url-loader
 
 > options配置项:
 - 作用: 用于配置loader
 
-> limit: 
+```js
+module: {
+  rules: [
+    {
+      test:
+      use: | loader: 
+
+      options: {
+        limit: ,
+        esModule: ,
+        name: ,
+      }
+    }
+  ]
+}
+```
+> limit: 8 * 1024
 - 用于对指定字节以下的图片进行base64的编码的格式
 <!-- 
   url-loader在打包图片的时候 并不是原封不动的输出 
@@ -814,7 +891,7 @@ import "./index.less"
 ```
 
 - 4. 因为我们要解析html页面 img引入的图片资源 所以要配置html-loader
-**这个就必须配置 不配置会报错 也就是说 处理图片资源的时候 就配置这两个loader**
+**处理图片资源的时候 这两个loader必须都要写 不配置会报错 也就是说 处理图片资源的时候 就配置这两个loader**
 ```js
 {
   test: /\.html$/,
@@ -881,24 +958,27 @@ module.exports = {
 > 对上述知识体系进行扩展
 - 我们在配置loader的时候 在rules数组对象中都写过
 ```js
-{
-  test:
-  use:
-  loader:
+rules: [
+  {
+    test:
+    use:
+    loader:
 
-  // 现在又多了一个 
-  exclude: /正则/
-}
+    // 现在又多了一个 
+    exclude: /正则/
+  }
+]
 ```
 
 > exclude属性:
-- 排除正则匹配的文件 相当于打包其他资源
+- 排除正则匹配的文件 相当于打包 配置文件类型之外的 其他资源
 - 不用经过特殊处理的资源都可以用 file-loader 来进行处理
 
 
-- 准备工作:
+> 准备工作:  下载图标字体
 - iconfont - 选择 - 购物车 - 下载代码
 - 打开 压缩包 中的 index.html
+
 
 > 图标字体的使用
 - 我们可以看到有3种用法
@@ -915,16 +995,18 @@ module.exports = {
 <!-- 只要是通过svg使用这样的图片 -->
 
 
-> 要点:
-- 1. 我们要使用阿里的字体图片 使用方式分为两步
-- 引入样式
-- span里面写class
+> 图标字体的使用:
+- 我们要使用阿里的字体图片 使用方式分为两步
+- 1. 引入样式
+- 2. span里面写class
+
+
 - *注意:* 我们没有在html页面中通过link的方式引入资源 而是在入口文件中引入的资源哦
 ```js
 import "../assets/iconfont/iconfont.css"
 ```
 
-- 2. 我们要打包的是 样式资源 html资源 字体图标资源
+- 我们要打包的是 样式资源 html资源 字体图标资源
 - 这类资源都有一个统一的特性就是不用经过特殊的处理
 - 所以我们可以在loader配置中 使用 exclude属性 进行排除
 
@@ -972,12 +1054,11 @@ module.exports = {
 ### 开发环境: devServer
 - 情景:
 - 我们会将src源代码目录中的代码打包到build目录下
-- 但是当我们再在src源代码中做修改之后 必须再次的重新进行打包
+- 但是当我们再在src源代码中做修改之后 必须再次的重新进行打包 这样每次修改每次都要打包 太麻烦了
 
-- 那是不是说我们又要写新的结构 每次就需要重复的进行打包 太麻烦了
-- 所以webpack提供了devServer 帮我们自动的打包 自动的做一些事情
-
+- 所以webpack提供了devServer 在开发环境下 帮我们自动的打包 自动刷新页面等工作
 - 这样开发者只需要写源代码就可以了
+
 
 > 配置项: devServer
 - 它不属于前面的5个核心的属性 可以额外的单独的配置
@@ -1003,18 +1084,17 @@ devServer: {
 ```
 
 > 特点:
-- 只会在内存中编译打包 不会有任何文件的输出
+- 1. 只会在内存中编译打包 不会有任何文件的输出
 <!-- 
   我们可以将build目录删掉 然后重新构建一次 发现并没有输出build
-
   当我们运行的是 npx webpack-dev-server 那么仅是在内存层面打包处理
 
    当我们运行的是 webpack 那么才会有真正的输出
-   
    一旦我们终止程序的运行 就会将内存里面的东西删掉
  -->
  
-- 它会监视src下的源代码的变化 一旦变化就会自动进行打包 刷新等处理
+- 2. 它会监视src下的源代码的变化 一旦变化就会自动进行打包 刷新等处理
+
 
 > 启动devServer的指令: npx webpack-dev-server
 - 我们要用这个指令 那么就得下这个包
@@ -1060,14 +1140,15 @@ devServer: {
 
 > 要点:
 - 每一个loader配置项里面都会有 options选项 用于配置loader
-- options - outputPath 用于将对应的资源输出到 打包目录下的哪个目录
+- options - outputPath属性 用于将对应的资源输出到 打包目录下的哪个目录
 
 ```js
+// 处理url()图片资源的演示
 module: {
   rules: [
     {
       test:
-      use:
+      use: ["url-loader"]
       
       options: {
         limit:
@@ -1115,6 +1196,8 @@ module.exports = {
           limit: 8 * 1024,
           esModule: false,
           name: "[hash:10].[ext]",
+
+          // 输出的图片资源会在 打包后目录下的 img目录里面
           outputPath: "img"
         }
       },
@@ -1127,6 +1210,8 @@ module.exports = {
         loader: "file-loader",
         options: {
           name: "[hash:10].[ext]",
+
+          // 输出的图片资源会在 打包后目录下的 media目录里面
           outputPath: "media"
         }
       }
@@ -1181,19 +1266,17 @@ module.exports = {
 
 ### 生产环境: 提取css成单独文件
 - 开发环境中 我们使用的是 style-loader 因为其内部实现了*HMR功能* 可以局部更新 
-
-- 而生产环境中 我们要提取css单独的文件
-
+- 而生产环境中 我们要提取css单独的文件 减少打包后js文件的体积
 
 - 之前通过 style-loader 和 css-loader 的方式 是将样式通过style标签的形式引入到项目中的
 
-- 提取成css文件后 会通过link标签引入css文件
-
+- 现在要将样式 提取成css文件后 会通过link标签引入css文件
 
 
 - 准备工作:
 - 创建了2个css文件 然后在入口文件中引入
 
+- 如果做以下配置的话我们css文件在打包后还会在js文件中
 ```js
  module: {
   rules: [
@@ -1204,12 +1287,12 @@ module.exports = {
   ]
 },
 ```
-- 如果还像上面的方式进行配置的话 我们css文件在打包后还会在js文件中
+
 - 那怎么才能将css文件单独的从js文件中提取出来 不让js文件的体积那么大呢？ *我们要使用插件*
 
 - 我们的目的是要将css文件单独的提取出来做为一个样式文件 但是经过css-loader之后处理之后 样式文件就整合到js中了 而style-loader是创建一个style标签将样式添加到页面上
 
-- 而我们现在的流程是 要将css-loader整合到js中的样式文件通过下面的插件提取出来成为一个单独的css文件 所以style-loader就不能要了 我们要用下面的插件身上的loader来处理css-loader加工后的js文件
+- 而我们现在的流程是 要将css-loader整合到js中的样式文件通过下面的插件将其提取出来成为一个单独的css文件 *所以style-loader就不能要了* 我们要用下面的插件身上的loader来处理css-loader加工后的js文件
 <!-- 
   style-loader不需要的原因是
   我们已经将css提取成单独文件了 所以就不需要创建style标签了
@@ -1243,6 +1326,8 @@ plugins: [
   new HtmlWebpackPlugin({
     template: "./src/index.html"
   }),
+
+  // 提取css样式的插件
   new MiniCssExtractPlugin({
     title: '王二狗',
     filename: "css/build.css",
@@ -1252,7 +1337,9 @@ plugins: [
 ```
 
 - 在 new MiniCssExtractPlugin({配置对象}) 的时候可以传递参数
-- filename: 可以对我们整合的css文件进行 文件夹的设定和重命名
+
+\\ filename: 
+- 可以对我们整合的css文件进行 文件夹的设定和重命名
 <!-- 
   之前整合后的文件夹 main.css
   现在可以指定文件夹的同时在对main.css 重命名
@@ -1261,15 +1348,15 @@ plugins: [
     - build.css
  -->
 
-- favicon: 图标
-- title: 标题
+\\ favicon: 图标
+\\ title: 标题
 
 
 > 4. 修改 loader 配置
 - 将原先的style-loader替换为插件上的loader
+
 - 解析:
 - style-loader的作用是创建style标签 将样式从js文件中提取出来放入标签插入到页面中
-
 - 而插件的loader是将样式从js文件中提取为单独的一个css文件 通过link的方式引入到项目中
 
 ```js
@@ -1314,7 +1401,14 @@ module: {
 ----------------
 
 ### 生产环境: css的兼容性的处理
-- 我们要做css的兼容性处理 都会使用一个库 postcss
+- 我们要做css的兼容性处理
+<!-- 
+  疑问:
+    那开发环境就不用作css的兼容性处理么? 那在不支持css的浏览器中 怎么检查 
+    我觉得开发环境中 也需要做 css 和 js 的兼容性处理
+ -->
+
+- css的兼容性处理都会使用一个库 postcss
 - 而 postcss 要想在 webpack 中的使用的话 就需要postcss-loader
 
 - 除了postcss库 我们要需要使用插件 postcss-preset-env
@@ -1331,6 +1425,12 @@ module: {
   - 版本不同 写配置的方式也不同 我们这里使用的是视频老师的webpack一系列的版本
  -->
 
+<!-- 
+  postcss-loader: @3.0.0
+  postcss-preset-env: @6.7.0
+  postcss: @7.0.39
+ -->
+
 
 > postcss-loader
 - 作用:
@@ -1342,13 +1442,9 @@ module: {
 - 帮postcss找到*package.json*中的*browserslist*里面的配置
 - 通过配置加载指定的兼容性样式
 
+
 > 下载:
 - npm i postcss-loader postcss-preset-env postcss -D
-<!-- 
-  postcss-loader: @3.0.0
-  postcss-preset-env: @6.7.0
-  postcss: @7.0.39
- -->
 
 
 > browserslist
@@ -1485,6 +1581,12 @@ module: {
 - 这样设置了后才可以
 
 - 默认的话会走production里面的配置
+<!-- 
+  这里就能解决我们开篇时候的疑问 我们可以通过指定
+  process.env.NODE_ENV = development 
+
+  来确定当前的环境 从而做到css 和 js的兼容性处理 因为js也会走browserlist
+ -->
 
 
 > 完整代码:
@@ -1620,6 +1722,8 @@ plugins: [
 - 语法检查我们只针对js文件来做 同时只检查用户写的源代码 要排除第三方的库(node-modules)
 
 - 可以在loader的配置中 使用 exclude: 正则 来进行排除
+
+- 当有别的loader也对js文件类型做处理的时候 优化处理eslint
 
 
 
@@ -2083,7 +2187,7 @@ module.exports = {
 
 - 3. babel7的命名是 @babel/ babel6的命名是 babel- 本质是一样的 只是版本不一样
 
-
+- babel中的配置项
 - presets: 预设数组 (所有的预设都要先npm i 然后才能使用)
 - plugins: 插件数组 (所有的插件都要先npm i 然后才能使用)
 
@@ -2130,10 +2234,13 @@ module.exports = {
 - 1. 直接在html文件引入Babel官方的polyfill.js脚本文件
 - 2. 在前端工程的入口文件里引入polyfill.js
 ```js
+// 1
 import './polyfill.js';
+
+// 2
 import '@babel/polyfill';
 
-// 还可以在 webpack 的配置文件中引入
+// 3 还可以在 webpack 的配置文件中引入
 const path = require('path');
 module.exports = {
   // 这里
@@ -2668,6 +2775,8 @@ module.exports = {
 ----------------
 
 ### HMR
+- 该配置只能在 开发环境中配置 因为利用的是 devServer 所以生产环境中不行
+
 - 我们现在项目中存在的问题
 - 描述:
 - 我们在入口文件中 index.js
@@ -2684,7 +2793,7 @@ console.log(add(3,3))
 - 看似我们只修改了样式文件 实际上是把js文件也重新打包了一次
 - 假如我们js文件中 引入了其它的模块 当其它模块的内容被修改后 整个关系树也会被重新渲染
 
-- 问题:
+> 问题:
 - 假如我们有100个js模块 100个样式模块 只要我修改了其中的某一个模块 整个这200个模块都要重新打包 这样的话 打包构建速度是非常慢的
 <!-- 
   假如有 10000 个模块是不是更加的恐怖
@@ -2701,6 +2810,7 @@ console.log(add(3,3))
 - 一个模块发生变化 只会重新打包这一个模块 而不是打包所有
 - 极大的提升代码的构建速度
  
+
 > 实现:
 - devServer中支持HMR功能 我们只需要在 devServer配置项中 添加 hot 属性 设置为 true 即可
 ```js
@@ -2762,7 +2872,7 @@ if(module.hot) {
 }
 ```
 
-- 整体代码
+> 整体代码
 ```js
 import print from "./assets/js/print"
 
@@ -3142,6 +3252,8 @@ module: {
 ----------------
 
 ### 缓存
+- 缓存主要是针对js代码的重复构建问题 生产环境中我们会利用缓存还解决和开发环境中HMR一样的问题
+
 - 生产环境中 缓存的配置 缓存我们会从两个点出发
 - 1. 从 babel入手 对babel进行缓存
 - 2. 对我们加载的资源进行缓存

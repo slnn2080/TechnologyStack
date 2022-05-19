@@ -8912,7 +8912,7 @@ export default router
 
 
 > $route
-- 每一个组件都有自己的 $route 理由存储的是自己的路由信息 里面还有vue-router添加进去的一些属性
+- 每一个组件都有自己的 $route 里面存储的是自己的路由信息 里面还有vue-router添加进去的一些属性
 - 每一个组件的$route都是不一样的(值不一样)
 
 - 表示当前激活的路由的状态信息，包含了当前 URL 解析得到的信息, 还有 URL 匹配到的 route records（路由记录）。

@@ -9,12 +9,10 @@
 
 ### 技巧
 
-> CDN的理解
-- https://zhuanlan.zhihu.com/p/51842336
-
-
 > nuxt generate 静态页面内容
-- package.json: "generate": "nuxt generate"
+- package.json: 
+
+    "generate": "nuxt generate"
 
 - 运行 npm run generate (打包)命令后 每个对应的页面都会生成一个html
 - 该方式打包出来的结果 每个页面会对应一个html页面 只有首屏的数据是渲染好的
@@ -33,7 +31,10 @@
 
 
 > nuxt build 动态页面内容
-- package.json: "build": "nuxt build",
+- package.json: 
+
+    "build": "nuxt build",
+
 - build打包生成的是动态页面，当然是同样具有SEO功能
 
 
@@ -158,7 +159,6 @@ setup() {
 
 > 安装:
 - 1. npm i @nuxtjs/composition-api
-
 - 2. nuxt.config.js
 ```js
 {
@@ -212,7 +212,7 @@ script.value = [
 ```
 
 - 2. 我们可以在 useMeta({配置项}) 里面写什么?
-
+```js
     charset (default utf-8)
     viewport (default width=device-width, initial-scale=1 ?)
     name
@@ -220,7 +220,7 @@ script.value = [
     author
     lang
     ogSiteName / ogTitle / ogDescription / ogHost (more)
-
+```
 ```js
 useMeta({
   author: 'Jon Doe'
@@ -275,7 +275,6 @@ meta: [
 ```
 
 
-
 > <no-ssr>
 - 该组件用于设置组件不在服务器渲染中呈现。
 - https://www.bookstack.cn/read/nuxtjs-guide/31fa4be0c4876195.md
@@ -285,6 +284,9 @@ meta: [
   <comments />
 </no-ssr>
 ```
+<!-- 
+  <client-only>
+ -->
 
 > 在nuxt下使用window 判断是在客户端还是在服务端
 ```js
@@ -572,7 +574,7 @@ module.exports = {
     默认情况下 nuxt使用 vue-loader file-loader url-loader
     这几个webpack加载器来处理文件的加载 
 
-    对不需要通过webpack处理的静态资源文件 可以放置在 static 文件夹中
+    对不需要通过webpack处理的静态资源文件 可以放置在 *static* 文件夹中
     （像 robots.txt 或 sitemap.xml 这种类型的文件就很适合放到 static 目录中。）
 
     放置webpack打包处理的资源文件 如scss css 图片 字体等
@@ -661,7 +663,7 @@ plugins: [
 > 1. target
 - 在介绍这个属性之前 我们要先了解 怎么生成 静态网站
 - 如果我们想要使用静态网站的话 那么整个应用就会在构建的阶段被渲染
-- 我们可以将静态站部署到 使用すると、类似 Netlify、GitHub pages、Vercel 这样的 托管服务器上 这就意味着我们不需要服务器了
+- 我们可以将静态站部署到 类似 Netlify、GitHub pages、Vercel 这样的 托管服务器上 这就意味着我们不需要服务器了
 
 - 当我们将 target: static 设置为 static后 所有的.vue文件都是以html和js文件生成的
 
@@ -727,11 +729,6 @@ export default {
 }
 ```
 - @nuxt/babel-preset-app的默认目标是ie: '9' 用于客户端构建，node: 'current' 用于服务器构建。
-
-
-
-
-
 
 
 > 3. css
@@ -1054,6 +1051,32 @@ module.exports = {
 
 > 8. plugins
 - 该配置项用于配置那些需要在 根vue.js应用 *实例化之前需要运行的 Javascript 插件*。
+- 插件内的写法并不是说一定要 Vue.use() 什么 简单的导入也是可以的 例如
+```js
+// nuxt.config.js
+plugins: [
+  { src: '@/plugins/poly', ssr: true },
+]
+
+
+// poly.js 插件的js文件里面就没有注册之类的操作 只是简单的引用而已
+import 'babel-polyfill'
+
+
+// .babelrc
+{
+  "presets": [
+    [
+      "env",
+      {
+        "modules": false,
+        "useBuiltIns": "entry"
+      }
+    ],
+    "stage-3"
+  ]
+}
+```
 
 
 > 9. rootDir
@@ -1115,7 +1138,7 @@ module.exports = {
 }
 ```
 
-- generateOptionsx形参是一个对象
+- generateOptions形参是一个对象
 - 它就是 generate 配置项里面的信息 完整信息
 
 
@@ -1268,6 +1291,10 @@ export default {
 - generate:done
   - 形参: (generator, errors)
   - 作用: 生成完了時のフック
+
+
+> components: false; // 禁止自动注入component
+- 如果要兼容IE，请不要使用；
 
 ---------------
 

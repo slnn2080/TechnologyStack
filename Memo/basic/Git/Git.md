@@ -1067,12 +1067,13 @@ git push origin master
     Git is free software distributed under the GPL.
     Git has a mutable index called stage.
     Git tracks changes of files.
-    <<<<<<< HEAD
-    Creating a new branch is quick & simple.
-    =======
-    Creating a new branch is quick AND simple.
-    >>>>>>> feature1
  -->
+
+    <<<<<<< HEAD
+        Creating a new branch is quick & simple.
+        =======
+        Creating a new branch is quick AND simple.
+    >>>>>>> feature1
 
 - Git用<<<<<<<，=======，>>>>>>>标记出不同分支的内容，我们修改如下后保存：
 <!-- 
@@ -2482,6 +2483,7 @@ Changes not staged for commit:
    =========
    some code
    >>>>>>> new-commit
+
 你需要解决新提交的代码(示例里, 从中间==线到new-commit的地方)与HEAD 之间不一样的地方.
 
 有时候这些合并非常复杂，你应该使用可视化的差异编辑器(visual diff editor):
@@ -2623,34 +2625,3 @@ c10f740 HEAD@{2}: checkout: moving from main to 2.2
 
 $ git reset --hard 0254ea7
 然后使用git reset就可以把main改回到之前的commit，这提供了一个在历史被意外更改情况下的安全网。
-
-作者：小富
-https://blog.csdn.net/xinzhifu1/article/details/123271097
-- EOF -
-推荐阅读  点击标题可跳转
-1、纯 Git 实现前端 CI/CD
-2、两条命令让你的 git 轻松自动变基，学到了！
-3、Git 各指令的本质，真是通俗易懂啊
-
-觉得本文对你有帮助？请分享给更多人
-推荐关注「前端大全」，提升前端技能
-
-前端大全
-点击获取精选前端开发资源。「前端大全」日常分享 Web 前端相关的技术文章、实用案例、工具资源、精选课程、热点资讯。
-201篇原创内容
-公众号
-点赞和在看就是最大的支持❤️
-阅读 8569
-22
-33
-写下你的留言
-精选留言
-
-黑色怀恋
-赞
-写得真好，学习到很多，都是平常实用的东西。
-
-cen
-赞
-这必须收藏+点赞 
-已无更多数据
