@@ -3603,11 +3603,19 @@ console.log(mul(2, 3))
 **entry入口文件为 单入口 字符串形式**
 - 既然现在的情景是单入口 那么我们就需要在 index.js 入口文件中引入第三方(node_modules)中的库
 
+**runtimeChunk配置一样要加上**
+
 ```js
 // webpack.config.js
 optimization: {
   splitChunks: {
     chunks: "all"
+  },
+
+  // 解决缓存失效
+  runtimeChunk: {
+    // 返回值是命名规则: 
+    name: entrypoint => `runtime-${entrypoint.name}`
   }
 }
 ```
@@ -3693,6 +3701,12 @@ entry: {
 optimization: {
   splitChunks: {
     chunks: "all"
+  },
+
+  // 解决缓存失效 做代码分割的时候一定要加
+  runtimeChunk: {
+    // 返回值是命名规则: 
+    name: entrypoint => `runtime-${entrypoint.name}`
   }
 }
 ```
@@ -4962,4 +4976,617 @@ module: {
 
 ----------------
 
-### webpack配置详解 - resolve
+### webpack配置详解 - resolve配置项
+- 这不是 path 里面的resolve() 而是一个配置项
+
+```js
+module.exports = {
+  entry: "",
+  output: {},
+  module: {},
+  plugins: [],
+  mode: "",
+
+  // 配置项
+  resolve: {}
+}
+```
+
+> 作用:
+- 解析模块的规则
+```js
+module.exports = {
+  resolve: {
+    // 配置 路径别名  -- 简写路径
+    alias: resolve(__dirname, "文件目录"),
+
+    // 配置 省略文件后缀名的规则  -- 简写文件后缀
+    extensions: [],
+
+    // 解析模块的时候 让webpack准确的找到 node_modules 所在 而不是一层层的查找
+    modules: [],
+  }
+}
+```
+
+> alias: 
+- 配置文件别名 简写路径名
+<!-- 
+  缺点: 写路径的时候就没有提示了
+ -->
+
+- 使用场景:
+- 我们的实际开发中 目录的层级嵌套的是非常深的 当我们去引入文件的时候 少不了 ../../ 容易出错 写起来也麻烦 所以我们会考虑到配置路径的别名
+
+```js
+resolve: {
+  alias: {
+    @css: resolve(__dirname, "src/css")
+  }
+}
+```
+
+- 我们起了一个 @css 变量 指向了 
+  | src
+    | - css
+
+- 当我们再在项目中引入的时候 就可以使用 别名 来引入文件
+```js
+// webpack.config.js
+resolve: {
+  alias: { 
+    "@js": resolve(__dirname, "assets/js")
+  }
+}
+
+
+// index.js
+import count from "./assets/js/count"
+↓
+import count from "@js/count"
+```
+
+--- 
+
+> extensions:
+- 配置省略文件的后缀名
+- 默认值: .js .json (所以js json文件类型的时候可以不用写后缀名)
+
+- 类型: []
+
+```js
+resolve: {
+  alias: { 
+    "@js": resolve(__dirname, "assets/js"),
+    "@css": resolve(__dirname, "assets/style")
+  },
+
+  extensions: [".js", ".json", ".css", ".jsx"]
+}
+
+
+// index.js 入口文件引入css样式 省略了.css后缀
+import "@css/c" 
+
+import count from "@js/count"
+console.log("count", count(2, 1))
+```
+
+<!-- 
+  webpack会查找 css目录下的文件c 
+  然后先拿.js去补充文件后缀 没有的话再用 .json 补充 再没有用 .css 来补充 
+
+  所以不建议写 .css 因为同时有 index.js index.css 当都省略后缀名的时候 默认会加载 [".js", ".json", ".css"] 的第一个 会出现找不到资源的情况
+ -->
+
+--- 
+
+> modules:
+- 解析模块的规则 告诉webpack解析模块的时候应该去哪个目录找
+- 类型: []
+
+- webpack会先在当前的文件目录下找 node_modules 找不到会去上层目录去找 依次直到顶层
+
+- 所以还可以通过 resolve() 指定去哪找 node_modules
+
+```js
+resolve: {
+  alias: { 
+    "@js": resolve(__dirname, "assets/js"),
+    "@css": resolve(__dirname, "assets/style")
+  },
+  extensions: [".js", ".json", ".css"],
+
+  // 写法1:
+  modules: ["node_modules"]
+
+  // 写法2: 第二个"node_modules"是为防止前面的找不到 所以写一下
+  modules: [resolve(__dirname, "../../node_modules"), "node_modules"]
+}
+```
+
+----------------
+
+### webpack配置详解 - devServer
+- 之前我们在开发环境下的时候 配置了 devServer 使用了下面的配置项
+```js
+devServer: {
+  contentBase: resolve(__dirname, "build"), 
+  // gzip压缩
+  compress: true,
+  host: "指定域名, 比如: localhost"
+  port: 3000,
+  open: true,
+  hot: true,
+
+  // 新内容
+  watchContentBase: true,
+  clientLogLevel: "none",
+  quiet: true
+}
+```
+
+- 除了上述这些还有其他的一些配置 用来指示我们的服务器到底应该干什么
+- 接下来我们看看新增的属性
+
+
+> watchContentBase: true
+- 监视 contentBase 目录下的所有文件 一旦文件变化就会 reload
+
+
+> watchOptions
+- 监视文件的时候 忽略哪些文件
+- 类型: 正则
+
+- 问题:
+- 额 build 下面也不会有 node_modules 文件夹呀
+
+```js
+devServer: {
+  contentBase: resolve(__dirname, "build"),
+
+  watchContentBase: true,
+
+  // 我们监视的时候 只需要监视源代码 不需要监视 node_modules
+  watchOptions: {
+    ignored: /node-modules/
+  }
+}
+```
+
+
+> clientLogLevel: "none"
+- 不要显示启动服务器日志信息
+<!--  
+  devServer在开启的时候会出现很多的日志 但实际上我们是不需要的
+ -->
+
+
+> quiet: true
+- 除了一些基本启动信息以外 其他内容都不要打印
+
+
+> overlay: false
+- 如果出错了 不要全屏提示
+
+
+> proxy:
+- 类型: {}
+- 作用: 服务器代理 解决开发环境下的跨域问题 服务器请求转发
+- 一旦 devServer(3333) 服务器 接收到 /api 开头的请求 就会把请求转发到另外一台服务器(target指定的:3000)
+
+- 我们的代码就通过 devServer服务器 运行 所以 服务器 和 服务器 之间没有跨域问题 浏览器会把请求发送到代理服务器上 而代理服务器会将请求转发到另一台服务器上 代理服务器在取得响应后 再将响应给浏览器
+
+```js
+devServer: {
+  proxy: {
+    "/api": {
+
+      // 指定目标服务器
+      target: "http://localhost:3000",
+
+      // 发送请求的时候 请求路径重写 将 /api/xxx -> /xxx
+      pathRewrite: {
+        "^/api": ""
+      },
+    }
+  }
+}
+```
+
+> 演示：
+```js
+devServer: {
+  contentBase: resolve(__dirname, "build"),
+  // 监视 build 目录下的文件 一旦发生变化 reload
+  watchContentBase: true,
+
+  // 监视文件的时候 忽略 node_modules
+  watchOptions: {
+    ignored: /node_moduls/
+  },
+
+  // 不要显示启动服务器日志信息
+  clientLogLevel: "none",
+
+  // 除了一些基本启动信息以外 其他内容都不要打印
+  quiet: true,
+
+  // 报错不要全屏提示
+  overlay: false,
+
+
+  compress: true,
+  open: true,
+  hot: true,
+  port: 3333,
+  // 指定域名
+  host: "localhost",
+  
+}
+```
+
+----------------
+
+### webpack配置详解 - optimization 配置项
+- 前面我们说优化 - 代码分割的时候 使用过 optimization 下面我们说下 这个配置项的详细配置
+
+- optimizaion配置在生产环境中才有意义
+
+```js
+module.exports = {
+  mode: "production",
+
+  optimization: {
+    // 代码分割
+    splitChunks: {
+      chunks: "all"
+    }
+  }
+}
+```
+ 
+- 下面我们说的都是 默认值 不用特意的修改 平时我们使用的时候 使用上面的就好
+```js
+optimization: {
+  splitChunks: {
+    chunks: "all",
+
+    --- 以下是默认值 ---
+
+    // 分割的chunk最小为30kb 当大于30kb的时候才开始分割 小于30kb就不分割了
+    miniSize: 30 * 1024,
+
+    // 0为默认值 最大没有限制
+    maxSize: 0,
+
+    // 要提取的chunk最少被引用一次 如果一次都没有被引用说明这个模块不是依赖 那就不用提取了
+    minChunks: 1,
+
+    // 按需加载时并行加载的文件数量最大为5 超过5个就不会打包成单独的chunk了 只能最多打包5个
+    maxAsyncRequests: 5,
+
+    // 入口js文件最大并行请求数量
+    maxInitialRequests: 3,
+
+    // 名称连接符
+    automaticNameDelimiter: "~",
+
+    // 可以使用命名规则
+    name: true,
+
+    // 分割chunk的组 有一组就有一个chunk 有二组就有二个chunk 每组有自己的分割的规则
+    cacheGroups: {
+      // vendors组 - 也就将来打包后的名字
+      vendors: {
+        // vendors组 node_modules 下面的文件会被打包到 vendors组的chunk 中
+        // 这个chunk的命名为 vendors~xxx.js
+        test: /[\\/]node_modules[\\/]/,
+
+        // 打包的
+        priority: -10
+      },
+
+      // default组
+      default: {
+        // 要提取的chunk最少要被引用2次
+        minChunks: 2,
+        priority: -20,
+
+        // 如果当前要打包的模块 和 之前已经被提取的模块是同一个 就会复用 而不是重新打包模块
+        reuseExistingChunk: true
+      }
+    }
+  }
+}
+```
+
+
+> 问题: 缓存失效
+- webpack.config.js 是如下配置的
+
+- 入口文件的名字是 --- mian.10位hash.js
+- 单独打包的其它文件名字是 --- a.10位hash.js
+
+```js
+output: {
+  filename: "js/[name].[contenthash:10].js",
+  path: resolve(__dirname, "build"),
+  chunkFilename: "js/[name].[contenthash:10]_chunk.js"
+}
+```
+
+- 现在有一个问题:
+- index.js入口文件中 引入了 a.js 文件
+- 当我们修改了 a.js 文件后 按理来说 只有a.js文件应该发生变化 因为index.js没有动 所以不应该发生变化
+
+- 但是 因为每次打包的hash值是不一样的 index.js 中引入了 a.hash.js 当hash发生变化的时候导致index.js的内容也发生了变化 导致了缓存失效
+
+- 为了解决上述的问题 我们要使用下面的配置项
+
+> runtimeChunk
+- 将当前模块的记录其它模块的hash值单独打包为一个runtime文件 解决缓存失效的问题
+
+- *在做代码分割的时候一定要加上这个配置*
+```js
+optimization: {
+  splitChunks: {
+    chunks: "all",
+      ... 默认配置
+    }
+  },
+
+  // 解决缓存失效
+  runtimeChunk: {
+    // 返回值是命名规则: 
+    name: entrypoint => `runtime-${entrypoint.name}`
+  }
+}
+```
+
+**压缩js的时候 切换到这个库 来进行配置**
+> minimizer
+- 可以让我们在压缩js的时候 做的更加的出色一些
+
+- 类型: []
+
+- 当webpack版本升级到 4.26 以上的时候 压缩css js的时候使用的是 terser 这个库 如果我们想配置 terser这个库的压缩方案 就可以用这个配置项
+
+- 因为默认值不是那么出色 我们可以稍微改改
+
+<!-- 
+  另外
+  安装了 css 压缩用的 css-minimizer-webpack-plugin 之后
+  webpack默认的production压缩js会失效
+  所以要安装这个压缩js
+ -->
+
+```js
+optimization: {
+  splitChunks: {
+    chunks: "all",
+      ... 默认配置
+    }
+  },
+
+  // 解决缓存失效
+  runtimeChunk: {
+    // 返回值是命名规则: 
+    name: entrypoint => `runtime-${entrypoint.name}`
+  },
+
+  // 配置 terser 库的压缩代码的方案
+  minimizer: [
+
+  ]
+}
+```
+
+> 1. 配置之前 我们需要下载:
+- npm i terser-webpack-plugin -D
+<!-- 
+  @2.3.5
+ -->
+
+> 2. 引入
+- - const TerserWebpackPlugin = require("terser-webpack-plugin")
+
+> 3. 在 minimizer 中 new调用
+```js
+minimizer: [
+  new TerserWebpackPlugin({
+    // 开启缓存
+    cache: true,
+    // 开启多进程打包 让速度更快
+    parallel: true,
+    // 要是使用source-map的话 一定要配置这个选项 要不然source-map会被压缩掉
+    sourceMap: true
+  })
+]
+```
+
+<!-- 
+  cache sourceMap 报错的话 可以把这两个删掉试试
+ -->
+
+----------------
+
+### webpack5
+
+> webpack4
+- 1. 下载 webpack4:
+- npm i webpack webpack-cli -D
+
+- 2. webpack4 配置
+```js
+// webpack.config.js
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "[name].js",
+    path: resolve(__dirname, "build")
+  },
+  mode: "development"
+}
+```
+
+
+> webpack5
+- 1. 下载
+- npm i webpack@next webpack-cli -D
+<!-- 
+  现在好像不用加 @next 了 因为已经发布了
+ -->
+
+- 2. webpack5 配置
+- webpack5中不用指明entry output 因为都是默认值 跟webpack4比较起来配置文件少写了很多的东西
+
+```js
+// webpack.config.js
+module.exports = {
+  mode: "development"
+}
+```
+
+
+> 区别1:
+- webpack5中 配置文件 不用指明 entry output
+- 但是内部配置的写法是一样的
+
+> 区别2:
+- webpack4中的树摇 如果模块的引用层级太深的话 摇不掉了
+- webpack5中的树摇的功能更加的强大 可以接上webpack4中的问题 并且打包后的代码体积更小
+
+--- 以下的部分没有听哦
+
+# webpack5
+
+此版本重点关注以下内容:
+
+- 通过持久缓存提高构建性能. 新增cache配置项
+- 使用更好的算法和默认值来改善长期缓存.
+- 通过更好的树摇和代码生成来改善捆绑包大小.
+- 清除处于怪异状态的内部结构，同时在 v4 中实现功能而不引入任何重大更改.
+- 通过引入重大更改来为将来的功能做准备，以使我们能够尽可能长时间地使用 v5.
+
+## 下载
+
+- npm i webpack@next webpack-cli -D
+
+## 自动删除 Node.js Polyfills
+
+早期，webpack 的目标是允许在浏览器中运行大多数 node.js 模块，但是模块格局发生了变化，许多模块用途现在主要是为前端目的而编写的。webpack <= 4 附带了许多 node.js 核心模块的 polyfill，一旦模块使用任何核心模块（即 crypto 模块），这些模块就会自动应用。
+
+尽管这使使用为 node.js 编写的模块变得容易，但它会将这些巨大的 polyfill 添加到包中。在许多情况下，这些 polyfill 是不必要的。
+
+webpack 5 会自动停止填充这些核心模块，并专注于与前端兼容的模块。
+
+迁移：
+
+- 尽可能尝试使用与前端兼容的模块。
+- 可以为 node.js 核心模块手动添加一个 polyfill。错误消息将提示如何实现该目标。
+
+## Chunk 和模块 ID
+
+添加了用于长期缓存的新算法。在生产模式下默认情况下启用这些功能。
+
+`chunkIds: "deterministic", moduleIds: "deterministic"`
+
+## Chunk ID
+
+你可以不用使用 `import(/* webpackChunkName: "name" */ "module")` 在开发环境来为 chunk 命名，生产环境还是有必要的
+
+webpack 内部有 chunk 命名规则，不再是以 id(0, 1, 2)命名了
+
+## Tree Shaking
+
+1. webpack 现在能够处理对嵌套模块的 tree shaking
+
+```js
+// inner.js
+export const a = 1;
+export const b = 2;
+
+// module.js
+import * as inner from './inner';
+export { inner };
+
+// user.js
+import * as module from './module';
+console.log(module.inner.a);
+```
+
+在生产环境中, inner 模块暴露的 `b` 会被删除
+
+2. webpack 现在能够多个模块之前的关系
+
+```js
+import { something } from './something';
+
+function usingSomething() {
+  return something;
+}
+
+export function test() {
+  return usingSomething();
+}
+```
+
+当设置了`"sideEffects": false`时，一旦发现`test`方法没有使用，不但删除`test`，还会删除`"./something"`
+
+3. webpack 现在能处理对 Commonjs 的 tree shaking
+
+## Output
+
+webpack 4 默认只能输出 ES5 代码
+
+webpack 5 开始新增一个属性 output.ecmaVersion, 可以生成 ES5 和 ES6 / ES2015 代码.
+
+如：`output.ecmaVersion: 2015`
+
+## SplitChunk
+
+```js
+// webpack4
+minSize: 30000;
+```
+
+```js
+// webpack5
+minSize: {
+  javascript: 30000,
+  style: 50000,
+}
+```
+
+## Caching
+
+```js
+// 配置缓存
+cache: {
+  // 磁盘存储
+  type: "filesystem",
+  buildDependencies: {
+    // 当配置修改时，缓存失效
+    config: [__filename]
+  }
+}
+```
+
+缓存将存储到 `node_modules/.cache/webpack`
+
+## 监视输出文件
+
+之前 webpack 总是在第一次构建时输出全部文件，但是监视重新构建时会只更新修改的文件。
+
+此次更新在第一次构建时会找到输出文件看是否有变化，从而决定要不要输出全部文件。
+
+## 默认值
+
+- `entry: "./src/index.js`
+- `output.path: path.resolve(__dirname, "dist")`
+- `output.filename: "[name].js"`
+
+## 更多内容
+
+https://github.com/webpack/changelog-v5
