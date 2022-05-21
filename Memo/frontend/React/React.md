@@ -4,21 +4,47 @@
 - 中文官网: https://react.docschina.org/
 
 
-- 用于构建用户界面(视图)的js库
+> 前言:
+- 网页是B/S架构中最重要的信息载体，用户看到的所有信息都需要在网页中呈现。像商品信息、用户信息、新闻列表等一系列的内容都需要通过网页的形式呈现出来。在传统的网站中用户每点一次链接就会加载出一个新的页面。
+
+- 比如用户在网站的主页中看到了一个新闻的标题，点击标题网站会跳转到一个新的页面来展示新闻的具体内容。这样就导致呈现新闻的页面是从服务器中新加载出来的，新闻和首页是两个完全独立的页面。如果本来两个页面就没有什么太大的关系这么处理当然是没有问题的，但有些使用场景中却不能这样。
+
+- 在有些场景中，用户在网页中发生了一些行为，比如登录、加购物车、添加删除等操作时，这些操作的确会使网页发生变化，但这些变化往往非常细微，比如购物车图标的产品数量发生了变化，登录按钮变成了用户头像，网页中增加或减少了一条数据等。如果仅仅因为这些小的变化就刷新了整个网页是有些划不来的。刷新整个网页一来会增加用户的等待时间，二来也会增加服务器的压力。于是我们就有了局部刷新网页的技术。
+
+- 所谓的局部刷新指的是，当用户和网站发生交互时，我们不再是简单的直接通过浏览器进行页面的跳转，而是通过JS中的AJAX直接通过JS向后台服务器发送请求，请求过程用户毫无感知。响应数据会通过回调函数返回给JS，而不是直接返回给用户。JS中收到响应数据后，在根据不同的结果通过DOM来完成对页面的修改。它的优点就是，请求响应过程是异步的，用户是无感的，不会影响用户的其他操作。同时，通过DOM对页面刷新时只需刷新部分页面无需整体刷新，提高了访问速度。在服务器端，服务器只需提供数据接口，无需考虑页面的渲染，在降低服务器复杂度的同时也使得服务器压力降低提高了处理请求的速度。
+
+- AJAX + DOM使得*局部刷新*成为了可能，但一切似乎并不是那么的完美。发送请求加载数据问题不大，但数据一旦加载过来问题就出现了。数据并不能直接在网页中显示。我们需要通过DOM将数据转换为网页的中的各种节点，这就意味着我们必须反复的操作DOM，这其中的痛苦实在是一言难尽。
+
+- 问题： 
+- 一来DOM操作本身十分占用系统资源一不小心就会出现卡顿。
+- 二来DOM的API十分繁复，使得各种操作并不十分的优雅。
+- 换句话说，服务器的复杂度降低了，但是前端的复杂度提高了。
+
+- 于是在前端开发中就急需一个框架来帮助我们解决这个问题，使我们可以比较轻松的根据不同的数据来快速构建用户界面（UI），与此同时还要在构建过程中确保其流畅度（不能出现卡顿）。于是React、Angular、Vue这些前端框架应运而生。
+
+- *我们操作react 然后react替我们操作dom*
+
+
+> 简介:
+- React 是一个用于构建用户界面的 JavaScript 库，用来为现代的网络构建用户界面。React起源于Facebook，由Facebook的软件工程师 Jordan Walke 开发，2012年部署于 Instagram，2013年开源。除此之外，React还有React Native框架，通过它让我们可以直接使用 JavaScript 来编写原生应用。
+
+---
+
+- react用于构建用户界面(视图)的js库
 - 用户界面对于前端来说 就是HTML页面 或者专业一些就是构建web应用的
 <!-- 
   比如我们要在页面上展示一些学生的信息 如果利用js的话 我们大概可能分为3步
-  1. 发送请求获取数据
+  1. 发送请求 获取数据
   2. 处理数据(过滤 整理格式)
   3. 操作DOM呈现页面
 
-  之前我们都是通过js jQ来完成将数据展示到页面上, 现在React来帮我们呈现页面
-  React是一个将数据渲染为HTML视图的开源的js库
+  之前我们都是通过js jQ来完成将数据展示到页面上, 现在React来帮我们呈现页面 React是一个将数据渲染为HTML视图的开源的js库
  -->
 
 - React的核心 你给我数据 我帮你渲染视图
 
-- 如果从 MVC 的角度来看 React就是视图层的 V 也就是只负责视图的渲染 而并非提供完整的 M 和 C 的功能
+- 如果从 MVC 的角度来看 
+- React就是视图层的 V 也就是只负责视图的渲染 而并非提供完整的 M 和 C 的功能
 
 
 > 为什么要学
@@ -46,24 +72,26 @@
 - 1. 采用组件化模式, 声明式编码, 提高开发效率及组件复用率
 <!-- 
   命令式: 
-  1. 改变页面上一个盒子的样式 通过js或者jq拿到盒子 
-  2. .style的方式修改样式, 
-  3. 这就是命令式的编码 少做任何一步都达不到目的
+    1. 改变页面上一个盒子的样式 通过js或者jq拿到盒子 
+    2. .style的方式修改样式, 
+    3. 这就是命令式的编码 少做任何一步都达不到目的
 
   
   声明式:
-  通过一定的语法, 我们只是表达一下 你应该是蓝色的, 
-  react就帮助我们操作DOM 将盒子改成蓝色的
+    通过一定的语法, 我们只是表达一下 你应该是蓝色的, 
+    react就帮助我们操作DOM 将盒子改成蓝色的
 
-  我们只需要描述 ui（HTML）看起来是什么样子的 就跟写html页面一样 
-  react负责渲染ui 并在数据变化的时候更新ui
+    我们只需要描述 ui（HTML）看起来是什么样子的 就跟写html页面一样 
+    react负责渲染ui 并在数据变化的时候更新ui
+ -->
 
+```js
   const jsx = (
     <div className="app">
       <h1>Hello, React!  动态变化数据: {count}</h1>
     </div>
   )
- -->
+```
 
 
 - 2. 在React Native中可以使用React语法进行移动端开发
@@ -71,17 +99,16 @@
   我们学完React之后 可以再学习一下React Native 
   这门技术是让前端人员通过js去编写ios和安卓应用的技术
 
-  正常我们编写安卓得用JAVA 编写ios得用OC / swift
-  这样的话我们只要懂react就能做手机应用的开发
-
-  同时我们还可以使用 react360 来开发VR技术
+  正常我们编写安卓得用JAVA 编写ios得用OC / swift 同时我们还可以使用 react360 来开发VR技术
  -->
 
 
 - 3. 使用虚拟DOM + 优秀的Diffing算法 尽量减少和真实DOM的交互
+- 虚拟DOM: 
+- 那react是怎么影响到DOM的呢？
+- react可以说自建了一套DOM系统 我们在对网页进行操作的时候 操作react的是它自建的DOM系统 然后再由react把我们所有的操作在原生上实现
 <!-- 
   之前我们使用js jQ都是操作的真实的DOM
-
   虚拟DOM是React操作的DOM 虚拟DOM没有放在页面上而是代码运行的时候放在了内存里
  -->
 
@@ -95,7 +122,7 @@
 - 我们可以选择 innerHTML 和 appendChild 方法
 
 - 两种方法的区别是
-- *innerHTML* 我们往里面*添加*的应该*是字符串*
+- *innerHTML*   我们往里*添加*的是*字符串*
 - *appendChild* 我们往里*添加*的是*元素节点*
 
 ```html
@@ -134,7 +161,6 @@
   react在拿到数据后并没有马上动真是的DOM, 
 
   它是把这两个人的数据对应成了2个虚拟DOM 随后将虚拟DOM映射到真实DOM上
-
   当多了一个数据肖战的时候, react还是根据3条数据生成3条虚拟DOM, 
 
   刚才的两条李现和鹿晗的虚拟DOM并没有被React丢弃 
@@ -170,49 +196,131 @@
 ----------------------------
 
 ### React的基本使用
+
 > js文件在文件中的引入顺序
 - 1. 引入 react 核心库
+- 我们只要用react 就需要引入它
+
 - react.development.js
 
 - 2. 引入 react-dom 用于支持react操作DOM
+- react-dom是专门用来开发网页的 如果我们开发的是手机app 那我们就不用再引入react-dom了
+
 - react-dom.development.js
 
 - 3. 用于将jsx转为js
 - babel.min.js
 
+> 下载文件的方式1:
+- 网站下载 页面通过script引入
+- react 核心库
+- https://unpkg.com/react@18.0.0/umd/react.development.js
 
-> 2. 使用React的注意事项
-- 1. js文件的引入顺序
+- react dom
+- https://unpkg.com/react-dom@18.0.0/umd/react-dom.development.js
 
-- 2. <script type='text/babel'>  要写type='text/babel'
-<!-- 
-  意思是<script>中是jsx但是需要babel给我翻译 不写type默认就是js
- -->
 
-- 3. 创建虚拟DOM的时候不加''
-```js 
-  // 这里不加引号
-  const VDOM = <h1>hello, Reacta</h1>    
+> 下载文件的方式2:
+- 通过 npm 来下载 通过 node_modules 来引入
+- npm i react react-dom
 
-  // 如果加了页面上就会是 不会将其解析成标签
-  "<h1>hello, Reacta</h1>" 
+```html 
+  <div id="app"> </div>
+  <script 
+    src="./node_modules/react/umd/react.development.js"></script>
+  <script 
+    ssrc="./node_modules/react-dom/umd/react-dom.development.js"></script>
 ```
 
-
-> React的基本使用
-- 1. 创建<div>容器
-- 2. 创建虚拟DOM
-<!-- 
-  就是声明变量, 给变量赋值(值为DOM结构)
- -->
-
-- 3. 使用ReactDOM.render()方法将虚拟DOM渲染到页面上
-
+---
 
 > React 和 ReactDOM
-- 我们在引入react核心库 和 扩展库的时候 全局就会多了 React 和 ReactDOM 两个全局对象
+- 我们在引入react核心库 和 扩展库的时候 全局就会多了 *React* 和 *ReactDOM* 两个全局对象 也是两个类哦
+
+- 我们可以通过 React类来创建和操作 *react元素*
 
 
+> React.createElement('标签名', {标签属性kv}, '标签内容')
+- 创建 *react元素(虚拟DOM)*
+- 我们创建的 react元素最终会转成DOM元素(通过虚拟DOM) 
+<!-- 
+  该方法把 创建元素 添加属性 添加方法 添加内容等柔和为一个方法了 很方便
+ -->
+
+- 参数1: 元素名 | 组件名
+  - html元素首字母不能大写
+
+- 参数2: 标签属性, 值为对象 可以为空
+  - 事件: 当我们通过这个参数为react元素设置事件的时候 需要将事件名修改为*驼峰命名法*
+  - class: 要修改为 *className*
+
+- 参数3: 元素的子元素 | 标签体内容
+<!-- 
+  说白了 react将原生js生创建节点 添加属性 添加文本 的方法柔和在一起了
+ -->
+
+```js 
+  // 创建一个 react元素 div
+  const div = React.createElement("div", {
+    onClick: () => { console.log(this) }  //  window
+  }, "我是react创建的div")
+
+  console.log(div)
+  /*
+    $$typeof: Symbol(react.element)
+    key: null
+    props: {children: 'hello'}
+    ref: null
+    type: "div"
+    _owner: null
+    _store: {validated: false}
+
+
+    如果我们创建的是 DOM元素 应该是这样
+    <div></div>
+  */
+
+
+ const div = React.createElement("div", {
+    onClick: () => { console.log(this) }  //  window
+  }, "我是react创建的div", button)
+
+  // 第三个参数以及以后得参数都是 该react元素的内容 比如上述的就是div中有两个子元素 一个是一句话 一个是一个button
+```
+
+**注意: 在react里面没有修改只有创建和替换**
+- reacty元素一旦创建就不能修改 比如我们在加个id属性 不行！ 改不了 一次性的 *只能通过新创建的元素去替换*
+
+<!-- 
+  不让修改的原因是 dom的操作太复杂了 修改样式 属性等api太多了
+  如果react也保留这些的话 那么react就和dom一样多了 react就是为了简化
+ -->
+
+
+- 但是不同担心性能问题 我们操作的是react元素(虚拟DOM) 我们的替换操作并不意味着在页面上真实的发生了
+
+- 我们前后两次创建了 button 但是react会对比前面两次创建的对象 看看两个对象中发生了变化 它只会改发生变化的部分
+
+```js
+const btn = React.createElement("button", {}, "测试按钮")
+const root = ReactDOM.createRoot(document.querySelector("#root"))
+root.render(btn)
+
+// 需求: 当点击 click 按钮的时候 让测试按钮的文件发生变化
+document.querySelector("#test").addEventListener("click", function() {
+  // 修改不了 只能创建一个新的去替换
+  const btn = React.createElement("button", {}, "修改文字")
+
+  // 再次渲染新的 button
+  root.render(btn)
+})
+```
+
+- 注意: 修改完react元素后必须重新渲染根元素 
+
+*------  react16.8 ------*
+
+> 将创建的 React元素 添加到页面节点中
 > ReactDOM.render(虚拟DOM, 容器) - 挂载
 - 将虚拟DOM节点挂载到页面上
 
@@ -221,7 +329,6 @@
 <!-- 
   render() 
   初始化调用一次 每次页面更新的时候也会调用一次
-
   ReactDOM.render(VDOM, document.getElementById('app'))
  -->
 
@@ -235,7 +342,7 @@
 
 - 代码示例：
 ```js
-  <div id="app"> </div>
+  <div id="root"> </div>
 
   // 引入react的核心库等结构
   <script src='../js/react.development.js'></script>
@@ -244,43 +351,53 @@
 
   // 这里要改写成 type='text/babel'
   <script type='text/babel'>
-
-    const VDOM = <h1>hello, Reacta</h1>
-
-    ReactDOM.render(VDOM, document.getElementById('app'))
-
+    const VDOM = <h1>hello, React</h1>
+    ReactDOM.render(VDOM, document.getElementById('root'))
   </script>
 ```
 
+*------  react 16.8 ------*
 
-> React基本使用方式2
-- 通过npm的形式下载 react react-dom等文件
-- 然后从 node_modules 文件夹中 引入js文件
+---
 
-- 1. 使用 node 初始化一个文件夹
-- npm init -y
-- npm i react react-dom
-<!-- 
-  这是两个包 react包是核心， 提供创建元素 组件等功能 
+*------  react 18 ------*
 
-  react-dom包 提供dom相关功能
-  也就是说react用来创建元素 而 react-dom用来将元素放入到页面中
--->
+- 当我们获取页面中的dom元素所对应的react元素的时候 也就是涉及到dom操作的时候 就要使用react-dom了
 
+> ReactDOM.createRoot(Css选择器)
+- 通过css选择器 根据页面中的dom 创建react room元素 
+- 想让哪个节点为根元素 传哪个节点就可以
 
-- 2. 在项目文件夹中 创建html文件 
-- 在html文件中从 node_modules 文件夹中引入 react 和 react-dom的js文件
-```html 
-  <div id="app"> </div>
-  <script src="./node_modules/react/umd/react.development.js"></script>
-  <script src="./node_modules/react-dom/umd/react-dom.development.js"></script>
+- 参数:
+- Css选择器选择的DOM节点
 
-  <script>
-    const title = React.createElement("h1", null, "Hello React")
+- 返回值:
+- react元素
 
-    ReactDOM.render(title, document.getElementById("root"))
-  </script>
+```js
+const root = ReactDOM.createRoot(document.querySelector("#root"))
 ```
+
+> 根元素.render(React元素)
+- 挂载
+- 向根元素中渲染 react元素(虚拟DOM)
+- 当调用render渲染页面 react会自动比较两次渲染的元素 只在真实DOM中更新发生变化的部分
+
+```js
+// react元素 div
+const div = React.createElement("div", {}, "hello")
+
+// 先创建 react根元素
+const root = ReactDOM.createRoot(document.querySelector("#root"))
+
+// 通过react根元素的render方法 渲染react元素
+root.render(div)
+```
+
+> 根元素.unmount();
+- 卸载
+
+*------  react 18 ------*
 
 ----------------------------
 

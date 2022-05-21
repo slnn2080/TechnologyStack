@@ -4,17 +4,19 @@
 ### 编译 转换
 - 让es6在低版本中也能跑的了
 
-> 在线转换 browser.js  babel == browser.js
+> html中使用babel的方式
+- 在线转换 browser.js  babel == browser.js
+
 - 用户每次打开页面都要花费时间来转换, 是一个js文件
 - 在使用babel的时候要给一个type
-<!-- 
+```js
     <script src="browser.js" charset="UTF-8"></script>
 
     // 在引入进来后需要在type里面声明这是一个babel
     <script type="text/babel">
         在这里敲代码
     </script>
- -->
+```
 
 -------------------------------
 
@@ -25,32 +27,33 @@ let a, b, c;
 let e = 100, h = [], g = 'abc';
 ```
 
-### 特性:
-> 变量不能重复声明, 防止变量污染
+> 特性:
+> 1. 变量不能重复声明, 防止变量污染
 ```js
     let a = 1;
     let a = 2;
 ```
 
-> 块级作用域(全局, 函数, eval, 块级作用域)
+> 2. 块级作用域(全局, 函数, eval, 块级作用域)
 - 代码块还包括:   if  else  while  for 在这里let声明的变量也是块级作用域
 ```js 
     {
-        变量只在代码块内部有效, 出去无效
+        // 变量只在代码块内部有效, 出去无效
         let a = 10;
     }
     console.log(a);     //a未定义   报错
 ```
 
-> 不存在变量提升
-> 使用let声明时不影响作用域链
+> 3. 不存在变量提升
+> 4. 使用let声明时不影响作用域链
 
 -----
 
-> 对let的解析实例:
+> 对let的解析示例:
 - 之前我们使用var进行for循环绑定监听, 更改样式内部使用的都是this, 因为使用items[i]会报错, 因为for循环跑完后i的值为3
 
 - 因为使用的是var, 存在这变量提升, var是在全局里保存的, 每次var的值会被上一次的结果覆盖掉
+
 ```js 
     for(var i=0; i<items.length; i++){
         items[i].onclick = function(){
@@ -76,7 +79,6 @@ let e = 100, h = [], g = 'abc';
     // 最终全局只有一个i的值
 ``` 
 
------
 
 - 使用let的时候, 因为是块级作用域, 点击items时回调函数中没有i 会向上一级找i, 找到了i=0, 相当于在let的各自的作用域下运行, 所以它们会使用当前的作用域内的let值
 
@@ -113,22 +115,20 @@ let e = 100, h = [], g = 'abc';
 -------------------------------
 
 ### const 常量
-- 值不能修改的量称之为常量
-- 优先使用const
-- 在定义数组 以及 对象的时候 我们使用const比较好
-<!-- 
-    const SCHOOL = '八中';
- -->
+- 值不能修改的量称之为常量 *优先使用const*
+- 在定义数组 以及 对象的时候 我们使用const比较好 用const定义好的对象 不用担心该对象被重新赋值
 
-> 注意事项:
-- 一定要赋初始值
+```js
+    const SCHOOL = '八中';
+```
+
+> 要点
+- 1. 一定要赋初始值
 <!-- const a;    // 报错 -->
 
-- 1. 一般常量使用大写
-
-- 2. 常量的值不能修改
-
-- 3. 它也是块级作用域
+- 2. 一般常量使用大写
+- 3. 常量的值不能修改
+- 4. 它也是块级作用域
 ```js 
     {
         const PLAYER = 'uzi';
@@ -162,50 +162,65 @@ let e = 100, h = [], g = 'abc';
 
 > 数组的解构
 - 之前我们要把数组里面的元素,放到变量里可能会这么做
-
+```js
     let arr = [1,2,3]
+
     let a = arr[0]
     let b = arr[1]
     let c = arr[2]
+```
 
+- 现在利用解构赋值
+```js
     let [a,b,c] = [1,2,3]
-<!-- 
-    很简单 就是一一对应 右边的给左边
-    按照对应位置 对变量赋值
-    这种写法属于“模式匹配”，只要等号两边的模式相同，左边的变量就会被赋予对应的值。
- -->
+```
 
-<!-- 
+- 很简单 就是一一对应 右边的给左边
+- 按照对应位置 对变量赋值 这种写法属于“模式匹配”，只要等号两边的模式相同，左边的变量就会被赋予对应的值。
+
+```js
     const F4 = ['小沈阳', '刘能', '赵四', '宋小宝'];
-    ↓
-    想把数组中的一个元素, 赋值给一个变量
-    ↓
-    使用let, 用数组的形式声明4个变量 然后 = 目标数组
     let [xiao, liu, zhao, song] = F4;
     console.log(xiao, liu, zhao, song);
- -->
+```
 
-- 嵌套数组的结构：
-- let [foo, [[bar], baz]] = [1, [[2], 3]];
 
-- 解构数组中指定的元素
+> 嵌套数组的结构：
+```js
+let [foo, [[bar], baz]] = [1, [[2], 3]];
+```
+
+
+> 解构数组中指定的元素
 - 使用,号占位
-- let [ , , third] = ["foo", "bar", "baz"];
 
-- 解构一个元素，剩余的还是数组：
-- let [head, ...tail] = [1, 2, 3, 4];
+```js
+let [ , , third] = ["foo", "bar", "baz"];
+```
 
-- 解构set结构的数据
-- let [x, y, z] = new Set(['a', 'b', 'c']);
+
+> 解构一个元素，剩余的还是数组：
+```js
+let [head, ...tail] = [1, 2, 3, 4];
+```
+**...必须放在最后**
+
+
+> 解构set结构的数据
+```js
+let [x, y, z] = new Set(['a', 'b', 'c']);
+```
 
 
 > 解构的时候允许指定默认值
-- 注意该方式，能设置默认值的元素必须是undefined 默认值才会生效
+- 注意该方式，能设置*默认值的元素必须是undefined 默认值才会生效*
 - 如果数组的成员是null 那默认值就不会生效，因为null不严格等于undefined
-- let [foo = true] = [];
-- let [x, y = 'b'] = ['a']; // x='a', y='b'
-- let [x, y = 'b'] = ['a', undefined]; // x='a', y='b'
 
+```js
+let [foo = true] = [];
+let [x, y = 'b'] = ['a']; // x='a', y='b'
+let [x, y = 'b'] = ['a', undefined]; // x='a', y='b'
+```
 
 
 > 对象的解构, JSON的解构
@@ -214,6 +229,7 @@ let e = 100, h = [], g = 'abc';
 - 
 - 如果解构失败，变量的值等于undefined。
 
+```js
     let {a,c,d} = {a:12, c:5, d:6};
 
     const ZHAO = {
@@ -226,10 +242,20 @@ let e = 100, h = [], g = 'abc';
     ↓
     let {name, age, xiaopin} = ZHAO;
 
+---
+    let a, b, c
+    let {name: a, age: b, xiaopin: c} = ZHAO
+
+    let {name: name, age: age, xiaopin: xiaopin} = ZHAO
+
+    // 如果变量名和属性名一致 则可以只写一个
+    let {name, age, xiaopin} = ZHAO
+```
 
 > 解构对象时的重命名
-- let {data: res} = await...
-
+```js
+let {data: res} = await...
+```
 
 > 成分复杂的数组解构
 - 要点是一一对应的关系
@@ -269,16 +295,27 @@ let e = 100, h = [], g = 'abc';
 
 > 对象解构时的默认值
 - 与数组一样 对象中的属性名是undefined的时候 我们才可以给这个属性赋默认值
-- var {x = 3} = {};
-- var {x: y = 3} = {};
+```js
+var {x = 3} = {};
+var {x: y = 3} = {};
+```
 
 
 > 字符串的解构
-- 字符串跟数组解构的方式一样
+- *字符串跟数组解构的方式一样*
 - 在单独解构的时候也有 ,, 的用法
-
+```js
     let str = 'hello';
     let [a,b,c] = str;      // h e l
+```
+
+> 示例:
+- 提取第一个数字
+```js
+let num = 12.55
+let [a] = num.toString() 
+console.log(+a)     // 1
+```
 
 
 > 函数参数的解构
@@ -329,6 +366,28 @@ let e = 100, h = [], g = 'abc';
     // 我们还可以给形参中的name和age赋初始值
 ```
 
+
+> 利用数组的解构 交换两个变量的位置
+```js
+let a = 10
+let b = 20
+
+[a, b] = [b, a]
+```
+
+> 利用数组的解构 交换数组中指定的两个元素的位置
+- 括号开头的情况下 前面的语句最好加上分号
+
+```js
+let arr = [1, 3, 2];
+
+// 先写右边 确定好交换哪两个元素 3 2 
+// 再写左边 将右侧的3给数组[2] 将右侧的2给数组[1]
+[arr[2], arr[1]] = [arr[1], arr[2]];
+
+console.log(arr)  // 1 2 3
+```
+
 -------------------------------
 
 ### ES6中对字符串的扩展
@@ -343,28 +402,37 @@ let e = 100, h = [], g = 'abc';
 > 字符串.startsWith("字符串", [从哪个位置开始查找])
 - 返回布尔值，看看参数字符串是否在原字符串的头部
 
+
 > 字符串.endsWith("字符串", [从哪个位置开始查找])
 - 返回布尔值，看看参数字符串是否在原字符串的尾部
+
 
 > 字符串.repeat(num)
 - 该方法会返回一个新的字符串 num表示重复几次 如果是小数会向下取整
 
+
 > 字符串.padStart(num:指定长度, "用什么字符来补位")
 > 字符串.padEnd(num:指定长度, "用什么字符来补位")
 - 如果原字符串的长度 等于或大于最大长度 则字符串补全不生效，返回原字符串
-- 'x'.padStart(5, 'ab')
+```js
+'x'.padStart(5, 'ab')
+```
+
+> 返回值:
+- 新的str
 
 - 如果省略第二个参数 默认使用空格补全长度
 
-- 应用场景：
+> 应用场景：
 - 为数值补全指定位数
-- '1'.padStart(10, '0') // "0000000001"
+```js
+'1'.padStart(10, '0') // "0000000001"
+```
 
 - 提示字符串格式。
-- '12'.padStart(10, 'YYYY-MM-DD')
-
-- 返回值:
-- 新的str
+```js
+'12'.padStart(10, 'YYYY-MM-DD')
+```
 
 
 > 字符串.trimStart()
@@ -433,12 +501,16 @@ let e = 100, h = [], g = 'abc';
 -------------------------------
 
 ### ES6中关于数组的新方法
-> map();
-- 一个对一个, 我给你10个 返回来还是10个
-- 对数组里每一个元素进行变化的时候就可以使用map函数
+> map((item, index, arr) => {});
 - 映射
 
-- map函数 会取出数组中的每一个元素 来进行回调 *将return的结果给一个新数组, 所以要创建一个新数组用来接收*
+- 可以根据一个已有的数组 加工其内部元素 返回一个新的数组
+- 有几个函数 回调就会执行几次 *回调函数的返回值会成为新数组中的元素*
+
+- 理解
+- 一个对一个, 我给你10个 返回来还是10个
+- 对数组里每一个元素进行变化的时候就可以使用map函数
+
 
 > 小例子:
 - 需求: 让上面的数组里面元素 变成2倍
@@ -455,7 +527,7 @@ let e = 100, h = [], g = 'abc';
 
 > 小例子2:
 ```js
-    let arr = [12,90,8];
+    let arr = [12, 90, 8];
 
     let result = arr.map(value=>value>60 ?'及格':'不及格')
     console.log(result)
@@ -464,10 +536,26 @@ let e = 100, h = [], g = 'abc';
     result = ["不及格", "及格", "不及格"]
 ```
 
+> 使用场景:
+- 将数组中的元素 和 html结果 混搭
+```js
+let arr = ["孙悟空", "猪八戒", "沙和尚"]
+let res = arr.map(item => {
+    return (
+        `<li><${item}/li>`
+    )
+})
+
+// [ '<li><孙悟空/li>', '<li><猪八戒/li>', '<li><沙和尚/li>' ]
+```
+
+---
 
 > reduce()
 - 汇总
-- 一堆出来一个, 算个总数 比如两张银行卡 一张10 一张20 一共多少
+- 一堆出来一个
+
+- 比如: 算个总数 比如两张银行卡 一张10 一张20 一共多少
 - 对数组中所有的内容进行汇总的 要么全部相乘 要么全部相加
 
 - 对于数组里面是对象的结构来说, 它遍历出来就是对象, reduce遍历的跟for of一样都是属性值
@@ -534,7 +622,6 @@ let e = 100, h = [], g = 'abc';
 
   // 初始值 + 数组中的每一个元素相加的结果
 ```
-
 
 > reduce的核心功能
 - 它是要返回一个值的 我们可以指定一个初始值 我们希望reduce返回的是一个什么样的数据类型, 可以直接放入到初始值中
@@ -695,13 +782,21 @@ let e = 100, h = [], g = 'abc';
 
 -------
 
-
 > filter()
 - 过滤
-- 留一部分, 消失一部分, 通过true决定保留与否, 需要定义一个新数组来接受
-- filter的回调函数的要求: 必须返回一个布尔值
-- 如果为true 函数内部会自动将这次回调的value 加入到数组中
-- 如果为false 函数内部会过滤掉这次的value
+- 可以从一个数组中*获得符合和条件的元素*
+
+- 理解:
+- 留一部分, 消失一部分, 通过*true决定保留与否*, 需要定义一个新数组来接受
+
+- 要点:
+- 返回值的类型必须是 布尔值
+- 如果为true 
+        函数内部会自动将这次回调的value 加入到数组中
+
+- 如果为false 
+        函数内部会过滤掉这次的value
+
 
 - 每遍历一次数字就会执行一次这个回调函数
 ```js 
@@ -733,6 +828,10 @@ let e = 100, h = [], g = 'abc';
     let result = arr.filter(json => json.price >= 10000);
     console.log(result);
 ```
+
+
+> find()
+- 从一个数组中获得*符合条件的第一个元素*
 
 
 > forEach()
@@ -847,24 +946,245 @@ let prevstr = '你是我的'
 ```
 
 
-> ES6中定义一个类 使用 class 关键字
+> 创建类 使用 class 关键字
 - es6中定义一个类需要使用class关键字
-- class 类名 { ... }
+```js
+class Person {
 
-> ES6中的继承 使用 extends 关键字
+}
+```
+
+---
+
+> 创建 实例属性
+\\ 1. 在类内部直接写属性就可以了 所有实例对象身上都会有这两个属性 值一样
+
+```js
+class Person {
+    name = "sam"
+    age = 18
+}
+
+let person = new Person()
+console.log(person.name)    // sam
+```
+
+\\ 2. 通过参数的形式 指定实例属性的值 要利用 constructor
+- 当我们通过new创建对象时 实际上就是在调用类中的构造函数
+
+> 动态设置实例属性技巧: 
+- constructor中的逻辑在使用new的时候就会被调用 可以完成初始化的工作
+```js
+class Person {
+    constructor(name, age) {
+        // 在 构造函数中 可以通过 this 来引用当前的对象 this就是我们刚刚创建的对象 person
+        this.name = name
+        this.age = age
+
+        // 初始化种种逻辑 ... 
+    }
+}
+
+let person = new Person("sam", 18)
+```
+
+---
+
+> 创建 实例方法
+- 直接在class中写方法
+
+```js
+class Person {
+
+    // 定义方法
+    run() {
+        console.log("我会跑")
+    }
+
+}
+```
+
+---
+
+> 类中的 *this* 
+> 1. 通过对象去调用方法 *mc.fn()*
+- 类中的方法内的this就是调用方法的实例对象
+<!-- 
+    这个部分this的理解和基础this的理解是一样的 谁调用的方法 this就是谁
+ -->
+```js
+class MyClass {
+    fn() {
+        console.log(this)
+    }
+}
+
+let mc = new MyClass()
+mc.fn() // this -> mc
+```
+
+> 2. 以函数的形式去调用方法 *test()*
+- this为undefined
+<!-- 
+    js基础的时候 以函数的形式调用 this是window 这里是undefined
+ -->
+
+**注意:**
+- 1. 类中的所有代码 都会在*严格模式*下执行
+- 2. 类中的方法的this不是固定的
+    - 以方法形式调用时 this是当前的实例
+    - 以函数形式调用时 this是undefined
+
+- 严格模式的特点:
+- 1. 函数的this不再是window 而是undefined
+
+```js
+class MyClass {
+    fn() {
+        console.log(this)
+    }
+}
+
+let mc = new MyClass()
+
+// 将方法保存到 变量test 身上
+let test = mc.fn
+
+test()  // undefined
+```
+
+> 在有些场景下 我们希望方法中的this是固定的 不会因调用方式的不同而改变
+- 1. 使用 bind() 在constructor中绑定
+```js
+class MyClass {
+    // 将fn方法的this绑定为当前实例 构造器中的this就是当前实例
+    constructor() {
+        this.fn = this.fn.bind(this)
+    }
+
+    fn() {
+        console.log(this)
+    }
+}
+```
+
+- 2. 利用箭头函数(箭头函数没有自己的this 它的this都是外层的this) 定义方法s
+```js
+class MyClass {
+
+    // 如果类中的方法是以箭头函数定义的 则方法中的this恒为当前实例 不会改变(包括call apply bind)
+    fn = () => {
+        console.log(this)
+    }
+```
+
+---
+
+
+> 继承 使用 extends 关键字
 - 一般使用extends 关键字来进行继承
-- class 子类名 extends 父类名 { ... }
+```js
+    class 子类名 extends 父类名 { ... }
+```
 
-> ES6中的静态方法 使用 static 关键字
-- static 方法名() { ... }
+> 作用:
+- 可以将多个类中的重复性代码提取出来 然后通过继承可以让继承类中拥有父类中定义的属性和方法
 
-> ES6中的静态属性 在类的外面定义
+```js
+// 将多个类中的重复性代码提取出来
+class Animal {
+    constructor(name, age) {
+        this.name = name
+        this.age = age
+    }
+
+    say = () => {
+        console.log("动物在叫")
+    }
+}
+
+
+// 继承
+class Dog extends Animal {
+    // 内部就有了 父类中的属性 和 方法
+}
+```
+
+> 特点:
+- 1. 子类继承父类后 将获得父类中所有的属性和方法
+<!-- 继承后就相当于将父类中的代码 复制到当前类里 -->
+
+- 2. 子类中可以创建同名的属性和方法 对父类中的内容进行*重写*
+<!-- 调用结构的时候 优先找自身 没有再找父类的 -->
+
+- 3. 子类扩展父类中的属性的时候 需要在构造器中开始的位置调用 super()
+- 当在子类中重写了父类构造函数时 必须在子类构造函数中第一时间调用父类构造函数 否则会报错
+
+- 参数问题:
+- 在new子类对象的时候 会传递实参 传递的参数会被子类重写的构造器里的形参接收 我们将接收到的参数中 父类中定义的我们通过super传进去
+```js
+class Dog extends Animal {
+    // dog要扩展自己的属性 address
+    constructor(name, age, address) {
+        super(name, age)    // 调用父类的构造函数
+        this.address = address
+    }
+}
+
+/*
+    super相当于在调用父类的构造器 -- java
+
+    当子类定义了自己的constructor相当于重写了父类的constructor
+    那在new子类对象的时候 就不会在调用父类中的constructor了 
+    
+    不调用就意味着 父类中的constructor就不会执行了 就意味着 有一些属性初始化不上了
+
+    所以当我们在子类中重写了constructor后 还要在子类的constructor里面第一时间调用 父类的构造函数
+*/
+
+```
+
+> 静态方法 和 静态属性
+- 可以直接通过类调用的属性和方法被称为静态属性和静态方法
+
+> 静态方法 
+- 使用 static 关键字
+
+**注意:**
+- 静态方法中的this 不是实例对象 因为根本没有实例对象
+- 而是 *类本身, 静态方法中的this不是实例对象*
+
+- 也就是说静态方法中 不能通过this来访问实例身上的属性和方法
+
+
+> 静态属性 
+- 1. 在类的外面定义
+- 2. 使用 static 来修饰属性
+
+```js
+class Person {
+
+    static name = 10;
+
+    static say = () => {
+        console.log("hello")
+    }
+
+}
+
+// 通过 类去调用
+console.log(Person.name)
+Person.say()
+```
+
+---
 
 > super and 超类 = 父类
 - 我们平时叫父类和子类 更专业点的叫法是超类
 - 继承父类的方法,相当于 call()
 
-> 定义一个类
+
+> class关键字 定义一个类
 ```js
     class Father {
 
@@ -1124,13 +1444,30 @@ const SCHOOL = {                const SCHOOL = {
 
 ### 箭头函数
 - ES6 允许使用箭头 => 定义函数
-- 如果只有一个参数, ()可以省
-- 如果只有一个return, {}可以省
- 
+
+> 特点
+- 1. 如果只有一个参数, ()可以省
+- 2. 如果只有一个return, {}可以省 返回值必须是一个表达式
 <!-- 
+    a + b 是表达式
+    console.log() 是表达式  -- undifined
+
+    console.log()是一个函数 函数的返回值默认是undifined
+
+    有返回值的就是表达式
+ -->
+
+- 3. 也可以返回一个对象 但是({}) 必须要加一个括号 因为要和代码块做一个区分
+```js
+let fn = () => ({name: "sam"})
+```
+
+> 箭头函数的写法
+```js
     // 声明一个函数, 之前:
     let fn = function(){  };
- -->
+```
+
 > 箭头函数的书写格式:
 > let fn = (a, b) => {  }     
 - 使用箭头链接形参 和 函数体  省略了function
@@ -1143,15 +1480,15 @@ const SCHOOL = {                const SCHOOL = {
         return n + n;
     }
 
-    简写成:
+    // 简写成:
     
     let add = n => {} 
 ```
 
 - 省略花括号, 当代码体只有一条语句的时候, 可以省略花括号, 此时return也必须省略, 而且语句的执行结果就是函数的返回值
 ```js 
-    let pow = (n)=>{
-        return n*n;
+    let pow = (n) => {
+        return n * n;
     }
     console.log(pow(9));
 
@@ -1168,14 +1505,21 @@ const SCHOOL = {                const SCHOOL = {
    //  一个参数可以省略小括号, 里面只有一条语句, 省略花括号和return, 函数体直接就是返回值
 ```
 
+----------------
 
-### 箭头函数中的this
+### 箭头函数特点
+
+> 1. this
+- 箭头函数中没有this(没有自己的this)
+- 它的this总是外层作用域的this
+
 > 理解1
 - 箭头函数没有自己的作用域, 即箭头函数this 指向其外层作用域(或者理解成和外成的作用域是相同的) 
+<!-- 
+    下面的例子中, 如果在setTimeout中输出 this.name 会出现 this丢失(输出空白或者undefined)的情况
 
-- 下面的例子中, 如果在setTimeout中输出 this.name 会出现 this丢失(输出空白或者undefined)的情况
-- 原因就是 setTimeout中的function有自己的作用域, 它里面的this找不到
-- 以前的解决方法就是把外层的this保存 然后里面使用_this
+    原因就是 setTimeout中的function有自己的作用域, 它里面的this找不到 以前的解决方法就是把外层的this保存 然后里面使用_this
+ -->
 ```js 
     function People(name, age) {
         this.name = name;
@@ -1198,9 +1542,11 @@ const SCHOOL = {                const SCHOOL = {
     p1.say();
 ```
 
+> 解析：
 - *function有自己的作用域* 这个作用和上面的say的function是两个不同的作用域
 
 - 如果上面使用箭头函数也就可以办到的, 因为箭头函数没有自己的作用域, 和外层的一样
+
 ```js
     this.say = function() {
         setTimeout(() => {
@@ -1261,7 +1607,9 @@ const SCHOOL = {                const SCHOOL = {
     });
 ```
 
-> 不能作为构造实例化对象
+
+
+> 2. 不能作为构造实例化对象
 ```js 
     let Person =  (name, age) => {
         this.name = name;
@@ -1271,13 +1619,20 @@ const SCHOOL = {                const SCHOOL = {
     let me = new Person('xiao', 30);     // 报错
 ```
 
-> 箭头函数里不能使用arguments变量
+> 3. 箭头函数里 没有arguments变量
+- arguments是类数组对象 函数的所有实参都会收集在arguments中
+- 但是箭头函数中没有arguments
 
-**注意:**
--  ↑ 箭头函数适合与this无关的回调, 定时器, 数组的方法回调, 不适合与this有关的回调, 比如dom元素的事件回调, 对象的方法
+- *使用 ...args 代替*
+- arguments是类数组 没有数组身上的方法 当我们用...args后 args变量就是真正的数组了 可以使用数组身上的api来操作参数
+```js
+const fn = (...args) => {
+    console.log(args)
+}
+```
 
 
-> 箭头函数不适合对象方法
+> 4. 箭头函数不适合对象方法
 ```js
 {
     name: 'sam',
@@ -1294,6 +1649,8 @@ const SCHOOL = {                const SCHOOL = {
 }
 ```
 
+> 4. 箭头函数中的this无法通过call() apply() bind()修改
+
 
 > 箭头函数的使用场景
 - 当我们想把函数作为参数传递到另一个函数里面去的时候 用函数最多的
@@ -1301,6 +1658,9 @@ const SCHOOL = {                const SCHOOL = {
     setTimeout(function() {}, 100)
     setTimeout(() => {}, 100)
  -->
+
+ **注意:**
+-  ↑ 箭头函数适合与this无关的回调, 定时器, 数组的方法回调, 不适合与this有关的回调, 比如dom元素的事件回调, 对象的方法
 
 -------------------------------
 
@@ -1462,8 +1822,9 @@ const SCHOOL = {                const SCHOOL = {
     show(...arr)
 ```
 
-- ... 扩展运算符能将 数组 转换为 逗号分隔的 参数序列
 > let arr = [];   fn(...arr);
+- ... 扩展运算符能将 数组 转换为 逗号分隔的 参数序列
+
 ```js 
     const tfboys = ['易烊千玺', '王俊凯'];   
     // ... 将这个数组转换为了一个参数序列
@@ -1475,10 +1836,11 @@ const SCHOOL = {                const SCHOOL = {
     // 这样打印出来 有1个 arguments里只有一个参数 是一个数组
     chunwan(tfboys);     
     // 这样打印出来 有3个    
+
     chunwan(...tfboys);    =>  相当于  chunwan('易烊千玺', '王俊凯')
 ```
 
-> 还能展开字符串
+> 扩展: 还能展开字符串
 
 
 > 扩展运算符还可以配合表达式
@@ -1513,13 +1875,36 @@ const SCHOOL = {                const SCHOOL = {
 > 将字符串转为数组
 - [...'hello']
 
+
 > 将伪数组转为真正的数组
 - let nodeList = document.querySelectorAll('div');
   let array = [...nodeList];
 <!-- 
     该方式只能创建一个变量进行接收 不然会报错
     [...nodeList].forEach       // 报错
+
+    也不是前面加个分号就好了
  -->
+
+
+> 在一个对象中展开另一个对象
+```js
+let obj = {
+name: "sam"
+}
+
+let obj2 = {
+...obj
+}
+
+console.log(obj2)
+obj2.name = "erin"
+console.log("obj1", obj)
+console.log("obj2", obj2)
+
+// obj1 { name: 'sam' }
+// obj2 { name: 'erin' }
+```
 
 
 > 数组中新增的方法

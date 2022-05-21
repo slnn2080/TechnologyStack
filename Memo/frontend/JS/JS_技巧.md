@@ -1,5 +1,24 @@
 ### Js技巧
 
+### reduce完成promise队列
+- https://www.jianshu.com/p/d378bc9f967e
+- https://www.jianshu.com/p/aa6e6f2f9535
+- https://www.freesion.com/article/6149611365/
+- 再看看上面的网址
+
+```js
+;[1, 2, 3, 4, 5].reduce((pre, cur) => {
+return pre.then(() => {
+    return new Promise((resolve, reject) => {
+    setTimeout(() => {
+        console.log(cur)
+        resolve()
+    }, 1000)
+    })
+})
+}, Promise.resolve())
+```
+
 ### 获取图片主色调 添加到背景中
 - https://mp.weixin.qq.com/s/fAXiE3cVnbGCOO3-37iWwg
 

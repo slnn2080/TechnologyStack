@@ -5,7 +5,7 @@
 > 把所有的 js 代码写在一个 js 文件里的弊端
 - 耦合度高, 关联性太强 不容易维护, 不方便复用
 
-
+----------------
 
 ### 模块的基本概念
 - 既然把所有的 js 文件写在一个 html 文件中有耦合度高不方便维护的问题, 我们就会按照 js 的功能来定义不同的 js 文件, 这样能解决上述的问题但是从而带来了另外的一些问题
@@ -114,7 +114,7 @@
   module4();
  -->
 
-
+----------------
 
 ### 模块化的规范
 
@@ -125,7 +125,7 @@
   CMD作为了解就可以(阿里自己写的 阿里的人在用)
  -->
 
----
+----------------
 
 ### commonJS
 
@@ -150,7 +150,7 @@
 - 通过 commonJS 语法完成的暴露 和 引入 可以把模块中的代码想象成被包裹在一个匿名自调用函数里 不会污染全局空间
 - 模块与模块之间都是一个闭包 都是独立
 
-
+----------------
 
 ### commonJS 基本语法
 > 暴露模块的语法:
@@ -198,7 +198,7 @@
   let {flag, sum} = require("./aaa.js");
  -->
 
-
+----------------
 
 ### commonJS 实现
 > 服务器端实现
@@ -214,6 +214,7 @@
   我们再浏览器端使用commonJS ES6规范编写的模块 需要提前编译打包的 编译打包的工具叫做browserify
  -->
 
+----------------
 
 ### package.json
 - 概述
@@ -239,6 +240,7 @@
   可以把除了name 和 version之外的删掉, 以后厉害了再用
  -->
 
+----------------
 
 ### 案例 服务器端的应用 --- Node.js 模块化流程
 - 1. 下载安装 node.js
@@ -441,7 +443,7 @@
     let module1 = require('./modules/module1');
    -->
 
-
+----------------
 
 ### 案例 浏览器端的应用 --- Browserify 模块化流程
 - 打包生成的文件 默认都会创建 dist 文件夹 或 build 文件夹里面
@@ -516,7 +518,7 @@
 
 - 创建文件夹结构 - 全局和局部下载 browserify 工具 - 把所有模块汇总到 app.js 文件中(使用 require 和 module.exports 语法) - 对 app.js 文件使用 browserify 命令打包到 dist 文件夹中 - 在浏览器端 script src 引入打包后的 build.js 文件(叫啥都行反正是打包后的文件)
 
----
+----------------
 
 ### AMD Asynchronous Module Definition(异步模块定义)
 
@@ -553,7 +555,7 @@
     使用 m1 / m2
   })
 
----
+----------------
 
 ### 案例 不使用模块规范 创建模块概念
 
@@ -618,13 +620,12 @@
     <script src="./app.js"></script>
    -->
 
----
+----------------
 
 ### 利用 AMD 规范来实现模块的概念
 - AMD 需要使用 require.js 库 所以我们要先下载
 
-
-### 引入自定义模块的方式:
+>引入自定义模块的方式:
 > 1. 下载 require.js, 并引入
 
 - 官网: http://www.requirejs.cn
@@ -753,7 +754,7 @@ module2:
   });
  -->
 
----
+----------------
 
 ### 引入第三方模块的方式:
 
@@ -832,7 +833,7 @@ module2:
   })
 -->
 
----
+----------------
 
 ### CMD (common module definition) 通用模块定义
 
@@ -884,7 +885,7 @@ module2:
   })
  -->
 
----
+----------------
 
 ### ES6 模块规范
 
@@ -893,32 +894,37 @@ module2:
 
 - 我们把 es6 转换为 es5 后 会编译为 require 语法, 而浏览器又不支持, 打包编译 require 语法我们需要使用 browserify 工具
 
-- 基本语法:
-- 导出模块: export
-- 引入模块: import
+> 基本语法:
 
-- 浏览器端的实现
+> 导出模块: export
+
+> 引入模块: import
+
+
+> 使用方式:
+- es6的语法浏览器端不认识 所以为了让浏览器可以认识我们的es6的模块化语法所以我们需要通过babel来编译
+
+
+> babel编译 es6语法的步骤
 - 使用 babel 将 es6 编译为 es5 代码
+- https://babeljs.cn  使用 browserify 编译打包 js
 
-  - https://babeljs.cn
-
-- 使用 browserify 编译打包 js
-
-### ES6-Babel-Browserify 使用教程
 > 1. 定义 package.json 文件
 {
     "name":"es6-babel-browserify",
     "version":"1.0.0"
 }
 
-
 > 2. 安装 babel-cli, babel-preset-es2015 和 browserify
 - npm install browserify -g
 - npm install babel-cli -g
 - npm install babel-preset-es2015 --save-dev
 <!-- 
-  cli:  command line interface 命令行接口
-  babel-cli:  一旦下来了babel的库后里面肯定有命令, 我们需要下载babel-cli这个库往外调命令
+  cli:  
+    command line interface 命令行接口
+
+  babel-cli:  
+    一旦下来了babel的库后里面肯定有命令, 我们需要下载babel-cli这个库往外调命令
 
 比如 node 我下载完后可以用 npm 命令 因为安装 node 的时候自动下载了 npm, npm 已经把所有的命令放在了 cli 文件夹中, 所以能往外掉 但是 babel 里面有没有 cli 这个文件 所以要单独去下载
 
@@ -926,145 +932,133 @@ babel-preset-es2015: preset 预设, 这个库的作用是将 es6 转为 es5 的�
 我们单独下载下来转换为 es5 的库就可以了
 -->
 
--
 - preset 预设(将 es6 转换为 es5 的所有插件打包)
 
 
-> 3. 上面的东西下载完后, 我们要进行一些配置文件, 定义 .babelrc 文件
+> 3. 定义 .babelrc 文件
+- 上面的东西下载完后, 我们要进行一些配置文件, 
 - rc 是 run control rc 文件是运行时控制文件 运行时要读的文件
+
 - 在 package.json 同一目录下 创建 .babelrc 文件 没有后缀名 文件名就可以 不要忘记.
+
 - 固定写法, babel 工作原理 它在干活之前会先读这个配置文件, 只有读了"presets":["es2015"]这 babel 才知道干了什么一旦发现是 es2015, 那我就知道我是要去转还为 es6 语法
+```js
+// babelrc配置文件里面直接写对象就可以 config.js还要暴露出来一个对象
   {
     "presets":["es2015"]
   }
-
+```
 
 > 4. 目录结构
 - js/src/module1/js
 
 
-> 5. 模块编码 暴露方法
-> 暴露模块 -- 分别暴露
-- 使用 export 关键字 后面跟暴露内容就好了, 利用 export 暴露多个内容
-  export function foo1() { }
-  export function foo2() { }
-  export let arr = [1,2,3]
-  <!--
-    module1:
-    // 暴露模块 分别暴露 可以暴露多个
-    export function foo() {
-      console.log('foo() module1');
-    }
+> 5. 模块编码 的使用方式 --- 要点在这里
 
-    export function bar() {
-      console.log('bar() module1');
-    }
+> 暴露(导出)模块
+- 作用:
+- 导出用来决定搞一个模块中哪些内容可以被外部查看
 
-    export let arr = [1,2,3,4,5];
-    export let arr1 = [1,2,3,4,5];
-    export let arr2 = [1,2,3,4,5];
-   -->
+- 它有几种导出方式 如下：
 
-> 暴露模块 -- 统一暴露
-- 先定义想定义的东西, 最后放到一个对象里 利用 export 暴露
-  function foo1() { }
-  function foo2() { }
-  function foo3() { }
+> 方式1: 默认暴露(导出)
+**注意: 一个模块中只能有一个默认导出**
 
-  export {foo1, foo2, foo3}
-  <!--
-    // 统一暴露
-    function fun() {
-      console.log('fun() module2');
-    }
-    function fun2() {
-      console.log('fun2() module2');
-    }
-
-    export {fun, fun2};
-  -->
-
-- 分别暴露 和 统一暴露我们称之为 常规暴露
-
-> 默认暴露
-- 某些情况下, 一个模块中包含某个功能, 我们并不希望给这个功能命名, 而且让导入者可以自己来命名
-- 这个时候我们就可以使用export default
+- 某些情况下, 一个模块中包含某个功能, 我们并不希望给这个功能命名, 而且让导入者可以自己来命名 这个时候我们就可以使用export default
 
 - 可以暴露任意的数据类型, 暴露什么数据 接收到的就是什么数据
-- 默认暴露只能暴露一次, 如果需要暴露很多数据 把所有数据放在一个括号里, 调用的时候使用 . 的方式
-
-- 语法:
-- export default value
-<!--
-  export default () => {
-    console.log('我是默认暴露的箭头函数')
-  }
-
-  // 将所有想要暴露的数据, 放入一个对象里
-  export default {
-    msg:'默认暴露',
-    foo(){
-      log('this.mag');
-    }
-  }
+<!-- 
+  默认暴露只能暴露一次, 如果需要暴露很多数据 把所有数据放在一个括号里, 调用的时候使用 . 的方式 
 -->
 
+> 语法:
+> export default value
+```js
+export default 导出内容
 
-> 6. 在主文件中引入模块
-- 分别两种情况
-- 如果暴露模块的方法 采取的是分别暴露 和 统一暴露的方式时, 我们要采取解构赋值的方式
-<!--
-  import {foo, bar} from './module1';
+export default []
+export default {}
+export default num
+export default function() {}
+```
 
-  调用foo();
- -->
+> 导入默认暴露方式的文件
+- 导入用来将外部模块中的内容导入到当前模块中
+- 导入的时候自己指定模块名
 
-- 如果暴露模块的方法 采取的是默认暴露时, 我们定义一个变量名 接收 模块就可以
-<!--
-  import module3 from './module3';
+\\ 浏览器端的使用方式
+- 注意:
+- import语法不能使用在模块的外部
+- 默认情况下 script 标签中不能使用 import 语法
 
-  module3();
--->
+```html
+<head>
+  <!-- 必须指定 type -->
+  <script type="module">
+      // 引入暴露出来的js模块
+      import a from "./暴露的路径"
 
+      // 输出值
+      console.log(a)
+  </script>
+</head>
+```
 
-> > 常规暴露 引入模块的语法
-- 语法: import {解构赋值方式的变量名} from '路径'
-  <!--
-    import {foo, bar} from './module1';
-    import {fun, fun2} from './module2';
-    上面相当于 在当前作用域下定义了这些变量 声明了 foo bar变量 对应 module1模块中的两个函数 解构赋值么
+---
 
-    foo();
-    bar();
-    fun();
-    fun2();
+> 命名导出(分别暴露)
+- 导出指定的内容
+- 在导入的时候 必须指明要导入哪个变量
 
-    - 注意:
+```js
+export const a = 20
+export let arr = [1,2,3]
+export function foo2() { }
+```
 
-    不能够定义变量直接接收引入对象
-    es6 引入模块的时候 必须使用对象解构赋值的方式的去取数据
-    说白了 一个模块是一个对象容器, 当使用import去取数据的时候 要点名道姓的去取
-  -->
+> 导入的方式
+```js
+// a arr foo2 必须和模块中的变量名一致
+import {a, arr, foo2} from "./exer.js"
+```
 
-> > 默认暴露 引入模块的语法
-- 语法: import 变量名 from '路径'
-- 变量名可以任意起
-<!--
-  // 默认暴露 引入模块的方式
-  import module3 from './module3';
-
-  module3();
--->
-
-
-> > 单独暴露 引入暴露模块中的全部内容
-- import * as a from "./a.js"
-- * 代表引入 a.js文件中的所有内容 并重命名为a
-
-- 使用的时候 a.xxx
+- 利用 *as* 导入指定变量的同时 修改变量名
+```js
+import {a as num} from "./exer.js"
+```
 
 
-> 7. 编译
+> 统一导出
+```js
+// 统一导出
+export {
+  foo1, 
+  foo2, 
+  foo3
+}
+```
+
+- 同时导出 和 单个导出 和 默认导出 可以同时使用
+```js
+// 单个导出
+export const a = 20
+export let arr = [1,2,3]
+
+// 统一导出
+export {
+  foo1, 
+  foo2, 
+  foo3
+}
+
+export default b
+
+// 导入
+import b, {a, arr, foo1, foo2, foo3} from "./exer"
+```
+
+
+> 6. 使用 babel 编译
 - 不能把未编译的 main.js 文件跑在 html 文件里 需要我们将 es6 的语法转为 5
 
 - 1. 在根目录下打开终端
@@ -1087,11 +1081,11 @@ babel-preset-es2015: preset 预设, 这个库的作用是将 es6 转为 es5 的�
 
 
 > 8. 在 html 中引入最终的编译文件
-<!-- <script src="./js/dist/app.js"></script> -->
+<!-- <script src="./js/dist/app.js"></> -->
 
 - 如果有修改的情况下 要重新进行编译 最终引入最后的文件
 
-
+----------------
 
 ### es6 暴露 引入第三方模块的方式
 

@@ -273,6 +273,19 @@ app.mount("#app")
 ```
 ------
 
+### <script setup> 中怎么使用 async await
+- 方式1: 包一层函数
+```js
+const getTestData = async () => {
+  const res = await homeApi.testApi(params.id)
+  testData.value = res
+}
+
+getTestData()
+```
+
+------
+
 ### vue3.0中的this : getCurrentInstance 获取组件实例
 - getCurrentInstance代表全局上下文，ctx相当于Vue2的this
 
