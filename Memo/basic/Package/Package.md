@@ -51,3 +51,10 @@
 - https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&mid=2651593923&idx=2&sn=e2a7ebb51fbd094ab26e1f34d20a9835&chksm=8022cb02b7554214407d4b582fe753fb0b287f826577042895df61ae7af4c79c169a280746cb&scene=21#wechat_redirect
 
 - https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&mid=2651578863&idx=1&sn=016ae8c898da4590fd3e220f822090bb&chksm=8025362eb752bf385a2396cafad9f31e0356b0ab7243196a61ffb48b2c62f58029a455134b73&scene=21#wechat_redirect
+
+
+- https://www.cnblogs.com/tzyy/p/5193811.html 
+- 这个很全呀
+
+- https://docs.npmjs.com/cli/v8/using-npm/config
+- 这个很权威呀

@@ -1,3 +1,9 @@
+### 技巧相关部分:
+
+
+----------------------------
+
+
 ### React
 - 官网:
 - 英文官网: https://reactjs.org/
@@ -176,7 +182,7 @@
 ----------------------------
 
 ### react的两个版本 与 js文件夹中的文件解析
-- 旧版本: 16.8
+- 旧版本: 17
 - 新版本
 
 ```js 
@@ -318,7 +324,7 @@ document.querySelector("#test").addEventListener("click", function() {
 
 - 注意: 修改完react元素后必须重新渲染根元素 
 
-*------  react16.8 ------*
+*------  react17 ------*
 
 > 将创建的 React元素 添加到页面节点中
 > ReactDOM.render(虚拟DOM, 容器) - 挂载
@@ -356,7 +362,7 @@ document.querySelector("#test").addEventListener("click", function() {
   </script>
 ```
 
-*------  react 16.8 ------*
+*------  react 17 ------*
 
 ---
 
@@ -364,9 +370,17 @@ document.querySelector("#test").addEventListener("click", function() {
 
 - 当我们获取页面中的dom元素所对应的react元素的时候 也就是涉及到dom操作的时候 就要使用react-dom了
 
+- 在 react17 17的时候 我们使用的是 
+  ReactDOM.render(react元素, DOM节点)
+
+- 在18中把上面的方法分成两个方法了 因为我们要渲染的时候 没必要每次都要获取次DOM节点(上面方法的参数2), 减少了操作次数 提升了点性能
+
+
 > ReactDOM.createRoot(Css选择器)
-- 通过css选择器 根据页面中的dom 创建react room元素 
+- 通过css选择器 根据页面中的dom *创建react root元素* 
 - 想让哪个节点为根元素 传哪个节点就可以
+
+- react root元素 就是react元素要插入的位置
 
 - 参数:
 - Css选择器选择的DOM节点
@@ -379,9 +393,13 @@ const root = ReactDOM.createRoot(document.querySelector("#root"))
 ```
 
 > 根元素.render(React元素)
-- 挂载
+- 挂载 渲染
 - 向根元素中渲染 react元素(虚拟DOM)
 - 当调用render渲染页面 react会自动比较两次渲染的元素 只在真实DOM中更新发生变化的部分
+
+- 要点:
+- 根元素中的所有内容都会被删除 被我们插入了 react元素 替换
+- 当重复调用render()时 react会将两次的渲染结果进行比较 它会确保只修改发生变化的元素 确保对DOM做最小的修改
 
 ```js
 // react元素 div
@@ -401,122 +419,97 @@ root.render(div)
 
 ----------------------------
 
-### 虚拟DOM的两种创建方式
-- 使用jsx创建虚拟DOM节点的时候 DOM结构部分还是用()包裹起来, 用来调整结构
-```js 
-  const VDOM = (
-    <h1>
-      <span> ... </span>
-    </h1>
-  )
+### JSX
+- 上面介绍的方法的核心就是用了一个 react 的 一个api 替换掉了 原生js操作dom的方法 
+
+- 但是替代完了之后 其实并没有简洁多少 所以react提供一种更简洁的方式 JSX
+
+> 命令式编程
+- 我们前面说了 React.createElement() 方法 这种方法叫做命令式编程 通过react语法 告诉react我们要创建什么元素 属性是什么 标签体是什么
+
+
+> 声明式编程
+- jsx就是声明式编程
+- 我们可以通过下面的方式 告诉react我想要它 至于怎么创建实现的我不管
+
+- 在react中可以通过 JSX 来创建react元素
+```js
+let node = (
+  <div>我是一个div</div>
+)
 ```
 
-> 方式1:
-> React.createElement('标签名', {标签属性kv可以是空}, '标签内容')
-- 创建虚拟DOM
-```js 
-  const VDOM = React.createElement('h1', {id:'title'}, 'hello, React-js')
-```
+> JSX
+- JSX 是 JavaScript 的语法扩展，JSX 使得我们可以以类似于 HTML 的形式去使用 JS。JSX便是React中声明式编程的体现方式。
 
+- 声明式编程:
+- 简单理解就是以结果为导向的编程。*使用JSX将我们所期望的网页结构编写出来，然后React再根据JSX自动生成JS代码。*所以我们所编写的JSX代码，最终都会转换为以调用React.createElement()创建元素的代码。
 
-> 为什么不用原生的js 而是要使用jsx
-- 我们看看下面的例子 看看两种方式创建虚拟dom有什么不同
-
-- 1. 使用jsx创建虚拟DOM <h1 id='title'>hello, React</h1>
-```js 
-  // 使用jsx创建一层结构的DOM
-  const VDOM = <h1 id='title'>hello, React</h1>
-
-  // 使用jsx创建二层结构的DOM
-  const VDOM = (
-    <h1 id='title'>
-      <span> hello, React </span>
-    </h1>
-  )
-
-  ReactDOM.render(VDOM, $('app'));
-
-
-  function $(id) {
-    return document.getElementById(id)
-  }
-```
-
-- 2. 使用原生js创建虚拟DOM
-```js 
-  // 使用原生js创建一层结构的DOM
-  const VDOM = React.createElement('h1', {id:'title'}, 'hello, React-js')
-
-  // 使用原生js创建二层结构的DOM
-  const VDOM = React.createElement('h1', {id:'title'}, React.createElement('span', {}, 'hello, React-js'))
-
-  ReactDOM.render(VDOM, $('app'));
-```
-
-- 从代码量上就能够看出 使用原生js创建虚拟DOM 和 jsx创建虚拟DOM的区别是什么了
-
-- 因为原生js创建虚拟DOM实在太繁琐了 有了jsx可以让编码人员更加简单的创建虚拟DOM
-
+- JSX就是React.createElement()的语法糖 他俩是一样的
 
 **注意:**
-- 我们使用babel翻译jsx其实就是将
+- JSX写完了不能直接使用 需要被翻译为js代码 才能被react执行
+- 要在react中使用jsx *必须要引入babel来完成 翻译 工作*
+
+
+> Babel 下载地址
+- 作用: 翻译jsx
+- https://unpkg.com/babel-standalone@6/babel.min.js
+
 ```js
-  const VDOM = 
-    <h1 id='title'>hello, React</h1>
-
-  // 编译为
-
-  const VDOM = 
-    React.createElement('h1', {id:'title'}, 'hello, React-js')
-```
-
-- 浏览器最终运行的就是这些代码
-
-
-> 总结:
-- jsx创建虚拟DOM的方式就是原生js创建虚拟DOM的语法糖
-
-----------------------------
-
-### 虚拟DOM 和 真实DOM
-- 1. 本质是Object类型的对象(一般对象)
-- 2. 虚拟DOM身上的属性比较少(轻), 真实DOM身上的属性比较多(重) 
-<!-- 
-  因为虚拟DOM是react内部在用, 
-  无需真实DOM上那么多的属性 
--->
-
-- 3. 虚拟DOM最终会被React转化为真实DOM, 从内存中呈现在页面上
-```html 
-<div id="app"></div>
-<div id="demo"></div>
-
-<script type='text/babel'>
-
-  // 虚拟DOM
-  const VDOM = (
-    <h1>
-      <span>hello, react</span>
-    </h1>
-  )
-  
-
-  // 真实DOM
-  const TDOM = $('demo')
-
-  console.log(VDOM)
-    // 结果
-    // 好多属性了 可以debugger查看一下
-
-  console.log(TDOM)
-    // 结果
-    // {$$typeof: Symbol(react.element), type: "h1", key: null, ref: null, props: {…}, …}
+<script type="text/babel">
+  ... 在这里编写的代码会被babel进行翻译
 </script>
 ```
 
+
+*------  react 17 ------*
+
+> react17 中 使用jsx的方式
+```html
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const btn = (
+      <button>我是一个按钮</button>
+    )
+
+    ReactDOM.render(btn, document.querySelector("#root"))
+  </script>
+</body>
+```
+
+*------  react 17 ------*
+
+---
+
+*------  react 18 ------*
+
+> react18 中 使用jsx的方式
+```html
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const btn = (
+      <button>我是一个按钮</button>
+    )
+
+    // 
+    const root = ReactDOM.createRoot(document.querySelector("#root"))
+
+    // 
+    root.render(btn)
+  </script>
+</body>
+```
+
+*------  react 18 ------*
+
 ----------------------------
 
-### jsx
+### JSX的注意事项
 - 全称 Javascript XML 是react定义的一种类似于 XML 的js扩展语法 js + xml
 
 - 本质是 React.createElement(component, props, ...children)方法的*语法糖*
@@ -542,24 +535,28 @@ root.render(div)
 
 
 > JSX的语法规则
-- 1. 定义虚拟DOM时, 不要写引号 结构使用小括号包裹
-- 2. 当我们要写js表达式的时候 使用{ }
+> 1. JSX不是一个字符串 定义虚拟DOM时, 不要写引号
+- 结构可以使用小括号包裹
+
+> 2. 当我们要写js表达式的时候 使用{ }
 <!-- 
   这里要注意表达式和语句的区别,
   { }里面放的是js表达式 并不是语句
 -->
 
-- 3. *样式的类名指定*不要用class 而是要*用className*
+> 3. 如果表达式是 空值 布尔值 undefined 将不会显示
+- null咋会显示呢
+
+> 4. *样式的类名指定*不要用class 而是要*用className*
 - react元素的属性名使用驼峰命名法
 <!-- 
   // 有一些特殊的属性名是特殊的写法
   label标签的for属性 -- 需要替换成 -- htmlFor
  -->
 
-- 4. 内联样式要用
-    style={{key:value}}
-
-- 的形式去写, 属性名使用驼峰
+> 5. 内联样式要用 对象形式
+- style必须使用 {} 的形式设置
+- style={{key:value}} 的形式去写, 属性名使用驼峰
 
 <!-- 
   添加内联样式的时候 一层{ } 是写表达式
@@ -568,23 +565,36 @@ root.render(div)
 
 - 属性名： 驼峰， 
 - 属性值： "字符串"
+
 ```js 
   <h3 
     className="title" 
     style={{border: "1px solid #212121"}}>React</h3>
 ```
 
-- 5. jsx中的标签*一定要闭合* <input />  或者 <input></input>
+> 6. 标签属性可以直接在标签体中书写
+- 标签属性可以直接写
+- 事件的话 如果使用 {} 传递一个函数
+```jsx
+const div = <div id="box" onClick = { () => {} }>
+```
 
-- 6. jsx中*只能有一个根标签*, 当要创建多个标签的时候 我们外层要用一个<div>进行包裹
+> 7. jsx中的标签*一定要闭合* 
+- <input />  或者 <input></input>
 
-- 7. 标签首字母
+> 8. jsx中*只能有一个根标签*
+- 当要创建多个标签的时候 我们外层要用一个<div>进行包裹
+
+> 9. 标签首字母
 - jsx中标签首字母小写开头 
 - 则将该标签转为html中同名元素 若html中无同名元素就报错
 
-- jsx中标签首字母大写开头
+- jsx中组件首字母大写开头
 - react就会去渲染对应的组件, 若组件没有定义 则报错
 
+---
+
+> 练习
 
 - 需求1 
 - 将 你好呀 和 id 是通过变量的形式在读取 而不是写死
@@ -665,10 +675,12 @@ root.render(div)
   }
 ```
 
-> 技巧：
+---
+
+> 技巧： 利用三元表达式 渲染不同的结构
 - 当我们想渲染两个不同的结构的时候 我们可以使用三元表达式的形式的方式
 
-    条件 ? (结构1) : (结构2)
+    *条件 ? (结构1) : (结构2)*
 
 
 > jsx语法的转化过程
@@ -677,28 +689,74 @@ root.render(div)
 
 - jsx - createElement - react元素
 
-```js 
-  const el = (
-    <h1 className="test"> hello </h1>
+----------------------------
+
+### 扩展: 虚拟DOM 和 真实DOM
+
+> 介绍:
+- 当我们通过 React 操作DOM时，比如通过 React.createElement() 创建元素时。我们所创建的元素并不是真正的DOM对象而是React元素。
+
+- 这一点可以通过在控制台中打印对象来查看。React元素是React应用的最小组成部分，通过JSX也就是React.createElement()所创建的元素都属于React元素。与浏览器的 DOM 元素不同，React 元素就是一个普通的JS对象，且创建的开销极小。
+
+- React元素不是DOM对象，那为什么可以被添加到页面中去呢？
+- 实际上每个React元素都会有一个对应的DOM元素，对React元素的所有操作，最终都会转换为对DOM元素操作，也就是所谓的虚拟DOM。
+
+- 要理解虚拟DOM，我们需要先了解它的作用。虚拟DOM就好像我们和真实DOM之间的一个桥梁。有了虚拟DOM，使得我们无需去操作真实的DOM元素，只需要对React元素进行操作，所有操作最终都会映射到真实的DOM元素上。
+
+- 这不是有点多余吗？直接操作DOM不好吗？为什么要多此一举呢？原因其实很多，这里简单举几个出来。
+
+- 首先，*虚拟DOM简化了DOM操作*。凡是用过DOM的都知道Web API到底有多复杂，各种方法，各种属性，数不胜数。查询的、修改的、删除的、添加的等等等等。然而在虚拟DOM将所有的操作都简化为了一种，那就是创建！
+
+- React元素是不可变对象，一旦创建就不可更改。要修改元素的唯一方式就是创建一个新的元素去替换旧的元素，看起来虽然简单粗暴，实则却是简化了DOM的操作。
+
+- 其次，*解决DOM的兼容性问题*。DOM的兼容性是一个历史悠久的问题，如果使用原生DOM，总有一些API会遇到兼容性的问题。使用虚拟DOM就完美的避开了这些问题，所有的操作都是在虚拟DOM上进行的，而虚拟DOM是没有兼容问题的，至于原生DOM是否兼容就不需要我们操心了，全都交给React吧！
+
+- 最后，我们手动操作DOM时，由于无法完全掌握全局DOM情况，经常会出现不必要的DOM操作，比如，本来只需要修改一个子节点，但却不小心修改了父节点，导致所有的子节点都被修改。*减少不必要的DOM操作*
+
+- 效果呈现上可能没有什么问题，但是性能上确实千差万别，修改一个节点和修改多个节点对于系统的消耗可是完全不同的。
+
+- *每当我们调用root.render()的时候* 页面就会重新渲染 react在虚拟DOM中，引入了diff算法，*React元素在更新时会通过diff算法和之前的元素进行比较*，然后只会对DOM做必要的更新来呈现结果。
+
+- 简单来说，*就是拿新建的元素和旧的元素进行比较*，只对发生变化的部分对DOM进行更新，减少DOM的操作，从而提升了性能。
+
+> 在diff比较的时候
+- 1. 先比较之前之后两份数据的类型 
+- 2. 再比较之前之后里面的内容
+
+
+> 特点
+- 1. 本质是Object类型的对象(一般对象)
+- 2. 虚拟DOM身上的属性比较少(轻), 真实DOM身上的属性比较多(重) 
+<!-- 
+  因为虚拟DOM是react内部在用, 
+  无需真实DOM上那么多的属性 
+-->
+
+- 3. 虚拟DOM最终会被React转化为真实DOM, 从内存中呈现在页面上
+```html 
+<div id="app"></div>
+<div id="demo"></div>
+
+<script type='text/babel'>
+
+  // 虚拟DOM
+  const VDOM = (
+    <h1>
+      <span>hello, react</span>
+    </h1>
   )
 
-  ↓
+  // 真实DOM
+  const TDOM = $('demo')
 
-  const el = React.createelement(
-    "h1",
-    {className: "test"},
-    "hello"
-  )
-  
-  ↓
+  console.log(VDOM)
+    // 结果
+    // 好多属性了 可以debugger查看一下
 
-  const el = {
-    type: "h1",
-    props: {
-      className: "test",
-      children: "hello"
-    }
-  }
+  console.log(TDOM)
+    // 结果
+    // {$$typeof: Symbol(react.element), type: "h1", key: null, ref: null, props: {…}, …}
+</>
 ```
 
 ----------------------------
@@ -706,18 +764,14 @@ root.render(div)
 ### React的小练习
 - 动态创建一个框体, 里面显示标题和ul列表
 
-- 动态标题:
+> 代码部分
 ```js 
   // 标题
   let title = '前端js框架列表'
-
   // 数据
   let list = ['Angula', 'React', 'Vue']
-```
 
-> 具体步骤
-- 1. 创建虚拟DOM
-```js 
+  // 创建虚拟DOM
   const VDON = (
     // 在jsx中对虚拟DOM加样式, 需要使用className
     <div className='box'>
@@ -734,16 +788,25 @@ root.render(div)
       </ul>
     </div>
   )
+
+
+  // react17
+  ReactDOM.render(VDOM, document.query("#root"))
+
+  // react18
+  const root = ReactDOM.createRoot(document.querySelector("#root"))
+  root.render(VDOM)
 ```
  
 
-> 总结:
+> 要点:
 > 1. 在jsx中想使用变量都需要使用{ }括起来
  
   { 这里只能是表达式 不能是语句 }
 
-- 一定注意区别 [js语句(代码)] 与 [js表达式]
 
+> 2. 表达式 和 语句的区别
+- 一定注意区别 [js语句(代码)] 与 [js表达式]
 - 1. 表达式: 
 - 一个表达式会产生一个值 可以放在任何一个需要值的地方
 
@@ -769,22 +832,64 @@ root.render(div)
   3. switch() { }
 
 
-
-> 2. 在对节点或者数据进行遍历的时候我们要在DOM结构中*使用KEY确保唯一值*
+> 3. 在对节点或者数据进行遍历的时候我们要在DOM结构中*使用KEY确保唯一值*
 ```js 
   list.map((item, index) => {
     return <li key={index}>{item}</li>
   })
 ```
 
-- 3. react会自动帮我们遍历数组, 但是不能遍历对象
-```js 
-  let list = ['Angula', 'React', 'Vue']
 
+> 4. react会自动帮我们遍历数组, 但是不能遍历对象
+- 也就是说我们基于这点 所以使用 map 将数据整理成 如下样式 然后利用jsx的特点 自动将数组中的元素 显示在页面中
+```jsx
+  let list = ['Angula', 'React', 'Vue']
   <ul>
-    // 结果: AngulaReactVue
-    {list}      
+    {list}    // 结果: AngulaReactVue
   </ul>
+
+
+  // 利用 map 将 ['Angula', 'React', 'Vue'] 整理为
+  // [<li>Angula</li>, <li>React</li>]
+```
+
+
+> 5. react在遍历数组的时候 需要指定 key
+- 当我们在jsx中显示数组中 数组中每一个元素都需要设置一个唯一key
+
+- 原因:
+- 重新渲染页面时 react会*按照顺序*依次比较对应的元素 当渲染一个列表时 
+  如果不指定key同样也会按照顺序进行比较 
+  如果列表的顺序永远不发生变化 那没有问题 
+  *如果列表的顺序会发生变化 就会导致性能问题*
+<!-- 
+  比如我们我们在 数组前面追加新数据 就会导致之前之后的项对比的时候都不一样 所有的dom结构都会更新
+ -->
+
+- 为了解决上面的问题 react为列表设计了一个key值 key值的作用相当于id 只是无法再页面中查看 *当设置key以后 再比较元素的时候 就会比较相同的key的元素* 不再按照顺序
+
+
+**注意:**
+- 1. key值在当前列表中唯一即可
+- 2. 在开发中一般会采用数组的id作为key
+- 3. 尽量不要用元素的index作为key 因为在数据前面添加数据的时候(索引会跟着元素的顺序的改变而改变)index 会发生变化
+<!-- 
+  当元素的顺序不会发生变化的时候 用index作为key是没问题的
+ -->
+
+
+> 6. {} 只能用来放js表达式 而不能放语句(if) 但在语句中是可以用jsx{}表达式的
+```js
+// 我们可以用if语句 来给div赋值不同的结构
+let div
+let lang = "en"
+let name = "孙悟空"
+
+if(lang == "en") {
+  div = <div>hello, {name}</div>
+} else if(lang == "cn") {
+  div = <div>你好, {name}</div>
+}
 ```
 
 ----------------------------
@@ -798,9 +903,9 @@ root.render(div)
 - 我们都会在render函数中渲染结构 当结构比较复杂的时候
 - 我们也可以定义方法将结构封装到方法里面 然后在render中调用
 
-> 方式
-- 条件 ? (结构1) : (结构2)
+> 方式: 
 ```js 
+  // if方式
   const loadingData = () => {
     if(isLoading) {
       return (<div>数据加载中, 请稍后...</div>)
@@ -821,8 +926,7 @@ root.render(div)
     </div>
   )
 
-  // ---- 方式2
-
+  // 条件 ? (结构1) : (结构2) 方式
   const loadingData = () => {
     return loading 
       ? (<div>数据加载中, 请稍后...</div>) 
@@ -873,21 +977,6 @@ root.render(div)
 
 ----------------------------
 
-### jsx的列表渲染
-- 如果我们要渲染一组数据 应该使用数组的map()方法
-- 遍历谁把key加给谁
-```js 
-  <ul>
-    {
-      songs.map((item, index) => {
-        return <li key={index}>{item.name}</li>
-      })
-    }
-  </ul>
-```
-
-----------------------------
-
 ### 模块与组件, 模块化与组件化的理解
 - 组件是react的一等公民 使用react就是在用组件
 - 组件标识页面中的部分功能 组合多个组件实现完整的页面功能
@@ -915,11 +1004,603 @@ root.render(div)
 
 ----------------------------
 
+### 手动创建 React 项目
+- 我们用 npm 管理的项目 不能直接在浏览器端运行
+- 在我们把项目在最终交给浏览器之前必须经过打包工具 进行打包 打包之后项目才能在浏览器中进行使用
+
+- 所以在这个手动的 React 项目中 我们要使用 webpack 作为打包工具来对react项目进行打包
+
+- 所以我们在使用npm管理我们项目的同时 还要使用webpack 但是我们一点点的去配置webpack那么又会很麻烦 所以 react 给我们提供了一个包
+
+
+> react-scripts
+- 保重提供了项目开发中的大部分依赖 大大的简化了项目的开发 它把包括webpack babel 测试框架 都在这个包里面集成了 有了这个包相当于我们有了react给我们自动配置好的webpack 直接用(一行webpack的配置都不用写)
+
+
+> webpack主要对项目来说有两个功能
+- 1. 打包 将打包后的文件可以部署到服务器上
+- 2. 它可以给我们提供测试服务器 devServer
+
+
+> 安装依赖
+- npm i react react-dom react-scripts
+```json
+"dependencies": {
+  "react": "^18.1.0",
+  "react-dom": "^18.1.0",
+  "react-scripts": "^5.0.1"
+}
+```
+
+
+> react-script 约定的项目结构
+- 必须用人家用的结构
+
+  | - 根目录
+    | - public
+      - index.html (添加标签 <div id="root">)
+
+    | - src
+      - App.js
+      - index.js
+
+\\ public:
+- 里面放供外部访问的资源 比如静态图片 css js 不需要webpack打包的文件 都放在这里
+- index.html是必须的 它会作为我们首页的模版
+
+\\ src:
+- 源码目录
+- index.js 入口文件
+
+
+> 入口文件
+
+*------  react 17 ------*
+```js
+import React from "react"
+import ReactDOM from "react-dom"
+
+import App from "./App.js"
+
+ReactDOM.render(<App/>, document.querySelector("#root"))
+```
+*------  react 17 ------*
+
+
+*------  react 18 ------*
+> 要点:
+- 在react18中 react把ReactDOM 分为两个部分
+- react-dom/client 在浏览器渲染页面的库
+- react-dom/server 在服务器渲染页面的库
+
+- 这里我们希望是在浏览器端渲染所以 我们要加载的是 react-dom/client 这里也是跟 react17 中不同的地方 引入入口文件里面没有引入react
+<!-- 
+  后面我们使用服务器端的react 那么我们就要加载 react-dom/server
+  如果我们只引入 react-dom 页面会报错
+ -->
+
+```js
+// 引入 ReactDOM
+import ReactDOM from "react-dom/client"
+
+
+const App = (
+  <div>
+    <h1>这是一个React项目</h1>
+    <p>我终于有了第一个React项目</p>
+  </div>
+)
+
+
+// 获取根容器
+const root = ReactDOM.createRoot(document.querySelector("#root"))
+// 将App渲染到根容器
+root.render(App)
+```
+*------  react 18 ------*
+
+
+- 因为这里我们需要使用 react-scripts 库 不是脚手架 所以我们没办法通过 npm run start 来启动项目
+
+- 通过 npm 管理的项目 必须通过webpack进行打包 打包后才能在浏览器上运行 而打包这个动作 已经在 react-scripts 库中处理好了 我们需要通过 以下的命令 来进行打包
+
+
+> npx react-scripts build  -- 打包
+- 当我们执行这个命令后 它自动会调用webpack进行打包
+
+```json
+// 输入命令后 选择 y 会自动往package.json中添加 兼容性配置
+"browserslist": {
+  "production": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ],
+  "development": [
+    "last 1 chrome version",
+    "last 1 firefox version",
+    "last 1 safari version"
+  ]
+}
+```
+
+- 打包后 我们的项目中就会多了一个 build 文件夹
+
+> 访问 打包后的index.html文件
+- 然后我们在 build 文件夹里 启动 index.html 就可以访问了
+
+**问题:**
+```html
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Document</title><script defer="defer" src="/static/js/main.ff653062.js"></script></head><body><div id="root"></div></body></html>
+```
+
+- js引入的部分的路径是:
+- src="/static/js/main.ff653062.js"
+
+- 我们发现页面是空白的状态 我们现在访问的方式是通过vscode内置的服务器访问的 也就是我们的网页会被部署到vscode的内置服务器
+
+- 但是正常来说我们的代码应该部署到真正的服务器上 所以上面的路径是有问题的
+  /static/js/main.ff653062.js
+
+- / 表示 根目录 就是说我们的build里面的东西应该部署到服务器的根目录中 现在我们没有部署到根目录 所以路径出了问题
+
+- 修改方式: 前面加个 ./static/js/main.ff653062.js
+
+
+> 开发过程中 访问 html 页面内容
+> npx react-scripts start
+- 启动webpack的内置的测试服务器 供我们在开发阶段进行调试
+
+
+- 所有的项目开发完了 我们再通过 build 命令打包将项目部署到真正的服务器上
+
+> 整理到package.json里面
+```json
+"scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "start": "react-scripts start",
+  "build": "react-scripts build"
+},
+
+// 配置 eslint 简单代码是否符合 react 的语法规范
+"eslintConfig": {
+  "extends": [
+    "react-app"
+  ]
+}
+```
+
+----------------------------
+
+### 使用脚手架创建 React 项目
+- 我们使用vue 和 react创建的页面叫做 SPA应用, 所以就是一个index.html文件
+
+> 使用方式:
+> 1. 全局安装(create-react-app这个库)
+- npm i -g create-react-app
+
+
+> 2. create-react-app 项目名 创建项目
+- 脚手架是基于webpack搭建
+- 项目的整体技术架构为 react + webpack + es6 + eslint
+
+- 使用脚手架开发的项目的特点: 
+- 模块化, 组件化, 工程化
+<!-- 
+  在项目中用了webpack这种构建工具 我们写了一段代码 它能帮我们进行语法检查 压缩 兼容性处理 语法转换等等一系列自动的东西 我们就可以称之为工程化的项目
+
+  一条龙服务 代码写完了 剩下的流程自动走下去 编译 压缩等 那就是工程化的项目就像汽车的生产线 批量的生产汽车的这种
+ -->
+
+---
+
+> 项目文件的目录结构
+- 说明 解释
+```js
+  // 依赖存放的位置
+  | - node_modules  
+
+  // 一般存放静态资源文件, 页面 样式 js不在这里
+  | - public        
+    - favicon.icon ------ 网站页签图标
+		- index.html -------- 主页面(用于承装各个组件)
+		- logo192.png ------- logo图
+		- logo512.png ------- logo图
+		- manifest.json ----- 应用加壳的配置文件
+		- robots.txt -------- 爬虫协议文件
+```
+
+<!-- 
+  // public 解释说明
+
+
+  index.html:
+    里面有很多多余的东西 我们可以删删
+    1. 注释
+
+    // 引入网站页签图标
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+
+
+    // %PUBLIC_URL%
+    react脚手架的关键词的写法 代表public文件夹的路径 功能类似 别名
+
+
+    // 用于配置浏览器页签 + 地址栏的颜色 这个配置只针对安卓手机浏览器 ios不可以 开发里面很少用 兼容性不是很好
+    <meta name="theme-color" content="#000000" />
+
+
+    // 描述网站信息的 搜索引擎在收入网站的时候 会看这里面的描述
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+
+
+    // 当我们把网页 添加到主屏幕 网站在屏幕上用什么图标 受下面的控制 只支持苹果手机
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+
+    // 应用加壳的配置文件
+    对于一个手机应用来说 我们要配置应用名字 图标 访问权限 如果是应用加壳在下面的json文件里配置相关信息
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+        应用加壳: 前端人员写出的代码都要放在浏览器端运行 都是html文件 因为浏览器只认识js css html
+
+        应用加壳又是什么意思? 我们按照手机的布局去写一些页面(html), 我在写完的页面上套一个安卓的壳 我们写的网站就会变成安卓手机的应用
+
+        安卓手机上的安装包都是apk吧, 我们要是想开发安卓的手机应用必须学java, 要想开发ios应用必须用OC 或者 Swift
+
+        就是假如我们想做客户端开发(我们属于web人员), 就要学java 和 OC等技术
+
+        如果我们会了应用加壳技术, 我们就在写好的html页面上面加一个壳 就能生成一个.apk文件 就可以安装在安卓手机上 用户点击图标的时候其实打开了一个壳 壳里面内嵌了一个网页
+
+        一些简单的应用可以这么做, 先找前端人员写页面, 页面写好了再套壳 加一个安卓的壳就变成安卓应用 加一个ios的壳就是ios应用
+
+
+  robots.txt
+    爬虫协议文件, 在别人爬取我们的页面的时候, 可以定一些规矩 什么东西能爬 什么东西不能爬
+ -->
+
+```js
+  | - src         // 源码文件夹
+    - App.css -------- App组件的样式
+		- App.js --------- App组件
+
+		- App.test.js ---- 用于给App做测试
+		- index.css ------ 样式
+		- index.js ------- 入口文件
+		- logo.svg ------- logo图
+
+		- reportWebVitals.js
+		- 	--- 页面性能分析文件(需要web-vitals库的支持)
+
+		- setupTests.js
+			---- 组件单元测试的文件(需要jest-dom库的支持)
+```
+<!-- 
+  // src 解释说明
+
+  App是创建的组件, 名字叫做App
+
+  App.js
+    里面
+    import 导入依赖
+    export default App  导出App组件
+
+  
+  App.test.js
+    做测试用的 专门用于App 几乎不用
+
+
+  index.css
+    通用性样式, 可以让如public文件夹中 引入index.html文件
+
+  index.js
+    入口js文件
+    之前是在html文件里面引入核心库等js文件 现在是在入口文件中做操作 这里就相当于在html文件里面引入的操作
+
+    import React from 'react';
+    import ReactDOM from 'react-dom';
+    import './index.css';
+
+    // 引入App组件
+    import App from './App';
+
+
+    // reportWebVitals.js文件用于记录页面的性能 实现了一些页面的性能上的检测, 想要使用也要进行各种配置
+    import reportWebVitals from './reportWebVitals';
+
+    ReactDOM.render(
+
+      // 为什么app的外侧要包裹 <React.StrictMode> 它会检查App和App内的子组件写的是否合理 比如 react的ref字符串类型的方式不推荐使用 它也会提出警告
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+
+      document.getElementById('root')
+    );
+
+    reportWebVitals();
+
+
+
+  reportWebVitals.js
+    文件用于记录页面的性能 实现了一些页面的性能上的检测, 想要使用也要进行各种配置
+
+
+  setupTests.js
+    用来做应用的整体测试的 模块拼在一起的单元测试 它是做组件测试的里面也应用了第三方的库做支持
+
+
+
+  我们只把一个组件放到 <div id='root'> 容器里面 就是App
+  其它组件作为App组件的子组件
+ -->
+
+
+> 文件之间的执行顺序
+- 1. 页面启动之后, 会先来到src文件夹下的index.js 当看到<App>组件要渲染到root容器的时候, 就会去public里面找index.html文件中的root
+<!-- 
+  但是 index.js 也没有被引入 index.html 里面啊 那是因为底层有webpack做支持
+ -->
+
+- 2. 上面的完成后<App>组件就跑到了页面上, <App>组件的样式, 是在App.js文件中通过import 引入的css文件
+
+----------------------------
+
+### npx知识扩展
+- 在没有npx的时候 我们想要使用react脚手架 需要先全局安装脚手架 然后通过create-react-app命令来创建项目
+
+- 但是这个全局的包如果长时间不用放在那边是没有任何意义的 所以有了npx命令 有了npx 无需安装脚手架包 就可以直接使用这个包提供的命令
+
+> npx create-react-app 项目名 -- 推荐
+- 也可以使用 npm init react-app 项目名初始化项目 但是不推荐
+
+---
+
+### 图片的引入方式
+- 一切皆模块
+- import logo from "./logo.svg"
+
+----------------------------
+
+### 整理脚手架中的目录结构
+- 我们把脚手架自带的文字整理到了一个文件夹中, 我们自己创建这两个文件夹 自己在里面写文件
+
+| - public
+  - index.html  主页面
+
+
+| - src
+  | - components    因为index.js app.js是上层文件 我们将子组件都放在这里面 每一个组件单独建立文件夹
+
+  - index.js  入口文件 (相当于在html页面里面引入js文件的步骤)
+  - App.js
+
+```js
+  // 入口文件中需要做的事情
+  import React from 'react'
+  import ReactDOM from 'react-dom'
+
+  // 引入组件
+  import App from './App'
+
+  // 渲染App组件到页面
+  ReactDOM.render(<App/>, document.querySelector('#root'))
+```
+
+
+```js
+  // App组件中要做的事情
+
+  // 创建根组件 父组件
+  import React from 'react'
+
+  // 因为我们要继承 React.Component 所以这个文件中也要引入 React
+  class App extends React.Component {
+    render() {
+      return (
+        <div>
+          hello.react
+        </div>
+      )
+    }
+  }
+
+  export default App  
+
+
+  ---- 这个文件的另一种写法 ---- 
+
+  import React from 'react'
+  const {Component} = React
+
+  // 还可以这么写, react这个文件里面用了多种暴露的形式, 单独暴露和默认暴露
+  import React, {Component} from 'react'
+  import Hello from './Hello'
+
+  // 直接暴露出去 创建并暴露
+  export default class App extends Component {
+    render() {
+      return (
+        <div>
+          {// 这里不直接放 hello.react 也是将hello, react也作为一个组件}
+
+          <Hello />
+        </div>
+      )
+    }
+  }
+
+  ---
+
+  // 定义Hello组件
+  export default function Hello() {
+    return (
+      <h3>hellow, react</h3>
+    ) 
+  }
+```
+
+
+- 接下来 我要给 Hello组件 里面的文字加上css样式
+- 我们也在 components文件夹中 创建css样式
+- 然后在 Hello.js组件中 使用 import './Hello.css' 引入css文件
+```js
+  import './Hello.css'
+
+  export default function Hello() {
+    return (
+      <h3 className='title'>hellow, react</h3>
+    ) 
+  }
+```
+
+```js 
+  // Welcome组件
+
+  import React from 'react'
+  import './Welcome.css'        // css文件必须在上方引入
+
+  const {Component} = React
+
+  export default class Welcome extends Component {
+    render() {
+      return (
+        <h3 className='demo'>
+          Welcome
+        </h3>
+      )
+    }
+  }
+```
+
+
+> 总结:
+- 1. import '.css' 必须放在上面 css样式的样式名不能重复
+<!-- 
+  因为所有的css样式都会汇总到App组件里面, 就会发生 下面的同名样式会将上面的样式覆盖掉, 为了避免这种情况的发生 我们会将样式模块化
+ -->
+
+- 2. react中 js文件 和 jsx文件都是可以不写后缀的
+- 因为所有的js文件都是以.js结尾的 这样我们没有办法分清楚 什么是组件, 什么是单纯的js文件
+<!-- 
+  解决办法:
+  1. 组件名大写
+  2. 组件的.js 改成 .jsx
+ -->
+
+- 2. 我们在App组件中引入其它组件的时候
+<!-- 
+  import Hello from './components/Hello/Hello'
+  import Welcome from './components/Welcome/Welcome'
+ -->
+
+- 我们写了/Hello/Hello /Welcome/Welcome 这样会比较麻烦
+- 所以我们还可以这样, 都将子组件的js文件改成index, 这样react连index都不用写
+<!-- 
+  | - components
+    | - Hello
+      - index.js
+      - index.css
+
+  import Welcome from './components/Welcome' 
+      // 这样就能找到子组件文件夹下面的index.js文件
+ -->
+
+----------------------------
+
+### 样式的模块化
+- 上面的案例中 我们发现, 子组件中的css文件里, 类名不能重复
+<!-- 
+  因为所有的css样式都会汇总到App组件里面, 就会发生 下面的同名样式会将上面的样式覆盖掉, 为了避免这种情况的发生 我们会将样式模块化
+ -->
+
+
+> 解决方式1:
+- 使用less 嵌套的话 就不会出现同名覆盖的问题
+
+
+> 解决方式2:
+- 样式的模块化:
+- 1. 我们把index.css文件名 改成 index.module.css
+<!-- 
+  index.css   --- >   index.module.css
+ -->
+
+- 2. 我们在组件的js文件中 使用导入模块的方式导入css文件
+- 这样所有hello相当的样式都会保存在hello对象里面
+<!-- 
+  import hello from './index.module.css'
+
+  下面使用样式的方式是 hello.title的形式
+  export default class Welcome extends Component {
+    render() {
+      return (
+        <h3 className={hello.title}>    // 看这里
+          Welcome
+        </h3>
+      )
+    }
+  }
+ -->
+
+----------------------------
+
+### 练习: 学习记录器
+
+> html结构
+```js
+// 引入 ReactDOM
+import ReactDOM from "react-dom/client"
+
+const App = (
+  <div className="logs">
+    <div className="item">
+      <div className="date">
+        <div className="month">5月</div>
+        <div className="day">23日</div>
+      </div>
+
+      <div className="content">
+        <h2 className="desc">React</h2>
+        <div className="time">1小时</div>
+      </div>
+    </div>
+  </div>
+)
+
+// 获取根容器
+const root = ReactDOM.createRoot(document.getElementById("root"))
+// 将App渲染到根容器
+root.render(App)
+```
+
+> style结构
+> 要点:
+- 1. import "./index.css"
+- 如果写成 import "index.css" 会被当成模块处理 会报找不到模块的错误
+**在引入样式 图片 资源的时候 我们要以 ./ 开头**
+
+----------------------------
+
 ### 组件的创建
+
+> 什么是组件
+- 在React中网页被拆分为了一个一个组件，*组件是独立可复用的代码片段*。具体来说，组件可能是页面中的一个按钮，一个对话框，一个弹出层等。React中定义组件的方式有两种：基于函数的组件和基于类的组件。本节我们先看看基于函数的组件。
+
+
 - 一个组件里应该包括 结构, 样式, 交互, 资源(html css js img...)
-- 我们下面介绍两种组件的创建方式
+
+- react中组件有两种创建方式 函数式组件 和 类组件
+
+----------------------------
 
 ### 函数式组件
+- 函数组件就是一个返回 JSX 的普通函数
+
+
 > 约定1：
 - 使用函数的方式(函数名首字母大写)创建组件 函数名就是组件标签名
 <!-- 
@@ -927,15 +1608,16 @@ root.render(div)
 -->
 
 > 约定2：
-- 函数组件必须有返回值 表示该组件的结构
+- 函数组件必须有返回值 表示该组件的结构(JSX的DOM结构)
 
 > 约定3：
 - 如果我们返回的是null 表示不渲染任何内容
 
 
 - 1. 创建函数组件
-- 2. 使用ReactDOM.render渲染到页面上
+- 2. 将组件渲染到页面中
 
+*------  react17 ------*
 ```js
   // 创建函数组件
   function Demo() {
@@ -959,11 +1641,63 @@ root.render(div)
   // 返回一个结构 + 函数名大写 就是函数式组件
   const Hello = () => <h2>我是用函数定义的组件</h2>
 ```
+*------  react17 ------*
+
+---
+
+*------  react18 ------*
+
+```js
+// App组件
+import Item from "./components/item"
+
+const App = () => (
+  <div className="logs">
+    <Item />
+  </div>
+)
+
+export default App
 
 
-> 函数组件中的this
-- 正常我们直接在Demo函数中打印 this 应该是window 
-- 但是输入结果却是undefined
+// Item组件
+const Item = () => (
+  <div className="item">
+    <div className="date">
+      <div className="month">5月</div>
+      <div className="day">23</div>
+    </div>
+
+    <div className="content">
+      <h2 className="desc">React</h2>
+      <div className="time">1小时</div>
+    </div>
+  </div>
+)
+
+export default Item
+
+
+// 入口index.js文件
+// 引入 ReactDOM
+import ReactDOM from "react-dom/client"
+import App from "./App"
+import "./index.css"
+
+// 获取根容器
+const root = ReactDOM.createRoot(document.getElementById("root"))
+// 将App渲染到根容器 渲染组件的时候 指定的是标签名的形式
+root.render(<App />)
+
+```
+
+*------  react18 ------*
+
+
+> 函数式组件中的特点:
+
+> 函数组件中的this为undefined
+- 正常我们直接在Demo函数中打印 this 应该是window 但是输入结果却是undefined
 ```js
 function Demo() {
   console.log("Demo", this) // undefined
@@ -976,8 +1710,7 @@ function Demo() {
 }
 ```
 - 原因:
-- 因为 我们的代码要经过 babel 的翻译
-(type="text/babel") 
+- 因为 我们的代码要经过 babel 的翻译 (type="text/babel") 
 
 - babel在翻译完下面的东西后会开启严格模式 *严格模式中禁止 自定义的函数中的this 指向window 所以undefined*
 
@@ -991,28 +1724,35 @@ function Demo() {
 - 1. 函数名首字母必须大写
 - 2. 函数名必须使用标签形式
 - 3. react中组件必须闭合
+- 4. 组件的写法是 <Demo />
 <!-- 
   function Demo() {  }
-
   <Demo />
  -->
 
 ----------------------------
 
 ### 类式组件
-- 顾名思义 通过创建类的方式创建一个组件
-- 使用类创建一个组件必须
+- 顾名思义 通过创建类的方式创建一个组件 class的方式
 
-- 1. 使用 extends继承 React.Component
+> 要点:
+- 使用类创建一个组件必须要继承 React.Component 继承就就相当于将Component类中的代码复制到当前类了 Component中是有类组件的基础代码
+
+> 1. 类组件必须 使用 extends继承 React.Component
 - 类组件应该继承 React.Component 父类 从而可以使用父类中提供的方法或属性
 
-- 2. *内部必须写render* 且有返回值 同时类名也要以大写字母开头
 
-**注意:**
-- react要求 我们在使用类式组件的时候,  我们*创建的类必须继承*react的内置类 *React.Component*
+> 2. 类组件的类名首字母要大写
+
+> 3. *内部必须写render()* 且有返回值 返回值为JSX(结构)
 
 ```js
+  // App组件 下面的两种方式都可以
+  import React from "react"
+  import React, {Component} from "react"
+
   class Demo extends React.Component {
+  class Demo extends Component {
       
     // 这个render 是用在Demo的原型对象上 供实例使用
     render() {
@@ -1027,93 +1767,13 @@ function Demo() {
   }
 ```
 
-- *类组件中*的render中的*this为 组件实例对象*
+> 4. *类组件中*的render中的*this为 组件实例对象*
 
 
-> 类组件的 ReactDOM.render(<Demo />, app) 做了什么
+> 类组件的 ReactDOM.render(<Demo />) 做了什么
 - 1. react解析组件标签, 找到了Demo组件
 - 2. 发现组件是使用类定义的 随后new出来该类的实例(Demo类), 并通过该实例调用到原型上的render方法
 - 3. 将render返回的虚拟DOM转为真实DOM 随后呈现在页面中
-
-------
-
-> 复习 类 的相关知识
-
-- 1. 类中的*构造器*不是必须写的 要*对实例进行一些初始化的操作*的时候才写
-
-- 2. 如果a类继承了b类, 且a类中写了构造器, 那么a类构造器中的super是必须要调用的
-
-- 3. 类中的定义的方法 都是在原型对象上
-```js 
-  // 创建一个Person类
-  class Person {
-
-    // 初始化类的属性
-    constructor(name, age) {
-
-      // 将属性放到实例的自身使用this 构造器的this是 类的实例对象
-      this.name = name
-      this.age = age
-    }
-
-    // 一般方法
-    speak() {
-      console.log(`我叫${this.name}, 我的年龄是${this.age}`)
-
-      // 这里的this也是指向 实例对象
-    }
-
-  }
-
-  // 创建一个Person的实例对象
-  const p1 = new Person('sam', 18)
-
-  console.log(p1)
-    // 结果 Person {}, {}代表是实例对象 前面的Person代码是通过谁new出来的
-
-  p1.speak()
-    // 结果 我叫sam 我的年龄是18
-```
-
-- speak是一般方法 但是在控制台打印p1的时候并没有看到speak方法
-
-- 那speak方法放在了哪里? 在Person类的原型对象上, 放在原型对象上的方法是给实例用的
-
-
-
-- 继承
-```js
-  // 创建一个Student类 继承于Person类
-  class Student extends Person {
-
-  }
-    // 上面只要写上 extends 就继承了 Person 中的属性和方法
-
-  const s1 = new Student('小张', 15)
-  console.log(s1)
-    // 正常输出
-
-
-  // 当Student有自己的属性的时候, 就可以在student类中添加constructor
-  class Student extends Person {
-
-    // 扩展学生自己的属性 且实例是小张 15 高一的顺序传递的 这边也要按照这个顺序接
-    constructor(name, age, grade) {
-
-      // 注意:
-      - 当我们定义了子类 且使用了extends继承了父类
-      - 那么子类中的constructor里必须使用super() 
-      - 不然就会报错,super帮你调用父类中的构造器
-      - super必须在最前面调用
-
-      super(name, age)
-        - 把创建学生实例时传递的实参 name age 通过super(name, age)递到Person类里面去 
-
-      this.grade = grade
-    }
-  }
-  const s1 = new Student('小张', 15, '高一')
-```
 
 ----------------------------
 
@@ -1175,10 +1835,8 @@ export default class App extends Component {
 > this.setState({ ... }) 修改状态的方法
 - react中修改状态的指定方法
 
-
 > 总结:
 - 1. 组件中render方法中的this为组件实例对象
-
 - 2. 组件自定义的方法this为undefined 如何解决?
 
   - 解决方案:
@@ -1189,12 +1847,38 @@ export default class App extends Component {
     相当于给实例身上添加放法 需要通过 this 来调用
    -->
 
-- 3. 状态数据 *不能直接修改或更新*
-  - 必须借助 setState 方法
+- 3. 
 
 
-> setState方法
-- 状态是可以改变的 但是要通过 setState 来修改状态中的值
+
+> this.setState({})方法
+
+> 要点:
+- 1. 状态数据 *不能直接修改或更新* 必须借助 setState 方法
+
+- 2. 通过react指定的API修改 或者理解成更新 state中的状态 *并不是覆盖的操作*
+- 此操作是一个合并的操作 并不是覆盖(同名的复写, 不同名的留住)
+
+- 比如我们state中有3个属性 我们一个方法中只写了一个属性的变化 它只会更新那个我们制定的
+
+```js 
+  state = {name:sam, age:18}   
+  
+  // 方法中 this.setState({age:19})
+  // 注意 不是覆盖 是更新 只将age的属性更新为新的了
+```
+ 
+```js
+  changeWeather() {
+    const isHot = this.state.isHot
+
+    // 通过setState API才修改 状态
+    this.setState({
+      isHot:!isHot
+    })
+  }
+```
+---
 
 > 格式:
 - this.setState({要修改的数据})
@@ -1205,6 +1889,22 @@ export default class App extends Component {
   // 获取原来的值后(this.state.count原来的值) + 1
   this.setState({ count: this.state.count + 1})
 ```
+
+---
+
+> 作用：
+- 1. 修改 state 
+- 2. 更新界面 当状态中的数据改变的时候 react会更新界面
+
+- 组件更新过程：
+- 父组件重新渲染的时候 也会重新渲染子组件 *但只会渲染当前组件子树*
+<!-- 
+  当前组件及其所有子组件, 这个分叉上所有相关的子组件
+ -->
+
+- 也就是说当我们更新一个组件的时候 它所包含的所有子组件也会更新 后代组件也会更新
+
+---
 
 > 思考:
 - 那如果 state 中有两条数据 我修改的时候需要将两条数据都放进 setState 里面么？
@@ -1249,14 +1949,8 @@ render() {
 }
 ```
 
-> setState的作用：
-- 1. 修改 state 
-- 2. 更新界面 当状态中的数据改变的时候 react会更新界面
-
-
 > react的编程思想：
 - 数据驱动视图，数据先发生改变 驱动着页面发生更新
-
 - 也就是说 *假如有一些数据 我们不希望它是响应式的时候 就可以添加到 实例身上*
 ```js 
   export default class App extends Component {
@@ -1283,24 +1977,245 @@ render() {
   })
 ```
 
+----------------------------
 
-> 组件更新机制
-- setState的两个作用
-- 1. 修改state
-- 2. 更新组件
+### state的简写方式
+- 因为类方式创建的组件, 组件中的方法都是当事件回调来用 如果作为事件的回调用来的话, 类中的方式中的this的指向都是undefined 但是我们想解决这个问题 就又得在constructor中使用bind的方式将新函数赋值给实例对象中方法
+```js 
+  constructor(props) {
+    super(props)
+    this.demo = this.demo.bind(this)
+  }
+```
 
-- 过程：
-- 父组件重新渲染的时候 也会重新渲染子组件 *但只会渲染当前组件子树*
-<!-- 
-  当前组件及其所有子组件, 这个分叉上所有相关的子组件
- -->
+- 但我们类中的方法特别多的时候, 我们就会在构造器中写更多的 bind
+```js 
+  constructor(props) {
+    super(props)
+    this.demo = this.demo.bind(this)
+    this.demo1 = this.demo1.bind(this)
+    this.demo2 = this.demo2.bind(this)
+  }
+```
 
-- 也就是说当我们更新一个组件的时候 它所包含的所有子组件也会更新 后代组件也会更新
+- 所以
+- 当我们有一个属性 都是固定的 不需要通过创建实例对象后传递进来, 那么我们不需要在构造器中写
+```js 
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+
+    // 这个就不需要通过new实例对象后 通过实参传递进来
+    this.wheel = 4
+  }
+
+  // 直接在类中
+  class Demo {
+    wheel = 4;
+
+    constructor(name, age) {
+      this.name = name
+      this.age = age
+
+      this.wheel = 4    // X 删除
+    }
+  }
+```
+
+- *类中可以直接写赋值语句, 该属性会在实例对象身上*
+```js 
+  class Car {
+    constructor(name, price) {
+      this.name = name
+      this.price = price
+    } 
+
+    // 类中可以直接写赋值语句 下面代码的含义是, 给Car的实例对象添加一个属性, 名为a 值为1
+    a = 1
+
+    // 我并没有写在构造器的里面, 而是写在了外面, 实例对象上也有a=1
+  }
+```
+
+- 我们再看下我们上面的小例子
+- 我们就想在Weather的实例对象上追加 state 属性 它的值是一个对象 {isHot: true}
+```js
+  class Weather extends React.Component {
+
+    constructor(props) {
+      super(props)
+      this.state = { isHot: true }
+          // 我们把这行代码写在外面
+
+      this.changeWeather = this.changeWeather.bind(this)
+          // 我们这行也可以删掉 那删掉后怎么解决this的问题呢?
+    }
+
+
+
+    // 我们往Weather的实例对象上 添加一个属性state 值是一个对象
+    state = { isHot: true }
+   
+
+    changeWeather = () => {
+      const isHot = this.state.isHot
+      this.setState({
+        isHot:!isHot
+      })
+    } 
+    // 这样是不是就相当于 a = 1 的格式了? 这样写的话 changeWeather 就相当于放在 实例对象身上了 Weather的原型上已经没有changeWeather了
+
+    // 还是有this的问题, 我们把function转成箭头函数
+
+    render() {
+      let {isHot} = this.state
+      return (
+        <p onClick={this.changeWeather}>今天天气: 很 '{isHot ? '炎热' : '凉爽'}'</p>
+      )
+    }
+  }
+```
+
+> 完整的简写形式
+```js 
+  class Weather extends React.Component {
+    
+    // 使用赋值语句的形式 会在实例对象上
+    state = {isHot: true}
+
+    // 使用赋值语句的形式 会在实例对象上
+    changeWeather = () => {
+
+      // 我们要先获取isHot原先的值 不能省略这不 不然就会报isHot未定义的错误
+      let isHot = this.state.isHot
+      this.setState({
+        isHot:!isHot
+      })
+    }
+
+    render() {
+      const { isHot } = this.state
+
+      return (
+        <p onClick={this.changeWeather}>今天天气: 很 '{isHot ? '炎热' : '凉爽'}'</p>
+      )
+    }
+  }
+
+    ReactDOM.render(<Weather/>, document.querySelector('#app'))
+```
+
+> 总结
+- 以后我们使用类创建一个组件的时候, 组件中的所有自定义方法 *都写成赋值的形式(函数表达式) 使用箭头函数*
+
+----------------------------
+
+### 有状态组件 和 无状态组件
+- 函数组件又叫做无状态组件 类组件又叫做有状态组件
+- 状态 state 即数据
+- 函数组件没有自己的状态 只负责数据展示(静)
+- 类组件有自己的状态 负责更新ui 让页面 动 起来
+
+- 数据 - 驱动 - 页面 - 更新
 
 ----------------------------
 
 ### 事件处理
-> 需求 点击框体改变文字 
+
+> 回顾原生js的事件处理:
+```html
+<!-- 方式1: -->
+<button onclick = "alert(123)"> 点我一下 </button>
+
+<!-- 方式2: -->
+<button id="btn"> 点我一下 </button>
+<script>
+  const btn = document.querySelector("#btn")
+  btn.onclick = function() {}
+</script>
+
+<!-- 方式3: -->
+<button id="btn"> 点我一下 </button>
+<script>
+  const btn = document.querySelector("#btn")
+  btn.addEventListener("click", function() {})
+</script>
+```
+
+- 在原生的时候我们最常使用的就是 方式2 和 方式3 因为这种方式的优点就是将事件和标签解耦了
+<!-- 
+  但是上述的方式不能在react中使用 因为我们获取节点的时候 获取的是原生的DOM对象 然后通过原生DOM对象的方法对其进行操作
+
+  但是在react中我们通常操作的都是react元素 然后通过react元素映射到真是的DOM上 
+
+  所以我们不建议直接获取DOM对象 因为相当于脱离了react的管理
+ -->
+
+- 所以在react中只能使用 方式1 我们要把事件通过属性的方式绑定给元素上 因为这是我们都是在JSX上操作 相当于操作的是react对象
+
+
+> 要点:
+- 1. 在react中*事件需要通过元素的属性来设置* 和 原生js不同 在react中*事件名需要使用驼峰命名法*
+
+- 2. 在react中事件的属性值 不能直接传递执行代码 *需要传递一个回调函数*
+
+> 要是
+```jsx
+// 事件回调使用 匿名函数
+const App = () => (
+  <div>
+    <button onClick = { () => { console.log(123) } } >
+      点我一下
+    </button>
+  <div>
+)
+
+
+// 事件回调使用 预先定义的函数
+const App = () => {
+
+  // 在函数式组件中定义方法
+  const handleClick = () => {
+    console.log(123)
+  }
+
+  return (
+    <div>
+      {/*函数式组件不用加this哦*/}
+      <button onClick = { handleClick } >
+        点我一下
+      </button>
+    <div>
+  )
+}
+```
+
+---
+
+> 事件的默认行为
+- 比如我们给a标签绑定 点击事件 那么在触发事件的同时 a标签的默认行为也会执行 (跳转) 
+```jsx
+<a href="www.baidu.com" onClick={handleClick}>
+```
+
+> 要点:
+- 在react中无法使用 return false 取消默认行为 我们*需要使用事件对象(event)身上的方法*
+
+- react方法中的事件对象不是原生的事件对象 是经过react包装后的事件对象(也可以理解为react对象 也是对这个react包装后的事件对象的操作转换到真实的事件对象上)
+
+- 由于对象进行过包装 所以在使用过程中无需去考虑兼容性问题
+```js
+const handleClick = (e) => {
+  e.preventDefault()
+}
+```
+
+
+> 事件的冒泡 e.stopPropagation()
+
+---
+
+> 练习: 点击框体改变文字 
 - <h3>今天天气很炎热</h3> 
 - 上面中的炎热会发生改变   炎热 --- 凉爽
 
@@ -1396,8 +2311,8 @@ onClick={this.handleClick}>click</button>
 - onClick后面必须是一个函数, 因为我们写的不是原生, 想要提取变量要使用{ }
 
 
-- 为什么不能加()
-  <h3 onClick={this.changeWeather()}>
+> 为什么不能加()
+<h3 onClick={this.changeWeather()}>
 
 - 上面的写法会直接被调用 
 - React在渲染组件的时候, 发现我们是通过类的方式创建的组件, 所以React帮我们new了实例 
@@ -1412,21 +2327,13 @@ onClick={this.handleClick}>click</button>
 - 而我们把()删掉就是 onClick = changeWeather 还是一个赋值语句 我们把这个函数作为onClick的回调
 
 
-- 为什么要加上this?
-    <h3 onClick={changeWeather}>
+> 为什么要加上this?
+<h3 onClick={changeWeather}>
 
 - 假如我们不加this会报changeWeather未定义的错误, 
 - 因为我们将这个方法放入了类中, changeWeather只有通过Weather的实例对象才能调用 
 
 - 所以我们要在函数的前面加上this = > this.changeWeather
-
-
-- 4. 函数组件中绑定事件的方式
-- 不用加this
-```js 
-  // 因为在一个组件内部所以 变量可以直接使用吧
-  return (<button onClick={handleClick}>)
-```  
 
 
 > <h3 onClick={this.changeWeather}> 类中定义的函数产生的this的问题
@@ -1435,7 +2342,7 @@ onClick={this.handleClick}>click</button>
 - changeWeather() { ... }
 - changeWeather = () => { ... }
 
-- 两种定义函数的方式有什么样的区别么？ this！！！
+> 两种定义函数的方式有什么样的区别么？ this！！！
 ```js
 changeWeather() {
   
@@ -1466,6 +2373,7 @@ changeWeather() {
 - 但是我们上面解决了给h3如何绑定事件, 同时在绑定事件的过程中需要注意什么
 
 - 但是也出现了一个问题, 就是我们在类中定义的方法中, 不能通过 this.state 获取到存放在state中的值, 显示是this是undefined
+
 ```js 
   changeWeather() {
     console.log(this.state)  // undefined
@@ -1497,60 +2405,13 @@ constructor(props) {
 ```
 
 
-> 事件对象
-- 通过事件回调的参数获取到事件对象
-- 这个事件对象叫做 合成事件对象
+> 解决方式2:
+- 在类中使用 箭头函数 的形式去创建方法 箭头函数没有自己的this 所以会向外层查找
 
-- 合成事件 兼容所有浏览器 无需担心跨浏览器兼容性的问题
-<!-- 
-  handleClick = (e) => { e.preventDefault() }
- -->
-
-
-> setState({})方法
-- 通过react指定的API修改 或者理解成更新 state中的状态 *并不是覆盖的操作*
-
-- 比如我们state中有3个属性 我们一个方法中只写了一个属性的变化 它只会更新那个我们制定的
-
-```js 
-  state = {name:sam, age:18}   
-  
-  - 方法中 this.setState({age:19})
-  - 注意 不是覆盖 是更新 只将age的属性更新为新的了
-```
- 
-- 严重注意: 
-- 状态(state)不可直接更改
-- 修改state中的值, 要通过setState()api去更改, 
-- setState在React.Component的原型对象上, 
-- 此操作是一个合并的操作 并不是覆盖(同名的复写, 不同名的留住)
-
-```js
-  changeWeather() {
-    const isHot = this.state.isHot
-
-    // 通过setState API才修改 状态
-    this.setState({
-      isHot:!isHot
-    })
-  }
-```
-
-
-**原生事件绑定的方式**
-- 1. addEventListener
-- 2. onclick
-- 3. <button id="btn1" onclick="demo()">
-
-- react推荐直接在标签里面写事件
-
-- 因为前2种直接在用documen.的方式操作DOM 不太合适 我们是用的是react
-
+---
 
 **类中方法this的指向**
-- 如果Person类中的方式是通过实例来调用的 类中的所有this指向的是实例
-
-- 如果是直接调用的 类中的所有this指向的是undefined
+- 如果Person类中的方式是通过实例来调用的 类中的所有this指向的是实例 如果是直接调用的 类中的所有this指向的是undefined
 
 ```js 
   class Person {
@@ -1635,145 +2496,6 @@ constructor(props) {
 
   ReactDOM.render(<Weather/>, document.querySelector('#app'))
 ```
-
-----------------------------
-
-### state的简写方式
-- 因为类方式创建的组件, 组件中的方法都是当事件回调来用 如果作为事件的回调用来的话, 类中的方式中的this的指向都是undefined 但是我们想解决这个问题 就又得在constructor中使用bind的方式将新函数赋值给实例对象中方法
-```js 
-  constructor(props) {
-    super(props)
-    this.demo = this.demo.bind(this)
-  }
-```
-
-- 但我们类中的方法特别多的时候, 我们就会在构造器中写更多的 bind
-```js 
-  constructor(props) {
-    super(props)
-    this.demo = this.demo.bind(this)
-    this.demo1 = this.demo1.bind(this)
-    this.demo2 = this.demo2.bind(this)
-  }
-```
-
-- 所以
-- 当我们有一个属性 都是固定的 不需要通过创建实例对象后传递进来, 那么我们不需要在构造器中写
-```js 
-  constructor(name, age) {
-    this.name = name
-    this.age = age
-
-    // 这个就不需要通过new实例对象后 通过实参传递进来
-    this.wheel = 4
-  }
-
-  // 直接在类中
-  class Demo {
-    wheel = 4;
-
-    constructor(name, age) {
-      this.name = name
-      this.age = age
-
-      this.wheel = 4    // X 删除
-    }
-  }
-```
-
-- *类中可以直接写赋值语句, 该属性会在实例对象身上*
-```js 
-  class Car {
-    constructor(name, price) {
-      this.name = name
-      this.price = price
-    } 
-
-    // 类中可以直接写赋值语句 下面代码的含义是, 给Car的实例对象添加一个属性, 名为a 值为1
-    a = 1
-
-      // 我并没有写在构造器的里面, 而是写在了外面, 实例对象上也有a=1
-  }
-```
-
-- 我们再看下我们上面的小例子
-- 我们就想在Weather的实例对象上追加 state 属性 它的值是一个对象 {isHot: true}
-```js
-  class Weather extends React.Component {
-
-    constructor(props) {
-      super(props)
-      this.state = { isHot: true }
-          // 我们把这行代码写在外面
-
-      this.changeWeather = this.changeWeather.bind(this)
-          // 我们这行也可以删掉 那删掉后怎么解决this的问题呢?
-    }
-
-
-    state = { isHot: true }
-        // 我们往Weather的实例对象上 添加一个属性state 值是一个对象
-
-    changeWeather = () => {
-      const isHot = this.state.isHot
-      this.setState({
-        isHot:!isHot
-      })
-    } 
-    // 这样是不是就相当于 a = 1 的格式了? 这样写的话 changeWeather 就相当于放在 实例对象身上了 Weather的原型上已经没有changeWeather了
-
-    // 还是有this的问题, 我们把function转成箭头函数
-
-    render() {
-      let {isHot} = this.state
-      return (
-        <p onClick={this.changeWeather}>今天天气: 很 '{isHot ? '炎热' : '凉爽'}'</p>
-      )
-    }
-  }
-```
-
-> 完整的简写形式
-```js 
-  class Weather extends React.Component {
-    
-    // 使用赋值语句的形式 会在实例对象上
-    state = {isHot: true}
-
-    // 使用赋值语句的形式 会在实例对象上
-    changeWeather = () => {
-
-      // 我们要先获取isHot原先的值 不能省略这不 不然就会报isHot未定义的错误
-      let isHot = this.state.isHot
-      this.setState({
-        isHot:!isHot
-      })
-    }
-
-    render() {
-      const { isHot } = this.state
-
-      return (
-        <p onClick={this.changeWeather}>今天天气: 很 '{isHot ? '炎热' : '凉爽'}'</p>
-      )
-    }
-  }
-
-    ReactDOM.render(<Weather/>, document.querySelector('#app'))
-```
-
-> 总结
-- 以后我们使用类创建一个组件的时候, 组件中的所有自定义方法 *都写成赋值的形式(函数表达式) 使用箭头函数*
-
-----------------------------
-
-### 有状态组件 和 无状态组件
-- 函数组件又叫做无状态组件 类组件又叫做有状态组件
-- 状态 state 即数据
-- 函数组件没有自己的状态 只负责数据展示(静)
-- 类组件有自己的状态 负责更新ui 让页面 动 起来
-
-- 数据 - 驱动 - 页面 - 更新
 
 ----------------------------
 
@@ -6039,407 +6761,6 @@ function getDisplayName(UIComponent) {
 
 > 总结:
 - 一旦结构中出现输入类的DOM节点的时候, 使用index作为key 会产生数据错乱
-
-----------------------------
-
-### 初始化React脚手架
-- 我们使用vue 和 react创建的页面叫做 SPA应用, 所以就一个index.html文件
-
-> create-react-app 项目名
-
-- 使用创建react应用:
-- create-react-app 
-<!-- 
-  create-react-app 是一个库 这个库要安装到电脑上, 有了这个库才能创建出来react脚手架
- -->
-
-- 脚手架是基于webpack搭建
-- 项目的整体技术架构为 react + webpack + es6 + eslint
-
-- 使用脚手架开发的项目的特点: 
-- 模块化, 组件化, 工程化
-<!-- 
-  在项目中用了webpack这种构建工具 我们写了一段代码 它能帮我们进行语法检查 压缩 兼容性处理 语法转换等等一系列自动的东西 我们就可以称之为工程化的项目
-
-  一条龙服务 代码写完了 剩下的流程自动走下去 编译 压缩等 那就是工程化的项目就像汽车的生产线 批量的生产汽车的这种
- -->
-
-
-- 创建项目并启动
-- 1. 全局安装(create-react-app这个库)
-- npm i -g create-react-app
-
-- 2. 切换到想创建的项目的目录 使用命令创建 项目文件夹
-- create-react-app hello-react
-
-- 3. 进入项目文件夹
-- cd hello-react
-
-- 4. 启动项目
-- npm start
-
-
-> 项目文件的目录结构
-- 说明 解释
-
-  | - node_modules  // 依赖存放的位置
-
-  
-  | - public        // 一般存放静态资源文件 页面 样式 js不在这方
-    - favicon.icon ------ 网站页签图标
-		- index.html -------- 主页面(用于承装各个组件)
-		- logo192.png ------- logo图
-		- logo512.png ------- logo图
-		- manifest.json ----- 应用加壳的配置文件
-		- robots.txt -------- 爬虫协议文件
-
-<!-- 
-  // public 解释说明
-
-
-  index.html:
-    里面有很多多余的东西 我们可以删删
-    1. 注释
-
-    // 引入网站页签图标
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-
-
-    // %PUBLIC_URL%
-    react脚手架的关键词的写法 代表public文件夹的路径 功能类似 别名
-
-
-    // 用于配置浏览器页签 + 地址栏的颜色 这个配置只针对安卓手机浏览器 ios不可以 开发里面很少用 兼容性不是很好
-    <meta name="theme-color" content="#000000" />
-
-
-    // 描述网站信息的 搜索引擎在收入网站的时候 会看这里面的描述
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-
-
-    // 当我们把网页 添加到主屏幕 网站在屏幕上用什么图标 受下面的控制 只支持苹果手机
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-
-
-    // 应用加壳的配置文件
-    对于一个手机应用来说 我们要配置应用名字 图标 访问权限 如果是应用加壳在下面的json文件里配置相关信息
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-        应用加壳: 前端人员写出的代码都要放在浏览器端运行 都是html文件 因为浏览器只认识js css html
-
-        应用加壳又是什么意思? 我们按照手机的布局去写一些页面(html), 我在写完的页面上套一个安卓的壳 我们写的网站就会变成安卓手机的应用
-
-        安卓手机上的安装包都是apk吧, 我们要是想开发安卓的手机应用必须学java, 要想开发ios应用必须用OC 或者 Swift
-
-        就是假如我们想做客户端开发(我们属于web人员), 就要学java 和 OC等技术
-
-        如果我们会了应用加壳技术, 我们就在写好的html页面上面加一个壳 就能生成一个.apk文件 就可以安装在安卓手机上 用户点击图标的时候其实打开了一个壳 壳里面内嵌了一个网页
-
-        一些简单的应用可以这么做, 先找前端人员写页面, 页面写好了再套壳 加一个安卓的壳就变成安卓应用 加一个ios的壳就是ios应用
-
-
-  
-  robots.txt
-    爬虫协议文件, 在别人爬取我们的页面的时候, 可以定一些规矩 什么东西能爬 什么东西不能爬
- -->
-
-  | - src         // 源码文件夹
-    - App.css -------- App组件的样式
-		- App.js --------- App组件
-
-		- App.test.js ---- 用于给App做测试
-		- index.css ------ 样式
-		- index.js ------- 入口文件
-		- logo.svg ------- logo图
-
-		- reportWebVitals.js
-		- 	--- 页面性能分析文件(需要web-vitals库的支持)
-
-		- setupTests.js
-			---- 组件单元测试的文件(需要jest-dom库的支持)
-
-<!-- 
-  // src 解释说明
-
-  App是创建的组件, 名字叫做App
-
-  App.js
-    里面
-    import 导入依赖
-    export default App  导出App组件
-
-  
-  App.test.js
-    做测试用的 专门用于App 几乎不用
-
-
-  index.css
-    通用性样式, 可以让如public文件夹中 引入index.html文件
-
-  index.js
-    入口js文件
-    之前是在html文件里面引入核心库等js文件 现在是在入口文件中做操作 这里就相当于在html文件里面引入的操作
-
-    import React from 'react';
-    import ReactDOM from 'react-dom';
-    import './index.css';
-
-    // 引入App组件
-    import App from './App';
-
-    // reportWebVitals.js文件用于记录页面的性能 实现了一些页面的性能上的检测, 想要使用也要进行各种配置
-    import reportWebVitals from './reportWebVitals';
-
-    ReactDOM.render(
-
-      // 为什么app的外侧要包裹 <React.StrictMode> 它会检查App和App内的子组件写的是否合理 比如 react的ref字符串类型的方式不推荐使用 它也会提出警告
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>,
-
-      document.getElementById('root')
-    );
-
-
-    reportWebVitals();
-
-
-
-  reportWebVitals.js
-    文件用于记录页面的性能 实现了一些页面的性能上的检测, 想要使用也要进行各种配置
-
-
-  setupTests.js
-    用来做应用的整体测试的 模块拼在一起的单元测试 它是做组件测试的里面也应用了第三方的库做支持
-
-
-
-  我们只把一个组件放到 <div id='root'> 容器里面 就是App
-  其它组件作为App组件的子组件
- -->
-
-
-> 文件之间的执行顺序
-- 1. 页面启动之后, 会先来到src文件夹下的index.js 当看到<App>组件要渲染到root容器的时候, 就会去public里面找index.html文件中的root
-<!-- 
-  但是 index.js 也没有被引入 index.html 里面啊 那是因为底层有webpack做支持
- -->
-
-- 2. 上面的完成后<App>组件就跑到了页面上, <App>组件的样式, 是在App.js文件中通过import 引入的css文件
-
-----------------------------
-
-### npx知识扩展
-- 在没有npx的时候 我们想要使用react脚手架 需要先全局安装脚手架 然后通过create-react-app命令来创建项目
-
-- 但是这个全局的包如果长时间不用放在那边是没有任何意义的 所以有了npx命令
-- 有了npx 无需安装脚手架包 就可以直接使用这个包提供的命令
-
-> npx create-react-app 项目名 -- 推荐
-- 也可以使用 npm init react-app 项目名初始化项目 但是不推荐
-
-----------------------------
-
-### 图片的引入方式
-- 一切皆模块
-- import logo from "./logo.svg"
-
-----------------------------
-
-### 我们自己创建 public 和 src
-- 我们把脚手架自带的文字整理到了一个文件夹中, 我们自己创建这两个文件夹 自己在里面写文件
-
-| - public
-  - index.html  主页面
-
-
-| - src
-  | - components    因为index.js app.js是上层文件 我们将子组件都放在这里面 每一个组件单独建立文件夹
-
-  - index.js  入口文件 (相当于在html页面里面引入js文件的步骤)
-  - App.js
-
-<!-- 
-  入口文件中需要做的事情
-  1. 引入react核心库(脚手架让我们安装好了)
-  import React from 'react'
-  import ReactDOM from 'react-dom'
-
-  import App from './App'
-
-  // 渲染App组件到页面
-  ReactDOM.render(<App/>, document.querySelector('#root'))
- -->
-
-
-<!-- 
-  App组件中要做的事情
-
-  // 创建外壳组件 父组件
-  import React from 'react'
-
-  // 因为我们要继承 React.Component 所以这个文件中也要引入 React
-  class App extends React.Component {
-    render() {
-      return (
-        <div>
-          hello.react
-        </div>
-      )
-    }
-  }
-
-  export default App  
-
-
-  ---- 这个文件的另一种写法 ---- 
-
-  import React from 'react'
-  const {Component} = React
-
-  // 还可以这么写, react这个文件里面用了多种暴露的形式, 单独暴露和默认暴露
-  import React, {Component} from 'react'
-
-  import Hello from './Hello'
-
-  // 直接暴露出去 创建并暴露
-  export default class App extends Component {
-    render() {
-      return (
-        <div>
-          // 这里不直接放 hello.react 也是将hello, react也作为一个组件
-
-          <Hello />
-        </div>
-      )
-    }
-  }
-
-
-  // 定义Hello组件
-  export default function Hello() {
-    return (
-      <h3>hellow, react</h3>
-    ) 
-  }
-
- -->
-
-
-- 接下来 我要给 Hello组件 里面的文字加上css样式
-- 我们也在 components文件夹中 创建css样式
-- 然后在 Hello.js组件中 使用 import './Hello.css' 引入css文件
-<!-- 
-  import './Hello.css'
-
-  export default function Hello() {
-    return (
-      <h3 className='title'>hellow, react</h3>
-    ) 
-  }
- -->
-
-
-<!-- 
-  Welcome组件
-
-  import React from 'react'
-  import './Welcome.css'        css文件必须在上方引入
-
-  const {Component} = React
-
-  export default class Welcome extends Component {
-    render() {
-      return (
-        <h3 className='demo'>
-          Welcome
-        </h3>
-      )
-    }
-  }
- -->
-
-
-> 总结:
-- import '.css' 必须放在上面
-- css样式的样式名不能重复
-<!-- 
-  因为所有的css样式都会汇总到App组件里面, 就会发生 下面的同名样式会将上面的样式覆盖掉, 为了避免这种情况的发生 我们会将样式模块化
- -->
-
-
-- react中 js文件 和 jsx文件都是可以不写后缀的
-
-- 因为所有的js文件都是以.js结尾的 这样我们没有办法分清楚 什么是组件, 什么是单纯的js文件
-<!-- 
-  解决办法:
-  1. 组件名大写
-  2. 组件的.js 改成 .jsx
- -->
-
-- 我们在App组件中引入其它组件的时候
-<!-- 
-  import Hello from './components/Hello/Hello'
-  import Welcome from './components/Welcome/Welcome'
- -->
-- 我们写了/Hello/Hello /Welcome/Welcome 这样会比较麻烦
-- 所以我们还可以这样, 都将子组件的js文件改成index, 这样react连index都不用写
-<!-- 
-  | - components
-    | - Hello
-      - index.js
-      - index.css
-
-  import Welcome from './components/Welcome' 
-      // 这样就能找到子组件文件夹下面的index.js文件
- -->
-
-----------------------------
-
-### 样式的模块化
-- 上面的案例中 我们发现, 子组件中的css文件里, 类名不能重复
-<!-- 
-  因为所有的css样式都会汇总到App组件里面, 就会发生 下面的同名样式会将上面的样式覆盖掉, 为了避免这种情况的发生 我们会将样式模块化
- -->
-
-
-> 解决方式1:
-- 使用less 嵌套的话 就不会出现同名覆盖的问题
-
-
-> 解决方式2:
-- 样式的模块化:
-- 1. 我们把index.css文件名 改成 index.module.css
-<!-- 
-  index.css   --- >   index.module.css
- -->
-
-- 2. 我们在组件的js文件中 使用导入模块的方式导入css文件
-- 这样所有hello相当的样式都会保存在hello对象里面
-<!-- 
-  import hello from './index.module.css'
-
-  下面使用样式的方式是 hello.title的形式
-  export default class Welcome extends Component {
-    render() {
-      return (
-        <h3 className={hello.title}>    // 看这里
-          Welcome
-        </h3>
-      )
-    }
-  }
- -->
-
-----------------------------
-
-### ES7 React插件
-
-> rcc 类式组件
-
-> rfc 函数组件
 
 ----------------------------
 
@@ -12250,7 +12571,7 @@ params > search > state
 ----------------------------
 
 ### 扩展的知识体系 -- react Hooks
-- Hook是React 16.8.0版本增加的新特性/新语法
+- Hook是React 17.0版本增加的新特性/新语法
 - react推出了一些hook 所以叫做hooks
 
 > 作用：
