@@ -1782,19 +1782,8 @@ function Demo() {
 - 如果我们的组件是 没有状态的 就是简单组件(简单组件适合使用函数的方式创建)
 
 
-> 组件实例的三大核心属性1 : State(存放数据)
-- 状态 state
-
-- 状态是组件实例对象身上的(不是组件类本身上的, 而是组件缔造的实例对象身上的)
-```js
-export default class App extends Component {
-  // 我们通过这样的方式定义state会在组件实例身上 
-  state = {
-    name: "app"
-  }
-}
-```
-
+### 组件实例的三大核心属性1 : State(存放数据)
+- state: 状态 
 - *state是组件实例对象最重要的属性*, 值是对象(可以包含多个kv组合)
 
 - 组件被称为状态机, 通过更新组件的state来更新对应的页面显示(重新渲染组件)
@@ -1809,94 +1798,60 @@ export default class App extends Component {
     数据 -- 虚拟DOM -- 真实DOM
 
 
-- 上面的数据不能随便的放 我们需要把数据放在指定位置(把数据放在 *状态* 里)
+- 上面的数据不能随便的放 我们需要把数据放在指定位置(把数据放在 *状态* 里) *组件的状态里面存放着数据 数据的改变就会驱动页面的展示*
 
-- *组件的状态里面存放着数据 数据的改变就会驱动页面的展示*
-
-- 状态就是数据 是组件内部私有数据 只能在组件内部使用
-
+- *状态就是数据 是组件内部私有数据 只能在组件内部使用*
 - state的值是一个对象 表示一个组件中可以有多个数据 放在同一对象中统一管理
 
+---
 
-> 为什么 函数组件 适合简单组件
-- 上面说了 简单组件和复杂组件的区别是有没有状态, 状态只能在实例对象中, 谈到实例对象只有class的方式才能创建实例对象, 所以拥有state的只能是复杂组件类型(class)
-<!-- 
-  新版的函数组件可以通过hooks来使用 组件实例的三大核心属性
- -->
-
-> state
+> 类式组件的 state
 > 定义格式: state = {} 
 - 作用:
 - 组件内部定义状态
 
-- state的值并不一定要求是对象 而是因为会存放很多的数据 所以推荐是对象
+- state的值并不一定要求是对象 而是因为会存放很多的数据 所以推荐是对象 状态是组件实例对象身上的(*不是组件类本身上的*, 而是组件缔造的实例对象身上的)
+```js
+export default class App extends Component {
+  // 我们通过这样的方式定义state会在组件实例身上 
+  state = {
+    name: "app"
+  }
+}
+```
 
-
-> this.setState({ ... }) 修改状态的方法
+> this.setState({要修改的数据}) 修改状态的方法
 - react中修改状态的指定方法
 
-> 总结:
-- 1. 组件中render方法中的this为组件实例对象
-- 2. 组件自定义的方法this为undefined 如何解决?
-
-  - 解决方案:
-  - 1. 在构造器中强制绑定this 通过函数对象的bind()
-  - 2. 在构造器外使用赋值语句 + 箭头函数
-  <!-- 
-    handleClick = () => { }
-    相当于给实例身上添加放法 需要通过 this 来调用
-   -->
-
-- 3. 
-
-
-
-> this.setState({})方法
+- 作用:
+- 1. 修改 state 
+- 2. 更新界面 当状态中的数据改变的时候 react会更新界面
 
 > 要点:
 - 1. 状态数据 *不能直接修改或更新* 必须借助 setState 方法
-
-- 2. 通过react指定的API修改 或者理解成更新 state中的状态 *并不是覆盖的操作*
-- 此操作是一个合并的操作 并不是覆盖(同名的复写, 不同名的留住)
+- 2. 通过react指定的API修改 或者理解成更新 state中的状态 *并不是覆盖的操作* 此操作是一个合并的操作 并不是覆盖(*同名的复写, 不同名的留住*)
 
 - 比如我们state中有3个属性 我们一个方法中只写了一个属性的变化 它只会更新那个我们制定的
 
 ```js 
   state = {name:sam, age:18}   
   
-  // 方法中 this.setState({age:19})
+  // 方法中 
+  this.setState({age:19})
+
   // 注意 不是覆盖 是更新 只将age的属性更新为新的了
 ```
- 
-```js
-  changeWeather() {
-    const isHot = this.state.isHot
 
-    // 通过setState API才修改 状态
-    this.setState({
-      isHot:!isHot
-    })
-  }
-```
 ---
 
-> 格式:
-- this.setState({要修改的数据})
-
-- 要点:
+- 例:
 - 先对state中的数据进行操作的时候 要先获取原数据
 ```js
   // 获取原来的值后(this.state.count原来的值) + 1
   this.setState({ count: this.state.count + 1})
 ```
 
----
-
-> 作用：
-- 1. 修改 state 
-- 2. 更新界面 当状态中的数据改变的时候 react会更新界面
-
-- 组件更新过程：
+> 组件更新过程：
 - 父组件重新渲染的时候 也会重新渲染子组件 *但只会渲染当前组件子树*
 <!-- 
   当前组件及其所有子组件, 这个分叉上所有相关的子组件
@@ -1910,6 +1865,7 @@ export default class App extends Component {
 - 那如果 state 中有两条数据 我修改的时候需要将两条数据都放进 setState 里面么？
 
 - 不需要react内部会进行处理 它只会修改你放进来的数据 *没有放进来的不会对其进行处理*
+
 ```js
   state = { name: "sam", age: 18 }
 
@@ -1977,9 +1933,21 @@ render() {
   })
 ```
 
+> 总结:
+- 1. 组件中render方法中的this为组件实例对象
+- 2. 组件自定义的方法this为undefined 如何解决?
+
+  - 解决方案:
+  - 1. 在构造器中强制绑定this 通过函数对象的bind()
+  - 2. 在构造器外使用赋值语句 + 箭头函数
+  <!-- 
+    handleClick = () => { }
+    相当于给实例身上添加放法 需要通过 this 来调用
+   -->
+
 ----------------------------
 
-### state的简写方式
+### 类式组件 - state的简写方式
 - 因为类方式创建的组件, 组件中的方法都是当事件回调来用 如果作为事件的回调用来的话, 类中的方式中的this的指向都是undefined 但是我们想解决这个问题 就又得在constructor中使用bind的方式将新函数赋值给实例对象中方法
 ```js 
   constructor(props) {
@@ -2120,6 +2088,164 @@ render() {
 
 ----------------------------
 
+### 函数式组件 - state
+
+- 需求:
+- 页面上有两个按钮 点击 + 页面的数字+1 点击 - 页面的数字-1
+
+```js
+const App = () => {
+
+  // 创建一个变量 存储数字
+  let counter = 1
+
+  // 加法的回调
+  const handleInc = () => {
+    counter++
+  }
+  const handleDec = () => {
+    counter--
+  }
+
+  // 页面结构 jsx
+  return (
+    <div>
+      <h1> {counter} </h1>
+      <button onClick={handleInc}>+</button>
+      <button onClick={handleDec}>-</button>
+    </div>
+  )
+}
+```
+
+- 我们发现 在加减法的回调中确实修改了 counter 的值 但是页面并没有更新(return中的结果会先被渲染 而修改counter的逻辑是在回调里面 页面已经渲染了 再像上面那样修改 页面是不会发生变化的) 
+
+- 在react中 当组件渲染完毕后 再修改组件中的变量 不会使组件重新渲染, 要使得组件可以受到变量的影响 必须在变量修改后对组件进行重新渲染
+<!-- 
+  我们前面也说过 react元素是不能修改的 一旦创建后 开始是什么样就是什么样了
+ -->
+
+- 那要是想让counter发生变化怎么办？
+- 在react中只能当我们修改完 counter 变量后让组件重新渲染 这里我们就要用到这个特殊的变量 state
+
+
+> state 介绍
+- state是react提供给我们的特殊变量 react会监控state的变化 当state发生变化的时候 会自动触发组件的重新渲染 使得我们的修改可以在页面中呈现
+
+- 它和props类似 都是一种存储属性的方式 但是不同点在于*state只属于当前组件 其他组件无法访问* *并且state是可变的* 当其发生变化后相关组件会一起*刷新*
+<!-- 
+  原理很简单
+    当我们去调用setState的时候 就重新调用了下render() 结合diff算法 不用担心性能的问题
+ -->
+
+
+> state 创建
+- 在函数式组件中 我们需要*通过钩子函数获取state*
+
+> React.useState(初始值)
+- use就是用的意思 告诉react 我要用state了
+```js
+import {useState} from "react"
+```
+
+- 参数:
+- 任意值 它就是state的初始值
+
+- 返回值:
+- []
+
+- 数组中的第一个元素: 初始值
+- 初始值只是用来显示数据 直接修改不会触发组件的重新渲染
+
+- 数组中的第二个元素: set函数()
+- 用来修改state 修改state后会触发组件的重新渲染
+- 并且使用函数实参中的值 作为新的state的值
+
+```js
+const res = useState(1);
+console.log(res)  // [1, ƒ]
+
+
+
+const [counter, setCounter] = useState(1);
+
+const handleInc = () => {
+  setCounter(counter + 1)
+}
+const handleDec = () => {
+  setCounter(counter - 1)
+}
+```
+
+**参数2: set函数((preValue) => {}) 传递回调**
+- setState()中回调函数的返回值将会成为新的state的值
+- 回调函数执行时 react会将最新的state的值做为参数传递
+```js
+setCounter((preValue) => {
+  return preValue + 1
+})
+```
+
+- react会确保 preValue 永远是最新的 这次调用肯定是上一次执行结果 避免多次修改的时候 获取到的不是最新的值
+
+
+
+> 要点:
+- 1. 只有state的值发生变化的时候 组件才会重新渲染
+- 2. 通过setState去修改一个state时 并不表示修改当前的state 它修改的是组件下一次渲染的state的值
+```js
+  const [counter, setCounter] = useState(1);
+  setCounter(counter + 1)
+
+  // 注意: 这里修改的并不是 旧的counter的值 而是下一次渲染组件后的counter的值
+```
+
+- 3. 当state的值是一个对象的时候 修改的时候是使用新的对象替换已有的对象 这时就要考虑对象中属性的问题 比如99个属性 我们只想修改其中的一个
+```js
+const [obj, setObj] = useState({name: "sam", age: 18});
+
+// 方式1
+let newObj = {...obj, name: "erin"}
+
+// 方式2
+let newObj = Object.assign({}, obj)
+newObj.name = "erin"
+
+// 加法的回调
+const handleInc = () => {
+  setObj(newObj)
+}
+```
+
+- 4. setState()会触发组件的重新渲染 它是异步的 所以*当我们调用setState的时候 需要用到旧的state值时* 有可能计算错误的情况
+
+- *为了避免上述的情况我们可以给setState传递回调函数的形式修改state的值*
+<!-- 
+  同步: 调用完setState 组件马上就渲染了
+  异步: 调用完setState 组件并不是立即渲染
+
+  react有一个组件渲染的队列 当我们调用setState后 组件要重新渲染 然后它会把这个事放到队列里 它会把剩下的代码执行完毕后 回过头后再渲染 因为后面的逻辑中可以还会修改state 所以它会一直把渲染这个事往队列里面挂 直到所有的功能都执行完了 主线程都完事了 然后再从队列里面一个个的取 依次执行 有多次的话会让最后一次生效
+
+  https://www.bilibili.com/video/BV1bS4y1b7NV?p=34&spm_id_from=pageDriver
+ -->  
+
+- 演示:
+```js
+const [counter, setCounter] = useState(1);
+
+const handleInc = () => {
+  setCounter(2)
+  setCounter(3)
+  setCounter(4)
+  setCounter(5)
+  setCounter(6)
+
+  // 只会渲染一次 是最后一次 如果是同步的会执行5次
+}
+```
+
+----------------------------
+
 ### 事件处理
 
 > 回顾原生js的事件处理:
@@ -2160,7 +2286,7 @@ render() {
 - 2. 在react中事件的属性值 不能直接传递执行代码 *需要传递一个回调函数*
 
 > 要是
-```jsx
+```js
 // 事件回调使用 匿名函数
 const App = () => (
   <div>
@@ -2507,6 +2633,7 @@ constructor(props) {
 ------
 
 ### 组件的三大核心属性 props
+- 在组件之间 父组件可以通过 props(属性) 向子组件传递数据
 - 我们借助一个案例了解下 props
 
 - 需求:
@@ -2525,18 +2652,33 @@ constructor(props) {
 
 - 组件中有一个属性 叫做 props
 
-> 父组件通过 props 在标签属性 中传递值
-- 我们在组件标签里面 像写id='xxx'的形式 往props中传递值
-```js 
-  <Person name='sam' age='18' sex='男'/>
-  // react在newPerson实例的时候就会将 name='sam'做为一组kv值, 放在子组件的props中 
-```
 
-> 子组件中调用 this.props 中的属性
-- 我们通过this.props.xxx的形式调用
+> 父组件通过在 标签属性 中传递值
+- 我们在组件标签里面 像写id='xxx'的形式 往props中传递值
+- 组件的数据都由外部决定 *组件的自身只负责做数据的呈现*
+
+- 传的值的类型: 任意
+- 对象
+- 基本
+- 函数
+- 组件
+
+```js 
+  // Person组件
+  <Person name='sam' age='18' sex='男'/>
+```
+- react在 new Person() 实例的时候就会将 name='sam'做为一组kv值, *放在子组件的props中*
+
+---
+
+> 子组件获取父组件传递过来属性
+- props是一个对象 它包含了父组件中传递的所有参数
+
+> 类式组件
+- 我们可以通过 *this.props* 对象 获取父组件传递过来的值
+- 比如: this.props.xxx 的形式调用
 ```js 
   // 子组件
-
   render() {
     // 在return的外侧 来可以通过解构赋值的方式取变量
     const {name, age, sex} = this.props
@@ -2555,10 +2697,63 @@ constructor(props) {
 ```
 
 
-> 批量往props中传递数据  {...obj} / 批量传递标签属性
-- 上面我们在向 组件标签内 传递数据的时候只传递了3个 如果我们传递很多的数据应该怎么处理?
+> 函数式组件
+- 在函数式组件中 父组件传递过来的数据 可以在*函数的形参中接收*
+```js
+// 父组件:
+const App = () => (
+  <div className="logs">
+    <Item date={new Date()} desc={"学习前端"} time={"50"}/>
 
-- 真实的开发中 我们的数据肯定都是发ajax请求回来的 然后去做展示 那怎么将数据批量的传递进去呢
+    {/*遍历的方式渲染*/}
+    {
+      list.map((item, index) => (
+        <Item key={index} date={item.date} desc={item.desc} time={item.time}/>
+      ))
+    }
+  </div>
+)
+
+
+// 子组件 在形参中接收父组件传递过来的数据
+const Item = (props) => {
+
+  console.log(props) // {test: '123'}
+
+  /* 
+    date.toLocaleString() 
+    将时间转换成本地格式的时间 
+    
+    参数1: 以哪个国家的形式显示日期格式,
+    参数2: {} 用于配置返回的日期中要显示的数据 
+    {month: long} 代表显示的是月份 且为中文 
+  */
+  const month = props.date.toLocaleString("zh-CN", {month: "long"})
+
+  const day = props.date.getDay()
+
+  return (<div className="item">
+    <div className="date">
+      <div className="month">{month}</div>
+      <div className="day">{day}</div>
+    </div>
+
+    <div className="content">
+      <h2 className="desc">{props.desc}</h2>
+      <div className="time">{props.time}</div>
+    </div>
+  </div>
+  )
+
+}
+
+export default Item
+```
+
+
+> 批量往props中传递数据  {...obj} / 批量传递标签属性
+- 批量传递数据
+
 ```js 
   <Person name='sam' age='18' sex='男'/>
 
@@ -2567,7 +2762,7 @@ constructor(props) {
   ReactDOM.render(<Person {...p}/>, document.querySelector('#app'))
 ```
 
-> {...对象}
+> {...对象} 是一个个写 属性 = "属性值" 的语法糖
 - 这种写法是 
   <Person name='sam' age='18' sex='男'/> 
   写法的语法糖
@@ -2580,10 +2775,6 @@ constructor(props) {
   const p = { name: 'erin', age: 18, sex: '女' }
 
   ReactDOM.render(<Person {...p}/>, document.querySelector('#app'))
-      // 这里我们使用...将对象p展开
-
-  // 但是我们要保证 p中的变量名 和 模板中的使用是一致的(render()中)
-
 
   render() {
     const {name, age, sex} = this.props
@@ -2600,7 +2791,7 @@ constructor(props) {
 ```
 
 **注意:*
-- ...p是不能展开对象的, 但是在react中可以使用...展开一个对象
+- ...p在js中只能在对象内使用, 但是在react中可以在标签属性里面使用...展开一个对象
 
 - 但*仅适用于标签属性中的数据传递* 也就是说...对象的形式 只能在标签内部用
 <!-- 
@@ -2608,14 +2799,11 @@ constructor(props) {
  -->
 
 
-> 待留问题:
-- 数据在render函数中定义 数据在类中定义也一样
-- 通过上述的方式传递过来的数据 子组件中是可以进行更改的
-- 而且子组件修改的数据并不会影响到父组件
+**子组件中不能修改父组件传递过来的props**
+> props是只读的不能修改
+- props的作用就是父元素向子元素传递数据 *父 -> 子*
 
-- 解答:
 - 1. 传递基本数据类型的时候 我们在子组件中修改传递过来的数据会报错
-
 - 2. 如果传递到子组件身上的是一个对象 那么在子组件中修改对象中的属性的时候 不会报错 但也不会更新页面(是不是只有修改了state中的数据才引起页面的更新)
 
 ```js
@@ -2715,10 +2903,9 @@ render() {
 ```
 
 > 2. props 是只读的对象 
-- 只能读取属性的值 无法修改对象(但可以修改基本数据类型)
+- props是只读的 不能修改props中的基本属性 但是引用类型的数据倒是可以修改
 
 > 3. 如果使用的是类组件 如果写了 constructor 而是还传递了 props 那么就应该将props传递给 super 否则无法在构造函数constructor中获取到props
-
 
 ----------------------------
 

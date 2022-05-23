@@ -8905,7 +8905,7 @@ Father.prototype.sing = function() {
  -->
 
 > new Date().toLocaleString();
-> 时间对象.toLocaleString();        // 2021/11/20 19:30:45
+> 时间对象.toLocaleString();  // 2021/11/20 19:30:45
 - 当前系统时间:
 - 格式:
 <!-- 
@@ -8921,6 +8921,28 @@ Father.prototype.sing = function() {
     new Date().toLocaleTimeString()
     "下午10:27:29"
  -->
+
+> 参数:
+- 参数1: String: 以哪个国家的形式显示日期格式
+- 参数2: {}: 用于配置返回的日期中要显示的数据 
+- {month: long} 代表显示的是月份 且为中文
+<!-- 
+    long - 中文
+    short
+    narrow
+    numberic - 数字
+    2-digit - 2位
+ -->
+```js
+<div className="month">
+    {props.date.toLocaleString("zh-CN", {month: "long"})}
+</div>
+```
+
+- 网址:
+- https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+
+- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
 
 
 > 注意:
