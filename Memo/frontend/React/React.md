@@ -1,5 +1,65 @@
 ### 技巧相关部分:
 
+**扩展运算符的回顾**
+> ...在es6中是用来展开数组的 连接数组 函数传参
+```js 
+  // 展开一个数组
+  let arr = [1,2,3,4]
+  console.log(...arr)     1 2 3 4
+
+
+  // 连接两个数组
+  let arr = [1,2,3]
+  let arr2 = [4,5,6]
+
+  let arr3 = [...arr1, ...arr2]
+      //  [1, 2, 3, 4, 5, 6]
+
+  
+  // 函数传参
+  用于批量的接受参数
+  function sum(...args) {
+    console.log(args)   // [1,2,3,4]
+
+    // 求和
+    return args.reduce((tmp, value) => {
+         return tmp + value
+      }, 0)
+    }
+  let res = sum(1,2,3,4)
+  console.log(res)
+
+
+  // ... 可以应用到对象上么?  所以展开运算符不能展开一个对象
+  let person = {name: 'sam', age: 18}
+  console.log(...person)   // 报错 对象上没有可遍历的接口
+```
+
+> ... 还可以用于复制一个对象 {...person}
+- 构造字面量对象时 使用展开语法
+```js
+  let person = {name: 'tom', age: 18}
+  let person2 = {...person}
+    // 直接写 ...person 肯定不能展开一个对象 但是外面包裹一层{...person} 可以复制一个对象
+
+    // 如果对象中还有对象的话 我们克隆的是对内层对象的引用 就是浅拷贝 这是试验过后的结果
+
+  console.log(person2)
+```
+
+
+> 复制对象时 修改属性
+- 复制对象的同时, 修改对象内的属性
+```js 
+  let person = { name: 'tom', age: 18 }
+  let person2 = {...person, name: 'erin'}
+
+  console.log(person2)
+```
+
+--- 
+
+
 
 ----------------------------
 
@@ -2336,7 +2396,6 @@ const handleClick = (e) => {
 }
 ```
 
-
 > 事件的冒泡 e.stopPropagation()
 
 ---
@@ -2359,7 +2418,7 @@ const handleClick = (e) => {
 
     /*
       这里有一个问题, 构造器的参数写什么? 
-      正常来说构造器的形参能接收到什么取决于在通过new创建实例对象的时候传递了什么样的实参, 
+      正常来说构造器的形参能接收到什么取决于在通过new创建实例对象的时候传递了什么样的实参
 
       但是这里是react帮助我们创建的new的实例 我们先传props 为什么后面会学到
     */
@@ -2475,7 +2534,7 @@ changeWeather() {
   console.log(this)
     // 这里的this是undefined
 
-    - 因为只有通过Weather实例对象调用的changeWeather 
+    - 因为只有通过Weather实例对象调用的changeWeather this才是组件
     
     - react在解析组件的时候 会自己帮助我们new实例 也就是说react帮我们利用实例调用的 changeWeather 方法
 
@@ -2485,29 +2544,39 @@ changeWeather() {
     - 我们的changeWeather不是通过实例调用的
 
     // <h3 onClick={this.changeWeather}> 
-    - 我们是通过this.changeWeather把方法交给了onClick 然而 点击的时候 是onClick直接调用changeWeather方法 而不是通过实例调用的 
-    所以this的指向会是undefined(因为类中开启了严格模式)
+    - 我们是通过this.changeWeather把方法交给了onClick 相当于代码如下
+
+        let obj = {
+          fn: function() {}
+        }
+
+        let test = obj.fn
+
+        // 相当于我们是直接调用的 test()
+        test()
+    
+    然而 点击的时候 是onClick直接调用changeWeather方法 而不是通过实例调用的 所以this的指向会是undefined(因为类中开启了严格模式)
 
     console.log(this.state)  
     // 报错 不能从undefined上读取state
 }
 ```
 
-> 解决方式
+
 - 我们是想给h3绑定事件, 从而控制isHot变量的值, 目的是驱动更新页面上的数据
 
-- 但是我们上面解决了给h3如何绑定事件, 同时在绑定事件的过程中需要注意什么
-
-- 但是也出现了一个问题, 就是我们在类中定义的方法中, 不能通过 this.state 获取到存放在state中的值, 显示是this是undefined
 
 ```js 
   changeWeather() {
     console.log(this.state)  // undefined
   }
 ```
-- this出现了问题, 原因上面我们分析了 是因为我们是将这个函数赋值给了onClick 
-- 当点击的时候 changeWeather函数属于直接调用, 那么函数中的this就是undefined
 
+- 但是我们上面解决了给h3如何绑定事件, 同时在绑定事件的过程中需要注意什么? 但是也出现了一个问题, 就是我们在类中定义的方法中, 不能通过 this.state 获取到存放在state中的值, 显示是this是undefined
+
+- this出现了问题, 原因上面我们分析了 是因为我们是将这个函数赋值给了onClick 
+
+- 当点击的时候 changeWeather函数属于直接调用, 那么函数中的this就是undefined
 
 
 > 解决方式1
@@ -2533,6 +2602,9 @@ constructor(props) {
 
 > 解决方式2:
 - 在类中使用 箭头函数 的形式去创建方法 箭头函数没有自己的this 所以会向外层查找
+```js
+const fn = () => { }
+```
 
 ---
 
@@ -2559,7 +2631,7 @@ constructor(props) {
   x()           // this是undefined
 ```
 
-- 为什么this的指向不一样?
+> 为什么this的指向不一样?
 - speak是放在Person原型对象上 给实例对象用 实例p1自身没有speak 调用的时候不会报错会顺着原型链找过去
  
 - 而 const x = p1.speak 是赋值语句 注意这里并没有调用 我把p1身上speak属性交给x
@@ -2835,26 +2907,6 @@ function Demo(props) {
 }
 ```
 
-
->  props
-- 组件是封闭的 要接收外部数据 就应该通过props实现
-
-- props：
-- 接收传递给组件的数据
-
-- 父组件传递数据的方式：
-- 在组件标签内部 添加 标签属性
-```js
-<Demo {...this.state}/>
-<Demo name="sam"/>
-<Demo name={this.state.name}/>
-```
-
-- 子组件接收数据的方式：
-- 函数组件： 通过参数 props 接收数据 (props)
-- 类式组件： 通过 this.props 来接收数据 (this.props)
-
-
 > props的特点
 > 1. 可以给组件传递*任意类型的数据 数据 对象 函数 布尔 还能传递一个标签*
 ```js
@@ -2863,7 +2915,8 @@ render() {
   return (
     <div className="app-wrap">
       <Demo 
-        tag={<h3 style={{background: "red"}}> 我是传递过来的标签</h3>} />
+        tag={<h3 style={{background: "red"}}>我是传递过来的标签</h3>} 
+      />
     </div>
   )
 }
@@ -2876,7 +2929,6 @@ function Demo(props) {
     </div>
   )
 }
-
 
 
 // 演示2 父组件传递一个标签
@@ -2909,111 +2961,29 @@ render() {
 
 ----------------------------
 
-### 组件通讯的三种方式
-- 1 父组件 - 子组件
-- 2 子组件 - 父组件
-- 3 兄弟组件
+### props深入： -- children 属性
+- props的children属性可以完成*插槽*的概念
 
+- 子组件挖坑 父组件填坑 在react里面 我们填坑的这个动作就可以通过 prop.children 来完成
 
-> 父组件传递数据给子组件
-- 1. 父组件提供要传递的state数据
-- 2. 给子组件标签添加标签属性 值为state中的数据
-- 3. 子组件通过props接收到父组件中传递的数据
-<!--
-    <Child name={this.state.name}>
--->
-    
-
-> 子组件传递数据给父组件
-- 思路:
-- *利用回调函数* 父组件提供回调 子组件调用 将要传递的数据作为回调函数的参数
-
-- 弹幕：
-- 有人说setState是异步 是不是异步不管 他说可以在后面加一个回调函数进行同步更新
-
-- 小例子
-- 我们将接收到的参数 在页面上展示
-- 以往我们都是直接那 this.props.name 在 html 结构中展示
-
-- 但是 我们也可以 将拿到的数据 保存在state中 然后将state中数据展示到页面上
+> children属性： 
+- 当组件标签有子节点(标签体)的时候 props.children 就会有children属性
 ```js
-state = { parentMsg: "" }
-
-getChildMsg = (data) => { 
-  this.setState({parentMsg: data })
-}
-
-render() { 
-  return ( 
-    <div>{this.state.parentMsg }</div>
-  ) 
-}
-
--------
-
-// 父组件
-export default class App extends Component {
-
-  obj = {name: "erin", age: 18}
-
-  // 定义一个函数 通过props 传递过去
-  handleData = (data) => {
-    console.log(data)
-  }
-
-  render() {
-    return (
-      <div className="app-wrap">
-        <h3>App</h3>
-        <Home 
-          tag={<a href="www.baidu.com">link</a>} 
-          // 传递一个函数过去
-          method={this.handleData}
-        />
-      </div>
-    )
-  }
-}
-
-
-// 子组件
-// 还可以在render函数中调用
-componentDidMount() {
-  this.props.method(this.data)
-}
-```
-
-
-> 兄弟组件
-- 思路:
-- 将共享状态提升到最近的公共父组件中 由公共父组件管理这个状态
-- 也就是把数据放在 A B 组件的 亲爸爸 身上
-
-- 公共父组件的职责
-- 1. 提供共享状态
-- 2. 提供操作共享状态的方法
-- 因为状态是组件内部的私有数据 所以父组件还要提供操作状态的方法
-
-
-> props的children属性可以完成插槽的概念
-> props深入： children 属性
-- children属性： 
-- 表示组件标签的子节点 *当组件标签有子节点(标签体)的时候 props就会有该属性*
-<!-- 
+  // Home组件 有标签体内容 那么Home组件内 就可以通过 props.children 获取到标签体中的内容
   <Home>我是内容</Home>
 
   props:
-    children: "我是内容"      // props.children
- -->
+    children: "我是内容" 
+```
 
 - 也就是说 我们通过标签体传递过去的 数据 就会在该组件的props.children身上
-<!--
+```js
     // 通过组件标签体传递过去的内容
     <Hello>我是子节点</Hello>
 
     // 会在子组件的 props.children 身上
     props.children = 我是子节点
--->
+```
 
 - 演示下
 ```js
@@ -3022,6 +2992,8 @@ render() {
   return (
     <div className="app-wrap">
       <h3>父组件title: {this.state.job.backend}</h3>
+
+      {/*Demo组件 标签体有内容*/}
       <Demo>
         <ul>
           <li>
@@ -3044,27 +3016,40 @@ const Demo = props => {
 }
 ```
 
-- *props.children属性*与普通的props一样 值可以是*任意值*(文本 React元素 *组件* 甚至是函数 数组)
+> 要点:
+- *props.children属性*与普通的props一样 值可以是*任意值*
+- 文本 
+- React元素 
+- 组件
+- 函数 
+- 数组
 
 - 我们通过 this.props.children 来调用
 ```js
-    <Hello>文本节点</Hello>
+  // 文本
+  <Hello>文本节点</Hello>
 
-    <Hello>
-      <p>jsx作为子节点</p>
-    </Hello>
 
-    <Hello>
-      <Test />  这是一个组件
-    </Hello>
+  // 标签
+  <Hello>
+    <p>jsx作为子节点</p>
+  </Hello>
 
-    <Hello>
-      {
-        () => console.log("这是一个函数子节点")
-      }
-    </Hello>
 
-    - 然后我们可以通过 props.children() 调用
+  // 组件
+  <Hello>
+    <Test />  这是一个组件
+  </Hello>
+
+
+  // 函数
+  <Hello>
+    {
+      () => console.log("这是一个函数子节点")
+    }
+  </Hello>
+
+  // 然后我们可以通过 props.children() 调用
 
   -------
 
@@ -3100,264 +3085,102 @@ const Demo = props => {
 > 这不是插槽么？
 - 调用 Hello 组件的人 可以通过标签体 传递数据 然后Hello组件接收到后 可以渲染不同的内容
 
-
-> props深入： 校验
-- 对于组件来说 props 是外来的 我们无法保证组件使用者传入什么格式的数据
-
-- 如果我们传入的数据格式不对 就会导致组件内部报错 关键问题 组件的使用者不知道明确的错误原因
-
-> 安装
-- npm i prop-types
-- import PropTypes from "prop-types"
-
-- props校验：允许在创建组件的时候 就指定props的类型 格式等
-<!--
-  static propTypes = {
-      colors: PropTypes.array
-  }
--->
-
-
-> 常见的约束规则
-- 1. 常见类型:  这里也是 PropTypes.后面应该接的
-  - array 
-  - bool 
-  - func 
-  - number 
-  - object 
-  - string  
-
-
-- 2. element 
-- 我们还可以指定该prop属性为 React元素
-- propAttr: PropTypes.element
-
-
-- 3. 必填写项 isRequired
-- colors: PropTypes.array.isRequired
-
-
-- 4. shape({ })  指定特定的结构 
-- 用来约束属性是一个对象时候 对其内部属性进行约束
-- shape函数的参数是一个对象
-- propAttr: PropTypes.shape({
-    color: Protypes.string.isRequired
-  })
-
-- 文档在官方网站里
-- https://reactjs.org/docs/typechecking-with-proptypes.html
-
-
-> props深入： 默认值
-- 场景
-- 分页组件 -- 每页显示条数
-- 我们在使用分页组件的时候 会需要很多的属性 比如当前页 每页显示多少条 total等
-- 这个每页显示多少条就可以使用默认值 因为每页显示多少条可以设置为固定的
-
-<!--
-    static defaultProps = { pageSize: 10 }
--->
-
-
-
-**扩展运算符的回顾**
-> ...在es6中是用来展开数组的 连接数组 函数传参
-```js 
-  // 展开一个数组
-  let arr = [1,2,3,4]
-  console.log(...arr)     1 2 3 4
-
-
-  // 连接两个数组
-  let arr = [1,2,3]
-  let arr2 = [4,5,6]
-
-  let arr3 = [...arr1, ...arr2]
-      //  [1, 2, 3, 4, 5, 6]
-
-  
-  // 函数传参
-  用于批量的接受参数
-  function sum(...args) {
-    console.log(args)   // [1,2,3,4]
-
-    // 求和
-    return args.reduce((tmp, value) => {
-         return tmp + value
-      }, 0)
-    }
-  let res = sum(1,2,3,4)
-  console.log(res)
-
-
-  // ... 可以应用到对象上么?  所以展开运算符不能展开一个对象
-  let person = {name: 'sam', age: 18}
-  console.log(...person)   // 报错 对象上没有可遍历的接口
-```
-
-> ... 还可以用于复制一个对象 {...person}
-- 构造字面量对象时 使用展开语法
-```js
-  let person = {name: 'tom', age: 18}
-  let person2 = {...person}
-    // 直接写 ...person 肯定不能展开一个对象 但是外面包裹一层{...person} 可以复制一个对象
-
-    // 如果对象中还有对象的话 我们克隆的是对内层对象的引用 就是浅拷贝 这是试验过后的结果
-
-  console.log(person2)
-```
-
-
-> 复制对象时 修改属性
-- 复制对象的同时, 修改对象内的属性
-```js 
-  let person = { name: 'tom', age: 18 }
-  let person2 = {...person, name: 'erin'}
-
-  console.log(person2)
-```
-
 ----------------------------
 
-### props 标签属性相关
-- 我们上面通过props 将数据传递到组件的内部做了展示
+### props深入： -- 校验
+- 对于组件来说 props 是外来的 我们无法保证组件使用者传入什么格式的数据
+- 如果我们传入的数据格式不对 就会导致组件内部报错 关键问题 组件的使用者不知道明确的错误原因
 
-- 当我们想在标签内部添加 kv 的形式的时候, 只能填 key='value', 当想在标签内部填写的值为别的类型的时候, 我们要使用{ }的形式
-
-```js 
-  <Person name='sam' age='19' sex='男' />
-  
-  // 有些情况下 我们需要对数据进行计算, 比如: 让展示的数据比真实数据 - 1
-
-  render() {
-    const { name, sex, age } = this.props
-    return (
-      <div>
-        <ul>
-          <li>姓名: {name}</li>
-          <li>性别: {sex}</li>
-          <li>年龄: {age + 1}</li>
-                // 结果是 191
-        </ul>
-      </div>
-    )
-  }
-
-  // 因为我们在标签内部传递的属性是字符串的类型 所以拼串了 我们要是想在标签内部 填写 number类型的数据的话, 需要用{ }
-
-  <Person name='sam' age={19} sex='男' />
-
-  // 这样age的值就是number类型的
-```
-
-
-- 上面的问题还会延伸出来一个问题, 就是我们定义的组件 内部是对真实数据进行了+1的处理, 
-
-- 别人在使用我们定义的组件的时候, 不能知道我们传递的标签属性应该是什么类型
-```js 
-  <ul>
-    <li>姓名: {name}</li>
-    <li>性别: {sex}</li>
-    <li>年龄: {age + 1}</li>
-  </ul>
-```
-
-- 所以我们需要对我们定义的组件的props, 进行各种的限制
+- 所以子组件内部有必要对父组件传递过来的props值进行校验
 - 1. 限制标签属性的类型
 - 2. 给标签属性定义默认值
 - 3. 必须传的标签属性(必要性的限制)
 
 
-- 对组件实例对象 props 进行限制也就是说 对下面的标签内部我们传递的kv的v进行限制
-<!-- 
-  <Person name='sam' age='19' sex='男' />
- -->
-
-- 比如:
-- 1. 姓名必须指定, 且为字符串类型
-- 2. 性别为字符串类型, 如果没有性别指定, 默认为男
-- 3. 年龄为字符串类型, 且为数字类型, 默认为18
-
-
-> 对标签属性 props 进行 类型 和 必要性 的限制
-- 我们给 类组件添加 propTypes 属性 在内部进行具体的规则制定
-- 我们在类上添加 propTypes 属性 值是一个对象
-<!-- 
-  类(Person).propTypes = {
-    
-  }
- -->
-
-
-> 内部规则的制定
-- 16.xx的版本以上通过, 引用 prop-types.js 库 来对标签属性的类型进行限制
-
-> 引入 prop-types.js 库之后 全局就会多出 PropTypes 对象 内部规则使用PropTypes全局对象
-```js
-  // 用于对组件的标签属性 进行限制
-  <script src='../js/prop-types.js'></script>
-  <script type='text/babel'>
-  
-  </script>
-
-
-  // 引入下方的js文件, 全局多了 React 对象
-  <script src="../js/react.development.js"></script>
-
-  // 引入下方的js文件, 全局多了 ReactDOM 对象
-  <script src="../js/react-dom.development.js"></script>
-
-
-  // 引入下方的js文件, 全局多了 PropTypes 对象
-  <script src='../js/prop-types.js'></script>
-```
-
 > 扩展:
-<!-- 
-  15.xx的版本是通过 React.PropTypes.string 内置对象的方式 来对标签属性进行限制
-  
+- 16.xx的版本以上通过, 引用 prop-types.js 库 来对标签属性的类型进行限制
+- 15.xx的版本是通过 React.PropTypes.string 内置对象的方式 来对标签属性进行限制
   该方法已弃用
 
+- 因为React觉得 所有的类型限制都加在了React对象本身上 未来React会变的特别的大
+  所以
+```js
+  // 弃用的方式
   Person.propTypes = {
     name: React.PropTypes.string,
   }
-
-  因为React觉得 所有的类型限制都加在了React对象本身上 未来React会变的特别的大
-  所以
- -->
+```
 
 
-> 具体写法
+> 安装
+- npm i prop-types
 
-> 类型限制    PropTypes.string / number / func
-> 必传性限制  PropTypes.string.isRequired
-<!-- 
-  Person.propTypes = {
-    name: PropTypes.string,
-        // 属性名的类型限制: 类型必须是 字符串型
+> 引入
+- import PropTypes from "prop-types"
+<!-- 下面是引入下载好的js文件的讲解方式 -->
+- 引入 prop-types.js 库之后 全局就会多出 PropTypes 对象 内部规则使用PropTypes全局对象
+```js
+  // 引入下方的js文件, 全局多了 PropTypes 对象
+  <script src='../js/prop-types.js'></script>
+  <script type='text/babel'>
 
-    name: PropTypes.string.isRequired
-        // 属性名必须传递
+  </script>
+```
+
+> 类式组件
+> 定义方式1: -- 写在类的外部
+- 我们给 类组件添加 propTypes 属性 在内部进行具体的规则制定
+- 我们在类上添加 propTypes 属性 值是一个对象
+
+> 类型 和 必要性 的限制
+```js
+  类(Person).propTypes = {
+
+    // 类型限制
+    属性名: PropTypes.string  // 类型必须是 字符串型
+
+    // 必要性的限制
+    属性名: PropTypes.string.isRequired   // 属性名必须传递
+
   }
-
-
-  // string number func 都是PropTypes对象里面设定好的属性名
- -->
-
+```
 
 > 默认性限制
 - 我们给 类组件添加 default 属性 在内部进行具体的规则制定
 - 我们不传递 标签属性 就会使用下面的默认值
 ```js
-  Person.defaultProps = {
-    sex: '不男不女',
+  类(Person).defaultProps = {
+    属性名: '默认值',
     age: 18
   }
 ```
 
 
+> 定义方式2: -- static 属性
+- 这样在类创建的时候 就定义了 props 的类型
+```js
+class Person extends Component {
+
+    // 类型验证
+  static propTypes = {
+    colors: PropTypes.array
+  }
+
+  // 默认值验证
+  static defaultProps = { pageSize: 10 }
+  /*
+    场景:
+    分页组件 -- 每页显示条数
+    我们在使用分页组件的时候 会需要很多的属性 比如当前页 每页显示多少条 total等
+    这个每页显示多少条就可以使用默认值 因为每页显示多少条可以设置为固定的
+  */
+}
+```
+
+
 > 完整代码
 ```js 
+  // Person子组件
   class Person extends React.Component {
     render() {
       const { name, sex, age } = this.props
@@ -3389,130 +3212,66 @@ const Demo = props => {
   }
 
 
+  // 给Person组件传递props
   const obj = { name: 'sam', age: 18, sex: '男' }
   ReactDOM.render(<Person {...obj} />, document.querySelector('#app'))
-  
-  // ReactDOM.render(<Person name={123} age={19} sex='男' />, document.querySelector('#app'))
 ```
 
-----------------------------
+---
 
-### props的简写方式
+> 函数式组件
+- 函数式组件也可以对props进行类型 必须性 默认的限制
+- 我们*在函数的外侧 给函数添加属性 PropTypes 和 defaultProps*
 
-> props是只读的
-- *如果props是一个对象 它的内部属性 我们修改的时候它不会报错*
-
-- 但是简单的数据类型 或者 直接改变对象的地址值 那就会报错
 ```js 
-  <Person name='sam' age={19} sex='男' />
+  // 函数式的 Person 组件
+  const Person = () => { ... }
 
-  // 我要是想改props中的数据, 可以在标签属性中更改
-  <Person name='erin' age={19} sex='男' />
-
-  // 但是我们要是在class中使用这中方式更改的话
-  class Person {
-
-    render() {
-      const {name, age, sex} = this.props
-
-      // 假如我们在这里通过这种方式修改props的话
-      this.props.name = 'erin'
-          // 报错 我们不能在只读的name属性上 做出修改
-
-      return (
-
-      )
-    }
-  }
-```
-
-
-> props校验的简写方式
-- static propTypes = { k: PropTypes.string.isRequired }
-- static defaultProps = { sex: '男' }
-
-- 上面我们用class定义了组件, 但是对标签属性 和 类型 必须性的限制却写在了class的外面, 最好的方式是, 当我们把class折叠起来之后, 所有对标签属性的限制 也被折叠起来
-
-- 从语法上来讲, 我们就是给Person类的自身添加了属性 我们使用 static 关键字
-```js
-  class Person extends React.Component {
-
-    // 使用static关键字 给标签属性添加类型 和 必须性 默认值等限制
-    static propTypes = {
-      name: PropTypes.string.isRequired,
-      sex: PropTypes.string,
-      age: PropTypes.number
-    }
-
-    static defaultProps = {
-      sex: '不男不女',
-      age: 18
-    }
-
-    render() {
-      const { name, sex, age } = this.props
-      return (
-        <div>
-          <ul>
-            <li>姓名: {name}</li>
-            <li>性别: {sex}</li>
-            <li>年龄: {age + 1}</li>
-          </ul>
-        </div>
-      )
-    }
-  }
-```
-
-
-**类的复习**
-- 前面我们创建了一个car的类
-```js 
-  class Car {
-    constructor(name, price) {
-      this.name = name
-      this.price = price
-    }
-
-    // 给实例对象添加属性 在类中使用赋值的形式 添加的属性
-    wheel = 4
-
-    // 给Car本身添加属性 使用关键字 static 就会将属性添加给类的本身
-    static demo = 100
-        // 给Car类本身添加了demo属性
-  }
-
-  const c1 = new Car('奔驰', 199)
-```
-
-
-> 总结
-- 我们使用类定义组件的时候
-```js 
-class Person {
-  // 添加状态 state 使用赋值语句的形式 直接写
-  state = {  }
-
-  // 添加自定义方法 使用函数表达式 + 箭头函数的方式 直接写
-  changeWeather = () => {   }
-
-
-  // 给props做必须性 类型 默认值的限制的时候 使用static
-  static propTypes = {
+  Person.propTypes = {
     name: PropTypes.string.isRequired,
     sex: PropTypes.string,
     age: PropTypes.number
   }
 
-  static defaultProps = {
-
+  Person.defaultProps = {
+    sex: '不男不女',
+    age: 18
   }
-}
 ```
+
+
+> 常见的约束规则
+- 1. 常见类型:  这里也是 PropTypes.后面应该接的
+  - array 
+  - bool 
+  - func 
+  - number 
+  - object 
+  - string  
+
+
+- 2. element 
+- 我们还可以指定该prop属性为 React元素
+- propAttr: PropTypes.element
+
+
+- 3. 必填写项 isRequired
+- colors: PropTypes.array.isRequired
+
+
+- 4. shape({ })  指定特定的结构 
+- 用来约束属性是一个对象时候 对其内部属性进行约束
+- shape函数的参数是一个对象
+- propAttr: PropTypes.shape({
+    color: Protypes.string.isRequired
+  })
+
+- 文档在官方网站里
+- https://reactjs.org/docs/typechecking-with-proptypes.html
 
 ----------------------------
 
-### 类式组件中的构造器 和 props
+### 类式组件 - constructor 和 props
 - 之前我们在使用constructor的时候我们添加过props, 现在我们就来看看props和constructor之间的关系
 
 > 总结
@@ -3554,63 +3313,10 @@ class Person {
   我们在标签属性中传递的name='sam' age=18 还有默认的sex 都会被props接收到
 ```
 
-
 > 总结:
 - 通常在react中, 构造函数(constructor)仅用于以下两种情况
 - 1. 通过给this.state赋值对象来初始化内部的state
 - 2. 为事件处理函数绑定实例
-
-----------------------------
-
-### 函数式组件的使用props
-- 对于函数式组件, 因为它没有this(也就是实例对象)它没办法使用 state, refs, 但是它也可以使用props
-<!-- 
-  不是说没有实例那么实例的三大核心属性都用不了么? 
-  那为什么函数式组件可以使用props呢?
-
-  答:
-  因为函数有一个特点 因为它可接收参数
- -->
-
-> 函数组件的形参 props
-- 在react中, 我们在组件标签内部写的所有属性, react都会帮你收集好放到形参中，形参props是一个对象的形式
-```js 
-  ReactDOM.render(<Person name='sam' age={18}/>, document.querySelector('#app'))
-
-  function Person(props) {
-
-    console.log(props);
-        // 结果 {name: 'sam', age: 18}
-      
-    const {name, age, sex} = props
-      return (
-        <ul>
-          <li>姓名: {name}</li>
-          <li>性别: {sex}</li>
-          <li>年龄: {age}</li>
-        </ul>
-      )
-    }
-```
-
-
-> 函数式组件也可以对props进行类型 必须性 默认的限制
-- 我们在函数的外侧 给函数添加属性 PropTypes 和 defaultProps
-```js 
-  Person.propTypes = {
-    name: PropTypes.string.isRequired,
-    sex: PropTypes.string,
-    age: PropTypes.number
-  }
-
-  Person.defaultProps = {
-    sex: '不男不女',
-    age: 18
-  }
-```
-
-> 扩展 
-- 新版react函数式组件 可以通过 hooks 来使用state
 
 ----------------------------
 
@@ -3661,6 +3367,103 @@ class Person {
 
 ----------------------------
 
+### 组件通讯的三种方式
+- 1 父组件 - 子组件
+- 2 子组件 - 父组件
+- 3 兄弟组件
+
+
+> 父组件传递数据给子组件
+- 父 -> 子 最直接的方式就是通过 props 来传递
+    
+
+> 子组件传递数据给父组件
+- *利用回调函数* 父组件提供回调 子组件调用 将要传递的数据作为回调函数的参数
+
+- 小例子:
+- 我们将接收到的参数 在页面上展示
+- 以往我们都是直接那 this.props.name 在 html 结构中展示 我们也可以 将拿到的数据 保存在state中 然后将state中数据展示到页面上
+
+```js
+state = { parentMsg: "" }
+
+getChildMsg = (data) => { 
+  this.setState({parentMsg: data })
+}
+
+render() { 
+  return ( 
+    <div>{this.state.parentMsg }</div>
+  ) 
+}
+
+-------
+
+// 父组件
+export default class App extends Component {
+
+  state = {
+    arr: []
+  }
+
+  handleData = data => {
+    this.setState({arr: data})
+  }
+
+  render() {
+    const {arr} = this.state
+    return (
+      <div className="app">
+        <h3>App组件</h3>
+        <ul>
+          {
+            arr.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))
+          }
+        </ul>
+        <hr />
+        <Child fn={this.handleData}/>
+      </div>
+    )
+  }
+}
+
+
+// 子组件
+export default class Child extends Component {
+
+  state = {
+    data: ["java", "nodejs", "vue", "react"]
+  }
+
+  componentDidMount() {
+    this.props.fn(this.state.data)
+  }
+
+  render() {
+    return (
+      <div>
+        <h3 className="child">Child</h3>
+      </div>
+    )
+  }
+}
+```
+
+
+> 兄弟组件
+- 思路:
+- 将共享状态提升到最近的公共父组件中 由公共父组件管理这个状态
+- 也就是把数据放在 A B 组件的 亲爸爸 身上
+
+- 公共父组件的职责
+- 1. 提供共享状态
+- 2. 提供操作共享状态的方法 -- *数据在哪 操作数据的方法就在哪*
+<!-- 因为状态是组件内部的私有数据 所以父组件还要提供操作状态的方法 -->
+
+----------------------------
+### 书签：
 ### 组件的三大核心属性 refs 与 事件处理
 - ref一般是给组件和dom节点打标记的 相当于id
 
@@ -3746,7 +3549,7 @@ class Person {
 ```
 
 
-> 2. 回调形式的 ref {c => this.refname = c}  --  从 this 身上获取
+> 2. 回调形式的 ref = {c => this.refname = c}  --  从 this 身上获取
 - 所谓的回调形式的ref 就是给 ref的值设置一个回调函数(箭头函数), jsx中要在结构中使用js 要用到{ }
 <!-- 
   ref = { (currentNode) => { this.inp1 = currentNode } }
