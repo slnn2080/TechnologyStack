@@ -1,5 +1,112 @@
 ### 技巧相关部分:
 
+**警示部分:**
+- 没事好好看看写法: 
+```js
+  const newObj = {...this.state.obj, num: 2}
+```
+
+
+**父组件: 更新 删除 添加数据的方法**
+- 我们都是利用更新state中数据, 来驱动页面的显示, 这是中心思想, 所以我们都是对sate中的数据 进行更新的操作
+- 下面中的方法 都是子组件为了传递给父组件信息, 要求父组件传递的函数 内部都是在对state做更新的操作
+
+
+> 添加数据的方法
+- 1. 获取state中的原数据
+- 2. 创建一个新对象, 用于将修改后的新对象覆盖state中的数据
+    - 这里利用了...obj将原来的数据展开, 然后前面放子组件传递过来的数据
+
+- 3. 通过this.setState方法更新数据
+```js 
+  // addTodo用于给state中添加一条信息, 接收的参数是一个todo对象
+  addTodo = (todoObj) => {
+
+    // 我们要获取state中的数据, 然后将新的对象放入到数据的前面
+    const { todos } = this.state
+
+    // 追加一个todos
+    const newTodos = [todoObj, ...todos]
+
+    // 更新状态
+    this.setState({
+      todos: newTodos
+    })
+  }
+```
+
+
+> 更新state中的数据(修改state中的数据)
+- 1. 形参就是改谁?(id), 改什么(具体内容)
+- 2. 获取state中的原数据
+- 3. 我们要遍历state中的数据, 使用map(), 返回一个新数据对象用于替换state中的数据, 我们可以利用判断找到指定数据, 然后利用[...item, done:done]扩展运算符展开并对指定项进行修改
+- 4. 更新state中的数据 用新数据对象 替换 旧数据
+<!-- 
+  这里遍历没有选择forEach 因为它是直接修改state中的数据, 我们只能通过setState来修改
+ -->
+```js 
+  // updateTodo 用于更新一个todos对象
+  updateTodo = (id, done) => {
+    // 这里需要的参数是 改的是谁, done的情况
+    
+    // 获取状态中的todos
+    const {todos} = this.state
+    
+    -------
+    这个方式不可以
+    todos.forEach((item, index) => {
+      if(item.id === id) {
+        item[done] = done
+      }
+    })
+    -------
+
+    // 匹配处理数据
+    let newTodos = todos.map((item) => {
+      if(item.id === id) {
+        // 如果匹配上了 我就给你返回一个新的对象, 而且done的值被我改了
+        return {...item, done:done}
+      } else {
+
+        // 如果没匹配上, 原数据返给你
+        return item
+      }
+    })
+
+    // 更新todos
+    this.setState({
+      todos: newTodos
+    })
+  }
+```
+
+
+> 删除state中的数据
+- 说是删除 也是创建一个新的对象, 然后用它覆盖掉state中旧的对象
+- 1. 获取state中原来的数据
+- 2. 删除一条数据, 我们使用了filter方法, 将不是目标数据的其它数据返回就相当于删除了, 我们利用了 id!==id 的方式
+- 3. 更新state
+```js 
+  // 删除 用于删除一个todo
+  deleteTodo = (id) => {
+    // 获取原来的todos
+    const {todos} = this.state
+
+    // 从数组里面删除指定id的元素 我们可以使用数组里面的过滤 比如我们要删除002, 那么我就用filter方法, 将除了002的item返回 那是不是就相当于删除了002
+    let newTodos = todos.filter((item) => {
+      return item.id !== id
+    })
+
+    // 状态更新 驱动页面显示
+    this.setState({
+      todos: newTodos
+    })
+  }
+```
+
+**完了**
+
+
 **扩展运算符的回顾**
 > ...在es6中是用来展开数组的 连接数组 函数传参
 ```js 
@@ -48,7 +155,7 @@
 ```
 
 
-> 复制对象时 修改属性
+**复制对象时 修改属性**
 - 复制对象的同时, 修改对象内的属性
 ```js 
   let person = { name: 'tom', age: 18 }
@@ -57,7 +164,258 @@
   console.log(person2)
 ```
 
---- 
+
+**form相关的知识点**
+- 1. 不指定请求方式的时候, form表单默认是get请求
+<!-- 
+  带的参数默认是query参数
+  /?是携带qurey参数的一种形式
+ -->
+
+- 2. 如果表单项中没有name属性, 我们取不到用户输入的数据
+<!-- 
+  // 没指定name属性
+  https://www.baidu.com/?
+
+  // 指定了name属性
+  https://www.baidu.com/?uname=sam&pwd=123
+ -->
+
+- 3. 有 form 的情况下 我们用 onsubmit 事件来提交数据
+- 4. 原生form提交后 页面会跳转 或 刷新 数据会置空, 但是ajax不会
+
+
+**高阶函数 函数柯里化**
+- 在受控组件的案例中 我们使用了受控组件的形式, 将input中的值取出来放在了state中, 然后从state中做了展示
+
+- 但是上面的代码还是存在了一些的问题, 我们的案例中只是需要在state中保存uname 和 password, 假如我们的组件是一个注册功能
+```js 
+  <input type="text" name='uname' onChange={this.saveUname}/>
+
+  saveUname = () => {}
+  savePassword = () => {}
+```
+
+- 那是不是说我们还需要定义saveUname savePassword saveTel saveMail等方法, 而其目的就是为了在state中保存一个值?
+
+- 所以 我们要想办法 定义一个方法, 在这个方法中 写在state中保存数据的逻辑
+- 定义一个 saveFormData 方法
+
+- 但是有问题, 我怎么告诉这个方法 我要在state中保存什么? 保存uname? password? tel? 函数能传递参数, 我们可以通过传参的形式 告诉saveFormData我们要保存什么
+```js
+  <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
+```
+
+- 但是又出现了一个新的问题 我们看看有什么问题
+```js 
+  <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
+```
+\\ 问题1
+- 该函数react会帮我们直接调用 因为 saveFormData后面加了() 直接调用了
+
+\\ 问题2
+- 由于我们自己传递了参数, saveFormData('uname') 那么我们类中定义的saveFormData方法 接收到的参数就不是 event对象了
+
+- 因为react在帮我们调用方法的时候会传递event, 但是我们自己传的话参数就是我们自己传递的
+
+\\ 问题3
+- 而且 onChange={this.saveFormData('uname') 这种形式的写法, 也会失去效果 因为这种写法 是将saveFormData()的返回值 交给onchange做为回调 而saveFormData的返回值是undefined 所是react不会帮我们调用undefined 所以就会没效果
+
+- 从上面总结的问题上来看, 我们只需要让saveFormData返回一个函数就可以了, 这样交给onChange做为回调的就不再是一个函数的返回值, 而是一个函数
+
+```js 
+  saveFormData = () => {
+    return () => {}
+  }
+
+  // 我们通过实参传递进来的参数在外层形参中接收
+  saveFormData = (dataType) => {
+    return (event) => {
+      this.setState({
+
+        // 这里要注意, {}中的属性名其实都是'字符串'类型, 而我们需要读的是dataType这个变量,  所以要加上[]
+        [dataType]: event.target.value
+      })
+    }
+  }
+```
+
+- 我们是要在state中添加dataType(我们传递进来的属性名)和值 比如我们传递进来的是 'username' 但是我们如果这么写
+```js
+  this.setState({
+    dataType: event.target.value
+  })
+```
+- 相当于在 state中保存了 dataType 这个属性名 
+  所以我们要将 dataType 改成 [dataType] 这样才能当变量去找值
+
+
+> 高阶函数
+- 如果一个函数符合下面2个规范中的任何一个 那么该函数就是高阶函数
+  1. 若A函数 接收的参数是一个函数, 那么A就是高阶函数
+  2. 若A函数 调用的返回值依然是一个函数, 那么A就是高阶函数
+
+<!-- 
+  常见的高阶函数有哪些?
+    Promise
+    new Promise(() => {})  参数是函数  === > 高阶函数
+
+    setTimeout(() => {})  参数是函数  === > 高阶函数
+
+    数组身上常见的方法都是高阶函数map reduce forEach
+ -->
+
+
+> 函数的柯里化
+- 通过函数调用继续返回函数的方式, 实现多次接收参数最后统一处理参数的函数编码形式
+```js 
+  // 需求 求3个数的和
+  function sum(num1, num2, num3) {
+      return num1 + num2 + num3
+  }
+
+  let res = sum(1, 2, 3)
+  console.log(res)        // 6
+
+  // 上面没有用到函数的柯里化
+
+
+  function sum(a) {
+    // sum的返回一个函数接收到一个b
+    return (b) => {
+
+        // 它继续返回函数接收到一个c
+        return (c) => {
+
+            // 这个函数做的统一处理
+            return a+b+c
+        }
+    }
+  }
+
+  let result = sum(1)(2)(3)
+  console.log(result)
+
+
+  // 我们的案例其实就用到了函数的柯里化技术
+  saveFormData = (dataType) => {
+    return (event) => {
+      this.setState({
+        [dataType]: event.target.value
+      })
+    }
+  }
+```
+- saveFormData接收到了一个参数dataType, 而saveFormData返回的也是一个函数
+- 而saveFormData返回的函数也接收到了参数event, 最终做了统一的处理
+
+- 我们案例中, 我们保存用户名 保存密码 我想共用一个saveFormData方法 如果不用高阶函数 如果不用函数的柯里化 有没有写不下去了?
+
+- 比如 这样为什么不行
+```js
+  saveFormData = (dataType, event) => {
+
+  }
+
+  <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
+  // 这个回调是React帮我们调用的 而event也是react帮我们传递的, 所以我们一次性的获取不到所有的参数
+```
+
+
+**复习: 对象相关的知识**
+```js 
+  let a = 'name'
+  let obj = {}
+
+  - 需求:
+  - 我想让最后的结果是 {name: 'tom'}
+
+  let a = 'name'
+  let obj = {}
+
+  // obj.a = 'tom'
+  // console.log(obj)        // { a: "tom" }
+
+  obj[a] = 'tom'
+  console.log(obj)            // {name: "tom"}
+```
+
+
+> 完整代码
+```js 
+  class Login extends React.Component {
+      
+    // 初始化状态
+    state = {
+      uname: '',
+      password: ''
+    }
+
+    render() {
+      
+      return (
+        <form onSubmit={this.handleSubmit}>
+          用户名:<input type="text" name='uname' onChange={this.saveFormData('uname')}/>
+          密&emsp;码:<input type="password" name='pwd' onChange={this.saveFormData('password')}/>
+          <button>Login</button>
+        </form>
+      )
+    }
+
+    // 保存表单数据到state中
+    saveFormData = (dataType) => {
+      return (event) => {
+        this.setState({
+          [dataType] : event.target.value
+        })
+      }
+    }
+
+    handleSubmit = (e) => {
+      e.preventDefault()
+      const {uname, password} = this.state
+      console.log(`您输入的用户名: ${uname}, 您输入的密码是: ${password}`)
+    }
+  }
+
+  ReactDOM.render(<Login/>, document.querySelector('#app'))
+```
+
+----------------------------
+
+### 对上面知识点的补充 - 不用柯里化的写法
+```js
+  saveFormData = (dataType) => {
+    return (event) => {
+      this.setState({
+        [dataType]: event.target.value
+      })
+    }
+  }
+
+  // 上面我们提到了 没办法在 saveFormData 方法中同时接到 dataType和event 因为event不是我们自己传递的 我们要用event.target.value得到input的值
+
+  // 我们将方法改成这样
+  saveFormData = (dataType, value) => {
+    this.setState({
+      [dataType]: value
+    })
+  }
+
+  // 那怎么同时接到 dataType 和 input的值呢? 假如能接到那么方法内部就不用return函数了
+  
+  // 怎么写? 
+  <input type="text" name='uname' onChange={这里必须交给左边一个函数}/>
+
+  onChange={(event) => {}}
+  // 那就给你一个函数, 而且这个函数是react帮我们调用的 那么这个回调就能收到event
+
+  // 那我在这个函数里面是不是可以调用 saveFormData
+  onChange={(event) => {this.saveFormData('uname', event.target.value)}}
+
+  // 以上就完成了不用函数柯里化达到的同样的效果
+```
+
 
 
 
@@ -818,6 +1176,265 @@ const div = <div id="box" onClick = { () => {} }>
     // {$$typeof: Symbol(react.element), type: "h1", key: null, ref: null, props: {…}, …}
 </>
 ```
+
+---
+
+### DOM的diffing算法
+- React最大的优势就是 它不是每一次都将页面上的真实DOM做出修改 每一个真实的DOM都是对应一个虚拟DOM(react元素)的
+
+- 当生成一个新的虚拟DOM树 它会和旧的虚拟DOM树 进行比较, 如果有没有变化的虚拟DOM, 那么页面上这两个虚拟DOM对应的真实DOM是没有任何改变的, 只把新增加的一条映射成新的真实DOM
+
+<!-- 
+    虚拟DOM                               真实DOM
+
+    // 旧的虚拟DOM树
+    001对应的虚拟DOM    --- 复用
+    002对应的虚拟DOM    --- 复用
+    
+
+    // 新的虚拟DOM树
+    001对应的虚拟DOM    --- 复用
+    002对应的虚拟DOM    --- 复用
+
+    003对应的虚拟DOM  -- 对比结果(新)   --- 渲染
+ -->
+
+- 也就是说 每次更新页面的时候 新的虚拟DOM树都会对上一次(旧)的虚拟DOM树进行对比, 看看有没有不一样的节点, 如果有更新新的节点, 复用没有变化的节点
+
+
+> 验证上面说的对不对
+- 我们在页面中放3个结构, 结构3是一个定时器来展示的数据, 每秒更新一次
+- 我们先说下结果 就是 结构1 和 结构2被复用, 而结构3会更新
+
+- 怎么验证:
+- 我们在结构2中的文本框中输入文字, 如果 每次文字都消失, 证明input每次都是新的
+- 如果没有消失证明结构2被复用
+  - 结果: 文字没有消失
+
+- 我们在看看<span> 中的 <input>是被复用还是每次都随着<span>更新
+  - 结果: 文字没有消失
+  - 疑问:
+  - 不是说 diffing 算法最小的更新单位是 节点么? 那为什么不连着内部的<input>一起更新呢?
+
+  - 答案:
+  - diffing算法并不是只比较一层, 而是标签内部还有标签的时候 也会对子标签进行 新旧的虚拟DOM树对比, 如果子标签对比结果没有变化 子标签也会复用
+<!-- 
+  // 结构1
+  <h1>hello</h1>        
+
+  // 结构2
+  <input type="text" /> <br /><br />
+
+  // 结构3
+  <span>
+    现在是: {this.state.date.toTimeString()}
+    <input type="text" />
+  </span>
+ -->
+
+
+> 验证用的代码
+```js
+  class Time extends React.Component {
+
+      // 状态里面维护着时间
+      state = { date: new Date() }
+
+      // 一挂载开启定时器 每一次都把最新的时间放进去 state发生改变 页面就会更新
+      componentDidMount() {
+        setInterval(() => {
+          this.setState({
+            date: new Date()
+          })
+        }, 1000)
+      }
+
+      render() {
+        return (
+          <div>
+            <h1>hello</h1>
+
+            <input type="text" /> <br /><br />
+
+            <span>
+              现在是: {this.state.date.toTimeString()}
+              <input type="text" />
+            </span>
+          </div>
+        )
+      }
+    }
+
+    ReactDOM.render(<Time />, document.querySelector('#app'))
+```
+
+
+> 总结:
+- diffing算法是逐层对比 最小的力度是标签
+
+----------------------------
+
+### 经典面试题
+- 1. react / vue 中的key有什么作用? (key的内部原理是什么)
+- 2. 为什么遍历列表的时候, key最好不要用index
+<!-- 
+  上面是一个问题的两种问法
+ -->
+
+> 回答:
+- 1. 虚拟DOM中key的作用
+  - 1.1 简单的说: 
+    key是虚拟DOM对象的标识, 在更新显示的时候 Key起来及其重要的作用
+
+  - 1.2 详细的说:
+    当状态中的数据发生变化的时候, react会根据'新数据'生成'新的虚拟DOM' 随后React进行'新虚拟DOM'与'旧虚拟DOM'的diff比较, 比较规则如下
+
+      a: 旧虚拟DOM中找到了与新虚拟DOM相同的key
+        aa: 若虚拟DOM中的内容没有变, 直接使用之前的真实DOM
+        bb: 若虚拟DOM中的内容变了, 则生成新的真实DOM 随后替换掉页面中之前的真实DOM
+
+      b: 旧虚拟DOM中未找到与新虚拟DOM相同的key
+        根据数据创建新的真实DOM 随后渲染到页面
+
+
+- 2. 用index作为key可能会引发的问题 (在数组的前面添加就会出现破坏顺序操作)
+  - 2.1 若对数据进行: 逆序添加, 逆序删除等破坏顺序操作 
+      会产生没有必要的真实DOM更新 --- > 界面效果没问题 但效率低
+
+  - 2.2 如果结构中还包含输入类的DOM
+      会产生错误DOM更新 --- > 界面有问题
+
+  - 2.3 注意:
+      如果不存在对数据的逆序添加 逆序删除等破坏顺序操作
+      仅用于渲染列表用于展示, 使用index作为key是没有问题的
+
+- 3. 开发中如何选择key
+  - 3.1 最好使用每条数据的唯一标识作为key, 比如id 手机号, 身份证号, 学号等唯一值
+  - 3.2 如果确定只是简单的展示数据, 用index也是可以的
+<!-- 
+  数据的唯一标识就应该是后端给我们处理好的
+ -->
+
+
+
+> 案例:
+- 我们在页面中创建一个列表
+- 然后做一个按钮, 点击后向列表中添加小王的信息
+<!-- 
+  <h3>展示人物信息</h3>
+
+  \ 添加一个小王 \      按钮
+
+  小张, 18         小王, 20  
+  小李, 19         小张, 18 
+                  小李, 19 
+
+
+  <ul>
+    {this.state.persons.map((item, index) => {
+      return <li key={index}>{item.name}, {item.age}</li>
+    })}
+  </ul>
+
+  注意 我们的key是用的index, 看似页面上正常显示了, 控制台也没有报错, 但是有很严重的问题 有严重的效率问题
+
+  慢动作回放 --- 使用index索引值做key
+
+  初始state数据:
+    { id: 1, name: '小张', age: 18 },
+    { id: 2, name: '小李', age: 19 }
+
+  ↓
+
+  初始的虚拟DOM
+    几条数据? 2条, 几条虚拟DOM? 2条, 先遍历的是0 后遍历的是1
+    <li key={0}>{小张}, {18}</li>
+    <li key={1}>{小李}, {19}</li>
+
+  ↓
+
+  将虚拟DOM(初始的)转为真实DOM挂载到页面
+
+
+  更新后的数据
+    { id: 3, name: '小王', age: 20 },
+    { id: 1, name: '小张', age: 18 },
+    { id: 2, name: '小李', age: 19 }
+        // 我们点击按钮后 修改了state中的数据 小王在前面了 注意小王的id是数组的长度+1 是3
+
+  ↓
+
+  更新数据后的虚拟DOM
+    <li key={0}>{小王}, {20}</li>
+    <li key={1}>{小张}, {18}</li>
+    <li key={2}>{小李}, {19}</li>
+        // 因为小王是新遍历的所以小王的index是0 小张1 小李是2
+
+  ↓
+
+  旧的虚拟DOM树 和 新的虚拟DOM树进行对比
+  <li key={0}>{小张}, {18}</li>     <li key={0}>{小王}, {20}</li>
+  <li key={1}>{小李}, {19}</li>     <li key={1}>{小张}, {18}</li>
+                                    <li key={2}>{小李}, {19}</li>
+
+  进行对比
+  先在旧的虚拟DOM中去找key=0的, 发现key一样, 则比较内容
+      然后 小王(新)因为内容不一样 被挂载到页面上
+
+  然后在找key=1的, 发现内容不一样 小张(新)被挂载到页面上
+  然后在找key=2的, 发现内容不一样 小李(新)被挂载到页面上
+
+  这是我们使用index带来的结果, 命名小张 和 小李是可以被复用的, 但是因为我们在数组的前面加入了小王, 原数组的顺序被打乱了 导致index的顺序发生了变化, 导致虚拟DOM因为key和内容都不一样 不能被复用
+
+
+  现在是3条数据, 假如有2000条数据, 我们在数组的前方加入了一条数据, 我们还使用了index作为key, 那么就会导致2000条数据没办法复用
+ -->
+
+> 解决方式:
+- 我们不用index作为key, 而是用数据的唯一标识作为key item.id
+
+------
+
+- 还是上面的案例 我们看下 使用index作为key 引发的渲染数据出错的问题
+- 我们在每一个里面里面 都放一个<input>, 然后我们点击添加小王的按钮, 观察下index作为key会发生什么问题
+<!-- 
+  <li key={index}>{item.name}, {item.age} <input type='text' /></li>
+ -->
+
+> 页面展示信息
+<!-- 
+  \ 添加小王 \
+
+  index作为key
+  小张, 18      \input  小张, 18 \
+  小李, 19      \input  小李, 19 \
+
+
+  id作为key
+  小张, 18      \input  小张, 18 \
+  小李, 19      \input  小李, 19 \
+
+  ------
+
+  点击按钮后
+
+  index作为key
+  小王, 20      \input  小张, 18 \
+  小张, 18      \input  小李, 19 \
+  小李, 19      \input  空       \
+
+
+  id作为key
+  小王, 20      \input  空       \
+  小张, 18      \input  小张, 18 \
+  小李, 19      \input  小李, 19 \
+
+
+  使用index作为key的数据串了, id作为key的数据没有乱
+ -->
+
+> 总结:
+- 一旦结构中出现输入类的DOM节点的时候, 使用index作为key 会产生数据错乱
 
 ----------------------------
 
@@ -2306,6 +2923,107 @@ const handleInc = () => {
 
 ----------------------------
 
+### setState() 说明
+
+> setState更新数据的时候是异步的
+- setState这个方法本身是同步的方法 只要我们调用立马在主线程上执行
+- 但是setState引起react的后续的更新动作是异步的更新
+```js
+  this.state = {count: 1}
+  
+  this.setState({
+    count: this.state.count + 1
+  })
+
+  // 如果在setState方法之后立即调用了console 我们发现是修改之前的值
+  console.log(this.state.count)   // 1
+```
+
+- 说明这个方法是调用了 但是状态并没有立即改变 更新数据是异步的
+- 所以 *我们需要注意的是 后面的setState 不要依赖于前面的setState*
+```js
+  handleClick = () => {
+
+    // 这里我们连续的调用两次 setState 会怎么样
+    this.setState({
+      count: this.state.count + 1
+    })
+
+    this.setState({
+      count: this.state.count + 1
+    })
+  }
+```
+
+- 虽然我们调用了两次 但结果是2 也就是说 state中的count 值只加了一次
+- 第一次调用的时候 setState肯定是会更新为2的但是它的更新时异步的 紧接着我们再次的调用 第二次setState中的count值也是1 也就是第二次中setState 还是 1+1
+
+- 虽然我们调用了2次 但是后面的setState并没有依赖于第1次的结果 也就是说并不是 拿到第一次setState的结果2 再进行+1的 我们是可以调用多次的 setState 但是只会触发一次render 也就是只会触发一次重新渲染
+
+- 因为要考虑到性能 如果我们调用了一次setState就render一次 再调一次 再render一次 性能上会不好 所以 实际上它会将多次调用的setState最终合并 将最终的结果一次性的调用render方法 将最终的结果渲染到页面中
+
+> setState(回调)  -- 推荐语法
+> setState((state, props) => { return 状态对象 }, () => {状态更新后立即执行的回调})   
+- 上面说了 如果调用了两次setState后面的是无法基于第一次setState的结果去做一些操作的
+- 这种时候 我们就要使用 传递两个回调的方式
+
+> 参数1: 回调函数
+- 要求: 回调函数中 必须返回一个 state对象
+- 回调函数的参数:
+- state: 表示最新的state 总为最新的state 依赖于上次的state的结果
+- props: 标表示最新的props
+<!-- 
+  这个方法跟普通的方式没有什么区别也是异步更新数据 但是
+
+  state总是为最新的state 也就是说 假如我们调用两次setState后 第二次setState中的state参数是最新的数据 也就是基于第一次setState的结果
+ -->
+
+```js
+  this.setState((state, props) => {
+    // 返回值为state对象
+    return {
+      count: state.count + 1    // 2
+    }
+  })
+
+  this.setState((state, props) => {
+    return {
+      count: state.count + 1    // 3
+    }
+  })
+```
+
+
+> 参数2: 回调函数
+- 状态更新后立即执行的回调
+
+- 场景
+- 在状态更新(页面dom完成重新渲染)后立即执行某个操作 像不像*this.$nextTick*
+<!-- 
+  状态更新后 并且页面重新渲染后 立即执行
+  比如我们要想操作dom的话 在回调中写逻辑
+ -->
+
+- 语法：
+```js
+this.setState(
+  (state, props) => { return {} },
+  () => {  console.log(这个回调会在状态更新后立即执行) }
+)
+```
+
+- 示例: 当状态更新后 操作dom 比如更新页面的标题
+```js
+  this.setState(
+    (state, props) => {},
+    () => {
+      document.title = "更新state后的标题:" + this.state.count
+    }
+  )
+```
+
+----------------------------
+
 ### 事件处理
 
 > 回顾原生js的事件处理:
@@ -2397,6 +3115,55 @@ const handleClick = (e) => {
 ```
 
 > 事件的冒泡 e.stopPropagation()
+
+
+> 事件处理的总结
+- 1. react中通过onXxx的形式指定事件处理函数(注意大小写)
+  - 1.1 react使用的是自定义(合成)事件, 而不是使用的原生DOM事件
+  - 1.2 react中的事件是通过事件委托方式处理的(委托给组件最外层的元素)
+
+**注意：**
+- 我们绑定的事件其实都委托给了最外层的div 所以下面的事件回调的逻辑会被执行2次
+*react把原生里面的事件都重新的写了一套 为了更好的兼容性*
+
+```jsx
+  // 父元素有click事件
+  <div className="app-wrap" onClick={this.handleClick}>
+    // 子元素也有click事件
+    <button onClick={this.handleClick}>click</button>
+  </div>
+
+
+  handleClick = () => {
+    console.log("这里的逻辑会被执行两次")
+  }
+```
+
+- 2. 通过 event.target 得到发生事件的DOM元素对象
+- 我们在虚拟DOM节点上绑定事件的时候 不传递参数 类中方法的回调的默认形参为 event
+- react中会在事件回调中自动传入 event 事件对象
+```html
+<button onClick={this.handleInp1}>click</button>
+
+<script>
+    // 回调中的默认形参为事件对象
+    handleInp1 = (e) => {
+      console.log(e)
+    }
+</script>
+```
+
+- 3. 不要过渡的使用ref
+
+- 4. 假如我们在事件回调使用了高阶函数 也就是返回一个函数的形式的话 
+- *那么交给react的是函数的返回值函数* react会往拿到手的函数的形参中加入 事件对象
+```js
+  handleClick= (参数) => {
+    return (e) => {
+      // 因为react拿到的是这个函数
+    }
+  }
+```
 
 ---
 
@@ -3121,7 +3888,7 @@ const Demo = props => {
 - 引入 prop-types.js 库之后 全局就会多出 PropTypes 对象 内部规则使用PropTypes全局对象
 ```js
   // 引入下方的js文件, 全局多了 PropTypes 对象
-  <script src='../js/prop-types.js'></script>
+  <script src='../js/prop-types.js'></>
   <script type='text/babel'>
 
   </script>
@@ -3463,13 +4230,15 @@ export default class Child extends Component {
 <!-- 因为状态是组件内部的私有数据 所以父组件还要提供操作状态的方法 -->
 
 ----------------------------
-### 书签：
-### 组件的三大核心属性 refs 与 事件处理
-- ref一般是给组件和dom节点打标记的 相当于id
 
-- 给组件打ref属性 相当于拿到了该组件的实例对象 可以通过ref调用子组件中的props state等属性
+### 组件的三大核心属性 refs
+- ref一般是给组件和dom节点打标记的 相当于id(也就是vue里面的ref)
 
-- 给dom元素打ref相当于拿到了dom元素的节点
+- 给组件打ref属性相当于
+    拿到了该组件的实例对象 可以通过ref调用子组件中的props state等属性
+
+- 给dom元素打ref相当于
+    拿到了dom元素的节点
 
 - 案例
 - 需求: 自定义组件
@@ -3477,15 +4246,18 @@ export default class Child extends Component {
   - 2. 当第二个输入框失去焦点时, 提示这个输入框的值
 
 
-> 1. 字符串型的 ref --- 从 this.refs身上获取
+> 1. 字符串型的 ref --- *从 this.refs 身上获取*
 - ref的值 input1 是字符串的类型 所以叫做字符串型 ref
-<!-- 
-  <input ref='input1'>
- -->
 
-- 作用: 
-- 组件内的标签可以定义ref属性来标识自己 然后被react收集到实例对象的refs属性(refs是一个对象)中
-- 简单的说 用法类似 id
+- 组件内的标签可以定义ref属性来标识自己 然后被react收集到实例对象的refs属性(refs是一个对象)中 简单的说 用法类似 id
+
+```js
+  const inp1 = this.refs.inp1
+  const {inp1} = this.refs
+
+  <input ref='input1'>
+```
+
 <!-- 
   <input type="text" ref='inp1'/>
 
@@ -3497,7 +4269,7 @@ export default class Child extends Component {
  -->
 
 
-- 注意:
+**注意:**
 - 这里要注意的是 我们虽然是给虚拟DOM打上的ref标识, 但获取到的*不是虚拟DOM*, 而是该虚拟DOM转成*真实DOM后的节点*
 
 **字符串类型的ref已经不被react官方推荐使用了 以后可能会被废弃掉**
@@ -3513,11 +4285,7 @@ export default class Child extends Component {
       return (
         <div>
           <input ref='inp1' type="text" placeholder='点击按钮提示文字'/> 
-          
           <button ref='btn' onClick={this.inputClick}>点击</button> 
-
-          <input ref='inp2' type="text" placeholder='失去焦点提示文字' onBlur={this.inputBlur} />
-
         </div>
       )
     }
@@ -3532,40 +4300,27 @@ export default class Child extends Component {
 
       // console.log(this.refs.inp1.value)
 
-
       // 解构赋值
       const {inp1} = this.refs
       console.log(inp1.value)
-      
-    }
-
-    inputBlur = () => {
-      const {inp2} = this.refs
-      console.log(inp2.value)
     }
   }
 
   ReactDOM.render(<InputComponent />, document.querySelector('#app'))
 ```
 
+---
 
-> 2. 回调形式的 ref = {c => this.refname = c}  --  从 this 身上获取
-- 所谓的回调形式的ref 就是给 ref的值设置一个回调函数(箭头函数), jsx中要在结构中使用js 要用到{ }
-<!-- 
-  ref = { (currentNode) => { this.inp1 = currentNode } }
- -->
-
+> 2. 回调形式的 ref = {c => this.refname = c}  --  *从 this 身上获取*
 - ref属性要指定一个回调, 回调中的形参currentNode就是当前节点 
-- 我们将ref标识的节点放在了组件实例对象自身身上
+- 我们在 当前的组件实例上添加了一个 inp2 属性 并赋值为当前的节点
 
+```js
+  <input ref={c => this.inp2 = c} type="text" />
+```
 
-- 解析:
+> 解析:
 <!-- 
-  既然要在ref中写回调 那么就要用到 { }
-  ref = { }
-
-  我们直接在{ }中定义一个函数
-  ref = { () => {} }
 
   我们可以试验一下 这个回调函数执行了没
   ref = { () => { console.log('test')} }
@@ -3580,59 +4335,45 @@ export default class Child extends Component {
   // 一般我们在这个回调中 做这么一件事情
   ref = { c => this.inp1 = c }
       // 把当前节点a 放在了组件实例自身上 然后起了一个名字叫做inp1
-
-  
-  整体的流程:
-    我们在页面上展示东西 肯定要new一个组件实例 react通过这个实例帮我们调用render 调用render后需要执行里面的jsx 执行jsx来到ref=回调 这个时候就触发了这个回调的执行
-
-    react在调用这个函数的时候, 会把当前处于的节点作为参数传递进去
-    ref = { (currentNode) => { this.inp1 = currentNode } }
-        // 那这里的this是谁呢? 箭头函数没有自己的this 它会往外找 会找到render render里面的this 就是组件实例
  -->
 
+ - 整体的流程:
+- 我们在页面上展示东西 肯定要new一个组件实例 react通过这个实例帮我们调用render 调用render后需要执行里面的jsx 执行jsx来到ref=回调 这个时候就触发了这个回调的执行
+
+- react在调用这个函数的时候, 会把当前处于的节点作为参数传递进去
+```jsx
+<input ref={c => this.inp2 = c} type="text" />
+// 那这里的this是谁呢? 箭头函数没有自己的this 它会往外找 会找到render render里面的this 就是组件实例
+```
 
 > 完整代码
 ```js  
-  class InputComponent extends React.Component {
-      render() {
-        return (
-          <div>
-            <input ref={ currentNode => this.inp1 = currentNode } type="text" placeholder='点击按钮提示文字'/>
-            
-            <button onClick={this.inputClick}>点击</button> 
+  export default class App extends Component {
 
-            <input ref= { currentNode => this.inp2 = currentNode } type="text" placeholder='失去焦点提示文字' onBlur={this.inputBlur} />
-          </div>
-        )
-      }
-
-      inputClick = () => {
-
-        // 我们不是从refs中取变量了, 而是从实例自身上取
-        let {inp1} = this
-
-        console.log(inp1.value)
-        console.log(this.inp1.value)
-      }
-
-      inputBlur = () => {
-        console.log(this.inp2.value)
-      }
+    handleInp2 = () => {
+      console.log(this) // App input节点在App实例上
+      const {inp2} = this
+      console.log(inp2.value)
     }
 
-    ReactDOM.render(<InputComponent />, document.querySelector('#app'))
+    render() {
+      return (
+        <div className="app">
+          <div>
+            inp2: <input ref={c => this.inp2 = c} type="text" /> <br />
+            <button onClick={this.handleInp2}>click</button>
+          </div>
+        </div>
+      )
+    }
+  }
 ```
 
 
 **回调ref中调用次数的问题**
-- 我们来看一个比较细节的地方 就是ref的回调 的调用次数
-<!-- 
-  <input ref={ currentNode => this.inp1 = currentNode } type="text" />
- -->
-
+- 我们来看一个比较细节的地方 回调形式的ref 的调用次数
 
 > 内联函数的ref 带来的可以忽略不计的问题
-- 上面的注释里就是内联的函数的形式
 - 官方文档上说明:
 - 如果ref回调函数是以内联函数的方式定义的, 在更新过程中它会被执行两次
 <!-- 
@@ -3651,18 +4392,16 @@ export default class Child extends Component {
 
   这时react 会再次执行ref的回调, 这时这个回调就是第一次那个了 
   之前那个执行完了被释放了 没了 这是一个新的 
-  第二次的时候react不知道之前做了什么接收到了什么, 
-  为了保证这个函数被完美的清空所以调用了第一次传递了一个null 
-  然后紧接着它调用第二次才把当前的DOM节点放了进来 是为了有一个清空的动作
+  第二次的时候react不知道之前做了什么接收到了什么,  为了保证这个函数被完美的清空所以调用了第一次传递了一个null  然后紧接着它调用第二次才把当前的DOM节点放了进来 是为了有一个清空的动作
  -->
 
 
 > 官方给出的解决办法
 - 通过将ref的回调函数中调用我们在类中定义好的方法 该方法内部 做
    c => this.name = c, 的逻辑
-  但是大多情况下它是无关紧要的
-<!-- 
-  说白了就是像vue一样 在标签里面定义方法, 然后在类里面 定义方法写逻辑
+  但是大多情况下它是无关紧要的 直接写成内联的没什么影响
+```js
+  // 说白了就是像vue一样 在标签里面定义方法, 然后在类里面 定义方法写逻辑
   <input 
     ref={this.saveInput} 
     type="text" 
@@ -3673,43 +4412,30 @@ export default class Child extends Component {
       this.inp1 = c;
     }
   }
- -->
+```
 
-- 以后直接写成内联的没什么影响
+---
 
+> 3. React.createRef() 创建ref容器  --- *this.refname.current 当前节点*
+- 1. 创建 ref 容器, React.createRef() 调用后可以返回一个容器, 该容器可以存储被ref所标识的节点 
+```js
+  refWrap = React.createRef()
+```
 
-> 3. React.createRef() 创建ref容器  --- this.refname.current.value
-- React.createRef() 调用后可以返回一个容器, 该容器可以存储被ref所标识的节点 
+- 2. 在 react元素上使用 ref 属性 其值为 ref容器 
+- 将当前节点放入容器中
+```html
+  <input ref={this.refWrap} type="text"/>
+```
 
-- 最新的写法 也是目前react最为推荐的一种写法
-
-- 1. 我们在类中, 使用赋值的形式 创建ref容器
-
-    myRef = React.createRef()
-
-- 2. 然后在标签内部使用该容器 ref={this.myRef}
-
-    <input ref={this.myRef} type="text"/>
-
-<!-- 
-  myRef = React.createRef()
-
-  <input ref={this.myRef} type="text"/>
-
-  当执行到 <input ref={this.myRef} type="text" /> 的时候 会把input所在的节点直接存储到这个myRef的容器里面
- -->
-
-- 3. this.myRef.current 取到当前节点
-- 我们console myRef 容器 结果是一个对象 {current: input}
-
-- 要是获取保存在里面的节点 需要通过 myRef.current 来获取
-<!-- 
-  console.log(this.myRef.current)
-  // 获取input节点
-
-  console.log(this.myRef.current.value)
-  // 获取input节点的value
- -->
+- 3. 通过 this.ref容器.current 取到当前节点
+- 我们console myRef 容器 结果是一个对象 {current: input节点}
+```js
+  handleInp1 = () => {
+    console.log(this.refWrap.current)
+    console.log(this.refWrap.current.value)
+  }
+```
 
 **注意:**
 - 该容器是专人专用的 里面只能存储一个 后放进去的会覆盖前一个 要想有多个 就需要通过React.create() 创建多个ref容器
@@ -3717,212 +4443,97 @@ export default class Child extends Component {
 
 > 完整代码
 ```js
-  class Demo extends React.Component {
+  export default class App extends Component {
 
-    // 专人专用
-    inputRef = React.createRef()
-    inputRef2 = React.createRef()
+    inp1Wrap = React.createRef()
+
+    handleInp1 = () => {
+      console.log(this.inp1Wrap.current)
+      console.log(this.inp1Wrap.current.value)
+    }
 
     render() {
       return (
-        <div>
-          <input ref={this.inputRef} type="text" />
-
-          <button onClick={this.showData1}>点击我</button>
-
-          <input ref={this.inputRef2} onBlur={this.showData2} type="text" />
+        <div className="app">
+          <div>
+            inp1: <input ref={this.handleInp1} type="text"/> <br />
+            <button onClick={this.handleInp1}>click</button>
+          </div>
         </div>
       )
     }
-
-    showData1 = () => {
-      let input1 = this.inputRef.current
-      console.log(input1.value)
-    }
-
-    showData2 = () => {
-      let input2 = this.inputRef2.current
-      console.log(input2.value)
-    }
   }
-
-  ReactDOM.render(<Demo />, document.querySelector('#app'))
 ```
 
 ----------------------------
 
-### react中的事件处理
-- 1. react中通过onXxx的形式指定事件处理函数(注意大小写)
-  - 1.1 react使用的是自定义(合成)事件, 而不是使用的原生DOM事件
-  - 1.2 react中的事件是通过事件委托方式处理的(委托给组件最外层的元素)
-
-- 2. 通过 event.target 得到发生事件的DOM元素对象
-
-**注意：**
-- 我们绑定的事件其实都委托给了最外层的div
-```js 
-  <div className="app-wrap" onClick={this.handleClick}>
-    <button onClick={this.handleClick}>click</button>
-  </div>
-
-
-  num = 0
-
-  handleClick = () => {
-    console.log(this.num += 1)
-
-    // 扩展
-    如果我们在函数内部定义 let num = 0
-    每次console num++
-    我们每次得到的都是0 每点击一次 打印的就是一个0
-  }
-
-  现在div和button都绑定了相同的事件 事件内的逻辑或执行两次
-```
-
-- 对上面部分的解释说明
-
-  1.1 解释:
-    react把原生里面的事件都重新的写了一套 为了更好的兼容性
-
-  1.2 解释:
-    <div>
-      <input ref={this.inputRef} type="text" />
-      <button onClick={this.showData1}>点击我</button>
-
-      <input ref={this.inputRef2} onBlur={this.showData2} type="text" />
-    </div>
-
-    我们绑定的onClick 和 onBlur 其实都委托给了最外层的 div 事件委托的原因是为了高效
-
-
-  2. 解释:
-  上面我们学习的ref的使用 是为了像id那样获取指定的节点, 但是react官网并不推荐过渡的使用ref
-
-  比如
-  <input ref={this.inputRef2} onBlur={this.showData2} type="text" />
-
-  这个就没必要写ref, 因为事件的DOM元素 和 要操作的DOM元素是同一个
-
-  // react会自动传递进去event
-  showData2 = (event) => {
-    alert(event.target.value)
-  }
-
-
-> 总结:
-- 1. 不要过渡的使用ref
-- 2. react中会在事件回调中自动传入 event 事件对象 react会在事件回调中假如 事件对象
-
-- 3. 假如我们在事件回调使用了高阶函数 也就是返回一个函数的形式的话 那么我们交给react的就是函数的返回值函数 react会往拿到手的函数的形参中加入 事件对象
-<!-- 
-  <div onClick={this.handleClick}>
-  handleClick= (e) => { }
-
-  handleClick= (参数) => {
-    return (e) => {
-      因为react拿到的是这个函数
-    }
-  }
- -->
-
-----------------------------
-
-### 非受控组件
+### 非受控组件 (现用现取)
 
 - 包含表单的组件分类
   - 1. 受控组件
   - 2. 非受控组件
 
-- 什么是非受控组件
-- 表单中所有输入类的DOM的值(text checkbox radio) 对于这些DOM节点中的值
+> 什么是非受控组件?
+- 表单中*所有输入类的DOM的值*(text checkbox radio) 对于这些DOM节点中的值
 - 是通过现用现取的就是非受控组件
 
 
 - 案例:
 - 定义一个包含表单的组件, 输入用户名和密码 点击登录提示输入信息
-- 这个案例就是非受控组件
+*这个案例就是非受控组件*
 
 
 > 完整代码
 ```js 
-  class Login extends React.Component {
+  export default class App extends Component {
 
-    // 使用的创建ref容器
-    textRef = React.createRef()
-    passwordRef = React.createRef()
+    refWrap = React.createRef()
+
+    handleClick = (e) => {
+      let {username, password} = this
+      console.log(username.value)
+      console.log(password.value)
+    }
 
     render() {
       return (
-        
-        // 这里给表单绑定的submit
-        <form onSubmit={this.handleSubmit}>
+        <div className="app">
+          <div>
+            用户名: 
+            <input 
+              ref={c => this.username = c}
+              type="text" name="username"/> <br />
 
-          用户名:<input ref={this.textRef} type="text" name='uname'/>
-
-          密&emsp;码:<input ref={this.passwordRef} type="password" name='pwd'/>
-
-          <button>Login</button>
-
-        </form>
+            密&emsp;码: 
+            <input 
+              ref={c => this.password = c}
+              type="text" name="password"/>
+          </div>
+          <button onClick={this.handleClick}>click</button>
+        </div>
       )
     }
-
-    
-    handleSubmit = (e) => {
-      // 这里使用阻止表单的提交的默认行为
-      e.preventDefault()
-
-      // 通过ref获取节点的value值
-      let user = this.textRef.current.value
-      let pwd = this.passwordRef.current.value
-
-      console.log(`您的用户名是${user}, 密码是${pwd}`)
-    }
   }
-
-  ReactDOM.render(<Login/>, document.querySelector('#app'))
 ```
 
-
-> form相关的知识点
-- 1. 不指定请求方式的时候, form表单默认是get请求
-<!-- 
-  带的参数默认是query参数
-  /?是携带qurey参数的一种形式
- -->
-
-- 2. 如果表单项中没有name属性, 我们取不到用户输入的数据
-<!-- 
-  // 没指定name属性
-  https://www.baidu.com/?
-
-  // 指定了name属性
-  https://www.baidu.com/?uname=sam&pwd=123
- -->
-
-- 3. 有 form 的情况下 我们用 onsubmit 事件来提交数据
-- 4. 原生form提交后 页面会跳转 或 刷新 数据会置空, 但是ajax不会
+> 我在获取 input 节点的值的时候 第一个想法是指定其id 但是我们在获取id对应的dom节点的时候 getElementById 操作的就是真正的DOM 但我们使用的是react 所以使用 ref
 
 ----------------------------
 
 ### 受控组件
-- 非受控组件:
-- 表单中所有输入类的DOM的值(text checkbox radio) 对于这些DOM节点中的值, 是通过现用现取的就是非受控组件
-
-- 说白了类似 通过点击按钮从该input中获取到值进行操作的就是非受控组件
-
-- 受控组件:
-- 表单中所有输入类的DOM 随着我们的输入 就能把value维护到state里面去 等需要用的时候直接从state里面取出来 这就是受控组件
+- 表单中所有输入类的DOM *随着我们的输入* 就能*把value维护到state里面去* 等需要用的时候直接*从state里面取出来* 这就是受控组件
 
 
-- 总结:
-- 就是获取值采用的事件不一样, onClick就是非受控, onChange就是受控(因为我们会把value存放到state中)
+- 小结:
+- 就是获取值采用的方式(事件)不一样, 
+  - onClick就是非受控
+  - onChange就是受控(因为我们会把value存放到state中)
 <!-- 
   典型的vue中的v-model
  -->
 
-> 受控组件
+
+> 受控组件思路
 - html中的表单元素是可以输入的 也就是有自己的可变状态
 - 而 react中可变状态通常保存在state中 并且只能通过 setState 方法来修改
 
@@ -3932,15 +4543,135 @@ export default class Child extends Component {
 - react将state与表单元素值绑定到一起 由 state 的值来控制表单元素的值
 
 
-> 有点像实现v-model的感觉
-- 1 动态绑定 input 的 value 为 state 中的对应数据 -- 控制表单的来源
+> 有点像实现v-model的感觉 实现步骤
+- 1. 初始化 组件内部的state
+- 2. react input元素上绑定 onChange 事件 和 value的值从 this.state 中获取
+```jsx
+state = {
+  username: "",
+  password: ""
+}
 
-- 2 然后给 input 绑定 input /  change 事件 -- 控制表单元素值的变化
-- 
-- <input type="text" value={this.state.text} />
-- onChange={e => { this.setState({ text: e.target.value })}}
+render() {
+  return (
+    <input 
+      type="text" 
+      name="username"
+
+      value={this.state.user.username} 
+      onChange={this.handleChange}
+    />
+  )
+}
+```
+
+- 3. 在组件内部定义 handleChange的回调函数
+```js
+handleChange = (e) => {
+  this.setState({
+    uname: e.target.value
+  })
+}
+```
+
+---
+
+> 如果 state 中定义的是一个对象的话 如下
+```js
+export default class App extends Component {
+
+  state = {
+    user: {
+      username: "",
+      password: ""
+    }
+  }
+
+  handleChange = (e) => {
+
+    let {user} = this.state
+    user.username = e.target.value
+    
+    this.setState({
+      user
+    })
+
+    console.log(this.state.user)
+    
+  }
+
+  render() {
+    return (
+      <div className="app">
+        <div>
+          用户名: <input value={this.state.user.username} type="text" name="username" onChange={this.handleChange}/> <br />
+          密&emsp;码:  <input type="text" name="password"/>
+        </div>
+        <button onClick={this.handleClick}>click</button>
+      </div>
+    )
+  }
+}
+```
+
+> 利用一个回调处理两个值受控
+- 我们利用了下面的代码形式
+```js
+  handleSave = (type) => {
+    return (e) => {
+      this.setState({
+        [type]: e.target.value
+      })
+    }
+  }
+
+  <input type="text" name="username" onChange={this.handleSave("username")} />
+```
+
+- 如果state中我们写的是一个对象的话
+```js
+export default class App extends Component {
+
+  state = {
+    user: {
+      username: "",
+      password: ""
+    }
+  }
+
+  handleChange = (type) => {
+
+    return (e) => {
+      console.log("e", e)
+
+      let {user} = this.state
+      user[type] = e.target.value
+
+      this.setState({
+        user
+      })
+
+      console.log(this.state.user)
+    }
+    
+  }
+
+  render() {
+    return (
+      <div className="app">
+        <div>
+          用户名: <input value={this.state.user.username} type="text" name="username" onChange={this.handleChange("username")}/> <br />
+          密&emsp;码:  <input value={this.state.user.password} type="text" name="password" onChange={this.handleChange("password")}/>
+        </div>
+        <button onClick={this.handleClick}>click</button>
+      </div>
+    )
+  }
+}
+```
 
 
+> 案例:
 > 富文本框(textarea) react实现v-model的逻辑 受控组件
 ```js 
   state = {
@@ -3952,6 +4683,7 @@ export default class Child extends Component {
   }
   <textarea value={this.state.text} onChange={ this.handleContent }>
 ```
+
 
 > 下拉框(select)
 ```js
@@ -3966,6 +4698,7 @@ export default class Child extends Component {
     onChange={ this.handleContent }
 ```
 
+
 > 复选框
 - 因为复选框是可以选中和不选中 它操作的不是value 而是 checked
 ```js
@@ -3978,11 +4711,11 @@ export default class Child extends Component {
     onChange={ this.handleContent }
 ```
 
+
 > 多表单元素优化步骤：
 - 1. 给表单元素添加 name 属性 名称与 state 相同
 - 2. 根据表单元素类型获取对应值
-
-- 这里是通过 target.type 和 target.name 的方式 拿到节点的种类 和 name属性
+- 这里是通过 *target.type 和 target.name* 的方式 拿到节点的种类 和 name属性
 
 ```html
   <input 
@@ -3991,128 +4724,62 @@ export default class Child extends Component {
     value={this.state.text}
     onChange={this.handleForm}
   />
-
-  const value = target.type === "checkbox" ? target.checked : target.value
-
-  const name = target.name
-  this.setState({[name]: value})
+  <script>
+    const value = target.type === "checkbox" ? target.checked : target.value
+    const name = target.name
+    this.setState({[name]: value})
+  </script>
 ```
 
-
-
-> 完整代码
-```js 
-  class Login extends React.Component {
-      
-    // 初始化状态
-    state = {
-      uname: '',
-      password: ''
-    }
-
-    render() {
-      
-      return (
-        <form onSubmit={this.handleSubmit}>
-
-          用户名:<input type="text" name='uname' onChange={this.saveUname}/>
-
-          密&emsp;码:<input type="password" name='pwd' onChange={this.savePassword}/>
-
-          <button>Login</button>
-
-        </form>
-      )
-    }
-
-    // 保存用户名到状态中
-    saveUname = (e) => {
-      this.setState({
-        uname: e.target.value
-      })
-    }
-
-    // 保存密码到状态中
-    savePassword = (e) => {
-      this.setState({
-        password: e.target.value
-      })
-    }
-
-    handleSubmit = (e) => {
-      e.preventDefault()
-
-      // 展示的时候 我们将数据从state中取出来做为展示
-      const {uname, password} = this.state
-      console.log(`您输入的用户名: ${uname}, 您输入的密码是: ${password}`)
-    }
-  }
-
-  ReactDOM.render(<Login/>, document.querySelector('#app'))
-```
-
+---
 
 > 总结:
 - 1. 我们要是在项目中使用state的话, 一定要先*对state进行初始化*
 ```js 
-  // 初始化状态
+  // 初始化状态 不要state连初始化都没做 直接将uname存放到state里
   state = {
     uname: '',
     password: ''
   }
-
-  不要state连初始化都没做 直接将uname存放到state里
 ```
 
 - 2. 现用现取 就是 非受控 | 随着输入维护状态 就是 受控
+- 受控组件的优势就在于能够省略ref
+
 <!-- 
   建议还是写受控组件 受控式组件里面一个ref也没有用
   而非受控组件里面有几个输入项就要写几个ref
-
-  受控组件的优势就在于能够省略ref
  -->
-
-
-> 技巧要点:
-- 我们创建了一个中间变量type 这个中间变量对应的是state中的key
-```js
-  handleSave = (type) => {
-    return (e) => {
-      this.setState({
-        [type]: e.target.value
-      })
-    }
-  }
-
-  <input type="text" name="username" onChange={this.handleSave("username")} />
-```
-
+  
 ----------------------------
 
 ### 评论区的练习
 - 评论人 评论内容 发表评论 展示信息
 - 我分成了两个组件 评论人 评论内容 发表评论 和 展示信息
 
-- 我将数据放在了app组件里面
-- 功能组件收集数据 app通过prop传过来的函数 将数据返送回去
-- app组件将收到的数据 prop传给展示组件
+- 1. 我将数据放在了app父组件里面
+- 2. 功能区组件负责收集数据 并将数据通过props函数的方法回传到 app组件中
+- 3. app组件将收到的数据 prop传给展示组件
 
 > 要点
 - 通过三元表达式来决定渲染哪个结构
 - 条件? (结构1) : (结构2)
 
 ```js 
-  // 功能组件
+  // 功能区 的组件
   handleContent = () => {
     let {inp, area} = this
 
+    // 判空处理
     if(inp.value.trim() === "" || area.value.trim() === "") return alert("请输入评论人 或 评论内容") 
 
+    // 将收集的数据整理为一个对象
     let msgObj = {
       auth: inp.value,
       content: area.value
     }
 
+    // 调用 父组件 传递过来的函数 将整理好的数据对象进行回传
     this.props.saveData(msgObj)
   }
   
@@ -4120,20 +4787,25 @@ export default class Child extends Component {
     return (
       <div className="feature-wrapper">
         <div className="feature-commentator">
+          {/*评论人的输入框*/}
           <input ref={c => this.inp = c} type="text" name="commentator" placeholder="请输入评论人"/>
         </div>
         <div className="feature-comment">
+          {/*评论内容的输入框*/}
           <input ref={c => this.area = c} type="textarea" name="comment" placeholder="请输入评论内容"/>
         </div>
         <div>
+          {/*发表评论按钮*/}
           <button onClick={this.handleContent}>发表评论</button>
         </div>
       </div>
     )
   }
 
+---
 
   // app组件
+  // 状态里面要放一个个的对象
   state = {
     msg: []
   }
@@ -4157,12 +4829,12 @@ export default class Child extends Component {
 
 
   // 展示组件
+  // vue中定义在data配置项里面的数据 放到了state里面
   state = {
     hasContent: false
   }
 
   render() {
-    console.log(this)
     return (
       <div className="comment-wrapper">
         <span className="title">评论区</span>
@@ -4195,11 +4867,13 @@ export default class Child extends Component {
 > 代码优化
 - 因为上面的js逻辑都放在了 html结构里面 就显得很多清晰
 - 我们可以把复杂的逻辑放在 方法里 然后在 html结构中 调用方法就可以了
+
 - 注意：
 - 这里我们一定要加上小括号 因为我们渲染的是返回值
 ```js
   <div className="comment-area">
     {
+      // 这样拿到的是返回值
       this.renderList()
     }
   </div>
@@ -4268,263 +4942,27 @@ export default class Child extends Component {
 
 ----------------------------
 
-### 高阶函数 函数柯里化
-- 上面的案例中, 我们使用了受控组件的形式, 将input中的值取出来放在了state中, 然后从state中做了展示
-
-- 但是上面的代码还是存在了一些的问题, 我们的案例中只是需要在state中保存uname 和 password, 假如我们的组件是一个注册功能
-```js 
-  <input type="text" name='uname' onChange={this.saveUname}/>
-
-  saveUname = () => {}
-  savePassword = () => {}
-```
-
-- 那是不是说我们还需要定义saveUname savePassword saveTel saveMail等方法, 而其目的就是为了在state中保存一个值?
-
-- 所以 我们要想办法 定义一个方法, 在这个方法中 写在state中保存数据的逻辑
-- 定义一个 saveFormData 方法
-
-- 但是有问题, 我怎么告诉这个方法 我要在state中保存什么? 保存uname? password? tel? 函数能传递参数, 我们可以通过传参的形式 告诉saveFormData我们要保存什么
-```js
-  <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
-```
-
-- 但是又出现了一个新的问题 我们看看有什么问题
-```js 
-  <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
-
-  问题1
-    该函数react会帮我们直接调用 因为 saveFormData后面加了() 直接调用了
-
-  问题2
-    由于我们自己传递了参数, saveFormData('uname') 那么我们类中定义的saveFormData方法 接收到的参数就不是 event对象了
-
-    因为react在帮我们调用方法的时候会传递event, 但是我们自己传的话参数就是我们自己传递的
-
-  问题3
-    而且 onChange={this.saveFormData('uname') 这种形式的写法, 也会失去效果
-    因为这种写法 是将saveFormData()的返回值 交给onchange做为回调 
-
-    而saveFormData的返回值是undefined 所是react不会帮我们调用undefined 所以就会没效果
-```
-
-- 从上面总结的问题上来看, 我们只需要让saveFormData返回一个函数就可以了, 这样交给onChange做为回调的就不再是一个函数的返回值, 而是一个函数
-```js 
-  saveFormData = () => {
-    return () => {}
-  }
-
-  // 我们通过实参传递进来的参数在外层形参中接收
-  saveFormData = (dataType) => {
-    return (event) => {
-      this.setState({
-
-        // 这里要注意, {}中的属性名其实都是'字符串'类型, 而我们需要读的是dataType这个变量,  所以要加上[]
-        [dataType]: event.target.value
-      })
-    }
-  }
-
-  我们是要在state中添加dataType(我们传递进来的属性名)和值 比如我们传递进来的是 'username'
-  但是我们如果这么写
-  this.setState({
-    dataType: event.target.value
-  })
-
-  相当于在 state中保存了 dataType 这个属性名 
-  所以我们要将 dataType 改成 [dataType] 这样才能当变量去找值
-```
-
-
-> 高阶函数
-- 如果一个函数符合下面2个规范中的任何一个 那么该函数就是高阶函数
-  1. 若A函数 接收的参数是一个函数, 那么A就是高阶函数
-  2. 若A函数 调用的返回值依然是一个函数, 那么A就是高阶函数
-
-<!-- 
-  常见的高阶函数有哪些?
-    Promise
-    new Promise(() => {})  参数是函数  === > 高阶函数
-
-    setTimeout(() => {})  参数是函数  === > 高阶函数
-
-    数组身上常见的方法都是高阶函数map reduce forEach
- -->
-
-
-> 函数的柯里化
-- 通过函数调用继续返回函数的方式, 实现多次接收参数最后统一处理参数的函数编码形式
-```js 
-  // 需求 求3个数的和
-  function sum(num1, num2, num3) {
-      return num1 + num2 + num3
-  }
-
-  let res = sum(1, 2, 3)
-  console.log(res)        // 6
-
-  // 上面没有用到函数的柯里化
-
-
-  function sum(a) {
-    // sum的返回一个函数接收到一个b
-    return (b) => {
-
-        // 它继续返回函数接收到一个c
-        return (c) => {
-
-            // 这个函数做的统一处理
-            return a+b+c
-        }
-    }
-  }
-
-  let result = sum(1)(2)(3)
-  console.log(result)
-
-
-  // 我们的案例其实就用到了函数的柯里化技术
-  saveFormData = (dataType) => {
-    return (event) => {
-      this.setState({
-        [dataType]: event.target.value
-      })
-    }
-  }
-
-  saveFormData接收到了一个参数dataType, 而saveFormData返回的也是一个函数
-  而saveFormData返回的函数也接收到了参数event, 最终做了统一的处理
-
-  我们案例中, 我们保存用户名 保存密码 我想共用一个saveFormData方法 如果不用高阶函数 如果不用函数的柯里化 有没有写不下去了?
-
-  比如 这样为什么不行
-  saveFormData = (dataType, event) => {
-
-  }
-
-  <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
-  // 这个回调是React帮我们调用的 而event也是react帮我们传递的, 所以我们一次性的获取不到所有的参数
-```
-
-
-**复习: 对象相关的知识**
-```js 
-  let a = 'name'
-  let obj = {}
-
-  - 需求:
-  - 我想让最后的结果是 {name: 'tom'}
-
-  let a = 'name'
-  let obj = {}
-
-  // obj.a = 'tom'
-  // console.log(obj)        // { a: "tom" }
-
-  obj[a] = 'tom'
-  console.log(obj)            // {name: "tom"}
-```
-
-
-> 完整代码
-```js 
-  class Login extends React.Component {
-      
-    // 初始化状态
-    state = {
-      uname: '',
-      password: ''
-    }
-
-    render() {
-      
-      return (
-        <form onSubmit={this.handleSubmit}>
-          用户名:<input type="text" name='uname' onChange={this.saveFormData('uname')}/>
-          密&emsp;码:<input type="password" name='pwd' onChange={this.saveFormData('password')}/>
-          <button>Login</button>
-        </form>
-      )
-    }
-
-    // 保存表单数据到state中
-    saveFormData = (dataType) => {
-      return (event) => {
-        this.setState({
-          [dataType] : event.target.value
-        })
-      }
-    }
-
-    handleSubmit = (e) => {
-      e.preventDefault()
-      const {uname, password} = this.state
-      console.log(`您输入的用户名: ${uname}, 您输入的密码是: ${password}`)
-    }
-  }
-
-  ReactDOM.render(<Login/>, document.querySelector('#app'))
-```
-
-----------------------------
-
-### 对上面知识点的补充 - 不用柯里化的写法
-```js
-  saveFormData = (dataType) => {
-    return (event) => {
-      this.setState({
-        [dataType]: event.target.value
-      })
-    }
-  }
-
-  // 上面我们提到了 没办法在 saveFormData 方法中同时接到 dataType和event 因为event不是我们自己传递的 我们要用event.target.value得到input的值
-
-  // 我们将方法改成这样
-  saveFormData = (dataType, value) => {
-    this.setState({
-      [dataType]: value
-    })
-  }
-
-  // 那怎么同时接到 dataType 和 input的值呢? 假如能接到那么方法内部就不用return函数了
-  
-  // 怎么写? 
-  <input type="text" name='uname' onChange={这里必须交给左边一个函数}/>
-
-  onChange={(event) => {}}
-  // 那就给你一个函数, 而且这个函数是react帮我们调用的 那么这个回调就能收到event
-
-  // 那我在这个函数里面是不是可以调用 saveFormData
-  onChange={(event) => {this.saveFormData('uname', event.target.value)}}
-
-
-  // 以上就完成了不用函数柯里化达到的同样的效果
-```
-
-----------------------------
-
 ### 组件的生命周期
 - 生命周期回调函数, 我们自己写了该函数, react在适合的实际帮我们调用
 
-- 这节课里面我们主要引出生命周期函数的应用
-
 - 我们简单的说下需求
-- 页面有一个<h3> 有一个<button>用来卸载组件, <h3>每200ms会改变opacity -0.1 当到0的时候一下子opacity会改变为1, 点击<button>后卸载组件
+- 页面有一个<h3> 有一个<button>用来卸载组件, <h3>每200ms会改变opacity -0.1 当到0的时候一下子opacity会改变为1, 点击<button>后卸载组件 我们应该怎么做?
 
-- 我们应该怎么做
-- 思路:
+> 思路:
 - 我们在 state 中创建一个opacity
 - 然后关联到标签内部
-<!-- 
-  页面的改动是因为state中的数据发生了改变, 驱动页面的更新 更新就会调用render函数
-
-  <h3 style={{opacity: this.state.opacity}}>React学不会怎么办?</h3>
- -->
+```js
+  // 页面的改动是因为state中的数据发生了改变, 驱动页面的更新 更新就会调用render函数
+  <h3 
+    style={{opacity: this.state.opacity}}
+  >
+    React学不会怎么办?
+  </h3>
+```
 
 - 然后开启定时器 改变state中的数据, 推动页面的更新
 
-- 但是我们的定时器写在哪里比较合适
+> 但是我们的定时器写在哪里比较合适?
 - 1. 首先不能直接写在类里!!!
 <!-- 
   class Life {
@@ -4562,6 +5000,7 @@ export default class Child extends Component {
 - componentDidMount它跟render是同一个级别 componentDidMount是通过实例.的形式调用的 所以componentDidMount里面的this指向的是实例对象
 
 - 所以我们在componentDidMount里可以通过this.timer的形式给定时器加上id
+
   this.timer =
 
 - 我们在death方法里清除定时器的时候, 由于death方法是事件的回调 该函数是箭头函数加赋值形式 所以里面的this也没有问题
@@ -4624,7 +5063,7 @@ export default class Child extends Component {
 - 作用
 - 我们每一个组件内部都会有一个render方法 它的作用是调用render方法 将react元素渲染到真实的dom里面
 
-- 什么时候触发render？
+> 什么时候触发render？
 - 在组件实例化和存在期的时候会执行render
 
 - 实例化过程中:
@@ -4654,14 +5093,15 @@ export default class Child extends Component {
 
 
 ### 初始化 | 挂载时 的生命周期 流程图
-<!-- 
-  挂载时
+
+> 挂载时
+
   第一次会调用  constructor(构造器)
 
         ↓
 
   第二次会调用  componentWillMount() 组件将要挂载的时候会被调用
-  
+  (componentWillMount 组件将要出生, 然后使用render挂载, 然后挂载完毕)
         ↓
   
   第三次会调用  render()
@@ -4671,10 +5111,8 @@ export default class Child extends Component {
   第四次会调用  componentDidMount() 组件挂载完毕的时候会被调用
 
 
-  // componentWillMount 组件将要出生, 然后使用render挂载, 然后挂载完毕
- -->
-
-> componentWillUnmount()  组件即将被卸载时会被调用
+> 组件即将被卸载时会被调用
+> componentWillUnmount()  
 
 -----
 
@@ -4684,18 +5122,18 @@ export default class Child extends Component {
 > 路线1: setState - shouldComponentUpdate
 - 正常更新的路线 比如我们更新状态里面的数据, 数据一改就驱动着页面的显示
 - 正常更新的前提是我们真的去改了状态里面的数据然后引起的更新
-<!-- 
+
       setState()
 
       ↓
 
-      // 控制组件是否更新的'阀门'
       shouldComponentUpdate()   
+      (控制组件是否更新的'阀门')
 
       ↓
 
-      // 组件将要更新
       componentWillUpdate()
+      (组件将要更新)
 
       ↓
 
@@ -4703,13 +5141,13 @@ export default class Child extends Component {
 
       ↓
 
-      // 组件更新完毕时调用
       componentDidUpdate()
+      (组件更新完毕时调用)
 
       ↓
 
       componentWillUnmount()
- -->
+
 
 > shouldComponentUpdate: 钩子
 - 它是一个阀门, 之前我们说调了setState react帮我们更新状态 更新完之后帮助我们调用render其实之前我们说的不够具体
@@ -4719,41 +5157,53 @@ export default class Child extends Component {
 - 如果这个钩子返回的是true 那么之后的流程都能走下去 如果是否false就终止
 
 - 它就像一个阀门 返回true就开启, 返回false就关闭
-- 如果我们不写这个钩子, 它的默认返回值就是true
-
+- 如果我们不写这个钩子, *它的默认返回值就是true*
+```js
       shouldComponentUpdate() {
         return false
       }
+```
 
 - 如果我们返回false的话, 页面不会更新
 
-- 应用场景:
+> 应用场景:
 - 比如 我们可以改状态 但是我不希望页面更新 是不是就可以利用这个阀门
 
+---
 
-> 路线2: forceUpdate - componentWillUpdate
+> 路线2: forceUpdate ~ componentWillUpdate
 > this.forceUpdate()
 - 强制更新
 
-- 正常来说我们必须修改 state 中的数据 页面才会更新 会走上面的生命周期流程 但有些时候我们不改状态里面的数据, 也想更新页面 forceUpdate() 方法就是强制更新的方法
+- 正常来说我们必须修改 state 中的数据 页面才会更新 会走上面的生命周期流程 但有些时候我们不改状态里面的数据, 也想更新页面 forceUpdate() 方法就是*强制更新的方法*
 
 - 我们不对状态进行任何的修改 组件也能更新
 - 强制更新就是比正常更新少走了一个环节(阀门阶段没了)
 
-- 强制更新的使用场景:
+> 强制更新的使用场景:
 - 不想对状态修改, 然后还想更新下组件
-<!-- 
-      // 强制更新
+
+
       forceUpdate()
+      (强制更新)
+
       ↓
+
       componentWillUpdate()
+
       ↓
+
       render()
+
       ↓
+
       componentDidUpdate()
+
       ↓
+
       componentWillUnmount()
- -->
+
+
 
 ```js
 // 示例:
@@ -4762,33 +5212,44 @@ force = () => {
 }
 ```
 
+---
 
-> 路线3: 父组件render - componentWillReceiveProps
+> 路线3: 父组件render ~ componentWillReceiveProps
 - 我们在案例中做了这样的需求, 定义两个组件A 和 B 
 - 我们在A组件中 调用了B组件, 这样AB之间就是父子关系
 - 然后我们在A组件中定义了按钮, 用来修改A组件中state中的数据 同时A组件中定义的state中的数据 A组件自己并没有展示
 
 - 然后将该数据使用标签属性props传递给B组件, 在B组件中做了展示
 
-<!-- 
+
       父组件 render
 
       ↓
 
-      // 组件将要接收参数 或者 标签属性
-      // 组件将要接收props的时候调用
       componentWillReceiveProps(props)
+      (组件将要接收参数 或者 标签属性 组件将要接收props的时候调用)
+
       ↓
+
       shouldComponentUpdate()
+
       ↓
+
       componentWillUpdate()
+
       ↓
+
       render()
+
       ↓
+
       componentDidUpdate()
+
+
       ↓
+
       componentWillUnmount()
- -->
+
 
 > componentWillReceiveProps: 钩子
 - 我们点击按钮会修改A组件中state中的数据, 也就是父组件更新了state中的数据 会导致render
@@ -4810,7 +5271,7 @@ force = () => {
 - 形参: props: {carname: '奥拓', age: 18}
 
 - 坑点：
-- 我们在刷新页面 或者说第一次渲染页面的时候 这个钩子不会被调用
+- 我们在刷新页面 或者说*第一次渲染页面的时候 这个钩子不会被调用*
 <!-- 
   源代码中父组件将数据通过props传递给了子组件 父组件初次渲染 连带子组件渲染
   但是子组件初次渲染的时候 componentWillReceiveProps 被没用被调用
@@ -4860,6 +5321,7 @@ force = () => {
   }
 ```
 
+----------------------------
 
 ### 生命周期的总结:
 - 生命周期的三个阶段(旧)
@@ -4969,7 +5431,7 @@ force = () => {
 
 ----------------------------
 
-### 新版的钩子 getDerivedStateFromProps
+### 新版的钩子 static getDerivedStateFromProps
 - 这个钩子是任何组件在更新 挂载时都会被调用的组件
 
 > static getDerivedStateFromProps(nextProps, prevState)
@@ -4982,11 +5444,10 @@ force = () => {
 - nextProps: 我们在组件标签中 传递的kv
 - prevState: 当前组件中state的初始化值
 
-- 特点：
+> 特点：
 - 1. 这个函数会在render前被调用
 <!-- 
   意味着即使子组件的props没有任何变化 而父组件state发生了变化 也会导致子组件重新render
-
   这个生命周期依然会被调用 看似一个非常小的修改 缺可能导致很多隐含的问题
  -->
 
@@ -4995,12 +5456,12 @@ force = () => {
 - 3. 这个钩子是static修饰的 意味着它不能通过this访问到类中的属性
 - 而是应该通过参数提供的nextProps以及prevState来进行判断，根据新传入的props来映射到state。
 
-- 4. 需要注意的是，如果props传入的内容不需要影响到你的state，那么就需要返回一个null，这个返回值是必须的，所以尽量将其写到函数的末尾。
+- 4. 需要注意的是，*如果props传入的内容不需要影响到你的state*，那么就*需要返回一个null*，这个返回值是必须的，所以尽量将其写到函数的末尾。
 
 
-- 注意
-- 1. 使用这个钩子的时候 组件必须要有state
-- 2. 该方法前 需要加 static 关键字
+> 注意
+- 1. 使用这个钩子的时候 *组件必须要有state*
+- 2. 该方法前 *需要加 static 关键字*
 - 3. 该方法内部必须return null 或者 return 状态对象
 
 
@@ -5028,14 +5489,13 @@ force = () => {
     return { count: 199 }
 
     // 因为我们可以接收props 作为参数, 所以我们可以让props作为状态对象 注意我们传递的标签属性也要和state中的东西一样
-
     return props
   }
 
   ReactDOM.render(<Count count='199' />, document.querySelector('#app'))
 ```
 
-- 我们把接收到的props return出去 return的是状态对象 相当于我们将父组件传入的props当状态用了 也就是我从props中得到了一个状态 不是我们自己写的状态 而是从props中得到的 这就是一个派生的状态
+- 我们把接收到的props return出去 *return的是状态对象* *相当于我们将父组件传入的props当状态用了* 也就是我从props中得到了一个状态 不是我们自己写的状态 而是从props中得到的 这就是一个派生的状态
 
 - 该函数横跨挂载和更新两个阶段 一旦开启该钩子所有的事情都要听props的 也就是像我们这么写
 ```js
@@ -5044,7 +5504,7 @@ force = () => {
     }
 ```
 
-- 那么就是说 我们的状态值在任何时候都取决于props 无论我们的初始化和修改都是不起作用的 完全听props的指挥 但是官方说 派生状态会导致代码冗余 并使组件难以维护
+- 那么就是说 *我们的状态值在任何时候都取决于props 无论我们的初始化和修改都是不起作用的* 完全听props的指挥 但是官方说 派生状态会导致代码冗余 并使组件难以维护
 
 
 > 总结:
@@ -5052,23 +5512,30 @@ force = () => {
 - https://www.jianshu.com/p/50fe3fb9f7c3
 
 
-- 应用场景
+> 应用场景
 - 即state的值在任何时候都取决于props
 
 ----------------------------
 
 ### 新版的钩子 getSnapshotBeforeUpdate
-- 有点像获取快照的钩子, 因为这个钩子会把更新前的一个环节 传递给更新后, 比如更新前的内容区的高度
+- 它的位置在 更新阶段 也就是 setState() 父组件render() 等更新操作之后 render()之后 触发的回调
+- 有点像获取快照的钩子, 因为这个钩子*会把更新前的一个环节 传递给更新后*, 比如更新前的内容区的高度
 
-- 官方推荐的应用场景:
+                        会把更新前的数据
+  getSnapshotBeforeUpdate  ----->  componentDidUpdate()
+
+
+> 官方推荐的应用场景:
 -  在组件发生更改之前从DOM中捕获一些信息(例如 滚动位置) 
   
-- 此生命周期的任何返回值将作为参数传递给componentDidUpdate()
+- *此生命周期的任何返回值将作为参数传递给componentDidUpdate()*
 ```js
+  // 周期
   getSnapshotBeforeUpdate() {
     return height
   }
 
+  // 周期
   componentDidUpdate(preProps, preState, height) {
     // 第三个参数就是 getSnapshotBeforeUpdate 返回的参数
   }
@@ -5077,19 +5544,20 @@ force = () => {
 
 > componentDidUpdate(preProps, preState, height)
 - 该组件会在组件更新后调用
+
 - 参数
 - 1. 组件更新之前的props
 - 2. 组件更新之前的state
 - 3. getSnapshotBeforeUpdate的返回值
 
-> 注意：
-- 如果你在 componentDidUpdate中立即执行了 setState,需要额外注意的是你可能引入了死循环，
-
+**注意：**
+- 如果你在 componentDidUpdate中立即执行了 setState, 需要额外注意的是你可能引入了死循环，
 - 这是因此每次 setState 都会执行到 componentDidUpdate，然后又进行 setState，
 
 - 从而导致整个应用挂掉。如果真的需要 setState，是必须放在条件中的
 ```js 
   componentDidUpdate(prevProps) {
+    // setState必须放在if判断中
     if (this.props.userID !== prevProps.userID) {
       this.fetchData(this.props.userID);
     }
@@ -5130,15 +5598,12 @@ force = () => {
  -->
 
 - 我们看下新的生命周期图中的render往下的部分
-
 - render是因为我要更新 调完render之后会调用getSnapshotBeforeUpdate 
-  
-- 它是更新之前也就说内部还没有被放在页面上调用的getSnapshotBeforeUpdate
-
+- 它是更新之前也就说内容还没有被放在页面上调用的getSnapshotBeforeUpdate
 - 调用componentDidUpdate就代表 内容已经更新完了已经放到页面上了
 
 
-- 结合案例:
+> 结合案例:
 - getSnapshotBeforeUpdate 和 componentDidUpdate 差了一条新闻 
 
 - 因为是这条新闻渲染前 和 渲染后, 所以我们可以在两个周期中分别获取到盒子的高度 算出差值 动态决定内容区往上或者往下差多少 就能实现新的新闻不断的返回 还不影响我们看新闻
@@ -5241,7 +5706,6 @@ force = () => {
   }
 ```
 - 更新后高度 - 更新前的高度 = 数据每次返回的时候 滚动条需要调整的距离
-
 - 要点是 += 这样, +=的意思是持续的有新的新闻回来, 那滚动条的位置就持续的往上串
 
 ----------------------------
@@ -5279,14 +5743,11 @@ force = () => {
 - 1. render
 - 初始化渲染 或 更新渲染调用
 
-
 - 2. componentDidMount
 - 开启监听 发送ajax请求
 
-
 - 3. componentWillUnmount
 - 做一些收尾工作 如 清除定时器
-
 
 
 > 即将废弃的钩子
@@ -5301,8 +5762,7 @@ force = () => {
 
 ### 另一个老师对生命周期的总结
 > 组件的生命周期
-- 组件的生命周期： 
-    组件从被创建到挂载到页面中运行 再到组件不用时的卸载的过程
+- 组件的生命周期： 组件从被创建到挂载到页面中运行 再到组件不用时的卸载的过程
 
 - 生命周期的每个阶段总是伴随着一些方法的调用 这些方法就是生命周期的钩子函数 
 
@@ -5369,29 +5829,37 @@ force = () => {
 - 作用
 - 渲染ui
 
-- componentDidUpdate
-- 组件更新 完成dom渲染 后 被触发
+> componentDidUpdate()
+- 组件更新 *完成dom渲染 后 被触发* *也就是说我们可以在这个周期里面获取渲染后的最新DOM*
+
 - 作用
-- 1 发送网络请求
-- 2 dom操作 
-- 注意: 如果在这个函数中进行setState操作 必须放在一个if条件中
+- 1. 发送网络请求 ??? (发起网络请求也要写在if判断里面)
+- 2. dom操作 
+
+**注意:**
+- 如果在这个函数中进行setState操作 必须放在一个if条件中
+
 ```js
 componentDidUpdate(prevProps) {
   /*
     这里可以获取渲染后的最新dom
 
-    网络请求
-    如果要调用setState更新状态 必须放在一个if条件中 不然会栈溢出 死循环
+    1. 网络请求
+
+    2. 如果要调用setState更新状态 必须放在一个if条件中 不然会栈溢出 死循环
     在这里我们一般判断一下更新前后的props是否相同 来决定是否调用setState更新组件
     当前的props 可以通过this.props获取到
+
     如果上一次的props 和 这一次的props不同 我再调用setState来更新状态
   */
     if(prevProps.count !== this.props.count) { 
         this.setState 
+
     /*
       发送网络请求也写在if判断里面
       既然要发送请求就是为了拿数据 拿数据就会有渲染数据的逻辑 这里也会有setState的操作
     */
+
     }
 }
 ```
@@ -5443,10 +5911,12 @@ componentDidUpdate(prevProps) {
 ### 组件的复用 -- render-props 和 高阶组件(HOC) 
 
 > react组件复用概述
-- 思考：
+- 概述: 
 - 如果两个组件中的部分功能相似 或 相同 该如何处理
+
 - 一个A页面中 随着鼠标的移动 页面上会打印 鼠标的坐标
 - 一个B页面中 随着鼠标的移动 小猫图片会跟着鼠标一起走
+
 
 - 思考：
 - 这两个页面中有共通的部分 我们复用的时候 需要复用什么呢？
@@ -5457,9 +5927,9 @@ componentDidUpdate(prevProps) {
 - 2. 复用操作state的方法
 
 - 那在react中怎么进行组件逻辑的复用呢？
-- 我们可以通过 render props 和 高阶组件的模式
+- 我们可以通过 render props 和 高阶组件的模式 来完成组件的复用
 
-- 注意：
+**注意：**
 - 这两种方式不是新的api 而是利用react自身特点的编码技巧 演化而成的固定模式(写法)
 <!-- 
   本来是没有这种方式的但是前人发现这种写法很好用 所以总结出来的
@@ -5468,27 +5938,46 @@ componentDidUpdate(prevProps) {
 - 那怎么写代码是 render props模式 和 高阶组件的模式呢？
 
 
-> render props 模式  循环一圈半
-- 要点：
-- 1. 子组件利用实参将子组件内部的数据传回去(父组件)
-- 2. 子组件利用父组件props过来的函数的返回值来渲染页面结构
-- 3. 父组件拿到数据 创建返回值
+> render props 模式  
+> 子组件(需要复用的目标组件) -> 父组件(使用子组件的state & 根据state创建ui结构) -> 子组件通过父组件的UI结构的返回值 渲染页面
+
+- 相当于作用域插槽
+- 数据在子组件 我们通过函数props的方式传到父组件 父组件根据数据来决定渲染什么样的结构
+
+
+> 要点：
+- 1. 子组件(*需要复用的目标组件*)利用实参将子组件内部的数据(state)传回去(父组件)
+- 目的: 将子组件的state传递出去(因为state只能在自己的组件中使用)
+
+- 2. 父组件拿到子组件传递过来的数据 对数据进行加工 然后返回 UI结构
+```js
+const fn = data => {
+  // data就是子组件传递回来的state
+  let {x, y} = data
+  return (
+    <p>x的坐标为: {x}, y的坐标为: {y}</p>
+  )
+}
+```
+
+- 3. 子组件利用父组件props过来的函数的返回值来渲染页面结构
+
 <!-- 
       函数props
 
           父组件
   (利用形参 -- 创建返回值结构)   
 
-                      ↘ 2 利用形参 -- 创建返回值结构
+                      ↘ 2 加工收到的数据(形参) -- 创建JSX返回值结构
         传回数据 1 ↖
-                          ↘ 3 利用返回值渲染结构
-
+                           3 利用返回值渲染结构
+                            ↗
                       子组件
               (利用实参传回数据 -- 利用父组件props过来的返回值渲染结构)
  -->
 
 
-- 思路：
+> 思路：
 - 将要复用的state和操作state的方法封装到一个组件中 
 - 假设 我们封装好了一个组件 <Mouse /> 这里面有鼠标的状态 和 操作鼠标的方法
 
@@ -5510,14 +5999,11 @@ componentDidUpdate(prevProps) {
   也就是在外部拿到内部的state
  -->
 
- - 思路：
- - 在使用组件的时候 在标签属性中添加一个值为函数的prop 通过函数的行参来获取state状态(需要组件内部实现)
- <!-- 
-  也就是父组件传递函数通过形参接收子组件的state
-  -->
+ > 思路：
+ - 在使用组件的时候 在标签属性中添加一个值为函数的prop 通过函数的行参来获取state状态(需要组件内部实现), 也就是父组件传递函数通过形参接收子组件的state
 
 
-> 2. 如何渲染任意的ui结构？
+> 2. 如何渲染任意的ui结构？ (这个ui结构是父组件指定的 子组件拿函数的返回值渲染)
 > 传递函数prop 子组件通过父组件props过来的函数的返回值 来决定要渲染的ui结构
 - 我们拿到核心功能后 怎么使用核心功能来渲染不同的ui结构呢？
 - 使用该函数的返回值 作为要渲染的ui内容(需要组件内部实现)
@@ -5547,15 +6033,11 @@ componentDidUpdate(prevProps) {
   我们假如要渲染图片 我们就在return中写上图片
  -->
 
-> 呃 react中插槽的综合应用么？ 相当于作用域插槽
-- 数据在子组件 我们通过函数props的方式传到父组件 父组件根据数据来决定渲染什么样的结构
-
-- 接下来我们看看代码部分
-
 
 > 实现步骤
 - 1. 创建Mouse组件 在组件中提供复用的状态逻辑代码(1状态 2操作状态的方法)
 ```js 
+  // 要复用的目标组件
   import React, {Component} from "react"
   export default class Mouse extends Component {
 
@@ -5684,9 +6166,7 @@ return this.props.render(this.state)
 ```
 
 
-- 上面我们通过父组件向子组件传递函数 父组件通过形参接收数据 根据数据通过返回值确定ui结构的方式来实现的
-
-- 但是 并不是该模式叫render props 就必须使用名为render的prop 实际上可以使用任意的prop
+- 上面我们通过父组件向子组件传递函数 父组件通过形参接收数据 根据数据通过返回值确定ui结构的方式来实现的 但是 并不是该模式叫render props 就必须使用名为render的prop 实际上可以使用任意的prop
 
 - 上面是把prop是一个函数 并且告诉组件要渲染什么内容的技术 叫做 render porps模式
 
@@ -5768,7 +6248,7 @@ return this.props.render(this.state)
 ----------------------------
 
 ### 高阶组件 实现状态逻辑复用
-- 目的：
+> 目的：
 - 实现状态逻辑复用，采用 包装(装饰)模式 比如说：手机壳 
 
 - 手机：
@@ -5777,67 +6257,53 @@ return this.props.render(this.state)
 - 手机壳：
     提供"保护"功能 也就是提供的扩展的功能
 
-- 包装之后 手机就具备了原来手机所不具备的功能 也就是拥有了扩展的功能
-- 高阶组件就相当于手机壳 通过包装组件 增强组件功能 
+- 包装之后 *手机就具备了原来手机所不具备的功能 也就是拥有了扩展的功能*
+- *高阶组件就相当于手机壳* 通过包装组件 增强组件功能 
 
-- 总结:
-- 高阶组件是一个函数 参数是UI结构组件 内部类给UI结构组件提供数据
-- 最后返回UI组件 这样我们创建变量接收的组件就是增强功能后的高阶组件
+> 总结:
+- *高阶组件是一个函数* 参数是UI结构组件 高阶组件的内部类给UI结构组件提供数据(状态)
+- 最后返回内部类 这样我们创建变量接收的组件就是增强功能后的高阶组件
 
+```js
+  const 高阶组件 = (UI结构组件) => { 
 
-> 思路分析：
-- 高阶组件(HOC higher-order component)是一个函数 它的返回值为增强功能后的全新组件
+    // 这个组件 只是为了提供可复用的逻辑代码 自身不渲染ui结构 负责渲染 ui结构的还是 UIComponent 组件
+    class 提供可复用的数据的类(内部类) extends Component {
+      //
+      state = { 复用的数据 }
+      // 
+      操作数据的方法 = () => { ... }
 
+      render() {
+        <>
+          <UI结构组件 {...this.state.复用数据}/>
+        </>
+      }
+
+    }
+
+    // 最后将内部类暴露出去
+    return 提供可复用的数据的类
+  }
+
+  const 增强后的组件 = 高阶组件()
+```
+
+> 解析
+- *高阶组件*(HOC higher-order component)是一个函数 它的*返回值为增强功能后的全新组件*
 - 全新的组件可以在任意组件内被调用
 
-- 高阶组件函数内部需要：
-    + 1. 形参(UI组件) 
-        (提供UI结构)
-```js
-import React, {Component} from "react"
-export default class Position extends Component {
+- 1. 参数: UI结构组件
+- 该组件内部逻辑为 根据 props(高阶组件内部类传递进来的props) 来渲染html结构
 
-  render() {
-    return (
-      <div>
-        鼠标当前位置: x: ${this.props.x}, y: ${this.props.y}
-      </div>
-    )
-  }
-}
-```
+- 2. 内部类
+- 内部类用于提供状态(可复用的数据) 将状态通过props的形式注入到 UI结构组件中 供起渲染
 
-- 要点:
-- UI组件没有自己的状态 *它只是用来渲染html结构* 内部使用的是UI组件被调用的时候传递过来的state状态数据
-
-
-    + 2. 函数内部类 用于提供数据和操作数据的方法
-        (提供可复用的逻辑 比如鼠标位置 state数据)
-
-    + 3. 在内部类中的render函数里面 使用UI组件(以组件标签的形式调佣该UI组件) 并在标签属性上通过props的形式传入 state数据
-
-
-
-- 高阶组件的内部创建一个类组件 在这个类组件中提供复用的状态逻辑(提供数据和操作数据的方法) 通过prop将复用的状态传递给被UI组件 UIComponent
-
-```js 
-  const HocComponent = withHoc(UIComponent)
-
-  function withHoc(UIComponent) {
-
-    - 这个组件 只是为了提供可复用的逻辑代码 自身不渲染ui结构
-    - 负责渲染 ui结构的还是 UIComponent 组件
-    class Mouse extends React.Component {
-      render() {
-
-        // 这样 WrappedComponent 就能拿到 x y 的坐标了
-        return <UIComponent {...this.state}>
-      }
-    }
-  }
-
-  withHoc(UI组件 or html结构组件)
-```
+- 3. 在内部类中的render函数里面 使用UI组件(以组件标签的形式调佣该UI组件) 并在标签属性上通过props的形式给UI组件传入 state 数据
+- 最后要把加工的内部类返回
+- UI组件算是 西红柿
+- 内部类算是 鸡蛋
+- 返回的内部类算是 西红柿炒鸡蛋
 
 
 > 总结下思路
@@ -5857,10 +6323,8 @@ export default class Position extends Component {
     并在App组件的render函数中调用
 
 
-
 > 使用步骤
-- 1. 定义UI组件
-- 该组件用来渲染结构 UI页面
+- 1. 定义UI组件 该组件用来渲染结构 UI页面
 ```js
 // UIComponent
 import React, {Component} from "react"
@@ -5890,13 +6354,16 @@ export default class UIComponent extends Component {
 
 - 2. 创建一个函数(外壳函数)， 名称约定以with开头
 - 该函数就是一个壳，内部类提供给UI组件的数据 扩展UI组件的功能
-- 要点: 
+
+**要点:**
 - 形参UI组件的 形参名必须是大写(作为要渲染的组件)
 
 - 3. 在函数内部创建一个内部类，用于提供复用的状态逻辑代码 并在内部类的render函数中 使用传进来的UI组件来渲染结构 在UI组件标签里面我们可以通过props传递数据给UI组件 最后return 内部类组件
 ```js
 // 用于给UI组件扩展功能的函数
 import React, {Component} from "react"
+
+// 外壳组件
 const withHoc = (UIComponent) => {
 
   // 创建内部类用来提供数据 和 操作数据的方法 对UI组件来说就是给它扩充功能
@@ -5934,7 +6401,6 @@ const withHoc = (UIComponent) => {
 
 // 暴露 该函数
 export default withHoc
-
 ```
 
 - 4. 在想使用该高阶组件的地方 调用该高阶组件 传入要扩展功能的组件(UIComponent) 返回值是增强后的组件 并将其渲染到页面中
@@ -6029,9 +6495,8 @@ export default class App extends Component {
   }
 
 
-
   // ui结构组件 
-  也就是我们将这个组件作为实参传递进去它就会接收到 上面传递进来的props
+  // 也就是我们将这个组件作为实参传递进去它就会接收到 上面传递进来的props
 
   import React, {Component} from "react"
   export default class Position extends Component {
@@ -6047,6 +6512,7 @@ export default class App extends Component {
 
 
   // 猫捉老鼠的组件  函数组件
+  // 这个组件自身是没有状态和操作状态的逻辑的 鼠标的逻辑代码封装在高阶组件里面了
   import img from ""
   const Cat = props => (
     <img src={img} alt="" style={{
@@ -6055,14 +6521,11 @@ export default class App extends Component {
       left: this.props.x,
     }}>
   )
-
-  - 这个组件自身是没有状态和操作状态的逻辑的 鼠标的逻辑代码封装在高阶组件里面了
 ```
 
 
-> 使用高阶组件存在的问题：
+**使用高阶组件存在的问题：**
 > 设置displayName
-
 - 我们使用高阶组件多次的话 每次的组件名称是相同的
 <!-- 
   假如我们多次通过高阶组件来返回新组件的话 它们的名字都会是同一个
@@ -6075,7 +6538,8 @@ export default class App extends Component {
  -->
 
 - 因为默认情况下 react是根据 组件名称作为 displayName 的
-- 解决方式：
+
+> 解决方式：
 - 为高阶组件 设置 displayName 便于调试时区分不同的组件
 
 > displayName的作用：
@@ -6117,8 +6581,8 @@ function getDisplayName(UIComponent) {
     }
     
     // 设置displayName 
-    - 注意 WithMouse 是大写 !!!!!!!!!!
-    - 因为它要作为组件的名称在开发者工具中呈现
+    // 注意 WithMouse 是大写 !!!!!!!!!!
+    // 因为它要作为组件的名称在开发者工具中呈现
 
     Mouse.displayName = `WithMouse${getDisplayName(UIComponent)}`
     return Mouse
@@ -6131,7 +6595,7 @@ function getDisplayName(UIComponent) {
 ```
 
 
-> 高阶组件 向扩展功能后的高阶组件传递props的问题
+**高阶组件 向扩展功能后的高阶组件传递props的问题**
 - 问题：props丢失
 - 我们向 MousePosition 高阶组件 传递了 props
 - MousePosition其实是 withMouse 的返回值 它的返回值是 Mouse
@@ -6181,129 +6645,24 @@ function getDisplayName(UIComponent) {
 
 ----------------------------
 
-### 书签
-
-----------------------------
-
-### setState() 说明
-
-> setState更新数据的时候是异步的
-- setState这个方法本身是同步的方法 只要我们调用立马在主线程上执行
-- 但是setState引起react的后续的更新动作是异步的更新
-<!-- 
-  this.state = {count: 1}
-  
-  this.setState({
-    count: this.state.count + 1
-  })
-  // 如果在setState方法之后立即调用了console 我们发现是修改之前的值
-  console.log(this.state.count)   // 1
- -->
-
-- 说明这个方法是调用了 但是状态并没有立即改变 更新数据是异步的
-
-- 所以 我们需要注意的是 后面的setState 不要依赖于前面的setState
-<!-- 
-  handleClick = () => {
-
-    // 这里我们连续的调用两次 setState 会怎么样
-    this.setState({
-      count: this.state.count + 1
-    })
-
-    this.setState({
-      count: this.state.count + 1
-    })
-  }
-
-  虽然我们调用了两次 但结果是2 也就是说 state中的count 值只加了一次
-
-  第一次调用的时候 setState肯定是会更新为2的但是它的更新时异步的
-  紧接着我们再次的调用 第二次setState中的count值也是1 
-  也就是第二次中setState 还是 1+1
-
-  虽然我们调用了2次 但是后面的setState并没有依赖于第1次的结果 也就是说并不是 拿到第一次setState的结果2 再进行+1的
- -->
-
-- 我们是可以调用多次的 setState 但是只会触发一次render 也就是只会触发一次重新渲染
-
-- 因为要考虑到性能 如果我们调用了一次setState就render一次 再调一次 再render一次 性能上会不好 所以 实际上它会将多次调用的setState最终合并 将最终的结果一次性的调用render方法 将最终的结果渲染到页面中
-
-
-> setState((state, props) => { return 状态对象 }, 状态更新后立即执行的回调)   推荐语法
-- 上面说了 如果调用了两次setState后面的是无法基于第一次setState的结果去做一些操作的
-
-- 回调中的return里 原先的state对象 return { }
-- 参数：
-- state: 表示最新的state 总为最新的state 依赖于上次的state的结果
-- props: 标表示最新的props
-<!-- 
-  这个方法跟普通的方式没有什么区别也是异步更新数据 但是
-
-  state总是为最新的state 也就是说 假如我们调用两次setState后 第二次setState中的state参数是最新的数据 也就是基于第一次setState的结果
- -->
-
-<!-- 
-  this.setState((state, props) => {
-    return {
-      count: state.count + 1    // 2
-    }
-  })
-
-  this.setState((state, props) => {
-    return {
-      count: state.count + 1    // 3
-    }
-  })
- -->
-
-
-> setState的第二个参数
-- 上面我们将setState方法的第一个参数由普通对象 改写为回调的形式
-- 这里我们再说说第二个参数
-
-- 场景
-- 在状态更新(页面dom完成重新渲染)后立即执行某个操作 像不像this.$nextTick
-<!-- 
-  状态更新后 并且页面重新渲染后 立即执行
-  比如我们要想操作dom的话 在回调中写逻辑
- -->
-
-- 语法：
-- this.setState(
-  (state, props) => { return {} },
-  () => {  console.log(这个回调会在状态更新后立即执行) }
-)
-
-<!-- 
-  // 当状态更新后 操作dom 比如更新页面的标题
-  this.setState(
-    (state, props) => {},
-    () => {
-      document.title = "更新state后的标题:" + this.state.count
-    }
-  )
- -->
-
-----------------------------
-
 ### 组件的性能优化
 > 1. 减轻state
-- 只存储跟组件渲染相关的数据(比如 count 列表数据 loading)
-- 注意
+- *只存储跟组件渲染相关的数据*(比如 count 列表数据 loading)
+
+**注意:**
 - 不用做渲染的数据 不要放在state中 比如定时器的id等
+- *对于这种需要在多个方法中用到的数据 应该放在this中* 因为state中的数据越多 react在渲染的时候性能就会越低
 
-- 对于这种需要在多个方法中用到的数据 应该放在this中
-- 因为state中的数据越多 react在渲染的时候性能就会越低
-
+--- 
 
 > 2. 避免不必要的重新渲染
 - 组件的更新机制 父组件更新会引起子组件也被更新 这种思路很清晰
 - 但是这种方式也会造成一个问题 就是如果子组件没有任何变化时 也会重新渲染
 
-- 解决方式：
+> 解决方式：
 - 使用钩子函数 shouldComponentUpdate(nextProps, nextState)
 - 组件是否应该重新渲染
+
 - 参数：
 - nextProps nextState 表示最新的(更新后)props 和 state
 - 这个钩子函数中 this.state this.props是更新之前的状态
@@ -6314,29 +6673,25 @@ function getDisplayName(UIComponent) {
 - 钩子函数触发时机
 - 更新阶段的钩子函数 组件重新渲染前执行 shouldComponentUpdate - render
 
-<!--  
+```js
   class Hello extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
 
-      // 根据条件 决定是否重新渲染组件
-
-      // 在这个钩子函数中 通过this.state 和 this.props获得的是更新之前的state和props
-
-      // 我们可以根据nextState 和 this.state 来决定是否更新组件
-
+      // 根据条件 决定是否重新渲染组件 在这个钩子函数中 通过this.state 和 this.props获得的是更新之前的state和props 我们可以根据nextState 和 this.state 来决定是否更新组件
       return false
     }
 
     render() {}
   }
- -->
+```
 
+---
 
-> 避免不必要的重新渲染的案例 -- 随机数
+> 案例: 避免不必要的重新渲染的案例 -- 随机数
 - 我们创建一个点击按钮生成1-3随机数的功能
 - 同时 我们思考一下 如果这一次随机数是2 上次的也是2 那页面还用更新么？ 没有必要吧
-<!-- 
+```js
   export default class App extends Component {
 
     state = {
@@ -6363,17 +6718,17 @@ function getDisplayName(UIComponent) {
       } 
       return true
 
-      // 优化
+
+      // 优化方式1
       if(nextState.num !== this.state.num) {
         return true
       } 
       return false
 
-      // 优化
-      我们看看下面的条件是否成立 如果成立就会是true 如果不成立就会是false
-      反向思维方式 要理解这个地方先看看上面的逻辑 一步一步的优化到这里
+      // 优化方式2 我们看看下面的条件是否成立 如果成立就会是true 如果不成立就会是false 反向思维方式 要理解这个地方先看看上面的逻辑 一步一步的优化到这里
       return nextState.num !== this.state.num
     }
+
 
     render() {
       console.log("render")
@@ -6385,14 +6740,15 @@ function getDisplayName(UIComponent) {
       )
     }
   }
- -->
+```
 
+---
 
-> 当状态不在组件自身的时候
+> 当状态不在组件自身的时候 -- 通过 props 来实现
 - 上面的案例中是通过 shouldComponenUpdate 生命周期中的state来阻止了不必要的页面更新 接下来我们看看 怎么通过 props 来实现
 
 - 我们在子组件中 添加 shouldComponentUpdate 
-<!-- 
+```js
   class ChildrenComponent extends Component {
 
     // 如果前后两次的props不相同 我们就让组件更新
@@ -6400,18 +6756,22 @@ function getDisplayName(UIComponent) {
       return nextProps.num !== this.props.num
     }
   }
- -->
+```
 
-- 总结：
+> 总结：
 - 如果状态是自己的 那我们就使用 state 来做判断
 - 如果状态不是自己的 那我们就使用 props 来做判断
 
+----------------------------
 
 ### 纯组件 React.PureComponent
-- 上面我们为了避免渲染不必要的更新使用了 shouldComponentUpdate 钩子
+- 上面我们为了*避免渲染不必要的更新*使用了 *shouldComponentUpdate* 钩子
 - 我们还可以在创建类组件的时候 继承 React.PureComponent 实现同样的逻辑
 
-- class App extends React.PureComponent { ... }
+```js
+  // 这里我们没有继承 Component 而是继承了 PureComponent
+  class App extends React.PureComponent { ... }
+```
 
 - React.Component 和 React.PureComponent 的区别就是React.PureComponent 中以浅层对比 prop 和state 的方式来实现了该函数。
 
@@ -6420,44 +6780,41 @@ function getDisplayName(UIComponent) {
 
 > 值类型：
 - 比较两个值是否相同(直接赋值即可 没有坑)
-<!-- 
+```js
   let num = 0
   let newNum = num
 
   newNum = 2
   console.log(num === newNum)    // false
- -->
+```
 
 - 如果state中有一个变量也是值类型的 那么我们可以给state中的变量直接赋值是没有坑的 比如
-<!-- 
+```js
   state = { num: 0}
   setState({
     num: Math.floor(Math.random() * 3)
   })
 
-  PureComponent 内部对比
+  // PureComponent 内部对比
   最新的state.num == 上一次的state.num  // false 重新渲染组件
- -->
+```
 
 
 > 引用类型:
 - 对于 引用类型 来说 只比较对象的引用(地址)是否相同
-<!-- 
+```js
   const obj = {num: 0}
   const newObj = obj
   newObj.num = 2
   console.log(newObj === obj)  // true
- -->
+```
 
-- 解析
-- 我们使用的是引用类型的数据 当我们把引用类型赋值个一个新的变量的时候 实际上obj和newObj都会指向同一个对象
-
-- 不管是通过哪个变量修改了这个对象的值 改的都是同一个对象 最终我们在进行比较的时候 obj 和 newObj 还是相同的
+> 解析
+- 我们使用的是引用类型的数据 当我们把引用类型赋值给一个新的变量的时候 实际上obj和newObj都会指向同一个对象 不管是通过哪个变量修改了这个对象的值 改的都是同一个对象 最终我们在进行比较的时候 obj 和 newObj 还是相同的
 
 - 但是这种方式用在了react的state里的时候 就会出问题
-
-<!-- 
-  // 错误的写法
+- 错误的写法:
+```js
   state = {
     obj: {num:0}
   }
@@ -6479,11 +6836,11 @@ function getDisplayName(UIComponent) {
   // 将来 PureComponent 内部比较的时候 拿着最新的和上一次的比较的时候
   // 因为是浅比较
   最新的state.obj === 上一次的state.obj   // true
- -->
+```
 
 - 上面就是浅对比对引用类型的影响
 - 所以 在state 或 props 中属性值为 引用类型的时候 应该创建新数据 不要直接修改原数据
-<!-- 
+```js
   // 正确的做法 创建新数据
   const newObj = {...this.state.obj, num: 2}
   setState({obj: newObj})
@@ -6492,265 +6849,7 @@ function getDisplayName(UIComponent) {
   this.setState({
     list: [...this.state.list, {新数据}]
   })
- -->
-
-----------------------------
-
-### DOM的diffing算法
-- React最大的优势就是 它不是每一次都将页面上的真实DOM做出修改 每一个真实的DOM都是对应一个虚拟DOM的
-
-- 当生成一个新的虚拟DOM树 它会和 旧的虚拟DOM树 进行比较, 如果有没有变化的虚拟DOM, 那么页面上这两个虚拟DOM对应的真实DOM是没有任何改变的, 只把新增加的一条映射成新的真实DOM
-
-<!-- 
-    虚拟DOM                               真实DOM
-
-    // 旧的虚拟DOM树
-    001对应的虚拟DOM    --- 复用
-    002对应的虚拟DOM    --- 复用
-    
-
-    // 新的虚拟DOM树
-    001对应的虚拟DOM    --- 复用
-    002对应的虚拟DOM    --- 复用
-
-    003对应的虚拟DOM  -- 对比结果(新)   --- 渲染
- -->
-
-- 也就是说 每次更新页面的时候 新的虚拟DOM树都会对上一次(旧)的虚拟DOM树进行对比, 看看有没有不一样的节点, 如果有更新新的节点, 复用没有变化的节点
-
-> 验证上面说的对不对
-- 我们在页面中放3个结构, 结构3是一个定时器来展示的数据, 每秒更新一次
-- 我们先说下结果 就是 结构1 和 结构2被复用, 而结构3会更新
-- 怎么验证:
-- 我们在结构2中的文本框中输入文字, 如果 每次文字都消失, 证明input每次都是新的
-- 如果没有消失证明结构2被复用
-  - 结果: 文字没有消失
-
-- 我们在看看<span> 中的 <input>是被复用还是每次都随着<span>更新
-  - 结果: 文字没有消失
-  - 疑问:
-  - 不是说 diffing 算法最小的更新单位是 节点么? 那为什么不连着内部的<input>一起更新呢?
-
-  - 答案:
-  - diffing算法并不是只比较一层, 而是标签内部还有标签的时候 也会对子标签进行 新旧的虚拟DOM树对比, 如果子标签对比结果没有变化 子标签也会复用
-<!-- 
-  // 结构1
-  <h1>hello</h1>        
-
-  // 结构2
-  <input type="text" /> <br /><br />
-
-  // 结构3
-  <span>
-    现在是: {this.state.date.toTimeString()}
-    <input type="text" />
-  </span>
- -->
-
-
-> 验证用的代码
-<!-- 
-  class Time extends React.Component {
-
-      // 状态里面维护着时间
-      state = { date: new Date() }
-
-      // 一挂载开启定时器
-      每一次都把最新的时间放进去 state发生改变 页面就会更新
-      componentDidMount() {
-        setInterval(() => {
-          this.setState({
-            date: new Date()
-          })
-        }, 1000)
-      }
-
-      render() {
-        return (
-          <div>
-            <h1>hello</h1>
-
-            <input type="text" /> <br /><br />
-
-            <span>
-              现在是: {this.state.date.toTimeString()}
-              <input type="text" />
-            </span>
-          </div>
-        )
-      }
-    }
-
-    ReactDOM.render(<Time />, document.querySelector('#app'))
- -->
-
-
-> 总结:
-- diffing算法是逐层对比 最小的力度是标签
-
-----------------------------
-
-### 经典面试题
-- 1. react / vue 中的key有什么作用? (key的内部原理是什么)
-- 2. 为什么遍历列表的时候, key最好不要用index
-<!-- 
-  上面是一个问题的两种问法
- -->
-
-> 回答:
-- 1. 虚拟DOM中key的作用
-  - 1.1 简单的说: 
-    key是虚拟DOM对象的标识, 在更新显示的时候 Key起来及其重要的作用
-
-  - 1.2 详细的说:
-    当状态中的数据发生变化的时候, react会根据'新数据'生成'新的虚拟DOM' 随后React进行'新虚拟DOM'与'旧虚拟DOM'的diff比较, 比较规则如下
-
-      a: 旧虚拟DOM中找到了与新虚拟DOM相同的key
-        aa: 若虚拟DOM中的内容没有变, 直接使用之前的真实DOM
-        bb: 若虚拟DOM中的内容变了, 则生成新的真实DOM 随后替换掉页面中之前的真实DOM
-
-      b: 旧虚拟DOM中未找到与新虚拟DOM相同的key
-        根据数据创建新的真实DOM 随后渲染到页面
-
-
-- 2. 用index作为key可能会引发的问题 (在数组的前面添加就会出现破坏顺序操作)
-  - 2.1 若对数据进行: 逆序添加, 逆序删除等破坏顺序操作 
-      会产生没有必要的真实DOM更新 --- > 界面效果没问题 但效率低
-
-  - 2.2 如果结构中还包含输入类的DOM
-      会产生错误DOM更新 --- > 界面有问题
-
-  - 2.3 注意:
-      如果不存在对数据的逆序添加 逆序删除等破坏顺序操作
-      仅用于渲染列表用于展示, 使用index作为key是没有问题的
-
-- 3. 开发中如何选择key
-  - 3.1 最好使用每条数据的唯一标识作为key, 比如id 手机号, 身份证号, 学号等唯一值
-  - 3.2 如果确定只是简单的展示数据, 用index也是可以的
-<!-- 
-  数据的唯一标识就应该是后端给我们处理好的
- -->
-
-
-
-- 案例:
-- 我们在页面中创建一个列表
-- 然后做一个按钮, 点击后向列表中添加小王的信息
-<!-- 
-  <h3>展示人物信息</h3>
-
-  \ 添加一个小王 \      按钮
-
-  小张, 18         小王, 20  
-  小李, 19         小张, 18 
-                  小李, 19 
-
-
-  <ul>
-    {this.state.persons.map((item, index) => {
-      return <li key={index}>{item.name}, {item.age}</li>
-    })}
-  </ul>
-
-  注意 我们的key是用的index, 看似页面上正常显示了, 控制台也没有报错, 但是有很严重的问题 有严重的效率问题
-
-  慢动作回放 --- 使用index索引值做key
-
-  初始state数据:
-    { id: 1, name: '小张', age: 18 },
-    { id: 2, name: '小李', age: 19 }
-
-  ↓
-
-  初始的虚拟DOM
-    几条数据? 2条, 几条虚拟DOM? 2条, 先遍历的是0 后遍历的是1
-    <li key={0}>{小张}, {18}</li>
-    <li key={1}>{小李}, {19}</li>
-
-  ↓
-
-  将虚拟DOM(初始的)转为真实DOM挂载到页面
-
-
-  更新后的数据
-    { id: 3, name: '小王', age: 20 },
-    { id: 1, name: '小张', age: 18 },
-    { id: 2, name: '小李', age: 19 }
-        // 我们点击按钮后 修改了state中的数据 小王在前面了 注意小王的id是数组的长度+1 是3
-
-  ↓
-
-  更新数据后的虚拟DOM
-    <li key={0}>{小王}, {20}</li>
-    <li key={1}>{小张}, {18}</li>
-    <li key={2}>{小李}, {19}</li>
-        // 因为小王是新遍历的所以小王的index是0 小张1 小李是2
-
-  ↓
-
-  旧的虚拟DOM树 和 新的虚拟DOM树进行对比
-  <li key={0}>{小张}, {18}</li>     <li key={0}>{小王}, {20}</li>
-  <li key={1}>{小李}, {19}</li>     <li key={1}>{小张}, {18}</li>
-                                    <li key={2}>{小李}, {19}</li>
-
-  进行对比
-  先在旧的虚拟DOM中去找key=0的, 发现key一样, 则比较内容
-      然后 小王(新)因为内容不一样 被挂载到页面上
-
-  然后在找key=1的, 发现内容不一样 小张(新)被挂载到页面上
-  然后在找key=2的, 发现内容不一样 小李(新)被挂载到页面上
-
-  这是我们使用index带来的结果, 命名小张 和 小李是可以被复用的, 但是因为我们在数组的前面加入了小王, 原数组的顺序被打乱了 导致index的顺序发生了变化, 导致虚拟DOM因为key和内容都不一样 不能被复用
-
-
-  现在是3条数据, 假如有2000条数据, 我们在数组的前方加入了一条数据, 我们还使用了index作为key, 那么就会导致2000条数据没办法复用
- -->
-
-> 解决方式:
-- 我们不用index作为key, 而是用数据的唯一标识作为key item.id
-
-------
-
-- 还是上面的案例 我们看下 使用index作为key 引发的渲染数据出错的问题
-- 我们在每一个里面里面 都放一个<input>, 然后我们点击添加小王的按钮, 观察下index作为key会发生什么问题
-<!-- 
-  <li key={index}>{item.name}, {item.age} <input type='text' /></li>
- -->
-
-> 页面展示信息
-<!-- 
-  \ 添加小王 \
-
-  index作为key
-  小张, 18      \input  小张, 18 \
-  小李, 19      \input  小李, 19 \
-
-
-  id作为key
-  小张, 18      \input  小张, 18 \
-  小李, 19      \input  小李, 19 \
-
-  ------
-
-  点击按钮后
-
-  index作为key
-  小王, 20      \input  小张, 18 \
-  小张, 18      \input  小李, 19 \
-  小李, 19      \input  空       \
-
-
-  id作为key
-  小王, 20      \input  空       \
-  小张, 18      \input  小张, 18 \
-  小李, 19      \input  小李, 19 \
-
-
-  使用index作为key的数据串了, id作为key的数据没有乱
- -->
-
-> 总结:
-- 一旦结构中出现输入类的DOM节点的时候, 使用index作为key 会产生数据错乱
+```
 
 ----------------------------
 
@@ -6771,7 +6870,6 @@ function getDisplayName(UIComponent) {
 
 ----------------------------
 
-### 书签
 ### 案例: ToDoList -- 结构 样式的拆分
 - 下面大概是ToDoList的结构
 <!-- 
@@ -6783,13 +6881,21 @@ function getDisplayName(UIComponent) {
   \   已完成0 / 全部3  \  组件footer
  -->
 
+- 我们把整个的功能分解成了 3个部分
+
+  Header
+
+  List + Item
+
+  Footer
+
+
 > 怎么拆分组件的技巧
-- 1. 我们把所有的页面结构都放在App组件的return()里面
+- 1. 我们把所有的*页面结构都放在App组件的return()里面*
 - 2. 将所有的class 转成 className
 - 3. 将所有的style='' 转成 style={{ }}
 <!-- 
   style='display:none'
-
   style={{display:'none'}}    这里注意 none 的引号
  -->
 
@@ -6799,7 +6905,7 @@ function getDisplayName(UIComponent) {
 > 怎么拆分结构?
 - todo-container todo-wrap 这两个包裹容器怎么办?
 - 包裹容器那就放在App组件里面, 只将里面的对应结构拆出去
-<!-- 
+```html 
   <div className="todo-container">
           
     <div className="todo-wrap">
@@ -6811,10 +6917,10 @@ function getDisplayName(UIComponent) {
     </div>
 
   </div>
- -->
+```
 
 - 我们换成这样的结构, 然后把对应结构放到对应的组件里
-<!-- 
+```html
   <div className="todo-container">
           
     <div className="todo-wrap">
@@ -6826,7 +6932,7 @@ function getDisplayName(UIComponent) {
     </div>
 
   </div>
- -->
+```
 
 
 > 拆分css样式
@@ -6839,17 +6945,18 @@ function getDisplayName(UIComponent) {
 ----------------------------
 
 ### 案例: ToDoList --- 动态初始化列表
-<!-- 
-  <List />
 
+> <List /> 组件
+```jsx
   <ul className="todo-main">
     <Item/>
   </ul>
- -->
+```
 
-- 这里我们在说的就是 主要区域的列表, 我们前面一直在说状态中的数据驱动页面的显示, 现在有一个问题, 我要展示列表项, 那列表项的数据放在哪里? 每一个组件都有自己的状态, 那我们的列表项的数据放在哪个组件的状态里?
+- 这里我们在说的就是 主要区域的列表, 我们前面一直在说状态中的数据驱动页面的显示, 现在有一个问题, 我要展示列表项, 那列表项的数据放在哪里? 
+- 每一个组件都有自己的状态, 那我们的列表项的数据放在哪个组件的状态里?
 
-- 我们把列表项的数据, 放在App组件的state中, List组件要做展示, 父子之间传递东西使用props很合适
+- 我们把列表项的数据, *放在App组件的state中(状态提升)*, List组件要做展示, 父子之间传递东西使用props很合适
 
 - 也就是说 我们把他们要用的数据都放在App组件里面
 <!-- 
@@ -6857,8 +6964,9 @@ function getDisplayName(UIComponent) {
   Header  是往App中的state里面追加数据
  -->
 
+
 > 怎么设计 todos数据结构
-<!-- 
+```js
   state = {
     todos: [
       {
@@ -6878,23 +6986,23 @@ function getDisplayName(UIComponent) {
       },
     ]
   }
- -->
+```
 
-- 我们在App组件里面定义好了 todos数据, 接下来 我们要传递给哪个子组件? 谁做展示传递给谁吧
-<!-- 
-  <App /> 组件里面
-
+- 我们在App组件里面定义好了 todos数据, 接下来 我们要传递给哪个子组件? 
+- 谁做展示传递给谁吧
+```js 
+  // <App /> 组件里面
   <List todos={this.state.todos}/>
 
 
-  <List /> 组件里面
-  从props中取到App组件传递过来的数据, todos数组的长度决定我们渲染几个item
+  // <List /> 组件里面
+  // 从props中取到App组件传递过来的数据, todos数组的长度决定我们渲染几个item
   const {todos} = this.props
- -->
+```
 
 > List展示数据
 - 现在我们在App的state中定义了todos的数据结构里面就是我们要做的事情
-<!-- 
+```js
   state = {
     todos: [
       {
@@ -6908,20 +7016,19 @@ function getDisplayName(UIComponent) {
       }
     ]
   }
- -->
+```
 
-- 接下来<App />组件 通过 props 标签属性传递给了 <List todos={this.state.todos}/> 组件
-
-- 那么<List>组件就接收到了 todos 的数据 我们要通过todos的数据遍历展示内容
-<!-- 
+- 接下来<App />组件 通过 props 标签属性将数据传递给了 <List todos={this.state.todos}/> 组件
+- 那么<List>组件就接收到了 todos 的数据 我们要通过todos的数据遍历展示内容(Item)
+```js
   <ul className="todo-main">
     <Item />
   </ul>
- -->
+```
 
 - 以前我们都是通过数据直接格式化成我们想要的样子, 但现在是一个组件, 很多想要改变的内容都是在组件里面封闭的 我们格式化不了 怎么办?
-<!-- 
-  首先我们能根据 todos 来展示几个item组件 就是todos 的length
+```js
+  // 首先我们能根据 todos 来展示几个item组件 就是todos 的length
 
   <ul className="todo-main">
     {
@@ -6933,27 +7040,29 @@ function getDisplayName(UIComponent) {
       })
     }
   </ul>
- -->
+```
 
 - 可是<List>接到的todos数据 怎么传递给<Item> 因为<Item>要用啊
 - 还是通过 标签属性来传递
-<!-- 
+```js 
   <ul className="todo-main">
     {
       todos.map((item) => {
 
         return <Item key={item.id} {...item}/>
 
-        下面这种方式属性少可以, 属性多的话比较麻烦, 我们可以使用上面的{...item} 语法糖
+        // 下面这种方式属性少可以, 属性多的话比较麻烦, 我们可以使用上面的{...item} 语法糖
         return <Item key={item.id} id={item.id} name={item.name} done={item.done}/>
       })
     }
   </ul>
- -->
+```
 
 
 - 上面<List>使用标签属性的方式给<Item>传递了数据, 接下来<Item>组件就要接收<List>传递过来的数据
-<!-- 
+
+- Item组件内的render()中
+```js 
   let {name, done} = this.props
 
   <div>
@@ -6965,45 +7074,53 @@ function getDisplayName(UIComponent) {
 
       </label>
 
-      <button className="btn btn-danger" style={{ display: 'none' }}>删除</button>
+      <button 
+        className="btn btn-danger" 
+        style={{ display: 'none' }}>
+        删除
+      </button>
     </li>
   </div>
 
-  有一个问题, 我们复选框的勾选应该根据done属性的值来决定
-  假如我们这么写
+  // 有一个问题, 我们复选框的勾选应该根据done属性的值来决定 假如我们这么写
   <input type="checkbox" checked={done}/> 会报错
 
   // 报错信息:
   index.js:1 Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.
+```
 
-  1. 页面显示已勾选,但是不能更改状态 如果想要更改状态必须要使用 onChange
-
-  我们先改成这样 也是有问题的
+- 上面提示页面显示已勾选,但是不能更改状态 如果想要更改状态必须要使用 onChange
+- 这里面先将 *checked属性 修改为 defaultChecked*
+```js
+  // 我们先改成这样 也是有问题的
   <input type="checkbox" defaultChecked={done}/>
-
- -->
+```
 
 > 知识扩展: defaultChecked
-- 默认是否勾选 后续是可以改的 它只管第一次上来勾选还是不勾选
+- 默认是否勾选 后续是可以改的 *它只管第一次上来勾选还是不勾选* 后台的true false切换它是不起作用的
 
 ----------------------------
 
 ### 案例: ToDoList --- 通过输入框 添加todo
-- 在文本框中输入文字, 敲回车就会将文本放到App的state中, 然后驱动后续的展示
+- Header组件中在文本框中输入文字, 敲回车就会将文本放到App的state中, 然后驱动后续的展示
+
 - 我们给<input>绑定 onKeyUp事件, 因为绑定事件的元素 和 要获取文本值的元素是同一个 所以我们可以不用给<input>打ref, 而是通过event.target
-<!-- 
-  <input type="text" onKeyUp={this.handleKeyUp} placeholder="请输入你的任务名称，按回车键确认" />
+
+```js 
+  <input 
+    type="text" 
+    onKeyUp={this.handleKeyUp} 
+    placeholder="请输入你的任务名称，按回车键确认" 
+  />
 
   handleKeyUp = (e) => {
     if(e.keyCode !== 13) return
     
-    我们已经能在这个处理函数中得到文本框的值, 现在怎么才能用 <List>组件 将值 添加到<App>组件里面去呢?
+    // 我们已经能在这个处理函数中得到文本框的值, 现在怎么才能用 <List>组件 将值 添加到<App>组件里面去呢?
   }
- -->
+```
 
-- 也就是说, 我们在Header中的输入得影响着App state中的数据的变化
-> 子传父怎么操作?
-
+- 也就是说, 我们在Header中的输入得影响着App state中的数据的变化 *子传父怎么操作?*
 
 > 函数的新理解 --- 子组件向父组件传递数据
 - 函数不仅仅可以用户调用 写逻辑 做功能, 以前我们的使用函数都是通过调用函数的时候传递实参, 然后在函数内容来使用实参完成逻辑和功能
@@ -7012,7 +7129,7 @@ function getDisplayName(UIComponent) {
 
 - A组件给B组件通过<标签属性>发送一个函数, 函数内部定义形参
 - B组件使用函数, 将需要传递的数据, 当做实参传递给函数, A组件的形参就接到了B组件的数据, 从而做各种处理
-<!-- 
+```js  
   App组件
   a = (data) => {
     console.log('App:', data)
@@ -7020,30 +7137,31 @@ function getDisplayName(UIComponent) {
 
   // 给Header组件传递一个函数
   <Header a={this.a}/>
- -->
+```
 
 > 组件间的通信
 - 父组件 向 子组件传递数据:
-  - 父组件通过<标签属性>来进行传递数据, 子组件通过this.props来接收数据
+  - 父组件通过<标签属性props>来进行传递数据, 子组件通过this.props来接收数据
   - 传递的数据类型 变量 函数
 
 - 子组件 向 父组件传递数据:
   - 父组件通过<标签属性>来传递一个函数, 子组件调用函数通过实参的形式给父组件传递数据
 
-
-
+> 要点:
 - 子组件<Item>中要组织好一个对象传递到父组件
-<!-- 
-  因为父组件中的state todos=[{}, {}]的形式, 每一条数据都是一个对象, 所以我们要组织成一个对象再传递给父组件<App>
+```js 
+  // 因为父组件中的state todos=[{}, {}]的形式, 每一条数据都是一个对象, 所以我们要组织成一个对象再传递给父组件<App>
 
   let todoObj = {
     // 确保唯一标识 我们使用了nanoid库
     id: nanoid(),
+
     name: target.value,
 
     // 要添加的事情 肯定是没有做的
     done: false
   }
+
   this.props.addTodo(todoObj)
 
 
@@ -7053,7 +7171,7 @@ function getDisplayName(UIComponent) {
 		const {todos} = this.state
 
 		//追加一个todo
-		const newTodos = [todoObj,...todos]
+		const newTodos = [todoObj, ...todos]
 
 		//更新状态
 		this.setState({todos:newTodos})
@@ -7086,10 +7204,10 @@ function getDisplayName(UIComponent) {
 		//清空输入
 		target.value = ''
 	}
- -->
+```
 
 - 接下来 我们能够接到子组件传递的数据了, 那么我们就可以在父组件中的处理函数中做对应的处理
-<!-- 
+```js 
   addTodo = (todoObj) => {
     // 我们要获取state中的数据, 然后将新的对象放入到数据的前面
     const { todos } = this.state
@@ -7104,7 +7222,7 @@ function getDisplayName(UIComponent) {
 
     console.log(todoObj);
   }
- -->
+```
 
 ----------------------------
 
@@ -7130,33 +7248,35 @@ function getDisplayName(UIComponent) {
 
 ### 案例: ToDoList --- List列表项中 移入高亮 显示删除按钮
 - 那我们给每一个item添加一个鼠标移入和移出的事件
-- 我们要给<Item>添加事件, 那么就要在对应的组件中写逻辑
-<!-- 
-  <li onMouseEnter={this.handleMouse(true)} onMouseLeave={this.handleMouse(false)}>
+- 我们要给<Item>里面的 li 添加事件, 那么就要在对应的组件中写逻辑
+```js 
+  <li 
+    onMouseEnter={this.handleMouse(true)} 
+    onMouseLeave={this.handleMouse(false)}
+  >
     <label>
       <input type="checkbox" defaultChecked={done}/>
       <span>{name}</span>
     </label>
-    <button className="btn btn-danger" style={{ display: 'none' }}>删除</button>
+    <button 
+      className="btn btn-danger" 
+      style={{ display: 'none' }}>
+      删除
+    </button>
   </li>
 
-  虽然是引入移出两个事件, 我们可以传递一个函数, 通过传入true 和 false来判断写移入还是移出的逻辑
-
-  但是这么写也会引发一个问题
-  onMouseEnter={this.handleMouse(true)}
-
-  函数会被直接调用, 所以我们要保证handleMouse(true)返回的是一个函数
+  // 虽然是引入移出两个事件, 我们可以传递一个函数, 通过传入true 和 false来判断写移入还是移出的逻辑 但是这么写也会引发一个问题
+  // onMouseEnter={this.handleMouse(true)} 函数会被直接调用, 所以我们要保证handleMouse(true)返回的是一个函数
 
   handleMouse = (flag) => {
     return (event) => {
       console.log(flag);
     }
   }
- -->
+```
 
 - 现在我知道鼠标是进来了还是出去了, 然后我要在state中维护一个变量 标识鼠标有没有在当前的item身上
-<!-- 
-
+```js 
   // 我们定义一个变量, 默认false 代表一上来鼠标没有在任何人身上
   state = {
     mouse: false
@@ -7172,14 +7292,17 @@ function getDisplayName(UIComponent) {
   }
 
   // 然后我们通过
-  <li style={{backgroundColor: this.state.mouse ?'#eee' :''}} onMouseEnter={this.handleMouse(true)} onMouseLeave={this.handleMouse(false)}>
+  <li 
+    style={{backgroundColor: this.state.mouse ?'#eee' :''}} 
+    onMouseEnter={this.handleMouse(true)} 
+    onMouseLeave={this.handleMouse(false)}>
 
   <button className="btn btn-danger" style={{ display: this.state.mouse ? 'block' : 'none' }}>删除</button>
+```
 
-
-
+```js 
   // 我的做法
-  思路, 根据true写移入的逻辑, 根据false写移出的逻辑, 背景的实现都是通过添加个删除class完成
+  // 思路, 根据true写移入的逻辑, 根据false写移出的逻辑, 背景的实现都是通过添加个删除class完成
 
   handleMouse = (flag) => {
     return (event) => {
@@ -7191,7 +7314,7 @@ function getDisplayName(UIComponent) {
       }
     }
   }
- -->
+```
 
 - 实现上面的互动逻辑 老师和我的做法做下总结
 - 我的做法是: 
@@ -7209,19 +7332,15 @@ function getDisplayName(UIComponent) {
 
 ### 案例: ToDoList --- Item中的复选框的勾选和取消勾选
 - 在做react开发的时候, 我们除了关注页面的效果, 还要考虑是否能引发state中数据的变化
-
 - 我们这个部分, 主要处理一下, 点击复选框后, 它的状态能够同步到<App>组件中的状态
-<!-- 
-  Item中的复选框 如果是false
-
-  那么<App>组件中
+```js 
+  // Item中的复选框 如果是false 那么<App>组件中
   state = {
     todos: [{done: 也是false 同步到这里}]
   }
- -->
+```
 
-
-- 完成思路:
+> 完成思路:
 - 所以我们要给 <input> 绑定 onChange 事件, 在这个事件的处理函数中, 我们要想办法将我们要修改哪条数据对应的id, 和checkbox的checked状态 告诉<App>组件 让它将state中的对应数据做出对应的修改
 
 - 我们看下组件之间的关系 <Item> <List> <App> 他们3个依次是父子关系, 但是<Item>和<App>是祖孙关系, 子传父 需要层层传递
@@ -7229,12 +7348,16 @@ function getDisplayName(UIComponent) {
 - 数据的id是<List>组件传递给<Item>的, checked的状态也可以通过e.target.checked来获取
 
 - 整理好这些 我们就开始写逻辑
-<!-- 
+```js 
   // 1. 在<Item>组件中给<input>绑定onChange事件
    let {id, name, done} = this.props
         // 数据的id是<List>组件传递给<Item>的
 
-  <input onChange={this.handleCheck(id)} type="checkbox" defaultChecked={done}/>
+  <input 
+    onChange={this.handleCheck(id)} 
+    type="checkbox" 
+    defaultChecked={done}
+  />
 
         // 注意: 因为我们要将id传递到处理函数中, 标签里面的函数加了小括号, 所以函数内部要使用高阶函数
 
@@ -7252,7 +7375,7 @@ function getDisplayName(UIComponent) {
   // 3. 我们通过标签属性给<List>传递一个 更新checked的函数 让它给<Item>
   <List todos={this.state.todos} updateTodo={this.updateTodo}/>
 
-  同时 我们在<App>组件里面写逻辑
+  // 同时 我们在<App>组件里面写逻辑
   updateTodo = (id, done) => {
     // 参数: id改的是谁, done的情况
     
@@ -7276,12 +7399,12 @@ function getDisplayName(UIComponent) {
       todos: newTodos
     })
   }
- -->
+```
 
 
 
 **复习es6小知识**
-<!--  
+```js 
   let obj = {a:1, b:2}
 
   // 复制obj 然后对里面的值不满意, 可以在后面修改
@@ -7289,8 +7412,7 @@ function getDisplayName(UIComponent) {
 
   console.log(obj2)
     // {a:1, b:3}
- -->
-
+```
 
 > 总结:
 - 状态定义在哪里操作状态的方法就在哪里
@@ -7302,11 +7424,11 @@ function getDisplayName(UIComponent) {
 
 - props的类型限制是子组件对传递过来的数据进行类型限制
 
-<!-- 
+```js 
   <Header addTodo={this.addTodo} />
   <List todos={this.state.todos} updateTodo={this.updateTodo}/>
   <Footer />
- -->
+```
 
 - <App>给<Header> 和 <List>都传递props了
 - 接下来我们在<Header> 和 <List>组件中, 依次写对props进行限制的逻辑
@@ -7327,14 +7449,14 @@ function getDisplayName(UIComponent) {
 
 - 2. 接下来就是固定模板了
 - App 给 Header 传递了一个addTodo, 我们站在Header的角度就是接收, 站在App的角度就是传递
-<!--  
+```js 
   // 对接收的props进行 类型以及必要性的限制
   static propTypes = {
     addTodo: PropTypes.func.isRequired
   }
 
-  App必须给我传递一个func
- -->
+  // App必须给我传递一个func
+```
 
 - 如果<App>没有给<Header> 和 <List>传递对应的必传属性就会报错
 
@@ -7345,13 +7467,13 @@ function getDisplayName(UIComponent) {
 - 我们在<Item>组件里完成相关逻辑
 - 思路:
 - 我们拿到要删除这个数据的id, 告诉<App> 让App删除就可以了 
-<!-- 
-  id我们知道, 当初父组件传递过来的 在props里面 我们可以从props解构
+```js 
+  // id我们知道, 当初父组件传递过来的 在props里面 我们可以从props解构
   let {id, name, done} = this.props
- -->
+```
 
 - 然后我们做点击按钮的处理函数, 在处理函数中 使用父组件传递过来的函数将id通过实参的方式传递到该函数里面
-<!-- 
+```js 
   // 两种方式写法
   <button onClick={()=>this.handleDelete(id)}>删除</button>
   <button onClick={this.handleDelete(id)}>删除</button>
@@ -7364,10 +7486,10 @@ function getDisplayName(UIComponent) {
       }
     }
   }
- -->
+```
 
 - 我们在父组件<App>中定义一个通过props传递过来的函数, 目的一是让子组件传递数据供父组件来删除state中的数据
-<!-- 
+```js 
   deleteTodo = (id) => {
     // 获取原来的todos
     const {todos} = this.state
@@ -7382,136 +7504,38 @@ function getDisplayName(UIComponent) {
       todos: newTodos
     })
   }
- -->
+```
 
 - 这个函数要先从<App>组件中 传递给<List> 然后再传递给<Item>
-<!-- 
+```js 
   // 先传递给<List>
   <List deleteTodo={this.deleteTodo} todos={this.state.todos} updateTodo={this.updateTodo}/>
 
   // 然后<List>从props中解构出来 传递给<Item>
   const { todos, updateTodo, deleteTodo } = this.props
   <Item key={item.id} {...item} updateTodo={updateTodo} deleteTodo={deleteTodo}/>
-
-  
- -->
-
-
-**父组件: 更新 删除 添加数据的方法**
-
-- 我们都是利用更新state中数据, 来驱动页面的显示, 这是中心思想, 所以我们都是对sate中的数据 进行更新的操作
-
-- 下面中的方法 都是子组件为了传递给父组件信息, 要求父组件传递的函数 内部都是在对state做更新的操作
-
-
-> 添加数据的方法
-- 1. 获取state中的原数据
-- 2. 创建一个新对象, 用于将修改后的新对象覆盖state中的数据
-    - 这里利用了...obj将原来的数据展开, 然后前面放子组件传递过来的数据
-
-- 3. 通过this.setState方法更新数据
-<!-- 
-  // addTodo用于给state中添加一条信息, 接收的参数是一个todo对象
-  addTodo = (todoObj) => {
-
-    // 我们要获取state中的数据, 然后将新的对象放入到数据的前面
-    const { todos } = this.state
-
-    // 追加一个todos
-    const newTodos = [todoObj, ...todos]
-
-    // 更新状态
-    this.setState({
-      todos: newTodos
-    })
-  }
- -->
-
-
-> 更新state中的数据(修改state中的数据)
-- 1. 形参就是改谁?(id), 改什么(具体内容)
-- 2. 获取state中的原数据
-- 3. 我们要遍历state中的数据, 使用map(), 返回一个新数据对象用于替换state中的数据, 我们可以利用判断找到指定数据, 然后利用[...item, done:done]扩展运算符展开并对指定项进行修改
-- 4. 更新state中的数据 用新数据对象 替换 旧数据
-<!-- 
-  这里遍历没有选择forEach 因为它是直接修改state中的数据, 我们只能通过setState来修改
- -->
-<!-- 
-  // updateTodo 用于更新一个todos对象
-  updateTodo = (id, done) => {
-    // 这里需要的参数是 改的是谁, done的情况
-    
-    // 获取状态中的todos
-    const {todos} = this.state
-    
-    -------
-    这个方式不可以
-    todos.forEach((item, index) => {
-      if(item.id === id) {
-        item[done] = done
-      }
-    })
-    -------
-
-    // 匹配处理数据
-    let newTodos = todos.map((item) => {
-      if(item.id === id) {
-        // 如果匹配上了 我就给你返回一个新的对象, 而且done的值被我改了
-        return {...item, done:done}
-      } else {
-
-        // 如果没匹配上, 原数据返给你
-        return item
-      }
-    })
-
-    // 更新todos
-    this.setState({
-      todos: newTodos
-    })
-  }
- -->
-
-
-> 删除state中的数据
-- 说是删除 也是创建一个新的对象, 然后用它覆盖掉state中旧的对象
-- 1. 获取state中原来的数据
-- 2. 删除一条数据, 我们使用了filter方法, 将不是目标数据的其它数据返回就相当于删除了, 我们利用了 id!==id 的方式
-- 3. 更新state
-<!-- 
-  // 删除 用于删除一个todo
-  deleteTodo = (id) => {
-    // 获取原来的todos
-    const {todos} = this.state
-
-    // 从数组里面删除指定id的元素 我们可以使用数组里面的过滤 比如我们要删除002, 那么我就用filter方法, 将除了002的item返回 那是不是就相当于删除了002
-    let newTodos = todos.filter((item) => {
-      return item.id !== id
-    })
-
-    // 状态更新 驱动页面显示
-    this.setState({
-      todos: newTodos
-    })
-  }
- -->
-
-**完了**
+```
 
 ----------------------------
 
-### 案例: ToDoList --- 实现底部功能
+### 案例: ToDoList --- 实现底部功能 (包含 defaultValue change input checkbox 的问题)
 - □　已完成0 / 全部2    | 清除已完成任务 |
 
-- 需求:
+> 需求:
 - 1. 点击已完成前面的复选框, 上面的复选框都会全选上, 同时已完成后面的数字, 会根据复选框的数量进行变化
 
 - 2. 点击 清除已完成任务 按钮 所有被勾选的项目都会被删除掉
 
-- 思路
+> 思路
 - 已完成0 / 全部2 数字的展示
+
 - 只要<App>将todos交给<Footer> 那么<Footer>就能根据todos筛选出来有多少个打钩的, 其实就是看有多少人的done值为true
 <!-- 
+  这里不是只讲 数字传递过去 
+  而是将整个对象传递过去 让Footer组件自己处理
+ -->  
+
+```js 
   // <App> 组件中
   <Footer todos={todos} />
   
@@ -7520,13 +7544,12 @@ function getDisplayName(UIComponent) {
   render() {
     const {todos} = this.props
 
-    // 获取 已完成的个数
-    我们需要做的就是对数组进行 条件统计 如果done为true 那么+1 我们看看数组中有多少对象的done值为true
-
-    数组身上有一个方法专门做统计的 reduce 它能对数组进行条件统计 和 条件求和 筛选最值
+    // 获取 已完成的个数 
+    // 我们需要做的就是对数组进行 条件统计 如果done为true 那么+1 我们看看数组中有多少对象的done值为true 数组身上有一个方法专门做统计的 reduce 它能对数组进行条件统计 和 条件求和 筛选最值
 
     // pre是上一次的返回值, 第一次没有上一次就是item, 第二次调用的时候就是第一次的返回值
     const doneCount = todos.reduce(() => {}, 0)
+
     let count = todos.reduce((pre, item) => {
       return pre + (item.done ?1:0)
       /* 
@@ -7544,40 +7567,47 @@ function getDisplayName(UIComponent) {
     return ()
   }
 
-  我们在<Footer> 组件中根据todos就能知道有多少个完成的
-
-
+  // 我们在<Footer> 组件中根据todos就能知道有多少个完成的
   // 以上都是在render() {} 里面完成的逻辑 所以<span>中可以直接使用变量
   <span>已完成{doneCount}</span> / 全部{total}
- -->
+```
 
 - 当待做事项里都打上勾之后, □　已完成 它的前面的对号也应该可以勾上
+```js 
+  <input 
+    type="checkbox" 
+    checked={doneCount === total && total !== 0 ? true : false}/>
+```
 <!-- 
-  <input type="checkbox" checked={doneCount === total && total !== 0 ? true : false}/>
-
   total !== 0 为什么?
   如果都把待办事项删掉了 那是不是doneCount === total也是true 那就会导致一个问题, 都没有待办事项了, 下面的全选还勾着
+ -->
 
-
+**问题:**
   这里面有一个问题, 当像上面那么写之后 □　已完成 前面的确实会根据 待做事项都被选中 它的状态也是会选中 但是有一个问题, 页面会报错
 
-  // 报错信息
+- 报错信息
   index.js:1 Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.
 
-  提示 如果你写了 checked 那么页面上的 按钮的状态就不能改了, 你应该使用onChange
+- 提示 如果你写了 checked 那么页面上的 按钮的状态就不能改了, 你应该使用onChange
 
-  前面我们也出现了这个问题, 解决的办法是 写了defaultChecked, 但是defaultChecked也有问题 待办事项全选, 但是已完成前面的却没有勾选
+- 前面我们也出现了这个问题, 解决的办法是 写了defaultChecked, 但是defaultChecked也有问题 待办事项全选, 但是已完成前面的却没有勾选
 
-  defaultChecked 只在第一次起作用 看下面页面一加载后 它就会判断 ount === total 肯定不等啊 所以 defaultChecked的值就被设置成了false
+- *defaultChecked 只在第一次起作用* 看下面页面一加载后 它就会判断 count === total 肯定不等啊 所以 defaultChecked的值就被设置成了false
+
   checked={doneCount === total && total !== 0 ? true : false}
 
-  以后再根据判断想修改defaultChecked的值 也做不到 因为它只能生效一次
-  所以我们还是要使用checked
+- 以后再根据判断想修改defaultChecked的值 也做不到 因为它只能生效一次 所以我们还是要使用checked
 
-  但是 我们要给它绑定 onChange 事件 也就是 复选框 勾选 和 取消勾选的回调
+- 但是 我们要给它绑定 onChange 事件 也就是 复选框 勾选 和 取消勾选的回调
+```js
+  <input 
+    type="checkbox" 
+    onChange={this.handleCheckAll} 
+    checked={doneCount === total && total !== 0 ? true : false}/>
+```
 
-  <input type="checkbox" onChange={this.handleCheckAll} checked={doneCount === total && total !== 0 ? true : false}/>
-
+```js
   // 全选checkbox的回调
   handleCheckAll = (e) => {
 
@@ -7586,8 +7616,7 @@ function getDisplayName(UIComponent) {
   }
 
 
-  上面的函数是处理全选是么, 那是不是要将App组件中的所有done的值都改为true
-  对吧, 所以又是子传父, 还是要父组件 发一个函数过来
+  // 上面的函数是处理全选是么, 那是不是要将App组件中的所有done的值都改为true 对吧, 所以又是子传父, 还是要父组件 发一个函数过来
 
   // App组件中
   // 参数 done 是<Footer>组件传递过来值, 用于告诉父组件修改done的时候是全选还是全不选
@@ -7605,29 +7634,28 @@ function getDisplayName(UIComponent) {
 		//更新状态
 		this.setState({todos:newTodos})
 	}
- -->
+```
 
 
 - 清除所有已完成 逻辑
-- 
-<!-- 
-  Footer组件
+```js
+  // Footer组件
   <button onClick={this.handleClearAllDone} className="btn btn-danger">清除已完成任务</button>
 
-  告诉App组件 你把所有done为true都删掉吧
+  // 告诉App组件 你把所有done为true都删掉吧
   handleClearAllDone = ()=>{
 		this.props.clearAllDone()
 	}
 
 
-  App组件
+  // App组件
   //clearAllDone用于清除所有已完成的
 	clearAllDone = ()=>{
 		//获取原来的todos
 		const {todos} = this.state
 
 		//过滤数据
-    我们还是使用filter 逆向思维 我们把done为true的 都过滤掉, 我们把done: false都交出去
+    // 我们还是使用filter 逆向思维 我们把done为true的 都过滤掉, 我们把done: false都交出去
 		const newTodos = todos.filter((todoObj)=>{
 			return !todoObj.done
 		})
@@ -7635,7 +7663,7 @@ function getDisplayName(UIComponent) {
 		//更新状态
 		this.setState({todos:newTodos})
 	}
- -->
+```
 
 
 > 项目总结
@@ -7678,36 +7706,33 @@ function getDisplayName(UIComponent) {
 - axios等封装并不是把服务器的返回给我们的数据全都放在res里面了 而是放在res.data中
 
 > axios.get(url).then()
-<!-- 
+```js
   axios.get('url').then(res => {
       console.log(res.data)
     }, err => {
       console.log(err)
     })
- -->
+```
 
 
-- 案例: 
+> 案例: 
 - 点击按钮从服务器获取学生信息, 服务器是我们自己搭的
-<!-- 
+
   - 服务端接口:       http://localhost:5000/student
   - webpack服务器:    http://localhost:3000/
 
-  这不会跨域么? 是的 我们点击按钮后报了跨域的错误
-
-  // 跨域请求的报错信息:
+- 这不会跨域么? 是的 我们点击按钮后报了跨域的错误
+- 跨域请求的报错信息:
+```
   Access to XMLHttpRequest at 'http://localhost:5000/student' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
- -->
+```
 
 
-- 跨域产生的原因是ajax引擎把响应给拦住了, 也就是说因为跨域我的ajax请求能发送但是数据回不来
-
-- 那怎么解决? 我们在react脚手架里面通过代理去解决
+- 跨域产生的原因是ajax引擎把响应给拦住了, 也就是说因为跨域我的ajax请求能发送但是数据回不来 那怎么解决? 我们在react脚手架里面通过代理去解决
 
 
 > 那什么是代理
 - 白话点, 就是自己搞不定的事情 我们找一个中间人帮我们去解决
-
 - 我们目前所处的情况是这样, 我们客户端是3000的端口, 服务端是5000的端口
 <!-- 
 
@@ -7728,49 +7753,38 @@ function getDisplayName(UIComponent) {
               ajax引擎
                 |
                       中间人: 3000
-
-    我们client:3000 会给 中间人:3000端口发请求, ajax引擎一看你在3000给3000发 行啊, 没问题
-    然后中间人(代理服务器)就把刚才的请求转发给5000端口的server
-
-    server:5000 给中间人:3000 的响应结果, 中间人是能收到的 因为中间人没有ajax引擎, 
-    产生跨域的本质问题是ajax引擎把响应给拦住了 中间人是通过请求转发的形式给服务器, 
-    没有ajax引擎所以也不存在跨域的问题
-
-    同源策略压根不限制它, 所以响应数据可以到中间人这里 回来之后中间人再把数据交给浏览器
-    ajax的引擎是在3000端口的, 它一看从3000端口回来的数据 回的也是3000所以会放行
  -->
+
+- 我们client:3000 会给 中间人:3000端口发请求, ajax引擎一看你在3000给3000发 行啊, 没问题 然后中间人(代理服务器)就把刚才的请求转发给5000端口的server
+
+- server:5000 给中间人:3000 的响应结果, 中间人是能收到的 因为中间人没有ajax引擎, 产生跨域的本质问题是ajax引擎把响应给拦住了 中间人是通过请求转发的形式给服务器, 没有ajax引擎所以也不存在跨域的问题
+
+- 同源策略压根不限制它, 所以响应数据可以到中间人这里 回来之后中间人再把数据交给浏览器 ajax的引擎是在3000端口的, 它一看从3000端口回来的数据 回的也是3000所以会放行
 
 
 > React中配置代理有两种方式
-> 方式1:
+> 方式1: package.json
 - 仅适合建立一个代理
 - 在package.json中的最后, 加一个"proxy": "url", 只写到端口, 不用继续往下写接口
-
 <!-- 
-  3000没有的资源代理会找5000要, 3000有的资源代理会直接冲public中返回
+  3000没有的资源代理会找5000要, 3000有的资源代理会直接从public中返回
  -->
 
 > "proxy": "http://localhost:5000"
-<!--
+```js
   // package.json文件中
   {
     ...
   },
   "proxy": "http://localhost:5000"
+```
+- 这样写之后所有发给3000端口的请求 都转发给了5000
+- 那是所有的请求都被转发给5000么?  不是 当我们请求的路径是public文件夹里面有的东西的时候, 代理会直接返回public中已有的资源
 
+- 因为:
+- public文件夹是脚手架帮我们开启的服务器的根路径, 3000有的资源 代理就不会再转发给5000服务器了 也就是说3000没有的再转发给5000
 
-
-  这样写之后所有发给3000端口的请求 都转发给了5000
-
-  那是所有的请求都被转发给5000么?  不是
-  当我们请求的路径是public文件夹里面有的东西的时候, 代理会直接返回public中已有的资源
-
-  因为:
-  public文件夹是脚手架帮我们开启的服务器的根路径, 3000有的资源 代理就不会再转发给5000服务器了
-  也就是说3000没有的再转发给5000
--->
-
-- 配置完之后 我们还要修改前端代码, 将axios中请求地址改为3000端口(改为同源地址改到端口号)
+- 配置完之后 我们还要修改前端代码, 将axios中请求地址由原来发给5000端口的请求改为发给3000端口(改为同源地址改到端口号)
 <!-- 
   最开始我们要从客户端3000端口 往 服务器端5000端口 发请求
   因为我们配置了代理, 我们要往代理的端口发请求 所以要将请求地址改为代理的地址
@@ -7787,7 +7801,11 @@ function getDisplayName(UIComponent) {
 - 当我们改了package.json文件后脚手架必须重启 刚才写的这句话才奏效
 
 
-> 方式2: 配置多个代理
+> 方式2: 配置多个代理 react中是配置 setupProxy.js 文件
+
+> 下载:
+- npm install http-proxy-middleware -D
+
 - 建立多个代理
 <!-- 
   这里我们设计了一个场景, 一个是学生信息5000端口的server, 一个是汽车信息5001端口的server
@@ -7800,17 +7818,21 @@ function getDisplayName(UIComponent) {
 > 1. src文件夹下 创建 setupProxy.js 文件
 - react会自动找这个文件 将这个文件加到webpack的配置里面, 因为webpack里面都是用的node语法写的都是commonjs 所以我们 setupProxy.js文件中要使用commonjs的语法
 
-<!-- 
-  我们看下前端代码:
+- 我们看下前端代码:
+
   axios.get('http://localhost:3000/student')
-      去3000找student数据, 而我们的public里面没有student数据 就会走代理
+      
+- 去3000找student数据, 而我们的public里面没有student数据 就会走代理
 
   axios.get('http://localhost:3000/cars')
-      去3000找cars数据
+      
+- 去3000找cars数据
 
 
-  但是我们在setupProxy.js文件中 又是这么配置的代理, 也就是说请求路径中必须要有api1才会走代理
+- 但是我们在setupProxy.js文件中 又是这么配置的代理, 也就是说请求路径中必须要有api1才会走代理
+```js
   const proxy = require('http-proxy-middleware')
+
   module.exports = function(app) {
     app.use(
       proxy('/api1', {
@@ -7827,20 +7849,21 @@ function getDisplayName(UIComponent) {
       })
     )
   }
-  
+```
 
-  上面配置好了我们也要把前端代码改成
+- 上面配置好了我们也要把前端代码改成
+```js
   axios.get('http://localhost:3000/api1/student')
-      如果3000没有学生数据, 就走api1所配置的代理, 这样就会访问5000下的students
+      // 如果3000没有学生数据, 就走api1所配置的代理, 这样就会访问5000下的students
 
   axios.get('http://localhost:3000/api2/cars')
- -->
+```
 
 - 这样特别的灵活, 如果想走代理到5000 就写/api1 想走代理到5001 就写/api2 如果不想要代理就不写/api
 
 
 > 解析代理的配置文件
-<!-- 
+```js
   app.use(
     proxy('/api1', {  
       target: 'http://localhost:5000',
@@ -7848,13 +7871,15 @@ function getDisplayName(UIComponent) {
       pathRewrite: {'^/api1': ''}
     })
   )
+```
+- proxy()中有两个参数
+- 参数1: 
+  /api1:
+  - 是需要转发的请求 (所有带有/api1前缀的请求都会转发给5000)
+  - 相当于代理人的名字
 
-  proxy()中有两个参数
-  参数1: 
-    /api1 是需要转发的请求 (所有带有/api1前缀的请求都会转发给5000)
-    相当于代理人的名字
-
-  参数2: 配置对象
+- 参数2: 
+  配置对象
     target: 'url'
         配置转发目标地址(能返回数据的服务器地址)
 
@@ -7868,11 +7893,10 @@ function getDisplayName(UIComponent) {
 
     pathRewrite: {'^/api1': ''}
         去除请求前缀，保证交给后台服务器的是正常请求地址(必须配置)
- -->
 
 
 **配置多个代理 代码部分 复制用**
-<!-- 
+```js
   const proxy = require('http-proxy-middleware')
   module.exports = function(app) {
     app.use(
@@ -7889,11 +7913,26 @@ function getDisplayName(UIComponent) {
       })
     )
   }
- -->
+```
+
+**新版的 proxy 这么写**
+```js
+const {createProxyMiddleware } = require('http-proxy-middleware');
+
+module.exports = function (app) {
+  app.use(
+      createProxyMiddleware ('/api1', {
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: {'^/api1': ''}
+    })
+  )
+};
+```
 
 
 **复习: index.js app.jsx里都写什么**
-<!-- 
+```js
   // index.js文件中 入口文件
   import React from 'react'
   import ReactDOM from 'react-dom'
@@ -7924,13 +7963,19 @@ function getDisplayName(UIComponent) {
       )
     }
   }
- -->
+```
 
 ----------------------------
 
 ### 案例: github搜索
 - 在文本框输入文字后, 点击按钮 检索数据, 然后将检索到的数据展示到页面上
-- 我们将这个案例拆成3个组件, App and Search and 展示区域
+- 我们将这个案例拆成3个组件
+  
+  App
+
+  Search
+
+  展示区域
 
 - 这个案例中使用了 Bootstrap
 
@@ -7959,6 +8004,8 @@ function getDisplayName(UIComponent) {
 **注意:<a target='_blank'> 和 <img> 需要其他标签属性配合使用**
 - 使用 <target="_blank"> 不使用标签属性 rel="noreferrer" 就会报错
 -  rel="nofollow noopener noreferrer" 
+
+
 <!-- 
   rel =“noopener”一般都是搭配 target="_blank"同时使用
 
@@ -7999,22 +8046,19 @@ function getDisplayName(UIComponent) {
 
  -->
 
-
 -------
 
 - 上面完成了静态页面, 接下来的逻辑就是用户在文本框输入内容, 我们根据输入的值发起网络请求, 比如用户输入的是abc, 我们就问服务器关于abc相关的用户都有哪些呢? 然后我们完成展示
 
-- 1. 我们给按钮添加点击事件
-<!-- 
+> 1. 我们给按钮添加点击事件
+- 获取用户输入的值 发起请求
+```js
   // <Search>
-  react当中获取指定节点没办法像操作DOM那样根据DOM树找到要操作的节点, 而是使用ref获取指定的节点
-
-  给元素添加ref有两种方式, 一种是标签内的回调, 一种是创建ref容器
-  1. 创建ref容器
+  // react当中获取指定节点没办法像操作DOM那样根据DOM树找到要操作的节点, 而是使用ref获取指定的节点 给元素添加ref有两种方式, 一种是标签内的回调, 一种是创建ref容器
+  // 1. 创建ref容器
   inputRef = React.create()
-  this.inputRef.current.属性
 
-  2. 标签内回调
+  // 2. 标签内回调
   ref={c = this.keyWordElement = c}
   this.keyWordElement.value
 
@@ -8028,10 +8072,10 @@ function getDisplayName(UIComponent) {
       console.log(res.data)
     })
   }
- -->
+```
 
 
-- 2. 我们先获取文本框内用户输入的值, 然后拿着值去服务器请求数据, 然后我们做展示
+> 2. 我们先获取文本框内用户输入的值, 然后拿着值去服务器请求数据, 然后我们做展示
 <!-- 
   这里我们使用了 github给我们提供的接口, 会根据我们输入的值, 返回对应的数据
   https://api.github.com/search/user?q=xxxxxx xxx是关键词
@@ -8051,13 +8095,13 @@ function getDisplayName(UIComponent) {
  -->
 
 
-- 3. 接下来我们开始请求数据的逻辑
+> 3. 接下来我们开始请求数据的逻辑
 - 注意 我们在3000, 要向5000端口发送请求, 是不是跨域, 是不是要配置代理
 - 上线的网站很少有用cors解决跨域的
 
 
 - 配置完代理后前端代码需要改下 改成同源 代理也在跟你一个端口的位置
-<!-- 
+```js
   // 本来我们要给5000发
   axios.get(`http://localhost:5000/search/users?q=${value}`)
 
@@ -8088,7 +8132,7 @@ function getDisplayName(UIComponent) {
       })
     )
   }
-  我们只配置到包含端口号就可以
+  // 我们只配置到包含端口号就可以
 
   // 服务器
   app.get('/search/users', (req, res) => {
@@ -8106,14 +8150,15 @@ function getDisplayName(UIComponent) {
     })
   })
 
-  据说mock和axios有冲突 后端用不了
- -->
+  // 据说mock和axios有冲突 后端用不了
+```
 
-- 4. 上面的数据已经可以请求回来, 接下来我们将数据展示在页面上, 我们要在<List>组件中展示, 而我们是<Search>组件搜索回来的东西要交给<List>进行展示, 但是<Search>和<List>是兄弟组件, 他们之间要进行沟通, 但是我们目前没有办法解决这个事情
+> 4. 上面的数据已经可以请求回来, 接下来我们将数据展示在页面上, 我们要在<List>组件中展示, 而我们是<Search>组件搜索回来的东西要交给<List>进行展示, 但是<Search>和<List>是兄弟组件, 他们之间要进行沟通, 但是我们目前没有办法解决这个事情
 
 - 所以我们将<Search>组件请求回来的数据, 给<App>, 然后再由<App>给<List>
 - 注意这里, <App>拿到数据放在哪里? state的吧? 所以我们要先初始化state
-<!-- 
+
+```js 
   // App组件中
 
   // 初始化状态
@@ -8140,12 +8185,12 @@ function getDisplayName(UIComponent) {
     // 我们交过去的是一个数组
     saveUsers(res.data.items)
   })
- -->
+```
 
 
-- 5. 上面交接完数据, 也已经把数据交给了<List> 那么我们就可以利用数据做页面的展示
+> 5. 上面交接完数据, 也已经把数据交给了<List> 那么我们就可以利用数据做页面的展示
 - 有多少个结构直接遍历就好, 我们对拿到的数据进行map遍历
-<!-- 
+```js
   render() {
     let {users} = this.props
     return (
@@ -8169,9 +8214,9 @@ function getDisplayName(UIComponent) {
       </div>
     )
   }
- -->
+```
 
-- 6. 上面完成了展示工作, 接下来我们完善一下这个案例
+> 6. 上面完成了展示工作, 接下来我们完善一下这个案例
 - 一上来 <List>组件中应该有欢迎词
 - 点击搜索按钮的时候 <List>应该展示loading动画
 
@@ -8189,15 +8234,11 @@ function getDisplayName(UIComponent) {
 
 - <Search>组件中的逻辑
 - 那什么时候在哪里改变这些标识变量呢? 我们在点击search按钮函数里面写逻辑
-
 - 点击search按钮代表正在获取数据需要展示Loading动画 关闭欢迎词组件
-
 - 所在当点击了按钮后, 在回调中我们要将isfirst改为false, isLoading改为true
-
 - 数据回来后, 我们也要通知App修改状态和将请求回来的数据存放到state的users里面, 通知数据回来也不用展示loading组件了, 也将isLoading改为false等
-
 - 如果我们请求数据出错了 我们还要更新状态 我们要把错误信息存在err里面
-<!-- 
+```js 
   // 初始化状态
   state = {
     users: [],
@@ -8211,37 +8252,39 @@ function getDisplayName(UIComponent) {
     // 存储请求相关错误信息, 
     err: false
   }
- -->
+```
 
 - 逻辑我们想完了接下来看看 App中我们应该定义什么样的方法
 - 所以我们需要在App组件中定义如下的方法 并全部传递给<Search>
-<!-- 
-  
+```js
   saveUsers = (users) => {
     this.setState({users})
   }
+
   changeIsFirst = (isfirst) => {
     this.setState({isfirst})
   }
+
   changeIsLoading = (isLoading) => {
     this.setState({isLoading})
   }
+
   saveErr = (err) => {
     this.setState({err})
   }
- -->
+```
 
 - 可是我们发现 每一个方法内部都是在更新状态 那我们定义一个通用的方法, 用来做这4种逻辑的处理
-<!-- 
+```js
   // 参数: stateObj 请给我传递一个state obj
   updateAppState = (stateObj) => {
     this.setState(
       stateObj        // stateObj本身就是一个状态对象直接丢进去
     )
   }
- -->
+```
 
-<!-- 
+```js
   Search = () => {
     let value = this.inputRef.current.value
 
@@ -8280,50 +8323,17 @@ function getDisplayName(UIComponent) {
       })
     })
   }
- -->
+```
 
-- 我留下了一个问题????
-<!-- 
-  // state中是一个对象 一共有4个状态
-  {
-    users: [],
-    isfirst: true,
-    isLoading: false,
-    err: false
-  }
-
-  // 但是我们写的逻辑 每一种逻辑里面只改变1-2种 但是传递过去的也是一个对象, 改两种不会将4种都覆盖掉么?
-
-  // 比如这个就会改两种, 这种丢过去 不会覆盖掉state中的状态么
-  this.props.updateAppState({ isLoading: false, err})
- -->
-
-- 测试一下
-<!-- 
-  // 这是state中原始状态
-  err : false
-  isFirst : true
-  isLoading : false
-  users : []
-
-  // 我们点下搜索按钮, 改改修改后的状态 和 会不会覆盖的问题
-  err : false
-  isFirst : false
-  isLoading : false
-  users : []
-
-
-  诶? 不会覆盖啊
- -->
 
 - <App>创建状态, <Search>负责修改状态, <List>根据App传递过来的状态做展示工作
-<!-- 
+```js
   // 我们也要将 数据 传递给 <List>
   <List {...this.state}></List>
 
-  那<List>就能接到
+  // 那<List>就能接到
   err isFirst isLoading users
- -->
+```
 
 - 上面我们已将状态维护好了, 标识什么时候展示什么画面的变量的逻辑写好了, 接下来就要考虑展示的画面
 <!-- 
@@ -8366,8 +8376,8 @@ function getDisplayName(UIComponent) {
  -->
 
 
-> 技巧补充:
-- 如果我们站在3000给3000发请求的时候, 端口号(包含)都可以不写 直接写接口就可以
+> 技巧补充: 给自己的项目发请求
+- *如果我们站在3000给3000发请求的时候, 端口号(包含)都可以不写 直接写接口就可以*
 
 - 连续的结构赋值:
 - 连续结构赋值 解出来的是最终值 也就是value
@@ -8430,90 +8440,45 @@ function getDisplayName(UIComponent) {
 - PubSubJS是比较主流消息订阅与发布的JS库
 
 > pubsub-js库的使用方式
-- 1. npm install pubsub-js --save
+- npm install pubsub-js --save
 <!-- 
   https://github.com/mroderick/PubSubJS
  -->
 
-- 2. 官网案例
-<!-- 
-  // 引入
-  // es6的引入方式
-  import PubSub from 'pubsub-js'
 
-  // cjs的引入方式 代表服务器端也能用
-  const PubSub = require('pubsub-js');
+> 使用方式
+> this.id = PubSub.subscribe("订阅的消息名", (msgName, data) => {})
+- 1. 订阅方: 我们在*需要接收数据的组件*里*订阅消息*(指定消息名), 如果有人发布消息了, 就会调用回调函数中接收到
 
+- 参数:
+- id: 用于关闭定于
+- msgName: 消息名 可以置换成  _
+- data: 收到的数据
 
-  // 使用方式
+```js
+componentDidMount() {
+  this.id = PubSub.subscribe("message", (msgName, data) => {
+    console.log("msgName", msgName)
+    console.log(data)
+  })
+}
 
-  // 参数1: 消息名
-  // 参数2: 别人想交给你的数据
-  var mySubscriber = function (msg, data) {
-      console.log( msg, data );
-  };
-
-
-  
-  我们订阅了什么消息的名字 MY TOPIC;   
-  // 参数1: 消息名
-  // 参数2: 回调函数
-    如果有人发布了MY TOPIC的消息 我们的订阅就起作用了, 我们收到消息之后就会调用这个回调函数
-  var token = PubSub.subscribe('MY TOPIC', mySubscriber);
+componentWillUnmount() {
+  PubSub.unsubscribe(this.id)
+}
+```
 
 
-  // 发布消息
-  参数1: 消息名
-  参数2: 携带的数据
-  PubSub.publish('MY TOPIC', 'hello world!');
-  PubSub.publishSync('MY TOPIC', 'hello world!');
+> PubSub.publish("message", value)
+- 2. 数据放松方: 我们在合适的逻辑中 发送消息 并要指定订阅的消息名
+```js
+handleChange = () => {
+  let {inp} = this
+  let value = inp.value
+  PubSub.publish("message", value)
+}
+```
 
-
-  // 单词解析:
-  subscribe: 订阅的意思
- -->
-
-
-- 2. 我们在需要接收数据的组件里订阅消息(指定消息名MY TOPIC), 如果有人发布消息了, 就会调用回调函数 mySubscriber
-<!-- 
-  // token 就是每一次订阅消息产生的id 以后不想订阅消息的时候(比如组件被卸载了就不需要订阅消息了)
-  var token = PubSub.subscribe('MY TOPIC', mySubscriber);
-
-  // 取消订阅
-  PubSub.unsubscribe(token)
-
-
-  // 回调函数 可以直接写在PubSub.subscribe第二个参数里面
-  var mySubscriber = function (msg, data) {
-    console.log( msg, data);
-  };
-
-
-
-  -------               -------
-  A组件:                B组件:
-
-  // 想想上面订阅报纸的流程
-  A组件想收到B组件给的东西(B提供东西给A),  A组件就要在自己的组件里(家里)使用命令订阅消息(这样别人知道你在哪里好送报纸啊)
-
-  B组件里通过某种语法 发布这个消息, 发布消息的同时在把数据带过去
- -->
-
-- 3. 发布消息
-<!-- 
-  // 发布消息
-  参数1: 消息名
-  参数2: 携带的数据
-  PubSub.publish('MY TOPIC', 'hello world!');
-  PubSub.publishSync('MY TOPIC', 'hello world!');
- -->
-
-
-> 总结:
-- 1. 引入PubSub模块
-- 2. 接收方在本组件里面订阅消息
-- 3. 发布者在自己组件里面发布消息
-- 4. 组件没了的时候取消消息
 
 - 1. 
 - 我们把消息的订阅和发布 应用在上面的案例中
@@ -8549,9 +8514,8 @@ function getDisplayName(UIComponent) {
 > PubSub.subscribe('msg', (msg, data)=>{})   订阅
 > PubSub.publish('msg', data)                发布
 
-<!-- 
-  <List>组件订阅消息:
-
+```js
+  // <List>组件订阅消息:
   // 页面一加载开始订阅消息
   componentDidMount() {
     PubSub.subscribe('viewData', (_, stateObj) => {
@@ -8562,8 +8526,7 @@ function getDisplayName(UIComponent) {
 
 
 
-  <Search>组件发布消息
-
+  // <Search>组件发布消息
   Search = () => {
     // 获取用户的输入
     let value = this.inputRef.current.value
@@ -8581,10 +8544,7 @@ function getDisplayName(UIComponent) {
         PubSub.publish('viewData', { err, isLoading: false })
     })
   }
- -->
-
-**注意: 我发现发布消息的时候, 里面使用的变量不用事先获取和定义**
-
+```
 
 > 总结
 - 1. 订阅消息需要组件一挂载的时候开始订阅 componentDidMount 这里面做一些初始化的事儿 开启定时器 订阅消息
@@ -8592,14 +8552,14 @@ function getDisplayName(UIComponent) {
 - 2. 函数中有一些形参不想用, 我们可以用_来占位
 <!-- 
   PubSub.subscribe('viewData', (_, data) => {
-      console.log(data);
-    })
+    console.log(data);
+  })
  -->
 
 - 3. 以后谁用状态 状态就放在谁那里, 别人想改这个状态, List订阅消息, Search发布消息来修改, List里面接到状态对象就存(修改), 别人通过发布修改
 
 - 4. 什么时候订阅 什么时候取消订阅
-<!-- 
+```js 
   componentDidMount() {
     this.token = PubSub.subscribe('viewData', (_, stateObj) => {
       // 只要给我状态对象 我就更新状态对象
@@ -8610,7 +8570,7 @@ function getDisplayName(UIComponent) {
   componentWillUnmount() {
     PubSub.Unsubscribe(this.token)
   }
- -->
+```
 
 ----------------------------
 
@@ -8635,29 +8595,31 @@ function getDisplayName(UIComponent) {
 - 响应的结果在then()方法中获取
 
 - 参数
-- 1. 是一个请求资源的服务器地址
-- 2. 一个配置对象, 包括所有对请求的设置
+- 1. url, 请求资源的服务器地址
+- 2. 配置对象, 包括所有对请求的设置
 - method:   请求方法
 - headers:  自定义请求头
 - body:     请求体
 
 
 > post请求 (先看下面 这仅仅是后期的知识补充)
-<!-- 
+```js
   fetch(url, {
     method: "POST",
     body: JSON.stringify(data),
 
-  }).then(function(data) {
-    console.log(data)
+  }).then(function(res) {
+    return res.json()
 
-  }).catch(function(e) {
+  }).then(data => {
+    ... 这个数据
+  }).catch(function(e) {
     console.log(e)
   })
- -->
+```
 
 > 我们可以直接传入参数1 url然后then中取结果 (默认get请求) 
-<!-- 
+```js
   fetch(`http://localhost:3000/api1/search/users2?q=${value}`).then(
 
     // 看看服务器能不能联系成功
@@ -8666,7 +8628,7 @@ function getDisplayName(UIComponent) {
     // 断网了才会走失败, 不然都会联系服务器成功 即使服务器里面没有对应接口可是会走成功的回调, 只是服务器返回的信息里面, 标识着具体信息 比如404
     err => { console.log('联系服务器失败了', err)}
   )
- -->
+```
 
 - 出现个问题, 我们发送请求 然后响应也表示成功返回, 但是我们在res中找不到数据在哪里, 这就是fetch所用的关注分离思想
 <!-- 
@@ -8678,9 +8640,9 @@ function getDisplayName(UIComponent) {
   我们找服务器要东西要先联系服务器吧(不是发请求成功就把数据带回来了), 看联系上了之后我们再拿数据
  -->
 
-- 那怎么取数据?
+> 那怎么取数据?
 - then中第一个参数 res 响应结果身上有一个json(), 我们的数据就保存在这个json()方法中, log(res.json()), 它返回的是一个promise对象, 我们要是想取数据, 应该这样
-<!-- 
+```js
   fetch(`http://localhost:3000/api1/search/users2?q=${value}`).then(
       res => {
         return res.json()
@@ -8689,7 +8651,10 @@ function getDisplayName(UIComponent) {
     ).then(data => {
       console.log(data)
     })
+```
 
+- 也就是说 第一个then()里面要return res.json() 在第二个then()里面获取数据
+<!-- 
   上面的有两个then()方法, A和B
   因为 return res.json() 它是一个promise对象, 就意味着A then()的返回值也是一个promise实例对象, 这个返回值的状态和 res.json()是一样的, 也就是说res.json()返回的promise实例对象 就作为A then的返回值使用了
   
@@ -8700,7 +8665,8 @@ function getDisplayName(UIComponent) {
 
 > 总结:
 - 使用fetch采用的是关注分离理念, 第一个then代理 询问服务器状态是否可连接, 数据要通过第一个then中的res.json()方法, 它是一个promise对象, 我们把它return出来, 数据在第二个then中获取
-<!-- 
+
+```js
   // 先联系服务器询问状态
   fetch(`http://localhost:3000/api1/search/users2?q=${value}`).then(
       res => {
@@ -8713,7 +8679,7 @@ function getDisplayName(UIComponent) {
     ).then(data => {
       console.log(data)
     })
- -->
+```
 
 - 上面的情况我们模拟了一下断网, 发现显示 先联系服务器成功失败, 获取数据成功 数据为undefined? 为什么都断网了还会显示获取数据成功?
 
@@ -8721,9 +8687,10 @@ function getDisplayName(UIComponent) {
 
 - Athen中如果err返回的是一个非promise的值, 那么A then返回的promise实例状态就为成功的 值就为undefined, 所以B then中会走第一个res回调
 
+
 > 中断promise链 return new Promise(() => {})
 - 但是这并不好, 如果是服务器链接失败 就不应该到B then里面了
-<!-- 
+```js
   A
   then(
     res => {},
@@ -8743,7 +8710,8 @@ function getDisplayName(UIComponent) {
   // 其实我们可以在最后统一处理错误 A B then中的错误回调都不用写
   catch(err => {console.log(err)})
     catch用于统一处理错误
- -->
+```
+
 
 > 我们使用async await 进行优化
 - 我们把上面的请求再继续优化一下, 因为我们想要获取一个promise对象成功时的结果可以使用async await, 上面需要获取两次成功的结果, 先取出一个成功的结果 发现是一个promise实例, 再用await再取一次
@@ -8752,13 +8720,13 @@ function getDisplayName(UIComponent) {
 - 要点2: await的右侧必须是一个promise对象
 - 要点3: await只能等到成功的结果, 异常它不管
 
+
 > 由于await 只能等到成功的结果, 我们处理异常的时候要使用try catch
 - 将可能出现错误的代码写在try里面, 一旦出现错误了就会到catch里
 ```js 
   Search = async() => {
     
     // 解决错误的 try catch
-
     try {
 
       // async await 对上面的请求进行优化
@@ -8793,11 +8761,9 @@ function getDisplayName(UIComponent) {
 - 我们使用Vue和React写的网页都是SPA页面, 都是单页面
 - 以前我们多页面应用, 会发现一个场景有10个按钮, 那就有对应的10个html文件, 而且在页面切换的过程中, 会整体的刷新页面
 
-
 > SPA的理解
 - 单页Web应用（single page web application，SPA）
-- 整个应用只有一个完整的页面。
-- 点击页面中的链接不会刷新页面，只会做页面的局部更新。
+- 整个应用只有一个完整的页面。点击页面中的链接不会刷新页面，只会做页面的局部更新。
 - 数据都需要通过ajax请求获取, 并在前端异步展现
 
 - spa页面它的用户体验会更好 对服务器的压力更新 比如多应用的程序中 页面中可能会有相同的部分 在多应用的程序中就会被加载两次 如果是单应用的程序只需要加载一次就可以了 
@@ -8860,21 +8826,21 @@ function getDisplayName(UIComponent) {
 - 2. 创建 history 对象
 
 
-> 方法一，直接使用H5推出的history身上的API
+> 方法一， 直接使用H5推出的history身上的API
 - 这个方法是H5推出的 比较老的浏览器不支持这些API 可以使用方法2
-<!-- 
+```js
   // 创建一个浏览器history对象
   let history = History.createBrowserHistory()
--->
+```
 
 
-> 方法二，hash值（锚点）
+> 方法二， hash值（锚点）
 - 这个方法利用了hash值, 属于锚点跳转
 - 下面的方法都可以用产生的效果是 /的前面多出一个#  #/test1
 - 锚点跳转不会刷新页面, 但是会留下历史记录
 
 - 效果看起来不好看但是效果极佳
-<!-- 
+```js
   let history = History.createHashHistory()
 
   方法1的效果
@@ -8883,22 +8849,24 @@ function getDisplayName(UIComponent) {
 
   方法2的效果
   http://127.0.0.1:5500#/test1
- -->
+```
 
 
 > history.push(path)
 - 往浏览器的历史记录中推一条数据
 - 当我们页面没有产生历史记录的时候, 是没有办法前进和后退的, 当我们可以点击后退的时候, 代表浏览器的历史记录里面多了一条
-<!-- 
-  <a href="http://www.atguigu.com" onclick="return push('/test1') "></a>
+```js
+  <a 
+    href="http://www.atguigu.com" 
+    onclick="return push('/test1') "></a>
 
   function push (path) {
     history.push(path)
     return false
   }
 
-  上面我们将 /test1 推到历史记录中 一个一个往里推, 最后一个推进去的就是我们正在浏览的页面
- -->
+  // 上面我们将 /test1 推到历史记录中 一个一个往里推, 最后一个推进去的就是我们正在浏览的页面
+```
 
 
 > history.replace(path)
@@ -8963,7 +8931,7 @@ function getDisplayName(UIComponent) {
 ----------------------------
 
 ### react路由的基本使用
-- react-router 
+> react-router 
 - 是react的一个插件库, 专门用来实现一个SPA应用, 基于react的项目基本都会用到这个库
 
 - 原理:
@@ -8995,6 +8963,9 @@ function getDisplayName(UIComponent) {
 > 使用方式
 - npm i react-router-dom
 
+**注意:**
+- 以下的内容都是按照 router@5 讲解的 因为v6的语法变了
+
 
 > 前端路由的实现方式
 - 1. 点击导航区 影响路径的变化
@@ -9002,18 +8973,17 @@ function getDisplayName(UIComponent) {
 
 
 - 引入我们下载好的 路由库react-router-dom
-<!-- 
-  React里面有很多的功能, 所以是靠{ }来取, 我们用什么从React中取什么?
+```js
   import {BrowserRouter, Link} from 'react-router-dom'
- -->
+```
 
-> 路由的三个核心组件 <Router> <Route> <Link>
-
+> 有两种路由器 & 三个路由组件
+> 路由的三个核心组件: <Router> <Route> <Link>
 > 路由器: <Router>(<BrowserRouter> / <HashRouter>)
 - 用来管理 路由链接
-- 我们的路由链接都应该在<Router>的内部, 路由链接都交给路由器来管理
+- 我们的*路由链接都应该在<Router>的内部*, 路由链接都交给路由器来管理
 
-- <Router> 分为两种, 下面的两种就相当于我们上面使用history-js库中的两种使用方式, 一种是hash模式, 一种是H5新增的模式
+- <Router>器分为两种, 下面的两种就相当于我们上面使用history-js库中的两种使用方式, 一种是hash模式, 一种是H5新增的模式
 
 - 1. <BrowserRouter>
 - 2. <HashRouter>
@@ -9023,18 +8993,18 @@ function getDisplayName(UIComponent) {
 - 使用 <HashRouter> 的时候 路径中 会有#
 
 **同时要使用选择的路由器 将整个应用包裹起来**
-- 也就是使用 路由器 包裹整个应用 我们才能使用路由功能
-<!-- 
+- 也就是使用 *路由器 包裹整个应用* 我们才能使用路由功能 同时路径的改变 和 监听路径展示对应的组件也能完成 因为是使用 一个路由器管理整个应用
+```js
   <BrowserRouter>
     <div className="App">
       // 省略页面内容
     </div>
   </BrowserRouter>
- -->
+```
 
-- 还可以这样
+> 技巧
 - 我们在index.js入口文件, 将整个<App>组件使用<BrowserRouter>包裹起来
-<!-- 
+```js
   import {BrowserRouter, Link} from 'react-router-dom'
 
   <BrowserRouter> 
@@ -9042,11 +9012,11 @@ function getDisplayName(UIComponent) {
   </BrowserRouter>
 
 
-  还可以这样
+  // 还可以这样
   import {BrowserRouter as Router, Route, Link} from "react-router-dom"
 
-  引入 BrowserRouter 的时候 起一个别名 Router
- -->
+  // 引入 BrowserRouter 的时候 起一个别名 Router
+```
 
 
 > 路由链接: <Link to> (router-link / <a>)
@@ -9057,13 +9027,10 @@ function getDisplayName(UIComponent) {
   <BrowserRouter> <App /> </BrowserRouter>
  -->
 
-- 单独使用的时候 也要用<BrowserRouter>包裹起来 我们可以使用它包裹app组件的div
-<!-- 
-  <BrowserRouter> <Link /> </BrowserRouter>
- -->
-
 - 和原生HTML <a> 标签一样的功能, <Link>来实现组件之间的切换
 
+
+> <Link to children>
 > 标签内部属性 to :
 - <Link to='/路径'>, 将URI修改为对应组件的路径，请求该资源, 和href一样的功能
 
@@ -9076,9 +9043,11 @@ function getDisplayName(UIComponent) {
   </BrowserRouter>
  -->
 
+--- 
 
-> 注册路由: <Route path component> (router-view / 路由的出口)
-- 不要忘记外侧要包裹路由器标签 <BrowserRouter>
+> 注册路由: <Route path component> (router-view / 路由的显示位置)
+- 不要忘记外侧要包裹路由器标签 <BrowserRouter> 也就是说 <Link> <Route> 都要被一个路由器管理
+
 - 用来配置 路径 和 组件之间的映射管理, 也叫做注册路由
 
 - 点击<Link>后会查看路径上的变化, 然后我们要实现切换到与路径匹配的组件 这里就需要通过<Route>组件来实现 它也决定我们的页面在哪个位置显示
@@ -9097,7 +9066,8 @@ function getDisplayName(UIComponent) {
 - 1. 标签内部的属性中, 不要用大写(实际上大小写是一样的), html不认识
 - 2. <Link>是改变路径, 是在url上进行拼接, 所以直接写 /about 不要写 .
 - 3. 整个应用(页面)或者说是组件都必须用一个<BrowserRouter>去管理, 所以我们可以直接将<App>组件包裹起来
-  - 不要如下操作 下面这种就属于整个应用 用了两个 路由器去管理
+
+  - *不要如下操作* 下面这种就属于整个应用 用了两个 路由器去管理
   <!-- 
     <BrowserRouter>
       <Link></Link>
@@ -9108,14 +9078,13 @@ function getDisplayName(UIComponent) {
     <BrowserRouter>
    -->
 
-- 完整代码
-<!-- 
-  index.js 文件
+- 入口文件
+```js
   ReactDOM.render(
     <BrowserRouter><App /></BrowserRouter>, 
     document.querySelector('#root')
   )
- -->
+```
 
 
 > 总结:
@@ -9146,12 +9115,44 @@ function getDisplayName(UIComponent) {
   比如 我们把 /home 拼接到url上的时候 会是
 
   www.baidu.com/# + /home
-
   www.baidu.com/#/home
  -->
 
 - hash值的特点就是
 - #后面的东西都不会作为资源发送给服务器, #后面的东西都属于前台资源不会带给服务器
+
+
+> 代码演示:
+- 已在入口文件包裹了 <BrowserRouter>
+```js
+import React, {Component} from "react"
+import {Link, Route} from "react-router-dom"
+import Home from "./components/Home"
+import About from "./components/About"
+export default class App extends Component {
+
+  render() {
+    return (
+      <div className="app">
+        <h3>App组件</h3>
+        <hr />
+        <div className="nav">
+          <Link to="/home">Home</Link> <br />
+          <Link to="/about">About</Link> <br />
+        </div>
+
+        <div className="area">
+          <Route path="/home" component={Home} />
+          <Route path="/about" component={About} />
+        </div>
+      </div>
+    )
+  }
+}
+```
+
+> React-Router - V6
+- https://www.bilibili.com/read/cv15666960
 
 ----------------------------
 
@@ -9167,14 +9168,22 @@ function getDisplayName(UIComponent) {
 ----------------------------
 
 ### 默认路由
+- 默认路由 就是将 path属性设置为 / 这样进入该页面后 自动会展示页面
 - 问题：
 - 现在的路由都是点击导航菜单后展示 如何在进入页面的时候就展示组件呢
+
 - 默认路由
 - 表示进入页面时候就会匹配的理由
 - 默认路由path为 /
 <!-- 
   <Route path="/" component={home} />
  -->
+
+**推荐**
+- 给默认路由添加 exact 属性
+
+> <Route exact path="/" component={...}>
+- 只有当path和pathname完全匹配的时候 才会展示该路由
 
 ----------------------------
 
@@ -9193,8 +9202,11 @@ function getDisplayName(UIComponent) {
   但是我们发现页面上不仅有 login 的内容 还有默认路由的内容 也就是说 它还匹配上了 /
  -->
 
+- 也就是说 /login 匹配了两了 / 和 /loging
+
 - 因为默认情况下 react的路由是模糊匹配的
-- 模糊匹配的规则
+
+- 模糊匹配的规则:
 - 只要pathname以path开头就会匹配成功
 <!-- 
   pathname 就是 Link to属性的值
@@ -9290,7 +9302,7 @@ function getDisplayName(UIComponent) {
     3. 接收到的props不同
       一般组件: 我们传什么组件就能收到什么
       路由组件: 接收到三个固定的属性
-<!-- 
+```js
   // history对象
   history:
       action: "PUSH"
@@ -9323,7 +9335,7 @@ function getDisplayName(UIComponent) {
       url: "/home"
 
 
-  history.location 和 Localtion是一样的, 我们精简一下上面的东西, 把不经常用的删掉
+  // history.location 和 Localtion是一样的, 我们精简一下上面的东西, 把不经常用的删掉
 
   // history对象
   history:
@@ -9347,7 +9359,7 @@ function getDisplayName(UIComponent) {
       params: {}
       path: "/home"
       url: "/home"
- -->
+```
 
 ----------------------------
 
@@ -9380,7 +9392,7 @@ function getDisplayName(UIComponent) {
  -->
 
 
-**注��:**
+**注意:**
 - bootstrap的样式 权重有些高, 如果有些样式不起作用 或者有很怪的事情, 我们加上!important
 
 ----------------------------
@@ -9496,10 +9508,10 @@ function getDisplayName(UIComponent) {
 
 ----------------------------
 
-### Switch的使用
+### <Switch>的使用
 - react中路由的内置组件
 
-- 我们看下下面的情况 这面上有两个 链接按钮, 下面<Route>负责检测地址栏上的变化 匹配路径 匹配上了后展示组件, 但是一个路径匹配了两个组件Home Test, 那最终会展示谁?
+- 我们看下下面的情况 这面上有两个链接按钮, 下面<Route>负责检测地址栏上的变化 匹配路径 匹配上了后展示组件, 但是一个路径匹配了两个组件Home Test, 那最终会展示谁?
 <!-- 
   <MyNavLink to='/home'>Home</>
   <MyNavLink to='/about'>About</>
@@ -9617,7 +9629,7 @@ function getDisplayName(UIComponent) {
 - 上面的情况就是模糊匹配
 
 > 模糊匹配
-- 以Route的属性path='home'为准, 去匹配Link组件的属性to='/home/a/b', to可以给多但是不能少顺序不能串, 
+- *以Route的属性path='home'为准*, 去匹配Link组件的属性to='/home/a/b', to可以给多但是不能少顺序不能串, 
 
 - react会将to中的home a b都拿出来 和 path中的home进行匹配, 第一位一样就返回给你组件
 <!-- 
@@ -9645,7 +9657,7 @@ function getDisplayName(UIComponent) {
 
 ----------------------------
 
-### Redirect的使用 重定向
+### <Redirect>的使用 重定向
 - 我们希望当页面打开后, 默认展示一个组件给我们查看, 我们就需要借助 react-router-dom 中的内置组件 Redireact
 
 - import { Redireact } from 'react-router-dom'
@@ -9711,7 +9723,7 @@ function getDisplayName(UIComponent) {
  -->
 
 - 代码部分
-<!-- 
+```js
   <li>
     <MyNavLink to='/home/news'>News</MyNavLink>
   </li>
@@ -9724,7 +9736,7 @@ function getDisplayName(UIComponent) {
     <Route path='/home/message' component={Message}></Route>
     <Redirect to='/home/news'></Redirect>
   </Switch>
- -->
+```
 
 
 **注意:**
@@ -9746,7 +9758,7 @@ function getDisplayName(UIComponent) {
 - 路由的匹配都是按照从开始注册的路由 到 最后注册的路由匹配下去的
 
 - 记住:
-- 我们写多级路由的时候 要带上父组件的名字
+- *我们写多级路由的时候 要带上父组件的名字*
 <!-- 
   <Link to='/home/news'>
  -->  
@@ -9754,7 +9766,6 @@ function getDisplayName(UIComponent) {
 ----------------------------
 
 ### 向路由组件传递params参数
-
 - 接着对上面的案例进行扩展, 点击message按钮后 展示message的内部 该内容仍然可以点击, 点击message01 展示对应的 id1的内容
 <!-- 
   三级路由
@@ -9778,10 +9789,10 @@ function getDisplayName(UIComponent) {
 
 - 这个组件就是用来展示信息用的, 点击按钮01 该组件就展示id1的内容, 点击按钮02 该组件就展示id2的内容, 我们创建一个 Detail 组件
 
-- 需求：
+> 需求：
 - 点击message01 展示这个 Detail 组件, 点击message02 也展示这个组件, 只是展示的内容不同
 - 同时我希望上面message的按钮是动态生成的, 所以我们在state中定义了一份数据通过遍历的形式动态生成
-<!-- 
+```js
   // message组件里面
 
   state = {
@@ -9805,10 +9816,10 @@ function getDisplayName(UIComponent) {
         )
     })
   }
- -->
+```
 
 - 然后我们将message01-03的共通显示区定义成一个组件
-<!-- 
+```js 
   // 共通组件 message01-03的展示区
   import React, {Component} from 'react';
 
@@ -9832,10 +9843,10 @@ function getDisplayName(UIComponent) {
       )
     }
   }
- -->
+```
 
 - 既然我们要做成点击按钮后 展示共通组件的展示区， 那么我们就要使用Link组件改变路径，注册路由展示组件，这样我们不管点击哪个按钮都会展示 详情页面组件
-<!-- 
+```js
   return (
     <div>
       <ul>
@@ -9851,7 +9862,7 @@ function getDisplayName(UIComponent) {
       <Route path='/home/message/detail' component={Detail}></Route>
     </div>
   )
- -->
+```
 
 - 现在我们能做到点击哪个按钮都会展示共通内容，那我们就面临一个问题，我要告诉共通组件展示什么内容是么 因为现在展示的内容都是一样的
 
@@ -9864,13 +9875,15 @@ function getDisplayName(UIComponent) {
   3. body ： urlencoded and json
  -->
 
+--- 
+
 ### 方式一 向路由组件传递 params 参数
 - 有种感觉很像express中的动态路由呢
 
-> 传递参数
-- 直接就在路径中传递 使用模板字符串拼接 使用模板字符串的时候 外层要包裹{ }
+> 传递参数 Link to里传递
+- *直接就在路径中传递* 使用模板字符串拼接 使用模板字符串的时候 外层要包裹{ }
 - to={`/home/message/detail/${item.id}/${item.title}`}
-<!-- 
+```js
   message: [
     {id:'01', title:'消息1'},
     {id:'02', title:'消息2'},
@@ -9886,29 +9899,22 @@ function getDisplayName(UIComponent) {
       </li>
       )
   })
- -->
+```
 
-> 声明接收
+> 声明接收 Route path里接收
 > 注册路由的位置要声明接收params参数  /:传递过来的变量名/:传递过来的变量名
 - path='/home/message/detail/:id/:title'
-<!-- 
+```js
   // Message组件
   <Route path='/home/message/detail' component={Detail}></Route>
+```
 
-  但是有一个问题，我们是在路径中传递过去了id 但是 Detail 根本没有收到
-  因为我拿着
-  /home/message/detail/01 
-
-  去和path=’/home/message/detail‘进行匹配， 但是路由只匹配到/detail后面的根本不看了
-
-  所以我们要声明接收params参数
- -->
 
 > 取出使用
 > 怎么使用params
 - 上面核心还是组件间的数据传递 其实还是props, 前面也说了 路由组件的props里面有react给我们传递的对象 我们关注一下 match对象
 
-- this.props.match.params.变量
+> this.props.match.params.变量
 <!-- 
   history
   location
@@ -9919,7 +9925,7 @@ function getDisplayName(UIComponent) {
 
 - 那结合上面的案例 我们怎么将从props中获取到的数据 动态的渲染到页面上呢？
 - 思路 我们获取了id 那么我们就拿着id去data数据中查找，这里我们使用的是数组的新方法 find
-<!-- 
+```js 
   const data = [
     {id:'01', content:'你好中国'},
     {id:'02', content:'你好日本'},
@@ -9942,18 +9948,18 @@ function getDisplayName(UIComponent) {
       )
     }
   }
- -->
+```
 
 
 > 总结：
 - 我们要是想传递 params 就得这么传
-<!-- 
+```js 
   <li key={item.id}>
     <Link to={`/home/message/detail/${item.id}/${item.title}`}>
       {item.title}
     </Link>
   </li>
- -->
+```
 
 - 同时 我们注册路由的时候 声明好这个组件以后会接到一个id一个title
 - 也就是分为两步 1直接传 2接收
@@ -9972,11 +9978,11 @@ function getDisplayName(UIComponent) {
 
 **复习:数组的方法 arr.find(回调)**
 - 从数组中找到指定的元素， 我们找到的是对象
-<!-- 
+```js 
   let res = data.find(item => {
     return item.id === id
   })
- -->
+```
 
 ----------------------------
 
@@ -9984,24 +9990,25 @@ function getDisplayName(UIComponent) {
 - 这种方式传递的时候会省心一点，接收的时候费劲一点
 - 有一点想ajax里面的query参数
 
-> 参数传递：
+> 参数传递： Link to里传递
 > search参数  /?id=01&titele=xx
 - 就是拼接成地址栏里key:value的样子 /?id=01&titele=消息01
 
 - 直接就在路径中传递 使用模板字符串拼接 使用模板字符串的时候 外层要包裹{ }
 - to={`/home/message/detail/?id=${item.id}&title=${item.title}`}
-<!-- 
+```js 
   <Link to={`/home/message/detail/?id=${item.id}&title=${item.title}`}>
     {item.title}
   </Link>
- -->
+```
 
 
-> 声明接收
-- search不用声明接收 因为有？号的原因， 参数也会在props里面
+> 不用声明接收
+- search不用声明接收 因为有？号的原因， *参数也会在props里面*
 
 
 > 取出使用
+> this.props.location.search  -- 参数字符串 ?xxx=xxx
 - 使用search传递过来的参数 因为是相当于拼接在地址栏里面 所以我们要去找location对象
 <!-- 
   history
@@ -10015,12 +10022,12 @@ function getDisplayName(UIComponent) {
 
 - 注意：
 - 我们这里从this.props.location里面取出的search是带有?的
-<!-- 
+```js 
   let {search} = this.props.location 
 
   // 去掉？
   let xx = search.substr(1)
- -->
+```
 
 
 
@@ -10046,7 +10053,7 @@ function getDisplayName(UIComponent) {
 
 
 > 看下完整的代码
-<!-- 
+```js 
   // 接收search参数
   let {search} = this.props.location 
 
@@ -10069,7 +10076,7 @@ function getDisplayName(UIComponent) {
       <li>Content:{res.content}</li>
     </ul>
   )
- -->
+```
 
 > 总结
 - 路由连接（携带参数） ：
@@ -10087,39 +10094,42 @@ function getDisplayName(UIComponent) {
 
 ----------------------------
 
-### 向路由组件传递state参数
+### 方式三 向路由组件传递 state 参数
 - 这是路由组件上独有的state属性 不要和组件中的状态state搞混了
 - 上面我们学习两种向路由组件传递参数的方式
+
 - 1. params 在地址栏中写 /tom/18  --  /:name/:age
 - 2. search 在地址栏中写 ?name=tom&age=18
 
 - 上面的两种方式都是在地址栏中暴露出来了， 两种方式用的都很多
-
 - state方式不会将参数在地址栏中显示出来， 在地址栏中是隐藏的
 
-> 参数传递
+
+> 参数传递： Link to里传递 {}
 - 之前接触的我们都是在<Link to=’这里面是字符串类型‘>
 - 我们要是使用state传递参数的话 我们要在to={{}}写一个对象
+
 - 对象中有两个属性：
   - pathname: '/home/message/detail' 写到组件就结束
   - state: {key:value}  我们使用state属性来传递参数
 
 - <Link to={{pathname:’‘, state:{参数}}}
-<!-- 
+```js
   <Link to={{pathname:'/home/message/detail', state:{id:item.id, title:item.title}}}>
     {item.title}
   </Link>
- -->
+```
 
 
-> 声明接收
+> 无需声明接收
 - state参数无需声明接收 正常注册即可
-<!-- 
+```js
   <Route path='/home/message/detail' component={Detail}></Route>
- -->
+```
 
 
-> 取出使用
+> 取出使用 
+> this.props.location.state.变量
 - 传递过来的参数也是会在 this.props 中 的的location对象中的state属性里面
 - 我们使用state传递参数就是location中的state属性里面
 - 我们使用search传递参数就是location中的search属性里面 没记错吧？
@@ -10133,12 +10143,10 @@ function getDisplayName(UIComponent) {
  -->
 
 > 完整代码
-<!-- 
+```js
   // 注意这里 当我们页面清空缓存后，会报错， 因为所有的路由传递参数都是靠history来维护， 如果缓存清空了 相当于没有历史记录了 所以 this.props.location.state 就是空 就会报错， 我们在后面加上个空对象， 防止页面渲染不了
 
   const {id, title} = this.props.location.state || {}
-
-
 
 
   // 跟上面有关系， 因为上面没有历史记录了 相当于我们从{}里面取的id 和 title 那下面就没有办法判断了不是 为了解决报错问题 我们也在后面加上 || {}
@@ -10154,7 +10162,7 @@ function getDisplayName(UIComponent) {
       <li>Content:{res.content}</li>
     </ul>
   )
- -->
+```
 
 > 总结
 - 路由连接（携带参数） ：
@@ -10227,17 +10235,17 @@ params > search > state
  -->
 
 - 那我们先添加两个按钮 然后我们给按钮绑定事件，在回调中实现用代码的形式跳转到Detail组件
-<!-- 
+```js
   <button onClick={this.replaceShow}>replace</button>
 
   replaceShow = () => {
     // 编写一段代码 点击按钮让其跳转到Detail组件， 但是 是replace跳转
     // 这就要借助路由组件上独有的API了
   }
- -->
+```
 
 - 回调中的逻辑就需要借助路由组件独有的API了, 直接我们介绍过路由组件的props中有几个默认的对象， 我们这次就要借助 路由组件里history对象中的操作历史记录的对象history
-<!-- 
+```js
   // history对象
   history:
       go: ƒ go(n)
@@ -10260,7 +10268,7 @@ params > search > state
       params: {}
       path: "/home"     // 获取当前所处的路由路径
       url: "/home"      // 获取当前所处的路由路径
- -->
+```
 
 - 我们可以从props中的histroy中使用replace方法
 
@@ -10268,7 +10276,7 @@ params > search > state
 > this.props.history.push('URL', state)
 - 当使用state传递参数的时候，第二个参数才有用处
 
-<!-- 
+```js
   // 注意这里我们要将id 和 title传递过去 所以我们写成高级函数的形式
   <button className='btn' onClick={this.replaceShow(item.id, item.title)}>replace</button>
 
@@ -10293,7 +10301,7 @@ params > search > state
       push(`/home/message/detail/${id}/${title}`)
     }
   }
- -->
+```
 
 - 注意当我们携带参数的时候，下面注册路由的地方就要匹配声明，和对应接收
 
@@ -10330,7 +10338,7 @@ params > search > state
 
 - 2. 我们使用这个函数，把组件当做实参传递进去，这样暴露出去的组件就会有 路由组件的功能
   - 我们往外暴露 withRouter加工完后的东西, 或者说暴露的是withRouter函数的返回值
-<!-- 
+```js 
   // 这是我们以前的写法
   export default class Header extends Component { ... }
 
@@ -10340,11 +10348,11 @@ params > search > state
 
   // 暴露的时候 我们使用这个函数 将组件传递进去
   export default withRouter(Header)
- -->
+```
 
 
 > 完整代码
-<!-- 
+```js 
   import React, {Component} from 'react'
 
   // 在一般组件里面 导入 withRouter
@@ -10373,7 +10381,7 @@ params > search > state
 
   // 注意这里
   export default withRouter(Header)
- -->
+```
 
 ----------------------------
 
@@ -10398,7 +10406,7 @@ params > search > state
   <!-- 比如样式丢失 -->
 
 ----------------------------
-
+### 书签
 ### redux
 - 学习文档
 <!-- 
@@ -10414,7 +10422,7 @@ params > search > state
 - redux是一个专门用于做 状态管理 的js库 （不是react插件库）
 - 它可以用在react angular vue等项目中， 但基本与react配合使用
 - 作用：
-  - 集中式管理 react 应用中多个组件共享的状态
+- 集中式管理 react 应用中多个组件共享的状态
 
 
 > 什么情况下需要使用redux
@@ -10428,10 +10436,9 @@ params > search > state
  -->
 
 - 总体原则：
-  - 能不用就不用 如果不用比较吃力才考虑使用
+- 能不用就不用 如果不用比较吃力才考虑使用
 <!-- 
   如果没有大量的组件要共享的情况下 就不用使用redux
-
   很深层次的组件要传递数据的时候 我们就可以用redux
   -->
 
@@ -10463,15 +10470,12 @@ params > search > state
   D组件了里面有一个对象 {a:1, b:2, c:3} 现在 a b属性A B C E F都要用 这就有一些共享的感觉了ab属性其它组件都要用
 
   1. 我们也可以通过逐层传递 传递到App组件 但是太麻烦了我们要需要传递函数 然后再由App发送到其它的组件
-
   2. 我们还可以 A里订阅 B里订阅 CEF都订阅 D组件发布消息别人也能接收到 也麻烦是么
  -->
 
 
-- redux解决上面的需求
+- redux解决上面的需求 redux是独立于App组件之外的
 <!-- 
-  redux是独立于App组件之外的
-
   现在的需求是 D组件中的对象{a:1, b:2, c:3}  ab 其它的组件都要使用， 我们就可以将D组件的ab属性交给redux来管理 redux帮我们存着ab
 
   将{a:1, b:2}交给redux后 D组件本身就不用再存着{a:1, b:2}了 把那些人人都要用的交给redux
@@ -10496,10 +10500,9 @@ params > search > state
 
 ### redux的工作流程图 原理图
 
+- 这是一个组件 Count 求和   有点像计算器的案例:
 <!-- 
-
-  // 这是一个组件 Count 求和   有点像计算器的案例
-  一上来页面会展示一句话 当前求和为0 然后有一个下拉框 下拉框里面可以选择数字， 下拉框的右侧 有 加减乘除四个按钮
+  // 一上来页面会展示一句话 当前求和为0 然后有一个下拉框 下拉框里面可以选择数字， 下拉框的右侧 有 加减乘除四个按钮
 
   比如我们可以选择2 然后点击 + 就是+2
 
@@ -10691,7 +10694,7 @@ params > search > state
   - myRef = React.createRef()  /  this.myRef.current
 
 - 4. 下面的代码中我们写了4个方法 我们还可以通过传入不同的type值 定义一个方法
-<!-- 
+```js
   import React, {Component} from 'react'
   import './index.css'
 
@@ -10771,21 +10774,21 @@ params > search > state
       )
     }
   }
- -->
+```
 
 ----------------------------
 
 ### 案例 计数器 Redux 精简版本
 - 下面我们使用Redux来写一下计数器， 但是我们先精简一下 不写Redux的完整版本， 我们先省略掉 Action Creators 的环节
 
-- 要点：
+> 要点：
 - 我们要到redux原理图的时候会发现 叫做 Reducers 为什么后面还有s呢  因为
 <!-- 
   比如 有一个A组件 A想把自己的状态交给redux 那就要为A组件构建一个reducer
   比如 有一个B组件 它也想把状态交给redux 那也要给B组件构建一个reducer
  -->
 
-- 每一个组件必须要有对应的一个 Reducer 文件   
+- *每一个组件必须要有对应的一个 Reducer 文件*
 - 但是一个redux中只有一个 store 文件
 <!-- 
   我们创建 count_reducer.js 文件 用来为count进行初始化 和 加工状态
@@ -10811,26 +10814,24 @@ params > search > state
 - 参数：
 - 组件的reducer文件
 - 暴露出去的是一个store对象
-<!-- 
-  1. 引入 createStore 专门用来创建 store
+```js
+  // 1. 引入 createStore 专门用来创建 store
   import {createStore} from 'redux'
 
-  2. 引入 为count组件服务的 reducer.js
+  // 2. 引入 为count组件服务的 reducer.js
   import countReducer from './count_reducer'
 
-  3. 创建一个store对象
+  // 3. 创建一个store对象
   const store = createStore(countReducer)
 
-  4. 把store暴露出去
+  // 4. 把store暴露出去
   export default store
-
-
-  // 关于 createStore() 参数的记忆方式
-  谁为store卖命服务啊 reducer 吧 所以我们在创建store的时候就要指定好 reducer
-  我们怎么记呢？ store相当于餐厅里面的老板 reducer 是做菜的后厨
-  老板在开饭店之前就会找好后厨团队 所以我们的参数要传一个人进去
-  所以我们要引入 count_reducer
- -->
+```
+- 关于 createStore() 参数的记忆方式
+- 谁为store卖命服务啊 reducer 吧 所以我们在创建store的时候就要指定好 reducer
+- 我们怎么记呢？ store相当于餐厅里面的老板 reducer 是做菜的后厨
+- 老板在开饭店之前就会找好后厨团队 所以我们的参数要传一个人进去
+- 所以我们要引入 count_reducer
 
 
 > 3. 创建 count_reducer.js 文件
@@ -10848,30 +10849,30 @@ params > search > state
 - 组件一加载 store会自动帮我们调用这个函数 为了让我们拿到初始值
 
 - 我们看看reducer函数内部应该处理什么样的逻辑
-- 要点：
-  - 1. reducer函数是一个纯函数， 它只负责最最基本的事情， 不管其他的细节
-    - 比如： 
-    - 进行判断 奇数再加或者异步加的逻辑， 如果有该逻辑请在组件中进行判断 比如组件中 我们进行判断 如果现在不是奇数 我们就不告诉reducer加
+> 要点：
+- 1. reducer函数是一个纯函数， 它只负责最最基本的事情， 不管其他的细节
+  - 比如： 
+  - 进行判断 奇数再加或者异步加的逻辑， 如果有该逻辑请在组件中进行判断 比如组件中 我们进行判断 如果现在不是奇数 我们就不告诉reducer加
 
-  - 2. reducer只负责+- +几-几 reducer是一个纯函数 
-  - 3. 我们一般使用switch来处理逻辑
-  - 4. reducer函数要有返回值
+- 2. reducer只负责+- +几-几 reducer是一个纯函数 
+- 3. 我们一般使用switch来处理逻辑
+- 4. reducer函数要有返回值
 
-  - 5. 初始值 一旦进入default就是初始化的阶段， 初始值有两种写法
-    - 5.1. 可读性比较高
+- 5. 初始值 一旦进入default就是初始化的阶段， 初始值有两种写法
+  - 5.1. 可读性比较高
+```js
+  const initState = 0
+  // 如果没有传preState 或者说 值为undefined 那么它就使用默认值
+  function countReducer(preState=initState, action) {
+    ...
+  }
+```
+  - 5.2. if判断
 
-      const initState = 0
-      \\ 如果没有传preState 或者说 值为undefined 那么它就使用默认值
-      function countReducer(preState=initState, action) {
-        。���。
-      }
+    \\ 函数内部一进去 如果是初始化的时候 我们给preState进行数据 和 数据类型的指定
+    if(preState === undefined) preState = 0
 
-    - 5。2. if判断
-
-      \\ 函数内部一进去 如果是初始化的时候 我们给preState进行数据 和 数据类型的指定
-      if(preState === undefined) preState = 0
-
-<!-- 
+```js
   export default function countReduer (preState, action) {
 
     // 如果是初始化的时候 我们给preState进行数据 和 数据类型的指定
@@ -10906,7 +10907,7 @@ params > search > state
         return preState
     }
   }
-
+```
 
   // 关于初始值
   如果进入default这里是什么意思？ 
@@ -10917,7 +10918,7 @@ params > search > state
   始化的动作并不是我们程序员对reducer进行操作 进行初始化 是整个页面一进来 store.js一加载 store就帮助我们做了一件事 它分发给了reducers一个action 但是里面不说加 也不说减 也不给data 请进行初始化 
 
   初始化的时候 之前的preState是undefined 那我们return出去什么比较合适？ 我们在函数一进来就进行判断， 如果preState是undefined 那么给它赋值0（初始值）然后这里我们可以返回 preState
- -->
+
 
 
 - 上面 关于 redux 的逻辑已经都写完了 但是页面中的代码我们应该怎么修改？
@@ -11214,7 +11215,7 @@ params > search > state
 - 要点：
 - 每一个组件都有自己的 Action Creator
 
-> 怎么降缺失的拼图 action creators 利用上
+> 怎么将缺失的拼图 action creators 利用上
 > 1. redux文件中 创建 count_action.js 文件
 - 该文件是为count组件服务的 Action Creators
 - 该文件专门为Count组件生产action对象

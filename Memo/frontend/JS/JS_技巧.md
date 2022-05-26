@@ -1,5 +1,16 @@
 ### Js技巧
 
+### 给对象添加属性
+```js
+let res = list.map(item => {
+    return Object.assign(item, {mode: true})
+})
+
+let ret = list.map(item => {
+    return {...item, mode: "nuxt"}
+})
+```
+
 ### reduce完成promise队列
 - https://www.jianshu.com/p/d378bc9f967e
 - https://www.jianshu.com/p/aa6e6f2f9535
