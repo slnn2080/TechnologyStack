@@ -811,13 +811,13 @@ http://xxx/search?keyword="><script>alert('XSS');</script>
 
 - big的配置有两种书写方式 对象 和 函数 
 - 对象的优势在于可以处理细节上的东西
-<!-- 
-  directives: { big: { } },
-  directives: { big() { } }
- -->
+```js
+  directives: { big: { } },   // 对象式
+  directives: { big() { } }   // 函数式
+```
 
 - 所谓的自定义指令就是一个函数 由vue帮我们调用
-<!-- 
+```js
   <h3>放大10倍后的值是：<span v-big='number'></span></h3>
 
   data() {
@@ -834,15 +834,15 @@ http://xxx/search?keyword="><script>alert('XSS');</script>
     }
 
 
-    或者
+    // 或者
 
     big(element，binding) { }
   }
- -->
+```
 
 
 > 效果:
-- 在标签属性内部使用 v-big 传入的数据 会经过v-big处理后 展示到 标签体中
+- 在标签属性内部使用 <v-big> 传入的数据 会经过 v-big 自定义指令里面的逻辑处理后 展示到 标签体中
 
 
 > 注意:
@@ -852,30 +852,37 @@ http://xxx/search?keyword="><script>alert('XSS');</script>
 
 > 函数式的自定义指令
 - <span v-big='number'></span>
-- 函数式 自定义指令 中的参数
-- big(参数1, 参数2) { }
 
-- 参数1：element 当前v-big所在的真实DOM  <span></span> 也就是Dom节点
+- 函数式 自定义指令 中的参数
+```js
+  big(element, binding) { }
+```
+
+- 参数1：
+  element
+    当前v-big所在的真实DOM  <span></span> 也就是Dom节点
 
 - 参数2：
-  binding： v-big 所绑定的标签对象 内部有很多的属性
+  binding： 
+    v-big 所绑定的标签对象 内部有很多的属性
 
   binding.value：
-           就是标签属性中在使用 v-big 时传递进来的数据(该数据可能在data配置项中)
-  <!-- 
-    binding.value == v-big='number'中的number == data配置项只能够的 50
+    就是标签属性中在使用 v-big 时传递进来的数据(该数据可能在data配置项中)
+
+```js
+    binding.value == v-big='number' 中的number == data配置项中的 50
 
     data() {
       return {
         number: 50   ===   binding.value
       } 
     },
-   -->
+```
 
   
-- 实现需求1：
+> 实现需求1：
 - 当使用v-big指令的时候 同v-text使用方式一样 将结果x10放到标签体中
-<!-- 
+```js 
   directives: {
     big(el, binding) {
 
@@ -883,7 +890,7 @@ http://xxx/search?keyword="><script>alert('XSS');</script>
       el.innerHTML = binding.value * 10
     }
   }
- -->
+```
 
 
 > 自定义指令 函数式的调用时机
@@ -898,34 +905,43 @@ http://xxx/search?keyword="><script>alert('XSS');</script>
 > 对象式的自定义指令
 - <span v-fbind='number'></span>
 
-- 对象式的方式具有像生命周期式的性质 在下面的3种情况下会被触发
+- 对象式的方式具有像生命周期式的性质 *在下面的3种情况下会被触发*
+
 - 1. 指令和元素成功绑定
 - 2. 已绑定指令的元素被 挂载 到页面
 - 3. 已绑定指令的元素 模版被重新解析
 
 - 一般 1 3 的逻辑是一样的 2的时候有点像 mounted
 
-- 我们先把函数准备好 vue会在对应的实际调用对应的函数
-- 下面的函数都能收到 element 和 binding 参数
+- 我们先把函数准备好 vue会在对应的实际调用对应的函数 *下面的函数都能收到 element 和 binding 参数*
+
+```js
 directives: {
-  fbind: {
+  自定义指令: {
     bind() {}       // 当指令与元素成功绑定的时该函数会被调用
     inserted() {}   // 指令所在元素被插入页面时该函数会被调用
     update() {}     // 指令在的模板被重新解析时该函数会被调用
+
+    ---
+
+    componentUpdated() {}:   // 指令所在组件的 VNode 及其子 VNode 全部更新后调用。
+    unbind() {}     // 只调用一次，指令与元素解绑时调用。
   }
 }
+```
 
 - 很多情况下 bind函数中的逻辑 和 update函数的逻辑是一样的
 - 如果我们使用的简写形式 相当于我们使用了bind 和 update 没有使用inserted
 
-- inserted里面一般是做真实能够操作dom元素的逻辑 比如获取它的父节点等 因为这个时间点元素已经被挂载到页面上了
+- *inserted里面一般是做真实能够操作dom元素的逻辑* 比如获取它的父节点等 因为*这个时间点元素已经被挂载到页面上*了
 
 
-- 实现需求2：
+> 实现需求2：
 - 定义一个 v-fbind指令 效果和v-bind类似 但可以让其所绑定的input元素默认获取焦点
-<!-- 
+
   <input type="text" :value='number'>
 
+```js
   directives: {
 
     fbind(el, binding) {
@@ -935,19 +951,20 @@ directives: {
 
       // 自动获取焦点
       el.focus()
+        /*
           但是我们发现 input并没有获取到焦点 代码肯定是奏效了 只能说明 执行的时机不对
-
           那 fbind 这个函数是什么时候调用的？
-          1. 该指令和元素绑定在一起的时候
-          2. 该指令处于的模板被重新解析的时候
+            1. 该指令和元素绑定在一起的时候
+            2. 该指令处于的模板被重新解析的时候
 
           我们的问题就在问题1 fbind 函数会在 指令和元素绑定的时候 这时候仅仅是在内存里面建立了 绑定关系 并没有跑到页面上 就开始被调用 也就是说在元素挂载到页面之前就执行了 focus() 逻辑 所以是不奏效的
 
-      也就是说 el.focus() 这部分的逻辑 要在另一个时机调用
+          也就是说 el.focus() 这部分的逻辑 要在另一个时机调用
+        */
     }
 
 
-
+    // 将上面的函数式的写法 修改为 对象式的写法
     fbind: {
       bind(el, binding) {
         el.value = binding.value
@@ -956,7 +973,6 @@ directives: {
       insert(el, binding) {
         el.focus()
       },
-      
 
       // 注意 我们要写update 要不vue不知道我们更新的时候要干什么
       updated() {
@@ -964,9 +980,9 @@ directives: {
       }
     }
   }
+```
 
-  像不像在一个自定义指令中写了3个生命周期函数
- -->
+- 像不像在一个自定义指令中写了3个生命周期函数
 
 
 > 自定义指令的注意点
@@ -990,29 +1006,99 @@ directives: {
 
 
 > 全局配置 自定义指令
-- 如果是函数式的自定义指令 第二个参数就是一个function() {}
-
 > Vue.directive('指令名', {指令的配置对象})
-<!-- 
+```js
   Vue.directive('fbind', {
     
-    fbind: {
-        bind(el, binding) { 
-          el.value = binding.value
-        },
+    bind(el, binding) { 
+      el.value = binding.value
+    },
 
-        insert(el, binding) {
-          el.focus()
-        },
-        
-        updated() {
-          el.value = binding.value
-        }
-      }
+    insert(el, binding) {
+      el.focus()
+    },
+    
+    updated() {
+      el.value = binding.value
     }
 
   })
- -->
+```
+
+
+> 技巧:
+- 场景描述:
+- 我们在项目中 会使用 v-html 来渲染字符串中的 "文字文字<a href>こちら</a>文字文字"
+- 但是v-html会将字符串解析成 纯html 也就是说 我们要是使用 <NuxtLink> -> 解析后 <nuxtlink>こちら</nuxtlink>
+- 也就浏览器并不认识的<nuxtlink> 那怎么才能实现  <NuxtLink> 的功能呢？
+
+
+> 思路:
+- 获取 <a> 的href的属性值 通过 router.push 导航式API 去进行跳转
+
+> 步骤
+- 1. 我们 *bind()* 方法中 也就是v-指令与节点 绑定在一起的时候 获取 该元素下的所有 a标签(href的值是以 "/" 开头的)
+- 然后 给它们遍历 绑定 click 事件
+
+- 2. 在 *unbind()* 方法中 解绑 click 事件
+- 3. 在 父子组件重新渲染后 依次调用 unbind() 和 bind() 确保先解绑事件后再绑定事件
+
+- 4. click的事件回调中的逻辑是: 看注释部分
+
+> 代码:
+```js
+// plugins/v-content-links.js
+import Vue from 'vue'
+
+export default ({ app }) => {
+  const pushRoute = ev => {
+    const href = ev.currentTarget.getAttribute('href')
+    if (!href || href[0] !== '/') return
+
+    // 通过 resolved.matched 属性可以判断我们传入的 href 是否有对应的注册的路由
+    const { resolved } = app.router.resolve(href)
+
+    // マッチするルートがあり、パス部分にトレイリングスラッシュがあるなら router.push で遷移する
+    // 如果我们传入的路径后面是以 / 结尾的话 取消a的默认行为 通过编程式路由导航的方式跳转页面
+    if (resolved.matched.length && resolved.path.slice(-1) === '/') {
+      ev.preventDefault()
+      
+      // resolved 自体を渡したいがトレイリングスラッシュが消えてしまう
+      app.router.push(resolved.fullPath)
+    }
+  }
+  const bind = function(el) {
+    const internalLinks = el.querySelectorAll('a[href^="/"]')
+    for (let i = internalLinks.length; i--;) internalLinks[i].addEventListener('click', pushRoute, false)
+  }
+  const unbind = function(el) {
+    const links = el.getElementsByTagName('a')
+    for (let i = links.length; i--;) links[i].removeEventListener('click', pushRoute, false)
+  }
+
+  Vue.directive('content-links', {
+    bind,
+    unbind,
+    componentUpdated(el) {
+      unbind(el)
+      bind(el)
+    },
+  })
+}
+
+
+// nuxt.config.js
+export default {
+  plugins: [
+    '~/plugins/v-content-links',
+  },
+}
+
+
+<div v-html="post.content" v-content-links />
+```
+
+- 参考链接: https://jamblog-beryl.vercel.app/internal-links/
 
 --------------------------
 
@@ -9187,6 +9273,68 @@ export default router
 
 **注意：**
 - 使用编程式路由导航 对象的形式传递params的时候 可能不能用path要用name
+
+
+> this.$router.resolve()
+- 该方法并不会改变 url 和 跳转路径
+- 而是根据传递的 url 返回一个对象 对象中包含了 有关 这条路由的所有信息
+
+- 参数:
+- 可以直接传递 url 或者 配置对象
+```js
+  this.$router.resolve({
+    path: '/home',
+    query: {
+      key: value
+    }
+  })
+```
+
+- 返回值:
+- 对象
+
+```js
+//  uri部分
+href: "#/page1"
+
+location: 
+    hash: ""
+    params: {}
+    path: "/page1"
+    query: {}
+    _normalized: true
+
+
+normalizedTo: 
+    hash: ""
+    params: {}
+    path: "/page1"
+    query: {}
+    _normalized: true
+
+resolved: 
+    fullPath: "/page1"
+    hash: ""
+    matched: [{…}]  // 路由数组
+    meta: {}
+    name: undefined
+    params: {}
+    path: "/page1"
+    query: {}
+
+route: 
+    fullPath: "/page1"
+    hash: ""
+    matched: [{…}]
+    meta: {}
+    name: undefined
+    params: {}
+    path: "/page1"
+    query: {}
+```
+
+**注意:**
+- 如果没有传入的路径没有匹配的组件 那么 matched[] 数组的长度为0
 
 --------------------------
 

@@ -10406,7 +10406,7 @@ params > search > state
   <!-- 比如样式丢失 -->
 
 ----------------------------
-### 书签
+
 ### redux
 - 学习文档
 <!-- 
@@ -10414,20 +10414,20 @@ params > search > state
     http://www.redux.org.cn
  -->
 
-- redux 和 react的关系类似javascript 和 java之间的关系 他们两个没有什么联系
-- 它就是一个团队的作品 在react里面用的比较多 能帮我们管理状态
+- redux 和 react之间没有什么联系 它就是一个团队的作品 在react里面用的比较多 能帮我们管理状态
 
 
 > redux是什么？
 - redux是一个专门用于做 状态管理 的js库 （不是react插件库）
 - 它可以用在react angular vue等项目中， 但基本与react配合使用
+
 - 作用：
 - 集中式管理 react 应用中多个组件共享的状态
 
 
 > 什么情况下需要使用redux
-- 某个组件的状态 需要让其他组件可以随时拿到（共享）
-- 一个组件需要改变另一个组件的状态（通信）
+- 1. 某个组件的状态 需要让其他组件可以随时拿到（共享）
+- 2. 一个组件需要改变另一个组件的状态（通信）
 <!-- 
   A组件的状态交给B组件， B组件把收到的状态作为自己的状态
   A组件里面的状态改了 由于是B组件接到自己用的 所以A改了得画 B也会改
@@ -10456,8 +10456,11 @@ params > search > state
         > F
 
     > E
+-->
 
-  需求1：  B组件的状态 E组件要用 有几种方式
+> 需求1：  
+- B组件的状态 E组件要用 有几种方式
+
   1. 父组件逐层传递
       B组件的状态交给App 通过App再传递给E组件
 
@@ -10466,12 +10469,13 @@ params > search > state
 
 
 
-  需求2： D组件的状态 A B C E F组件都要用
-  D组件了里面有一个对象 {a:1, b:2, c:3} 现在 a b属性A B C E F都要用 这就有一些共享的感觉了ab属性其它组件都要用
+> 需求2： 
+- D组件的状态 A B C E F组件都要用
+- D组件了里面有一个对象 {a:1, b:2, c:3} 现在 a b属性A B C E F都要用 这就有一些共享的感觉了ab属性其它组件都要用
 
   1. 我们也可以通过逐层传递 传递到App组件 但是太麻烦了我们要需要传递函数 然后再由App发送到其它的组件
+
   2. 我们还可以 A里订阅 B里订阅 CEF都订阅 D组件发布消息别人也能接收到 也麻烦是么
- -->
 
 
 - redux解决上面的需求 redux是独立于App组件之外的
@@ -10518,32 +10522,40 @@ params > search > state
   const {count} = this.state
   this.setState({count:count+2})
 
-  这是在自己的组件里面我们可以这么做， 但是我们要使用redux了， 我们的状态都在redux里面 所以我们选择了2 我们点了+ 我们要想办法通知redux去把值+2  
+  这是在自己的组件里面我们可以这么做， 但现在我们要使用redux了， 
+  
+  我们的状态都要放在redux里面 比如我们选择了2 点了+ 那就要想办法通知redux去把值+2  
+
 
   那怎么告诉redux呢？
   就要走下面的图里面的(do what) 这条线  将我们要做的事情 告诉 Action Creators
 
   既然我们已经在组件中（React Components）明确要做什么了 这个时候我们就把+2的这件事 告诉 Action Creators（行动的创造者）
-  action对象里面包含了两个属性（比如我们要告诉redux我们要+2， +就是类型 2就是数据）：
-  1. 动作的类型
-  2. 操作的数据
+
+  action对象
+    - 里面包含了两个属性（比如我们要告诉redux我们要+2， +就是类型 2就是数据）：
+    1. 动作的类型
+    2. 操作的数据
 
   
-  然后我们通过dispatch函数 将action(动作对象) 交给了Store(指挥者)
-      比如我们本意是+1 然后Action Creators就知道这哥们要+1 然后它会创建一个动作对象类型是+ 数据是1
-      然后它会把动作对象继续往下交， 交给一个能操作状态的人 这个人必须要得到动作对象 这个人才知道怎么工作 我们不告诉这个人类型 数据 他怎么知道怎么工作 比如我们不告诉他是+还是- -多少他就不知道怎么工作了
+  然后我们通过sotre.dispatch函数 将action(动作对象) 交给了Store(指挥者)
+    比如我们本意是+1 然后Action Creators就知道这哥们要+1 然后它会创建一个动作对象类型是+ 数据是1
+
+    然后它会把动作对象继续往下交， 交给一个能操作状态的人 这个人必须要得到动作对象 这个人才知道怎么工作 
+    如果我们不告诉这个人类型 数据 他怎么知道怎么工作 比如我们不告诉他是+还是- -多少他就不知道怎么工作了
 
 
-  我们通过dispatch的调用就将action对象交给了store store是一个指挥者本身不干活 store会把action对象和之前的状态(previousState)交给 Reducers
+  我们通过dispatch的调用就将action对象交给了store
+   store是一个指挥者本身不干活 store会把action对象和之前的状态(previousState)交给 Reducers
 
-  Reducers会帮我们修改状态（比如+3）+3是必须在原来的基础上+3吧 那就要知道原来的状态是多少是么？previousState
+  Reducers会帮我们修改状态（比如+3）+3是必须在原来的基础上+3吧 那就要知道原来的状态是多少是么？ -- previousState
 
   Reducers会将加工完的状态return, newState（新状态）返回给store 
 
   算完的新状态会在store里面， 组件需要调用getState()方法从store中获取到新的加工完的状态
  -->
 
-- redux的原理图
+> redux的原理图
 <!--                  
 
                                     ↗  1. type：'things type'
@@ -10607,7 +10619,7 @@ params > search > state
  -->
 
 
-- 我们对上面的案例整体的旅顺一下
+- 我们对上面的案例整体的捋顺一下
 <!-- 
   页面有加有减 比如我们+2， 这个事就被 Action Creators 知道了
   Action Creators 就制造了一个动作对象 action 动作的类型是+ 数据是2 
@@ -10620,7 +10632,7 @@ params > search > state
  -->
 
 
-- 我们对上面的图整体的旅顺一下
+- 我们对上面的图整体的捋顺一下
 <!-- 
   我们可以把整个图想象成一个餐厅
 
@@ -10643,28 +10655,29 @@ params > search > state
 
 > redux的三个核心概念
 >>> action: 动作对象
-    - 包含两个属性
-      - type： 标识属性 值为字符串 唯一 必要属性
-      - data： 数据属性 值为任意类型  可选属性
-      - eg： {type:'ADD_STUDENT', data:{name:'tom', age:18}}
+- 包含两个属性
+  - type： 标识属性 值为字符串 唯一 必要属性
+  - data： 数据属性 值为任意类型  可选属性
+  - eg： {type:'ADD_STUDENT', data:{name:'tom', age:18}}
 
 
 >>> reducer
-    - 用于初始化状态 加工状态
-    - 加工时 根据旧的state 和 action 产生新的state的纯函数
+- 用于初始化状态 加工状态
+- 加工时 根据旧的state 和 action 产生新的state的纯函数
 
 
 >>> store
-    - 将state action reducer联系在一起的对象
-    - 如何得到此对象？
-      - 1. import {createStore} from 'redux'
-      - 2. import reducer from './reducers'
-      - 3. const store = createStore(reducer)
+- 将state action reducer联系在一起的对象
 
-    - 此对象的功能
-      - 1. getState() 得到state
-      - 2. dispatch(action) 分发action 触发reducer调用 产生新的state
-      - 3. subscribe(listener) 注册监听 当产生了新的state时 自动调用
+- 如何得到此对象？
+  - 1. import {createStore} from 'redux'
+  - 2. import reducer from './reducers'
+  - 3. const store = createStore(reducer)
+
+- 此对象的功能
+  - 1. getState() 得到state
+  - 2. dispatch(action) 分发action 触发reducer调用 产生新的state
+  - 3. subscribe(listener) 注册监听 当产生了新的state时 自动调用
 
 ----------------------------
 
@@ -10684,11 +10697,10 @@ params > search > state
  -->
 
 - 我们先看看用react的方式写一下上面的案例
-- 要点：
+
+> 要点：
 - 1. 组件之间的样式 比如A组件的margin-top我们要在各自的组件内部写css样式控制
-
 - 2. 我们在render函数里面查看节点 注意节点是否会被渲染 要不就是undefined 或者 null
-
 - 3. react中要获取节点的话
   - c => this.变量名 = c
   - myRef = React.createRef()  /  this.myRef.current
@@ -10779,10 +10791,14 @@ params > search > state
 ----------------------------
 
 ### 案例 计数器 Redux 精简版本
-- 下面我们使用Redux来写一下计数器， 但是我们先精简一下 不写Redux的完整版本， 我们先省略掉 Action Creators 的环节
+**注意: redux文件夹必须放在src目录下 不然会报错**
+
+- 下面我们使用Redux来写一下计数器， 但是我们先精简一下 不写Redux的完整版本， 我们先省略掉 Action Creators 的环节(组织actions对象的环节)
 
 > 要点：
+- 一个组件对应一个reducer文件
 - 我们要到redux原理图的时候会发现 叫做 Reducers 为什么后面还有s呢  因为
+
 <!-- 
   比如 有一个A组件 A想把自己的状态交给redux 那就要为A组件构建一个reducer
   比如 有一个B组件 它也想把状态交给redux 那也要给B组件构建一个reducer
@@ -10814,9 +10830,17 @@ params > search > state
 - 参数：
 - 组件的reducer文件
 - 暴露出去的是一个store对象
+
+**注意:**
+- import {createStore} from 'redux' 中的 createStore 已经弃用了 所以我们要使用  *legacy_createStore*
+```js
+  import {legacy_createStore as createStore} from "redux"
+```
+
 ```js
   // 1. 引入 createStore 专门用来创建 store
   import {createStore} from 'redux'
+  import {legacy_createStore as createStore} from "redux"
 
   // 2. 引入 为count组件服务的 reducer.js
   import countReducer from './count_reducer'
@@ -10827,6 +10851,7 @@ params > search > state
   // 4. 把store暴露出去
   export default store
 ```
+
 - 关于 createStore() 参数的记忆方式
 - 谁为store卖命服务啊 reducer 吧 所以我们在创建store的时候就要指定好 reducer
 - 我们怎么记呢？ store相当于餐厅里面的老板 reducer 是做菜的后厨
@@ -10834,8 +10859,8 @@ params > search > state
 - 所以我们要引入 count_reducer
 
 
-> 3. 创建 count_reducer.js 文件
-- 该文件是为了创建一个为count组件服务的reducer 它的本质就是一个函数
+> 3. 创建 count_reducer.js 文件 并初始化 state
+- 该文件是为了创建一个为count组件服务的*reducer* 它的本质*就是一个函数*
 - 我们先看看 reducer 文件主要能处理什么事情
 <!-- 
   1. reducers能够初始化状态 和 加工状态
@@ -10846,17 +10871,18 @@ params > search > state
   3. reducers接到东西之后 会根据 之前的状态 和 action 里 type 的类型 处理一些状态相关的东西 然后把新的状态交出去
 -->
 
-- 组件一加载 store会自动帮我们调用这个函数 为了让我们拿到初始值
-
+- *组件一加载 store会自动帮我们调用这个函数* 为了让我们拿到初始值
 - 我们看看reducer函数内部应该处理什么样的逻辑
+
 > 要点：
-- 1. reducer函数是一个纯函数， 它只负责最最基本的事情， 不管其他的细节
+- 1. reducer函数是一个纯函数，它只负责最最基本的事情，不管其他的细节
+
   - 比如： 
-  - 进行判断 奇数再加或者异步加的逻辑， 如果有该逻辑请在组件中进行判断 比如组件中 我们进行判断 如果现在不是奇数 我们就不告诉reducer加
+  - 进行判断 奇数再加或者异步加的逻辑，如果有该逻辑请在组件中进行判断 比如组件中 我们进行判断 如果现在不是奇数 我们就不告诉reducer加
 
 - 2. reducer只负责+- +几-几 reducer是一个纯函数 
 - 3. 我们一般使用switch来处理逻辑
-- 4. reducer函数要有返回值
+- 4. reducer函数要有返回值 要返回 redux中的state对象
 
 - 5. 初始值 一旦进入default就是初始化的阶段， 初始值有两种写法
   - 5.1. 可读性比较高
@@ -10867,6 +10893,7 @@ params > search > state
     ...
   }
 ```
+
   - 5.2. if判断
 
     \\ 函数内部一进去 如果是初始化的时候 我们给preState进行数据 和 数据类型的指定
@@ -10886,10 +10913,11 @@ params > search > state
     console.log(preState, action, data);
 
     // 结果：
-    preState 0 是我们在这个函数内部给初始化状态赋的值
+    // 是我们在这个函数内部给初始化状态赋的值
+    preState 0 
     action 初始化的时候
-            type： @@redux/INITv.2.q.c.3.o
-            data： undefined
+      type： @@redux/INITv.2.q.c.3.o
+      data： undefined
 
 
     // type 是字符串 那就需要在定义 action 的时候 写好要做什么 这里我们会选择switch
@@ -10903,24 +10931,29 @@ params > search > state
       case 'decrement':
         return preState - data
 
+      // 返回初始值
       default:
         return preState
     }
   }
 ```
 
-  // 关于初始值
-  如果进入default这里是什么意思？ 
+**注意: 别忘记暴露该reducer文件**
+
+> 关于初始值
+- *如果进入 switch 中的 default 逻辑时 这就在设置初始值*
+- 这里是什么意思？ 
+<!-- 
   action中的type里也没说加 也没说减
-  
   有没有这样的一个场景reducer被调用了 但是不加也不减 这就是初始化的时候
 
   始化的动作并不是我们程序员对reducer进行操作 进行初始化 是整个页面一进来 store.js一加载 store就帮助我们做了一件事 它分发给了reducers一个action 但是里面不说加 也不说减 也不给data 请进行初始化 
 
   初始化的时候 之前的preState是undefined 那我们return出去什么比较合适？ 我们在函数一进来就进行判断， 如果preState是undefined 那么给它赋值0（初始值）然后这里我们可以返回 preState
-
-
-
+ -->
+  
+  
+> 4. 页面中 使用 redux 中的数据
 - 上面 关于 redux 的逻辑已经都写完了 但是页面中的代码我们应该怎么修改？
 - 比如 我们不能从组件内的state中获取数据了吧 因为state已经交给redux来管理了
 - 怎么从 store 中获取里面的属性呢？
@@ -10931,6 +10964,10 @@ params > search > state
 
 > store.getState()
 - 用于获取store中保存的属性
+
+- 返回值:
+- store中保存的数据
+
 - 组件一加载 store 就会调用reducers中的函数 用于让我们获得初始值
 <!-- 
   - 我们来整理一个逻辑
@@ -10942,28 +10979,42 @@ params > search > state
   - 那是因为store帮我们调用的 它不调用我们怎么拿到初始值呢？
  -->
 
+ 
+> 5. 通知 store 我们要做什么样的动作修改 store 中的数据
+- OK 我们知道怎么从redux中获取初始值了，一上来我们就可以通过上来的方法来调用得到初始值 但是页面中加减的点击逻辑是怎么完成的？ 我们通知redux让它完成对应的逻辑， 复杂的逻辑我们在组件内部完成 只告诉redux什么时候加 什么时候减
 
-- OK 我们知道怎么从redux中获取初始值了，一上来我们就可以通过上来的方法来调用得到初始值
-- 但是页面中加减的点击逻辑是怎么完成的？ 我们通知redux让它完成对应的逻辑， 复杂的逻辑我们在组件内部完成 只告诉redux什么时候加 什么时候减
-
+> 1. 封装 action 对象
+> 2. store.dispatch(action) 将action对象发送给 reducer
 
 > store.dispatch(action)
 - 我们使用这个方法 将动作对象整理好送给store 由store交给reducers处理
 - 所以我们在 加法的函数中这么写 将我们要干什么 操作什么数据 打包成对象对象， 通知redux来修改
-<!-- 
+```js
   increment = () => {
     let value = this.selectNumber.value
     
+    // 组织好 action 对象
     let action = {
       type: 'increment',
       data: value*1
     }
     store.dispatch(action)
   }
- -->
+```
+
+**注意:**
+- type的值要和 reducer 中定义的一致
 
 
+> 6. 当redux中的数据发生变化的时候 我们要更新页面
 > store.subscribe(() => {})
+```js
+store.subscribe(() => {
+  // 我们这么做 传入空对象代表什么也不更新 只是想触发render
+  this.setState({})
+})
+```
+
 - 该方法用于监听redux中的状态 只要状态一发生变化 就会执行该回调
 - 在组件一挂载的时候 我们定义该方法
 <!-- 
@@ -10986,10 +11037,10 @@ params > search > state
   }
  -->
 
-
-> redux里面只负责修改 更新redux中的数据 不负责帮我们渲染页面所以 我们进行如下操作
-<!-- 
-  / 组件一挂载就检测redux中状态的变化 只要发生变化 就调用render
+**注意:**
+- redux里面只负责修改 更新redux中的数据 不负责帮我们渲染页面所以 所以当我们更新完redux中的数据 要刷新页面的时候 我们进行如下操作
+```js 
+  // 组件一挂载就检测redux中状态的变化 只要发生变化 就调用render
   componentDidMount() {
 
     // 只要redux中的任意状态发生变化 都会执行该回调
@@ -11002,22 +11053,22 @@ params > search > state
       this.setState({})
     })
   }
- -->
+```
 
-
+> 技巧
 > 假如组件多了得时候 那么每一个组件为了要更新页面 都会在组件内部写 下面的代码
 - 一样是一种方法， 但是组件多了得时候 有些麻烦， 因为每一个组件都要写这样的逻辑
-<!-- 
+```js
   componentDidMount() {
     store.subscribe(() => {
       this.setState({})
     })
   }
- -->
+```
 
 - 推荐一种一劳永逸的办法
-- 我们在index.js入口文件中写逻辑
-<!-- 
+- *我们在index.js入口文件中写逻辑*
+```js 
   import React from 'react'
   import ReactDOM from 'react-dom'
   import { BrowserRouter } from 'react-router-dom'
@@ -11031,7 +11082,7 @@ params > search > state
   store.subscribe(() => {
     ReactDOM.render(<BrowserRouter><App /></BrowserRouter>, document.querySelector('#root'))
   })
- -->
+```
 
 
 > 总结
@@ -11056,7 +11107,8 @@ params > search > state
 
 
 > 精简版的redux的完整代码
-<!-- 
+```js
+  // Count组件
   import React, {Component} from 'react'
 
   // 引入store 用于获取redux中的状态
@@ -11120,6 +11172,7 @@ params > search > state
     // 减法
     decrement = () => {
       let value = this.selectNumber.value
+
       let action = {
         type: 'decrement',
         data: value * 1
@@ -11132,7 +11185,8 @@ params > search > state
       let value = this.selectNumber.value
       let count = store.getState()
 
-      if(count % 2 !== 0) {  // Expected '===' and instead saw '=='  eqeqeq
+      if(count % 2 !== 0) {
+
         let action = {
           type: 'increment',
           data: value * 1
@@ -11181,7 +11235,7 @@ params > search > state
       )
     }
   }
- -->
+```
   
 > 精简版的redux 求和案例 总结
 - 1. 去除count组件自身的状态
@@ -11206,6 +11260,43 @@ params > search > state
     redux只负责管理状态， 至于状态的改变 驱动着页面的展示 要靠我们自己写 
     this.setState({})
 
+
+> 多个reducer的使用方式:
+- https://blog.csdn.net/weixin_38937732/article/details/124679570
+- https://www.csdn.net/tags/Mtjacg1sMTI1NDYtYmxvZwO0O0OO0O0O.html
+
+- 大体的思路就是:
+- 1. 先各自创建自己的 reducer.js 文件
+- 2. 创建一个 汇总所有reducer的汇总文件(比如 index.js)
+- 在该文件中 引入 combineReducers 该方法就是汇总reducer文件用的
+```js
+import {combineReducers} from 'redux';
+
+import themeColorReduce from './themeColor.js';
+import aaReducer from './aa.js';
+
+const appReducer = combineReducers({
+    themeColorReduce,
+    aaReducer,
+});
+export default appReducer;
+```
+
+- 3. 创建store的时候传入 汇总后的文件
+```js
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
+import reducers from './reducers';
+ 
+// 这个就可以吧
+const store = createStore(reducer);
+
+// 这个不知道是干什么的
+// const store = createStore(reducers, applyMiddleware(thunk));
+ 
+export default store;
+```
+
 ----------------------------
 
 ### 案例 计数器 Redux 完整版本
@@ -11220,17 +11311,18 @@ params > search > state
 - 该文件是为count组件服务的 Action Creators
 - 该文件专门为Count组件生产action对象
 <!-- 
-  | - redux
-    - store.js
-    - count_reducer.js
-    - count_action.js
+  | - src
+    | - redux
+      - store.js
+      - count_reducer.js
+      - count_action.js
  -->
 
 
 > 2. 在 count_action.js 文件中创建方法来生成 action 对象
 - 我们有几种操作？或者说有几种type类型？ 不是加 就是减吧
 - 那我们就根据行为创建一个个的函数 调用加的返回就返回加的action对象
-<!-- 
+```js
   function  createIncrementAction(data) {
     return {type:'increment', data}
   }
@@ -11240,32 +11332,32 @@ params > search > state
   }
 
 
-  我们有几种操作？ 不是加 就是减 那我们就根据行为创建一个个的函数 调用加的返回就返回加的action对象
- -->
+  // 我们有几种操作？ 不是加 就是减 那我们就根据行为创建一个个的函数 调用加的返回就返回加的action对象
+```
 
 
 > 3. 组件中 我们在使用action对象的地方 调用我们刚才写好的方法
 - 首先要引入 我们的 count_action.js 从中拿到我们的方法
-<!-- 
-  之前我们是自己创建action对象 然后调用的dispatch方法
+```js
+  // 之前我们是自己创建action对象 然后调用的dispatch方法
   let action = {
     type: 'decrement',
     data: value * 1
   }
   store.dispatch(action)
 
-  改成 
+  ---
 
-  // 将 data 传递进去
+  // 改成 将 data 传递进去
   store.dispatch(createIncrementAction(value))
- -->
+```
 
 - 由于我们定义的 action对象中的 type属性的值 都是字符串 而且在多个文件之间都要使用
 - action creators要使用 reducer文件要使用，所以极有可能出现拼写错误 匹配不上
 - 我们把这些常亮最好也单独的组织一个文件 定义一个 常量模块
 - 我们在redux文件夹里面再定义一个 constant.js 文件 
 
-- 优点：
+> 优点：
 - 不容易出错 和 方便管理
 <!-- 
   | - redux
@@ -11316,7 +11408,7 @@ params > search > state
 - 2. 异步action
   - action.js文件中 方法 返回值 是一个函数 称之为 异步action
 
-<!-- 
+```js 
   // 同步action
   function  createDecrementAction(data) {
     return {type:'decrement', data}
@@ -11328,7 +11420,7 @@ params > search > state
     // 返回一个函数
     return () => {}
   }
- -->
+```
 
 - 异步action由于它返回的是一个函数，只有函数中才可以封装异步方法 所以叫做异步action
 
@@ -11349,8 +11441,7 @@ params > search > state
 
 
 > count_action.js 文件中 异步action 的代码
-<!-- 
-
+```js
   createIncrementAsyncAction = (data, time) => {
     // 返回一个函数
     return (dispatch) => {
@@ -11364,11 +11455,11 @@ params > search > state
 
     }
   }
- -->
+```
 
 
 > 异步action Component --- Action Creators --- Store --- Reducer 的逻辑
-<!-- 
+```js 
   // 组件内部
 
   asyncIncrement = () => {
@@ -11376,18 +11467,18 @@ params > search > state
     store.dispatch(createIncrementAsyncAction(value*1, 500))
   }
 
-  组件内部使用 store.dispatch() 方法 用于通知redux修改数据
-  参数为：
-  action动作对象  我们这里传入的参数是 异步action createIncrementAsyncAction
+  // 组件内部使用 store.dispatch() 方法 用于通知redux修改数据
+  // 参数为：
+  // action动作对象  我们这里传入的参数是 异步action createIncrementAsyncAction
   store.dispatch(createIncrementAsyncAction(value*1, 500))
 
 
 
   // Action Creators内部
-  由于参数是调用异步action 就会执行该函数，这个异步action的返回值是一个函数
-  函数内部是异步的逻辑，同时包含了 真正通知store修改数据的 dispatch() 方法
+  // 由于参数是调用异步action 就会执行该函数，这个异步action的返回值是一个函数
+  // 函数内部是异步的逻辑，同时包含了 真正通知store修改数据的 dispatch() 方法
 
-  这个dispatch()方法的参数是 同步action 用于创建 活动对象
+  // 这个dispatch()方法的参数是 同步action 用于创建 活动对象
 
   export const createIncrementAsyncAction = (data, time) => {
     return (dispatch) => {
@@ -11396,67 +11487,65 @@ params > search > state
       }, time)
     }
   }
+```
 
+**注意:异步action需要一个中间件**
+- 组件内部 使用 store.dispatch() 推到 store 的是一个函数， 但是store要求接收到的数据类型 必须是一个 object 这样才能分析交给 reducer 来更新数据
 
+- 但是我们推到 store 里的是一个函数 所以会报错
+- Actions must be plain objects use custom middleware for async actions
 
-  // 注意
-  组件内部 使用 store.dispatch() 推到 store 的是一个函数， 但是store要求接收到的数据类型 必须是一个 object 这样才能分析交给 reducer 来更新数据
-
-  但是我们推到 store 里的是一个函数 所以会报错
-  Actions must be plain objects use custom middleware for async actions
-
-  报错解析：
-    action必须是一个一般对象 请你使用一个中间件来使用异步action
+- 报错解析：
+- action必须是一个一般对象 请你使用一个中间件来使用异步action
 
   
-  也就是我们必须要使用一个中间件
-  异步action需要一个中间件， 中间件会跟store对象对话，请store允许 可以给store传递一个函数 
+- 也就是我们必须要使用一个中间件
+- 异步action需要一个中间件， 中间件会跟store对象对话，请store允许 可以给store传递一个函数 
   
-  中间件跟store说 你不用给reducer 请在接收到函数的时候 帮忙执行一下这个函数
+- 中间件跟store说 你不用给reducer 请在接收到函数的时候 帮忙执行一下这个函数
   
 
-  // store文件中
-  当我们使用了中间件之后 当我们发送给store一个函数的时候 就不会报错了， 而是store帮我们先调用这个函数 执行内部逻辑的时候 触发 真正的
+- store文件中
+- 当我们使用了中间件之后 当我们发送给store一个函数的时候 就不会报错了， 而是store帮我们先调用这个函数 执行内部逻辑的时候 触发 真正的
+
   dispatch(createIncrementAction(data))
 
-  这样才会走正常的流程，store也能拿到一个object的对象 能够交给reducer来处理
- -->
+- 这样才会走正常的流程，store也能拿到一个object的对象 能够交给reducer来处理
 
 
 > 为了使用 异步action 我们需要 thunk 中间件
 - 1. 安装 thunk 中间件
-<!-- 
+```js
   npm i redux-thunk  
- -->
+```
 
 - 2. 在store.js文件中 引入下载好的中间件
-<!-- 
+```js
   import thunk from 'redux-thunk'
- -->
+```
 
 - 3. 再从redux身上引入 applyMiddleware（执行中间件）
-<!-- 
+```js
   import {createStore, applyMiddleware} from 'redux'
- -->
+```
 
 - 4. 使用 applyMiddleware() 执行我们下载好的中间件 并在创建store对象的时候当做第二个参数传递进去
-<!-- 
+```js
   const store = createStore(countReducer, applyMiddleware(thunk))
- -->
+```
 
 - 要使用异步action的时候 store.js文件中的代码
-<!-- 
-
+```js
   import {createStore, applyMiddleware} from 'redux'
   import thunk from 'redux-thunk'
   import countReducer from './count_reducer'
 
   const store = createStore(countReducer, applyMiddleware(thunk))
   export default store
- -->
+```
 
 - 当在store.js文件中配置好中间件后，store当接收到一个函数的时候 就会自动调用这个函数 并传递进去一个dispatch方法
-<!-- 
+```js
   export const createIncrementAsyncAction = (data, time) => {
 
     // 由于下面的函数是store调用的 所以会传递进去一个dispatch方法
@@ -11466,7 +11555,7 @@ params > search > state
       }, time)
     }
   }
- -->
+```
 
 
 > 总结
@@ -11478,7 +11567,7 @@ params > search > state
   - 创建action的函数 不再返回一般对象 而是一个函数 该函数中写异步任务
   - 异步任务有结果后 分发一个同步的action去真正操作数据
 
-- 4. 异步action不是必须要写的 完全可以自己等待异步任务的结果 再去分发同步action
+- 4. *异步action不是必须要写的 完全可以自己等待异步任务的结果 再去分发同步action*
 
 ----------------------------
 
@@ -11489,21 +11578,21 @@ params > search > state
 
 
 > react-redux 模型图
-- react-redux库 把组件分为两类 ：
-  - 1. 容器组件   (可以随意和redux打交道 可以使用任何redux的api)
-  - 2. UI组件    (UI组件只负责做界面的呈现，不能使用任何redux的api)
+- react-redux库 把组件分为两类：
+- 1. 容器组件   (可以随意和redux打交道 可以使用任何redux的api)
+- 2. UI组件    (UI组件只负责做界面的呈现，不能使用任何redux的api)
 
-  - 容器组件 包裹着 UI组件 它们是父子关系
-
+- 容器组件 包裹着 UI组件 它们是父子关系
 
 
 - 所有的UI组件都应该包裹一个容器组件 他们是父子关系
 - 容器组件是真正和redux打交道的 里面可以随意的使用redux的api
 - UI组件中不能使用任何redux的api
 
-- 容器组件会传给UI组件2种东西：
-  - 1. redux中所保存的状态
-  - 2. 用于操作状态的方法
+- 容器组件会传给UI组件*2种东西*:
+- 1. redux中所保存的状态
+- 2. 用于操作状态的方法
+
 <!-- 
   UI组件是负责做呈现的 写页面的 绑定用户的各种事件的 也就是说界面的呈现以及监听都是在UI组件里面写的
 
@@ -11514,7 +11603,7 @@ params > search > state
   UI组件负责：展示redux里面的状态 根据用户的行为操作redux里面的状态
  -->
 
-- 备注
+> 备注
 - 容器给UI传递： redux状态 操作redux状态的方法 均通过props传递
 
 <!-- 
@@ -11555,71 +11644,81 @@ params > search > state
 
 
 > 容器组件的定义
-- 容器组件是一个桥梁  UI组件  ---  容器组件  ---  redux
-- 左手边是UI组件 右手边是redux 它是一个很重要的东西 不是我们自己定义rcc创建出来的模板 它需要借助react-redux去生成
+- 容器组件是一个桥梁  UI组件  ---  *容器组件*  ---  redux
 
-- 1. 安装 react-redux
+- 容器组件的左手边是UI组件 右手边是redux 它是一个很重要的东西 不是我们自己定义rcc创建出来的模板 它需要借助react-redux去生成
+
+- 它是一个桥梁 我们要引入左手边 和 右手边的东西
+
+
+> 1. 安装 react-redux
 - npm i react-redux
 
-- 2. 引入 UI组件
+
+> 2. 引入 UI组件
 - 引入左手
-<!-- 
-  它是一个桥梁 我们要引入左手边 和 右手边的东西
+```js
   // 引入左手边的UI组件
   import CountUI from '../../components/Count'
- -->
+```
 
-- 3. 从react-redux上引入connect 用于连接容器组件
+> 3. 从react-redux上引入connect 用于连接容器组件
 - 连接左手
-<!-- 
+```js 
   import {connect} from 'react-redux'
- -->
+```
 
 
-- 4. 创建左手链接 UI组件 和 容器组件 的链接
+> 4. 创建左手链接 UI组件 和 容器组件 的链接
 - 使用 connect()() 创建一个跟 UI组件 建立好链接的 容器组件
-- const 容器组件 = connect()(UI组件)
-<!-- 
-  const CountContainer = connect()(CountUI)
- -->
 
-- 5. 将容器组件暴露出去
-<!-- 
+> const 容器组件 = connect()(UI组件)
+
+```js
+  // 容器组件和UI组件连接在一起了
+  const CountContainer = connect()(CountUI)
+```
+
+> 5. 将容器组件暴露出去
+```js
   export default CountContainer
- -->
+```
+
 
 > App组件中应该渲染的是UI组件还是容器组件
-- 注意我们的结构 是 容器组件包裹着UI组件吧 那我们就应该在页面渲染容器组件 容器组件一渲染由于UI组件是容器组件的子组件 子组件也会出来
+- 注意我们的结构 是 容器组件包裹着UI组件吧 那我们就*应该在页面渲染容器组件* 容器组件一渲染由于UI组件是容器组件的子组件 子组件也会出来
 
 - 所以我们在<App>组件里面 要挂载的是 <CountContainer>容器组件
-<!-- 
+```js
   // App组件中
   // 由于是默认暴露我们可以自己起名字 这里起了Count
   import Count from './containers/Count'
 
   <div className='container'>
     App...
-
+    {/*我们这里渲染的是容器组件*/}
     <Count/>
   </div>
- -->
+```
 
-- 6. 引入右手
+> 6. 引入右手
 - 容器组件用于连接左手的(容器组件)和右手的(redux的store)
 <!-- 
   为什么是redux的store？
   因为store是redux的核心部分有了它我们就有了更新数据的dispatch方法 和 得到数据的getState方法
  -->
 
-- 但是右手store的引入并不是通过import简单的引入 而是要在App组件中的容器标签内部通过props的形式引入（通过容器组件的上层传递过来的）
+- *但是右手store的引入并不是通过import简单的引入 而是要在App组件中的容器标签内部通过props的形式引入（通过容器组件的上层传递过来的）*
 
-- 方式：
+> 方式：
 - 1. App组件中 引入 store.js 文件
 - 2. 通过props在容器组件的标签内部 使用props的形式传递store
-<!-- 
+```js
   // App组件
 
   import React, {Component} from 'react'
+
+  // App组件中引入 store
   import store from './redux/store'
   import Count from './containers/Count'
 
@@ -11629,14 +11728,14 @@ params > search > state
         <div className='container'>
           App...
 
-          // 在这里我们使用props的形式 引入 store
+          {/*在这里我们使用props的形式 引入 store 也就是右手连接*/}
           <Count store={store}/>
 
         </div>
       )
     }
   }
- -->
+```
 
 ----------------------------
 
@@ -11656,6 +11755,7 @@ params > search > state
 - 容器组件 要给 UI组件传递
   - 1. redux中所保存的状态
   - 2. 用于操作状态的方法
+
 <!-- 
   由于他们是父子关系 可以借助props来进行传递 props都是一组组的key：value
 
@@ -11665,24 +11765,18 @@ params > search > state
   容器组件怎么打开？
  -->
 
-- 在容器组件中写逻辑：
+> 在容器组件中写逻辑：
 > connect(fn1, fn2)(UI组件)
 - 用于容器组件 给 UI组件 传递数据
 - 容器组件本身是由store对象的(App组件传递进来的)
-
 - 在第一次调用的时候需要传递两个参数 在调connect的返回值的时候传递UI组件
-- 这两个参数是函数
-> fn1:
-- fn1函数的返回的对象中的key:value 就是传递给UI组件props中的key:value
-- 作用：将参数传递给UI组件 本质是把状态带到UI组件
-
-<!-- 
-  由于我们没有正常通过props的形式给UI组件传递数据
+```js
+  // 由于我们没有正常通过props的形式给UI组件传递数据
   <App>
     <Count a={1}/>
   </App>
 
-  所以我们将 a={1} 做为fn1的返回值 交给UI组件
+  // 所以我们将 a={1} 做为fn1的返回值 交给UI组件
 
   // 第一个fn1 的作用
   function fn1(state) {
@@ -11691,17 +11785,19 @@ params > search > state
   }
   
   const CountContainer = connect(fn1, fn2)(CountUI)
-  第一个fn1 将参数传递给 UI组件 相当于 <Count n={900} />
+  // 第一个fn1 将参数传递给 UI组件 相当于 <Count n={900} />
+```
 
-  注意：
-  形参state就是redux中store中保存的数据 因为fn1的作用就是将store中保存的数据传递到UI组件里面，所以这里可以直接获取到
- -->
+- 这两个参数是函数:
 
-> fn1的形参state
-- 注意：
-- react-redux帮我们调用的回调 所以fn1中的形参就是 redux中store中保存的结果(状态)
-- 我们直接将state传递到UI组件即可 相当于就是将状态传递到UI组件
-<!-- 
+> 参数fn1:
+- fn1函数的返回的对象中的key:value 就是传递给UI组件props中的key:value
+- 作用：将参数传递给UI组件 本质是把状态带到UI组件
+
+- 参数: state
+- react-redux帮我们调用的回调 所以fn1中的形参就是 redux中store中保存的结果(状态) 我们直接将state传递到UI组件即可 相当于就是将状态传递到UI组件
+
+```js
   // 定义向UI组件传递数据的参数1
   function uiData(state) {
     console.log(state)      // reducer中初始化的0
@@ -11712,10 +11808,13 @@ params > search > state
 
   // UI组件
   <h3>当前求和为：<span>{this.props.count}</span></h3>
- -->
+```
+
+**注意：**
+- 形参state就是redux中store中保存的数据 因为fn1的作用就是将store中保存的数据传递到UI组件里面，所以这里可以直接获取到
 
 
-> fn2:
+> 参数fn2:
 - fn2函数用于操作状态的方法
 - fn2函数也要有返回值，返回值是一个{ }
 
@@ -11725,17 +11824,17 @@ params > search > state
 
 > fn2的形参 dispatch
 - 可以使用此方法通知store修改状态
-<!-- 
+```js
   // 定义想UI组件传递 操作状态的 方法 参数2
-
-  它会收到一个参数 dispatch 用于通知store修改状态
+  // 它会收到一个参数 dispatch 用于通知store修改状态
   function uiMethod(dispatch) {
-    return {
 
+    // 参数2的fn返回的是一个对象
+    return {
       // 该方法的形参可以接收到UI组件传递过来的数据
       increment: (data) => {
-        // 在这里我们通知store来修改状态
 
+        // 在这里我们通知store来修改状态
         // 因为我们要传递动作对象 还是需要把 count_action.js 引入 里面用方法用于创建动作对象
         dispatch(
           createIncrementAction(value)
@@ -11744,20 +11843,21 @@ params > search > state
     }
   }
 
-  该方法就会在UI组件的this.props中 this.props.increment()
+  // 修改状态的方法会被容器组件通过props的方式传递到UI组件里面
+  // 所以我们在ui组件中可以通过 this.props 调用该方法 this.props.increment()
 
   //UI组件
   increment = () => {
     let value = this.selectNumber.value
     this.props.increment(value)
   }
-  UI组件需要将data传递回容器组件内部
- -->
+  // UI组件需要将data传递回容器组件内部
+```
 
 
 
 - 我们看下代码部分 并且看一下 UI组件Count中 this.props的结果是什么
-<!-- 
+```js
   // 容器组件
   import CountUI from '../../components/Count'
   import {connect} from 'react-redux'
@@ -11812,7 +11912,7 @@ params > search > state
     - getState: ƒ getState()
     - replaceReducer: ƒ replaceReducer(nextReducer)
     - subscribe: ƒ subscribe(listener)
- -->
+```
 
 
 > 总结
@@ -11878,7 +11978,7 @@ params > search > state
 > API层次上的优化
 - mapDispatchToProps (它也是fn2) 它提供了给我们简写的方式
 - mapDispatchToProps 可以写成function 也可以写成{K:V}
-<!-- 
+```js 
   // function的形式
   dispatch => (
     {
@@ -11901,23 +12001,19 @@ params > search > state
     increment: createIncrementAction
     decrement: createDecrementAction
   }
-
-  createIncrementAction 是 count_action.js 文件中的 用于创建action对象的方法
-  我们把这个方法提供给UI组件， UI组件会将数据 给createIncrementAction的形参 用于创建对象
-
-  而 react-redux 会自动帮我们调用dispatch 在创建好action对象后 将对象分发的store
- -->
+```
+- createIncrementAction 是 count_action.js 文件中的 用于创建action对象的方法 我们把这个方法提供给UI组件， UI组件会将数据 给createIncrementAction的形参 用于创建对象 而 react-redux 会自动帮我们调用dispatch 在创建好action对象后 将对象分发的store
 
 ----------------------------
 
 ### 优化：provider组件的使用
 - 我们在入口js文件里面使用 store.subscribe(回调) 用来监听 redux 中的数据变化， 好让我们重新的渲染App组件
-<!-- 
+```js
   // 监测redux中的状态的改变 如果redux的状态发生了改变 那么就重新渲染App组件
   store.subscribe(() => {
     ReactDOM.render(<BrowserRouter><App /></BrowserRouter>, document.querySelector('#root'))
   })
- -->
+```
 
 > 优化： store.subscribe() 不用了
 - 在我们使用 react-redux 之后
@@ -11945,12 +12041,11 @@ params > search > state
 
 - 我们在入口文件index.js文件中 
 - 分别从 react-redux 身上 引入 store Provider组件
-<!-- 
+```js 
   import {Provider} from 'react-redux'
   import store from './redux/store'
 
-  我们将所有容器组件都需要使用的store交给 Provider 
-  Provider 会自动分析整个应用里面的容器组件 把store精准的传递给需要store的容器组件
+  // 我们将所有容器组件都需要使用的store交给 Provider Provider 会自动分析整个应用里面的容器组件 把store精准的传递给需要store的容器组件
 
 
   ReactDOM.render(
@@ -11970,7 +12065,7 @@ params > search > state
   === >
 
   <Count/>
- -->
+```
 
 
 
@@ -11988,8 +12083,10 @@ params > search > state
 
 - 在实际开发得时候 我们通常会将 容器文件 和 组件文件做一个整合 不用拆成两个文件来写
 - 我们可以将她们两个写成下面的样子
-<!-- 
-  比如下面是一个jsx文件 但是里面定义了两个组件 一个UI 一个容器 我们在容器组件里面调用了UI组件 并将容器组件暴露出去：
+
+- 比如下面是一个jsx文件 但是里面定义了两个组件 一个UI 一个容器 我们在容器组件里面调用了UI组件 并*将容器组件暴露出去*：
+
+```js
 
   import React, {Component} from 'react'
 
@@ -12006,15 +12103,13 @@ params > search > state
       )
     }
   }
-  
- -->
+```
 
-- 那我们的项目中应该怎么写呢？
-<!-- 
-  也一样 我们要注意几点
+- 那我们的项目中应该怎么写呢？ 也一样 我们要注意几点
   1. import都放在上面
   2. 我们默认暴露的是容器组件
 
+```js
   import {connect} from 'react-redux'
   import React, {Component} from 'react'
 
@@ -12025,20 +12120,15 @@ params > search > state
 
   // 创建容器组件 将容器组件暴露出去
   export default connect()(Count)
- -->
+```
 
 
 > 总结
 - 我们看看这3小节我们都做什么怎么样的一个优化
-
 - 1. 容器组件和UI组件混成一个问卷
-
 - 2. 无需自己给容器组件传递store，给<App>包裹一个<Provider store={store}>即可
-
 - 3. 使用了react-redux后也不用再自己检测redux中状态的改变了， 容器组件可以自动完成这个工作
-
 - 4. mapDispatchToProps也可以简单的写成一个对象
-
 - 5. 一个组件要和redux 打交道 要经过哪几步
   - 5.1 定义好UI组件 --- 不暴露
   - 5.2 引入connect生成一个容器组件 并暴露 写法如下
@@ -12100,15 +12190,18 @@ params > search > state
 
 - 分析：
 - redux文件夹中 都应该有什么样的变化
-<!-- 
-  // store.js文件 用不用有什么变化？
-  一个项目只有一个store 但是 我们之前创建store对象的时候传入的厨师是count组件的厨师
+
+> store.js文件 用不用有什么变化？
+- 一个项目只有一个store 但是 我们之前创建store对象的时候传入的厨师是count组件的厨师
+```js
   const store = createStore(countReducer, applyMiddleware(thunk))
-  那Person组件的厨师怎么传入？
+  
+  // 那Person组件的厨师怎么传入？
+```
 
-
-  // constant.js文件 用不用有什么变化？
-  这里面定义的是 action活动对象中的type 代表作什么事情吧 我们添加一个
+> constant.js文件 用不用有什么变化？
+这里面定义的是 action活动对象中的type 代表作什么事情吧 我们添加一个
+```js
   export const ADD_PERSON = 'add_person'
 
 
@@ -12121,6 +12214,7 @@ params > search > state
   let initState = [
     {id: '001', name: 'sam', age: 18}
   ]
+
   export default function personReducer(preState=initState, action) {
     let {type, data} = action
 
@@ -12131,7 +12225,7 @@ params > search > state
         return preState
     }
   }
- -->
+```
 
 > store 和 redux 中的问题
 - 1. 当只有一个组件的时候 我知道redux中保存的数据是 这个组件交过去的 我们使用的时候从redux中取的也是这个组件的存进行的数据
@@ -12146,6 +12240,7 @@ params > search > state
     const store = createStore(countReducer, applyMiddleware(thunk))
     目前我们只挂载了一个count组件的reducer
    -->
+
   - 2. 我们读取数据的时候怎么知道读的是什么？因为都是通过getState()来获取数据 当多个组件都往redux中放数据的时候 里面就是乱七八糟的
 
 
@@ -12154,9 +12249,10 @@ params > search > state
 
 - 当有多个reducer工作的时候代表redux要管理多组状态 所以redux中的数据结构是一个对象 对象里每一个组件存放的状态都是以key:value来存储的 我们可以根据key来取出value
 
-- 也就是说redux中所保存的数据结构必须是一个对象
+- *也就是说redux中所保存的数据结构必须是一个对象*
 <!-- 
           redux
+
       {
         count: 0,
         person: []
@@ -12165,11 +12261,13 @@ params > search > state
 
 
 > 为了整理redux管理多个reducer的问题，我们需要在store中对多个组件的reducer进行合并，合并的前提是 从 redux 中导出 
+
 > import {combineReducers} from 'redux'
 - 我们要使用 combineReducers({redux中保存的总状态对象}) 这个函数 合并多个reducer
 
 - 参数：
 - 参数是一个对象 我们在combineReducers里面传入的对象 就是redux中帮我们保存的总状态对象
+
 - 这个对象中要写一组组的key
 - 数据变量名: 初始化、加工这个数据的reducer
 
@@ -12191,8 +12289,6 @@ params > search > state
   })
 
 
-
-
   上面的 对象结构 组织好后 redux 中的对象结构 我们也知道了
   combineReducers({
     he: countReducer,     
@@ -12208,7 +12304,7 @@ params > search > state
 
 
 - 看看store.js中的完整代码
-<!-- 
+```js
   // store.js文件
 
   // 引入 createStore 专门用来创建 store
@@ -12233,15 +12329,16 @@ params > search > state
 
   // 把store暴露出去
   export default store
--->
+```
 
 
 - A组件从redux中读取B组件的数据
 - B组件从redux中读取A组件的数据
+
 - 那该怎么实现呢？
 - 读取redux中的数据是容器组件干的事情，我们可以在映射数据的fn1参数中读取数据，这样数据就会在UI组件的props中
-<!-- 
-  Count组件展示Person组件存在redux中的数据
+```js
+  // Count组件展示Person组件存在redux中的数据
   <h3>Count组件，下方组件总人数为{this.props.rens}人</h3>
 
   export default connect(
@@ -12250,7 +12347,7 @@ params > search > state
     state => ({ count:state.he, rens:state.rens.length}), 
     fn2
   )(UI组件)
- -->
+```
 
 > 总结
 - 1. 定义一个Person组件 和 Count组件通过redux共享数据
@@ -12286,7 +12383,6 @@ params > search > state
 - 因为在redux的底层做了一个判断 如果我们返回的preState 和之前的preState是一样的 我们就不进行页面的更新
 <!-- 
   redux比较的是preState的地址值 我们使用push等方法往数组里面追加数据 对象本身的地址值并没有发生变化
-
 
   而
   return [data, ...preState]
@@ -12439,7 +12535,7 @@ params > search > state
 
 > 这里面有一个点 react的界面更新时异步的：
 - setState是一个同步的方法 只要我们调用立马在主线程上执行 但是setState引起react的后续的更新动作是异步的更新 比如 我们看下下面代码的执行顺序
-<!-- 
+```js
   state = {
     count: 0
   }
@@ -12451,9 +12547,9 @@ params > search > state
     })
     console.log('setState后面的输出', this.state.count);
   }
+```
 
-  我们会发现 先是0 后是1 说明setState方法是异步更新 如果我们在add的逻辑里想要拿到我们修改后的值 我们就需要在回调里写逻辑
- -->
+- 我们会发现 先是0 后是1 说明setState方法是异步更新 如果我们在add的逻辑里想要拿到我们修改后的值 我们就需要在回调里写逻辑
 
 
 > setState的第二种写法： 函数式的setState
@@ -12461,15 +12557,15 @@ params > search > state
 - 参数1：
   - 传入一个函数， 这个函数的返回值为状态被修改之后的对象，就也可以说状态改变对象作为函数的返回值了
   - 这个参数函数是可以接到state 和 props的
-  <!-- 
+```js
     this.setState((state, props) => { ... })
-   -->
+```
 
 - 参数2[可选参数]：
   - 传入一个回调， 该回调在状态更新完毕并且界面也更新后(render调用后)才被调用
   - 比如我们可以在回调中读取state修改后的值
   - 该方法需要返回一个 return {}
-<!-- 
+```js
   // 函数式的setState可以不用获取原来的值
   this.setState((state, props) => {
 
@@ -12480,10 +12576,10 @@ params > search > state
     console.log(this.state)
   })
 
-  简写：
+  // 简写：
   this.setState(state => ({count: state.count+1}))
       因为返回是一个对象 我们要用()包裹{}
- -->
+```
 
 
 > 总结
@@ -12520,9 +12616,9 @@ params > search > state
 - lazy(参数)
   - 参数：
   - 回调 
-  <!-- 
+ ```js
     lazy(() => {import('路径')})
-   -->
+```
 
 - import的使用方式 有两种
 <!-- 
@@ -12532,28 +12628,30 @@ params > search > state
  -->
 
 - 3. 修改路由组件的引入方式， 使用定义变量的形式
-<!-- 
+```js
   import Home from './Home'
   import About from './About'
 
-  改成
+  // 改成
 
   const Home = lazy(() => import('./Home'))
   const Home = lazy(() => import('./About'))
- -->
+```
 
+> 优化:
 - 4. react考虑到当网速慢 懒加载的组件迟迟不返回的时候 我们要使用<Suspense fallback=...> 中的fallback给我们指定一个组件
+
 - 从react中引入 Suspense组件
 - import React, {Component, lazy, Suspense} from 'react'
 
 - 我们使用<Suspense fallback={组件}>组件将所有 注册路由<Route>包裹起来
-<!-- 
+```js
   <Suspense fallback={<h1>加载中...</h1>}>
   <Suspense fallback={<Loading />}>
     <Route path='/home' component={Home} />
     <Route path='/about' component={About} />
   </Suspense>
- -->
+```
 
 - 利用<Suspense fallback={组件}>可以让用户的体验更好，当请求过慢的时候我们可以定义一个动画加载的组件 放到fallback里面
 
@@ -12584,21 +12682,21 @@ params > search > state
  -->
 
 - 2. 整个函数组件也会被调用1+n次，1为初始的渲染，n为每次数据变化该组件都会被重新渲染，但内部的state中的数据，react底层会做缓存处理 不会因为函数的再次调用被覆盖
-<!-- 
+```js
   // state的初始化的时候我们在函数组件内部 定义为0
   const [age, setAge] = React.useState(0)
 
-  如果函数再次被调用那么下面的结果会被覆盖为0，但是事实上并没有 因为react底层做了处理
+  // 如果函数再次被调用那么下面的结果会被覆盖为0，但是事实上并没有 因为react底层做了处理
   function add() {
     setAge(age+1)     age应该是1
   }
- -->
+```
 
 - 3. 当要往state中存放多个数据的时候 就要写多次的React.useState()
-<!-- 
+```js
   const [name, setName] = React.useState('sam')
   const [age, setAge] = React.useState(18)
- -->  
+```
 
 
 > React.useState(参数1, 参数2)
@@ -12606,30 +12704,30 @@ params > search > state
 - 该方法会返回一个数组，数组中第一个元素时state 第一个元素时操作state的方法
 
 - 所以该方法的返回值一般使用 解构赋值 的方式来操作
-<!-- 
+```js
   const [count, setCount] = React.useState(state的初始值)
- -->
+```
  
-- 使用方式：
+> 使用方式：
 - 1. React.useState()的参数里要放 我们想存在state中的数据
 - 2. 这个方法会返回一个数组，里面保存着初始化的数据 和 修改数据的方法
   - 参数1： 数据
   - 参数2： 修改数据的方法
-<!-- 
+```js
   const [name, setName] = React.useState('sam')
-  我们在state中存放了sam， 在接收返回值的时候定义了变量 和 修改sam数据的方法
- -->
+  // 我们在state中存放了sam， 在接收返回值的时候定义了变量 和 修改sam数据的方法
+```
 
-- 注意：
+**注意：**
 - 修改state的方法 并不是一个回调 而是直接可以调用的一个函数 我们通过将要修改的结构通过实参的形式传递进去
-<!-- 
+```js
   // 直接传递进去state的最新的结果 这个内置函数就会将state修改为erin
   setName("erin")
 
   // 还可以利用 解构出来的第一个元素也就是state的值
   const [count, setCount] = React.useState()
   setName(count + 1)
- -->
+```
 
 
 > 关于参数2的解析：
@@ -12637,7 +12735,7 @@ params > search > state
 - 方式1：
 - setName(新数据)
 - 参数直接是新的数据
-<!-- 
+```js
   // 该函数为 react html 中点击按钮后的回调
   function changeName() {
 
@@ -12645,24 +12743,24 @@ params > search > state
     setName('tom')
     setAge(age+1)
   }
- -->
+```
 
 - 方式2：
 - setName(回调)
 - 参数是一个回调 回调的参数是保存在state中的数据，函数需要返回一个新的数据, 内部用其覆盖原来的状态值
-<!-- 
+```js
   function changeName() {
     setAge(age => age+1)
   }
- -->
+```
 
-<!-- 
+```js
   function Demo() {
 
-    a是一个数组 里面只包含了两个元素 第一个元素时状态 第二个就是更新状态的方法 它是一个内置的函数 可以更新第一个元素 也就是状态
+    // a是一个数组 里面只包含了两个元素 第一个元素时状态 第二个就是更新状态的方法 它是一个内置的函数 可以更新第一个元素 也就是状态
     const a = React.useState(state的初始值)
 
-    这里我们使用结构赋值
+    // 这里我们使用结构赋值
     const [count, setCount] = React.useState(0)
     
     // setCount的第一种方式
@@ -12683,22 +12781,22 @@ params > search > state
       </div>
     )
   }
- -->
+```
  
 - 但是我们时候statehook 每次都会有这样的代码出现 尤其是在函数组件中要设置的state多了的情况下
-<!-- 
+```js
   const [name, setName] = React.useState("tom")
   const [count, setCount] = React.useState(0)
- -->
+```
 
 ------
 
 > React.useEffect(参数1, 参数2)
 - Effect Hook
 - 作用：
-- 在函数式组件里面使用生命周期钩子
+- 在函数式组件里面使用*生命周期钩子*
 
-- 使用：
+> 使用：
 - 参数1：回调函数
 - 如果我们不传递 参数2 所有的状态发生改变的时候 都会执行 参数1的回调 相当于监测所有人(state中的所有数据) 它会执行 1+n 次 初始化一次 只要更新还会继续调用该回调
 
@@ -12707,14 +12805,14 @@ params > search > state
   - 传递[count,name] 则代表监测指定元素 因为是数组可以监测多个数据
   - 不写 监测所有 只要数据有变化就会引起页面更新
 
-<!-- 
+```js 
   React.useEffect(() => {
     console.log('@')
         回调中的打印 只会在count数据发生改变的时候被调用
   }, [count])
- -->
+```
 
-- 技巧：
+> 技巧：
 - 当我们 参数2 不传的时候 相当于 componentDidMount() 和 componentDidUpdate()
 - 当我们 参数2 传递空数组 相当于 componentDidMount()
 - 当我们 参数1 返回一个函数的话返回的函数相当于 componentWillUnmount()
@@ -12722,18 +12820,18 @@ params > search > state
 - 如果我们想使用 componentWillUnmount() 生命周期的话 需要 参数1 返回一个函数 参数1返回的函数 就相当于 componentWillUnmount()
 
 
-- 示例：
+> 示例：
 - 相当于 componentDidMount的用法
-<!-- 
+```js
   React.useEffect(() => {
     setInterval(() => {
       setCount(count => count+1)
     }, 1000)
   }, [])
- -->
+```
 
 - 相当于 componentWillUnmount的用法
-<!-- 
+```js
   React.useEffect(() => {
     let timer = setInterval(() => {
       setCount(count => count+1)
@@ -12746,14 +12844,13 @@ params > search > state
     }
 
   }, [])
- -->
+```
 
 - 生命周期中能干的时候 都可以在函数中的hook使用
 - 比如：
 - 发送ajax 设置订阅 / 启动定时器 / 手动修改真是的DOM(极其罕见)
 
-- 副作用:
-- return一个函数来消除
+**副作用:return一个函数来消除**
 
 ------
 
@@ -12851,35 +12948,35 @@ params > search > state
 - 这个对象必须要放在一个公共区域(A B C组件都能访问到的位置)
 - 我们可以定义在 类式组件的外侧 比如import的下方
 - 接收的变量首字母要大写
-<!-- 
+```js
   import './index.css'
   const UserNameContext = React.createContext()
 
   class A extends Component { }
- -->
+```
 
 
 > 2. 在调用子组件的时候 使用 context容器对象.Provider 将子组件包裹起来
 > context容器对象.Provider
 - context容器对象.Provider它是一个标签
 - 传递值的时候使用该context对象标签里的value属性传递
-<!-- 
+```js
   <UserNameContext.Provider value={this.state.name}>
     <B/>
   </UserNameContext.Provider>
 
-  或者 
+  // 或者 
 
   const {Provider} = UserNameContext
   <Provider>
     <B/>
   </Provider>
- -->
+```
 
 - 当传递多组数据的时候，我们的value值可以是一个对象
-<!-- 
+```js
   <UserNameContext.Provider value={{name:name, age:age}}>
- -->
+```
 
 - 这样使用context对象标签包裹起来之后B组件 以及B组件中调用的C组件都能收到到我们传递过去的数据了
 
@@ -12909,7 +13006,7 @@ params > search > state
 
 
 > 示例
-<!-- 
+```js
   // 使用Provider包裹子组件的 父组件
   class A extends Component {
     state = {name:'sam'}
@@ -12968,7 +13065,7 @@ params > search > state
   }
 
   相当于 我从A组件中接收到的用户名是：value
- -->
+```
 
 > 总结：
 - 只要是想用context传递数据 那么一定要引入 context对象的Provider
@@ -12995,7 +13092,7 @@ params > search > state
 
 - 2 使用 Provider 组件作为父节点 
 - 一般情况下 我们会使用 Provider 包裹整个 app html部分
-<!--
+```js
     render() {
         return (
             <Provider value={data}>
@@ -13005,22 +13102,24 @@ params > search > state
             </Provider>
         )
     }  
--->
+```
 
 - 3 在 Provider 组件标签中通过 value="数据" 
 - <Provider value={data}> 必须是value provider是提供数据 就是通过value标签属性来传递
 
 - 4 调用 Consumer 组件接收数据
 - 在 Consumer 组件中 通过回调函数的参数 就能得到数据
-<!--
-    下面返回了 jsx 结构 
+```js
+    // 下面返回了 jsx 结构 
     <Consumer>
         { data => <span> data参数表示接收到的数据-- {data} } </span>
     </Consumer>
--->
+```
 
 > 完整代码
-<!--
+- 父组件通过 <Provider> 传递数据
+- 子组件通过 <Consumer> 里面返回函数 通过 data 形参来接收数据
+```js
     class App extends Component {
         render() {
             return (
@@ -13052,7 +13151,7 @@ params > search > state
     }
     
     export default App
--->
+```
 
 ----------------------------
 
@@ -13131,7 +13230,7 @@ params > search > state
   - 注意它们是目标还没有更新呢
 
 - 是一个控制组件更新的阀门 如果这个函数不做特殊的处理永远返回true 默认的返回值
-<!-- 
+```js
   shouldComponentUpdate(nextProps, nextState) {
 
     if(this.state.carName === nextState.carName) {
@@ -13156,7 +13255,7 @@ params > search > state
     return !this.props.carName === nextProps.carName
       如果相等返回false
   }
- -->
+```
 
 - 上面判断的是一个属性 但state或者props中的属性特别多的时候怎么处理呢？
 
@@ -13178,7 +13277,7 @@ export default class Parent extends PureComponent { }
 
 > PureComponent中的一点点问题
 - 假如我们这么修改的state
-<!-- 
+```js
   // 正常我们这么改state
   this.setState({carName: '马巴赫'})
         页面是可以render的 因为state前后两次结果不一样
@@ -13192,7 +13291,7 @@ export default class Parent extends PureComponent { }
 
   原因正常的方式 我们传递的是一个新的对象
   下面的方式我们传递的是同一个对象 地址值一样 我们在原对象上做了修改
- -->
+```
 
 - PureComponent在底层做了一个前对比 它没有看对象里面的东西变没变 它只看的是地址值 如果对象没有发生变化 shouldComponentUpdate 都是返回false
 
@@ -13312,22 +13411,22 @@ export default class Parent extends PureComponent { }
   </Parent>
 
 - 2. 在A组件标签中 内部传递render属性 值是一个回调 回调内部返回B组件
-<!-- 
+```js
   <div>
     <h3>我是parent组件</h3>
     <hr/>
     <A render={() => <B />}/>
   </div>
- -->
+```
 
 - 3. 父组件这么传递的那么A组件在props中就能收到render render是一个函数，所以
-<!-- 
+```js
   <div>
     <h3>我是A组件</h3>
     {this.props.render()}
         --- 我们要写render() 拿的是返回值
   </div>
- -->
+```
 
 **A-B组件之间数据传递：**
 上述方式组织成的父子关系 可以通过函数传参的方式 在组件之间传递参数
@@ -13493,7 +13592,7 @@ export default class Parent extends PureComponent { }
 
 ### React 移动端的适配
 - rem适配方案
-<!-- 
+```js
   function adapter() {
     const dip = document.documentElement.clientWidth
     const rootFontSize = dip / 10
@@ -13501,7 +13600,7 @@ export default class Parent extends PureComponent { }
   }
   adapter()
   window.onresize = adapter
- -->
+```
 
 > 引入js文件
 - 一般在成型的项目中 有一个utils文件夹 或者 tools文件夹
@@ -13524,13 +13623,13 @@ export default class Parent extends PureComponent { }
 
 > 根目录下建立 config-overrides.js 内容如下
 - 
-<!-- 
+```js
   const {override, addPostcssPlugins} = require('customize-cra')
   module.exports = override(
     // 此处是375是设计稿宽度
     addPostcssPlugins([require('postcss-px2rem')({remUnit:375/10})])
   )
- -->
+```
 
 > 修改 package.json 启动命令
 -   "start": "react-scripts start",
@@ -13540,7 +13639,7 @@ export default class Parent extends PureComponent { }
 -   "test": "react-scripts test",
 +   "test": "react-app-rewired test",
 
-<!-- 
+```js
   // 配置具体的修改规则
   const { override, fixBabelImports, addLessLoader, addPostcssPlugins } = require('customize-cra')
 
@@ -13565,12 +13664,11 @@ export default class Parent extends PureComponent { }
     // 375是设计稿
     addPostcssPlugins([require('postcss-px2rem')({remUnit:375/10})])
   );
- -->
+```
 
 ----------------------------
 
 ### 好客租房 案例
-
 
 ----------------------------
 
@@ -13649,14 +13747,14 @@ export default class Parent extends PureComponent { }
 
 > 搭建路由
 - 1. index.js入口文件中
-<!-- 
+```js
   import {BrowserRouter} from 'react-router-dom'
   <BrowserRouter> <App /> </BrowserRouter>
- -->
+```
 
 - 2. App.jsx中进行路由的匹配你什么路径我给你展示什么样的组件
 - 这就是不需要导航区的项目 只要符合要求自然而然的让你看
-<!-- 
+```js
   import {Switch, Route} from 'react-router-dom'
 
   <Switch>
@@ -13664,11 +13762,11 @@ export default class Parent extends PureComponent { }
     <Route path='/user' component={User} />
   </Switch>
 
-  这里我以为Route组件必须和Link组件搭配使用呢 老师的动作是在地址栏输入网址对应跳到这个组件 就是没有做首页的展示 用输入网址的形式做跳转
- -->
+  // 这里我以为Route组件必须和Link组件搭配使用呢 老师的动作是在地址栏输入网址对应跳到这个组件 就是没有做首页的展示 用输入网址的形式做跳转
+```
 
-- 在真实的项目开发中并不会直接在App组件里面写N条<Route>而是会创建一个js文件专门统一的管理路由配置
-<!-- 
+- *在真实的项目开发中并不会直接在App组件里面写N条<Route>而是会创建一个js文件专门统一的管理路由配置*
+```js
   | - src
     | - config      该文件夹里都是配置的文件 比如网络请求 路由配置等
       - routes.js
@@ -13689,10 +13787,10 @@ export default class Parent extends PureComponent { }
     }
   ]
   export default routes
- -->
+```
 
 - 然后App组件中 引入routes文件 然后遍历routes中导出的路由配置对象routes
-<!-- 
+```js 
   import routes from './config/routes'
 
   <Switch>
@@ -13709,7 +13807,7 @@ export default class Parent extends PureComponent { }
     // 没有路由匹配的时候自动往 login 页面跳转
     <Redirect to='/login'></Redirect>
   </Switch>
- -->
+```
 
 
 > 案例第二步 怼页面
@@ -13723,7 +13821,7 @@ export default class Parent extends PureComponent { }
 - icon={<Icon type="left" />}
     导航图标
 
-<!-- 
+```js
   <NavBar
     mode="light"
     icon={<Icon type="left" />}
@@ -13733,21 +13831,21 @@ export default class Parent extends PureComponent { }
       <Icon key="1" type="ellipsis" />,
     ]}
   >NavBar</NavBar>
- -->
+```
 
 
 > 文本框 <InputItem>
 - {...getFieldProps('autofocus')} 最早是出现在antd里面的 用于获取当前的input里面的值 我们可以使用ref 或者 受控组件的形式
 
 - clear 加了这个属性 文本框有快速清空的功能
-<!-- 
+```js
   <InputItem
     {...getFieldProps('autofocus')}
     clear
     placeholder="auto focus"
     ref={el => this.autoFocusInst = el}
   >标题</InputItem>
- -->
+```
 
 
 > antd 中的felx
@@ -13814,7 +13912,7 @@ export default class Parent extends PureComponent { }
 - 我们做成受控组件的时候 合法的数据我们再收集到state中 不合法的不收集
 
 - 既然我们要做正则的校验 那肯定要写很多的正则表达式，我们会在 config 文件夹里面创建 reg.js 用于放正则的常量
-<!-- 
+```js
   | - config
     - reg.js
 
@@ -13843,7 +13941,7 @@ export default class Parent extends PureComponent { }
   }
 
   type是tel 且校验未通过 值为空
- -->
+```
 
 
 > 登录逻辑
@@ -13852,7 +13950,7 @@ export default class Parent extends PureComponent { }
 
 - 这里 用户输入的值有两种情况 1 value为空undefined 2手机号不合法 在移动端里面我们遵从一次性的提示文字
 - 我们可以提示 请输入合法的手机号
-<!-- 
+```js
   const {tel, code} = this.state;
 
     // 完善前： 属于多次提示 用户每输错一个 改一个 下面错的话还提示 发送请求前的验证
@@ -13875,7 +13973,7 @@ export default class Parent extends PureComponent { }
 
     if(this.telErr || this.codeErr) Toast.fail(errMsg, 2)
 
- -->
+```
 
 - 这个逻辑中我们使用了统一提示的方式
 - 出现错误了我们不提示 我们只是把标识错误的变量设置为true 到底有什么错误我们拼接出来 统一判断 统一提示
@@ -13910,7 +14008,7 @@ export default class Parent extends PureComponent { }
 
 - 下面还包括了样式的展示 和 文字是否展示的功能都是根据canClick变量来的
 - 这种方式很常见
-<!-- 
+```js
   state = {
     tel:'',
     code:'',
@@ -13958,7 +14056,7 @@ export default class Parent extends PureComponent { }
     className={this.state.canClick ? 'code-btn' : 'code-btn disable'} 
   >获取验证码
   </button>
- -->
+```
 
 **disabled**
 - 可以从视觉效果上呈现不能点击的状态 同时让onclick事件不起作用
@@ -14014,9 +14112,6 @@ export default class Parent extends PureComponent { }
 
 > 获取验证码 发送请求的逻辑
 - 
-
-
-
 
 
 
@@ -14134,7 +14229,7 @@ export default class Parent extends PureComponent { }
 
 \\ axios get请求 携带各种参数的示例
 - GET请求不能携带请求体参数 它没请求体
-<!-- 
+```js
   // axios发送get请求 不携带参数
   axios({
     url:'localhost:8080/test1',
@@ -14170,7 +14265,7 @@ export default class Parent extends PureComponent { }
     method: 'GET',
 
   }).then(res => {console.log(res.data)})
- -->
+```
 
 
 \\ axios post请求 携带各种参数的示例
@@ -14183,7 +14278,7 @@ export default class Parent extends PureComponent { }
 - axios发送post请求 使用body参数 默认的编码类型是 json
 - 也就是说我们的data里面写的数据 会被编译为json对象
 
-<!-- 
+```js
   // axios发送post请求 携带query参数
   axios({
     url:'localhost:8080/test1',
@@ -14220,7 +14315,7 @@ export default class Parent extends PureComponent { }
     data: 'name=sam&age=18'
 
   }).then(res => {console.log(res.data)})
- -->
+```
 
 **请求体参数的两个编码格式：**
 - 1. json
