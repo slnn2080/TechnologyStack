@@ -1,21 +1,43 @@
 # TechnologyStack
 
 ### 该仓库的内容有:
-- 精华都 在 *Memo* 文件夹中 感觉都能出本书了 哈哈
+- 精华都 在 **Memo** 文件夹中 里面收集了在学习过程中收集和总结的各种知识点
 
+  | - backend
+    - java
+    - javaweb
+    - jdbc
+    - mongodb
+    - mysql
+    - nodejs
 
-### /about/
-- v-btnは下記のコンポーネントにあります
-  | - components
-    | - pages
-      | - aboout
-        - PlanContact.vue
+  | - basic
+    - aws
+    - babel
+    - cdn
+    - cors
+    - env
+    - eslint
+    - git
+    - http
+    - ie
+    - linux
+    - package    
 
-
-### /kinto_one/
-  | - components
-    | - pages
-      | - kinto_one
-        - Attraction.vue
-        - AppendixLinks.vue
-        - CtaBlock.vue
+  | - frontend
+    - ajax
+    - canvas
+    - css
+    - drag
+    - element
+    - jq
+    - js
+    - nuxt
+    - plugins
+    - pug
+    - react
+    - svelte
+    - typescript
+    - vue
+    - vuetify
+    - webpack
