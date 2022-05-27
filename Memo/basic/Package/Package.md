@@ -58,3 +58,14 @@
 
 - https://docs.npmjs.com/cli/v8/using-npm/config
 - 这个很权威呀
+
+- 这个可以先看看
+- https://blog.csdn.net/duansamve/article/details/122644111
+
+
+- 从这个开始看 看前3个链接 就能有不小的收获
+- https://www.google.com/search?q=package.json+scripts+%E7%B4%B9%E4%BB%8B&oq=package.json+scripts+%E7%B4%B9%E4%BB%8B&aqs=chrome..69i57j33i160l3.11724j0j15&sourceid=chrome&ie=UTF-8
+
+- https://qiita.com/mysticatea/items/12bb6579b9155fd74586
+- https://ics.media/entry/12226/
+- https://dev.classmethod.jp/articles/be-on-the-same-page-by-using-npm-scripts/

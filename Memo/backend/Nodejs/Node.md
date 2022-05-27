@@ -40,6 +40,7 @@ md rd hello.txt d: dir rm
 > node的js
 - 没有BOM DOM 只有基本语法 因为服务端不处理页面的
 - 在node这个js执行环境中为js提供了一些服务器级别的操作API
+
 - 文件读写
 - 网络服务的构建
 - 网络通信
@@ -104,7 +105,7 @@ md rd hello.txt d: dir rm
 - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 
 
-> m1的情况下如何安装14版本的node
+> Mac m1的情况下如何安装14版本的node
 - https://mako-note.com/ja/install-node14-on-m1-mac/
 <!-- 
     // 仅供参考
@@ -149,7 +150,7 @@ md rd hello.txt d: dir rm
 
 ----------------------
 
-### npm   Node Package Manager
+### npm - Node Package Manager
 - 它的作用就相当于360安全卫士里的软件管家
 
 
@@ -158,6 +159,10 @@ md rd hello.txt d: dir rm
 - npm -version          把npm内部模块的版本都打印出来了
 - npm                   帮助说明
 - npm search 包名       搜索包模块
+
+- npm init
+<!-- 创建package.json -->
+- 初始化 然后回车  最后一行提示 是否用该名字 名字里不要有大写字母 不要有中文
 
 - npm install 包名
 <!-- 安装包  install 简写 i -->
@@ -170,10 +175,6 @@ md rd hello.txt d: dir rm
     所以它不能确定是一个包 装到别的地方了
     要想安装到指定路径 必须在当前目录下 创建个package.json
  -->
-  
-- npm init
-<!-- 创建package.json -->
-- 初始化 然后回车  最后一行提示 是否用该名字 名字里不要有大写字母 不要有中文
 
 - package.json的内部属性:
 <!-- 
