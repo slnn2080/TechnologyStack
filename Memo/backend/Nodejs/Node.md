@@ -2305,32 +2305,31 @@ rl.on("close", () => {
  ```
 
 ----------------------
-### 书签
+
 ### node 读写流 Stream
 - 上面我们学习了读取文件的相当操作 但是当这个文件特别大的时候
 - 万一我的内存并不能直接把所有的数据读取下来 比如我们电脑一般都是8g内存 但是我们的文件是50G的和平精英
 
 - 当我们读取比较大的数据的时候 不可能一次性的将所有的数据都读下来 
-```js 
+
+```
     比如我们要将一个水塘里面的谁抽到另一个水塘
     我们就需要在两个水塘之间建立一个管道 读一点是一点
  ```
 
 - 所以我们在读写比较大的数据的时候 肯定会遇到流这样的接口
 
-
-
-- Stream是一个抽象接口 node中有很多对象实现了这个接口
-- 例如
+- *Stream*是一个抽象接口 node中有很多对象实现了这个接口
+- 例如:
 - 对http服务器发起请求的request对象就是一个Stream 还有stdout(标准输出)
 
-- nodejs中 Stream有四种流类型
+> nodejs中 Stream有四种流类型
 - 1. Readable 可读操作
 - 2. Writable 可写操作
 - 3. Duplex   可读可写操作
 - 4. Transform 操作被写入数据 然后读出结果
 
-- 所有的Stream对象都是 EventEmitter的实例 常用的事件有
+> 所有的Stream对象都是 EventEmitter的实例 常用的事件有
 - 1. data   当有数据可读时触发
 - 2. end    没有更多的数据可读时触发
 - 3. error  在接收和写入过程中发生错误时触发
@@ -2340,6 +2339,7 @@ rl.on("close", () => {
 - 6. close  文件关闭时触发
 - 7. ready  文件打开时触发
 
+---
 
 > 写入流
 > 1. 引入 fs 模块
@@ -2402,6 +2402,7 @@ writeStream.on("error", () => {
 console.log("程序执行完毕")
  ```
 
+---
 
 > 读取流
 - 引入fs
@@ -2440,7 +2441,7 @@ let readerStream = fs.createReadStream("input.txt")
 readerStream.setEncoding("utf-8")
 
 // data事件 当有数据可读时触发 监听数据的流入
-参数 chunk 每一批数据 (数据很大是分批读取)
+// 参数 chunk 每一批数据 (数据很大是分批读取)
 readerStream.on("data", (chunk) => {
   content += chunk
 })
@@ -2493,7 +2494,7 @@ let writeStream = fs.createWriteStream("output.txt")
 // 管道读写操作 搭根管子
 // 读取 input.txt 文件内容 并将内容写入到 output.txt文件中
 
-从 读 到 写 
+// 从 读 到 写 
 readerStream.pipe(writeStream)
 
 console.log("程序执行完毕")
@@ -2506,18 +2507,20 @@ console.log("程序执行完毕")
 
 - nodejs几乎每一个api都是支持回调函数的 基本上所有的事件机制都是用设计模式中 - 观察者模式实现
 
-- node单线程类似进入一个whiletrue事件循环 直到没有事件观察者退出 每个异步事件都生成一个事件观察者 如果有时间发生就调用该回调函数
+- node单线程类似进入一个 while true 事件循环 直到没有事件观察者退出 每个异步事件都生成一个事件观察者 如果有时间发生就调用该回调函数
 ```js 
     伪代码:
 
     开启进程
     开启线程
     初始化数据
+
     while(true) {
 
         初始化事件列表
         根据事件修改初始化数据
         根据数据去渲染页面
+
     }
  ```
 
@@ -2529,7 +2532,9 @@ console.log("程序执行完毕")
 - 前端js中 我们的事件大多都是通过点击来触发 比如用户想完成点击的逻辑 就是有click事件 用户要关闭某个窗口对应的可能就是close事件
 
 - 我们在不同的事件回调中处理对应的逻辑
+
 - 现在我们想下这个场景 假如我们现在需要读取一个文件里面的数据 然后依据读到的数据 我们要做依次的逻辑 伪代码如
+
 ```js 
     fs.readFile("./userInfo.json", "utf-8", (err, data) => {
         if(!err) {
@@ -2543,44 +2548,60 @@ console.log("程序执行完毕")
 - 假如我们将1 2 3三种逻辑都放在回调中处理的话 1是可能会产生回调地狱 2回调中的逻辑可能会非常的多
 
 - 那有没有种方式 当我们数据读取成功后会依次调用这3块的逻辑呢？
-```js 
-    那把这3块内容封装成3个方法不可以么？
- ```
+- 那把这3块内容封装成3个方法不可以么？
 
-- 还有一种思路
+- 还有一种思路:
+
 > 自定义实现 监听事件 和 触发事件 逻辑 这也是消息的订阅与发布模式
-- 1. 定义 事件对象 内包含 
-    - 事件名: 对应事件处理函数
-    - 绑定事件的方法
-    - 触发事件的方法
+- 也就是说 当我们在要 读取到文件数据后 分别完成逻辑的时候 我们就可以用下面的方式
+
+- 定义一个对象 结构为
+```js
+    let eventObj = {
+        // 事件名: [事件回调] 所在的对象
+        event: {
+            eventName: []
+        },
+
+        // on 方法 用于初始化事件 绑定事件 将事件回调推送到现有事件回调数组中的方法
+        on: function(eventName, eventFn) { ... },
+        
+        // emit 方法: 用于循环触发回调
+        emit: function(eventName, param) { ... }
+    }
+```
+
+- 各个部分的逻辑都在 注释中
+- *当我们 emit() 的时候 就会循环调用 存储在 [eventFn] 中的回调*
+
 ```js 
     let eventObj = {
-        // 事件对象
+        // 事件对象 用于存储 事件名: [事件回调]
         event: {
-            // 我们绑定什么事件 比如我们可以绑定 fileSuccess 事件
+            // fileSuccess为事件名
             fileSuccess: [],
         }
         
 
         // 绑定事件的on方法
         on: function(eventName, eventFn) {
-            // 我们绑定的事件名称在事件对象里面的话
-            - 比如我们绑定的是 fileSuccess事件 那就把回调push到 fileSuccess对应的事件数组中
+            // 如果我们调用 on 所绑定的事件在 我们定义好的 事件对象中 那么我们就把回调传入 该事件对应的数组中
+
+            // 我们绑定的是 fileSuccess事件 事件对象中有该事件名 所以将回调push到 fileSuccess对应的事件数组中
             if(this.event[eventName]) {
                 this.event[eventName].push(eventfn)
             } else {
-                // 如果不在的话 就创建一个该事件kv 整理成
-                - 新事件: []
-                - 然后将回调push到新事件对应的事件数组中 做初始化的路基
+                // 如果我们调用 on 所绑定的事件不在 我们定义好的 事件对象中 那么我们就往事件对象中添加该事件 事件名称: [事件回调] 做初始化的逻辑
                 this.event[eventName] = []
                 this.event[eventName].push(eventfn)
             }
         },
         
-        // 定义触发事件的逻辑函数
+        // 定义触发事件的逻辑函数 参数data为回调的实参
         emit: function(eventName, data) {
             if(this.event[eventName]) {
                 this.event[eventName].forEach(itemFn => {
+                    // 传递实参data
                     itemFn(data)
                 });
             }
@@ -2611,8 +2632,64 @@ lcEvent.on("fileSuccess", (data) => {
 - 上面我们就完成了 "自定义事件的逻辑"
 - 通过去订阅我们自己设定的事件 监听触发完成回调
 
+> 代码部分:
+```js
+let fs = require("fs")
+let path = require("path")
+
+let lcEvent = {
+  event: {
+    fileSuccess: []
+  },
+  on: function(eventName, eventFn) {
+    // 如果我们调用 on 所绑定的事件在 我们定义好的 事件对象中 那么我们就把回调传入 该事件对应的数组中
+    if(this.event[eventName]) {
+      this.event[eventName].push(eventFn)
+    } else {
+      // 如果我们调用 on 所绑定的事件不在 我们定义好的 事件对象中 那么我们就往事件对象中添加该事件 事件名称: [事件回调]
+      this.event[eventName] = []
+      this.event[eventName].push(eventFn)
+    }
+  },
+  emit: function(eventName, data) {
+    if(this.event[eventName]) {
+      this.event[eventName].forEach(itemFn => {
+        itemFn(data)
+      })
+    }
+  }
+}
+
+let filePath = path.resolve(__dirname, "ret.txt")
+fs.readFile(filePath, "utf-8", (err,data) => {
+  lcEvent.emit("fileSuccess", data)
+})
+
+/*
+  我希望在 读取文件成功后 要做以下的事件
+  1. 输出 读取完成
+  2. 将读取的文件 复制到 ret_copy.txt 文件中
+  3. 输出 退出程序
+*/
+lcEvent.on("fileSuccess", () => {
+  console.log("读取完成")
+})
+
+lcEvent.on("fileSuccess", data => {
+  fs.writeFile("ret_copy.txt", data, "utf8", err => {
+    if(err) return 
+    console.log("写入完成")
+  })
+})
+
+lcEvent.on("fileSuccess", () => {
+  console.log("退出程序")
+})
+```
+
 - 上面的整个逻辑 其实node中已经提供给我们了
 
+---
 
 > node中的 EventEmitter 自定义事件模块
 - node使用事件驱动模型 当web server接收到请求 就把它关闭然后进行处理 然后去服务下一个web请求 当这个请求完成 它被放回处理队列 当到达队列开头 这个结果被返回给用户
@@ -2679,12 +2756,13 @@ async function promiseRead() {
 promiseRead()
  ```
 
-
-
 ----------------------
 
-### URL模块
+### URL模块 (弃用)
+> 引入: 
+```js
     let url = require("url")
+```
 
 - 用来处理网络路径
 - url核心模块为我们解析url地址时提供了非常方便的api 常见包含有
@@ -2700,19 +2778,32 @@ promiseRead()
 
     console.log(info)   // 对象
 
-    console.log(info.query)
-        name=sam&age=18
+    console.log(info.query) // name=sam&age=18
+
+/*
+{
+  protocol: 'https:',
+  slashes: true,
+  auth: null,
+  host: 'www.baidu.com',
+  port: null,
+  hostname: 'www.baidu.com',
+  hash: null,
+  search: '?name=sam&age=18',
+
+  query: 'name=sam&age=18',
+  pathname: '/',
+  path: '/?name=sam&age=18',
+  href: 'https://www.baidu.com/?name=sam&age=18'
+}
+*/
  ```
 
-
-### url模块(弃用)
-- 我们再发送get请求的时候 会在url上使用? 拼接很多的参数, 为了解析url中的参数
-- 我们还要引用 url 模块
-
-> url模块已经弃用
+----------------------
 
 ### new URL() 类 代替 url模块
 - 当我们想解析 get请求 url上的参数的时候, 我们可以通过创建 URL() 类的实例来获取参数
+- 这个类是 原生js 里面提供的类
 
 >new URL(要解析的url, [base])
 - 参数
@@ -2720,14 +2811,32 @@ promiseRead()
 - 如果为相对路径, 则要带上base, 
 - 如果是绝对路径, 则省略base
 - base后面不用 接 /
+
 ```js 
     const myURL = new URL('/foo', 'https://example.org/');
 
-    比如 我们通过requset.url获取的是 相对路径
+    // 比如 我们通过requset.url获取的是 相对路径
     requset.url : /index.html?curPage=1&perPage=10
 
-    这时我们就要使用base
+    // 这时我们就要使用base
     const myURL = new URL(requset.url, 'https://localhost:8000');
+
+/*
+{
+  href: 'https://www.baidu.com/?name=sam&age=18',
+  origin: 'https://www.baidu.com',
+  protocol: 'https:',
+  username: '',
+  password: '',
+  host: 'www.baidu.com',
+  hostname: 'www.baidu.com',
+  port: '',
+  pathname: '/',
+  search: '?name=sam&age=18',
+  searchParams: URLSearchParams { 'name' => 'sam', 'age' => '18' },
+  hash: ''
+}
+*/
  ```
 
 
@@ -2743,7 +2852,7 @@ promiseRead()
 ```js 
     const data = new URL(reqUrl);
 
-    实例对象中是url完成的信息
+    // 实例对象中是url完成的信息
     URL {
         href: 'http://localhost:8000/index.html?curPage=1&perPage=10',
         origin: 'http://localhost:8000',
@@ -2761,27 +2870,40 @@ promiseRead()
 
  ```
 
-2. 调用实例对象的.searchParams.get()
+- 2. 调用实例对象的.searchParams.get()
 ```js 
     let result = data.searchParams.get('curPage');
  ```
 
 - 3. result就是想要的结果
 
+- 好像复杂了点的演示:
+```js
+let webUrl = "https://www.baidu.com/?name=sam&age=18"
 
-> 代替url.resolve的方法
-> let newURL = new URL(httpURL, targetURL)
+let info = new URL(webUrl)
+
+let searchParam = info.search
+console.log(searchParam)  
+    // ?name=sam&age=18
+
+let params = new URLSearchParams(searchParam);
+console.log(params)       
+    // URLSearchParams { 'name' => 'sam', 'age' => '18' }
+
+console.log(params.get("name"))
+console.log(params.get("age"))
+```
 
 ----------------------
 
 ### 爬虫
-- 爬虫要点 首先我们爬取的内容必须是别人公开公布的数据 比如我们不能跳过登录去爬内容
-- 不能拿别人的数据去做自己盈利的业务
+- 爬虫要点 首先我们爬取的内容必须是别人公开公布的数据 比如我们不能跳过登录去爬内容 不能拿别人的数据去做自己盈利的业务
 
 - 我们做爬虫大部分都是get请求
-
 - 我们node中的http模块 也有发送请求的方法
 
+> 原生 http 模块发送请求的方式
 > http.get(url, (res) => {})
 - 1. 先引入http模块 然后调用其get方法
 - 2. 监听res的data事件 该事件在数据回来后触发
@@ -2798,13 +2920,15 @@ http.get("http://www.baidu.com", (res) => {
   })
 })
 
-我们请求到的数据 赋值到html文件里面就是跟原网页一样的东西
+// 我们请求到的数据 赋值到html文件里面就是跟原网页一样的东西
  ```
 
+---
 
 > requestjs库 发请求
 - 1. npm i request --save
 - 2. 如下方法
+
 ```js 
 let request = require("request")
 request("http://www.baidu.com", (err, res, body) => {
@@ -2817,30 +2941,27 @@ request("http://www.baidu.com", (err, res, body) => {
 
 > 爬虫的业务逻辑
 - 1. 访问服务器
-```js 向百度发起请求 得到页面 ```
+- 向百度发起请求 得到页面
 
 - 2. 下载页面
-```js 上面我们的body就是页面信息 ```
+- 上面我们的body就是页面信息
 
 - 3. 分析页面
-```js  
-    我们请求回来的数据 很多数据都是不需要的
-    我们要拿到我们想要的数据
- ```
+- 我们请求回来的数据 很多数据都是不需要的 我们要拿到我们想要的数据
 
 - 4. 提取信息
-```js 
-    把上面分析完的关键信息提取出来
- ```
+- 把上面分析完的关键信息提取出来
 
 - 5. 保存数据
-```js 保存到本地 ```
+- 保存到本地
 
 - https://www.dydytt.net/index2.htm
 - 电影天堂举例
 
+
+> 分析: 
 - 1. 首先我们要知道电影的信息 这就是我们最终想要抓取的数据
-```js 
+
     1. 电影名字
     2. 电影详情
     3. 图片
@@ -2851,24 +2972,23 @@ request("http://www.baidu.com", (err, res, body) => {
 
     我们看看电影天堂链接
 
-    // 比如我们选择的是 日韩电影 
-    // 第一页的时候 list_6_1
+    比如我们选择的是 日韩电影 
+    第一页的时候 list_6_1
     https://www.dydytt.net/html/gndy/rihan/list_6_1.html
     https://www.dydytt.net/html/gndy/rihan/list_6_2.html
 
-    // 每一页的电影项链接
+    每一页的电影项链接
     https://www.dydytt.net/html/gndy/jddy/20211207/62095.html
     https://www.dydytt.net/html/gndy/jddy/20211207/62094.html
 
     我们通过url大致能分析出来哪些是电影的id
- ```
+
 
 > 编码格式 乱码
 - 上面有的时候会发现 我们请求回来的数据 有中文乱码的情况 这是因为以前编码的时候大部分都是使用gb2312格式的编码
 
-- 上面我们都是在对应的位置上设置头部信息
-
-- 这里我们介绍一个框架专门解决这样的问题
+> 解决方案
+- 上面我们都是在对应的位置上设置头部信息 这里我们介绍一个框架专门解决这样的问题
 
 > 安装
 - npm i iconv-lite --save
@@ -2918,7 +3038,7 @@ req(url)
  ```
 
 
-> cheerio模块
+> cheerio模块 -- server版的jQ
 - 模仿jq的设计 运行在server端(jq在客户端)
 - 这个模块可以解析html文档
 - 那是不是说 我们爬取的网页内容 在查找替换修改上的时候 就可以借助这个模块 相当于我们在后台操作dom(请求回来的数据)
@@ -2949,7 +3069,8 @@ console.log($.html())
 
 - 现阶段我们已经把页面请求回来了 保存在 html 变量里面
 - 我们接下来要分析一下页面信息 提取有用的部分 我们上面分析了电影的类型 以及 类别下一个电影的页面是什么样的
-```js 
+
+```
     日韩
     https://www.dydytt.net/html/gndy/rihan/index.html
     https://www.dydytt.net/html/gndy/rihan/list_6_2.html
@@ -2959,7 +3080,7 @@ console.log($.html())
  ```
 
 - 我们打开分类页面后 每一个title就是一个链接 我们需要知道的是 所有title的值
-```js 
+```js
     const host = "https://www.dydytt.net"
     const uri = "/html/gndy/rihan/list_6_2.html"
     我们请求的是host+uri页面
@@ -2997,12 +3118,13 @@ req(host + uri).then(res => {
   })
 })
 
-我们再发下一次请求的时候 我们直接 host + link 就可以了吧
+// 我们再发下一次请求的时候 我们直接 host + link 就可以了吧
  ```
 
 - 阶段2
 - 我们上面获取了 title 也就是每一个电影标题对应的uri的部分
 - 然后我们根据host + uri的部分 能够请求每一个电影的详情页
+
 
 > 要点: $().each((i, el) => { })
 - 每一个 $(el) 是jq对象 所以我们可以 $(el).text()
@@ -3164,8 +3286,8 @@ const getMovieDetail = async (url) => {
 - 在请求配置中追加代理配置
 ```js 
     // 'proxy' 定义代理服务器的主机名称和端口
-  // `auth` 表示 HTTP 基础验证应当用于连接代理，并提供凭据
-  // 这将会设置一个 `Proxy-Authorization` 头，覆写掉已有的通过使用 `header` 设置的自定义 `Proxy-Authorization` 头。
+    // `auth` 表示 HTTP 基础验证应当用于连接代理，并提供凭据
+    // 这将会设置一个 `Proxy-Authorization` 头，覆写掉已有的通过使用 `header` 设置的自定义 `Proxy-Authorization` 头。
   proxy: {
     // 代理的地址
     host: '127.0.0.1',
@@ -3202,6 +3324,7 @@ axios.get(httpUrl, options).then((data) => {
 
 > 放爬虫策略
 - 1. 我们爬取的文件 爬下来的时候都不是正常的文字 可能都是字体图标 
+
 ```js 
     既然可能是字体图标 那就说明对应的有字体文件 我们把字体文件下载下来
     进行解析 看下这个编码对应的是什么文字 解析 然后 转换
@@ -3252,7 +3375,7 @@ axios.get(httpUrl, options).then((data) => {
     因为IP地址的原因, IP地址就好像我们以前寄信, 信上的地址似的
  ```
 
-- 小黑屏指令
+> 小黑屏指令
 - ipconfig / (mac)iconfig     查询ip地址
 
 
@@ -3262,6 +3385,7 @@ axios.get(httpUrl, options).then((data) => {
 > 端口
 - 0 - 65535
 - 0 - 1024 知名端口, 不要用
+
 - mysql     3306
 - mongodb   27017
 
@@ -3273,32 +3397,25 @@ axios.get(httpUrl, options).then((data) => {
 - 电脑上只要启动了程序, 就会给这个程序(给网络进程)分配一个端口号
 ```js 
     如果说ip就像某一栋楼的地址的话, 端口号就相当于门牌号
-
     网络进程: 可联网的, 运行起来的程序
  ```
 
-- 一旦我们的软件运行起来是一个网络进程的话就会给分配一个端口号(不会分配知名端口)
-- 我们也可以自己设定端口 比如从 1025 - 65535
-```js 
-    当然也不是能全部设定上的, 比如这个范围内的端口被占用了也不行
- ```
+- 一旦我们的软件运行起来是一个网络进程的话就会给分配一个端口号(不会分配知名端口) 我们也可以自己设定端口 比如从 1025 - 65535
 
+- 当然也不是能全部设定上的, 比如这个范围内的端口被占用了也不行
 
 
 > http请求大致过程
-- 服务器其实就是一台配置相当高的电脑一台硬件设备
-```js 一般就是一台主机没有显示器, 所以也叫作远程主机 ```
+- 服务器其实就是一台配置相当高的电脑一台硬件设备 一般就是一台主机没有显示器, 所以也叫作远程主机
 
-```js 
-    插个知识点, 小黑屏输入
+> 扩展: 
     ping www.baidu.com
     
-    会看到 来自 14.215.177.39 这个是就当前时间段百度的服务器地址
-    我们可以通过 ping 网址 看看能不能连上网
- ```
+- 会看到 来自 14.215.177.39 这个是就当前时间段百度的服务器地址 我们可以通过 ping 网址 看看能不能连上网
 
 - 现在客户端在地址栏输入 www.baidu.com 回车之后发生了什么事情, 他为什么能找到这个网站所对应的服务器呢? 因为服务器有一个ip地址
-```js 
+
+```
     访问一台服务器, 我们既可以用域名访问, 也可以通过ip地址访问
 
     当我们输入 域名 访问某服务器的时候 其实实际上域名会被解析成 ip地址
@@ -3312,11 +3429,10 @@ axios.get(httpUrl, options).then((data) => {
 
 - 简单的说就是我们客服端输入网址 会通过DNS服务器解析成ip地址, 再通过IP地址找到服务器
 
-- 这种方式其实就是发送请求, 请求的目的就是获取资源
-
-- 之后服务器会给浏览器响应请求, 其实就是发送文件到浏览器
+- 这种方式其实就是发送请求, 请求的目的就是获取资源 之后服务器会给浏览器响应请求, 其实就是发送文件到浏览器
 
 - 那服务器为什么知道我们要什么文件呢?
+
 ```js 
     服务器里也有一款服务器程序, web服务端(webserver, 再通俗点就是后端, 再再通俗点讲就是后端代码, 再再再通俗点就是后端程序员写的代码)
 
@@ -3335,26 +3451,23 @@ axios.get(httpUrl, options).then((data) => {
 > get
 - 浏览器用GET请求来获取一个html页面/图片/css/js等资源
 - GET参数通过URL传递
-```js 
-    一般我们输入 www.baidu.com 就给get请求
-    get请求也可以传递参数 
 
-     www.baidu.com?name=sam&age=18
- ```
+- 一般我们输入 www.baidu.com 就给get请求 get请求也可以传递参数 
+- www.baidu.com?name=sam&age=18
+
 
 > post
 - POST来提交一个<form>表单，并得到一个结果的网页。
 - POST参数放在Request body中
-```js 
-    一般登录都是post请求, 因为会带一些数据(用户信息等) 后端要拿到这些数据
- ```
+
+- 一般登录都是post请求, 因为会带一些数据(用户信息等) 后端要拿到这些数据
 
 ----------------------
 
 ### http模块的使用
 - 1. 引入 http模块
 - 2. 配置服务器程序的端口号
-```js 服务器上有很多的程序, 我们要给我们的程序配置端口号 ```
+- 服务器上有很多的程序, 我们要给我们的程序配置端口号
 
 - 3. 创建服务器对象
 - 4. 使用服务器的监听方法, 让服务器监听浏览器的请求
@@ -3363,7 +3476,7 @@ axios.get(httpUrl, options).then((data) => {
 - 不管我们返回的响应 还是发送请求 我们都要遵从http协议
 - 当返回响应的时候如果出现乱码, 则需要设置响应头
 
-- 简单的搭建服务器程序的代码示例
+- 简单的搭建服务器程序的代码示例:
 ```js 
     const http = require("http")
 
@@ -3391,7 +3504,7 @@ axios.get(httpUrl, options).then((data) => {
     - response      响应对象
 
 > res.write()
-- 这个方法可以向浏览器书写一些响应体内容
+- 这个方法可以向浏览器书写一些*响应体内容*
 
 ```js
     response.write()
@@ -3439,16 +3552,13 @@ axios.get(httpUrl, options).then((data) => {
 
     // 创建服务器对象
     const server = http.createServer((requset, response) => {
-        // requset    请求对象
-        // response   响应对象
-
         // 这里的代码什么时候执行? 每接收到一次请求就来执行一次这里的代码
         // 我们响应一个字符串
         response.end('我是响应的数据')
     })
 
     // 调用服务器对象的监听方法
-    server.listen(port, () => {
+    server.listen(port, (err) => {
         // console.log(err);
         console.log('服务器已启动, 8000')
     })
@@ -3461,11 +3571,15 @@ axios.get(httpUrl, options).then((data) => {
 - 上面简单的学了服务器程序怎么简单的搭建, 同时用了http.createServer()的方法向浏览器端响应了一些数据
 
 - 这里我们思考下, 为什么我们响应了这些数据, 换句话说响应对应的数据, 是怎么对应的?
-- 是根据请求来的, 也就是说我们要解析请求信息里面的内容然后发送对应的响应数据, 请求相关的东西, 都放在了 requset请求对象 里面
+- 是根据请求来的, 也就是说我们要解析请求信息里面的内容然后发送对应的响应数据, *请求相关的东西, 都放在了 requset请求对象 里面*
+
 
 > requset.url
-- 获取请求资源的路径
+- *获取请求资源*的路径
 - 获取的是请求报文中的第一行的 第二个位置 (第一个位置是请求方式)
+
+- GET */?name=Sam* HTTP/1.1
+
 ```js 
     比如我是 输入网址(localhost:8000)要请求这个网站的内容按下了回车, 那 完整的就是 localhost:8000/
 
@@ -3477,7 +3591,7 @@ axios.get(httpUrl, options).then((data) => {
 
 - 示例:
 ```js 
-    就是你想请求哪个资源
+    // 就是你想请求哪个资源
     let reqURL = requset.url
  ```
 
@@ -3485,41 +3599,16 @@ axios.get(httpUrl, options).then((data) => {
 > requset.method
 - 获取请求方式
 - 请求报文中第一行的第一个位置
+
+- *GET* /?name=Sam HTTP/1.1
+
 ```js 
-    请求的方式
+    // 请求的方式
     let reqMethod = requset.method
  ```
 
-----------------------
-
-### 获取get方法发送的请求参数 通过new URL()
 
 > 获取get方法传递的请求参数
-```js 
-    先来点准备工作
-    我们用的是访问 localhost:8000/index.html 
-
-    我们在 html 的后面 用?拼接上参数
-    localhost:8000/index.html?curPage=1&perPage=10
-
-    服务器接收到的是:
-    index.html?curPage=1&perPage=10 GET
-
-    F12里 requset headers 里 第一行 第2段内容 能看到:
-    /index.html?curPage=1&perPage=10
-
-    query string params 里 能看到:(这里是浏览器帮我们解析的)
-    urPage: 1
-    perPage: 10
- ```
-
-> 这个部分完整的代码
-- 在使用URL类的实例对象时, 实例对象是包含url的所有信息, 其中关于参数的有两条
-```js 
-    search: '?curPage=1&perPage=10',
-    searchParams: URLSearchParams { 'curPage' => '1', 'perPage' => '10' },
- ```
-
 - 完整代码:
 ```js 
     const http = require('http');
@@ -3527,7 +3616,10 @@ axios.get(httpUrl, options).then((data) => {
 
     const server = http.createServer((request, response) => {
         let reqUrl = request.url;
+
+        // reqUrl是 /xxx 所以我们要加上 base
         let data = new URL(reqUrl, 'http://localhost:8000');
+
         let name = data.searchParams.get('curPage');
         console.log(name);
     });
@@ -3538,51 +3630,42 @@ axios.get(httpUrl, options).then((data) => {
  ```
 
 
-> 题外知识点
-> 一般访问首页就是 '/'
-
-> 怎么看请求的路径是什么?
-- F12 -- NetWork -- 选中网址(www.baidu.com) -- Headers标签 -- requset headers -- view source -- 第一行(GET / HTTP/1.1)
-```js 
-    这里的 / 就是首页
- ```
-
-> 服务端里的console在服务端看
-- 每刷新一次http://localhost:8000/就会执行一次服务器对象中回调里面的代码
-
-> 浏览器会自发请求 favicon.ico
-
-----------------------
-
-### 获取post方法发送的请求参数
+> 获取post方法发送的请求参数
 - 我们想想想在前端我们是怎么用post提交的, 使用form表单
+
 - 我们先来看下form表单(重新认知下)
     - action:   要填写服务器地址, 请求会提交到这个地址上(提交到服务器上)
     - method:   提交的方法
-```js 
-    将来要提交到哪一个服务器地址上 一旦提交到这个网址, 服务器中的回调就会执行一次
+
+> 前端代码:
+```html
+    <!-- 将来要提交到哪一个服务器地址上 一旦提交到这个网址, 服务器中的回调就会执行一次 -->
     <form action="http://localhost:9000" method='POST'>
 
-        // 这里的name 就是在定义 属性名
+        <!-- 这里的name 就是在定义 属性名 -->
         用户名: <input type="text" name='username' /> <br><br>
         密&emsp;码: <input type="password" name='password' /> <br>
 
-        点击submit按钮的时候, 浏览器会提交form表单里面的数据到action里的地址去 本质上是一个post请求 这是浏览器的默认行为
+        <!-- 点击submit按钮的时候, 浏览器会提交form表单里面的数据到action里的地址去 本质上是一个post请求 这是浏览器的默认行为 -->
         <input type="submit" value="send">
     </form>
  ```
 
 > request.on('data', callback)
+- *req.on()*
 - 我们通过事件来获取 浏览器端发送过来的post请求参数
 - 事件名是'data', 一旦接收到post请求, 就会触发回调里面的代码
 - callback
     - 参数 postData : 浏览器端过来的请求数据
+    - 如果不调用 postData.toStirng() 方法的话 我们输出的是一个buf
+
 ```js 
     request.on('data', (postData) => {
         // postData 就是接收到的请求参数
         console.log(postData.toString());
+        // username=hahaha&password=12345 
 
-        // username=hahaha&password=12345 说明现在已经可以在服务端获取浏览器端提交过来的用户名和密码
+        // 说明现在已经可以在服务端获取浏览器端提交过来的用户名和密码
     })
  ```
 
@@ -3591,8 +3674,7 @@ axios.get(httpUrl, options).then((data) => {
     const http = require('http');
     const path = require('path');
 
-    const server = http.createServ   
-    2 er((request, response) => {
+    const server = http.createServer((request, response) => {
         request.on('data', (postData) => {
             console.log(postData.toString());
         })
@@ -3604,7 +3686,7 @@ axios.get(httpUrl, options).then((data) => {
  ```
 
 
-> 题外知识点:
+> 扩展:
 - &emsp; 一个中文字符的空格
 
 ----------------------
@@ -3613,29 +3695,30 @@ axios.get(httpUrl, options).then((data) => {
 
 - 前面简单的讲解了一下怎么获取get 和 post的参数, 现在我们看看怎么根据提交的参数给浏览器端响应一个页面
 
+> 响应 乱码 问题
 - 当向浏览器端响应中文的时候, 可能会出现乱码, 不管是发送请求还是返回响应, 我们都要遵循http协议, 这时我们要设置响应头
 ```js 
     response.setHeader('Content-type', 'text/html;charset=utf-8');
  ```
 
-- 思路:
+> 思路:
 - 1. 我们要使用 fs 模块的方法 读取要响应的html页面(文件)
 - 这里我们和path模块互相配合使用
 ```js 
     // 如果目标文件有多层的结构 
     let filePath = path.join(__dirname, '目录1', 'index2.html');
-
-
     let filePath = path.join(__dirname, 'index2.html');
     let result = fs.readFileSync(filePath)
  ```
 
-- 2. 使用response.end()方法将文件发送到浏览器端
+- 2. 使用*response.end()*方法将文件发送到浏览器端
+
 ```js 
     response.end(result)
  ```
 
 - 以上只是简单的响应了一个页面, 并没有根据用户的请求去响应相应的页面
+
 
 > 完整代码:
 - css样式在<style>里面的情况下 只返回 index.html 即可
@@ -3665,14 +3748,16 @@ axios.get(httpUrl, options).then((data) => {
 > request.url
 - reqUrl中包含了一次请求中的所有请求地址
 
-
 > 根据请求返回对应的页面
 - 上面的都是返回简单的响应数据 那么我们通过什么才能知道客户想要什么样的资源? -- > url (request.url)
 
 - 我们在服务器对象的回调中进行 if else if 进行多个条件的判断
+```js
+    reqUrl === '/' || reqUrl === '/index.html'
+```
 
-- reqUrl === '/' || reqUrl === '/index.html'
 - / 也能进入首页如果只写表达式1 那么只能按照表达式1的写法, 才能进入判断, 所以我们也要加上 /index.html
+
 ```js 
     const server = http.createServer((request, response) => {
         
@@ -3707,8 +3792,7 @@ axios.get(httpUrl, options).then((data) => {
             let aboutContent = fs.readFileSync(aboutPath)
             response.end(aboutContent);
 
-        // 如果请求页面中 含带有其他请求资源 我们可以以下面的判断方式返回响应
-        // 这里我们以 img 为例
+        // 如果请求页面中 含带有其他请求资源 我们可以以下面的判断方式返回响应 这里我们以 img 为例
         // reqUrl.endsWith()
         } else if(reqUrl.endsWith('.jpg')) {
             let jpgPath = path.join(__dirname, 'test', 'img', '1.jpg');
@@ -3739,22 +3823,25 @@ axios.get(httpUrl, options).then((data) => {
 - <img>     因为有src
 - <a>       点击后发起请求
 - <button>  必须在表单里, 还有必须是点击后
-```js 上述的行为都会往服务器去发起请求 ```
+
+- 上述的行为都会往服务器去发起请求
+
 
 - 比如我们的<a>标签让它跳转到 about页面
 ```js 
     <a href='/about'>点击</a>
-    这样就可以, 它会向服务器发送请求, 然后看我们的路由判断 会跳转到对应的页面
+ ```
+- 这样就可以, 它会向服务器发送请求, 然后看我们的路由判断 会跳转到对应的页面
 
     我们为什么直接写 /about 不是看我们文件夹里面的路径(前端路径)
     而是这里写什么 是后端给我们的 固定的
 
     其实是后端在配置路由, 配好了后, 有一个接口文档会给到前端, 所以前端是根据接口文档做请求的
- ```
 
 
 > 遇到的问题:
 - 下面<img>发起的请求路径是 /img/1.jpg
+
 ```js 
     比如 我现在在地址栏中输入, http://127.0.0.1:9000/about.html 这个页面中有<img>
 
@@ -3771,15 +3858,16 @@ axios.get(httpUrl, options).then((data) => {
 ### 利用babel解决nodejs不支持es6模块化规范的问题
 - nodejs引擎默认情况下不支持es6的模块化规范语法
 - 简单的回顾下 es6 怎么导入 导出
+
 ```js 
-    一个文件导出
+    // 一个文件导出
     export let name = 'sam';
     export let age = 19;
 
-    另一个文件里导入
+    // 另一个文件里导入
     import {name, age} from './module1.js'
 
-    但是nodejs不支持es6的模块化规范, 会报错
+    // 但是nodejs不支持es6的模块化规范, 会报错
  ```
 
 - 我们可以使用第三方的转换工具(babel-cli 和 browserify)实现
@@ -3902,7 +3990,7 @@ axios.get(httpUrl, options).then((data) => {
 ----------------------
 
 ### promise
-- 我们再来复习下这个 我了个去
+- 我们再来复习下这个
 - 在前面的时候我们写过一个练习, 顺序读取3个文件后, 把内容结合在一起进行输出
 ```js 
     const fs = require('fs');
@@ -3949,8 +4037,8 @@ axios.get(httpUrl, options).then((data) => {
 
 ------
 
-- promise就是一个容器, 里面可以放异步操作, 也可以放同步操作, 里面保存着某个未来才会结束的事件的结果
-- 我们把上面的代码使用promise封装一下
+- promise就是一个容器, 里面可以放异步操作, 也可以放同步操作, 里面保存着某个未来才会结束的事件的结果 我们把上面的代码使用promise封装一下
+
 ```js 
     const fs = require('fs');
     const path = require('path');
@@ -4005,10 +4093,10 @@ axios.get(httpUrl, options).then((data) => {
         // 注意return 把后面的promise对象返回出去
         return new Promise((resolve, reject) => {
             fs.readFile(filePath, 'utf-8', (err, data) => {
-            if (err) {
-                reject(err)
-            }
-            resolve(data);
+                if (err) {
+                    reject(err)
+                }
+                resolve(data);
             })
         })
     }
@@ -4035,6 +4123,7 @@ axios.get(httpUrl, options).then((data) => {
 
 ### util包
 - 上面我们将上面的额案例封装成了一个函数, 而node中提供给我们了一个promise的API我们可以在引入 util 包后 调用它的方法
+
 ```js 
     const util = require('util')
  ```
@@ -4043,26 +4132,34 @@ axios.get(httpUrl, options).then((data) => {
 > util.promisify(异步方法(错误优先的方法))
 - 它最后会返回一个promise对象
 - 我们需要定义一个变量去接收这个对象
+
+- 参数:
+- 一个异步的方法
+
 ```js 
-    这个变量之后可以调用, 括号里面写上异步方法需要的参数
-    util.promisify(fs.readFile);
+    // 这个变量之后可以调用, 括号里面写上异步方法需要的参数
+    // util.promisify(fs.readFile);
 
     let a = util.promisify(fs.readFile);
 
+    // 异步方法的参数 通过 a() 传递
     a(fs.readFile所需要的参数)
  ```
+
 
 > util.promisify()
 - 参数:
 - 异步的方法
+
 ```js 
     util.promisify(fs.readFile);
 
-    fs.readFile 就是一个异步方法
-    它需要的参数是, 文件的路径 和 数据相关的回调
+    /*
+        fs.readFile 就是一个异步方法
+        它需要的参数是, 文件的路径 和 数据相关的回调
 
-    既然 util.promisify(fs.readFile); 方法会返回一个promise对象, 那么我们就定义一个变量去接收这个promise对象
-
+         既然 util.promisify(fs.readFile); 方法会返回一个promise对象, 那么我们就定义一个变量去接收这个promise对象
+    */
     let readFilePromise = util.promisify(fs.readFile) 
 
     // 我们可以在这个变量后面加上小括号, 它相当于一个函数, 然后我们把 fs.readFile 方法需要的 参数 传递进去 我们传递了 文件路径
@@ -4072,7 +4169,6 @@ axios.get(httpUrl, options).then((data) => {
         str += data;
         return p2;
     })
-    
  ```
 
 > 完整代码
@@ -4108,7 +4204,7 @@ axios.get(httpUrl, options).then((data) => {
 
 
 > 题外知识点:
-- nodejs是一个遵从错误优先的理由, 所有的回调中的参数第一个都是err
+- nodejs是一个遵从错误优先的理由, *所有的回调中的参数第一个都是err*
 
 ----------------------
 
@@ -4120,7 +4216,7 @@ axios.get(httpUrl, options).then((data) => {
 ```js 
     p.then((resolve) => {}, (err) => {})
 
-    可以改成下面的样式 === > 
+    // 可以改成下面的样式 === > 
 
     p.then(data => { ... }).catch(err => { ... })
  ```
@@ -4136,8 +4232,14 @@ axios.get(httpUrl, options).then((data) => {
 ----------------------
 
 ### Promise类的all方法
+- 必须都成功才能拿到结果
 
 > Promise.all([promise对象1, promise对象2]).then(data => {...}).catch().finally()
+
+- 参数:
+- [promise1,promise2]
+
+- then()
 - then()中的data是一个数组, 数组中每一个元素就是promise对象成果的结果
 
 ```js 
@@ -4180,7 +4282,7 @@ axios.get(httpUrl, options).then((data) => {
 
 ```js 
     Promise.race([promise对象1, promise对象2]).then(data => {
-        promise对象1, promise对象2只要有一个成功了 就会执行这里的代码一次, 且这里的代码只会执行一次
+        // promise对象1, promise对象2只要有一个成功了 就会执行这里的代码一次, 且这里的代码只会执行一次
     })
  ```
 
@@ -4201,7 +4303,7 @@ axios.get(httpUrl, options).then((data) => {
         console.log(data1); 
     }
 
-    fn()    别忘记调用
+    fn()    // 别忘记调用
  ```
 
 > async function fn() {...}
@@ -4251,7 +4353,7 @@ axios.get(httpUrl, options).then((data) => {
     fn();
  ```
 
-> async + await的注意事项
+**async + await的注意事项**
 - 如果await后面只写一个基本类型, 会对这个基本数据类型进行包装, 包装成一个promise对象
 ```js 
     async function fn() {
@@ -4275,13 +4377,14 @@ axios.get(httpUrl, options).then((data) => {
 
     let ret = fn();
     console.log(ret)        // 结果是 Promise { <pending> } 
-
-    这里并不是我们想的123 而是 Promise { <pending> } 
-    原因是 async 是一个异步的 console.log是同步的, 当我们console.log(ret)的时候 还没有拿到结果 所以它的状态是一个 pending
  ```
+
+- 这里并不是我们想的123 而是 Promise { <pending> } 
+- 原因是 async 是一个异步的 console.log是同步的, 当我们console.log(ret)的时候 还没有拿到结果 所以它的状态是一个 pending
 
 - 如果 await 后面是一个 Promise对象, 会把resolve的值返回
 - async函数里面的await是异步的, 不是同步
+
 
 > await 的另一个特点
 - 它是异步任务, 如果遇到同步任务的时候, 在它后面的同步任务会在函数外的同步任务执行完后在执行, 或者说 它会先跳出函数执行函数外的同步任务, 然后再回到函数里面执行函数里面的同步任务 最后执行异步任务
@@ -4298,25 +4401,26 @@ axios.get(httpUrl, options).then((data) => {
     fn()
     console.log(2)
 
-    上面代码的执行顺序是 1 3 4 2 5
+    // 上面代码的执行顺序是 1 3 4 2 5
 
     --- 
 
-    但是如果遇到了 await
+    // 但是如果遇到了 await
     async function fn() {
         console.log(3)
-        let data = await 123;
-         console.log(4);
+        let data = await 123;   // 跳到外面先执行2
+        console.log(4);
     }
 
     console.log(1)
     fn()
     console.log(2)
 
-    上面代码的执行顺序是 1 3 2 4
-    并不是 1 3 4 2
+    /*
+    上面代码的执行顺序是 1 3 2 4 -- 并不是 1 3 4 2
 
     遇到await后会先跳出函数, 执行console.log(2)然后再回到函数内部执行 log(4)
+    */
  ```
 
 > async function await 也可以捕获异常
@@ -4349,9 +4453,10 @@ axios.get(httpUrl, options).then((data) => {
 
 ### 浏览器请求服务器的大致流程
 - 请求资源中 文件的请求是静态的, 请求文件中的数据(某些)是动态的
+
 - 基本流程
 ```js 
-     - 1. 用户输入网址
+    - 1. 用户输入网址
                ↓
     - 2. 浏览器请求DNS服务器获取域名对应的IP地址
                ↓
@@ -4388,19 +4493,21 @@ axios.get(httpUrl, options).then((data) => {
 ----------------------
 
 ### HTTP协议简介
-- HTTP协议就是超文本传输协议, 通俗理解是浏览器和web服务器传输数据格式的协议
-- HTTP协议是一个应用层的协议
+- HTTP协议就是超文本传输协议, 通俗理解是浏览器和web服务器传输数据格式的协议 HTTP协议是一个应用层的协议
 
  - HTTP协议是基于TCP协议(一种可靠的传输协议, 就是在传输前双方要进行链接确保互相说话都能听到, 比喻)的, 发送数据之前需要建立好链接
+
  - HTTP是万维网的数据通信的基础, 设计HTTP最初的目的是为了提供一种发布和接收HTML页面的方法
 
 ----------------------
 
 ### 请求报文的格式介绍
+
 - 下面请求百度的请求报文
 ```js 
     // 请求行       
-    GET / HTTP/1.1      |  ( GET)请求方式    (/)请求路径    (HTTP/1.1)HTTP版本    |
+    GET / HTTP/1.1 
+        // ( GET)请求方式    (/)请求路径    (HTTP/1.1)HTTP版本
 
     // 请求头
     Host: www.baidu.com
@@ -4419,7 +4526,9 @@ axios.get(httpUrl, options).then((data) => {
     Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
     Cookie: PSTM=1619530850; BIDUPSID=DC2769FD4EF8482446096626D46A75EF; BD_UPN=12314753; __yjs_duid=1_decb391e98f711866592475a7060e97a1621673167256; BDORZ=B490B5EBF6F3CD402E515D22BCDA1598; BAIDUID=772543F0AD7508CFEAD2586A6FCE5578:FG=1; H_PS_PSSID=33800_33969_31253_34004_33855_33607_26350_33892; BAIDUID_BFESS=772543F0AD7508CFEAD2586A6FCE5578:FG=1; delPer=0; BD_CK_SAM=1; PSINO=7; BD_HOME=1
 
-    // 上面 ↑ 有一个空行 也就请求报文的一部分, 分别是 请求行 + 请求头 + 空行 + 请求体 空行的作用是用来分割请求体的 POST请求才有请求体
+    // 空行
+
+    // ↑ 有一个空行 也就请求报文的一部分, 分别是 请求行 + 请求头 + 空行 + 请求体 空行的作用是用来分割请求体的 POST请求才有请求体
  ```
 
 > GET 和 POST 请求报文的组成
@@ -4437,14 +4546,17 @@ axios.get(httpUrl, options).then((data) => {
 
 > 请求行:
 - 请求方法, 资源路径 http版本
-```js GET /index.html HTTP/1.1 ```
+```js 
+    GET /index.html HTTP/1.1 
+```
 
 > 请求头:
 - 头名: 头值
-```js Host: localhost ```
+```js 
+    Host: localhost 
+```
 
-- 请求头中的数据解析 了解
-- 请求报文是给服务器程序看的
+- 请求头中的数据解析 *请求报文是给服务器程序看的*
 ```js 
     // 主机域名 www. / host: 127.0.0.1:8080 
     Host: www.baidu.com
@@ -4491,11 +4603,10 @@ axios.get(httpUrl, options).then((data) => {
 
 > 题外知识点:
 - 客户端的端口号是操作系统随机配的
-```js 每次去百度服务器请求资源时, 我们自己的端口的端口号是操作系统随机以万为单位配的 ```
+- 每次去百度服务器请求资源时, 我们自己的端口的端口号是操作系统随机以万为单位配的
 
 - 爬虫
-- 写一小段程序伪装成正常的浏览器, 去服务器上爬取数据 就收集下载别的网站的数据
-- 其实就是在 User-Agent 中写一个正常的浏览器的内核
+- 写一小段程序伪装成正常的浏览器, 去服务器上爬取数据 就收集下载别的网站的数据 其实就是在 User-Agent 中写一个正常的浏览器的内核
 
 ----------------------
 
@@ -4527,7 +4638,7 @@ axios.get(httpUrl, options).then((data) => {
     Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
     Cookie: PSTM=1619530850; BIDUPSID=DC2769FD4EF8482446096626D46A75EF; __yjs_duid=1_decb391e98f711866592475a7060e97a1621673167256; BDORZ=B490B5EBF6F3CD402E515D22BCDA1598; BAIDUID=772543F0AD7508CFEAD2586A6FCE5578:FG=1; H_PS_PSSID=33800_33969_31253_34004_33855_33607_26350_33892; BAIDUID_BFESS=772543F0AD7508CFEAD2586A6FCE5578:FG=1; delPer=0; PSINO=7; BA_HECTOR=0l818h8l0g0521ahs91gaq2su0q; HOSUPPORT=1; HOSUPPORT_BFESS=1; pplogid=6713RmuKtqvmP1OgIHB0SyXOpFjzAWYZSAqI1WgYA2u6rhcgEHw%2F65lz5qtPc97YMxntSV9H8WKE1e7PaXywpWhRxCCu8jrLm%2BNspksJD12ohSc%3D; pplogid_BFESS=6713RmuKtqvmP1OgIHB0SyXOpFjzAWYZSAqI1WgYA2u6rhcgEHw%2F65lz5qtPc97YMxntSV9H8WKE1e7PaXywpWhRxCCu8jrLm%2BNspksJD12ohSc%3D; UBI=fi_PncwhpxZ%7ETaJc3kXYNDmVb53VMwWkSl6r8%7EQTdCBSbQxiZIXZ%7EycRlaCrLNTY%7EcAneMKFehsPjZMxU%7En; UBI_BFESS=fi_PncwhpxZ%7ETaJc3kXYNDmVb53VMwWkSl6r8%7EQTdCBSbQxiZIXZ%7EycRlaCrLNTY%7EcAneMKFehsPjZMxU%7En; logTraceID=ad4d6a249d97812205ed8149611c51843513ec53daf80cbc1a
 
-    usersname=zhangsan&password=12345
+    // usersname=zhangsan&password=12345
  ```
 
 ----------------------
@@ -4572,7 +4683,9 @@ axios.get(httpUrl, options).then((data) => {
 
 - 响应行(版本 状态码 说明\r\n)
 ```js 
-    必须有 HTTP/1.1 200 ok\r\n      如果是404的话 后面的说明是 404 NOT FOUND
+    必须有 HTTP/1.1 200 ok\r\n      
+    
+    // 如果是404的话 后面的说明是 404 NOT FOUND
 
     状态码:
     2xx     是成功的
@@ -4583,12 +4696,11 @@ axios.get(httpUrl, options).then((data) => {
 
 - 响应头(头名: 头值)
 ```js 
-    Content-Type: text/html;charset=utf-8\r\n       Server.BWS/1.1\r\n
+    Content-Type: text/html;charset=utf-8\r\n       
+    // Server.BWS/1.1\r\n
  ```
 
-----------------------
-
-- 打开一个网站只会有一个请求么? 
+> 打开一个网站只会有一个请求么? 
 - F12 NetWork中 打开一个网站不仅仅只有一个请求, 会附带很多请求, 左侧每一行就是一个请求, 每一个请求会对应着一份请求报文和响应报文
 
 ----------------------
@@ -4597,14 +4709,14 @@ axios.get(httpUrl, options).then((data) => {
 - http协议(底层是TCP协议 数据传输协议)是基于TCP/IP协议的 TCP/IP协议是一个可靠的协议(里面更加严格规范了传输规则)
 - 浏览器(客户端) 和 服务器建立连接的时候, 发生三次握手
 
-- 浏览器 向 服务器发送请求, 服务器 返回响应 这个数据的传输过程其实不是这么简单
-- 整个过程是基于http协议的, http协议底层是基于TCP协议的
+- 浏览器 向 服务器发送请求, 服务器 返回响应 这个数据的传输过程其实不是这么简单 整个过程是基于http协议的, http协议底层是基于TCP协议的
 
 - 所以为了确保这次的传输数据的过程是可靠的, 只有当双方(浏览器和服务器)都是可以正常的发送和接收的状态, 才会开始发送请求
 
 - 在发送传输之前, 它需要做一些事件
 
 - TCP协议规定, 在传输数据之前双方需要建立连接(为了保证双方都能正常的进行数据的发送和接收) , 在建立连接的过程中发生了3次握手
+
 
 > 三次握手
 - 什么是三次握手
@@ -4643,13 +4755,13 @@ axios.get(httpUrl, options).then((data) => {
 
 ### 四次挥手
 
-- 前面讲了建立连接, 为了保证正常连接 有了三次握手之后 然后就可以开始传输数据
-- 既然有建立连接, 就会有关闭连接, 不管什么原因总会有一方先要提出我要关闭连接了
+- 前面讲了建立连接, 为了保证正常连接 有了三次握手之后 然后就可以开始传输数据 既然有建立连接, 就会有关闭连接, 不管什么原因总会有一方先要提出我要关闭连接了
 
 - 断开也会由一方开始发送消息 确保告知对方我要断开了
 
 > 关闭连接的时候, 4次挥手
 - 4次挥手发生在关闭连接的时候
+
 ```js 
     浏览器端 会发送 =>
         请求断开连接
@@ -4682,6 +4794,7 @@ axios.get(httpUrl, options).then((data) => {
 > 总结
 - 三次握手发生在建立连接的时候
 - 四次挥手发生在关闭连接的时候
+
 - 他们分别发生在传输数据之前和之后
 
 ----------------------
@@ -4696,21 +4809,21 @@ axios.get(httpUrl, options).then((data) => {
 
     应用层                                      http tftp ftp nfs wais
 
-    表示层              应用层                  gopher snmp riogin telnet
+    表示层               应用层                  gopher snmp riogin telnet
 
     会话层                                      smtp dns
 
     -------------       ---------------       -------------
 
-    传输层              传输层                  tcp udp
+    传输层               传输层                  tcp udp
 
     -------------       ---------------       -------------
 
-    网络层              网络层                  ip icmp arp rarp akp uucp
+    网络层               网络层                  ip icmp arp rarp akp uucp
 
     -------------       ---------------       -------------
 
-    数据链路层          数据链路层              fddi ethemet arpanet pdn
+    数据链路层            数据链路层              fddi ethemet arpanet pdn
 
     物理层                                      ieee 802 1a
 
@@ -4721,16 +4834,16 @@ axios.get(httpUrl, options).then((data) => {
 ### AJAX的请求相关总结
 - 浏览器端的部分:
 ```js 
-    - 1. 创建ajax对象
+    // - 1. 创建ajax对象
         const xhr = new XMLHttpRequest();
 
-    - 2. 设置请求路径 和 请求方式
+    // - 2. 设置请求路径 和 请求方式
         xhr.open('GET', 'http://127.0.0.1:8000/about.html');
 
-    - 3. 绑定监听
+    // - 3. 绑定监听
         xhr.onreadystatechange = function() { ... }
 
-    - 4. 发送请求
+    // - 4. 发送请求
         xhr.send()
  ```
 
@@ -4739,19 +4852,29 @@ axios.get(httpUrl, options).then((data) => {
     xhr.onreadystatechange = function() {
         console.log(xhr.readyState);
 
-        这里面的代码是状态发生改变的时候就执行
+        // 这里面的代码是状态发生改变的时候就执行
 
         // 结果: 2 3 4 (0和1没有)
-        因为 0是创建的时候 1是open的时候, 这个事件回调只能监听到 2 3 4的变化, 0和1的时候onreadystatechange还没出现呢
+        // 因为 0是创建的时候 1是open的时候, 这个事件回调只能监听到 2 3 4的变化, 0和1的时候onreadystatechange还没出现呢
     }
  ```
 
 > xhr.readyState 共有5个状态值 0-4
-- 0: 初始化     ajax对象还没有完成初始化
-- 1: 载入       ajax对象开始发送请求        open时候状态就是1
-- 2: 载入完成   ajax对象的请求发送完成      send时候状态就是2
-- 3: 解析       ajax对象开始读取服务器的响应
-- 4: 完成:      ajax对象读取服务器响应结束
+- 0: 初始化     
+    ajax对象还没有完成初始化
+
+- 1: 载入       
+    ajax对象开始发送请求        *open时候状态就是1*
+
+- 2: 载入完成  
+    ajax对象的请求发送完成      *send时候状态就是2*
+
+- 3: 解析       
+    ajax对象开始读取服务器的响应
+
+- 4: 完成:      
+    ajax对象读取服务器响应结束
+
 
 > status 表示响应的http状态码, 常见的状态码如下
 - 200: 成功
@@ -4761,7 +4884,7 @@ axios.get(httpUrl, options).then((data) => {
 
 
 > Ajax中的 response 和 responseText
-- 本质上，所有的请求响应报文的主体，都是二进制的数据，我们传输的文本内容，也是编码好的二进制数据。
+- 本质上，所有的请求*响应报文的主体*，都是二进制的数据，*我们传输的文本内容，也是编码好的二进制数据。*
 
 - http规范中规定了一个Content-type头，用来指明数据主体的格式，来告诉收发的两端将二进制的数据主体按照什么类型进行解析。
 
@@ -4769,33 +4892,32 @@ axios.get(httpUrl, options).then((data) => {
 
 > xhr.response
 > xhr.responseText
-- 获取字符串形式的响应数据
-```js 接收到的是服务器响应会字符串类型的数据 ```
+- 获取字符串形式的响应数据 接收到的是服务器响应会字符串类型的数据
 
 
 > 关于 xhr.open('GET', '/get_data'); 的理解
 - 第一个参数是 请求方式
 - 第二个参数是 请求地址
 
-- 第二个参数也叫作接口, 我们在浏览器端创建了这样的接口, 服务器端就要有对应的匹配的规则
-- 这个接口就去为了进到规则里去的 规则里就是处理这个请求的
+- 第二个参数也叫作接口, 我们在浏览器端创建了这样的接口, 服务器端就要有对应的匹配的规则 这个接口就去为了进到规则里去的 规则里就是处理这个请求的
 
 ```js 
-    // 设置前端的借口
+    // 设置前端的接口
     xhr.open("get", 'http://127.0.0.1:8000/get_data');
 
 
-    // 设置对应前端接口的规则
+    // 后台设置对应前端接口的规则
     else if (reqUrl === '/get_data') {
         let data = {
-        name:"sam"
+          name:"sam"
         }
         response.end(JSON.stringify(data));
     }
  ```
 
+---
 
-### Ajax Post请求
+> Ajax Post请求
 - 一会我们做一个登录页面, 点击按钮后去后台验证用户信息是否正确
 
 - 思路:
@@ -4814,10 +4936,14 @@ axios.get(httpUrl, options).then((data) => {
  ```
 
 
->>> post的数据整理:
+> post的数据整理:
 - 我们通过 form 形式将收集到的数据 传递给后台的时候 数据的格式:
-```js username=hahaha&password=12345 ```
+```js 
+    username=hahaha&password=12345 
+```
+
 - 这样后台不方便操作 所以一般我们会整理成 对象的形式 发送到后台
+
 ```js 
     // 获取用户填写的数据
     let username = document.querySelector('#username').value;
@@ -4829,6 +4955,7 @@ axios.get(httpUrl, options).then((data) => {
       password
     }
 
+    // 放在body里面了吧
     xhr.send(JSON.stringify(params))
  ```
 
@@ -4842,22 +4969,27 @@ axios.get(httpUrl, options).then((data) => {
 
     xhr.send(params)
  ```
+
 - 后台要对传递过来的数据进行处理
+- 因为 postData 我们收到的是 buf
+- 所以 我们对其转换成字符串 然后进行转换
+
 ```js 
     let uname = postData.toString().split('&')[0].split('=')[1];
     let pwd = postData.toString().split('&')[1].split('=')[1];
  ```
 
 
->>> POST的请求方式发送参数使用
+> POST的请求方式发送参数使用
 - xhr.send()
 - 可以发送参数到后端 但是不能直接传递对象, 要转换为字符串
+
 - JSON.stringify(params)
 
 
 - HTML部分:
-```js 
-    // 因为我们要做 AJAX提交所以 不用里面的属性了
+```html
+    <!-- 因为我们要做 AJAX提交所以 不用里面的属性了 -->
     <form action="http://127.0.0.1:8000" method='post' id='form-input'>
 
     <form id='form-input'>
@@ -4870,13 +5002,13 @@ axios.get(httpUrl, options).then((data) => {
         </div>
 
 
-        // submit一点就会提交表单内容(并进行跳转)并刷新页面 属于浏览器的默认行为 我们可以将其改成 type=button
+        <!-- submit一点就会提交表单内容(并进行跳转)并刷新页面 属于浏览器的默认行为 我们可以将其改成 type=button -->
         <div>
              <input type="button" value='SEND' class='send'>
         </div>
     </form>
 
-    // 成功的提示的区域
+    <!-- 成功的提示的区域 -->
     <div class='success'></div>
  ```
 
@@ -4925,6 +5057,11 @@ axios.get(httpUrl, options).then((data) => {
 - request.on('data', postData => { ... }) data事件
 - postData: 前端post请求发送过来的参数
 
+> 要点:
+- 我们在使用 ajax 发送 post 请求 && 后台使用的是 http 模块接收 post 请求的参数的时候 
+
+- 我们可以通过 JSON.parse() 方法 将buf转为对象???
+
 - 我们将前端传递过来的postData转成对象 JSON.parse()
 - 然后通过解构赋值的方式获取对应的变量
 
@@ -4950,6 +5087,9 @@ axios.get(httpUrl, options).then((data) => {
         if (reqUrl === '/login_post') {
 
             request.on('data', (postData) => {
+
+
+                // !!!!!!!
                 // 把前端传递过来的json转为对象, 转成对象后才能操作
                 let { username, password } = JSON.parse(postData);
 
@@ -4971,9 +5111,11 @@ axios.get(httpUrl, options).then((data) => {
  ```
 
 
-> 题外知识点
+> 扩展: 
 - <button>
-- <input type='button'>     所以很多人用 这种 完全没有提交行为的按钮
+- <input type='button'>
+- 所以很多人用 这种 完全没有提交行为的按钮
+
 - <input type='submit'>
 
 - 上面三种完全没有提交行为的是 <input type='button'> 
@@ -4995,20 +5137,20 @@ axios.get(httpUrl, options).then((data) => {
 ### Ajax中 避免缓存的问题
 - ajax能提高页面载入的速度主要的原因是通过 ajax减少了重复数据的载入, 也就是说在载入数据的同时将数据缓存到内存中, 一旦数据被加载其中, 只要我们没有刷新页面, 这些数据就会一直被缓存在内存中, 虽然这样降低了服务器的负载提高了用户的体验, 但是我们不能获取最新的数据, 为了保证我们读取的信息都是最新的, 我们就需要进制他的缓存功能, 解决方式有以下几种:
 
-- 方式1: 在URL后面加上一个随机数: Math.random()
+> 方式1: 在URL后面加上一个随机数: Math.random()
 ```js 
     xhr.open('GET', 'get_data'+Math.random())
  ```
 
-- 方式2: 在URL后面加上时间戳: new Date().getTime()
+> 方式2: 在URL后面加上时间戳: new Date().getTime()
 ```js 
     xhr.open('GET', 'get_data'+ +new Date())
  ```
 
-- 方式3: F12 -- network -- Disable cache点上
+> 方式3: F12 -- network -- Disable cache点上
 - 作为开发者不希望这个东西缓存 我们点上它确保看到最新结果
 
-- 方式4: 在使用Ajax  发送  请求前加上:
+> 方式4: 在使用Ajax  发送  请求前加上:
 > xhr.setRequestHeader('Cache-Control', 'no-chache')
 - 设置请求头 为 不缓存 (键值对 Cache-Control: no-chache)
 ```js 
@@ -5040,9 +5182,15 @@ axios.get(httpUrl, options).then((data) => {
 ----------------------
 
 ### 封装ajax(兼容版)
-- 必须写的参数
-- 请求路径, 请求方式, 回调函数(成功失败), 携带的参数(用户名密码之类的), time(多少秒后请求失败)
 
+> 必须写的参数
+- 请求路径, 
+- 请求方式, 
+- 回调函数(成功失败),
+-  携带的参数(用户名密码之类的), 
+- time(多少秒后请求失败)
+
+```js
     function ajax(method, url, param, success, time) {
         let ajax;
         try {
@@ -5081,7 +5229,7 @@ axios.get(httpUrl, options).then((data) => {
 
         ajax.send(param)
     }
-
+```
 
 > 题外知识点:
 <form enctype='application/x-www-form-urlencoded'></form>
@@ -5103,55 +5251,57 @@ axios.get(httpUrl, options).then((data) => {
 - 里面接收一个对象
 
 > 常用的参数
-- async:    默认设置下, 所有的请求均为异步请求 可以设置本次请求是异步还是同步
+- async:    
+    默认设置下, 所有的请求均为异步请求 可以设置本次请求是异步还是同步
 
 - contentType:
-            发送信息至服务器时内容编码类型, 默认为'application/x-www-form-urlencoded'
+    发送信息至服务器时内容编码类型, 默认为'application/x-www-form-urlencoded'
 
 - data (常用):     
-            发送服务器的数据, 可以为对象 或者 key=value 格式的字符串, 若为对象则会自动转换为 请求字符串 格式
+    发送服务器的数据, 可以为对象 或者 key=value 格式的字符串, 若为对象则会自动转换为 请求字符串 格式
 
 - type (常用):    
-            设置请求方式
-            默认:'get', 其它http请求方法, 比如put delete也可以使用, 但取决于浏览器支持
+    设置请求方式
+    默认:'get', 其它http请求方法, 比如put delete也可以使用, 但取决于浏览器支持
 
 - url (常用):
-            发送请求的地址, 默认当前页地址
+    发送请求的地址, 默认当前页地址
 
 - dataType: 
-            预期服务器返回的数据类型如果不指定, jQ将自动根据HTTP包MIME信息来只能判断, 比如XML MIME类型就被识别为XML, 可以不填
-            可用值:
-            xml / html / script / json / jsonp / text
+    预期服务器返回的数据类型如果不指定, jQ将自动根据HTTP包MIME信息来只能判断, 比如XML MIME类型就被识别为XML, 可以不填
+    可用值:
+    xml / html / script / json / jsonp / text
 
-- cache:    默认为true
-            设置为false禁用缓存, dataType为script jsonp时默认为false   
+- cache:    
+    默认为true
+    设置为false禁用缓存, dataType为script jsonp时默认为false   
 
 - context:  
-            回调的指向
-            这个对象用于设置ajax相关回调函数的上下文, 也就是说, 让回调函数内的this的指向(若不指定为当前选项)
+    回调的指向
+    这个对象用于设置ajax相关回调函数的上下文, 也就是说, 让回调函数内的this的指向(若不指定为当前选项)
 
 - beforeSend: 
-            设置发送请求之前需要做什么事情
-            发送请求前调用此函数, 可用与如添加自定义HTTP头, 检查请求参数是否合法, XMLhttpRequest对象是唯一的参数, 若在函数中返回false可以取消本次请求
-            ```js 
-                function(XMLHttpRequest) {
-                    // this 默认情况下调用本次 ajax请求时传递的 option 对象
-                }
-             ```
+    设置发送请求之前需要做什么事情
+    发送请求前调用此函数, 可用与如添加自定义HTTP头, 检查请求参数是否合法, XMLhttpRequest对象是唯一的参数, 若在函数中返回false可以取消本次请求
+```js 
+function(XMLHttpRequest) {
+    // this 默认情况下调用本次 ajax请求时传递的 option 对象
+}
+```
 
 - success:
-            请求成功后的回调函数, 参数: 由服务器返回, 并根据dataType参数进行处理后的数据 和 描述状态的字符串
-            ```js 
-                function(data, textstatus) {
-                    // data可能是 xmlDoc jsonObj text html等
-                }
-             ```
+    请求成功后的回调函数, 参数: 由服务器返回, 并根据dataType参数进行处理后的数据 和 描述状态的字符串
+```js 
+    function(data, textstatus) {
+        // data可能是 xmlDoc jsonObj text html等
+    }
+```
 
 - error:
-            请求失败时调用此函数, 有以下三个参数
-            - XMLHttpRequest
-            - 错误信息
-            - 捕获的异常对象
+    请求失败时调用此函数, 有以下三个参数
+    - XMLHttpRequest
+    - 错误信息
+    - 捕获的异常对象
 
 > 示例:
 ```js 
@@ -5162,7 +5312,7 @@ axios.get(httpUrl, options).then((data) => {
         cache: false,   // 是否禁用缓存
 
         data: {
-            用来传递参数
+            // 用来传递参数
         }
 
         beforeSend: function() {
@@ -5184,6 +5334,7 @@ axios.get(httpUrl, options).then((data) => {
 - 注意观察下 newwork中都请求了什么, 然后在服务器对应的规则里做响应回对应文件的处理
 
 - 在使用ajax进行get请求的时候, 我们要是传递了参数 请求地址会是 /get_data?name=... 的格式
+
 - 所以在服务器端设置规则的时候 我们要使用 request.url.startWith('/get_data') 的方式
 
 - 使用jQ的ajax传递 get的参数的时候 有两种方式
@@ -5196,9 +5347,8 @@ axios.get(httpUrl, options).then((data) => {
       $.ajax({
 
         // jQ中的传参方式有两种 一种是在url的后面直接拼参数, 另一种在data属性中
-        // 第一种
-        // url: '/get_data?name=sam&age=11',
 
+        // 第一种  url: '/get_data?name=sam&age=11',
         url: '/get_data',
 
         // 另一种传递参数的方式在data属性中添加
@@ -5206,6 +5356,7 @@ axios.get(httpUrl, options).then((data) => {
           name: 'sam',
           age: 11
         },
+
         success: function(data) {
           $('.success').html(data);
         }
@@ -5257,7 +5408,10 @@ axios.get(httpUrl, options).then((data) => {
 ----------------------
 
 ### Express框架
-- 在前面node基础中我们学习了nodejs中的http模块, 虽然知道使用nodejs中的http模块是可以开发web应用的, 处理静态资源(img css js文件), 处理动态资源(动态数据 每天不一样的新闻), 请求分发(路由)(解决前面http模块中的if else if的问题)等等, 也可以让开发者对http协议的理解更加清晰, 但是使用起来比较复杂, 开发效率低
+- 在前面node基础中我们学习了nodejs中的http模块, 虽然知道使用nodejs中的http模块是可以开发web应用的, 
+    处理静态资源(img css js文件), 
+    处理动态资源(动态数据 每天不一样的新闻), 
+    请求分发(路由)(解决前面http模块中的if else if的问题)等等, 也可以让开发者对http协议的理解更加清晰, 但是使用起来比较复杂, 开发效率低
 
 - npm提供了的大量的第三方模块, 其中不乏许多web框架, 我们没有必须重复发明轮子, 因而选择使用 Express作为开发框架, 因为它是目前最稳定, 使用最广泛, 而且nodejs官方推荐的唯一一个web开发框架, 除了http模块提供了更高层的接口外, 还实现了许多功能, 其中包括
 
@@ -5274,8 +5428,9 @@ axios.get(httpUrl, options).then((data) => {
 
 - 官网: http://www.expressjs.com.cn
 
-- express是一个基于内置核心 http 模块的, 一个第三方的包, 专注于 web服务器的构建
-- 也就是说基于http模块上的开发, 可以做很多的后端项目
+- express是一个基于内置核心 http 模块的, 一个第三方的包, 专注于 web服务器的构建 也就是说基于http模块上的开发, 可以做很多的后端项目
+
+- *看来没事还要看看express的文档*
 
 ----------------------
 
@@ -5283,11 +5438,11 @@ axios.get(httpUrl, options).then((data) => {
 
 > 安装 express 框架
 - npm init -y
-```js 入口js文件会是index.js ```
+- 入口js文件会是index.js
+
 - npm install express --save
 
 > 使用步骤:
-
 > 1. 引入 express
     const express = require('express');
 
@@ -5298,7 +5453,7 @@ axios.get(httpUrl, options).then((data) => {
 > 3. 处理请求
 - 处理get请求的方法:
 
->>> app.get()
+> app.get()
   - 参数
   - 1. 请求路径(接口)
   - 2. 针对这个请求路径的处理函数
@@ -5321,12 +5476,13 @@ axios.get(httpUrl, options).then((data) => {
 
 ----------------------
 
-### express框架处理 get请求
+### express框架处理 -- get请求
 - 我们看看使用express框架和原生的http模块的区别
 
 > 区别:
 - 1. 规则清晰了 每一个规则都可以写一个app.get()来进行对应的处理
-- 2. 响应会中文不用再设置响应头, 设置响应数据的类型
+- 2. 响应*会中文不用再设置响应头, 设置响应数据的类型*
+
 ```js 
     const express = require('express');
     const path = require('path')
@@ -5341,13 +5497,12 @@ axios.get(httpUrl, options).then((data) => {
 
     app.get('/register', (req, res) => {
 
-    // 在这里我们把注册页面响应回去
-    // 获取文件路径 
-    let filePath = path.join(__dirname, 'views', 'register.html');
+        // 在这里我们把注册页面响应回去 获取文件路径 
+        let filePath = path.join(__dirname, 'views', 'register.html');
 
-    // 读取文件内容
-    // 这里不写utf-8 会下载文件 我去~
-    let content = fs.readFileSync(filePath, 'utf-8');
+        // 读取文件内容
+        // 这里不写utf-8 会下载文件 我去~
+        let content = fs.readFileSync(filePath, 'utf-8');
         res.send(content)
     })
 
@@ -5361,27 +5516,34 @@ axios.get(httpUrl, options).then((data) => {
 ### express框架获取 get请求参数
 
 - 当我在联系的时候发现一个问题, 这节是get请求参数是怎么在服务器获取的, 为了达到这个目的, 我在通过localhost:3000 去请求对应页面 并且传参的时候
+
 ```js 
-    我输入的网址, 并传递了参数
+    // 我输入的网址, 并传递了参数
     http://localhost:3000/index?name=sam&age=18
 
-    服务器对应的规则
+    // 服务器对应的规则
     app.get('/index', (req, res) => {
         res.send('index首页页面内容哦')
     })
-
-    页面上竟然显示 index首页页面内容哦
-
-    要是用http模块做的话 因为是get请求, request.url肯定是带参数的我们要在服务器端写请求路径接口的时候都是
-    request.url.startWith('/index') 使用这种方式
-
-    但是express不用说明一个问题: 服务器端的接口(请求地址) 和 我们在地址栏输入的地址不是全等的
-    也就是说 http://localhost:3000/index?name=sam&age=18
-    express会去掉?name=sam&age=18的部分再进行匹配
  ```
+
+- 页面上竟然显示 index首页页面内容哦
+- 要是用http模块做的话 因为是get请求, request.url肯定是带参数的我们要在服务器端写请求路径接口的时候都是
+
+```js
+    request.url.startWith('/index') 使用这种方式
+```
+
+- 但是express不用说明一个问题: 服务器端的接口(请求地址) 和 我们在地址栏输入的地址不是全等的
+
+- 也就是说 http://localhost:3000/index?name=sam&age=18
+- *express会去掉?name=sam&age=18的部分再进行匹配*
+
 
 > request.query
 - 获取get的请求参数(字符串参数), 获取的结果是一个对象
+- 获取的是 url形式的参数
+
 ```js 
     http://localhost:3000/index?name=sam&age=18
 
@@ -5395,68 +5557,63 @@ axios.get(httpUrl, options).then((data) => {
 
 ### express框架处理 post请求 和 获取post请求参数
 - 现在写两句代码就可以用req.body获取post请求参数了
-```js 
-    app.use(express.urlencoded({extended: false}));
-    app.use(express.json());
 
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    浏览器端在xhr.send()的上面要设置请求头信息
+> body-parser 的方式已经配置*弃用*
+- 在获取post的请求参数的时候 我们需要安装 body-parser 用来更简便专业的处理请求参数 我们再安装express框架的时候自带了, 可以去文件夹里面找找 没有就安装
 
-    不让后端接收不到~
- ```
-
-- 在获取post的请求参数的时候 我们需要安装 body-parser 用来更简便专业的处理请求参数
-- 我们再安装express框架的时候自带了, 可以去文件夹里面找找 没有就安装
-- 安装
+>  安装
 - npm i body-parser
 
-
 - 一般我们在引用一些第三方的包的功能的时候, 我们先要用下面的方法, 将第三方的包或者功能注册到项目下
+
 > app.use()
 - 用户在项目内注册一些第三方的包, 将这些包注册在app下
-```js 
-    使用 app.use() 跟vue按插件似的
- ```
+- 使用 app.use() 跟vue按插件似的
+
 
 > body-parser的使用步骤
 - 1. 引入body-parser
-- body-parser的使用方式被弃用了 现在不用引入可以直接使用express调用
 ```js 
     const bodyParser = require('body-parser');
  ```
 
 - 2. bodyParser功能添加到项目app中, 并设置参数的格式
-- 该方式已经被弃用 可以直接使用express调用bodyParser的方法
+```js
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+```
+
+---
+
+> 现在可以直接使用 express 身上的方法
+
+```js 
+    app.use(express.urlencoded({extended: false}));
+    app.use(express.json());
+
+    // 浏览器端在xhr.send()的上面要设置请求头信息 不然后端接收不到~
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+ ```
+
+
 > app.use(express.urlencoded({extended: false}));
-- 2.1
+- 设置接收过来的值是什么样的类型
+
+- extended的参数:
 - false 接收的值为字符串或数组
 - true  则为任意类型
-```js 
-    app.use(bodyParser.urlencoded({extended: false}))
-    ↓改成
-    app.use(express.urlencoded({extended: false}));
 
-    解析:
-    我们开始只是在js文件中引入了这个body-parser 但是它和app项目没有关系, 我们要让它俩产生关系, 所以我们把bodyParser注册到app下, 使我们能在项目中使用它
-    相当于对我们项目功能的一个扩展, 我理解是 app要用(use) 这个功能哈哈
 
-    // 设置接收过来的值是什么样的类型
-    
- ```
-    
-
-- 2.2 将获取到的数据解析成json格式 方便我们后面直接去获取
 > app.use(express.json());
+- 将获取到的数据解析成json格式 方便我们后面直接去获取
 - bodyParser已经被弃用 可以直接使用express调用bodyParser的方法
-```js 
-    app.use(bodyParser.json());
-    ↓
-    app.use(express.json())
- ```
 
+
+> 上面的设置完成后 我们通过 req.body 来获取 post 请求的参数
 > req.body
 - 就是post请求 提交过来的参数
 - 我们可以通过解构的方式来获取变量名
+
 ```js 
     let { username, password, confirmPassword, email} = req.body;
 
@@ -5493,31 +5650,30 @@ axios.get(httpUrl, options).then((data) => {
     // 处理post 注册页面的规则
     app.post('/register', (req, res) => {
 
-        一般post提交过来之后, 后台需要获取提交过来的参数, 获取用户填写的数据, 也就做请求数据
-
-        // 在这里我们获取参数
+        // 一般post提交过来之后, 后台需要获取提交过来的参数, 获取用户填写的数据, 也就做请求数据 在这里我们获取参数
         console.log(req.body)
 
         let { username, password, confirmPassword, email} = req.body;
         console.log(username, password, confirmPassword, email);
-
-        后端的业务逻辑:
-        1. 获取参数
-        2. 校验规则 是不是符合规则, 判空
-        3. 查询数据库, 看看用户名是否被注册
     })
 
 ```
+
+ > 后端的业务逻辑:
+1. 获取参数
+2. 校验规则 是不是符合规则, 判空
+3. 查询数据库, 看看用户名是否被注册
     
 
 > 总结:
 - 获取 get的请求参数:   req.query
 - 或者 post的请求参数:  req.body
-```js 但是post需要做一些准备和引入的工作 ```
+- 但是post需要做一些准备和引入的工作
+
 
 ----------------------
-
-### 重定向 redirect
+### 书签
+### 重定向 res.redirect
 - 我们拿注册页面举例子, 当我们提交完注册信息后, 正常会跳转到其它的页面比如首页之类, 不会停留下注册页面
 
 - 实现: 注册完后跳转到index.html页面
