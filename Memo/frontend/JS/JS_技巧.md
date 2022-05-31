@@ -1357,6 +1357,7 @@ Object.keys(oo).length == 0
 
 
 ### 随机生成字符串
+- toString(36): 表示为由0-9, a-z组成的的36进制字符串。
 <!-- 
     let res = getRandomString(48)
     console.log(res)

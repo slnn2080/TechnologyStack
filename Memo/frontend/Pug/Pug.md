@@ -891,7 +891,7 @@ script.
 
   //- 设置模板存放目录为 views文件夹
   app.set('views', path.join(__dirname, 'views'));
-  app.set("views", "./views")
+  //- app.set("views", "./views")
 
   //- 设置服务器端的静态资源文件夹 让前端通过 /lib/bootstrap 路径访问到bootstrap
   app.use("/lib/bootstrap", express.static("node_modules/bootstrap/dist"))

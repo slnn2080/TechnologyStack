@@ -1480,7 +1480,18 @@ console.log("resolve", path2)   // 没有和dirname拼接 结果为 /test
  ```
 
 > process.cwd()
-- 获取当前指定 node命令的时候的文件夹目录名
+- process.cwd():
+- 是当前Node.js进程执行时的文件夹地址 —— 工作目录
+- 保证了文件在不同的目录下执行时，路径始终不变
+- process.cwd()会根据node命令的执行环节路径更改。
+
+- __dirname:
+- 是被执行的js 文件的地址 ——文件所在目录
+
+- 也就是说 __dirname 在不同的目录下面打印 结果是不同的
+
+- https://blog.csdn.net/weixin_44864084/article/details/120868472
+
 ```js
 let info = process.cwd()
 console.log(info);
@@ -5670,16 +5681,33 @@ app.use(bodyParser.json());
 - 或者 post的请求参数:  req.body
 - 但是post需要做一些准备和引入的工作
 
+----------------------
+
+**注意:**
+- 我在后台接口中 读取 html 文件 然后返回给 前端页面的时候
+- 前端页面登录该接口 没有呈现 反而是 下载了该html页面
+- 不知道具体的原因 但设置了 响应头 解决了该问题
+```js
+app.get("/login", (req, res) => {
+  // 这里
+  res.setHeader("Content-Type", "text/html")
+
+  let path = resolve(__dirname, "login.html")
+  const content = fs.readFileSync(path, "utf-8")
+  res.send(content)
+})
+```
 
 ----------------------
-### 书签
+
 ### 重定向 res.redirect
 - 我们拿注册页面举例子, 当我们提交完注册信息后, 正常会跳转到其它的页面比如首页之类, 不会停留下注册页面
 
 - 实现: 注册完后跳转到index.html页面
 - 首先: 我们我们要创建一个响应回登陆页面的接口
 - 然后: 在注册的接口里面的逻辑的最后 跳转到登陆页面的接口
-```js 也就是说 重定向是在后台跳转接口实现的 ```
+
+- 也就是说 重定向是在后台跳转接口实现的
 
 > res.redirect(接口)
 - 重定向到哪个页面(接口)
@@ -5709,18 +5737,18 @@ app.use(bodyParser.json());
     })
  ```
 
-> res.writeHead(状态码);
+> res.writeHead(状态码, {响应头的kv});
 - 响应报文中的状态码是可以修改的, 通过这个方式我们可以手动修改它
 ```js 
-    重定向后 响应报文中的状态码会变成300+ 我们可以手动修改它
+    // 重定向后 响应报文中的状态码会变成300+ 我们可以手动修改它
     res.writeHead(302);
 
-    res.writeHead(302, {name:'sam'});  添加响应头的键值对
+    // 添加响应头的键值对
+    res.writeHead(302, {name:'sam'});  
 
 
-    错误信息:
+    // 错误信息: 已经返回浏览器了 还设置头部 的错误信息
     cannot set headers after they are sent to the client
-    已经返回浏览器了 还设置头部 的错误信息
  ```
 
 ----------------------
@@ -5731,6 +5759,8 @@ app.use(bodyParser.json());
 
 > req.method
 - 获取请求方式
+- 返回值:
+- 大写的 请求方法
 
 ```js 
     app.all('/register', (req, res) => {
@@ -5742,18 +5772,33 @@ app.use(bodyParser.json());
     })
  ```
 
+> 网上的使用技巧:
+- 统一给所有的接口 加上了跨域处理
+
+```js
+app.all('*', function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+  res.header("X-Powered-By", ' 3.2.1')
+  res.header("Content-Type", "application/json;charset=utf-8");
+  next();
+});
+```
+
 ----------------------
 
 ### 获取静态资源的方式
 - 比如将一张图片展示在页面中, 因为我输入一个网址, 网址中有<img>, 它的src也会向服务器发起请求
+- 类似还有 <script> <a> <img> 等等 他们的src属性都会自发性的去服务器请求该指定的资源
 
-- 一个项目里面应该有一个 静态资源文件夹 public
+- 所以一般项目里面应该有一个 存放该静态资源文件夹 *public*
 - 这样前端的项目就可以访问到 服务器端静态资源文件夹里面的文件
 
 > app.use(express.static('public'))
 - 它是一个中间件 专门指定静态资源文件夹 需要传入一个路径 或者 指定文件夹
 ```js 
-    也可以这么写
+    // 也可以这么写
     app.use(express.static(__dirname+'/public'))
  ```
 
@@ -5761,46 +5806,40 @@ app.use(bodyParser.json());
 ```js 
     http://127.0.0.1:3000/
 
-    这个 / 就是根
-    比如我的图片在 public -- img -- 1.jpg
+    这个 / 就是根 比如我的图片在 public -- img -- 1.jpg
 
     http://127.0.0.1:3000/img/1.jpg
  ```
 
 - 如果想要设置静态资源的前缀的话, 又不想在项目中添加文件夹的结构
+
 > app.use('/static', express.static('public'))
 - 在做项目开发的时候 我们希望对资源进行 是静态资源还是动态资源的标记区分, 这个前缀就可以用来做这样的事情
 ```js 
-    想在请求图片的路径是
+    // 想在请求图片的路径是
     http://127.0.0.1:3000/img/1.jpg
 
-    想改成
+    // 想改成
     http://127.0.0.1:3000/static/img/1.jpg
  ```
 
+> 前端 要修改 资源路径的写法
 - 我们以前在做页面的时候, src的路径都是本地电脑上的
 ```js 
     <img src="../public/img/1.jpg" alt="">
- ```
 
-- 还有一种说法 在我们设置/static后 前端通过/static路径访问到服务器端静态资源文件夹里面的数据
-```js 
-  我们可以 npm i bootstrap
-  然后将 node_modules / bootstrap 设置为静态资源文件夹
-  这样前端就能访问到这个文件夹中的文件
+    修改为
 
-  app.use(express.static("/lib/bootstrap", "node_modules/bootstrap/dist"))
-
-
-  前端可以通过 /lib/bootstrap 这个路径 访问到 node_modules/bootstrap/dist 这个路径里面的资源
+    <img src="/img/1.jpg" alt="">
  ```
 
 
-> 代码部分
-- 注意, html页面中的src路径 也要写 根 / 从根开始写, 或者直接写请求头的第二个部分
+ 
+**注意:**
+- html页面中的src路径 也要写 根 / 从根开始写, 或者直接写请求头的第二个部分
 
 - 但是我们将网页部署到服务器上去后, 去地址栏请求一个页面, 这个页面里面的图片 css文件等 就会同时发起请求, 我们就要设置一个静态资源文件夹, 把这些静态资源放在这个静态资源文件夹里面, 把这个静态资源文件夹作为 根 让请求的资源从 根 去找
-```js 
+```js
     const app = express();
 
     app.use(express.urlencoded({extended: false}));
@@ -5822,12 +5861,27 @@ app.use(bodyParser.json());
     </div>
  ```
 
+- 假如 我们想让资源资源关联到 node_modules 里面的资源 可以以如下方式操作
+- 在我们设置/static后 前端通过/static路径访问到服务器端静态资源文件夹里面的数据
+```js 
+  /*
+    npm i bootstrap
+    然后将 node_modules / bootstrap 设置为静态资源文件夹
+
+    这样前端就能访问到这个文件夹中的文件
+  */
+  app.use(express.static("/lib/bootstrap", "node_modules/bootstrap/dist"))
+
+
+  // 前端可以通过 /lib/bootstrap 这个路径 访问到 node_modules/bootstrap/dist 这个路径里面的资源
+ ```
+
 ----------------------
 
 ### 使用express渲染模板页面 -- art-template模板引擎的使用
 - 之前我们在请求文件的时候, 都是通过
 ```js 
-    1.设置path
+    1. 设置path
     2. 读取文件
     3. 将读取文件 发送响应回 浏览器
  ```
@@ -5835,13 +5889,18 @@ app.use(bodyParser.json());
 - 这样每次在一个接口中处理返回页面的逻辑非常的复杂
 - 为了解决这点, experss建议我们使用模板引擎来渲染页面(返回页面), 我们只需要在配置完后, 使用简单的一个代码就可以完成以前复杂的操作步骤
 
+
 > res.render(文件名不需要加后缀, [data])
+- 将html文件(设置的模版)返回给前端
 - 不仅能将html模板页面响应回浏览器 还能把数据库的数据传递到模板html文件里
 
-> 使用步骤 先下载两个包 然后配置就可以直接使用
+
+> 使用模版引擎的步骤 
+- 1. 下载两个包 
+- 2. 配置
 
 
-> 下载
+> 1. 下载
 - 使用前需要安装 art-template(模板语法需要用到) 和 express-art-template(app项目需要用到)
 
 - npm install --save art-template
@@ -5851,35 +5910,41 @@ app.use(bodyParser.json());
 > 配置
 - 配置里面做了如下操作
 - 1. 修改渲染引擎为html 并导入express-art-template
+<!-- 
+    我们要使用的是 html 结构 那么引擎就要选择 html
+    我们要是用的是 pug 结构  那么引擎就要选择 pug
+ -->
+
 - 2. 配置开发环境
 - 3. 设置在哪一个文件夹里面去找html文件
 - 4. 设置文件的后缀名 为 html
 
 ```js 
-    1. 修改模板引擎为html(还有art引擎), 导入express-art-template, 我们需要的是html文件所以修改为html引擎(art引擎的话最终是.art文件)
+    // 1. 修改模板引擎为html(还有art引擎), 导入express-art-template
     app.engine('html', require('express-art-template'))
 
 
-    2. 项目环境的配置, 设置运行的模式为生产模式
-        production  生产模式
-        development 开发模式
+    // 2. 项目环境的配置, 设置运行的模式为生产模式
+    production  生产模式
+    development 开发模式
     app.set('view options', {
-
         // 不等于生成模式就是开发
         debug: process.env.NODE_ENV !== 'production' 
     })
 
-    3. 设置在哪一个目录下查找html文件(模板文件), 或者说设置模板存放目录为 views文件夹
+    // 3. 设置在哪一个目录下查找html文件(模板文件), 或者说设置模板存放目录为 views文件夹
     app.set('views', path.join(__dirname, 'views'));
 
-    4. 设置模板的(引擎)后缀名为html
+    // 4. 设置模板的(引擎)后缀名为html
     app.set('view engine', 'html');
 
     5. app.get('/', (req, res) => {
-        res.render('index');   通过render返回该模板
+        res.render('index');  //  通过render()返回该模板
     })
+```
 
-
+- art-template:
+```js
     // 粘贴复制用:
     app.engine('html', require('express-art-template'));
     app.set('view options', {
@@ -5889,17 +5954,39 @@ app.use(bodyParser.json());
     app.set('view engine', 'html');
  ```
 
+---
+
+ - pug:
+ ```pug 
+  | - views
+    - index.pug
+
+  //- 将模板引擎设置为 pug
+  app.set("view engine", "pug")
+
+  //- 设置模板存放目录为 views文件夹
+  app.set('views', path.join(__dirname, 'views'));
+  //- app.set("views", "./views")
+
+  //- 设置服务器端的静态资源文件夹 让前端通过 /lib/bootstrap 路径访问到bootstrap
+  app.use("/lib/bootstrap", express.static("node_modules/bootstrap/dist"))
+
+  app.get("/", (req, res) => {
+    res.render("index")
+  })
+```
+
 
 > 配置完成后的使用方式 和之前的对比
 ```js 
-    之前:
+    // 之前:
     app.get('/register', (req, res) => {
         let filePath = path.join(__dirname, 'views', 'register.html');
         let content = fs.readFileSync(filePath, 'utf-8');
         res.send(content)
     })
 
-    之后:
+    // 之后:
     app.get('/', (req,res) => {
         res.render('index');
     })  
@@ -5910,9 +5997,7 @@ app.use(bodyParser.json());
 ### art-template模板引擎传递数据 (动态后端渲染页面)
 - 之前我们都是通过 fs.readFileSync 的方式读取并响应回浏览器, 这种方式读取的文件是固定的, 不能修改
 
-- 但是我们开发中经常会遇到
-- 我们打开一个网页, 网页中的内容有部分是活的(比如新闻模块每天都会不一样), 这部分活的内容是从他们的数据库来的, 不是写死的
-- 也就是说我们返回的页面里面的内容, 有些也是可以从数据库传过来的
+- 但是我们开发中经常会遇到 我们打开一个网页, 网页中的内容有部分是活的(比如新闻模块每天都会不一样), 这部分活的内容是从他们的数据库来的, 不是写死的 也就是说我们返回的页面里面的内容, 有些也是可以从数据库传过来的
 
 - 我们在后端将从数据库拿到的数据, 传递给html文件, 在html文件里就可以使用这个数据, 这样就可以动态的获取后台的数据了
 
@@ -5926,18 +6011,10 @@ app.use(bodyParser.json());
     浏览器 --- 服务器 --- 数据库
     {{ }}   ←  传递  →  读取数据
  ```
-```js 
-    app.get('/', (req,res) => {
-
-        // 我们可以在接口中查询数据库, 得到数据后, 传递给模板, 展示在页面上
-        
-        res.render('index');
-    })  
- ```
 
 - 所以我们可以先定义一个模板, 就像vue那样(动态的地方留些空, 等着后台过来的数据填空), 然后模板.html文件展示到浏览器端
-```js 
-    定义首页的模板
+```js
+    // 定义首页的模板
     <h1>{{title}}<h1>
     <p>{{我是活动的内容}}</p>
 
@@ -5945,21 +6022,19 @@ app.use(bodyParser.json());
     {{}}
     {{}}
 
-    就类似这样创建很多的空的html文件
+    // 就类似这样创建很多的空的html文件
  ```
 
 
 
-> 使用方式
-- 后台通过 res.render('页面名', '数据库的数据')
+> 使用方式 res.render('页面名', '数据')
+- 后台通过 res.render('页面名', '数据') 这样通过 res.render() 方式渲染的html结构中就可以使用 template语法
+
 - 前端通过 {{属性名}}   取值
 
 - 之所以可以这样办到, 是因为有art-template的存在, 用来解析胡子语法的, 胡子语法也是基于 art-template的
-```js 
-    很像vue啊
-    前端和后端不要使用同一个模板
- ```
 
+- 很像vue啊 前端和后端不要使用同一个模板
 
 
 > 示例
@@ -5969,8 +6044,7 @@ app.use(bodyParser.json());
     // 使用 art-template 渲染响应主页
     app.get('/', (req,res) => {
 
-    实现后端渲染, 先模拟下数据库 假设这个数据是从数据库得到的, 
-    现在先把这个数据 传递到html文件里, 然后html文件就可以使用这个数据
+    // 实现后端渲染, 先模拟下数据库 假设这个数据是从数据库得到的, 现在先把这个数据 传递到html文件里, 然后html文件就可以使用这个数据
 
     let data = {
         num:1,
@@ -5986,45 +6060,50 @@ app.use(bodyParser.json());
     <h3>测试文本: {{num1}}</h3>
  ```
 
-> 注意模板语法中{{不要随意加空格}}!!!!!!!
+
+**注意:** 
+- 模板语法中{{不要随意加空格}}!!!!!!!
+
+
 > art-template 语法部分:
 - https://aui.github.io/art-template/zh-cn/docs/syntax.html
 - 多看看文档
 
 - 后台数据
-```js    
-    let data = {
-        num1:10,
-        num2:20,
-        user: {
-            name:'sam',
-            age:18,
-        },
-        books: ['西游记', '三国演义', '红楼梦', '水浒传']
-    }
+```js
+    app.get("/", (req, res) => {
+        let data = {
+            title:"首页",
+            content:"我是首页的内容",
+            user: {
+                name:'sam',
+                age:18,
+            },
+            books: ['西游记', '三国演义', '红楼梦', '水浒传']
+        }
+        res.render("index", data)
+    })
  ```
 
 > 取值 / 插值
 > {{ }}
 - 浏览器端使用胡子语法, 里面直接使用属性名
 - 传递的数据中有对象的话, 就可以就可以 user.name的方式获取到页面中
-- 注意:
-- 注释中不要使用{{}}要不一样会解析 会报错
-```js 
-    后台的数据格式是
-    let data = {
-        num1:10,
-        num2:20,
-        user: {
-            name:'sam',
-            age:18
-        }
-    }
 
-    {{num1}}
-    {{user.name}}
-    {{user.age}}
- ```
+**注意:**
+- 1. 注释中不要使用{{}}要不一样会解析 会报错
+- 2. 后台返回给前端的就是一个对象 我们从 {{}} 里面直接使用 对象里面的值 就可以
+
+- {{ data.num1 }}  -- x
+- {{num1}}         -- o
+
+```html
+<h3>{{title}}</h3>
+<div>
+    {{content}}
+</div>
+```
+
 
 - 胡子语法里还可以使用表达式
 ```js 
@@ -6032,7 +6111,7 @@ app.use(bodyParser.json());
  ```
 
 
-> 让请求回来的数据里的标签起作用
+> 让请求回来的数据里的标签起作用 v-html 吧
 > {{@数据}}
 - {{@newsData.digest}}
 
@@ -6040,16 +6119,37 @@ app.use(bodyParser.json());
 > <%- newsData.digest%>
 - 这是原始写法
 
+```html
+<body>
+    {{@tag}}
+</body>
 
-> 遍历
+<script>
+    app.get("/", (req, res) => {
+        let data = {
+            title: "首页",
+            content: "我是首页的内容",
+
+            // 这里
+            tag: "<div style='background: red'>我是div标签</div>"
+        }
+        res.render("index", data)
+    })  
+</script>
+```
+
+
+> 遍历 v-for
 - 数组中元素有多少个 被胡子标签包裹的区域就会循环多少次
+```js
 {{each 数组名}}
     <li>{{$index}}, {{$value}}</li>
 {{/each}}
+```
 
-- 这是把胡子语法当 each标签用了?
-    - $value就是数组中的每一个值
-    - $index就是下标
+- $value就是数组中的每一个值
+- $index就是下标
+
 ```js 
     <ul>
       {{each books}}
@@ -6059,15 +6159,17 @@ app.use(bodyParser.json());
  ```
 
 
-> 根据布尔值 展示对应标签与否
+> 根据布尔值 展示对应标签与否 v-if
 - 被if胡子标签包裹起来的部分会根据表达式的布尔值, 来决定内部的内容的渲染与否
 - 如果没渲染就页面上连节点也没有
+```js
 {{if num1 > num2}}
     <p>我是根据布尔值决定是否现实的文本</p>
 {{/if}}
-
+```
 
 - 根据user_info 要么展示上面, 要么展示下面
+```js
 {{if user_info}}
 
     <html部分1>
@@ -6077,22 +6179,23 @@ app.use(bodyParser.json());
     <html部分2>
 
 {{/if}}
+```
 
-
-> 过滤器
+> 过滤器 {{ value | 过滤器的名字 }}
 - 我们要使用到art-tamplate中的方法就要先引入, 然后才能用过滤器的方法
 ```js 
+    // 后台：
     const template = require('art-template');
  ```
 
-- {{ value | 过滤器的名字}}
 - 跟vue里面的很像, 都是把数据 '过滤 / 格式下' 再显示在html结构中
 - 比如时间, 数字, 后端传递过来的数据
 
 - 前端使用了过滤器 后台就要有对应的函数来进行处理
 
 > template.defaults.imports.函数名 = function(value) { ... }
-- 后台函数中的 value 形参 管的就是 前端 {{ 这个变量 |  }}
+- 后台函数中的 value 形参 管的就是 前端 {{ *这个变量* |  }}
+
 ```js 
     template.defaults.imports.函数名 = function(value) { 
 
@@ -6105,12 +6208,12 @@ app.use(bodyParser.json());
 
 > 过滤器的完整代码
 ```js 
-    后台:
-    1. 先引入 art-template
+    // 后台:
+    // 1. 先引入 art-template
     const template = require('art-template');
 
-    2. 调用template的过滤器函数
-    template.defaults.imports.fn = function(value) {
+    // 2. 调用template的过滤器函数
+    template.defaults.imports.fn(过滤器函数名) = function(value) {
         return value * 4;
     }
 
@@ -6122,46 +6225,46 @@ app.use(bodyParser.json());
     })
 
 
-    前端:
-    3. 前端模板中使用 {{数据 | 过滤器}}
+    // 前端:
+    // 3. 前端模板中使用 {{数据 | 过滤器}}
     <h3>{{num | fn}}</h3>
  ```
 
 ----------------------
 
-### 路由接口的抽取工作
+### 后台路由 router
 - 上面我们把所有的路由相关的接口设置都放在index.js(入口文件)中, 这样以后入口文件会越来越不清晰, 开发的时候 我们的入口文件要尽可能的保持简洁
+
 - 一般项目的入口文件叫 main.js 或者 app.js
 
 - 接口的代码的抽离 需要使用到 router , 而router是在express框架里面
 
-- 使用方式
-- 1. 在项目下创建 router文件夹
-```js 
-    里面按功能来分接口模块
-    比如我们可以
-    验证相关的来个模块
-    首页也当做个模块等等
+> 使用方式
+> 1. 在项目下*创建 router 文件夹*
+- 作用:
+- 按照项目功能来创建对应的 js模块
+- *每个模块都需要 导出 引入 注册*
+<!-- 
+    - 里面按功能来分接口模块 比如我们可以验证相关的来个模块 首页也当做个模块等等
+    - 在router文件夹下按照功能创建 passport.js 对应的js文件(不是必须创建这个文件名)
 
-    每个模块都需要 导出 引入 注册
- ```
- 
-- 2. 在router文件夹下创建 passport.js 文件(不是必须创建这个文件名)
-```js 
     | - router
         - passport.js
         - 跟验证相关的代码交给passport模块来处理(登录 注册等)
 
+        - index.js
         - 跟首页相关的逻辑 可以创建一个index.js文件, 我们只是根据统一的功能去创建路由文件
- ```
+ -->
 
-- 3. 我们把跟验证相关的接口代码 剪切粘贴到 possport.js 文件中
-- 3.1 引入express
-- 3.2 创建router对象
-- 3.3 将所有的app接口都交给router对象去管理
-```js 
-    将原先的app.get中的app 都改成router
- ```
+
+> 2. 接口功能模块中 引入express 创建路由对象 router
+> express.Router()
+- 路由也就是路径管理
+- 返回router对象 (创建 保安大爷)
+
+- 该js文件中 所有接口的管理方式 由 app.get -> router.get
+- 也就是将所有的 路径 交由 保安大爷来管理
+
 ```js 
     // passport.js:
     const express = require('express');
@@ -6172,56 +6275,62 @@ app.use(bodyParser.json());
         ...
     })
 
-    ↓ 改成 router
+    // ↓ 改成 router
 
     router.get('/register', (req, res) => {
         ...
     })
+ ```
 
-    解析:
-    码是粘贴过来了, 但是这里没有app怎么办? 没有app就没有下面的app.get等方法
+ - 解析:
+    代码是粘贴过来了, 但是这里没有app怎么办? 没有app就没有下面的app.get等方法
 
     交给router去处理, router在express框架里面 所以我们先要引入express框架, 然后调用express.Router()方法 创建router对象
 
     创建完router后, 所有的接口都交给router去管理, 以前的app.get的app都换成router
- ```
 
-- 4. 将passport文件中的router对象导出 module.exports = router;
-- 5. 在入口js文件中导入
-- 6. 将引入的路由注册到app下
+> 3. 代码的最后将接口功能模块中router对象 暴露
+```js
+module.exports = router;
+```
+
+> 4. 在入口js文件中导入router 并注册到app下
+- 将验证相关的代码都拷到passport.js文件中了, 但是跟我们的入口js文件没有关联所以我们要将passport.js中的router导出, 然后在入口文件中导入
+
 ```js 
-    将验证相关的代码都拷到passport.js文件中了, 但是跟我们的入口js文件没有关联所以我们要将passport.js中的router导出, 然后在入口文件中导入
-
-    passport文件的最后:
-    module.exports = router
-
-
-    入口js文件中:
+    // 入口js文件中:
     const passportRouter = require('./router/passport')
 
     // 把路由对象注册到app下
     app.use(passportRouter);
-
  ```
 
-> 注意:
+> 注册路由时的参数
+> app.use("/api", 路由文件)
+- 这么设置后 只有通过 /api 才能访问后面路由(router)所管理的路径
+```js
+    localhost:3333/api/getUser
+```
+
+> app.use(钩子函数, 路由文件)
+- 这么设置后 在访问路由文件前 会先执行钩子函数
+
+
+
+**注意:**
 - 我们将接口部分的代码剪切粘贴到了passport文件中, 所以对应的需要的path模块等别忘了也粘贴过去
 
 - 读取文件的路径问题, 因为__dirname 是当前文件也就是从passport.js文件去找, 所以路径也需要注意
 ```js 
-    入口js文件中以前是这么写的
+    // 入口js文件中以前是这么写的
     let filePath = path.join(__dirname, 'views', 'register.html');
 
-    现在在passport文件中 回退下
+    // 现在在passport文件中 回退下
     let filePath = path.join(__dirname, '../views', 'register.html');
  ```
 
-> passport.js代码部分
-- 开始的时候我些担心 在router文件里(passport.js)能不能用res.render()的方法
-- 因为配置都是在入口文件里面做的
-- 实验了下 在另一个文件中也可以使用res.render()方法
 
-- 因为这个路由文件已经导出并在入口js文件中注册了, 所以它们之间的功能是想通的吧
+> passport.js代码部分
 ```js 
     const express = require('express');
     const path = require('path')
@@ -6261,12 +6370,39 @@ app.use(bodyParser.json());
     module.exports = router;
  ```
 
+> main.js 部分
+```js
+const express = require("express")
+const {resolve} = require("path")
+const fs = require("fs")
+
+// 导入 router
+const router = require("./router/passport")
+const app = express()
+
+app.engine("html", require("express-art-template"))
+app.set("views", resolve(__dirname, "views"))
+app.set("view engine", "html")
+
+app.use(express.urlencoded({extended: false}))
+app.use(express.json())
+
+app.use(express.static("public"))
+
+// 注册 router
+app.use(router)
+
+app.listen(3333, () => {
+  console.log("服务器已开启")
+})
+```
+
 ----------------------
 
 ### 处理请求之前的钩子函数
-- 钩子函数是某一类函数并不特质声明周期函数, 钩子函数是, 执行某一个函数之前和之后肯恩过会执行其他指定的函数, 这类函数我们称为钩子函数
+- 钩子函数是某一类函数并不是生命周期函数, 钩子函数是, *执行某一个函数之前和之后肯定会执行其他指定的函数*, 这类函数我们称为钩子函数
 
-- 如果在执行处理请求的函数之前想执行一些代码, 例如验证是否已经登录的工作
+- 如果在执行处理请求的函数之前想执行一些代码, *例如验证是否已经登录的工作*
 
 
 > 简单的回顾下 路由的使用
@@ -6296,14 +6432,19 @@ app.use(bodyParser.json());
 
 > 处理请求之前的钩子函数
 - 上面简单的回忆了一下 我们路由相关的配置, 再回归正题
-- 假如我想在执行 passport.js(路由文件) 的代码之前执行一个函数
+- *假如我想在执行 passport.js(路由文件) 的代码之前执行一个函数*
 
 
 > app.use(fn, 路由文件模块)
-- fn为定义的函数, 函数内部会有三个参数, req res next
-- 这样在执行路由文件模块里面的函数之前就会执行fn这个函数的代码
+- fn为自定义定义的函数, 该函数 肯定会在执行 路由文件模块之前被调用
 - 如果定义的fn函数执行失败了, 后面的路由文件模块的代码就不会被执行
+
+**注意:**
 - 定义的fn函数 里面的逻辑执行完后, 必须调用next() 才能进入到路由文件模块的代码逻辑
+
+- 参数:
+- 函数内部会有三个参数 (req, res, next) => {}
+
 ```js 
     function fn(req, res, next) {
         console.log('执行passportRouter路由接口函数之前先执行这句话')
@@ -6321,9 +6462,6 @@ app.use(bodyParser.json());
 ```js 
     const app = express();
 
-    // 在执行下面的passport之前 我想执行这样的函数, 这个函数也有三个参数
-    req res next
-
     function fn(req, res, next) {
         console.log('执行passportRouter路由接口函数之前先执行这句话')
 
@@ -6338,12 +6476,29 @@ app.use(bodyParser.json());
     })
  ```
 
+> 代码部分:
+```js
+// 钩子
+function output(req, res, next) {
+  console.log("我要进入啦")
+  next()
+}
+
+app.use(output, router)
+```
+
+> 扩展:
+- 一个接口中 app.get("/接口", 回调1, 回调2) 好像也可以这样
+
+
+> 使用场景
 > 那这样的函数有什么用呢? 守卫 和 拦截
 - 网站上的有些功能需要登录之后才能够使用(比如收藏, 关注)
-- 这个功能可以校验你是否登录了, 没有没登录, 就不给你调用收藏的接口, 和关注的接口
+- *这个功能可以校验你是否登录了, 没有没登录, 就不给你调用收藏的接口, 和关注的接口*
+
 ```js 
     function fn(req, res, next) {
-        我可以在进去收藏 和 关注的接口之前对身份进行验证 看看用户是否已登录
+        // 我可以在进去收藏 和 关注的接口之前对身份进行验证 看看用户是否已登录
         if(没有登录) true就是没有登录
 
         if(true) {
@@ -6353,6 +6508,7 @@ app.use(bodyParser.json());
             return  
         }
 
+        // 如果 登录了 就放行 可以浏览 路由文件中的接口
         next();
     }
 
@@ -6360,7 +6516,7 @@ app.use(bodyParser.json());
     app.use(fn, passportRouter);
  ```
 
-- 上面的函数就是钩子函数(一个环节断了后面的就不会执行), 钩子函数也不会放在入口文件中, 会被作为工具函数抽取出去
+- 上面的函数就是钩子函数(一个环节断了后面的就不会执行), *钩子函数也不会放在入口文件中, 会被作为工具函数抽取出去*
 
 
 > 关于工具函数的抽取
@@ -6369,7 +6525,7 @@ app.use(bodyParser.json());
 - 建立 index.js 文件(放工具函数)
 
 ```js 
-    utils 文件夹 -- index.js文件
+    // utils 文件夹 -- index.js文件
 
     // 校验登录
     function fn(req, res, next) {
@@ -6379,6 +6535,7 @@ app.use(bodyParser.json());
         }
         next();
     }
+
     // 利用对象的格式 未来还有其他工具还可以继续导出
     module.exports = {
         fn,
@@ -6388,41 +6545,42 @@ app.use(bodyParser.json());
 
     // 入口文件中
     const utils = require('./utils/index.js');
-    - 如果文件名是index 那么可以省略 require('./utils); 成这样
+    // 如果文件名是index 那么可以省略 require('./utils); 成这样
 
     // 使用的时候是utils.fn
     app.use(utils.fn, passportRouter);
  ```
 
-> 钩子函数的执行实际在请求 后面的路由文件之前会执行
+> 钩子函数的执行实际在请求后面的路由文件之前会执行
 
 ----------------------
 
-### pathname(pathinfo) 风格的参数的获取
+### pathname(pathinfo) 风格的*参数*的获取
 - 前面我们学习了获取get请求的参数, post请求的参数, 还有一种叫做 pathinfo风格的参数(也是get请求参数的一种), 也叫pathname参数
 
-- 应用场景:
+> 应用场景:
 - 我们进到新闻页面, 那新闻页面在后端就有一个接口, 我希望点击一篇文章的标题就会在浏览器显示一篇文章或跳到一个对应的页面
-- 同时我们不希望一篇文章创建一个接口, 我们希望都在新闻页面的接口里面处理
-- 那么 我们就需要一个能匹配接收新闻页面内的所有子新闻的接口 动态路由
 
-- 思路:
-- 我们给每一个链接设置点击的时候传递id到后端, 后端通过id去数据库查询数据, 读取之后渲染到页面上
-- 那怎么把id传进后端呢?
+- 同时我们不希望一篇文章创建一个接口, 我们希望都在新闻页面的接口里面处理
+- 那么 我们就需要一个能匹配接收新闻页面内的所有子新闻的接口 *动态路由*
+
+> 思路:
+- 我们给每一个链接设置点击的时候传递id到后端, 后端通过id去数据库查询数据, 读取之后渲染到页面上 那怎么把id传进后端呢?
+
 
 > 前端传递参数
 - 可以传递id和type
 - <a href='/detail/id/type'>
 - <a href='/detail/1/music'>
 
-- 1. 方式1: 使用?在请求地址后拼接
-```js 
+> 1. 方式1: 使用?在请求地址后拼接 vue - query参数的写法
+```js  
     <li><a href='/detail'>这是第一篇新闻标题</li>
 
     <a href='/detail?id=1'>
  ```
 
-- 2. 方式2: 使用pathinfo的格式
+> 2. 方式2: 使用pathinfo的格式 vue - params参数的写法
 ```js 
     <li><a href='/detail'>这是第一篇新闻标题</li>
 
@@ -6430,67 +6588,55 @@ app.use(bodyParser.json());
  ```
 
 
-> 后台设置接口
+> 后台设置接口的时候 需要声明接收
+
 - app.get('/detail/:id/:type')
 ```js 
     app.get('/detail/:id/:type', (req,res) => { ... }
  ```
 
+- 声明接收到的参数就会在 req.params 对象中
+<!-- 
+    req.query:  对应 ?参数
+    req.params: 对应 /id/type
+    req.body:   对应 请求体参数
+ -->
 
-> 后台读取前端传递的参数
-- req.params
-```js 
-    <li><a href='/detail/2/movie'>这是第二篇新闻标题</li>
 
-    app.get('/detail/:id/:type', (req,res) => { 
+> 后台读取前端传递的参数 req.params
 
-
-        这里完整的逻辑应该是, 根据我们取到的id 去查询数据库, 获取这篇文章的内容, 传到模板html中去
-        
+```js
+     app.get('/detail/:id/:type', (req,res) => { 
+        // 这里完整的逻辑应该是, 根据我们取到的id 去查询数据库, 获取这篇文章的内容, 传到模板html中去
         console.log(req.params)     // { id: '1', type: 'music'}
      }
+
+    <li><a href='/detail/2/movie'>这是第二篇新闻标题</li>
  ```
 
-> 接口中的完整代码
+
+- 接口中的完整代码
 ```js 
     app.get('/detail/:id/:type', (req,res) => {
+    /*
+        在这里需要知道要获取的是哪一篇文章, 所以在请求这个detail页面的时候需要传递参数 传递这篇新闻id最好 也就是说点击新闻标题1的时候 进去新闻1的页面 那怎么把id传进后端呢?
 
-    在这里需要知道要获取的是哪一篇文章, 所以在请求这个detail页面的时候需要传递参数 传递这篇新闻id最好
+        第一种方式
+        <a href='/detail?id=1'>
 
-    也就是说点击新闻标题1的时候 进去新闻1的页面 那怎么把id传进后端呢?
-    <li><a href='/detail'>这是第一篇新闻标题</li>
+        第二种方式(pathinfo)
+        <a href='/detail/1'>
 
-    第一种方式
-    <a href='/detail?id=1'>
+        可是我前端页面提交的地址是 '/detail/1' 后端的接口是 '/detail' 
+        接口和请求地址匹配不上的话, 就进不来 那怎么才能让接口和动态的请求地址对应呢(动态路由), 所以后端的接口要写
 
-    第二种方式(pathinfo)
-    <a href='/detail/id'>   /后直接写id
-    <a href='/detail/1'>
+        app.get('/detail/:id')
+        这样detail/后面的值就被认定为id 后台可以通过 req.params获取id值
+        console.log(req.params) // { id: '1' }
 
-    可是我前端页面提交的地址是 '/detail/1'
-    后端的接口是 '/detail' 
-
-    接口和请求地址匹配不上的话, 就进不来
-
-    那怎么才能让接口和动态的请求地址对应呢(动态路由), 所以后端的接口要写
-    app.get('/detail/:id')
-    这样detail/后面的值就被认定为id
-
-    后台可以通过 req.params获取id值
-    console.log(req.params) // { id: '1' }
-
-    req.params.id 就是 1
-
-    之后的逻辑就是 根据我们取到的id 去查询数据库, 获取这篇文章的内容, 传到模板html中去
-
-    不仅仅可以/detail/1传id == '/detail/:id'
-    还可以接着传递类型 比如
-    <li><a href='/detail/1/music'>这是第一篇新闻标题</li>
-    <li><a href='/detail/1/movie'>这是第一篇新闻标题</li>
-
-    后台接口对应的就是
-    '/detail/:id/:type'
-
+        之后的逻辑就是 根据我们取到的id 去查询数据库, 获取这篇文章的内容, 传到模板html中去
+    */  
+    
     console.log(req.params);
     res.send('我是新闻详情页面'+req.params.id);
 })
@@ -6504,10 +6650,6 @@ app.use(bodyParser.json());
 - 而其他的页面继承 父模板(base模板), 这就是模板的继承
 
 - base.html是整个网站中可以公共的一些内容放在base.html文件里
-```js 
-    可以设计为网页的模板页，包括固定的头部样式和底部样式，以及需要的一些连接，可以通过 {{ block ‘name’ }}默认内容{{ /block }} 给继承了模板网页的子网页设计 留空 部分，让其自由插入，最后在浏览器中会将两个网页整合成为一个网页
- ```
-
 
 ```js 
     +----------------------------+
@@ -6529,23 +6671,29 @@ app.use(bodyParser.json());
     +----------------------------+
  ```
 
-- 1.
-> {{extend './fml.html'}}
-- 在子模板中就写这么一句话, 路径是父模板的
-- 相当于把父模板中的代码复制一遍粘贴到了子模板中
+
 ```js 
-    服务器的子模板的接口
+    // 服务器的子模板的接口
     app.get('/fml_child1', (req, res) => {
         res.render('fml_child1');
     })
  ```
 
+> 1. 父模版中使用 {{block 'name'}} ... {{/block}} 将动态部分暴露出去
+- 这样子模板同样可以使用 {{block 'name'}} ... {{/block}} 替换掉其中的内容 达到动态的效果
 
-- 2.
-- 那复制过来 两个一样的页面有什么用呢? 中间的部分不是不一样么
-> {{block 'name'}} ... {{/block}}
+
+> 2. 在子模板中 使用 继承语法 继承 公共部分
+> {{extend './fml.html'}}
+- 填入父模版路径
+- 在子模板中就写这么一句话, 路径是父模板的 相当于把父模板中的代码复制一遍粘贴到了子模板中
+
+
+- 3. 
+> 子模板中使用 {{block 'name'}} ... {{/block}} 拿到父模板中暴露的内容 替换为自己要的内容
 - 在父模板中, 想要和父模板内容不一样的地方, 需要用block胡子标签括起来
 - 把括起来的部分在子模板中重写
+
 ```js 
     父模板:
     {{block 'content'}}
@@ -6559,10 +6707,6 @@ app.use(bodyParser.json());
     {{/block}}
  ```
 
-
-- 3. 
-- 在子模板中 把2中block胡子标签括起来的部分拿到子模板中重写
-- 在子模板中除了重写"活"的部分, 如果还想再写其他的内容好像还要用{{block 'name'}} {{/blocl}}括起来在这个标签里的内容继续写其他内容
 ```js 
     子模板:
     {{extend './fml.html'}}
@@ -6575,9 +6719,9 @@ app.use(bodyParser.json());
     {{/block}}
  ```
 
-> 一般渲染的都是子模板, 不要去渲染base.html(这个是用来拿来用的)
-
-> 如果子模板中要写自己的样式, 那就在base.html中留坑
+> 要点:
+- 1. 一般渲染的都是子模板, 不要去渲染base.html(这个是用来拿来用的)
+- 2. 如果子模板中要写自己的样式, 那就在base.html中留坑
 ```js 
     <head>
         {{block 'cssarea'}}
@@ -6591,6 +6735,7 @@ app.use(bodyParser.json());
     {{ /block }}
  ```
 
+
 > 开发流程:
 - 前端切页面 比如会会有一些 index.html list.html 后台先不用去考虑去创建模板, 在哪创建模板 页面切好了之后 我们再去观察哪些地方需要抽成模板, 而不是说上来就定义模板的, 肯定有整套的模板之后, 再去换
 
@@ -6600,7 +6745,8 @@ app.use(bodyParser.json());
 
 ### 状态保持技术 cookie 和 session
 - 因为http是一种无状态协议, 浏览器请求服务器是无状态的
-```js 
+
+```
     浏览器      第一次向服务器发起请求      服务器
     浏览器      第二次向服务器发起请求      服务器
 
@@ -6612,10 +6758,10 @@ app.use(bodyParser.json());
     进到子页面后能保持登录的状态 有一部分是cookie的功劳 
  ```
 
-- 无状态:
+> 无状态:
 - 指一次用户请求时, 浏览器, 服务器无法知道之前这个用户做过什么, 每次请求都是一次新的请求
 
-- 无状态的原因:
+> 无状态的原因:
 - 浏览器与服务器是使用socket套接字进行通信的(http底层是基于tcp的而tcp传输时使用的是socket技术), 服务器将请求结果返回给浏览器之后, 会关闭当前的socket, 而且服务器也会在处理页面完毕之后销毁页面对象
 
 - 有时需要保持下来用户浏览的状态, 比如用户是否登录过, 浏览过哪些商品等
@@ -6623,39 +6769,40 @@ app.use(bodyParser.json());
 - 1. 在客户端存储信息使用cookie
 - 2. 在服务器存储信息使用session
 
-```js 
-    无状态协议:
-    1. 协议对于事物处理没有记忆能力
-    2. 对同一个url请求没有上下文关系
-    3. 每次的请求都是独立的, 它的执行情况和结果与前面的请求和之后的请求是无直接关系的, 它不会受前面的请求应答情况直接影响, 也不会直接影响后面的请求应答情况
-    4. 服务器中没有保存客户端的状态, 客户端必须每次带上自己的状态去请求服务器
-    5. 人生若只如初见
- ```
+
+> 无状态协议:
+- 1. 协议对于事物处理没有记忆能力
+- 2. 对同一个url请求没有上下文关系
+- 3. 每次的请求都是独立的, 它的执行情况和结果与前面的请求和之后的请求是无直接关系的, 它不会受前面的请求应答情况直接影响, 也不会直接影响后面的请求应答情况
+- 4. 服务器中没有保存客户端的状态, 客户端必须每次带上自己的状态去请求服务器
+- 5. *人生若只如初见*
+
 
 > cookie
-- 特点:
-- 1. cookie由服务器生成, 保存在浏览器端的一小段文本信息
+> 特点:
+- 1. cookie由服务器生成, *保存在浏览器端的一小段文本信息*
 - 2. cookie是以键和值的形式进行存储的(服务器在响应浏览器的请求时可以设置cookie)
-```js 
+
+```
     服务器响应回的信息中, 设置好的cookie被放在了响应报文中的响应头里面
     响应头是以键值对的方式存在, cookie也是键值对的形式
 
     然后浏览器会自动把设置的cookie信息保存在浏览器中
-
-    再之后向这个服务器发送请求的时候 就会带着这个网站的相关cookie发送请求
-    在请求头中
+    再之后向这个服务器发送请求的时候 会自动携带着这个网站的相关cookie发送请求 在请求头中
 
     这样发送给服务器后 服务器会取到cookie看到之前设置的键值对, 这次请求的来源就是之前的浏览器 这样就能做到状态保持
  ```
 
 
 - 3. 浏览器在访问一个网站的服务器时, 会自动在请求头中把和本网站相关的所有cookie发送给服务器
+
 - 4. cookie是基于域名安全的
 ```js 
     访问百度只会带着百度的cookie信息发送请求
     访问淘宝只会带着淘宝的cookie信息发送请求
  ```
-- 5. cookie有过期时间, 默认关闭浏览器之后过期
+
+- 5. cookie有过期时间, *默认关闭浏览器之后过期*
 
 ```js 
     +---------+                                     +---------+
@@ -6675,7 +6822,8 @@ app.use(bodyParser.json());
     +---------+                                     +---------+
  ```
 
-- 设置cookie和获取cookie都是在服务端做的
+- *设置cookie和获取cookie都是在服务端做的*
+
 
 > Cookie的设置 和 获取
 - 1. 安装和引入 cookie-parser
@@ -6689,11 +6837,20 @@ app.use(bodyParser.json());
     app.use(cookieParse());
  ```
 
-
+> 通过响应对象设置cookie
 > res.cookie('键名', '键值', {maxAge: 过期时间ms})
 - 在**响应对象**中给浏览器设置cookie, 在响应头中发送过去
 - 并可以设置cookie的失效时间, 默认浏览器关闭
 - 设置过期时间的单位是ms, 浏览器中显示的是s
+
+- 还可以设置 httpOnly
+```js
+{
+    maxAge: 2000000,
+    httpOnly: true
+}
+```
+
 ```js 
     // 设置多个cookie要分多条来进行
     res.cookie('name', 'sam', {maxAge: 1000*60*60});
@@ -6701,14 +6858,14 @@ app.use(bodyParser.json());
     // 因为没有设置过期时间, 关闭浏览器后就失败了
     res.cookie('age', 11);
 
-    Set-Cookie: name=sam; Max-Age=3600; Path=/; Expires=Sat, 29 May 2021 05:06:48 GMT
+    // Set-Cookie: name=sam; Max-Age=3600; Path=/; Expires=Sat, 29 May 2021 05:06:48 GMT
  ```
 
 
 > req.cookies
 - 在**请求对象**中获取cookie
 ```js 
-    log('req.cookies')      // { name: 'sam', age: '11' }
+    log(req.cookies)      // { name: 'sam', age: '11' }
 
     let name = req.cookies.name;
     let age = req.cookies['age'];
@@ -6749,23 +6906,43 @@ app.use(bodyParser.json());
 - 3. app中注册cookie-parser
 - 4. 通过res.cookie设置cookie, 通过req.cookies获取cookie
 
+
+> 简单的使用
+```js
+router.get("/", (req, res) => {
+
+  let {token} = req.cookies
+  // 如果没有 token
+  if(!token) {
+    res.redirect("/login")
+    return
+  }
+
+  let data = {
+    title: "首页",
+    content: "我是首页的内容",
+    tag: "<div style='background: red'>我是div标签</div>"
+  }
+  res.render("index", data)
+})
+```
+
 ---
 
 ### session
 - session是依赖于cookie的
-- session的信息真正是保存在服务端的, 它会在服务器中开辟一个空间用来保存session的数据, 这个空间会用 标识 来标记(跟对象和地址值似的)
+- *session的信息真正是保存在服务端的*, 它会在服务器中开辟一个空间用来保存session的数据, 这个空间会用 标识 来标记(跟对象和地址值似的)
+
 - 在这个空间里, 使用 键值对 的形式 存放着session数据(name=sam)
+
 ```js 
     比如上面使用 cookie 的方式的时候, 键值在浏览器的请求头和响应头中看的一清二楚
     name=sam
-    
     也能侧方面反应出 用户的信息放在cookie中不安全, 不太好
  ```
 
 - 上面说了 为了标记服务器开启的空间存储的session数据, 对这个空间使用了 标识
-- 这个标识会保存在cookie当中, 随着cookie响应回浏览器端, 也会随着cookie向服务端发起请求
-
-- 也就是说将来保存在浏览器中的并不是session的数据 而是数据的标识
+- 这个标识会保存在cookie当中, 随着cookie响应回浏览器端, 也会随着cookie向服务端发起请求 也就是说将来保存在浏览器中的并不是session的数据 而是数据的标识
 
 - 当第二次发送请求的时候, 浏览器会带着网站的相关cookie信息, 这个cookie信息里面有session数据的标识, 服务器再拿着这个标识去找对应的数据
 
@@ -6801,30 +6978,36 @@ app.use(bodyParser.json());
 
 
 > session的使用
-- 1. 安装和引入 cookie-session
+> 1. 安装和引入 cookie-session
+- npm i cookie-session
 ```js 
     const cookieSession = require('cookie-session')
  ```
 
-- 2. 注册到app中, 并进行配置参数是{ options }
+> 2. 注册到app中, 并进行配置参数是{ options }
+> app.use(cookieSession({配置对象}))
+
 - 参数
 - name  作为键名保存在cookie中
 - keys  作为键值保存在cookie中(里面是我们保存在服务器空间内的数据)
         keys是数组, 内部是一个随便敲的字符串, 内部会对我们输入的字符串进行加密
         然后作为cookie中的键值
-```js 
-    name: exer_session
-    keys: ['1241gv2k1g2y1gvj21vhf']
 
-    cookie中的键值对的呈现为
-    exer_session=eyJuYW1lIjoiZXJpbiIsImFnZSI6MTh9
+```js 
+    {
+        name: exer_session
+        keys: ['1241gv2k1g2y1gvj21vhf']
+        maxAge: 1000 * 60 * 60
+    }
+   
+    // cookie中的键值对的呈现为
+    // exer_session=eyJuYW1lIjoiZXJpbiIsImFnZSI6MTh9
  ```
 
 - maxAge:
-        整体的过期时间的设置
-```js 
+    整体的过期时间的设置
     尽管我们可以在一个空间内存储多个键值对, 这多个键值对都是作为一个标识符保存在cookie中 所以对于cookie来将只有一个键值对, 这一个键值对的过期时间是同一设置的
- ```
+
 
 > 完整的注册方式
 ```js 
@@ -6837,6 +7020,8 @@ app.use(bodyParser.json());
 
 
 > 设置 session 信息
+- 我们是通过 req 对象设置 session 的
+
 > req.session['属性名'] = '值'
 ```js 
     - req.session['name'] = 'sam'
@@ -6845,6 +7030,8 @@ app.use(bodyParser.json());
 
 
 >获取 session 信息
+- 我们是通过 req 对象获取 session 的
+
 > req.session['属性名']
 ```js 
     let name = req.session['name']
@@ -6870,8 +7057,32 @@ app.use(bodyParser.json());
     })
  ```
 
+> 总结:
+- 1. 在注册 session 的时候 我们需要指定 保存在浏览器端的 session 的标识符
+```js
+app.use(cookieSession({
+  name: "token",
+  keys: ["asdflakdsjfldakjf"]
+}))
+```
 
-### 案例: 登录成功后可以做一个状态保持
+- 2. session 的设置 和 获取 都是在接口中操作的
+```js
+// 设置 跟操作对象一样
+req.session.token = "asdfadsf111"
+
+// 获取 
+console.log(req.session.token)
+```
+
+
+> 案例: 登录成功后可以做一个状态保持
+> 要点:
+- 登录成功后 设置一个session 然后跳转到首页
+- 在请求首页的时候 先获取是否有session 如果没有应该怎么样
+
+- 一个接口中 可能有 get post 的逻辑 我们可以通过 req.method 来进行分发
+
 ```js 
     if(req.method === 'POST') {
         // 获取用户填写的用户名和密码
@@ -6909,9 +7120,7 @@ app.use(bodyParser.json());
 - 2. 读写速度极高
 - 3. 保证数据的有效性
 - 4. 对程序支持性非常好, 容易扩展
-```js 
-    内存的读取要比硬盘快 redis就是内存型的数据库
- ```
+- 内存的读取要比硬盘快 *redis就是内存型的数据库*
 
 ----------------------
 
@@ -6921,12 +7130,13 @@ app.use(bodyParser.json());
                                                 数据库文件件1
                       SQL                   ↗
       数据库客户端            数据库服务器      
-                     网络                   ↘
+                      网络                   ↘
                                                 数据库文件件2
   
  ```
 
 - 数据库管理系统(database management system) 是为管理数据库而设计的软件系统, 包括三大部分构成
+
 - 1. 数据库文件集合:
         主要是一系列的数据文件, 作用是存储数据
 
@@ -6948,6 +7158,7 @@ app.use(bodyParser.json());
 - 2. 数据列(字段)
 - 3. 数据表(数据行的集合)
 - 4. 数据库(数据表的集合)
+
 ```js 
     我们可以想象下excel文件
     每一行成为记录
@@ -6979,22 +7190,24 @@ app.use(bodyParser.json());
 - 数据控制语言, 进行授权与权限回收, 如grant revoke
 
 - 对于web程序员来将, 重点是数据的crud, 必须熟练编写DQL DML能够编写DDL完成数据库, 表的操作, 其它语言如TPL DCL CCL了解即可
-```js 
+
+```
     不区分大小写
  ```
 
 ----------------------
 
 ### Mysql的安装和配置
-- 1. 解压
+> 1. 解压
 - 下载解压到自定义目录, 不要出现中文
-```js 
-    比如: E:\MYSQL\mysql-5.6.41-winx64
 
+```js 
+    比如: 
+    E:\MYSQL\mysql-5.6.41-winx64
     D:\MYSQL\mysql-5.6.41-winx64
  ```
 
-- 2. 配置文件
+> 2. 配置文件
 - my-default.ini文件名修改为 my.ini
 - 复制下面内容, 覆盖到my.ini
 ```js 
@@ -7018,7 +7231,7 @@ default-storage-engine=INNODB
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  ```
 
-- 3. 安装
+> 3. 安装
 - 以管理员身份启动 cmd , 进入到mysql的下的bin目录下, 执行
 ```js 
     e:
@@ -7028,14 +7241,15 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - mysqld --install mysql --defaults-file="D:\MYSQL\mysql-5.6.41-winx64\my.ini"
 ```js 提示service successfully installed即安装成功 ```
 
-- 4. 使用
+> 4. 使用
 - 启动 停止 卸载mysql服务的命令
+
 - 1. 启动:  net start mysql
 - 2. 停止:  net stop mysql
 - 3. 删除:  mysqld -remove
 - 4. 退出:  exit
 
-- 5. 进入到自己的数据库? mysql -uroot -p
+> 5. 进入到自己的数据库? mysql -uroot -p
 ```js 
     提示错误的时候这么操作试试
     然后将mysql加入到Windows的服务中。切换到mysql安装目录下的bin文件夹，
@@ -7044,11 +7258,11 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
     C:\Program Files\MySQL\MySQL Server 5.6\bin>mysqld --install
  ```
 
-- 5. 配置两个环境变量
+> 5. 配置两个环境变量
 - 为了以后方便通过 mysql -uroot -p 就可以连接mysql服务, 使用数据库命令对数据进行操作
 
-    - 5.1 新建变量名: MYSQL_HOME
-          变量值: E:\MYSQL\mysql-5.6.41-winx64
+    - 新建变量名: MYSQL_HOME
+    - 变量值: E:\MYSQL\mysql-5.6.41-winx64
 
 ----------------------
 
@@ -7070,6 +7284,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 字符串:   varchar char text
 - 日期时间: data time datetime
 - 枚举类型: enum
+
 ```js 
     枚举就是列举
     比如性别这个字段 没办法确定是男 女 中性等, 所以我们可以用 enum 性别会是这几个中的一个(将可能出现的值列举出来)
@@ -7160,7 +7375,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > 创建表
 - create table 数据表的名字(字段 类型 约束[, 字段 类型 约束]);
-```js 
+```sql
     int unsigned   无符号整形
     auto_increment 表示自动增长跟主键在一起
     not null       表示不能为空
@@ -7184,9 +7399,8 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > 修改表 --- 添加字段
 - alter table 表名 add 列名 类型 约束;
-```js 
-    给classes表添加mascot字段
-
+```sql
+    -- 给classes表添加mascot字段
     alter table classes add mascot varchar(50);
  ```
 
@@ -7195,28 +7409,28 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - alter table 表名 modify 列名 类型 约束;
 - 修改字段的时候, 类型是必须写的 约束可以不写
 - 比如我只是要改约束的时候, 也要把类型带上
-```js 
+```sql
     alter table classes modify mascot varchar(100);
  ```
 
 
 > 修改表 --- 修改字段: 重命名版
 - alter table 表名 change 原名 新名 类型 约束;
-```js 
+```sql
     alter table classes change mascot jxw int unsigned;
  ```
 
 
 > 修改表 --- 删除字段
 - alter table 表名 drop 列名;
-```js 
+```sql
     alter table classes drop jxw;
  ```
 
 
 > 删除表
 - drop table 表名;
-```js 
+```sql
     drop table test;
  ```
 
@@ -7224,13 +7438,16 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > 示例
 - 创建一个班级的表(有 id name 两个字段)
-```js 
-    create table classes(id int unsigned primary key auto_increment, name varchar(30) not null);
+```sql
+    create table classes(
+        id int unsigned primary key auto_increment, 
+        name varchar(30) not null
+    );
  ```
 
 
 - 创建一个学生的表(有 id name age high gender cls_id 这些字段)
-```js 
+```sql
     create table students(
         id int unsigned primary key auto_increment, 
         name varchar(30) not null, 
@@ -7248,18 +7465,17 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > 全列插入
 - insert into 表名(字段1, 字段2) value(值1, 值2);
-```js 
-    主键字段 可以用0 null default 来占位,
-
-    字段1 和 值1 对应
+```sql
+    -- 主键字段 可以用0 null default 来占位,
+    -- 字段1 和 值1 对应
 
     insert into classes(id, name) value(1, 'qd22');
     insert into classes(id, name) value(2, 'qd23');
 
-    // 如果有auto_increment 给0的时候相当于没有给 所以做了自增 最大的数+1
+    -- 如果有auto_increment 给0的时候相当于没有给 所以做了自增 最大的数+1
     insert into classes(id, name) value(0, 'qd24');    
 
-    // 不写id只有name也会 id也会自增
+    -- 不写id只有name也会 id也会自增
     insert into classes(name) value('qd24');     
  ```
 
@@ -7268,7 +7484,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 值要跟着当前表的字段依次来
 - insert into 表名 values(值1, 值2, 值3);
 ```js 
-    比如字段是 id name age, 值的顺序就是 id值, name值, age值
+    // 比如字段是 id name age, 值的顺序就是 id值, name值, age值
     insert into students values(1, '张三', 18, 1.83, 1);
  ```
 
@@ -7277,7 +7493,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 只插入指定字段的信息
 - 没有填写的字段为空, 有默认值的为默认值
 - insert into 表名(列1, ...) values(值1, ...)
-```js 
+```sql
     insert into students(name) value('李四');
     insert into students(name, age) value('张三', 20);
  ```
@@ -7286,8 +7502,8 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > 多行插入
 - 一个字段内添加多个信息
 - insert into 表名(列1, ...) values(值), (值);
-```js 
-    insert into  students(name) values('赵六'), ('李四');
+```sql
+    insert into students(name) values('赵六'), ('李四');
  ```
 
 ------
@@ -7295,31 +7511,30 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 ### 修改 内容
 - update 表名 set 列1=值1, 列2=值2... where 条件;
 
-> 全部修改
+> 全部修改 update 表 set 字段=值
 - 把一列的信息统一进行修改
-- update 表 set 字段=值;
-```js 
-    将students表的age字段统一修改为16
+```sql
+    -- 将students表的age字段统一修改为16
     update students set age = 16;
  ```
 
 
-> 按条件修改
+> 按条件修改 update 表 set 字段=值 where 条件;
 - 修改符合条件的字段里的记录
-- update 表 set 字段=值 where 条件;
-```js 
-    只修改id为3的字段的信息
+
+```sql
+    -- 只修改id为3的字段的信息
     update students set age = 16 where id=3; 
 
-    只修改name为赵六的字段的信息
+    -- 只修改name为赵六的字段的信息
     update students set age = 16 where name='赵六'; 
  ```
 
 
-> 按条件修改多个值
+> 按条件修改多个值 update 表 set 字段=值, 字段=值 where 条件;
 - 修改多个字段的记录
-- update 表 set 字段=值, 字段=值 where 条件;
-```js 
+
+```sql
     update students set age = 16, height = 1.55 where id=3; 
  ```
 
@@ -7332,16 +7547,16 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 ```js *代表任意字段 ```
 
 - select * from 表名 where 1
-```js 
+```sql
     select * from 表名 where 1 = 1
-    条件恒为真, 也是查询所有
+    -- 条件恒为真, 也是查询所有
  ```
 
 
 > 定条件查询
 - select * from 表名 where 条件
-```js 
-    查询id为1的学生所有信息
+```sql
+    -- 查询id为1的学生所有信息
     select * from students where id=1;
  ```
 
@@ -7349,17 +7564,17 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > 查询指定字段的信息
 - select 字段1, 字段2, ... from 表名 [where 条件];
-```js 
-    查询name age字段的信息
+```sql 
+    -- 查询name age字段的信息
     select name, age from students;
 
-    查询id为1的 name age字段的信息
+    -- 查询id为1的 name age字段的信息
     select name,age from students where id=1;
  ```
 
 - 查询指定表的自定字段
 - select 表名.字段名1, 表名.字段名2 from 表名;
-```js 
+```sql 
     select students.name, students.age from students;
  ```
 
@@ -7369,9 +7584,8 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 在from后面使用as 是为了让语句中用到别名
 
 - select 字段[as 别名], 字段[as 别名] from 数据表;
-- 在展示表的时候, 给字段名起个别名, 将来以别名来展示
-- 临时使用别名展示指定字段名, 不会影响本身表的结构
-```js 
+- 在展示表的时候, 给字段名起个别名, 将来以别名来展示 临时使用别名展示指定字段名, 不会影响本身表的结构
+```sql
     展示原先的表是这样的
     name    age
     刘春杉  18
@@ -7385,11 +7599,11 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 - 查询的时候给表起别名
 - select 别名.字段 ... from 表名 as 别名;
-```js 
-    当查询指定表的指定字段的时候, 我们需要通过
+```sql
+    -- 当查询指定表的指定字段的时候, 我们需要通过
     select students.name, students.age from students;
 
-    这样表名太长的话 我们在查询的时候可以给这个表起个别名
+    -- 这样表名太长的话 我们在查询的时候可以给这个表起个别名
     select s.name, s,age from students as s;
  ```
 
@@ -7398,7 +7612,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - distinct 字段
 - 展示时 消除该字段的重复的信息
 - 有些时候我们在查询字段里的信息时, 信息会有很多重复的, 我们直接向要几个答案就好
-```js 
+```sql
     select distinct gender from students;
 
     男
@@ -7420,7 +7634,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - select 字段2, 字段1 from 表;
 - 展示表的信息的时候, 按照 字段2 字段1的顺序展示
 
-```js 
+```sql
     select name, age from students;
     select age, name from students;
  ```
@@ -7432,30 +7646,30 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > 物理删除
 - 不可逆
 - delete from 表名 where 条件
-```js 
-    如果不加where 只是 delete from 表名 那么表的信息都没有了
-
-    // 删除id为4的记录
+```sql
+    -- 如果不加where 只是 delete from 表名 那么表的信息都没有了
+    -- 删除id为4的记录
     delete from students where id=4;
  ```
 
 
 > 逻辑删除
 - 用一个字段来表示 这条信息是否已经不能在使用了
-```js 
+
+```
     数据对于公司来说是很重要的实际上并不会真正从数据库里删除数据
     而是在这条记录的后面 添加一个字段, is_delete 如果是1代表删除 0代表没删除
  ```
 
 - 1. 给students表添加一个 is_delete 字段 bit类型
 - alter table 表名 add 字段 类型 default 默认值;
-```js 
+```sql
     alter table students add is_delete bit default 0;
  ```
 
 - 2. 修改指定id的 is_delete 字段
 - update 表名 set is_delete=1 where id=xxx;
-```js 
+```sql
     update students set is_delete=1 where id=1;
  ```
 
@@ -7476,33 +7690,33 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - select ... from 表名 where ...
 
 > '>'
-```js 
-    查询年纪大于18岁的学生信息
+```sql
+    -- 查询年纪大于18岁的学生信息
     select * from students where age > 18;
  ```
 
 > '<'
-```js 
-    查询年纪小于18岁的学生信息
+```sql
+    -- 查询年纪小于18岁的学生信息
     select * from students where age < 18;
  ```
 
 > '>='
 > '<='
-```js 
-    查询年纪小于或等于18岁的学生信息
+```sql
+    -- 查询年纪小于或等于18岁的学生信息
     select * from students where age <= 18;
  ```
 
 > '='
-```js 
-    查询年纪小于或等于18岁的学生信息
+```sql
+    -- 查询年纪小于或等于18岁的学生信息
     select * from students where age = 18;
  ```
 
 > '!=' 或者'<>'
-```js 
-    查询年纪不等于18岁的学生信息
+```sql
+    -- 查询年纪不等于18岁的学生信息
     select * from students where age != 18;
     select * from students where age <> 18;
  ```
@@ -7515,38 +7729,38 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 要同时满足 &&
 
 - 枚举的数据可以用数字来表示, 数字从1开始
-```js 
-    查询年纪在18 和 28之间的学生信息
+```sql
+    -- 查询年纪在18 和 28之间的学生信息
     select * from students where age > 18 and age < 28;
 
     select * from students where age between 18 and 28;
 
 
-    查询18岁以上的女性的信息
+    -- 查询18岁以上的女性的信息
     select * from students where age > 18 and gender='女'
 
-    因为性别的约束是 enum('男', '女', '中性') 所以性别的值对应着 1 2 3
-    也可以这么写
+    -- 因为性别的约束是 enum('男', '女', '中性') 所以性别的值对应着 1 2 3
+    -- 也可以这么写
     select * from students where age > 18 and gender=2;
  ```
 
 
 > or
 - 或者 ||
-```js 
-    查询 18岁以上 或者 身高高过180(包含)以上的学生信息
+```sql
+    -- 查询 18岁以上 或者 身高高过180(包含)以上的学生信息
     select * from students where age > 18 or height >= 1.80;
  ```
 
 
 > not(条件)
 - 表示非, 取反 哈哈
-```js 
-    不在18岁以上的女性 这个范围内的信息
+```sql
+    -- 不在18岁以上的女性 这个范围内的信息
     select * from students where not(age > 18 and gender=2) 
 
-    a b c d e f
-    age > 18 and gender=2       比如是 abc
+    -- a b c d e f
+    -- age > 18 and gender=2       比如是 abc
     not(age > 18 and gender=2)  就是 def 
  ```
 
@@ -7561,20 +7775,21 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > like % _
 - % 替换任意数量的字符
 - _ 替换一个字符
-```js 
-    查询姓名中 以'小'开始的名字的学生信息
+
+```sql
+    -- 查询姓名中 以'小'开始的名字的学生信息
     select * from students where name like '小%';
 
-    查询姓名中有'小'所有的名字的学生信息
+    -- 查询姓名中有'小'所有的名字的学生信息
     select * from students where name like '%小%';
 
-    查询有2个字的名字的学生信息
+    -- 查询有2个字的名字的学生信息
     select * from students where name like '__';
 
-    查询有3个字的名字的学生信息
+    -- 查询有3个字的名字的学生信息
     select * from students where name like '___';
 
-    查询至少有2个字的名字的学生信息
+    -- 查询至少有2个字的名字的学生信息
     select * from students where name like '__%'
  ```
 
@@ -7584,27 +7799,27 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 也是写在where的后面
 
 > in(1, 3, 8) 不是区间是一个确切的值
-```js 
-    查询 年龄为 18或34的姓名的学生信息
+```sql
+    -- 查询 年龄为 18或34的姓名的学生信息
     select * from students where age = 18 or age = 24;
     select * from students where age in(18, 34);
 ```
 
 > not in(1, 3, 8)
-```js 
-    查询 年龄不是 18或34岁 的学生信息
+```sql
+    -- 查询 年龄不是 18或34岁 的学生信息
     select * from students where age not in(18, 34);
  ```
 
 > between... and... 表示在一个连续的范围内
-```js 
-    查询 年龄在 18到34之间 的学生信息
+```sql
+    -- 查询 年龄在 18到34之间 的学生信息
     select * from students where age between 18 and 34;
  ```
 
 > not between... and... 表示不在一个连续的范围内
-```js 
-    查询 年两不在18-34之间的学生信息
+```sql
+    -- 查询 年两不在18-34之间的学生信息
     select * from students where age not between 18 and 34;
  ```
 
@@ -7613,14 +7828,14 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 ### 空判断
 
 > is null 判空
-```js 
-    查询身高为空的学生的信息
+```sql
+    -- 查询身高为空的学生的信息
     select * from students where height is null;
  ```
 
 > is not null 判非空
-```js 
-    查询身高为非空的学生的信息
+```sql
+    -- 查询身高为非空的学生的信息
     select * from students where height is not null;
  ```
 
@@ -7636,12 +7851,12 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 关键字
 - asc:   从小到大排序, 升序
 - desc:  从大到小排序, 降序
-```js    
-    查询年龄在18-34之间的男性, 按照年龄从小到大排序
-    我们先按上面的条件进行查找, 在最后在填写排序语法
+```sql
+    -- 查询年龄在18-34之间的男性, 按照年龄从小到大排序
+    -- 我们先按上面的条件进行查找, 在最后在填写排序语法
     select * from students where gender=1 and age between 18 and 34 order by age asc;
 
-    查询年龄在18-34之间的女性, 身高从高到低排序
+    -- 查询年龄在18-34之间的女性, 身高从高到低排序
     select * from students where gender=2 and age between 18 and 34 order by height desc;
  ```
 
@@ -7649,11 +7864,11 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > order by 字段 desc, 字段 asc
 - 第一排序, 第二排序
 - 一般用在当出现相同的内容的时候, 按照第二排序进行排序
-```js 
-    查询年龄在18-34之间的女性, 身高从高到低排序, 如果身高相同的情况下按照年龄从小到大排序
+```sql
+    -- 查询年龄在18-34之间的女性, 身高从高到低排序, 如果身高相同的情况下按照年龄从小到大排序
     select * from students where gender=2 and age between 18 and 34 order by height desc, age asc;
 
-    如果年龄也一样, 按照id从大到小
+    -- 如果年龄也一样, 按照id从大到小
     select * from students where gender=2 and age between 18 and 34 order by height desc, age asc, id desc;
  ```
 
@@ -7662,6 +7877,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 ### 聚合函数
 - 写在select 和 from 之间
 - select 聚合函数 from
+
 - 聚合函数在计算的时候不会把null计算进去
 
 - 聚合函数不能跟where配合使用
@@ -7672,8 +7888,8 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > count(*)
 - 总数
 - 总计指定字段的记录条数, 不会清除重复项
-```js 
-    查询男性有多少人
+```sql
+    -- 查询男性有多少人
     select count(*) from students where gender=1;   
 
     name
@@ -7687,26 +7903,26 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > sum()
 - 求和
-```js 
-    计算所有人的年龄总和
+```sql
+    -- 计算所有人的年龄总和
     select sum(age) from students
  ```
 
 
 > avg()
-```js 
-    计算平均年龄
+```sql
+    -- 计算平均年龄
     select avg(age) from students;
 
-    计算平均年龄
+    -- 计算平均年龄
     select sum(age)/count(*) from students;
  ```
 
 
 > round(目标数字, 保留几位)
 - 四舍五入为指定数字保留指定位数的小数
-```js 
-    计算所有人的平均年龄 保留2位小数
+```sql
+    -- 计算所有人的平均年龄 保留2位小数
     select round(avg(age), 2) from students;
 
  ```
@@ -7714,18 +7930,18 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > max(字段名)
 - 查询指定字段中的最大值
-```js 
-    查询最大的年龄
+```sql
+    -- 查询最大的年龄
     select max(age) from students;
 
-    查询女性的最高 身高
+    -- 查询女性的最高 身高
     select max(height) form students where gender=2;
  ```
 
 
 > min(字段名)
-```js 
-    查询女性的最小 身高
+```sql
+    -- 查询女性的最小 身高
     select min(height) form students where gender=2;
  ```
 
@@ -7733,8 +7949,8 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > 示例:
 - 聚合函数计算的时候不会把null计算进去
 - 就意味着会忽视 null 对应的记录, 去计算别的记录
-```js 
-    计算男性的平均身高 保留2位小数
+```sql
+    -- 计算男性的平均身高 保留2位小数
     select round(avg(height), 2) from students where gender=1 
  ```
 
@@ -7753,7 +7969,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 ```js select 东西 from students group by 东西 ```
 - 看到每种 或者 每类就可以用分组, 每种每组是关键字眼
 - 以什么为分组, 最好在展示的时候, 把这个字段加进去 放在第一列, 比如以性别分组, 就把性别放在第一列
-```js 
+```sql
     select 性别字段, 其它字段 from students group by 性别字段;
  ```
 
@@ -7761,11 +7977,11 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > group by
 - 会消除重复记录
-```js 
-    按照性别分组, 查询所有的性别 结果分为了4组
+```sql
+    -- 按照性别分组, 查询所有的性别 结果分为了4组
     select gender from students group by gender;
 
-    计算每种性别中的人数, 男性中有多少人 女性中有多少人
+    -- 计算每种性别中的人数, 男性中有多少人 女性中有多少人
     select gender, count(*) from students group by gender;
  ```
 
@@ -7773,13 +7989,13 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 > group_concat(字段名)
 - 写在select 和 from之间
 - 将该字段名所有的内容展示在页面上, 用 , 链接
-```js 
-    查询 同种性别中的姓名(男都有叫什么名字的 女都有叫什么名字的)
+```sql
+    -- 查询 同种性别中的姓名(男都有叫什么名字的 女都有叫什么名字的)
     
-    以什么分组就前面就展示什么 这里是以性别分组
+    -- 以什么分组就前面就展示什么 这里是以性别分组
     select gender from students group by gender;
 
-    那怎么展示男的都叫什么?
+    -- 那怎么展示男的都叫什么?
     select gender, group_concat(name) from students group by gender;
 
     男: 周杰伦, 刘德华, 张学友, 郭富城
@@ -7787,17 +8003,19 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  ```
 
 
-```js 
-    查询每组性别的平均年龄
+```sql
+    -- 查询每组性别的平均年龄
     select gender, avg(age) from students group by gender;
  ```
 
 > having 聚合函数
 - 写在group up的后面
+
 > 对分组 再进行条件限制的时候 用 having
 - having和group by连用 having后通常也要跟聚合函数
 - 聚合函数如果作为条件出现,只能和having配合, 不能和where配合
-```js 
+
+```sql
     查询平均超过30岁的性别, 以及姓名
     分析:
     上面是以性别分组查询
@@ -7805,29 +8023,30 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
     我们要想页面上需要展示什么 性别和平均年龄吧
     分组的条件是超过30对的平均年龄吧 所以在后面又加上了having avg(age) > 30
+
     select gender avg(age), group_concat(name) from students group up gender having avg(age) > 30;
  ```
 
 
-```js 
-    查询每种性别中的人数多于2个的信息
+```sql 
+    -- 查询每种性别中的人数多于2个的信息
     select gender, count(*) from students group by gender having count(*) > 2;
  ```
 
 
 > 总结 --- 使用条件的有三种情况:
 - 如果是 select * from students 这种形式, 想用条件的话 后面加 where
-```js 
+```sql
     select * from students where
  ```
 
 - 如果是 select 分组 from students 这种形式, 想用条件的话 后面加 having
-```js 
+```sql
     select 分组 from students having
  ```
 
 - 如果是 select * from 表a inner join 表b 这种形式, 想用条件的话 后面加 on
-```js 
+```sql
     select * from 表a inner join 表b on
  ```
 
@@ -7855,29 +8074,29 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 公式:
 - limit (要显示第几页-1) * 每页分多少个, 每页分多少个
 
-```js 
-    查询前5个数据
+```sql
+    -- 查询前5个数据
     select * from students limit 5;
 
-    每页分2个, 要显示第1页 每页2条记录要显示第一页 (查询前2个数据)
+    -- 每页分2个, 要显示第1页 每页2条记录要显示第一页 (查询前2个数据)
     select * from students limit 2;
 
-    limit (要显示第几页-1) * 每页分多少个, 每页分多少个
+    -- limit (要显示第几页-1) * 每页分多少个, 每页分多少个
     select * from students limit 0,2;
 
 
-    每页分2个, 要显示第2页
+    -- 每页分2个, 要显示第2页
     select * from students limit 2,2
 
-    每页分2个, 要显示第3页
+    -- 每页分2个, 要显示第3页
     select * from students limit 4,2
 
-    每页分2个, 要显示第4页
+    -- 每页分2个, 要显示第4页
     select * from students limit 6,2
 
 
 
-    每页分2个, 显示第6页的信息, 按照年龄从小到大排序
+    -- 每页分2个, 显示第6页的信息, 按照年龄从小到大排序
     select * from students order by age asc limit 10,2
 
     先写limit还是order by
@@ -7921,7 +8140,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > inner join ... on 条件
 - select ... from 表A inner join 表B on 条件
-```js 
+```sql
     on 条件 是为了查询到有效的数据 一定要加吧
  ```
 
@@ -7959,12 +8178,12 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  ```
 
 - 查询 有能够对应 班级的学生 以及 班级信息
-```js     
+```sql   
     select * from students inner join classes on students.cls_id=classes.id;
  ```
 
 - 按照要求 仅显示姓名, 班级
-```js 
+```sql
     select students.name, classes.name from students inner join classes on students.cls_id=classes.id;
 
     学生表的姓名字段是name
@@ -7982,13 +8201,13 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 > 表名.* 展示这个表的所有信息
 - 查询 有能够对应班级的学生以及班级信息, 显示学生的所有信息 students.*,只显示班级名称, classes.name
-```js 
+```sql
     就是学生的信息全部展示, 班级的信息只展示班级字段
     select students.*, classes.name from students inner join classes on students.cls_id=classes.id;
  ```
 
 - 在以上的查询中, 将班级名显示在第一列
-```js 
+```sql
     
     掉一下在select 和 from中的字段位置
 
@@ -7996,12 +8215,12 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
  ```
 
 - 查询 有能够对应班级的学生以及班级信息, 按照班级名进行排序
-```js 
+```sql
     select classes.name, students.* from students inner join classes on students.cls_id=classes.id order by classes.name asc;
  ```
 
 - 当是同一班级的时候, 按照学生的id进行从小到大的排序
-```js 
+```sql
     两个排序规则 order by 条件1, 条件2
     select classes.name, students.* from students inner join classes on students.cls_id=classes.id order by classes.name asc, students.id;
  ```
@@ -8012,18 +8231,18 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 一个查询的结果 作为 另外一个查询的一部分 会把前者的查询称为子查询
 
 - 查询出高于平均身高的信息(height);
-```js  
+```sql
     分 2 步:
 
-    // 先查出平均身高
+    -- 先查出平均身高
     select avg(height) from students;
 
-    // 然后作为条件来使用
+    -- 然后作为条件来使用
     select * from students where height > (select avg(height) from students);
  ```
 
 - 查询学生的班级号能够对应的学生名字
-```js 
+```sql
     select students.name from students where cls_id=1 or cls_id=2;
     select students.name from students where cls_id in(1,2);
 
@@ -8043,64 +8262,80 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 - 需求: 查询平均分低于60分的学生id 和 姓名
 - 需求: 查询平均身高低于160的学生的姓名和id 在1班的
 
-1. 
-
 ----------------------
 
 ### 使用 mysql模块
+- 如何从服务器程序获取数据库里面的数据
+- https://github.com/mysqljs/mysql#readme
+<!-- 
+    // 如果出现连接不上的情况下 依次执行以下的逻辑
+    mysql -uroot -p
+    alter user 'root'@'localhost' identified with mysql_native_password by '123456';
+    flush privileges;
+ -->
 
-### 如何从服务器程序获取数据库里面的数据
-
+> -- 不用 了解而已
 > 1. 安装 mysql包
 - npm i mysql --save
 
-> 2. 将db文件夹(里面有db.js文件)放入到项目的根目录
-- 在这里配置下链接数据库的基本信息
-- 用户名 地址 密码 数据库名称等
+
+> 2. 配置下链接数据库的基本信息
+    | - db
+      - db.js
+
+- 将db文件夹(里面有db.js文件)放入到项目的根目录
+- 在这里配置下链接数据库的基本信息 用户名 地址 密码 数据库名称等 并将 query 暴露出去
+
 ```js 
-    db.js代码如下:
-    let mysql = require('mysql');
+const mysql = require("mysql")
 
-    pool: 池 创建了一个链接池, 以后数据库会有很多链接 像池塘里面的鱼似的
+const pool = mysql.createPool({
+  host: "localhost",
+  port: 3306,
+  user: "root",
+  password: "123456",
+  database: "atguigudb",
 
-    // 数据库链接配置
-    let pool = mysql.createPool({
-        host: 'localhost',
-        user: 'root',
-        password: '',
-        database: 'qianduan_test'
+  // 以下可选
+  connectionLimit: 5
+})
+
+// 对数据库进行增删改查操作的基础
+function query(sql, callback) {
+  pool.getConnection(function(err, connection) {
+
+    // 参数1: sql, 参数2: 回调 -- 查询方法
+    connection.query(sql, function(err, rows) {
+      callback(err, rows)
+      connection.release()
     })
+  })
+}
 
-    // 对数据库进行增删改查操作的基础
-    // 下面的方法都是 pool 里面的方法
-    function query(sql, callback) {
-        pool.getConnection(function(err, connection) {
-            connection.query(sql, function(err, rows) {
-                callback(err.rows)
-                connection.release()
-            })
-        })
-    }
-
-    exports.query = query;
-
-    query(sql, callback)
-    参数1是sql语句, 参数2是回调函数(拿到数据之后做什么事情)
-
-    callback中也是两个参数
-    err 和 rows(就是数据库中的每一条记录)
+exports.query = query
 ```
+
+- query(sql, callback)
+- 参数1是sql语句, 参数2是回调函数(拿到数据之后做什么事情)
+
+- callback中也是两个参数
+- err 和 rows(就是数据库中的每一条记录)
+
 
 > 3. 在入口js文件中, 引入db.js文件
 ```js 
     const db = require('./db/db.js');
  ```
+
 > 4. 在路由接口里面调用 db.query(sql语句, callback)
-- db.query('select * from students', (err, data) => {
+```js
+db.query('select * from students', (err, data) => {
     console.log(data)
 })
+```
 
 - 回调函数中的data就是从数据库取出来的数据, 是一个数组, 每一条记录就是其中的对象
+- 要是想获取第一个对象 data[0].name
 ```js 
     data = [
         RowDataPacket {
@@ -8124,7 +8359,7 @@ sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
     ]
  ```
 
-> 完成代码:
+> 完整代码:
 ```js 
 // 1. 搭建服务器
 const express = require('express');
@@ -8148,6 +8383,645 @@ app.listen(3000, () => {
 })
  ```
 
+---
+
+> mysql连接池技术详解 -- 不用 了解而已
+- 我们先看下 官网上的连接池 的示例代码
+
+- 1. 下载 mysql 模块
+- 2. 引入 mysql
+- 3. 创建连接池对象
+- 4. 获取连接池中的链接
+- 5. 调用链接上的方法
+
+- db.js
+```js
+// 2. 引入mysql模块
+var mysql = require('mysql');
+
+// 3. 创建连接池对象 传入数据库参数
+var pool  = mysql.createPool({
+  connectionLimit : 10,
+  host: 'example.org',
+  user: 'bob',
+  password: 'secret',
+  database: 'my_db'
+});
+
+// 4. 获取连接池中的链接
+pool.getConnection(function(err, connection) {
+  if (err) throw err; 
+
+  // 5. 在连接上执行 sql语句
+  connection.query('SELECT something FROM sometable', function (error, results, fields) {
+    connection.release();
+
+    if (error) throw error;
+
+  });
+});
+```
+
+> pool.getgetConnection(回调)
+- 通过连接池对象 获取链接
+
+- 参数:
+- (err, connection) => { ... }
+- err: 
+    错误对象
+
+- *connection*
+    连接对象
+
+
+> pool.releaseConnection()
+- 释放连接
+- 连接池对象身上的方法
+
+> 形式1
+> connection.query(sql, callback)
+- 通过连接对象调用的方法
+
+- 参数:
+- 1. sql
+- 2. (err, results, fields) => {}
+- err:
+- 错误
+
+- results:
+- 结果
+
+- fields:
+- 字段
+```js
+connection.query('SELECT * FROM `books` WHERE `author` = "David"', function (error, results, fields) {
+}
+```
+
+
+> 形式2
+> connection.query(sql, params, callback)
+- params 是在有占位符的时候使用
+- 它的类型是一个数组
+```js
+connection.query('SELECT * FROM `books` WHERE `author` = ?', ['David'], function (error, results, fields) {
+}
+```
+
+> 形式3
+> connection.query({options}, callback)
+- 在查询时候使用各种高级选项的时候使用
+```js
+connection.query({
+  sql: 'SELECT * FROM `books` WHERE `author` = ?',
+  timeout: 40000, // 40s
+  values: ['David']
+}, function (error, results, fields) {
+
+});
+```
+
+> connection.release()
+- 释放连接
+
+---
+
+- 以上是官网上的示例代码 接下来我们对上述的 4 5 步骤 进行下封装后使用
+
+> 要点:
+- 我们封装一个 query() 方法 在该方法中的逻辑
+
+- 参数:
+- sql: 
+- params: [] 查询不需要参数
+- callback: 由调度者决定如何使用数据
+
+```js
+var mysql = require('mysql');
+
+var pool  = mysql.createPool({
+  connectionLimit : 10,
+  host: 'example.org',
+  user: 'bob',
+  password: 'secret',
+  database: 'my_db'
+});
+
+// 封装 操作数据库的方法 params 是我们传递
+const query = (sql, params, callback) => {
+    // 获取链接
+    pool.getConnection((err, conn) => {
+        // 如果有错误 释放连接
+        if(err) {
+            console.log("连接mysql失败")
+
+            // 如果有错误的话 关闭连接 -- 这个不一定对哦
+            pool.releaseConnection()
+
+            // 下面的方式也可以吧
+            throw err
+        }
+
+        // 连接成功的话 调用链接对象身上的query()
+        conn.query(sql, params, (err, data, fields) => {
+            if(err) {
+                // 如果有错误就释放连接
+                conn.release()
+                console.log("执行sql失败")
+                return
+            }
+
+            // 将怎么使用data的逻辑 放在回调里面 由调用者决定
+            callback && callback(data, fields)
+            conn.release()
+        })
+
+    })
+}
+```
+
+- 测试下
+```js
+// 测试下
+let sql = "select * from employees where employee_id = 100"
+
+// 查询语句不需要参数
+let params = []
+
+query(sql, params, function(data, fields) {
+  console.log(data[0].last_name)
+})
+```
+
+---
+
+### 我们使用这个 mysql.js 操作数据库
+**老师还自己封装了一个 mysql.js 文件**
+- 也就是我们以后使用的话 可以直接拿这个文件来用
+- 这个部分还包括了事务的处理
+
+- mysql
+```js
+const mysql = require('mysql');
+
+const pool = mysql.createPool({
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "123456",
+    database: "atguigudb"
+});
+
+pool.on('connection', (connection) => {
+    //logger.info("connection!");
+});
+
+pool.on('enqueue', () => {
+    //logger.info('Waiting for available connection slot');
+});
+
+module.exports.Pool = pool;
+
+module.exports.getConnection = (cb) => {
+    if (typeof cb == "function") {
+        pool.getConnection(function (err, connection) {
+            cb(err, connection);
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            pool.getConnection((err, connection) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(connection);
+                }
+            });
+        });
+    }
+};
+
+// 查询方法 如果不传递 cb 那么就是promise形式
+module.exports.exec = (sql, values, cb) => {
+    if (typeof cb == "function") {
+        pool.getConnection((err, connection) => {
+            if (err) {
+                connection.release();
+                cb(err);
+            } else {
+                connection.query(sql, values, (error, rows) => {
+                    connection.release();
+                    cb(error, rows);
+                });
+            }
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            pool.getConnection((err, connection) => {
+                if (err) {
+                    connection.release();
+                    reject(err);
+                } else {
+                    connection.query(sql, values, (error, rows) => {
+                        connection.release();
+                        if (error)
+                            reject(error);
+                        else
+                            resolve(rows);
+                    });
+                }
+            });
+        });
+    }
+};
+
+
+module.exports.beginTransaction = (connection, cb) => {
+    if (typeof cb == "function") {
+        connection.beginTransaction(function (err) {
+            if (err) {
+                throw err;
+            }
+            cb(null, connection);
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            connection.beginTransaction(function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(connection);
+                }
+            });
+        });
+    }
+};
+
+
+module.exports.rollback = (connection, cb) => {
+    if (typeof cb == "function") {
+        connection.rollback(function () {
+            connection.release();
+            cb && cb();
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            connection.rollback(function (err) {
+                connection.release();
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+};
+
+
+module.exports.commit = (connection, cb) => {
+    if (typeof cb == "function") {
+        connection.commit(function (err) {
+            if (err) {
+                connection.rollback(function () {
+                    cb && cb(err);
+                    throw err;
+                });
+            }
+            connection.release();
+            cb && cb();
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            connection.commit(function (err) {
+                if (err) {
+                    connection.rollback(function () {
+                        reject(err);
+                    });
+                }
+                connection.release();
+                resolve();
+            });
+        });
+    }
+};
+//检查是否链接失败
+this.getConnection((err, connection) => {
+    if (err) throw err;
+    else {
+        // logger.info("connected success!");
+        connection.release();
+    }
+});
+
+/**
+ * 带事务
+ * @param sql
+ * @param values
+ * @returns {Promise}
+ */
+module.exports.exec2 = (connection, sql, values, cb) => {
+    if (typeof cb == "function") {
+        connection.query(sql, values, (error, rows) => {
+            cb(error, rows);
+        });
+    } else {
+        return new Promise((resolve, reject) => {
+            connection.query(sql, values, (error, rows) => {
+                if (error)
+                    reject(error);
+                else
+                    resolve(rows);
+            });
+        });
+    }
+};
+
+```
+
+> 使用 *占位符* 参数 来测试下
+- 1. 获取query参数
+- 2. 整理 占位符参数
+- 3. sql 的写法 占位符后面要加 sql的; 老师说 ? + 空格 + ; 
+- 4. 使用 res.json() 将对象送回前端
+
+- 测试下:
+```js
+const express = require("express")
+const db = require("./db/mysql")
+const app = express()
+
+app.get("/", async (req, res) => {
+  // 获取 query 参数
+  let {id} = req.query
+
+  // 因为使用了占位符 所以要使用 params
+  let params = [id]
+
+  let ret = await db.exec("select * from employees where employee_id = ? ;", params)
+  console.log(ret)
+  
+  res.json(ret)
+  // res.send(ret)
+})
+
+app.listen(3333, () => {
+  console.log("服务器已开启 监听端口3333")
+})
+```
+
+
+> 使用 *占位符* 的分页查询
+```js
+// 分页的接口
+app.get("/getUserPage", async (req, res) => {
+
+  // 获取分页需要的数据
+  let {pageSize, pageNo} = req.query
+
+  pageSize = pageSize ? pageSize : 1
+  pageNo = pageNo ? pageNo : 1
+
+
+  // limit (要显示第几页-1) * 每页分多少个, 每页分多少个
+  let sql = "select * from employees limit ?, ?;"
+  let params = [(pageNo - 1) * pageSize, pageSize]
+  console.log(params)
+
+  let ret = await db.exec(sql, params)
+
+  res.json({
+    code: 200, 
+    data: ret,
+    msg: "查询成功"
+  })
+ 
+})
+```
+
+----------------------
+ 
+### 数据安全的3把锁
+- 1. 前端发送到后台的时候 通过表单验证
+- 2. 后台接收前端数据的时候 判断空值 赋默认值 判断是否合法
+- 3. 数据库端的校验
+
+----------------------
+
+### 搭建一个带数据库操作的后台项目
+
+    | - config
+      - index.js    (配置文件)
+    
+    | - controller
+      - account.js  (对应数据库中的一张表 类)
+
+    | - routes      
+      - account.js  (对应数据库中的一张表 路由)
+
+    | - db
+      - mysql.js    (操作数据库的)
+
+    - main.js       (入口文件)
+
+- 也就是说 数据库中的一张表 对应 controller 里面的一个类
+- 而路由文件也是按照 数据库表来区分的 一张表对应一套功能 一套路由规则
+
+> config
+```js
+module.exports = {
+  dev: {
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "123456",
+    database: "atguigudb"
+  },
+  tokenKey: "youker.net",
+  // 密码盐
+  key: "asdfa"
+}
+```
+
+> mysql.js
+```js
+...
+
+const pool = mysql.createPool(require("../config").dev);
+
+...
+```
+
+
+> routes/account.js
+- 这里是按照表名来分路由文件的 一张表对应一套功能和接口
+- 这里和java有些像
+
+```js
+const express = require("express")
+let router = express.Router()
+
+// 后面接的是 controller/account.js 中的方法
+
+// 登录
+router.post("/login", require("../controller/account").login);
+
+//注册
+router.post("/register", require("../controller/account").register);
+
+module.exports = router
+```
+
+
+> controller/account.js
+- 数据库中的一张表 对应 这里的一个js文件 这里跟表名对应上 通过 routes 和 controller 内的文件名也是一一对应的
+
+- 一张表就对应一个类
+
+> 使用 md5 加密
+- md5(req.body.pwd + require("../config").key)
+
+> 使用 jwt 颁发 token
+- npm i jwt-simple
+
+> 使用 monent.js 格式化日期
+
+```js
+const db = require("../db/mysql")
+const moment = require("moment")
+
+// md5加密
+const md5 = require("md5")
+
+// jwt
+const jwt = require("jwt-simple")
+
+class AccountController {
+
+    // 注册
+    async register(req, res, next) {
+
+        // 获取前端提供的参数 给params赋值
+        let {
+            name, 
+            pwd, 
+            sex
+        } = req.body
+
+        sex = sex ? sex : "男"
+        
+        let date = moment().format("YYYY-MM-DD HH:mm:ss")
+
+        // id自增长没写 state有默认值没写
+        let sql = "insert into users(`u_name`, `u_pwd`, `u_sex`, `u_create`) values(?, ?, ?, ?)"
+
+        // 通过前端的参数 整合占位符参数
+        let params = [name, pwd, sex, date]
+
+        try {
+            let ret = await db.exec(sql, params)
+
+            // 判断 sql后受影响的行数ret.affectedRows
+            if(ret && ret.affectedRows > 0) {
+                res.json({
+                    code: 200,
+                    msg: "注册成功",
+                })
+            // 这里是sql的错误
+            } else {
+                res.json({
+                    code: -200,
+                    msg: "注册失败",
+                })
+            }
+        // 这里是服务器的错误
+        } catch(err) {
+            res.json({
+                code: -200,
+                msg: "服务器异常",
+                err
+            })
+        }
+        
+    }
+
+    // 登录
+    async login(req, res, next) {
+
+        let sql = "select u_id, u_name, u_sex, u_create, u_pwd from where u_name = ? and u_pwd = ? and u_state = 1"
+
+        let params = [
+            req.body.name,
+            req.body.pwd,
+        ]
+
+        let ret = await db.exec(sql, params)
+
+        // 数据库可能会发生问题
+        try {
+            if(ret && ret.length >= 1) {
+                res.json({
+                    code: 200,
+                    msg: "登录成功",
+
+                    // 登录成功后才有数据
+                    data: ret[0],
+
+                    // 登录成功的时候发token 根据用户生成token
+                    token: createToken(ret[0])
+                })
+            } else {
+                res.json({
+                    code: -200,
+                    msg: "登录失败",
+                })
+            }
+        } catch (err) {
+            res.json({
+                code: -200,
+                msg: "服务器",
+                err
+            })
+        }
+
+        // 根据数据生成 token 的函数
+        function createToken(data) {
+
+            // return 出去的是一个字符串
+            return jwt.encode({
+                // 获取当前时间 + 1天
+                exp: Date.now() + (1000 * 60 * 60 * 24),
+                info: data
+            // 加盐 我们定义在config里面
+            }, require("../config").tokenKey)
+        }
+    }
+}
+
+// 这边 我们暴露下 该类的实例对象 routes 文件就 接收的就是实例对象 可以直接 对象.方法
+module.exports = new AccountController()
+```
+
+
+> main.js
+- app.use("/account", require("./routes/account"))
+- 也相当于配置了一级路由 跟servlet那比较像 client maganer 似的
+
+```js
+const express = require("express")
+const app = express()
+
+// 引入中间件 解析body参数
+app.use(express.urlencoded({extended: false}))
+app.use(express.json())
+
+// 注册路由 以 /account 开头的路径 才能访问后面的路由文件
+app.use("/account", require("./routes/account"))
+
+app.listen(3333, () => {
+    console.log("服务器已开启")
+})
+```
+
 ----------------------
 
 ### orm介绍
@@ -8158,7 +9032,7 @@ app.listen(3000, () => {
 
 - 这样再去修改表中的记录, 就相当于通过对象的方式去修改里面的属性
 
-- 优点:
+> 优点:
 - 1. 只需要面向对象编程, 不需要面向数据库编写代码
 - 2. 对数据库的操作都转化成对类属性和方法的操作(调用对象的方法 编写对象的属性)
 - 3. 不用编写各种数据库的sql语句
@@ -8166,7 +9040,7 @@ app.listen(3000, () => {
 - 5. 不再关注用的是mysql oracle等(不同的数据库sql语法不完全一致)
 - 6. 通过简单的配置就可以轻松更换数据库, 而不需要修改代码
 
-- 缺点:
+> 缺点:
 - 1. 相比较直接使用sql语句操作数据库, 有性能上的损失
 ```js 
     orm是封装的 里面有一部分代码是用来将sql语句转换成对象的思想, 这部分代码就会消耗我们的性能
@@ -8240,6 +9114,7 @@ app.get('/get_data', (req, res) => {
 
 ### 使用ORM查询操作
 - 使用 orm 的准备工作, 这里在重新写一下
+
 ```js 
     1. 引入
     const db = require('./db/nodejs-orm/index');
@@ -8427,6 +9302,7 @@ app.get('/get_data', (req, res) => {
 
 ### 自定义执行sql语句
 - 当上面的功能满足不了需求的时候, 直接使用自定义执行 sql语句的方式
+
 > 表对象.sql('sql语句', (err, data) => { ... })
 - 使用sql语句操作数据库
 ```js 
@@ -8440,6 +9316,7 @@ students.sql('select * from students limit 10', (err, data) => {
 
 ### 多次查询数据库的最终方案 async + await 版本 
 - 一个接口中, 往往不止要查询一次数据库, 就意味着可能会出现第一次查询成功后再去查询下一次数据库, 这就意味着可能会出现回调地狱的情况, 为了避免这样的情况发生, 我们可以配合 async + await 来使用
+
 ```js 
     比如:
     用户名登录, 取得前端传递过来的post参数(用户名 密码)
@@ -8451,7 +9328,7 @@ students.sql('select * from students limit 10', (err, data) => {
 
     上面还有一个规律, 往往是上一次查询结果通过了 才会查询第二次数据库, 就意味这种情况是回调里面嵌套回调
 
-    所以我们可以选择更好的方式来执行这样的代码
+    // 所以我们可以选择更好的方式来执行这样的代码
     let students = db.model('students');
     students.find('id=1', (err, data) => {
         students.find('id=2', (err, data) => {
@@ -8462,11 +9339,14 @@ students.sql('select * from students limit 10', (err, data) => {
 
 - 使用async + await 就不会出现回调地狱, 将异步代码的格式 写成了 同步代码的格式
 
+> 技巧: 
+- 我们在使用 async + await 的时候 我们可以用 匿名函数自调用的形式 来避免 还要调用函数
+
 - 为了更好的理解 我们先复习下async + await
 - 1. await 要写在 async 函数内部, 并且 async需要调用
 - 2. await 后面要跟 promise的实例对象
 ```js 
-    可以使用匿名函数自调用的形式
+    // 可以使用匿名函数自调用的形式
     (async function() {
         await Promise的实例对象
     })()
@@ -8482,6 +9362,7 @@ students.sql('select * from students limit 10', (err, data) => {
  ```
 
 - 4. 有了async + await后就不会使用then来获取成功的结果了
+
 
 > 完整代码
 ```js 
@@ -8557,7 +9438,7 @@ students.sql('select * from students limit 10', (err, data) => {
 
 - 当多次数据库查询操作的时候 会出现很多的重复性代码, 所以我们对数据库的查询操作可以封装成一个函数
 ```js 
-    当多次查询数据库的时候:
+    、、 当多次查询数据库的时候:
     (async function() {
         let students = db.model('students');
         let result;
@@ -8595,9 +9476,9 @@ students.sql('select * from students limit 10', (err, data) => {
  ```
 
 - 所以 我们可以将上面的重复性代码提取成一个函数, 创建一个js文件, 放在db文件夹里(handleDB.js)
-```js 
-    handleDB.js文件:
 
+> 封装 orm 为 handleDb.js 文件
+```js 
     // 这里需要使用orm所以引入
     const db = require('./nodejs-orm/index')
 
@@ -8739,14 +9620,37 @@ students.sql('select * from students limit 10', (err, data) => {
 
 ----------------------
 
+### httpOnly
+```js
+// `index.html` 加载时会请求login接口
+// 设置`cookie
+app.get("/login", (req, res) => {
+
+  // 这里 httpOnly
+  res.cookie("user", "jay", { maxAge: 2000000, httpOnly: true });
+
+  res.json({ code: 0, message: "登录成功" });
+});
+ 
+// 此接口是检测`cookie`是否设置成功，如果设置成功的话，浏览器会自动携带上`cookie`
+app.get("/user", (req, res) => {
+  // req.headers.cookie: user=jay
+  const user = req.headers.cookie.split("=")[1];
+  res.json({ code: 0, user });
+});
+
+```
+
+----------------------
+
 ### CSRF跨站请求伪造的流程图
 - csrf指攻击者盗用了你的身份, 以你的名义发送恶意请求, 包括 以你的名义发送邮件, 发消息, 盗取你的账号, 甚至于购买商品, 虚拟货币转账 造成的问题(个人隐私泄露以及财产安全)
 
-- 用户C在登录webA之后, 没有退出的情况下, 访问了第三方网站, 第三方网站可能会以用户C的身份去向WebA发送请求, webB伪造成用户C的身份, 使用了webA的功能(可能会有安全性的问题, 所以webA需要做防护)
+- 用户C在登录webA之后, 没有退出的情况下, 访问了第三方网站, 第三方网站可能会以用户C的身份去向WebA发送请求, webB(第三方网站)伪造成用户C的身份, 使用了webA的功能(可能会有安全性的问题, 所以webA需要做防护)
 
 - 在说这个之前, 我们先说下 用户C 向webA进行转账 之间都是什么样的流程
 ```js 
-    webA xxx.xxx.xxx.xxx:8000
+    webA: xxx.xxx.xxx.xxx:8000
 
     WebA 登录页面(前端页面内容)
     用户名: name='username'
@@ -8763,7 +9667,7 @@ students.sql('select * from students limit 10', (err, data) => {
 
 
     2. 用户在登录页面提交表单内容后 会到服务端的post接口里
-        在这服务端做了下面的逻辑
+        post接口中的逻辑: 
         1. 获取请求参数(用户名和密码)
         let {username, password} = req.body;
 
@@ -8802,8 +9706,7 @@ students.sql('select * from students limit 10', (err, data) => {
 - 上面是用户C 访问 webA 然后进行了转账操作, 后端得到用户C前端传递的post请求参数(转到哪, 转多少, cookie) 然后成功的进行了转账
 
 
-
-- 这时如果 用户C 访问了 webB 又发生了什么事情
+- 这时如果 用户C 访问了 webB(第三方网站) 又发生了什么事情
 - webA : 8000端口
 - webB : 4000端口
 - 用户C 访问 webA网站, webB是作为第三方网站
@@ -8829,7 +9732,7 @@ students.sql('select * from students limit 10', (err, data) => {
     input type='submit' value='点击领取优惠券'
 
     说明点击领取按钮后 就会把 转账账户 和 指定金额 发送到 webA的转账接口里面
-    利用了webA的 / transfer接口的功能 伪装成了用户C 用户C点击后 钱就到了webB的开发者手里
+    利用了webA的 /transfer接口的功能 伪装成了用户C 用户C点击后 钱就到了webB的开发者手里
 
     因为点击 领取优惠券的操作, 点击这个操作是发生在用户C的浏览器上 所以会带着用户C的cookie
  ```
@@ -8869,24 +9772,27 @@ students.sql('select * from students limit 10', (err, data) => {
 
 ----------------------
 
-### CSRF跨域请求伪造防护流程图
-服务器在用户登录后颁发csrf_token -- 用户在确认转账的时候 在请求中设置x-csrftoken, 值为服务器颁发的
+### CSRF跨域请求伪造 -- 防护流程图
+- 1. 服务器在用户登录后颁发 *csrf_token*
+- 2. 用户在确认转账的时候 在请求中设置x-csrftoken, 值为服务器颁发的
+- 3. 服务器端在转账之前要验证, 取出cookie中的token和请求头中的token值进行对比 如果不一致就return
 
-服务器端在转账之前要验证, 取出cookie中的token和请求头中的token值进行对比
-如果不一致就return
+> 要点: 前端发起请求的时候 要设置头信息， 后台拿到请求头中的token 和 cookie 中的token进行对比
 
+> 详解:
 - 1. 在用户C 成功登陆webA后 进入 /transfer的时候 webA颁发一个csrf_token(这个值是随机自动生成的48位字符串) 存在cookie中 给用户C
 
 - 2. 用户点击确认转账的时候, 再在请求头中设置一个属性 x-csrftoken: csrf_token
 ```js 
-    在我们发送请求的时候要额外设置请求头
-    x-csrftoken: csrf_token
-    这个值是从cookie中获取的
+    // 在我们发送请求的时候要额外设置请求头
+    x-csrftoken: csrf_token(这个值是从cookie中获取的)
  ```
 
 - 3. 在转账之前需要验证, 取出cookie中token和请求头中的token值进行对比 如果不一样就是不合法用户, 就直接return不能执行转账功能
 
-- 也就是webB在向webA请求的时候 有转账账户 转账金额 cookie(cookie里面也有token), 但是请求头里没有, 它这样提交过去因为请求头中没有token 会被webA的/transfer接口return掉
+- 也就是webB在向webA请求的时候 有转账账户 转账金额 cookie(cookie里面也有token), 
+- 但是请求头里没有(因为不是ajax 没有办法设置请求头), 它这样提交过去因为请求头中没有token 会被webA的/transfer接口return掉
+
 ```js 
     如果它也想设置请求头, 那必须要用ajax提交(它现在是简单的form表单提交) 那就是, 但是对于webB来讲的话 就是跨域了
 
@@ -8896,13 +9802,14 @@ students.sql('select * from students limit 10', (err, data) => {
 
     如果webB不使用form表单默认的方式提交, 使用ajax提交不就可以设置请求头了么
     但是
+
     $.ajax({
 
         // webB的请求地址写什么? 如果是/transfer 是向自己的服务器发送请求
         // 我们要写上 webA的网址
         url:'http://localhost:8000/transfer'
 
-        那就遇到一个问题 两个网站互相通信 4000 向 8000 端口发送请求 跨域了
+        // 那就遇到一个问题 两个网站互相通信 4000 向 8000 端口发送请求 跨域了
     })
 
     那为什么ajax属于跨域, 上面的form表单默认提交就不属于跨域 为什么?
@@ -8914,15 +9821,10 @@ students.sql('select * from students limit 10', (err, data) => {
     ajax的 url 'http://localhost:8000/transfer'
 
     这不一样么? 为什么form就可以
-
-    因为只要是跨域了 webA的服务器是没办法处理webB的js代码
-    ajax就是js代码的请求
-
-    而form表单属于浏览器的默认行为 不需要处理js代码
-    
+    因为只要是跨域了 webA的服务器是没办法处理webB的js代码 ajax就是js代码的请求 而form表单属于浏览器的默认行为 不需要处理js代码
  ```
 
-- 上面是流程 但是代码上怎么体现呢?
+> 上面是流程 但是代码上怎么体现呢?
 - 1. 服务端给浏览器设置 cookie(csrf_token)
 - 2. 浏览器端发送请求的时候设置请求头
 - 3. 服务端提取cookie中的csrf和请求头中的csrf进行全等判断
@@ -8930,15 +9832,22 @@ students.sql('select * from students limit 10', (err, data) => {
 ----------------------
 
 ### CSRF防护
-- 防护思路:
-- 1. 请求转账页面的时候, 服务器响应转账页面, 在cookie中设置一个csrf_token值(随机48位字符串)
+> 防护思路:
+- 1. 请求转账页面的时候, 服务器响应转账页面, *在cookie中设置*一个csrf_token值(*随机48位字符串*)
+- 2. 客户端在进行post请求的时候, *在请求头中带上自定义的属性X-CSRFToken 值为cookie中的csrf_token值*(要注意的是, 此时的post请求, 浏览器还会自发带着cookie中的csrf_token到服务器)
 
-- 2. 客户端在进行post请求的时候, 在请求头中带上自定义的属性X-CSRFToken 值为cookie中的csrf_token值(要注意的是, 此时的post请求, 浏览器还会自发带着cookie中的csrf_token到服务器)
-
-- 3. 服务器在接收到post请求的时候, 首先验证响应头中的x-csrftoken值, 和cookie中的csrf_token是不是一致, 如果不一致, 需要return 直接结束处理, 不进行后续的工作
+- 3. 服务器在接收到post请求的时候, *首先验证响应头中的x-csrftoken值, 和cookie中的csrf_token是不是一致*, 如果不一致, 需要return 直接结束处理, 不进行后续的工作
 
 
 > 生成 n 位随机字符串 函数
+- toString(36): 表示为由0-9, a-z组成的的36进制字符串。
+
+- Math.random().toString(36)
+- 0.1izir2ay8y
+
+- substr(2)
+- 1izir2ay8y
+
 ```js 
     function getRandomString(n) {
         let str = '';
@@ -8946,6 +9855,7 @@ students.sql('select * from students limit 10', (err, data) => {
             str += Math.random().toString(36).substr(2);
         }
 
+        // 因为结果比 传入的 n 多1 所以最终的结果我们再 - 1
         return str.substr(str.length-n);
     }
     getRandomString(48)
@@ -8963,10 +9873,9 @@ students.sql('select * from students limit 10', (err, data) => {
 
 > 防护开始:
 > 第一步: 安装 cookie-parser 并且注册
+- 我们要安装下WebA网站项目下
+- npm i cookie-parser
 ```js 
-    我们要安装下WebA网站项目下
-    npm i cookie-parser
-
     const cookieParser = require('cookie-parser');
     app.use(cookieParser())
  ```
@@ -8976,6 +9885,7 @@ students.sql('select * from students limit 10', (err, data) => {
 
 - let csrf_token = getRandomString(48);
 - res.cookie('csrf_token', csrf_token)
+
 ```js 
     // 转账页面接口中的逻辑代码 (get请求页面时)
     if (req.method == "GET") {
@@ -8984,7 +9894,7 @@ students.sql('select * from students limit 10', (err, data) => {
         let csrf_token = getRandomString(48);
         res.cookie("csrf_token", csrf_token);   
 
-        // 设置完token后渲染爷们
+        // 设置完token后渲染页面
         res.render('temp_transfer')
     }
  ```
@@ -9020,23 +9930,20 @@ students.sql('select * from students limit 10', (err, data) => {
 
 
 > 第四步: 服务端验证请求头中和cookie中的csrf_token值
-> 获取cookie中的token值
+> 从req身上获取自动携带的cookie中的token值
 - req.cookies["csrf_token"]
 
 > 获取请求头中的cookie中的token值 属性名改为小写!!!!
 - req.headers['x-csrftoken']
+
+**注意:**
+- 前端我们设置 请求头的时候 属性名是大写
+- 但是因为cookie-parser会把属性名中的大写都改成小写 所以我们在写 req.headers['这里要写小写的字母']  要不获取不到
 ```js 
-    注意:
-    前端我们设置 请求头的时候 属性名是大写
     headers:{'X-CSRFToken':getCookie('csrf_token')}
-
-    但是因为cookie-parser会把属性名中的大写都改成小写 所以我们在写
-    req.headers['这里要写小写的字母'] 
-
-    要不获取不到
  ```
 
-- 服务端代码
+> 服务端代码
 ```js 
     else if (req.method == "POST") {
 
@@ -9044,8 +9951,11 @@ students.sql('select * from students limit 10', (err, data) => {
     
     // 获取cookie中的token值  和  请求头中 x-csrftoken属性的token值 对比，如果一致，说明是合法请求，可以进行转账， 如果不一致， 说明是伪造的请求，马上return 不执行后面的代码
 
-    console.log(req.cookies["csrf_token"]);   //cookie中的token值
-    console.log(req.headers['x-csrftoken']);   //请求头中 x-csrftoken属性的token值
+    console.log(req.cookies["csrf_token"]);   
+    //cookie中的token值
+
+    console.log(req.headers['x-csrftoken']);   
+    //请求头中 x-csrftoken属性的token值
 
     if (req.cookies["csrf_token"] === req.headers['x-csrftoken']) {
       console.log("CSRF验证通过！");
@@ -9073,10 +9983,9 @@ students.sql('select * from students limit 10', (err, data) => {
 ----------------------
 
 ### CSRF 通用版本 (整个流程提取函数版)
+- 其实不光光是转账之类我们需要设置csrf防护, 还有比如收藏 关注, 再说白一点*涉及到用户使用post请求提交的*(只要关系到用户数据的比如登录页面) 我们*都需要做csrf防护*
 
-- 其实不光光是转账之类我们需要设置csrf防护, 还有比如收藏 关注, 再说白一点涉及到用户使用post请求提交的(只要关系到用户数据的比如登录页面) 我们都需要做csrf防护
-
-```js 
+```
     get不用 get本身只是获取数据, 查询数据 比如访问网站的某些资料我返回给你没问题
  ```
 
@@ -9084,20 +9993,24 @@ students.sql('select * from students limit 10', (err, data) => {
 - 当客户端做get请求的时候 我就设置 token
 - 当客户端做post请求的时候 我就来验证 token
 
-```js 
-    login页面的html代码:
-    - 使用了ajax提交 为了设置token相关的请求头
+> 前端代码: login页面的html代码:
+> 要点: 
+- 1. 使用了ajax提交 为了设置token相关的请求头
+- 2. 前端根据后台返回的结果 如果登录成功 前端做页面的跳转
 
+```js 
     $(".loginBtn").click(function (e) {
         console.log("点击了登录按钮");
 
         //获取参数
         var username = $("#username").val();
         var password = $("#password").val();  
+
         var params = {
             "username":username,
             "password":password,
         }
+
         console.log(params);
         
         $.ajax({
@@ -9125,35 +10038,35 @@ students.sql('select * from students limit 10', (err, data) => {
         var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
         return r ? r[1] : undefined;
     }
+```
 
-
-
-    服务器端:
-
+> 服务器端:
+- 我们在all里面
+```js
     router.all('/', (req, res) => {
-    if(req.method=="GET"){
+        if(req.method=="GET"){
+
+    ~~~~~~~~~~~~~~~~~~~
+            // 在get中设置 csrf_token
+            let csrf_token = getRandomString(48);
+            res.cookie('csrf_token', csrf_token); 
+    ~~~~~~~~~~~~~~~~~~~
+            
+            res.render('temp_login')
+        } else if(req.method=="POST"){
 
 ~~~~~~~~~~~~~~~~~~~
-        // 在get中设置 csrf_token
-        let csrf_token = getRandomString(48);
-        res.cookie('csrf_token', csrf_token); 
-~~~~~~~~~~~~~~~~~~~
-        
-        res.render('temp_login')
-    }else if(req.method=="POST"){
+            // 在post中验证 csrf_token
+            console.log(req.headers["x-csrftoken"]);
+            console.log(req.cookies["csrf_token"]);
 
-~~~~~~~~~~~~~~~~~~~
-        // 在post中验证 csrf_token
-        console.log(req.headers["x-csrftoken"]);
-        console.log(req.cookies["csrf_token"]);
-
-        if((req.headers["x-csrftoken"] === req.cookies["csrf_token"])){
-            console.log("csrf验证通过！");
-   
-        }else{
-            res.send("csrf验证不通过！");
-            return
-        }    
+            if((req.headers["x-csrftoken"] === req.cookies["csrf_token"])){
+                console.log("csrf验证通过！");
+    
+            }else{
+                res.send("csrf验证不通过！");
+                return
+            }    
 ~~~~~~~~~~~~~~~~~~~
 
         let {username, password} = req.body;
@@ -9178,16 +10091,16 @@ students.sql('select * from students limit 10', (err, data) => {
 
 - 那每个函数都需要手动添加到app.get('/', csrfProtect函数, (req, res) => { ... })么? 那也很麻烦 不用
 
-- 我们可以利用在执行一个接口之前 自动调用这个函数的(钩子函数)
+- 我们可以利用在执行一个接口之前 *自动调用这个函数的(钩子函数)*
 - 但是钩子函数的使用需要router 所以进行下面的操作
 ```js 
     // 创建路由
     const router = express.Router();
 
     // 注册路由 钩子函数加在router的前面, 这样在执行这个router里面的接口的时候都会先调用这个钩子函数 (如果自己测试的时候没效果 那就把它放在最下面) 
-    ap.use(csrfProtect, router);
+    app.use(csrfProtect, router);
 
-    然后把所有的app. 换成 router.
+    // 然后把所有的app. 换成 router.
 
     function csrfProtect(req, res, next) {
         // 这里的代码将在执行router下的接口之前的时候执行
@@ -9269,7 +10182,7 @@ students.sql('select * from students limit 10', (err, data) => {
 ```js 
     href="/news/css/reset.css"
 
-    第一个 / 就是根 也就是从 public 文件夹开始找
+    // 第一个 / 就是根 也就是从 public 文件夹开始找
  ```
 
 
@@ -9332,7 +10245,6 @@ students.sql('select * from students limit 10', (err, data) => {
 >>> 下面是以函数的形式进行的封装, 和以函数的形式进行的调用
 ```js 
     // config.js文件:
-
     const path = require('path');
     const cookieParser = require('cookie-parser');
     const cookieSession = require('cookie-session');
@@ -9568,8 +10480,10 @@ students.sql('select * from students limit 10', (err, data) => {
 - 先说一些关于数据库的点:
 - 网站中的很多数据都是从数据库里获取到再展示到页面上的
 - 只要是同一账号登录的状态下, 账号再次登录要显示已收藏(保留上次收藏时的状态)
+
 ```js 
     老赵收藏了一篇新闻, 这个动作要保存到数据库里面, 数据库里面有数据库表
+
     用户收藏了哪一篇文章, 应该有一个表记录 哪一个用户收藏了哪一篇文章
 
     也就是说我们一个项目里应该存在着很多表
@@ -9700,16 +10614,14 @@ students.sql('select * from students limit 10', (err, data) => {
 - npm i svg-captcha --save
 
 - 2. 我们把关于captcha的配置文件夹, 放在utils文件夹里面
-```js 里面有index.js文件 里面需要用到 svg-captcha 模块 所以下载的 ```
+- 里面有index.js文件 里面需要用到 svg-captcha 模块 所以下载的 
 
 - 3. 打开captcha的配置文件夹里面的index.js文件进行配置
-```js 
-    字体大小 验证码长度等设置
- ```
+- 字体大小 验证码长度等设置
 
 - 4. 在关于验证的路由接口里面使用, 先引入
 ```js 
-    我们前面做了路由的提取, 创建了关于验证的接口 
+    // 我们前面做了路由的提取, 创建了关于验证的接口 
     const Caotcha = require('../utils/captcha/index');
 ```
 
@@ -9803,7 +10715,7 @@ students.sql('select * from students limit 10', (err, data) => {
         $('.get_pic_code').attr('src',image_url)
 
 
-        原生的写法:
+        // 原生的写法:
         div.addEventListener('click', function() {
             let imgUrl = '/passport/image_code/'+ (+new Date());
             img.src = imgUrl
@@ -9825,9 +10737,11 @@ students.sql('select * from students limit 10', (err, data) => {
 ----------------------
 
 ### 验证码图片保存到session
-- 1是为了能够在不同的接口里获取captcha.text 2是为了让用户A对应自己的验证码信息, 用户B对应自己的验证码信息
+- 1. 是为了能够在不同的接口里获取captcha.text 
+- 2. 是为了让用户A对应自己的验证码信息, 用户B对应自己的验证码信息
 
 - 接下来简单的文字解释下 用户注册的过程, 然后说下为什么要将验证码信息保存在session里面
+
 ```js 
     1.
     浏览器向服务器发起 获取验证码的请求
@@ -9842,8 +10756,7 @@ students.sql('select * from students limit 10', (err, data) => {
     浏览器端看到 验证码图片
 
     4. 
-    浏览器 用户填完注册信息后(用户名 密码 验证码等)发起注册请求 (POST)
-    - 会带参数(用户名 密码 验证码的文本信息)
+    浏览器 用户填完注册信息后(用户名 密码 验证码等)发起注册请求 (POST) 会带参数(用户名 密码 验证码的文本信息)
 
     5.
     服务器(/passport/register)接口负责处理注册请求 (POST)
@@ -9898,8 +10811,8 @@ students.sql('select * from students limit 10', (err, data) => {
 - 3. 前端这里做了验证判断, 如果没有填写 或者 没有填对 就给出提示语句 并return
 - 4. 根据后端传递过来的数据 我们判断是否注册成功 成功就刷新页面
 
-- 注意:
-- 后端尽量返回的都是数据, 不用去操控浏览器的跳转, 这应该由前端来控制
+**注意:**
+- *后端尽量返回的都是数据*, 不用去操控浏览器的跳转, 这应该由前端来控制
 
 - 前端注册表单的代码 我们来分析一下
 ```js 
@@ -10020,8 +10933,7 @@ students.sql('select * from students limit 10', (err, data) => {
     console.log(username, image_code, password, agree)
 
     // 注意:
-    解构的时候, 目标对象里定义的什么变量名 解构的时候就使用什么让的变量名
-    前后变量名不一致会解不出来
+    解构的时候, 目标对象里定义的什么变量名 解构的时候就使用什么让的变量名 前后变量名不一致会解不出来
  ```
 
 
@@ -10142,7 +11054,7 @@ router.post('/passport/register', (req, res) => {
     console.log('result: ' + result);
 
     // - 4. 判断
-    //     - 如果数据库里面有, 返回用户名已存在 return
+    // - 如果数据库里面有, 返回用户名已存在 return
     if (result[0]) {
         res.json({errmsg: '用户名已经被注册'});
         return;
@@ -11004,7 +11916,9 @@ router.get('/', (req, res) => {
 ### Base64
 - 目前 Base64 已经成为网络上常见的传输 8bit 字节代码的编码方式之一。在做支付系统时，系统之间的报文交互都需要使用 Base64 对明文进行转码，然后再进行签名或加密，之后再进行（或再次 Base64）传输。那么，Base64 到底起到什么作用呢？
 
-- 在参数传输的过程中经常遇到的一种情况：使用全英文的没问题，但一旦涉及到中文就会出现乱码情况。与此类似，网络上传输的字符并不全是可打印的字符，比如二进制文件、图片等。Base64 的出现就是为了解决此问题，它是基于 64 个可打印的字符来表示二进制的数据的一种方法。
+- 在参数传输的过程中经常遇到的一种情况：使用全英文的没问题，但一旦涉及到中文就会出现乱码情况。
+
+- 与此类似，网络上传输的字符并不全是可打印的字符，比如二进制文件、图片等。Base64 的出现就是为了解决此问题，它是基于 64 个可打印的字符来表示二进制的数据的一种方法。
 
 - 电子邮件刚问世的时候，只能传输英文，但后来随着用户的增加，中文、日文等文字的用户也有需求，但这些字符并不能被服务器或网关有效处理，因此 Base64 就登场了。随之，Base64 在 URL、Cookie、网页传输少量二进制文件中也有相应的使用。
 
@@ -11016,6 +11930,8 @@ router.get('/', (req, res) => {
 - decode  解码    由我们看不懂的 编成 看的懂的
 
 > 前端使用 base64
+- https://www.runoob.com/jsref/met-win-atob.html
+
 ```js 
     function base64Encode(str) {
         return window.btoa(unescape(encodeURIComponent(str)));
@@ -11556,7 +12472,7 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
 - 3. 上面的拼接好后, 进行一下加密处理 加密处理的结果 和 第三步部分(签名)进行对比 如果一致说明token有效
 
 
-- 我们看看JWT请求的流程
+> 我们看看JWT请求的流程
 - 1. 生成 token
 - 2. 验证 token
 ```js 
@@ -14660,7 +15576,7 @@ router.get('/user/collections', (req, res) => {
 
 
     // 前端 html 代码   （右键Open in Live Server）：
-    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></>
 
     <p>
         <span id="sp1"></span>的年龄是<span id="sp2"></span>

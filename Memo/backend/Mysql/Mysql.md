@@ -3,9 +3,11 @@
 
 - https://www.jianshu.com/p/3a4e245d43b1
 
+
 ### 数据库的root密码
 - root
 - qwer6666
+- 123456 -> 0530 让我改成这个了
 
 
 ### 概述
