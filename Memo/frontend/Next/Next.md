@@ -83,7 +83,7 @@
 
   pages/index.js    http://localhost:3000/index
   pages/about.js    http://localhost:3000/about
-  pages/cmp/news.js    http://localhost:3000/cmp/news
+  pages/cmp/news.js http://localhost:3000/cmp/news
 
 
 - 不是页面组件的组件 可以创建 components 目录 放进去
