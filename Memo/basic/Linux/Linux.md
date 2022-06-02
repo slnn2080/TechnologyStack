@@ -16,7 +16,7 @@
 - 我们进入的是 Macintosh HD
 
 > cd ~ 
-- 我们进入的是 ユーザ - LIUCHUNSHAN
+- 我们进入的是 ユーザ - *LIUCHUNSHAN*
 
 
 > 目录介绍
@@ -87,12 +87,14 @@
   tab	          自动补全
 
 
-> 创建目录 mkdir (make directory)
+> 创建目录 
+> mkdir 路径     -- 单层
+> mkdir -p 路径  -- 多层
 
 - 创建单层目录：mkdir 新目录的路径
 - mkdir aaa/bbb/ccc
 <!-- 
-  其中aaa/bbb是存在的目录，要创建的仅仅是ccc
+  其中aaa/bbb是存在的目录， 要创建的仅仅是ccc
  -->
 
 - 创建多层目录：mkdir -p 新目录的路径
@@ -179,7 +181,7 @@
 
 > 打开一个文件
 - vim content.txt
-- 如果文件不存在 那么就是新建一个文件
+- 如果文件不存在 *那么就是新建一个文件*
 <!-- 
   // 进入的画面 为一般模式 一般模式的模版
   ~

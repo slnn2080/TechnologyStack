@@ -9951,7 +9951,7 @@ export default class App extends Component {
 ```
 
 
-> 总结：
+> 总结： 
 - 我们要是想传递 params 就得这么传
 ```js 
   <li key={item.id}>

@@ -20,6 +20,16 @@ md rd hello.txt d: dir rm
 - 启动交互命令 进入shell
 - 两次control+c 退出
 
+
+> 安装 code
+- 安装code：
+    打开VSCode –> 
+        command+shift+p –> 
+            输入shell command –> 
+                点击提示Shell Command: Install ‘code’ command in PATH运行
+
+- 之后就可以通过 code . 打开对应的项目
+
 ----------------------
 
 ### 进入node环境
@@ -61,18 +71,19 @@ md rd hello.txt d: dir rm
 ### Nodejs能做什么
 - web服务器后台
 - 命令行工具
-```js 
-    对于前段开发工程师来讲, 接触node最多的是它的命令行工具
-    自己写的很少, 主要用别人第三方开发的
- ```
+
+- 对于前段开发工程师来讲, 接触node最多的是它的命令行工具 自己写的很少, 主要用别人第三方开发的 也就是使用 npm 按照第三方的依赖
+
 ----------------------
 
 ### Nodejs的资源
 - 深入浅出node.js
-```js 偏理论几乎没有实战内容 偏底层 ```
+- 偏理论几乎没有实战内容 偏底层
+
 
 - node.js权威指南
-```js api的讲解 ```
+- api的讲解
+
 
 - js标准参考教程(alpha):
 - http://javascript.ruanyifeng.com
@@ -97,9 +108,9 @@ md rd hello.txt d: dir rm
 ### nvm
 - 用来管理多个版本的node
 - 安装nvm之前要删除现有的node
-```js 
-    是由于不同的项目node版本也不同，有的是5.0.1， 有的是6.3.2。 如果node出现版本不对，运行 某个应用时，很可能就会遇到各种莫名其妙的问题 。
- ```
+
+- 是由于不同的项目node版本也不同，有的是5.0.1， 有的是6.3.2。 如果node出现版本不对，运行 某个应用时，很可能就会遇到各种莫名其妙的问题 。
+
 
 > 安装:
 - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
@@ -131,22 +142,18 @@ md rd hello.txt d: dir rm
 
 > nvm install 版本号[架构]
 - 安装指定版本的node.js
-```js 
-    nvm install 10.15.0
+- nvm install 10.15.0
 
-    安装最新版本
-    nvm install latest
- ```
- 
+- 安装最新版本: 
+- nvm install latest
+
 
 > nvm uninstall 版本号
 - 卸载
 
 
 > nvm use 版本号
-```js 
-    nvm use 10.15.0
- ```
+- nvm use 10.15.0
 
 ----------------------
 
@@ -161,45 +168,51 @@ md rd hello.txt d: dir rm
 - npm search 包名       搜索包模块
 
 - npm init
-```js 创建package.json ```
+- 创建package.json
 - 初始化 然后回车  最后一行提示 是否用该名字 名字里不要有大写字母 不要有中文
 
 - npm install 包名
-```js 安装包  install 简写 i ```
-```js 
-    注意下当前目录 会安装到这里 如果想安装到指定文件夹
-    创建一个文件夹 --- 在这个文件夹的地址栏里cmd --- 安装
+- 安装包  install 简写 i
 
+*注意:*
+- 会安装到当前目录 如果想安装到指定文件夹
+- 创建一个文件夹 --- 在这个文件夹的地址栏里cmd --- 安装
+```
     有的时候发现执行完下面命令 当前文件夹下并没有
     安装到哪里是根据 package.json识别的 文件夹里没有package.json
     所以它不能确定是一个包 装到别的地方了
     要想安装到指定路径 必须在当前目录下 创建个package.json
- ```
+```
 
-- package.json的内部属性:
-```js 
-    verson
-    description     描述
+- package.json的内部配置项:
+```json
+    verson: 
+    description
     entry point     
-
-    我们写一个程序模块 里面会有很多的js文件 哪个js文件是程序的入口 不能所有文件都执行 这个就是指定入口的 默认叫做index.js, 还有一些 最后是 is this ok
  ```
+- 我们写一个程序模块 里面会有很多的js文件 哪个js文件是程序的入口 不能所有文件都执行 这个就是指定入口的 默认叫做index.js, 还有一些 最后是 is this ok
+
 
 - npm remove 包名
 - 删除包 remove 简写 r
 
+
 - npm remover 包名 --save
 - 删除包 并删除依赖
+
 
 - npm install 包名 --save
 - 安装包 并添加到依赖中 以后主要用这个 dependencies 依赖
 - 安装的同时 把这个包设置为你的依赖了 你的包依赖math包了
 
+
 - npm install 包名 -g
 - 全局模式安装包
 - 全局安装的包一般都是一些工具 全局的包一般都不是项目里用的 而是计算机里面用的 比如编译css文件的 给项目打包的一些工具
 
+
 - npm uninstall 包名
+
 
 - npm cache clean --force
 - 需要清除npm编译的一些缓存 默认清空下面的文件夹
@@ -225,7 +238,7 @@ md rd hello.txt d: dir rm
 
 - lib               
 - js代码
-```js 如果这个模块需要依赖一些其他的js代码 可以放到这里去 ```
+- 如果这个模块需要依赖一些其他的js代码 可以放到这里去
 
 - doc               
 - 功能性的说明文档
@@ -282,13 +295,17 @@ md rd hello.txt d: dir rm
 
 ### NodeJs简介
 - NodeJs是一个能够在服务器端运行的js环境
-```js 
+
+```
     之前的JS都是浏览器端运行的 也就是本地运行的 我们写完的东西都要发送给用户 也可以理解为是用户的客户端运行的，不是在服务器本地执行的
 
     NodeJs让我们的Js代码可以直接在服务器中运行 或者 直接在系统中运行
 
-    在浏览器中运行能干什么事？ 最大的限度也就是操作下浏览器 顶多关闭个窗口 跳转个页面  NodeJs是在服务器中运行 这时候它是在跟谁在交互呢？和系统进行交互了 可以和java c等语言一样可以和系统直接进行交互了
-    所以它的平台不再仅限于浏览器了
+    在浏览器中运行能干什么事？ 
+    最大的限度也就是操作下浏览器 顶多关闭个窗口 跳转个页面  
+    
+    NodeJs是在服务器中运行 这时候它是在跟谁在交互呢？
+    和系统进行交互了 可以和java c等语言一样可以和系统直接进行交互了 所以它的平台不再仅限于浏览器了
 
     NodeJs把js战场从前端拿到了后台 
  ```
@@ -298,37 +315,37 @@ md rd hello.txt d: dir rm
 ### 客户端 --- 服务器 --- 数据库
 - 我们写完的代码都是放在服务器的 用户去访问服务器 把写好的网页下载到浏览器 才能查看 我们的网页中的通信  基于 请求 和 响应
 
-```
     比如
-    我们客户向服务器端发送请求 服务器端和数据库进行交互，数据库是用来保存数据的， 所以当客户端向服务器发送请求的时候 服务器还需要和数据库进行交互 比如数据库要把京东的信息加载出来啊
+    我们客户向服务器端发送请求 服务器端和数据库进行交互，数据库是用来保存数据的， 
+    所以当客户端向服务器发送请求的时候 服务器还需要和数据库进行交互 
+    比如数据库要把京东的信息加载出来啊
 
     数据都在磁盘中 那服务器和数据库进行交互的过程 我们叫做 i/o  
-    i是input 输入 从磁盘读数据 
+    i input  输入 从磁盘读数据 
     o output 输出
 
     我们的i/o就是向磁盘 读取 或者 写入数据
 
     客户端  -- 请求 -- > 服务器 -- i/o -- > 数据库
-
     客服端  < -- 响应 -- 服务器 < -- i/o -- 数据库
 
     但是 
 
     I/O 难以处理 所有的项目开发到最后的瓶颈都是I/O
-    I/O要和磁盘进行交互 即使性能提升的再好 磁盘的读写速度是有限制的 好点的服务器都是固态硬盘
+    I/O要和磁盘进行交互 即使性能提升的再好 磁盘的读写速度是有限制的 
+    
+    好点的服务器都是固态硬盘 即使是固态硬盘的读写速度也有极限 那这个极限就突破不了了 除非出新磁盘了 但是出了新磁盘也会有极限 所以所有项目到最后的瓶颈都是I/O
 
-    即使是固态硬盘的读写速度也有极限 那这个极限就突破不了了 除非出新磁盘了 但是出了新磁盘也会有极限 所以所有项目到最后的瓶颈都是I/O
-
-    这时候我们就面临一个问题 用户网速很快 我们的程序写的很好 服务器的逻辑性也很严谨 一点浪费的代码也没有
-
-    处理的速度也非常的快 服务器的带宽也够 响应速度也是非常的快 都卡在了I/O上
+    这时候我们就面临一个问题 用户网速很快 我们的程序写的很好 服务器的逻辑性也很严谨 一点浪费的代码也没有 处理的速度也非常的快 服务器的带宽也够 响应速度也是非常的快 都卡在了I/O上
 
     传统的服务器都是多线程的 每进来一个请求 就创建一个线程去处理这个请求 一对一的服务 这时候也会带来一个问题
 
     打个比喻
-    就相当于一个饭店， 来了一个客人我就配一个服务员 来100个我就配100个 1对1的服务 点菜快 上菜也很快 但是做菜很慢
-    每来一个人我就配一个服务员 点菜上菜都很快 但是他得等厨师炒菜啊 厨师的菜没炒完呢 我的服务员不能走 就会出现厨师炒菜呢
-    服务员在旁边看着 这个线程是不是浪费 这个服务员完全可以为别的服务员进行服务 等菜炒完了再去服务
+    就相当于一个饭店， 来了一个客人我就配一个服务员 来100个我就配100个 
+    
+    每来一个人我就配一个服务员 点菜上菜都很快 但是他得等厨师炒菜啊 厨师的菜没炒完呢 我的服务员不能走 就会出现厨师炒菜呢 服务员在旁边看着 
+    
+    这个线程是不是浪费 这个服务员完全可以为别的服务员进行服务 等菜炒完了再去服务
 
     数据库就相当于厨师 炒菜慢死了 
 
@@ -349,20 +366,18 @@ md rd hello.txt d: dir rm
     1. js是单线程的
     2. js里经常用到一个东西就是异步 回调函数 
 
-    多线程的服务器 对系统的硬件要求比较高 node单线程的对硬件要求低 成本低 奇数版为开发版，偶数版为稳定版
+    多线程的服务器 对系统的硬件要求比较高 node单线程的对硬件要求低 成本低 
+    *奇数版为开发版，偶数版为稳定版*
 
     单线程是node的特点 但不太靠得住 单线程人多的时候肯定顾不过来 node也是成也单线程 败也单线程 node处理不了
 
     访问量太太大的 以java为主 企业应用就是java node想处理的话就得多来几个服务器
-
-    淘宝的后台服务器肯定是java的 我们的客户端和服务器得交互吧，所以淘宝在服务器和客户端之间又加了一层服务器
-
-    这层服务器用node写 java处理请求非常快多线程 它的缺点是对页面的渲染速度慢 js是专门渲染页面的 所以淘宝在两者之间搭了一个node的服务器
-    专门用来渲染页面的 
+    淘宝的后台服务器肯定是java的 我们的客户端和服务器得交互吧，所以淘宝在服务器和客户端之间又加了一层服务器 这层服务器用node写 
+    
+    java处理请求非常快多线程 它的缺点是对页面的渲染速度慢 js是专门渲染页面的 所以淘宝在两者之间搭了一个node的服务器 专门用来渲染页面的 
 
     node的缺点也有解决方案 可以做一个分步式 一个服务器不够了再来一个 两个不够来三个 我们可以增加服务器的数量 还好node
     对服务器的要求不高 花1000元买的服务器能达到10000元的效果
- ```
 
 ----------------------
 
@@ -380,6 +395,7 @@ md rd hello.txt d: dir rm
 - 我们在该环境中可以使用let关键字来定义一个变量并为其赋值 但是在定义变量后 该表达式的结果将显示undefined
 
 - 而不使用let等关键字定义的变量则为其对应的变量值
+
 ```js
     > name = "erin"
     'erin'
@@ -417,25 +433,29 @@ md rd hello.txt d: dir rm
 - 后面看到的所有的全局变量, 例如console setTimeout和process是global变量的成员, 我们设置可以想全局变量添加成员, 使其在任何地方都可用
 
 
-> 总结:
-- 1. nodejs里面没有window对象, 有global对象, 之间所使用的console等这些是global对象下的属性 / 成员
+**注意:**
+> 1. nodejs里面没有window对象
+- 但有global对象, 之间所使用的console等这些是global对象下的属性 / 成员
 
-- 2. node里面声明的变量, 不会挂载到global里面
+> 2. node里面声明的变量, 不会挂载到global里面
 ```js 
     let a = 10
     console.log(global.a)   // undefined 
 ```
 
-- 3. 可以向global添加成员, 可以在任何地方去使用
+> 3. 可以向global添加成员, 可以在任何地方去使用
 ```js 
     global.a = 60;
     console.log(a)
  ```
 
-- 4. 在nodejs中执行当前js文件, 里面如果出现this, 这个this指向不是global, 这个this在文件中, 其实指向的是这个模块(这个js文件)
+> 4. nodejs中的js模块中的 this
+- 在nodejs中执行当前js文件, 里面如果出现this, 这个this指向不是global, 这个this在文件中, 其实指向的是这个模块(这个js文件)
 ```js 
     // 在js文件中
     console.log(global === this)    // false   
+
+    console.log(this == exports)    // true
 
     // 在node的交互环境中
     console.log(global === this)    // true     
@@ -554,13 +574,6 @@ console.log(__dirname)
 - 等各种事件 针对每个不同的事件 都需要进行不同的事件处理
 
 
-> EvenetEmitter类
-- 在node的用于实现各种事件处理的 event模块中 定义了一个EventEmitter类
-- 所有可能触发事件的对象都是一个继承了 EvenetEmitter类的子类的实例对象
-
-- 在node中 EvenetEmitter类定义了许多的方法 所有与对象的事件处理函数的绑定 以及 解除相关的处理均依靠这些方法的调用来执行
-
-
 > 绑定事件 addListener(event, listener)
 > 绑定事件 on(event, listener)
 - 可以通过多个on方法的执行来对同一个事件绑定多个事件处理函数
@@ -579,12 +592,6 @@ console.log(__dirname)
 > emit(event, [arg1], [arg2], [argn])
 - event为事件名
 - listener为事件回调
-
-
-> EventEmitter类的各个方法
-- 当需要对指定事件绑定事件处理函数的时候 可以使用 EventEmitter类 的on方法或addListener方法
-
-- 这两个方法的区别仅在于方法名而已
 
 
 > 事件环机制
@@ -652,14 +659,6 @@ console.log(__dirname)
 ```
 
 
-> __filename
-- 包括文件名的完整目录 xxx/当前文件名.后缀名
-
-
-> __dirname
-- 当前文件所在的目录(文件夹)
-
-
 > 总结：
 - 也就是说 我们在node环境下运行js代码，其实node会把它
 - 封装到一个函数体内部，这样外部文件看不到，除非我们通过exports给它们暴露出去
@@ -669,7 +668,9 @@ console.log(__dirname)
 ### ES的缺陷
 > 1. 没有模块系统
 
-    模块化：本来是一个完整的程序 我给她分成一个个小的程序
+    模块化：
+    
+    本来是一个完整的程序 我给她分成一个个小的程序
     比如我有一个程序写了10万行代码
 
     第一种选择 我把10万行代码放在一个文件里 不方便维护
@@ -712,12 +713,12 @@ console.log(__dirname)
 > 1. 为了要模块化
 - 在计算机程序的开发过程中, 随着程序代码越写越多, 在一个文件里代码就会越来越长, 越来越不容易维护, 为了编写可维护的代码, 我们把很多函数分组, 分别放到不同的文件里, 这样每个文件包含的代码就相对较少, 很多变成语言都采用这种组织代码的方式 (一个js文件就是一个模块) 
 
-- 使用模块有什么好处?
+> 使用模块有什么好处?
 - 最大的好处是大大提高了代码的可维护性, 其次, 编写代码不必从零开始, 当一个模块编写完毕, 就可以被其他地方引用, 我们在编写程序的时候, 也经常引用其他模块, 包括nodejs内置的模块和来自第三方的模块
 
 - 使用模块还可以避免函数名和变量名冲突, 相同名字的函数和变量完全可以分别存在不同的模块中, 因此, 我们自己在编写模块的时候, 不必考虑名字会与其他模块冲突
 
-> 重点: 方便项目的开发和维护
+*重点: 方便项目的开发和维护*
 
 
 > 2. 模块规范的定义
@@ -733,13 +734,13 @@ console.log(__dirname)
 > 模块定义规范
 - 对书写格式和交互规则的详细描述就是模块定义规范
 
-- AMD规范       require.js
-- CMD规范       sea.js
-- CommonJs      nodejs
+- AMD规范 -- require.js
+- CMD规范  --  sea.js
+- CommonJs  --  nodejs
 - ES6模块化规范
 
 
-> 注意要点
+> 要点
 - 1. commonjs的规范中, 需要使用其他模块的数据的时候, 引入关键方法是require
 - 2. require的参数可以是相对路径(./ 不能省), 也可以是绝对路径
 - 3. 绝对路径中的\ 要写\\  或者写正斜杠 /
@@ -815,9 +816,9 @@ require('./js/')
     foo.num
  ```
 
-- 解析:
-- 当我们使用 exports.变量 = 值 的形式导出的时候 我们导出的是一个 {}
-- 这个对象中有没有在这个js文件定义的 变量
+> 解析:
+- 当我们使用 exports.变量 = 值 的形式导出的时候 我们导出的是一个空{} 这个对象中没有在这个js文件定义的 变量
+
 - 相当于
 ```js
 let num = 1
@@ -912,6 +913,7 @@ let {num, str} = require("./exer2")
 ### 模块中的this指向
 - 在nodejs里面的*this代表当前的这个模块, 也就是exports对象*
 - 在js文件中 this指向当前模块导出的对象(模块导出的东西)
+
 ```js 
     console.log(this === exports)   true
  ```
@@ -1050,17 +1052,16 @@ let {num, str} = require("./exer2")
 - 1024mb = 1gb
 - 1024gb = 1tb
 
-```
-    字节是数据传输的时候最小的单位 
-```
+*字节是数据传输的时候最小的单位*
 
 - buffer中的一个元素 占用内存中的一个字节 上面的str的长度是13 代码str占用了13个字节 一个汉字 占用3个字节
 
 
 > buf.length
 - buf.length是占用内存的大小
-    英文的话 一个字母就是一个字节
-    中文的话 一个汉字就是三个字节
+
+    *英文的话 一个字母就是一个字节*
+    *中文的话 一个汉字就是三个字节*
 
 ```js
     console.log(str.length);         // 获取字符串的长度
@@ -1202,7 +1203,7 @@ console.log(buf.length) // 1024
 --- 
  
 ### 往buffer中添加数据
-- 通过索引给buffer赋值 操作buffer中的元素
+- *通过索引*给buffer赋值 操作buffer中的元素 类似操作数组
 
 - 1. 将数组一样通过下标的方式 插入数据
 ```js 
@@ -1215,9 +1216,8 @@ console.log(buf.length) // 1024
     buf[10] = 15;   
  ```
     
-- buffer的大小一旦确定 则不能修改 创建好了后 就是那么长 不能修改
-- buffer实际上是对底层内存的直接操作
-- buffer中分配的空间一定是连续的 这样性能比较好
+- buffer的大小一旦确定 则不能修改 创建好了后 就是那么长 不能修改 buffer实际上是对底层内存的直接操作 buffer中分配的空间一定是连续的 这样性能比较好
+
 - buffer中的范围 是 00 - ff  也就是 10进制的 0-255 
 ```js 
     // 假如 我向里面添加 256 超出最大范围
@@ -1225,8 +1225,9 @@ console.log(buf.length) // 1024
  ```
 
 2进制的556
+
     10 0010 1100    我们最多只能保存8bit 前面的两位会被舍掉
-    0010 1100       会显示2c 对应的16进制是44
+       0010 1100    会显示2c 对应的16进制是44
 
 
 - HEX 16进制
@@ -1266,7 +1267,7 @@ for(let i=0; i<buf2.length; i++){
 ---
 
 ### 对缓冲区的解释
-- nodejs要作为服务器 服务器无非就两件事 一个是接受用户发的请求 一个是返回响应 用户发的请求全都是2进制数据 这时候我们再接收用户的请求时就会发生一个问题 
+- nodejs要作为服务器 服务器无非就两件事 一个是接受用户发的请求 一个是返回响应 *用户发的请求全都是2进制数据* 这时候我们再接收用户的请求时就会发生一个问题 
 
 - 用户发的数据我存哪啊 存到buffer里 同理 我要把数据发给用户 也需要把数据转换为2进制 发送之前的数据存哪？也是存到buffer里
 
@@ -1287,19 +1288,6 @@ for(let i=0; i<buf2.length; i++){
     文档中还有一些
     buf[index]等等 都是通过buf对象调用的 上面的类方法都是通过构造函数调用的
  -->
-
-----------------------
-
-### 异步式I/O 与 事件式编程
-- Node.js 最大的特点就是异步式 I/O（或者非阻塞 I/O）与事件紧密结合的编程模式。
-
-- 这种模式与传统的同步式 I/O 线性的编程思路有很大的不同，因为控制流很大程度上要靠事件和回调函数来组织，一个逻辑要拆分为若干个单元。
-
-- 什么是阻塞（block）呢？线程在执行中如果遇到磁盘读写或网络通信（统称为 I/O 操作），通常要耗费较长的时间，这时操作系统会剥夺这个线程的 CPU 控制权，使其暂停执行，同时将资源让给其他的工作线程，这种线程调度方式称为 阻塞。当 I/O 操作完毕时，操作系统将这个线程的阻塞状态解除，恢复其对CPU的控制权，令其继续执行。这种 I/O 模式就是通常的同步式 I/O（Synchronous I/O）或阻塞式 I/O （Blocking I/O）
-
-- 相应地，异步式 I/O （Asynchronous I/O）或非阻塞式 I/O （Non-blocking I/O）则针对所有 I/O 操作不采用阻塞的策略。当线程遇到 I/O 操作时，不会以阻塞的方式等待 I/O 操作的完成或数据的返回，而只是将 I/O 请求发送给操作系统，继续执行下一条语句。当操作系统完成 I/O 操作时，以事件的形式通知执行 I/O 操作的线程，线程会在特定时候处理这个事件。为了处理异步 I/O，线程必须有事件循环，不断地检查有没有未处理的事件，依次予以处理。
-
-----------------------
 
 ----------------------
 
@@ -1371,10 +1359,11 @@ console.log(info)       // .jpg
 ---
 
 > path.basename(__filename)
-- 获取指定文件的文件名(包括扩展名)
+- *获取指定文件的文件名*(包括扩展名)
 
 - 参数
 - 文件所在的路径
+
 ```js 
     let basename = path.basename(__filename);
     console.log(basename);
@@ -1480,7 +1469,6 @@ console.log("resolve", path2)   // 没有和dirname拼接 结果为 /test
  ```
 
 > process.cwd()
-- process.cwd():
 - 是当前Node.js进程执行时的文件夹地址 —— 工作目录
 - 保证了文件在不同的目录下执行时，路径始终不变
 - process.cwd()会根据node命令的执行环节路径更改。
@@ -2011,12 +1999,15 @@ fs.readFile('D:/Memo/Erin/1.jpg', function(err, data){
 
 ----------------------
 
-### 练习: 读取目录
+### 读取目录
 > fs.readdir(path, callback)
 - 参数
 - callback
     err 没读到的报错信息
     files 为目录下的文件*数组列表* 文件名称
+
+- 返回值:
+- 文件名称组成的数组
 
 ```js
 fs.readdir(__dirname, (err, files) => {
@@ -2031,6 +2022,22 @@ fs.readdir(__dirname, (err, files) => {
   'exer2.js',
   'test.txt'
 ]
+```
+
+- 示例: 判断是否是文件目录
+```js
+const fs = require("fs")
+const path = require("path")
+
+const dirContent = fs.readdir(path.resolve(__dirname), (err, files) => {
+  files.forEach(item => {
+    if(!item.match(/\..+$/)) {
+
+      // 能进入到这里的话 item就是文件目录
+      console.log(item)
+    }
+  })
+})
 ```
 
 ----------
@@ -2056,7 +2063,7 @@ fs.readdir(__dirname, (err, files) => {
 
 ----------
 
-### 练习: 删除文件夹中的指定文件
+### 删除文件夹中的指定文件
 
 > 要点:
 > fs.unlink(path, callbacl)
@@ -2081,7 +2088,7 @@ fs.readdir(__dirname, (err, files) => {
 
 ----------
 
-### 练习: 删除目录
+### 删除目录
 
 > fs.rmdir(path, callback)
 ```js 
@@ -2093,7 +2100,7 @@ fs.rmdir("./abc", () => {
 
 ----------
 
-### 练习: 创建目录
+### 创建目录
 
 > fs.mkdir(path, [{配置对象}], 回调)
 - 参数
@@ -2106,7 +2113,7 @@ fs.rmdir("./abc", () => {
 
 ----------
 
-### 练习: 批量修改文件名 
+### 批量修改文件名 
 - 需求:
 - 把当前文件夹下的js文件的名字都添加前缀 [ok]
 - 就是我们写一个程序来改名字
@@ -2134,7 +2141,7 @@ fs.rmdir("./abc", () => {
 
 ---------- 
 
-### 练习 批量删除文件名前缀
+### 批量删除文件名前缀
 - 需求: 把刚刚添加的OK 删除
 
 ```js 
@@ -2154,7 +2161,7 @@ fs.rmdir("./abc", () => {
 
 ----------
 
-### 练习 拼接3个文件的内容 汇总到一个文件去
+### 拼接3个文件的内容 汇总到一个文件去
 
 - 需求:
 - 现在存在三个文件
@@ -2211,7 +2218,7 @@ fs.rmdir("./abc", () => {
 
 ----------
 
-### 控制台输入输出 readline模块
+### 控制台输入输出 readline模块 -- 自己实现脚手架 简单的配置
 - 模块提供了用于从可读流（例如 process.stdin）每次一行地读取数据的接口。 可以使用以下方式访问它：
 
 - 一旦调用此代码，则 Node.js 应用程序将不会终止，直到 readline.Interface 关闭，因为接口在 input 流上等待接收数据。
@@ -2739,6 +2746,10 @@ fs.readFile("./output.txt", {encoding: "utf-8"}, (err, data) => {
 })
  ```
 
+- 相当于配置好的 *vue中的事件总线*
+
+---
+
 - 修改为promise
 ```js 
 function fsRead(path) {
@@ -2775,7 +2786,7 @@ promiseRead()
     let url = require("url")
 ```
 
-- 用来处理网络路径
+- 用来处理url路径
 - url核心模块为我们解析url地址时提供了非常方便的api 常见包含有
 - 查询字符串的url地址解析
 
@@ -3406,7 +3417,8 @@ axios.get(httpUrl, options).then((data) => {
 - 端口号就好像一个门, 比如一个大楼(我们的电脑), 里面有微信, QQ, 飞秋等, 为什么老师用微信发送你好, 接收的时候只会用微信接收到, 就是因为端口号的不同
 
 - 电脑上只要启动了程序, 就会给这个程序(给网络进程)分配一个端口号
-```js 
+
+```js
     如果说ip就像某一栋楼的地址的话, 端口号就相当于门牌号
     网络进程: 可联网的, 运行起来的程序
  ```
@@ -3493,12 +3505,12 @@ axios.get(httpUrl, options).then((data) => {
 
     http.createServer((req, res) => {
 
-    res.writeHead(200, {
-        "Content-Type": "text/html"
-    })
+        res.writeHead(200, {
+            "Content-Type": "text/html"
+        })
 
-    res.write("<h1>NodeJS</h1>")
-    res.end("<p>hello world</p>")
+        res.write("<h1>NodeJS</h1>")
+        res.end("<p>hello world</p>")
 
     }).listen(3000)
 
@@ -3548,6 +3560,46 @@ axios.get(httpUrl, options).then((data) => {
 
 > res.setHeader('Content-type', 'text/html;charset=utf-8');
 - 当返回响应为中文的时候如果出现乱码, 则需要设置响应头
+
+- 可以设置的响应头 大概有如下:
+```js
+//网页编码
+header('Content-Type: text/html; charset=utf-8'); 
+
+//纯文本格式
+header('Content-Type: text/plain'); 
+
+//JPG、JPEG
+header('Content-Type: image/jpeg'); 
+
+// ZIP文件
+header('Content-Type: application/zip'); 
+
+// PDF文件
+header('Content-Type: application/pdf'); 
+
+// 音频文件
+header('Content-Type: audio/mpeg'); 
+
+//css文件
+header('Content-type: text/css'); 
+
+//js文件
+header('Content-type: text/javascript'); 
+
+//json
+header('Content-type: application/json'); 
+
+//pdf
+header('Content-type: application/pdf'); 
+
+//xml
+header('Content-type: text/xml'); 
+
+//Flash动画
+header('Content-Type: application/x-shockw**e-flash'); 
+
+```
 
 
 > 服务器对象.listen()
@@ -4490,6 +4542,7 @@ axios.get(httpUrl, options).then((data) => {
 
 > 域名 与 域名服务器
 - 1. 网站 www.baidu.com
+
     - www:      主机名  ftp svn stmp xmpp服务
     - baidu:    机构名
     - com:      机构类型
@@ -4775,16 +4828,16 @@ axios.get(httpUrl, options).then((data) => {
 
 ```js 
     浏览器端 会发送 =>
-        请求断开连接
+        请求断开连接(分手)
 
                                         <== 服务器端会回复
                                         嗯(表示收到你要断开连接的请求)
 
                                         <== 服务器端会发送
-                                            好(同意断开)
+                                            分吧(同意断开)
 
     浏览器端 会发送 =>
-        确认断开连接
+        确认断开连接(好)
 
     --------------------
 
@@ -5150,7 +5203,7 @@ axios.get(httpUrl, options).then((data) => {
 
 > 方式1: 在URL后面加上一个随机数: Math.random()
 ```js 
-    xhr.open('GET', 'get_data'+Math.random())
+    xhr.open('GET', 'get_data'+ Math.random())
  ```
 
 > 方式2: 在URL后面加上时间戳: new Date().getTime()
@@ -5206,10 +5259,9 @@ axios.get(httpUrl, options).then((data) => {
         let ajax;
         try {
             ajax = new XMLHttpRequest();
-        }
-
+        
         // 兼容ie
-        catch() {
+        } catch(err) {
             ajax = new ActiveXObject('Microsoft.XMLHTTP');
         }
 
@@ -5420,6 +5472,7 @@ function(XMLHttpRequest) {
 
 ### Express框架
 - 在前面node基础中我们学习了nodejs中的http模块, 虽然知道使用nodejs中的http模块是可以开发web应用的, 
+
     处理静态资源(img css js文件), 
     处理动态资源(动态数据 每天不一样的新闻), 
     请求分发(路由)(解决前面http模块中的if else if的问题)等等, 也可以让开发者对http协议的理解更加清晰, 但是使用起来比较复杂, 开发效率低
@@ -5487,12 +5540,32 @@ function(XMLHttpRequest) {
 
 ----------------------
 
+### express req res 对象身上的方法补充
+
+> res.sendFile()
+- 响应出去一个任意类型文件，也可以直接返回html文件做渲染。
+
+- 参数:
+- 绝对路径
+
+```js
+res.sendFile(path.resolve(__dirname,"./views/insertArticle.html"));
+```
+
+> res.render()
+- 使用这个方法就代表需要用到“模板引擎”，所以必须要先安装一个模板引擎
+
+**注意:**
+- 为了渲染html文件 没必要非得使用 res.render() 可以使用 res.sendFile()
+
+----------------------
+
 ### express框架处理 -- get请求
 - 我们看看使用express框架和原生的http模块的区别
 
 > 区别:
 - 1. 规则清晰了 每一个规则都可以写一个app.get()来进行对应的处理
-- 2. 响应*会中文不用再设置响应头, 设置响应数据的类型*
+- 2. 响应中文时 *不用再设置响应头和设置响应数据的类型*
 
 ```js 
     const express = require('express');
@@ -5522,6 +5595,21 @@ function(XMLHttpRequest) {
     })
  ```
 
+**注意:**
+- 浏览器会默认打开它能解析的内容 上述的方式可能会出现下载 send回 前端的页面 所以我们可以加上响应头 告诉浏览器这是html文件
+```js
+app.get("/", (req, res) => {
+
+  // 设置响应头
+  res.setHeader("Content-Type", "text/html;charset=utf-8")
+
+
+  let html = fs.readFileSync(loginPath, "utf-8")
+  res.send(html)
+  
+})
+```
+
 ----------------------
 
 ### express框架获取 get请求参数
@@ -5545,7 +5633,8 @@ function(XMLHttpRequest) {
     request.url.startWith('/index') 使用这种方式
 ```
 
-- 但是express不用说明一个问题: 服务器端的接口(请求地址) 和 我们在地址栏输入的地址不是全等的
+- 但是express不用说明一个问题: 
+- 服务器端的接口(请求地址) 和 我们在地址栏输入的地址不是全等的
 
 - 也就是说 http://localhost:3000/index?name=sam&age=18
 - *express会去掉?name=sam&age=18的部分再进行匹配*
@@ -5599,10 +5688,11 @@ app.use(bodyParser.json());
 > 现在可以直接使用 express 身上的方法
 
 ```js 
+    // 后台设置这个 解决前端 post 请求参数的问题
     app.use(express.urlencoded({extended: false}));
     app.use(express.json());
 
-    // 浏览器端在xhr.send()的上面要设置请求头信息 不然后端接收不到~
+    // 前端浏览器端 在ajax中 设置请求头 不然后端接收不到~ 注意: 要在 xhr.send()的上面 设置
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
  ```
 
@@ -5627,7 +5717,6 @@ app.use(bodyParser.json());
 
 ```js 
     let { username, password, confirmPassword, email} = req.body;
-
     console.log(username, password, confirmPassword, email);
  ```
 
@@ -5680,23 +5769,6 @@ app.use(bodyParser.json());
 - 获取 get的请求参数:   req.query
 - 或者 post的请求参数:  req.body
 - 但是post需要做一些准备和引入的工作
-
-----------------------
-
-**注意:**
-- 我在后台接口中 读取 html 文件 然后返回给 前端页面的时候
-- 前端页面登录该接口 没有呈现 反而是 下载了该html页面
-- 不知道具体的原因 但设置了 响应头 解决了该问题
-```js
-app.get("/login", (req, res) => {
-  // 这里
-  res.setHeader("Content-Type", "text/html")
-
-  let path = resolve(__dirname, "login.html")
-  const content = fs.readFileSync(path, "utf-8")
-  res.send(content)
-})
-```
 
 ----------------------
 
@@ -5795,14 +5867,45 @@ app.all('*', function (req, res, next) {
 - 所以一般项目里面应该有一个 存放该静态资源文件夹 *public*
 - 这样前端的项目就可以访问到 服务器端静态资源文件夹里面的文件
 
+> 静态文件:
+- 静态资源文件通俗的可以理解成对于不同的用户来说，内容都不会变化的文件。
+- 比如不管是张三李四还是王五访问百度，他们所接收到的看到的图片、css文件和前端javascript文件都是一样的，我们称这类文件为静态资源文件。
+
+> 动态文件:
+- 对于不同用户做出不同反应的就是动态文件了，张三李四王五登录百度，百度会分别对他们显示"你好张三"、"你好李四"、"你好王五"，
+- 那么负责这么动态逻辑的文件就是动态文件了，根据你是用的技术不同，动态文件可能是.jsp文件、php文件或者我们node.js的服务器端js文件。
+
+
+> app.use([path,]function[,function])
+- app.use是用来给path注册中间函数的，这个path默认是'/'，也就是处理任何请求
+
+- 注意:
+- 同时要注意的是他会处理path下的子路径，比如如果设置path为'/hello'，那么当请求路径为
+    '/hello/'，
+    '/hello/nihao',
+    '/hello/bye'
+
+- *这样的请求都会交给中间函数处理的*。
+
+- app.use(express.static(__dirname + '/public'))是将所有请求，先交给express.static(__dirname + '/public')来处理一下
+- 根据上面 app.use() 方法的参数来看 express.static()的返回值肯定是一个函数
+
+---
+
 > app.use(express.static('public'))
 - 它是一个中间件 专门指定静态资源文件夹 需要传入一个路径 或者 指定文件夹
+
+- 为了提供对静态资源文件(图片、csss文件、javascript文件)的服务，请使用Express内置的中间函数 express.static 。
+
+传递一个包含静态资源的目录给 express.static 中间件用于立刻开始提供文件。比如用以下代码来提供public目录下的图片、css文件和javascript文件：
 ```js 
     // 也可以这么写
-    app.use(express.static(__dirname+'/public'))
+    app.use(express.static(__dirname + '/public'))
  ```
 
 - 用来设置在public下查找静态资源(以publick文件夹为根去找静态资源)
+- *Express 会在静态资源目录下查找文件，所以不需要把静态目录作为URL的一部分。*
+
 ```js 
     http://127.0.0.1:3000/
 
@@ -5811,8 +5914,16 @@ app.all('*', function (req, res, next) {
     http://127.0.0.1:3000/img/1.jpg
  ```
 
-- 如果想要设置静态资源的前缀的话, 又不想在项目中添加文件夹的结构
+- 添加多个静态资源目录 查找顺序 按照定义的顺序来查找
+- 通过多次使用 express.static 中间件来添加多个静态资源目录：
+```js
+app.use(express.static('public'));
+app.use(express.static('files'));
+```
 
+
+
+- 如果想要设置静态资源的前缀的话, 又不想在项目中添加文件夹的结构
 > app.use('/static', express.static('public'))
 - 在做项目开发的时候 我们希望对资源进行 是静态资源还是动态资源的标记区分, 这个前缀就可以用来做这样的事情
 ```js 
@@ -5880,11 +5991,11 @@ app.all('*', function (req, res, next) {
 
 ### 使用express渲染模板页面 -- art-template模板引擎的使用
 - 之前我们在请求文件的时候, 都是通过
-```js 
-    1. 设置path
-    2. 读取文件
-    3. 将读取文件 发送响应回 浏览器
- ```
+
+    1. 通过path 找到要返回的html文件的路径
+    2. 通过fs 读取文件
+    3. 通过res.send() 将读取文件响应回 浏览器
+
 
 - 这样每次在一个接口中处理返回页面的逻辑非常的复杂
 - 为了解决这点, experss建议我们使用模板引擎来渲染页面(返回页面), 我们只需要在配置完后, 使用简单的一个代码就可以完成以前复杂的操作步骤
@@ -5920,22 +6031,24 @@ app.all('*', function (req, res, next) {
 - 4. 设置文件的后缀名 为 html
 
 ```js 
-    // 1. 修改模板引擎为html(还有art引擎), 导入express-art-template
+    // 1. 设置html文件解析引擎
+    // 修改模板引擎为html(还有art引擎), 导入express-art-template
     app.engine('html', require('express-art-template'))
 
 
     // 2. 项目环境的配置, 设置运行的模式为生产模式
-    production  生产模式
-    development 开发模式
+    // production  生产模式 development 开发模式
     app.set('view options', {
         // 不等于生成模式就是开发
         debug: process.env.NODE_ENV !== 'production' 
     })
 
-    // 3. 设置在哪一个目录下查找html文件(模板文件), 或者说设置模板存放目录为 views文件夹
+    // 3. 设置html文件所在目录
+    // 设置在哪一个目录下查找html文件(模板文件), 或者说设置模板存放目录为 views文件夹
     app.set('views', path.join(__dirname, 'views'));
 
-    // 4. 设置模板的(引擎)后缀名为html
+    // 4. 启用引擎
+    // 设置模板的(引擎)后缀名为html
     app.set('view engine', 'html');
 
     5. app.get('/', (req, res) => {
@@ -5957,6 +6070,8 @@ app.all('*', function (req, res, next) {
 ---
 
  - pug:
+ - express对pug进行了pug 所以不用下载
+
  ```pug 
   | - views
     - index.pug
@@ -5991,6 +6106,30 @@ app.all('*', function (req, res, next) {
         res.render('index');
     })  
  ```
+
+**注意:**
+- 之前有用 express.static() 和 res.render() 冲突的情况 也就是使用render()方法渲染回去的html文件内部 找不到 静态资源文件夹里面的资源了
+
+- 我觉得可能是 设置的顺序出现了问题 如下顺序设置 就没有上述的问题了
+
+```js
+const express =require("express")
+const path = require("path")
+const fs = require("fs")
+
+const app = express()
+
+app.use(express.urlencoded({extended: false}))
+app.use(express.json())
+
+// 先设置静态资源文件夹
+app.use(express.static("public"))
+
+// 然后再设置的引擎
+app.engine("html", require("express-art-template"))
+app.set("views", path.resolve(__dirname, "views"))
+app.set("view engine", "html")
+```
 
 ----------------------
 
@@ -6256,6 +6395,8 @@ app.all('*', function (req, res, next) {
         - 跟首页相关的逻辑 可以创建一个index.js文件, 我们只是根据统一的功能去创建路由文件
  -->
 
+**这里相当于 java中 service层 我们会根据一张表对应一系列的功能 去区分js文件**
+
 
 > 2. 接口功能模块中 引入express 创建路由对象 router
 > express.Router()
@@ -6282,7 +6423,7 @@ app.all('*', function (req, res, next) {
     })
  ```
 
- - 解析:
+> 解析:
     代码是粘贴过来了, 但是这里没有app怎么办? 没有app就没有下面的app.get等方法
 
     交给router去处理, router在express框架里面 所以我们先要引入express框架, 然后调用express.Router()方法 创建router对象
@@ -6380,14 +6521,15 @@ const fs = require("fs")
 const router = require("./router/passport")
 const app = express()
 
-app.engine("html", require("express-art-template"))
-app.set("views", resolve(__dirname, "views"))
-app.set("view engine", "html")
+app.use(express.static("public"))
 
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
 
-app.use(express.static("public"))
+app.engine("html", require("express-art-template"))
+app.set("views", resolve(__dirname, "views"))
+app.set("view engine", "html")
+
 
 // 注册 router
 app.use(router)
@@ -6458,7 +6600,7 @@ app.listen(3333, () => {
  ```
 
 
-- 需要: 访问注册页面之前先打印一句话
+> 需要: 访问注册页面之前先打印一句话
 ```js 
     const app = express();
 
@@ -6555,7 +6697,7 @@ app.use(output, router)
 
 ----------------------
 
-### pathname(pathinfo) 风格的*参数*的获取
+### pathname(pathinfo) --  /user/id/type
 - 前面我们学习了获取get请求的参数, post请求的参数, 还有一种叫做 pathinfo风格的参数(也是get请求参数的一种), 也叫pathname参数
 
 > 应用场景:
@@ -6992,6 +7134,8 @@ router.get("/", (req, res) => {
 - keys  作为键值保存在cookie中(里面是我们保存在服务器空间内的数据)
         keys是数组, 内部是一个随便敲的字符串, 内部会对我们输入的字符串进行加密
         然后作为cookie中的键值
+
+    *我们可能是通过keys值来去找在服务器端保存的session*
 
 ```js 
     {
@@ -8455,7 +8599,8 @@ pool.getConnection(function(err, connection) {
 - 字段
 ```js
 connection.query('SELECT * FROM `books` WHERE `author` = "David"', function (error, results, fields) {
-}
+
+})
 ```
 
 
@@ -8465,7 +8610,7 @@ connection.query('SELECT * FROM `books` WHERE `author` = "David"', function (err
 - 它的类型是一个数组
 ```js
 connection.query('SELECT * FROM `books` WHERE `author` = ?', ['David'], function (error, results, fields) {
-}
+})
 ```
 
 > 形式3
@@ -9026,9 +9171,17 @@ app.listen(3333, () => {
 
 ### orm介绍
 - orm全拼 object relation mapping 对象 - 关系映射
-- 主要实现模型对象 到 关系数据库数据的映射
+- 主要实现 *模型对象 => 关系数据库数据 映射*
 
-- 比如: 把数据库表中每条记录映射为一个模型对象, 一张表称之为一个模型, 一条记录称之为模型对象, 字段映射为属性
+- 比如: 
+- 把数据库表称之为模型
+- 每条记录映射为一个模型对象一条记录称之为模型对象, 字段映射为属性
+<!-- 
+    users -> 模型
+    rows  -> 模型对象
+
+    rows.fields -> 模型对象.属性
+ -->
 
 - 这样再去修改表中的记录, 就相当于通过对象的方式去修改里面的属性
 
@@ -9045,7 +9198,9 @@ app.listen(3333, () => {
 ```js 
     orm是封装的 里面有一部分代码是用来将sql语句转换成对象的思想, 这部分代码就会消耗我们的性能
  ```
+
 - 2. 根据对象的操作转换成sql语句, 根据查询的结果转化为对象, 在映射过程中有性能的损失
+
 - 3. 有局限性, orm中没有提供的查询功能需要会sql语句
 
 > 总结:
@@ -9058,6 +9213,7 @@ app.listen(3333, () => {
 
 > 2. orm的index.js里面要填写数据库的链接设置 和 引入 'mysql' 包
 - 要操作哪个数据库就要写哪个数据库
+
 ```js 
     const mysql = require('mysql');
 
@@ -9072,8 +9228,358 @@ app.listen(3333, () => {
         database: 'qianduan_test'
     }
 
+    ...
+
     module.exports = orm;
  ```
+
+- orm的index.js文件内容如下: *折叠了*
+```js
+const mysql = require('mysql');
+// 数据库连接设置
+let orm_config = {
+    host: 'localhost',//数据库地址
+    port:'3306',
+    user: 'root',//用户名，没有可不填
+    password: '',//密码，没有可不填
+    database: 'news'//数据库名称
+}
+
+let options = {};
+let tableSQL = '';
+let isConnect = false;
+
+function Model(name, option) {
+    this.name = name;
+    this.option = option;
+};
+
+/**
+* @description: 查询数据
+* @param {} options：可选参数
+* @param {Function} callback :（req,results）=>{}
+*/
+Model.prototype.find = function (options, callback) {
+    if (!isConnect) {
+        console.log(options.constructor);
+        this.connect(err => {
+            isConnect = true;
+            var str = '';
+            if (!callback) {
+                str = `select * from ${this.name}`;
+                callback = options;
+            }else if (options.constructor == Array) {
+                str = `select ${options.join()} from ${this.name}`;
+            }else if(options.constructor == Object){
+                str = `select ${options.arr.join()} from ${this.name} where ${options.where}`;
+            }else {
+                str = `select * from ${this.name} where ${options}`;
+            };
+            //console.log(str);
+            connection.query(str, (error, results, fields) => {
+                callback(error, results, fields);
+            });
+            return this;
+        })
+    } else {
+        
+        var str = '';
+        if (!callback) {
+            str = `select * from ${this.name}`;
+            callback = options;
+        } else if (options.constructor == Array) {
+            str = `select ${options.join()} from ${this.name}`;
+        } else {
+            str = `select * from ${this.name} where ${options}`;
+        };
+        //console.log(str);
+        connection.query(str, (error, results, fields) => {
+            callback(error, results, fields);
+        });
+        return this;
+    }
+
+};
+
+/**
+* @description: 分页查询
+* @param {Object} options :   { where:查询条件, number: 当前页数 , count : 每页数量 }
+* @return: 
+*/
+Model.prototype.limit = function (options, callback) {
+    var str = '';
+    if (!options.where) {
+        str = `select * from ${this.name} limit ${(options.number - 1) * options.count},${options.count}`;
+    } else {
+        str = str = `select * from ${this.name} where ${options.where} limit ${(options.number - 1) * options.count},${options.count}`;
+    };
+    console.log(str);
+    connection.query(str, (error, results, fields) => {
+        callback(error, results, fields);
+    });
+    return this;
+};
+
+/**
+* @description: 插入数据
+* @param {Object} obj:对象或者数组
+* @param {Function} callback :（req,results）=>{}
+*/
+Model.prototype.insert = function (obj, callback) {
+    if (!isConnect) {
+        this.connect(err => {
+            if (err) {
+                throw err;
+            } else {
+                connection.query(tableSQL, (error, results, fields) => {
+                    if (Array.isArray(obj)) {
+                        for (var i = 0; i < obj.length; i++) {
+                            this.insertObj(obj[i], callback)
+                        }
+                    } else {
+                        this.insertObj(obj, callback)
+                    }
+                });
+
+            }
+        });
+    } else {
+        if (Array.isArray(obj)) {
+            for (var i = 0; i < obj.length; i++) {
+                this.insertObj(obj[i], callback)
+            }
+        } else {
+            this.insertObj(obj, callback)
+        }
+    }
+
+};
+
+Model.prototype.insertObj = function (obj, callback) {
+    let keys = [];
+    let values = '';
+    for (var key in obj) {
+        keys.push(key);
+        values += `"${obj[key]}",`;
+    };
+    values = values.replace(/,$/, '');
+    let str = `INSERT INTO ${this.name} (${keys.join()}) VALUES (${values})`;
+    connection.query(str, (error, results, fields) => {
+        callback(error, results);
+    });
+}
+
+/**
+* @description: 更新数据
+* @param {Object} option：可选参数 更新条件
+* @param {Object} obj： 修改后的数据 
+* @param {Function} callback :（req,results）=>{}
+*/
+Model.prototype.update = function (option, obj, callback) {
+    let str = '';
+    if (arguments.length == 2) {
+        callback = obj;
+        obj = option;
+        str = `UPDATE ${this.name} SET `;
+        for (var key in obj) {
+            str += `${key}='${obj[key]}', `;
+        };
+        str = str.replace(/(, )$/, '');
+    } else {
+        str = `UPDATE ${this.name} SET `;
+        for (var key in obj) {
+            str += `${key}='${obj[key]}', `;
+        };
+        str = str.replace(/(, )$/, '');
+        str += ` where ${option}`;
+    };
+
+    console.log(str);
+    connection.query(str, (error, results, fields) => {
+        callback(error, results, fields);
+    });
+    return this;
+
+};
+
+/**
+* @description: 删除数据
+* @param {Object} option：可选参数 删除条件
+* @param {Function} callback :（req,results）=>{}
+*/
+Model.prototype.delete = function (option, callback) {
+    var str = '';
+    if (!callback) {
+        str = `delete from ${this.name}`;
+        callback = option;
+    } else {
+        str = `delete from ${this.name} where ${option}`;
+    };
+    console.log(str);
+    connection.query(str, (error, results, fields) => {
+        callback(error, results, fields);
+    });
+    return this;
+};
+
+/**
+* @description: 执行sql语句
+* @param {String} str : sql语句
+* @param {Function} callback :（req,results）=>{}
+*/
+Model.prototype.sql = function (str, callback) {
+    connection.query(str, (error, results, fields) => {
+        callback(error, results, fields);
+    });
+    return this;
+};
+
+/**
+* @description: 删除model表格 （慎用！）
+* @param {type} 
+* @return: 
+*/
+Model.prototype.drop = function (callback) {
+    connection.query(`DROP TABLE ${this.name}`, (error, results, fields) => {
+        callback(error, results, fields);
+    });
+    return this;
+};
+
+//连接检测
+Model.prototype.connect = function (callback) {
+    let p1 = new Promise((resolve, reject) => {
+        connection.connect((err) => {
+            if (err) {
+                //console.log(err.stack);
+                //console.log(err);//42000 数据库不存在  28000账号错误
+                //console.log(err.sqlState);//42000 数据库不存在  28000账号错误
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+
+    p1.then(() => {
+        callback(null);
+    }, err => {
+        if (err.sqlState == 42000) {
+            createDatabase(callback);
+        } else if (err.sqlState == 28000) {
+            callback('数据库账号或密码错误');
+        } else {
+            callback(err);
+        }
+    });
+};
+
+//创建数据库
+let createDatabase = function (callback) {
+    let p2 = new Promise((resolve, reject) => {
+        connection = mysql.createConnection({
+            host: options.host,//数据库地址
+            port: options.port,//端口号
+            user: options.user,//用户名，没有可不填
+            password: options.password,//密码，没有可不填
+        });
+        connection.connect((err) => {
+            //if (err) throw error;
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+
+    let p3 = new Promise((resolve, reject) => {
+        connection.query(`CREATE DATABASE ${options.database}`, (err, results, fields) => {
+            //if (error) throw error;
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+
+        });
+    });
+
+    let p4 = new Promise((resolve, reject) => {
+        connection.query(`use ${options.database}`, (err, results, fields) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+
+    let pAll = Promise.all([p2, p3, p4]);
+
+    pAll.then(() => {
+        callback(null);
+    }).catch((err) => {
+        callback(err);
+    });
+}
+
+
+
+let orm = {
+    /**
+    * @description:连接数据库
+    * @param {String} host: 主机名 默认localhost
+    * @param {Number} port: 端口号 默认3306
+    * @param {String} user: 用户名 
+    * @param {String} password: 密码 
+    * @param {String} database: 数据库名称 默认og
+    * @return: 
+    */
+    connect: function ({ host = 'localhost', port = 3306, user = '', password = '', database = 'og' }) {
+        databaseName = database;//全局存储当前数据库名称
+
+        options = {
+            host,//数据库地址
+            port,//端口号
+            user,//用户名，没有可不填
+            password,//密码，没有可不填
+            database//数据库名称
+        };
+        connection = mysql.createConnection(options);
+
+    },
+    /**
+    * @description:创建model (表格模型对象)
+    * @param {String} name:表格名称
+    * @param {Object} options:表格数据结构
+    * @return: Model对象：负责数据库增删改查
+    */
+    model: function (name, options) {
+        let str = 'id int primary key auto_increment, ';
+        for (var key in options) {
+            if (options[key] == Number) {
+                str += `${key} numeric,`;
+            } else if (options[key] == Date) {
+                str += `${key} timestamp,`;
+            } else {
+                str += `${key} varchar(255),`;
+            }
+        };
+        str = str.replace(/,$/, '');
+        //console.log(`CREATE TABLE ${name} (${str})`);
+        //console.log(str);
+        tableSQL = `CREATE TABLE ${name} (${str})`;
+        return new Model(name, options);
+    }
+};
+
+orm.connect(orm_config);
+
+
+
+module.exports = orm;
+```
 
 > 3. 入口js文件里面引入orm的index.js文件
 ```js 
@@ -9084,12 +9590,19 @@ app.listen(3333, () => {
 > orm获取数据库里面数据的使用方式:
 - 在路由接口里面写哈
 
+
 > 1. 创建模型 db.model('表名')
 - let Students = db.model('students')
 - 需要操作哪一个数据表, 通过创建出来了的Students对象来进行一系列的增删改查
 
+- 返回值: 
+- 表对象
+
+
 > 2. Students.find([字段], callback)
-- find()为查询 数据库中指定表的所有内容 (select * from students)
+- find()为查询 相当于(select * from students)
+- 不指定条件的情况下 默认查询数据库中指定表的所有内容 
+
 - 参数:
 - 1. 是一个数组, 可以指定查询的字段名, 不填写的话就是查询所有
 - 2. callback有两个参数 err data, data就是从数据中查询到的数据
@@ -9129,13 +9642,14 @@ app.get('/get_data', (req, res) => {
 > 表对象.find(['字段'] | '条件', callback);
 - 参数
 - 1. 
-    - 1.1 是一个数组, 可以指定查询的字段名, 不填写的话就是查询所有
+- 1.1 是一个数组, 可以指定查询的字段名, 不填写的话就是查询所有
 ```js 相当于: (select * from students) ```
-    - 1.2 是一个字符串, 里面写条件
+
+- 1.2 是一个字符串, 里面写条件
 ```js 相当于: where 后面所写的条件 ```
-    - 1.3 既要设定条件, 又要指定字段名
+
+- 1.3 是一个对象 既要设定条件, 又要指定字段名
 ```js 
-    第一参数为 { } 
     {
         where: '条件',
         arr: ['字段名1', '字段名2']
@@ -9145,17 +9659,17 @@ app.get('/get_data', (req, res) => {
 - 2. callback有两个参数 err data, data就是从数据中查询到的数据
 
 ```js 
-    1. 查询所有
+    // 1. 查询所有
     Students.find((err, data) => {
         res.send(data);
     })
 
-    2. 查询指定字段名 第一个参数是数组(数组中的每一个元素就是字段名)
+    // 2. 查询指定字段名 第一个参数是数组(数组中的每一个元素就是字段名)
     Students.find(['name', 'age'], (err, data) => {
         res.send(data);
     })
 
-    3. 按照条件查询 第一个参数是字符串 写where后面的条件
+    // 3. 按照条件查询 第一个参数是字符串 写where后面的条件
     Students.find('age > 18 and age < 34', (err, data) => {
         res.send(data);
     })
@@ -9163,7 +9677,7 @@ app.get('/get_data', (req, res) => {
     Students.find('name="小月月"', (err, data) => { })
 
 
-    4. 既指定条件 又指定字段名
+    // 4. 既指定条件 又指定字段名
     Students.find({
         where: 'age > 18',
         arr: ['name', 'age']
@@ -9185,7 +9699,7 @@ app.get('/get_data', (req, res) => {
         number: 1,          // 要的是第几页
         count:  5           // 每页的条数
 
-        这里不用 用公式去算, 填写的就是最终的结果
+        // 这里不用 用公式去算, 填写的就是最终的结果
     }
  ```
 
@@ -9208,6 +9722,7 @@ app.get('/get_data', (req, res) => {
 - orm的使用是基于mysql的, 假如没有安装记得安装mysql
 
 - 增加单条记录, insert 对象参数, 属性就是列名
+
 > 表对象.insert({'字段名':'值'}, (err, results) => { ... })
 - 参数:
 - 1. 第一个参数是 { }   -- 添加一条数据
@@ -9255,6 +9770,7 @@ app.get('/get_data', (req, res) => {
 
 ### 使用ORM删除数据(物理删除 慎用)
 - 按条件删除记录 delete, 字符串参数
+
 > 表对象.delete('条件', (err, results) => { ... })
 - 参数:
 - 1. 字符串 里面放条件, 就会按条件删除 (相当于 where 后面的 条件)
@@ -9280,6 +9796,7 @@ app.get('/get_data', (req, res) => {
 ### 使用ORM修改数据(可以用来软删除哦)
 > 表对象.update({ K:v }, (err, results) => { ... })
 > 表对象.update('条件', { K:v }, (err, results) => { ... })
+
 - 参数:
 - 1. 参数1如果是 对象 {'字段名':'要修改成的值'}
 - 将指定字段名的记录, 统一修改为 指定的值
@@ -9304,6 +9821,7 @@ app.get('/get_data', (req, res) => {
 - 当上面的功能满足不了需求的时候, 直接使用自定义执行 sql语句的方式
 
 > 表对象.sql('sql语句', (err, data) => { ... })
+
 - 使用sql语句操作数据库
 ```js 
 let students = db.model('students');
@@ -9438,7 +9956,7 @@ students.sql('select * from students limit 10', (err, data) => {
 
 - 当多次数据库查询操作的时候 会出现很多的重复性代码, 所以我们对数据库的查询操作可以封装成一个函数
 ```js 
-    、、 当多次查询数据库的时候:
+    // 当多次查询数据库的时候:
     (async function() {
         let students = db.model('students');
         let result;
@@ -9476,6 +9994,7 @@ students.sql('select * from students limit 10', (err, data) => {
  ```
 
 - 所以 我们可以将上面的重复性代码提取成一个函数, 创建一个js文件, 放在db文件夹里(handleDB.js)
+
 
 > 封装 orm 为 handleDb.js 文件
 ```js 
@@ -9777,7 +10296,8 @@ app.get("/user", (req, res) => {
 - 2. 用户在确认转账的时候 在请求中设置x-csrftoken, 值为服务器颁发的
 - 3. 服务器端在转账之前要验证, 取出cookie中的token和请求头中的token值进行对比 如果不一致就return
 
-> 要点: 前端发起请求的时候 要设置头信息， 后台拿到请求头中的token 和 cookie 中的token进行对比
+> 要点: 
+- 前端发起请求的时候 要设置头信息， 后台拿到请求头中的token 和 cookie 中的token进行对比
 
 > 详解:
 - 1. 在用户C 成功登陆webA后 进入 /transfer的时候 webA颁发一个csrf_token(这个值是随机自动生成的48位字符串) 存在cookie中 给用户C
@@ -9834,6 +10354,7 @@ app.get("/user", (req, res) => {
 ### CSRF防护
 > 防护思路:
 - 1. 请求转账页面的时候, 服务器响应转账页面, *在cookie中设置*一个csrf_token值(*随机48位字符串*)
+
 - 2. 客户端在进行post请求的时候, *在请求头中带上自定义的属性X-CSRFToken 值为cookie中的csrf_token值*(要注意的是, 此时的post请求, 浏览器还会自发带着cookie中的csrf_token到服务器)
 
 - 3. 服务器在接收到post请求的时候, *首先验证响应头中的x-csrftoken值, 和cookie中的csrf_token是不是一致*, 如果不一致, 需要return 直接结束处理, 不进行后续的工作
@@ -10483,10 +11004,9 @@ app.get("/user", (req, res) => {
 
 ```js 
     老赵收藏了一篇新闻, 这个动作要保存到数据库里面, 数据库里面有数据库表
-
     用户收藏了哪一篇文章, 应该有一个表记录 哪一个用户收藏了哪一篇文章
-
     也就是说我们一个项目里应该存在着很多表
+
     文章应该有表
     收藏应该有表
     用户应该有表
@@ -10494,7 +11014,6 @@ app.get("/user", (req, res) => {
 
 
     表和表之间的关系
-
 
     用户表
     id          (用户编号)          主键
@@ -10574,13 +11093,11 @@ app.get("/user", (req, res) => {
     这些表不会随随便便交给某一个程序员去设计的
 
     那这些表是也从无到有的, 所以当最开始要创建这些表的时候如果什么都没有那只能从分析需求开始
-
     在这个行业有经验, 不仅仅是开发经验 比如项目是金融类的 至少找一个项目经理懂的一起去聊一下 我这么设计合理不合理
 
     产品经理或者项目经理会出一份原型图 里面标记出了 大概会有哪一些功能 然后设计数据库表的人根据这个原型图分析出有哪些功能 有哪些需求 出一份数据表
 
     如果是一个大项目的话 是一个严谨且漫长的过程
-
     上面的数据表准备好后 就可以写开发文档 建库建表了
  ```
 
@@ -10707,7 +11224,7 @@ app.get("/user", (req, res) => {
         image_url = '/passport/image_code'
 
         // 缓存原因: 添加随机数
-        let imgUrl = '/passport/image_code/'+Math.random();
+        let imgUrl = '/passport/image_code/'+ Math.random();
         // 缓存原因: 添加时间戳
         let imgUrl = '/passport/image_code/'+ (+new Date());
 
@@ -10736,15 +11253,14 @@ app.get("/user", (req, res) => {
 
 ----------------------
 
-### 验证码图片保存到session
+### 验证码图片文本保存到session
 - 1. 是为了能够在不同的接口里获取captcha.text 
 - 2. 是为了让用户A对应自己的验证码信息, 用户B对应自己的验证码信息
 
 - 接下来简单的文字解释下 用户注册的过程, 然后说下为什么要将验证码信息保存在session里面
 
 ```js 
-    1.
-    浏览器向服务器发起 获取验证码的请求
+    1. 浏览器向服务器发起 获取验证码的请求
 
     2. 
     服务器(/passport/image_code/:flag)接口负责处理验证码的请求
@@ -10903,9 +11419,8 @@ app.get("/user", (req, res) => {
 ----------------------
 
 ### 注册功能的后端流程分析(news项目)
-- 用户在填写完注册表单后, 会点提交之类的按钮 将注册填写的结果发送到后端的注册接口上, 由后端去跟数据库进行交互并返回结果
+- 用户在填写完注册表单后, 会点提交之类的按钮 将注册填写的结果发送到后端的注册接口上, 由后端去跟数据库进行交互并返回结果 *所以在后端这里的逻辑必须要严谨*
 
-- 所以在后端这里的逻辑必须要严谨
 - 在这个接口中我们是要操作数据库的, 要把数据添加到数据库中, 所以要确保数据的有效性, 所以要尽可能的把自己能想到的无效的情况分析出来 无效的话要return 不能把数据添加到数据库
 
 > 这个接口中的逻辑
@@ -10933,7 +11448,7 @@ app.get("/user", (req, res) => {
     console.log(username, image_code, password, agree)
 
     // 注意:
-    解构的时候, 目标对象里定义的什么变量名 解构的时候就使用什么让的变量名 前后变量名不一致会解不出来
+    // 解构的时候, 目标对象里定义的什么变量名 解构的时候就使用什么让的变量名 前后变量名不一致会解不出来
  ```
 
 
@@ -11842,9 +12357,7 @@ router.get('/', (req, res) => {
  ```
 
 > 准备工作完成 我们听课
-
 - 上面我们复习了下 csrf防护的大致流程, 最后介绍到了钩子函数 它配合路由使用 可以在使用指定接口文件前, 统一调用该函数
-
 - 这个钩子函数 也是工具函数, 所以也放在utils文件夹里面, 定义一个common.js 公共的(哪一个接口都可以使用)
 ```js 
     common.js文件中 有:
@@ -12008,17 +12521,15 @@ router.get('/', (req, res) => {
 ### 单向散列函数
 - 单向加密的一种算法, 不可解密
 
-密码散列函数（英语：Cryptographic hash function），又译为加密散列函数、密码散列函数、加密散列函数，是散列函数的一种。它被认为是一种单向函数，也就是说极其难以由散列函数输出的结果，回推输入的数据是什么。这样的单向函数被称为“现代密码学的驮马”。这种散列函数的输入数据，通常被称为消息（message），而它的输出结果，经常被称为消息摘要（message digest）或摘要（digest）。
+    密码散列函数（英语：Cryptographic hash function），又译为加密散列函数、密码散列函数、加密散列函数，是散列函数的一种。它被认为是一种单向函数，也就是说极其难以由散列函数输出的结果，回推输入的数据是什么。这样的单向函数被称为“现代密码学的驮马”。这种散列函数的输入数据，通常被称为消息（message），而它的输出结果，经常被称为消息摘要（message digest）或摘要（digest）。
 
 在信息安全中，有许多重要的应用，都使用了密码散列函数来实现，例如数字签名，消息认证码。
 
 
 > 特点
 - 加密的时候是单向的（只可以加密不能解密）；
-- 加密得到的密文长度总是定长的；
-```js 
-    不管是hello 还是13 还是abc 都是定长的
- ```
+- 加密得到的密文长度总是定长的, *不管是hello 还是13 还是abc 都是定长的*
+
 - 明文相同，那么密文一定相同；
 ```js 比如将来有两个用户的密码明文是一样的 密文也会是一样的 ```
 
@@ -12047,19 +12558,22 @@ router.get('/', (req, res) => {
                     ↙                    ↘
     明文    →    加密    →    密文    →    解密    →    明文
 
-    最后怎么验证我的明文是正确的 我们通过密文 经过同一把密钥对密文进行解密
-
-    这个过程是可逆的加密方式
+    // 最后怎么验证我的明文是正确的 我们通过密文 经过同一把密钥对密文进行解密 这个过程是可逆的加密方式
  ```
 
-- 对称密钥算法（英语：Symmetric-key algorithm）又称为对称加密、私钥加密、共享密钥加密，是密码学中的一类加密算法。这类算法在加密和解密时使用相同的密钥，或是使用两个可以简单地相互推算的密钥。事实上，这组密钥成为在两个或多个成员间的共同秘密，以便维持专属的通信联系。
+- 对称密钥算法（英语：Symmetric-key algorithm）又称为对称加密、私钥加密、共享密钥加密，是密码学中的一类加密算法。这类算法在*加密和解密时使用相同的密钥*，或是使å用两个可以简单地相互推算的密钥。事实上，这组密钥成为在两个或多个成员间的共同秘密，以便维持专属的通信联系。
 
-- 为什么叫对称加密呢，你可以这么理解，一方通过密钥将信息加密后，把密文传给另一方，另一方通过这个相同的密钥将密文解密，转换成可以理解的明文。他们之间的关系如下：明文 <-> 密钥 <-> 密文。
+- 为什么叫对称加密呢，你可以这么理解，
+    一方通过密钥将信息加密后，把密文传给另一方，
+    另一方通过这个相同的密钥将密文解密，转换成可以理解的明文。他们之间的关系如下：
+    
+        明文 <-> 密钥 <-> 密文。
+<!-- 一把秘钥 -->
 
 
 > 特点
 - 可以加密也可以解密，使用密钥；
-- 与非对称加密相比，要求双方获取相同的密钥是对称密钥加密的主要缺点之一，但对称加密的速度快很多。
+- 与非对称加密相比，*要求双方获取相同的密钥*是对称密钥加密的主要缺点之一，*但对称加密的速度快很多*。
 
 
 > 常见算法
@@ -12075,6 +12589,12 @@ router.get('/', (req, res) => {
 ### 非对称加密
 - 假如一个用户 要发送一份特别重要的数据给服务端, 我们看下对这段重要信息是如何使用非对称加密的
 
+> 步骤:
+- 1. 客户端 向 服务端 请求一把钥匙(公钥)
+- 2. 服务端返回公钥
+- 3. 客户端使用公钥对数据加密后 将加密后的数据 连同 公钥 传输到服务端 (服务端需要通过公钥找对应的私钥)
+- 4. 服务端使用私钥对数据进行解密
+
 ```js 
     1. 客户端 会先向 服务端请求 一把钥匙(钥匙是服务端给的, 公钥(服务器公开的钥匙))
     ----- 在生成公钥的时候 会自动生成一把对应的私钥
@@ -12089,7 +12609,7 @@ router.get('/', (req, res) => {
     客户端                  服务端
  ```
 
-- 加密和解密的钥匙是不一样的所以叫做非对称加密
+- *加密和解密的钥匙是不一样的所以叫做非对称加密*
 
 
 > 特点
@@ -12111,6 +12631,7 @@ router.get('/', (req, res) => {
 - md5是不可逆的单项散列函数之一, 项目中用的比较多, 比如我们存在数据库里面的密码, 至少不能让会操作数据库的人去直观的看到密码吧
 
 - npm i md5 --save-dev
+
 ```js 
     const md5 = require('md5');
     console.log(md5('hello'));
@@ -12122,13 +12643,14 @@ router.get('/', (req, res) => {
     这个网站并不是破解密文, 而是在这个网站中存储了很多明文 和 密文的对应关系, 我们查询到的是对应关系
  ```
 
-> 项目当中使用的方式是
+> 项目当中使用的方式是: 双重md5加盐加密
 - 我们项目中不会直接使用md5()进行加密, 因为有各种各样的在线破解网站, 那怎么办, 一般项目中最流行的方式就是:
 
 - 双重md5加盐加密的处理方式
 ```js 这个随便敲的字符串就相当于 盐 ```
+
 ```js 
-    - 我们对密码进行一次md5加密, 然后在结果上加上随机的字符串 然后再整体加密
+    // 我们对密码进行一次md5加密, 然后在结果上加上随机的字符串 然后再整体加密
     let test = md5(md5('hello')+'随便敲的字符串')
     console.log(test);
  ```
@@ -12137,8 +12659,11 @@ router.get('/', (req, res) => {
 > 怎么对加密后的结果 我们怎么添加到数据库中?
 - 下面这样做基于md5本身属于单项散列函数, 单项散列函数的特点:(不可逆)明文相同, 加密后的密文就一定相同
 
-```js 
+- 1. 我们将 密码 - 双重md5加密加盐的结果存储到数据中
+- 2. 用户登录时输入的密码 - 双重md5加密加盐 
+- 3. 服务端拿着 双重md5加密加盐的密码 和 数据库中的密码 进行比较
 
+```js 
     用户注册:
     我们将  md5(md5('密码') + '盐')  这个结果存储到 数据库中 password_hash 字段
 
@@ -12149,8 +12674,7 @@ router.get('/', (req, res) => {
 
 - 我们再passport.js文件中的 register 接口里
 ```js 
-    项目中的代码:
-    - 我们有一段是往数据库插入未注册用户信息的
+    // 项目中的代码: 我们有一段是往数据库插入未注册用户信息的
     let result2 = await handleDB(res, 'info_user', 'insert', '数据库插入出错', {
         username,
 
@@ -12161,21 +12685,21 @@ router.get('/', (req, res) => {
     })
     
 
-    然后我们用户登录的时候 在login 接口
-    - 我们有验证密码的逻辑
+    // 将这段代码改成 - 然后我们用户登录的时候 在login 接口 我们有验证密码的逻辑
     if(password !== result[0].password_hash) {
       res.send({ errmsg: '密码错误, 用户登录失败' })
       return;
     }
 
-    要改成 ↓
+    // 要改成 ↓
 
+    // 将用户输入的密码 在服务端进行双重md5加密加盐后 与 服务器中的密码进行比较
     if(md5(md5(password)+'$^$^%#$^$') !== result[0].password_hash) {
         res.send({ errmsg: '密码错误, 用户登录失败' })
         return;
     }
 
-    这里要注意的是 盐 也要一模一样
+    // 这里要注意的是 盐 也要一模一样
  ```
 
 > 将我们项目中所有使用到的key(盐), 单独的抽取成一个js文件
@@ -12204,16 +12728,18 @@ router.get('/', (req, res) => {
     }
  ```
 
+**注意:**
+- 这个部分的加密逻辑都是在后台接口中完成的 少了前段密码加密的部分
+
 ----------------------
 
 ### Restful(表现层状态转化)风格的接口
 - 它更像是一种规范, 如果项目中是前后端分离的时候, 要写这种风格的接口
 
 > 前后端不分离:
-- 目前来说 我们现在做的这个news这个项目属于前后端不分离的项目, 因为前端和后端的代码都在一起都在项目文件夹内
-```js 
-    我们将数据传到模板里面去, 然后展示到页面上
- ```
+- 目前来说 我们现在做的这个news这个项目属于前后端不分离的项目, 因为前端和后端的代码都在一起都在项目文件夹内 
+- 我们将数据传到模板里面去, 然后展示到页面上
+
 
 - 前后端不分离适合于, 前后端都是自己一个人在开发 我们可以这么处理, 因为这样处理不用专门处理跨域的问题
 ```js 
@@ -12245,15 +12771,21 @@ router.get('/', (req, res) => {
 - GET、POST、PUT、DELETE。它们分别对应四种基本操作：
 - 1. GET用来获取资源
 - 2. POST用来新建资源（也可以用于更新资源）
-- 3. PUT用来更新资源
-- 4. DELETE用来删除资源。
+- 3. PUT用来更新资源(更新的是一整条记录)
+- 4. PATCH用来更新一条记录中的一个字段
+- 5. DELETE用来删除资源。
+
+> PUT 和 PATCH 的区别: 局部与整体
+- 一个计量单位实体MeasurementUnit，他有name，weight，measurementUnitCategory等多个字段，在这里，我们要只修改weight这个字段，这时应该如何选择呢？
+
+- 通常，我们为了省事，就会直接将修改了weight的完整的MeasurementUnit对象直接传给后台。但是这种做法实际上并不明智，这会浪费大量的网络带宽。
+
+- 但是patch呢，他会只将weight传到制定资源去，表示这是一个局部更新，后端只更新收到的字段。
+
 
 
 > 特点：
-- 1. 每一个URI代表一种资源；
-```js 
-    URI 可以理解为一个接口 '/get_data'
- ```
+- 1. 每一个URI代表一种资源； URI 可以理解为一个接口 '/get_data'
 
 - 2. 客户端和服务器之间，传递这种资源的某种表现层(在传输过程中的加密, 到浏览器端还需要解析)；
 
@@ -12273,9 +12805,8 @@ router.get('/', (req, res) => {
 ​	GET     /token      登录
 
 RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动态资源不写.html)
-```js 
-    之前news的项目中我们使用了 /passport/login 这种写法 这不像是针对资源像是针对某个动作
- ```
+- 之前news的项目中我们使用了 /passport/login 这种写法 这不像是针对资源像是针对某个动作
+
 
 > 总结 restful 风格
 - 每一个路径就是一个资源, 资源一般用名词
@@ -12286,19 +12817,16 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
 
 > 体验restful风格的接口
 ```js 
-    之前我们使用的接口 都是动词, 以动作以目的来给接口去命名, 然后为了处理跟命名相关的逻辑
+    // 之前我们使用的接口 都是动词, 以动作以目的来给接口去命名, 然后为了处理跟命名相关的逻辑
     app.get('/passport/login', (req, res) => {
         ...
         res.render('index', data);
     })
 
 
-    现在是前后端分离的话, 我们需要注重团队的配合, 在给接口去起名字的时候 最好遵守restful风格的接口规范
+    // 现在是前后端分离的话, 我们需要注重团队的配合, 在给接口去起名字的时候 最好遵守restful风格的接口规范 restful风格的接口规范是 get 对应的应该是请求资源, 在前后端分离的模式中 我们后端只需要去返回数据, 前端来负责渲染
 
-    restful风格的接口规范是 get 对应的应该是请求资源, 在前后端分离的模式中 我们后端只需要去返回数据, 前端来负责渲染
-
-    假如我们使用restful风格的接口 在接口里去请求数据库 应该是什么样的
-    restful风格的接口 接口必须是资源(info_category就是资源)
+    // 假如我们使用restful风格的接口 在接口里去请求数据库 应该是什么样的 restful风格的接口 接口必须是资源(info_category就是资源)
 
 
     // restful 风格的接口 只返回数据
@@ -12319,10 +12847,8 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
 ```
 
 - 在前后端分离的模式下, 后端只需要负责给数据, 对于后端来讲, 更为方便了, 不需要考虑数据怎么渲染到页面上
-```js 
-    跟vue配合的情况下, html这个东西就不会在服务端出现了
-    art-template也不用了 因为我只需要负责传递数据就好了 vue自己本身有模板语法
- ```
+- 跟vue配合的情况下, html这个东西就不会在服务端出现了
+- art-template也不用了 因为我只需要负责传递数据就好了 vue自己本身有模板语法
 
 
 > Rest
@@ -12387,36 +12913,33 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
 - 2. 面向资源 一目了然 具有自解释性
 - 3. 充分利用HTTP协议本身语义
 
-
-
 ----------------------
 
 ### JWT token 三大部分介绍
 - 企业级别的登录的话, 都是使用 Json Web Token 这种方式
-```js 
-    假如公司只是做网站的话 可以使用我们前面用的session登录可以 但是做好csrf防护就可以
- ```
+- 假如公司只是做网站的话 可以使用我们前面用的session登录可以 但是做好csrf防护就可以
 
 - cookie 和 session 是浏览器中cookie的行为 为自动提交嘛, 之前我们说的csrf防护都是针对浏览器的行为, 利用了浏览器的行为
 
-- 但是app程序的登录怎么办? 安卓 ios应用里面都没有所谓的cookie 和 session(这里不说手机端里的浏览器)
+- *但是app程序的登录怎么办? 安卓 ios应用里面都没有所谓的cookie 和 session(这里不说手机端里的浏览器)*
+
 ```js 
     app程序     --- 数据 --- >      API
 
                     JWT
-                +----------+
-                + 用户数据 +
-                +---------+
+                +-----------+
+                + user data +
+                +-----------+
 
         JWT相当于在用户数据的外层套了一个壳子
-
-    app程序和API(服务器)相互交换数据的时候, 利用JWT在用户数据的外层套了一个壳子, 也可以理解为加了一层密
-
-    为了安全的考虑 不会把用户的数据裸放进行传输, 比如截取数据之后 看里面的数据或串改里面的数据
+    
  ```
+- app程序和API(服务器)相互交换数据的时候, 利用JWT在用户数据的外层套了一个壳子, 也可以理解为加了一层密 为了安全的考虑 不会把用户的数据裸放进行传输, 比如截取数据之后 看里面的数据或串改里面的数据
+
 
 > Token长什么样子 标准token值
 - token值实际上有三个部分 以 . 来分割
+
 ```js 
     标准的Token值也就是 JWT 
 
@@ -12433,7 +12956,7 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
     // signature 签名
     Uwx-EzPq2c9oDJxfs0nCrWLAcTS89HxPBqTUbx91gwY
 
-    上面都是加密后的结果
+    // 上面都是加密后的结果
  ```
 
 - Token值使用来包裹用户数据的
@@ -12475,19 +12998,20 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
 > 我们看看JWT请求的流程
 - 1. 生成 token
 - 2. 验证 token
+
 ```js 
 
     浏览器              服务器
 
-    1. 浏览器 向 服务器 请求一个JWT token
+    1. 浏览器 向 服务器 请求一个 JWT token
 
     2. 服务器 在服务器端生成 token 响应回浏览器
 
-    3. 比如 用户点击收藏 的请求
-        - 这时浏览器会携带 token 发送到服务器
+    3. 浏览器在发起请求的时候 会携带 token 发送到服务器 比如 用户点击收藏 的请求
 
     4. 服务器 验证token 是不是有效的token 无效return(比如请求伪造)
-        - 服务器会拿到token 分别会头 载荷部分进行 base64编码 编码 再加密,然后将加密的结果, 跟浏览器发送过来的token的第三部分做对比 一致就是有效
+        - 服务器会拿到token 分别会头 载荷部分进行 base64编码 编码 再加密,
+        - 然后将加密的结果, 跟浏览器发送过来的token的第三部分做对比 一致就是有效
  ```
 
 ----------------------
@@ -12497,12 +13021,23 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
 
 > 生成token值
 
-> token对象(jwt).sign({用户数据}, salt, {过期时间})
-- 参数1: 对象 键值对结构的数据
-- 参数2: 盐, 也是需要自己手动输入随机字符串的
-- 参数3: 过期时间(expiresIn: 过期时间 单位是秒)
+> jwt对象.sign({用户数据}, salt, {过期时间})
+- 参数1: 
+- 类型: 对象
+- 作用盛放数据 键值对结构
+
+- 参数2: 
+- 盐, 也是需要自己手动输入随机字符串的
+
+- 参数3: 
+- 过期时间(expiresIn: 过期时间 单位是秒)
 - 一般来讲 token 存2个小时
+
+- 返回值:
+- token
+
 ```js 
+    // 获取 jwt 对象
     const jwt = require('jsonwebtoken');
     // 设置 盐
     const salt = '*&%^&%&$&';
@@ -12511,6 +13046,9 @@ RESTful针对动态资源，路径为资源名词，路径不包含后缀名(动
  ```
 
 > 代码部分:
+- 1. 通过 jwt.sign() 生成 token
+- 2. 成功登录后 将token 送给前端
+
 ```js 
 router.get('/passport/token', (req,res) => {
     const token = jwt.sign({ id: 1, name: 'zhangsan' }, keys.jwt_salt, { expiresIn: 60 * 60 * 2})
@@ -12572,7 +13110,7 @@ router.get('/passport/token', (req,res) => {
 > 要点:
 - 1. 要是做 滚动到底部 加载的效果 就要设置一个 标识业务状态的变量, 比如: isLoading
 ```js 
-    下面使用了
+    // 下面使用了
     is_data_querying = true;
  ```
 
@@ -12713,7 +13251,7 @@ router.get('/passport/token', (req,res) => {
 > 做滚动加载更多的核心思路
 > is_data_querying 表示请求状态, 防止多次重复请求数据
 - 一旦页面到底部, 就要获取数据, 首先要判断正在获取数据, 没有获取数据的时候 我才能获取数据
-```js 
+
     首先我们定义了 is_data_querying 变量 默认值为 true
     然后再更新数据的的函数中 开始将 is_data_querying 设置为 true
     将获取到的数据渲染到页面上后 将 is_data_querying 设置为 false 说明已经获取完数据了
@@ -12722,13 +13260,13 @@ router.get('/passport/token', (req,res) => {
     因为更新完页面数据后 is_data_querying 的状态是 false 所以能进入if判断
 
     进入if判断后 要将 is_data_querying 改为true 这样频发触发的事件就不能再进到if判断里面, 防止多次请求, 像一个阀门
+
+```js 
     if (!is_data_querying) {
                 
         is_data_querying = true;
     }
  ```
-
-
 
 ```js 
     $(function () {
@@ -12831,6 +13369,7 @@ router.get('/passport/token', (req,res) => {
 - 2. 这里也是一样的 要考虑 cid1 和 cid不是1 的两种情况
 - 3. 我们需要注意 从数据库查询的结果都是[ ] 里面有对象的形式
 ```js 
+    /*
     currentPage = page 
     等于前端传过来的page 因为前端在把page传递过来的时候 已经是下一页的状态(请求的就是下一页的数据) 所以这个page就是当前页
 
@@ -12842,6 +13381,7 @@ router.get('/passport/token', (req,res) => {
     总条数: 总条数 是 select count(*) from info_news;
 
     对于得到的总页数的结果我们要考虑有除不尽的情况 所以结果我们要使用 Math.ceil 向上取整
+    */
 
     let result2 = await handleDB(res, 'info_news', 'sql', '数据库查询出错', 'select count(*) from info_news where ' + wh);
 
@@ -13912,6 +14452,7 @@ $(".comment_form").submit(function (e) {
     上面的 userInfo[0].nick_name avatar_url 是根据 session 中的保存user_id 去找的 也就说登陆者的id
     而我们下面查的是根据评论表里面的user_id去查的 也就是评论者的信息 虽然查的都是同一个表 但是 查到的数据是不一样的
 
+
     for (let i = 0; i < commentResult.length; i++) {
       let comentResult = await handleDB(res, 'info_comment', 'find', '查询数据库出错', `id=${commentResult[0].user_id}`)
 
@@ -14980,7 +15521,7 @@ https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md
 - multer是以二进制的方式对图片进行存储的 文件名会看不懂
 
 
-******
+---
 
 > upload的方法
 - 我们把下面要使用到的upload方法写在这里 供翻阅
@@ -15012,7 +15553,7 @@ https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md
 
 >>> 警告: 确保你总是处理了用户的文件上传。 永远不要将 multer 作为全局中间件使用，因为恶意用户可以上传文件到一个你没有预料到的路由，应该只在你需要处理上传文件的路由上使用。
 
-******
+---
 
 
 ### multer的使用
