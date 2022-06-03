@@ -5,7 +5,7 @@
 
 - git push origin --delete hehe
 
-
+---
 
 ### 静态页面托管到github
 - 1. 创建仓库
@@ -15,18 +15,19 @@
 - 5. https://github.com/slnn2080/TestRepositories/settings/pages
 - 6. 在source的位置上选择 gh-pages 点击save
 
+---
 
 ### Git的使用技巧
 > 别人发给我的pullrequest
 - 检查代码可以在页面上操作
-- 如果有图片的话 需要将这个文件pull到本地查看
+- 如果有图片的话 需要将这个文件pull到本地查看 查看如果没问题的话 需要点 同意
 
-- 查看如果没问题的话 需要点 同意
-
+---
 
 > sourceTree解决冲突
 - 可以在sourceTree里面选中有冲突的文件 然后右键 点击冲突解决 然后选择以谁的冲突为准
 
+---
 
 > 创建request的方式
 - 1. 前端页面 命令行到commit - 然后vscode里面只用git工具提交 - 去github主页 - pullrequest - 前面选择到哪个分支 后面选择自己的分支 然后写什么已经截图了 
@@ -43,7 +44,7 @@
 
 > 在push操作的时候
 - git push origin feature/plan_b/PLB-696-s-roomy
-- 我们要push到自己的远程分支上 没有的话就会创建吧 自信点是会创建
+- 我们要push到自己的远程分支上 没有的话就会创建吧 *自信点是会创建*
 
 
 > 在下拉操作的时候
@@ -65,6 +66,8 @@
 - 2. 回退到merge前
 
 - 既然merge冲突是其他同事的文件，我不需要去resolve conflicts，那就退回merge前吧，单纯的改我的文件再push吧，执行以下代码：
+
+> 回退到 merge 前
 - git reset --merge  
 
 <!-- 
@@ -73,6 +76,7 @@
     Could not reset index file to revision 'HEAD'.
  -->
 
+---
 
 ### 问题集锦
 - failed to push some refs to 'git@github.com:xxx/xxx.git'错误提示；
@@ -110,6 +114,7 @@
  -->
 
 - 我们在上述的警告文案描述中可以发现两个重要的Git配置信息pull.rebase和pull.ff。
+
 
 > pull.ff 
 - 当把pull.ff设置为false时，这个变量告诉Git在这种情况下，如果执行不带选项的git pull命令时先尝试快进合并，如果不行再进行正常合并生成一个新的提交。
@@ -172,8 +177,7 @@
     例如博主喜欢在git pull时只接受快进合并和变基合并，那么博主可以执行git config pull.ff only，保证每次执行不带选项的git pull时要么快进合并成功，要么快进合并失败。如果快进合并失败，博主再显式执行git pull --rebase进行变基合并即可。
  -->
 
-
-
+---
 
 ### 命令
 - wq                退出
@@ -261,11 +265,7 @@ Your public key has been saved in sam.pub.
 <!-- 
     中央服务器就好比是一个图书馆，你要改一本书，必须先从图书馆借出来，然后回到家自己改，改完了，再放回图书馆。
  -->
-
----------------------------
-
-### Git命令集锦 
-
+ 
 ---------------------------
 
 ### Git

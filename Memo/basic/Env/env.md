@@ -9,7 +9,7 @@
 > 开发环境（dev）
 - 开发环境是程序猿们专门用于开发的服务器，配置可以比较随意，为了开发调试方便，一般打开全部错误报告。
 
-> 测试环境 （test）
+> 测试环境 （test） 
 - 一般是克隆一份生产环境的配置，一个程序在测试环境工作不正常，那么肯定不能把它发布到生产机上。
 
 > 生产环境（prod）
@@ -94,7 +94,12 @@ VUE_APP_TEST_URL = http://localhost:3000/
   cross-env 6 需要使用 npm install --save-dev cross-env@6
  -->
 
-> 使用
+> 使用方式:
+- 直接在 package.json 文件中的脚本行里面 使用 
+  cross-env NODE_ENV=development
+
+- 的形式定义环境变量 这个环境环境最终会被添加到 process.env 上
+
 - 设置本地NODE_ENV值为development
 - 设置线上NODE_ENV值为production
 ```js

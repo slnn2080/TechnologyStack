@@ -5590,3 +5590,436 @@ cache: {
 ## 更多内容
 
 https://github.com/webpack/changelog-v5
+
+----------------
+
+### Webpack - 高阶篇
+- 这个部分使用的相关技术的版本为:
+
+- Vue:
+- @vue@cli v4.5.7
+<!-- 
+  4.5.15
+ -->
+
+- React
+- create-react-app v3.4.1
+<!-- 
+  create-react-app --version
+  我现在用的是 5.0.0
+ -->
+
+- Webpack
+- v5.1.3
+<!-- 
+  webpack v4.41.6
+ -->
+
+----------------
+
+### React - 脚手架介绍
+- 使用 react 脚手架需要 create-react-app 
+
+> 项目结构介绍
+
+  | - node_modules    包
+  | - public          静态资源
+  | - src             源码
+  - package.json
+
+---
+
+> package.json
+- 我们从这个文件入手开始分析
+```json
+{
+  "name": "react-local-pro",
+  "version": "0.1.0",
+  "private": true,
+
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.5.0",
+    "pubsub-js": "^1.9.4",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-router-dom": "^5.3.3",
+    "react-scripts": "5.0.0",
+    "redux": "^4.2.0",
+    "web-vitals": "^2.1.4"
+  },
+
+
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+
+  // eslint的配置 如果我们要是想看 eslint 的配置 那我们就去看 react-app 这个库
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+
+  // 浏览器列表 样式兼容性做到什么程度
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+```
+
+---
+
+> react中的webpack配置在哪里?
+- 默认情况下 react的webpack配置在 react-scripts 包里面
+- 所以我们要是找的话 需要打开 node_modules 里面找 但是这样不太方便
+
+- 所以 react 提供了 npm run eject 指令
+
+
+> npm run eject
+- 将 react 的 webpack 配置打包到根目录
+- 并且下载项目中用到的依赖
+
+- 这个命令是不可逆的 当我们运行这个命令后 根目录会多两个文件
+
+  | - config
+    | - jest
+    | - webpack
+      | - persistentCache
+        - createEnvironmentHash.js
+    - env.js
+    - getHttpsConfig.js
+    - modules.js
+    - paths.js
+    - webpack.config.js
+    - webpackDevServer.config.js
+
+
+  | - scripts
+    - build.js
+    - start.js
+    - test.js
+
+
+> config 目录
+- 包含了 webpack 核心的配置文件
+
+> scripts
+- 包含了 启动项目的3个指令
+- 当我们运行了 npm run eject 后 项目的启动指令就发生了变化 会关联到 scripts这个目录中的 3个js文件
+```js
+// 之前:
+"scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+},
+
+
+// 之后: 通过 node 命令找 scripts 目录中的文件
+"scripts": {
+  "start": "node scripts/start.js",
+  "build": "node scripts/build.js",
+  "test": "node scripts/test.js"
+},
+```
+
+- 所以 
+- 我们要是研究 开发环境的webpack 就要从 start.js 文件入手
+- 我们要是研究 生产环境的webpack 就要从 build.js 文件入手
+
+----------------
+
+### React - config/paths.js
+- 作用: 
+- 这个模块是用来处理路径的
+
+```js
+'use strict';
+
+const path = require('path');
+const fs = require('fs');
+
+const getPublicUrlOrPath = require('react-dev-utils/getPublicUrlOrPath');
+
+// appDirectory: 项目的根目录
+const appDirectory = fs.realpathSync(process.cwd());
+
+// 定义了一个方法
+// 参数: 相对路径; 返回值: 根据项目根路径拼接的绝对路径
+const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+
+/*
+  定义了一个方法
+  作用: 所有资源的公共访问路径: 默认值为 /
+
+  默认情况下是不需要改下面的 homepage 和 PUBLIC_URL 的
+
+  什么时候需要改:
+  - 如果以后项目上线 我们需要换一个服务器地址 就可以在以下的两个位置修改新的服务器地址
+  - 1. package.json 中 配置 homepage
+  - 2. process.env.PUBLIC_URL 中 添加对应的值
+*/
+const publicUrlOrPath = getPublicUrlOrPath(
+  process.env.NODE_ENV === 'development',
+
+  // 通过require将package.json文件引入 看看它里面有没有 homepage 属性 如果有就意味着公开路径为homepage对应的值 或者去process.env去找PUBLIC_URL  如果这两个都没有 默认就是  / 
+  require(resolveApp('package.json')).homepage,
+  process.env.PUBLIC_URL
+);
+
+const buildPath = process.env.BUILD_PATH || 'build';
+
+// 定了文件的扩展名 这些扩展名的文件会被react解析
+const moduleFileExtensions = [
+  'web.mjs',
+  'mjs',
+  'web.js',
+  'js',
+  'web.ts',
+  'ts',
+  'web.tsx',
+  'tsx',
+  'json',
+  'web.jsx',
+  'jsx',
+];
+
+/*
+  解析模块的方法
+*/
+const resolveModule = (resolveFn, filePath) => {
+  // 拿到上面定义的文件扩展名 看看我们的文件路径是否符合文件扩展名 存在就返回
+  const extension = moduleFileExtensions.find(extension =>
+    fs.existsSync(resolveFn(`${filePath}.${extension}`))
+  );
+
+  // 存在就解析
+  if (extension) {
+    return resolveFn(`${filePath}.${extension}`);
+  }
+
+  return resolveFn(`${filePath}.js`);
+};
+
+// 向外暴露 出去各种路径
+module.exports = {
+  dotenv: resolveApp('.env'),
+  appPath: resolveApp('.'),
+  appBuild: resolveApp(buildPath),
+  appPublic: resolveApp('public'),
+  appHtml: resolveApp('public/index.html'),
+  appIndexJs: resolveModule(resolveApp, 'src/index'),
+  appPackageJson: resolveApp('package.json'),
+  appSrc: resolveApp('src'),
+  appTsConfig: resolveApp('tsconfig.json'),
+  appJsConfig: resolveApp('jsconfig.json'),
+  yarnLockFile: resolveApp('yarn.lock'),
+  testsSetup: resolveModule(resolveApp, 'src/setupTests'),
+  proxySetup: resolveApp('src/setupProxy.js'),
+  appNodeModules: resolveApp('node_modules'),
+  appWebpackCache: resolveApp('node_modules/.cache'),
+  appTsBuildInfoFile: resolveApp('node_modules/.cache/tsconfig.tsbuildinfo'),
+  swSrc: resolveModule(resolveApp, 'src/service-worker'),
+  publicUrlOrPath,
+};
+
+
+
+module.exports.moduleFileExtensions = moduleFileExtensions;
+
+```
+
+----------------
+
+### React - scripts/start.js
+- start.js 对应着开发环境下运行的文件
+- 接下来我们看看开发环境下它会做什么
+
+- 我觉得了解下就可以了
+
+```js
+'use strict';
+
+// 定义两个环境变量 后续我们可以通过 process.env 获取 NODE_ENV 的值就是开发环境 development
+process.env.BABEL_ENV = 'development';
+process.env.NODE_ENV = 'development';
+
+// 捕获异常
+process.on('unhandledRejection', err => {
+  throw err;
+});
+
+// 引入 config 目录里面的 env 作用就是加载一些环境变量
+// 我们在根目录创建的 .env 文件中 要想让react识别 必须加上 REACT_APP 前缀 
+require('../config/env');
+
+const fs = require('fs');
+const chalk = require('react-dev-utils/chalk');
+const webpack = require('webpack');
+const WebpackDevServer = require('webpack-dev-server');
+const clearConsole = require('react-dev-utils/clearConsole');
+const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
+const {
+  choosePort,
+  createCompiler,
+  prepareProxy,
+  prepareUrls,
+} = require('react-dev-utils/WebpackDevServerUtils');
+const openBrowser = require('react-dev-utils/openBrowser');
+const semver = require('semver');
+const paths = require('../config/paths');
+const configFactory = require('../config/webpack.config');
+const createDevServerConfig = require('../config/webpackDevServer.config');
+const getClientEnvironment = require('../config/env');
+const react = require(require.resolve('react', { paths: [paths.appPath] }));
+
+const env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1));
+
+// paths上面说了是一堆路径 react通过判断有没有 yarnLockFile 从而判断我们有没有使用 yarn工具
+const useYarn = fs.existsSync(paths.yarnLockFile);
+const isInteractive = process.stdout.isTTY;
+
+// 判断 appHtml appIndexJs 存不存在 如果不存在就退出进程
+// public/index.html src/index.js
+if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
+  // 退出命令
+  process.exit(1);
+}
+
+// 默认端口号
+const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
+// 默认域名
+const HOST = process.env.HOST || '0.0.0.0';
+
+if (process.env.HOST) {
+  console.log(
+    chalk.cyan(
+      `Attempting to bind to HOST environment variable: ${chalk.yellow(
+        chalk.bold(process.env.HOST)
+      )}`
+    )
+  );
+  console.log(
+    `If this was unintentional, check that you haven't mistakenly set it in your shell.`
+  );
+  console.log(
+    `Learn more here: ${chalk.yellow('https://cra.link/advanced-config')}`
+  );
+  console.log();
+}
+
+// checkBrowsers检查浏览器的方法 我们使用的是什么浏览器
+const { checkBrowsers } = require('react-dev-utils/browsersHelper');
+checkBrowsers(paths.appPath, isInteractive)
+  .then(() => {
+    // 检查端口号 这个方法就是 当3000被占用了会换成3001
+    return choosePort(HOST, DEFAULT_PORT);
+  })
+  .then(port => {
+    if (port == null) {
+      // We have not found a port.
+      return;
+    }
+
+    /*
+      configFactory()来源于 ../config/webpack.config.js 
+    */
+    const config = configFactory('development');
+    const protocol = process.env.HTTPS === 'true' ? 'https' : 'http';
+    const appName = require(paths.appPackageJson).name;
+
+    const useTypeScript = fs.existsSync(paths.appTsConfig);
+    const urls = prepareUrls(
+      protocol,
+      HOST,
+      port,
+      paths.publicUrlOrPath.slice(0, -1)
+    );
+
+    // 创建编译器
+    const compiler = createCompiler({
+      appName,
+      config,
+      urls,
+      useYarn,
+      useTypeScript,
+      webpack,
+    });
+
+
+    //加载代理配置 它会去 appPackageJson 中去找
+    const proxySetting = require(paths.appPackageJson).proxy;
+    const proxyConfig = prepareProxy(
+      proxySetting,
+      paths.appPublic,
+      paths.publicUrlOrPath
+    );
+    // 创建 devserver 配置
+    const serverConfig = {
+      ...createDevServerConfig(proxyConfig, urls.lanUrlForConfig),
+      host: HOST,
+      port,
+    };
+    const devServer = new WebpackDevServer(serverConfig, compiler);
+    // Launch WebpackDevServer.
+    devServer.startCallback(() => {
+      if (isInteractive) {
+        clearConsole();
+      }
+
+      if (env.raw.FAST_REFRESH && semver.lt(react.version, '16.10.0')) {
+        console.log(
+          chalk.yellow(
+            `Fast Refresh requires React 16.10 or higher. You are using React ${react.version}.`
+          )
+        );
+      }
+
+      console.log(chalk.cyan('Starting the development server...\n'));
+      openBrowser(urls.localUrlForBrowser);
+    });
+
+    ['SIGINT', 'SIGTERM'].forEach(function (sig) {
+      process.on(sig, function () {
+        devServer.close();
+        process.exit();
+      });
+    });
+
+    if (process.env.CI !== 'true') {
+      // Gracefully exit when stdin ends
+      process.stdin.on('end', function () {
+        devServer.close();
+        process.exit();
+      });
+    }
+  })
+  .catch(err => {
+    if (err && err.message) {
+      console.log(err.message);
+    }
+    process.exit(1);
+  });
+
+```
+
+----------------
+
+### React - scripts/start.js

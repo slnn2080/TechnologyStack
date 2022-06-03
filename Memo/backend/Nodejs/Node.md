@@ -1485,6 +1485,14 @@ let info = process.cwd()
 console.log(info);
 ```
 
+> 项目的根目录:
+```js
+const appDirectory = fs.realpathSync(process.cwd());
+
+// 根据 项目根目录 产生绝对路径的方法
+const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+```
+
 ----------------------
 
 ### fs 文件系统 file system

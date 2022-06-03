@@ -10,6 +10,7 @@
 **父组件: 更新 删除 添加数据的方法**
 - 我们都是利用更新state中数据, 来驱动页面的显示, 这是中心思想, 所以我们都是对sate中的数据 进行更新的操作
 - 下面中的方法 都是子组件为了传递给父组件信息, 要求父组件传递的函数 内部都是在对state做更新的操作
+- state 换个方式理解 可以理解为 data 配置项 我们定义在data配置项里面的数据 都会被实时监测
 
 
 > 添加数据的方法
@@ -44,6 +45,13 @@
 <!-- 
   这里遍历没有选择forEach 因为它是直接修改state中的数据, 我们只能通过setState来修改
  -->
+
+> 总结:
+- 先去map遍历原数据数组 然后找到要改的对象 修改完毕后 返回修改后的对象
+
+  return {...item, address: "花果山"}
+
+
 ```js 
   // updateTodo 用于更新一个todos对象
   updateTodo = (id, done) => {
@@ -86,6 +94,9 @@
 - 1. 获取state中原来的数据
 - 2. 删除一条数据, 我们使用了filter方法, 将不是目标数据的其它数据返回就相当于删除了, 我们利用了 id!==id 的方式
 - 3. 更新state
+
+> 总结:
+- 使用 filter遍历数组 过滤掉不想要的部分 返回新的数组
 ```js 
   // 删除 用于删除一个todo
   deleteTodo = (id) => {
@@ -186,6 +197,8 @@
 
 
 **高阶函数 函数柯里化**
+*event对象在return的函数里面*, 我们是将return的函数交给react 所以event会被传到这个函数中
+
 - 在受控组件的案例中 我们使用了受控组件的形式, 将input中的值取出来放在了state中, 然后从state中做了展示
 
 - 但是上面的代码还是存在了一些的问题, 我们的案例中只是需要在state中保存uname 和 password, 假如我们的组件是一个注册功能
@@ -210,6 +223,7 @@
 ```js 
   <input type="text" name='uname' onChange={this.saveFormData('uname')}/>
 ```
+
 \\ 问题1
 - 该函数react会帮我们直接调用 因为 saveFormData后面加了() 直接调用了
 
@@ -323,12 +337,12 @@
 
 
 **复习: 对象相关的知识**
+- 需求:
+- 我想让最后的结果是 {name: 'tom'}
+
 ```js 
   let a = 'name'
   let obj = {}
-
-  - 需求:
-  - 我想让最后的结果是 {name: 'tom'}
 
   let a = 'name'
   let obj = {}
@@ -470,6 +484,8 @@
 - 如果从 MVC 的角度来看 
 - React就是视图层的 V 也就是只负责视图的渲染 而并非提供完整的 M 和 C 的功能
 
+> 那是不是说 react就是操作数据 呈现界面的
+
 
 > 为什么要学
 - 1. 原生js操作dom繁琐, 效率低(DOM-API 操作 UI)
@@ -528,9 +544,10 @@
 
 
 - 3. 使用虚拟DOM + 优秀的Diffing算法 尽量减少和真实DOM的交互
-- 虚拟DOM: 
+
+- 虚拟DOM(react元素): 
 - 那react是怎么影响到DOM的呢？
-- react可以说自建了一套DOM系统 我们在对网页进行操作的时候 操作react的是它自建的DOM系统 然后再由react把我们所有的操作在原生上实现
+- react可以说自建了一套DOM系统 我们在对网页进行操作的时候其实操作的是react的自建的DOM系统 然后再由react把我们所有的操作在原生上实现
 <!-- 
   之前我们使用js jQ都是操作的真实的DOM
   虚拟DOM是React操作的DOM 虚拟DOM没有放在页面上而是代码运行的时候放在了内存里
@@ -558,7 +575,7 @@
       {id: '002', name:'李现', age:18}
   ]
 
-  // 创建节点
+  // 创建内容字符串
   let htmlStr = ''
   personArr.forEach((person) => {
       htmlStr =+ `<li>${person.name} - ${person.age}</li>`
@@ -566,6 +583,28 @@
 
   // 这里因为 htmlStr 是字符串 所以我们不能使用 ul.appendChild方法
   document.getElementById('list').innerHTML = htmlStr
+</script>
+
+
+---
+
+<div id="area"> </div>
+<script>
+  let per = [
+    {id: '001', name:'鹿晗', age:19},
+    {id: '002', name:'李现', age:18}
+  ]
+
+  let area = document.querySelector("#area")
+
+  per.forEach(item => {
+    area.innerHTML += `
+      <h3>姓名: <span class="name">${item.name}</span></h3>
+      <div id="content">
+        <div class="age">${item.age}</div>
+      </div>
+    `
+  })
 </script>
 ```
 
@@ -653,7 +692,9 @@
   <script 
     src="./node_modules/react/umd/react.development.js"></script>
   <script 
-    ssrc="./node_modules/react-dom/umd/react-dom.development.js"></script>
+    src="./node_modules/react-dom/umd/react-dom.development.js"></script>
+  <script 
+    src="./js/babel.min.js"></script>
 ```
 
 ---
@@ -740,7 +781,28 @@ document.querySelector("#test").addEventListener("click", function() {
 })
 ```
 
-- 注意: 修改完react元素后必须重新渲染根元素 
+**注意:** 修改完react元素后必须重新渲染根元素 
+
+
+> 总结:
+- 这里的示例是基于 *react18* 的api
+
+- 1. 通过 React 创建react元素
+- 2. 通过 ReactDOM 找到(或者说创建)root
+- 3. 通过 root 渲染节点
+
+```js
+// 创建节点
+let node = React.createElement("div", {className: "test"}, "我是react元素")
+
+// 找到(或者说) root
+let root = ReactDOM.createRoot(document.getElementById("root"))
+
+// 通过 root 进行挂载
+root.render(node)
+```
+
+---
 
 *------  react17 ------*
 
@@ -765,15 +827,15 @@ document.querySelector("#test").addEventListener("click", function() {
 
 
 - 代码示例：
-```js
+```html
   <div id="root"> </div>
 
-  // 引入react的核心库等结构
+  <!-- 引入react的核心库等结构 -->
   <script src='../js/react.development.js'></script>
   <script src="../js/react-dom.development.js"></script>
   <script src="../js/babel.min.js"></script>
 
-  // 这里要改写成 type='text/babel'
+  <!-- 这里要改写成 type='text/babel' -->
   <script type='text/babel'>
     const VDOM = <h1>hello, React</h1>
     ReactDOM.render(VDOM, document.getElementById('root'))
@@ -788,7 +850,7 @@ document.querySelector("#test").addEventListener("click", function() {
 
 - 当我们获取页面中的dom元素所对应的react元素的时候 也就是涉及到dom操作的时候 就要使用react-dom了
 
-- 在 react17 17的时候 我们使用的是 
+- 在 react17 的时候 我们使用的是 
   ReactDOM.render(react元素, DOM节点)
 
 - 在18中把上面的方法分成两个方法了 因为我们要渲染的时候 没必要每次都要获取次DOM节点(上面方法的参数2), 减少了操作次数 提升了点性能
@@ -798,7 +860,7 @@ document.querySelector("#test").addEventListener("click", function() {
 - 通过css选择器 根据页面中的dom *创建react root元素* 
 - 想让哪个节点为根元素 传哪个节点就可以
 
-- react root元素 就是react元素要插入的位置
+- react root元素 就是react元素将要被插入的位置
 
 - 参数:
 - Css选择器选择的DOM节点
@@ -810,12 +872,12 @@ document.querySelector("#test").addEventListener("click", function() {
 const root = ReactDOM.createRoot(document.querySelector("#root"))
 ```
 
-> 根元素.render(React元素)
+> root.render(React元素)
 - 挂载 渲染
 - 向根元素中渲染 react元素(虚拟DOM)
-- 当调用render渲染页面 react会自动比较两次渲染的元素 只在真实DOM中更新发生变化的部分
+- *当调用render渲染页面 react会自动比较两次渲染的元素* 只在真实DOM中更新发生变化的部分
 
-- 要点:
+> 要点:
 - 根元素中的所有内容都会被删除 被我们插入了 react元素 替换
 - 当重复调用render()时 react会将两次的渲染结果进行比较 它会确保只修改发生变化的元素 确保对DOM做最小的修改
 
@@ -830,7 +892,7 @@ const root = ReactDOM.createRoot(document.querySelector("#root"))
 root.render(div)
 ```
 
-> 根元素.unmount();
+> root.unmount();
 - 卸载
 
 *------  react 18 ------*
@@ -839,7 +901,6 @@ root.render(div)
 
 ### JSX
 - 上面介绍的方法的核心就是用了一个 react 的 一个api 替换掉了 原生js操作dom的方法 
-
 - 但是替代完了之后 其实并没有简洁多少 所以react提供一种更简洁的方式 JSX
 
 > 命令式编程
@@ -851,6 +912,7 @@ root.render(div)
 - 我们可以通过下面的方式 告诉react我想要它 至于怎么创建实现的我不管
 
 - 在react中可以通过 JSX 来创建react元素
+
 ```js
 let node = (
   <div>我是一个div</div>
@@ -883,7 +945,7 @@ let node = (
 
 *------  react 17 ------*
 
-> react17 中 使用jsx的方式
+> react17 中 挂载reacta的方式
 ```html
 <body>
   <div id="root"></div>
@@ -904,7 +966,7 @@ let node = (
 
 *------  react 18 ------*
 
-> react18 中 使用jsx的方式
+> react18 中 挂载reacta的方式
 ```html
 <body>
   <div id="root"></div>
@@ -929,11 +991,10 @@ let node = (
 
 ### JSX的注意事项
 - 全称 Javascript XML 是react定义的一种类似于 XML 的js扩展语法 js + xml
-
 - 本质是 React.createElement(component, props, ...children)方法的*语法糖*
 
-> XML的简单用法 -- 扩展
-- XML 早期用于存储和传输数据
+> 扩展: XML的简单用法
+- XML早期用于存储和传输数据
 - 比如 我们存个学生, 我们就可以创建下面的样式, 用于传输
 
 ```xml
@@ -946,7 +1007,9 @@ let node = (
 - 后来我们就不使用xml去存信息了 使用JSON 因为我们真正存储的数据就是 TOM 和 19 但是结构比要存储的内容都要多
 
 - JSON
+```json
   "{"name":"TOM", "age":19}"
+```
 
 - 这样存储起来不是方便了很多么? 
 - 但也不是说xml就完全不用了 微信公总号和开发者公众号打交道 还是使用的XML
@@ -972,8 +1035,8 @@ let node = (
   label标签的for属性 -- 需要替换成 -- htmlFor
  -->
 
-> 5. 内联样式要用 对象形式
-- style必须使用 {} 的形式设置
+> 5. 内联样式要用 对象形式 style={{}}
+- style 必须使用 {} 的形式设置
 - style={{key:value}} 的形式去写, 属性名使用驼峰
 
 <!-- 
@@ -990,9 +1053,9 @@ let node = (
     style={{border: "1px solid #212121"}}>React</h3>
 ```
 
-> 6. 标签属性可以直接在标签体中书写
+> 6. 其他标签属性可以直接写在标签中
 - 标签属性可以直接写
-- 事件的话 如果使用 {} 传递一个函数
+- 比如: 事件的话 如果使用 {} 传递一个函数
 ```jsx
 const div = <div id="box" onClick = { () => {} }>
 ```
@@ -1112,7 +1175,7 @@ const div = <div id="box" onClick = { () => {} }>
 ### 扩展: 虚拟DOM 和 真实DOM
 
 > 介绍:
-- 当我们通过 React 操作DOM时，比如通过 React.createElement() 创建元素时。我们所创建的元素并不是真正的DOM对象而是React元素。
+- 当我们通过 React 操作DOM时，比如通过 React.createElement() 创建元素时。我们所创建的元素并不是真正的DOM对象*而是React元素*。
 
 - 这一点可以通过在控制台中打印对象来查看。React元素是React应用的最小组成部分，通过JSX也就是React.createElement()所创建的元素都属于React元素。与浏览器的 DOM 元素不同，React 元素就是一个普通的JS对象，且创建的开销极小。
 
@@ -1125,7 +1188,7 @@ const div = <div id="box" onClick = { () => {} }>
 
 - 首先，*虚拟DOM简化了DOM操作*。凡是用过DOM的都知道Web API到底有多复杂，各种方法，各种属性，数不胜数。查询的、修改的、删除的、添加的等等等等。然而在虚拟DOM将所有的操作都简化为了一种，那就是创建！
 
-- React元素是不可变对象，一旦创建就不可更改。要修改元素的唯一方式就是创建一个新的元素去替换旧的元素，看起来虽然简单粗暴，实则却是简化了DOM的操作。
+- *React元素是不可变对象，一旦创建就不可更改。要修改元素的唯一方式就是创建一个新的元素去替换旧的元素*，看起来虽然简单粗暴，实则却是简化了DOM的操作。
 
 - 其次，*解决DOM的兼容性问题*。DOM的兼容性是一个历史悠久的问题，如果使用原生DOM，总有一些API会遇到兼容性的问题。使用虚拟DOM就完美的避开了这些问题，所有的操作都是在虚拟DOM上进行的，而虚拟DOM是没有兼容问题的，至于原生DOM是否兼容就不需要我们操心了，全都交给React吧！
 
@@ -1146,8 +1209,7 @@ const div = <div id="box" onClick = { () => {} }>
 - 1. 本质是Object类型的对象(一般对象)
 - 2. 虚拟DOM身上的属性比较少(轻), 真实DOM身上的属性比较多(重) 
 <!-- 
-  因为虚拟DOM是react内部在用, 
-  无需真实DOM上那么多的属性 
+  因为虚拟DOM是react内部在用, 无需真实DOM上那么多的属性 
 -->
 
 - 3. 虚拟DOM最终会被React转化为真实DOM, 从内存中呈现在页面上
@@ -1174,7 +1236,7 @@ const div = <div id="box" onClick = { () => {} }>
   console.log(TDOM)
     // 结果
     // {$$typeof: Symbol(react.element), type: "h1", key: null, ref: null, props: {…}, …}
-</>
+</script>
 ```
 
 ---
@@ -1199,7 +1261,7 @@ const div = <div id="box" onClick = { () => {} }>
     003对应的虚拟DOM  -- 对比结果(新)   --- 渲染
  -->
 
-- 也就是说 每次更新页面的时候 新的虚拟DOM树都会对上一次(旧)的虚拟DOM树进行对比, 看看有没有不一样的节点, 如果有更新新的节点, 复用没有变化的节点
+- 也就是说 每次更新页面的时候 新的虚拟DOM树都会对上一次(旧)的虚拟DOM树进行对比, 看看有没有不一样的节点, 如果有 那就更新新的节点, 复用没有变化的节点
 
 
 > 验证上面说的对不对
@@ -1218,19 +1280,19 @@ const div = <div id="box" onClick = { () => {} }>
 
   - 答案:
   - diffing算法并不是只比较一层, 而是标签内部还有标签的时候 也会对子标签进行 新旧的虚拟DOM树对比, 如果子标签对比结果没有变化 子标签也会复用
-<!-- 
-  // 结构1
+```html
+  <!-- 结构1 -->
   <h1>hello</h1>        
 
-  // 结构2
+  <!-- 结构2 -->
   <input type="text" /> <br /><br />
 
-  // 结构3
+  <!-- 结构3 -->
   <span>
     现在是: {this.state.date.toTimeString()}
     <input type="text" />
   </span>
- -->
+```
 
 
 > 验证用的代码
@@ -1240,7 +1302,7 @@ const div = <div id="box" onClick = { () => {} }>
       // 状态里面维护着时间
       state = { date: new Date() }
 
-      // 一挂载开启定时器 每一次都把最新的时间放进去 state发生改变 页面就会更新
+      // 组件挂载开启定时器 每一次都把最新的时间放进去 state发生改变 页面就会更新
       componentDidMount() {
         setInterval(() => {
           this.setState({
@@ -1284,7 +1346,7 @@ const div = <div id="box" onClick = { () => {} }>
 > 回答:
 - 1. 虚拟DOM中key的作用
   - 1.1 简单的说: 
-    key是虚拟DOM对象的标识, 在更新显示的时候 Key起来及其重要的作用
+    key是虚拟DOM对象的标识, 在更新显示的时候 Key起到了及其重要的作用
 
   - 1.2 详细的说:
     当状态中的数据发生变化的时候, react会根据'新数据'生成'新的虚拟DOM' 随后React进行'新虚拟DOM'与'旧虚拟DOM'的diff比较, 比较规则如下
@@ -1328,15 +1390,18 @@ const div = <div id="box" onClick = { () => {} }>
   小张, 18         小王, 20  
   小李, 19         小张, 18 
                   小李, 19 
+-->
 
-
+```jsx
   <ul>
     {this.state.persons.map((item, index) => {
       return <li key={index}>{item.name}, {item.age}</li>
     })}
   </ul>
+```
 
-  注意 我们的key是用的index, 看似页面上正常显示了, 控制台也没有报错, 但是有很严重的问题 有严重的效率问题
+- 注意: 
+- 我们的key是用的index, 看似页面上正常显示了, 控制台也没有报错, 但是有很严重的问题 有严重的效率问题
 
   慢动作回放 --- 使用index索引值做key
 
@@ -1388,7 +1453,7 @@ const div = <div id="box" onClick = { () => {} }>
 
 
   现在是3条数据, 假如有2000条数据, 我们在数组的前方加入了一条数据, 我们还使用了index作为key, 那么就会导致2000条数据没办法复用
- -->
+
 
 > 解决方式:
 - 我们不用index作为key, 而是用数据的唯一标识作为key item.id
@@ -1397,9 +1462,9 @@ const div = <div id="box" onClick = { () => {} }>
 
 - 还是上面的案例 我们看下 使用index作为key 引发的渲染数据出错的问题
 - 我们在每一个里面里面 都放一个<input>, 然后我们点击添加小王的按钮, 观察下index作为key会发生什么问题
-<!-- 
+```html
   <li key={index}>{item.name}, {item.age} <input type='text' /></li>
- -->
+```
 
 > 页面展示信息
 <!-- 
@@ -1582,6 +1647,24 @@ if(lang == "en") {
 
 > 方式: 
 ```js 
+  state = {
+    isLoading: true,
+    data: []
+  }
+  
+  course = ["Vue", "React"]
+
+  componentDidMount() {
+    setTimeout(() => {
+      this.setState({
+        data: this.course,
+        isLoading: false
+      })
+    }, 2000)
+  }
+
+  ---
+
   // if方式
   const loadingData = () => {
     if(isLoading) {
@@ -1691,7 +1774,7 @@ if(lang == "en") {
 
 
 > react-scripts
-- 保重提供了项目开发中的大部分依赖 大大的简化了项目的开发 它把包括webpack babel 测试框架 都在这个包里面集成了 有了这个包相当于我们有了react给我们自动配置好的webpack 直接用(一行webpack的配置都不用写)
+- 提供了项目开发中的大部分依赖 大大的简化了项目的开发 它把包括webpack babel 测试框架 都在这个包里面集成了 有了这个包相当于我们有了react给我们自动配置好的webpack 直接用(一行webpack的配置都不用写)
 
 
 > webpack主要对项目来说有两个功能
@@ -1855,6 +1938,13 @@ root.render(App)
 > 使用方式:
 > 1. 全局安装(create-react-app这个库)
 - npm i -g create-react-app
+
+**注意:**
+- 现在官网建议 删除全局安装的 react脚手架
+- npm uninstall -g create-react-app
+
+- 然后使用 以下命令安装 react
+- npx create-react-app my-app 
 
 
 > 2. create-react-app 项目名 创建项目
@@ -2188,7 +2278,13 @@ root.render(App)
 
 ----------------------------
 
-### 样式的模块化
+### React中的scss
+- react中默认支持scss 只需要下载就可以
+- npm install --save node-sass
+
+----------------------------
+
+### 样式的模块化 - 解决样式覆盖的情况
 - 上面的案例中 我们发现, 子组件中的css文件里, 类名不能重复
 <!-- 
   因为所有的css样式都会汇总到App组件里面, 就会发生 下面的同名样式会将上面的样式覆盖掉, 为了避免这种情况的发生 我们会将样式模块化
@@ -2208,10 +2304,10 @@ root.render(App)
 
 - 2. 我们在组件的js文件中 使用导入模块的方式导入css文件
 - 这样所有hello相当的样式都会保存在hello对象里面
-<!-- 
+```js
   import hello from './index.module.css'
 
-  下面使用样式的方式是 hello.title的形式
+  // 下面使用样式的方式是 hello.title的形式
   export default class Welcome extends Component {
     render() {
       return (
@@ -2221,7 +2317,7 @@ root.render(App)
       )
     }
   }
- -->
+```
 
 ----------------------------
 
@@ -2265,11 +2361,11 @@ root.render(App)
 ### 组件的创建
 
 > 什么是组件
-- 在React中网页被拆分为了一个一个组件，*组件是独立可复用的代码片段*。具体来说，组件可能是页面中的一个按钮，一个对话框，一个弹出层等。React中定义组件的方式有两种：基于函数的组件和基于类的组件。本节我们先看看基于函数的组件。
+- 在React中网页被拆分为了一个一个组件，*组件是独立可复用的代码片段*。具体来说，组件可能是页面中的一个按钮，一个对话框，一个弹出层等。React中定义组件的方式有两种：基于函数的组件和基于类的组件。
 
+- 本节我们先看看基于函数的组件。
 
 - 一个组件里应该包括 结构, 样式, 交互, 资源(html css js img...)
-
 - react中组件有两种创建方式 函数式组件 和 类组件
 
 ----------------------------
@@ -2469,7 +2565,7 @@ function Demo() {
  -->
 
  > 组件的状态驱动页面
-- 之前我们说过学了react就把数据交给react 
+- 之前我们说过学了react就把数据交给state
 - 它会拿着数据 生成虚拟DOM 进而生成真实DOM
             
     数据 -- 虚拟DOM -- 真实DOM
@@ -2540,7 +2636,6 @@ export default class App extends Component {
 
 > 思考:
 - 那如果 state 中有两条数据 我修改的时候需要将两条数据都放进 setState 里面么？
-
 - 不需要react内部会进行处理 它只会修改你放进来的数据 *没有放进来的不会对其进行处理*
 
 ```js
@@ -3051,7 +3146,6 @@ this.setState(
   但是上述的方式不能在react中使用 因为我们获取节点的时候 获取的是原生的DOM对象 然后通过原生DOM对象的方法对其进行操作
 
   但是在react中我们通常操作的都是react元素 然后通过react元素映射到真是的DOM上 
-
   所以我们不建议直接获取DOM对象 因为相当于脱离了react的管理
  -->
 
@@ -3232,6 +3326,29 @@ const handleClick = (e) => {
   }
 
   ReactDOM.render(<Weather />, document.querySelector('#app'))
+```
+
+- 函数式组件
+```js
+import { useState, useEffect } from "react"
+
+const App = () => {
+
+  let [flag, setFlag] = useState(true)
+
+  const handleClick = () => {
+    setFlag(!flag)
+  }
+
+  return (
+    <div>
+      <h3>今天天气很{flag ? "炎热" : "凉爽"}</h3>
+      <button onClick={handleClick}>click</button>
+    </div>
+  )
+}
+
+export default App
 ```
 
 - 接下来我们想下怎么给标题添加点击事件, 然后我们对state中的isHot进行取反
@@ -4524,7 +4641,7 @@ export default class Child extends Component {
 - 表单中所有输入类的DOM *随着我们的输入* 就能*把value维护到state里面去* 等需要用的时候直接*从state里面取出来* 这就是受控组件
 
 
-- 小结:
+> 小结:
 - 就是获取值采用的方式(事件)不一样, 
   - onClick就是非受控
   - onChange就是受控(因为我们会把value存放到state中)
@@ -6276,7 +6393,7 @@ return this.props.render(this.state)
 
       render() {
         <>
-          <UI结构组件 {...this.state.复用数据}/>
+          <UI结构组件 {...this.state.复用数据} {...this.props}/>
         </>
       }
 
@@ -12791,31 +12908,67 @@ export default store;
 
 ------
 
-> React.useEffect(参数1, 参数2)
+> React.useEffect(参数1(回调), 参数2[数组])
 - Effect Hook
 - 作用：
 - 在函数式组件里面使用*生命周期钩子*
 
 > 使用：
-- 参数1：回调函数
+- 参数1：回调函数 *当state中的属性发生变化的时候触发回调*
 - 如果我们不传递 参数2 所有的状态发生改变的时候 都会执行 参数1的回调 相当于监测所有人(state中的所有数据) 它会执行 1+n 次 初始化一次 只要更新还会继续调用该回调
 
-- 参数2：数组
+- 参数2：数组 *用于定义监视state中的哪个属性*
   - 传递[] 则谁也不监测
   - 传递[count,name] 则代表监测指定元素 因为是数组可以监测多个数据
   - 不写 监测所有 只要数据有变化就会引起页面更新
 
 ```js 
-  React.useEffect(() => {
-    console.log('@')
-        回调中的打印 只会在count数据发生改变的时候被调用
-  }, [count])
+const App = () => {
+
+  let [count, setCount] = useState(0)
+  /*
+    参数1:
+      监视 state 中的属性 当 state 中的属性发生变化后 会触发回调
+      注意页面初始化的时候它就会执行一次  1 + n
+
+    参数2: 
+      指定监视 state 中的什么属性
+      [] : 
+        则谁也不监视(也会在页面初始化的时候执行一次会回调)
+
+      [指定state属性]: 
+        则监视指定state属性当其发生变化的时候 触发回调
+
+      不传:
+        则监视所有属性
+  */
+  useEffect(() => {
+    console.log("state中的数据发生了变化")
+  }, [] | 不传 | [count])
+
+  const handleClick = () => {
+    setCount(count + 1)
+  }
+
+
+  return (
+    <div>
+      <h3>我是函数式组件 -- {count}</h3>
+      <button onClick={handleClick}>click</button>
+    </div>
+  )
+}
 ```
 
 > 技巧：
-- 当我们 参数2 不传的时候 相当于 componentDidMount() 和 componentDidUpdate()
-- 当我们 参数2 传递空数组 相当于 componentDidMount()
-- 当我们 参数1 返回一个函数的话返回的函数相当于 componentWillUnmount()
+- 当我们 参数2 不传的时候 
+  相当于 componentDidMount() 和 componentDidUpdate()
+  
+- 当我们 参数2 传递空数组 []
+  相当于 componentDidMount()
+
+- 当我们 参数1 返回一个函数的话返回的函数 
+  相当于 componentWillUnmount()
 
 - 如果我们想使用 componentWillUnmount() 生命周期的话 需要 参数1 返回一个函数 参数1返回的函数 就相当于 componentWillUnmount()
 

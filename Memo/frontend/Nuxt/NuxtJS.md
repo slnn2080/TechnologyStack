@@ -7,6 +7,10 @@
 
 ### v2.1.0 | 2.4.2版本的nuxt可能会解决样式顺序的问题 vuetify
 ### postcss 预设环境 6.3.0 也能解决这个问题？？？
+
+### <nuxt-img>
+- https://image.nuxtjs.org/components/nuxt-img/
+
 ------
 
 ### 技巧

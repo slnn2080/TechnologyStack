@@ -756,7 +756,7 @@ export default () => {
 ---
 
 > sass的引入方式
-- npm i sass
+- npm install --save-dev sass
 
 - 使用方式 和 上述一样
 - next.js允许您使用 .scss 和 .sass 扩展名导入 Sass 您可以通过css模块和 .module.scss 或 .module.sass 扩展名来使用组件级 Sass
