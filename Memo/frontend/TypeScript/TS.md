@@ -654,6 +654,8 @@ module.exports = {
 - 可以定义我们的变量的类型, 值可以是在某几个值之间
 
 - let b: 'male' | 'female';
+
+- 当我们给 b 变量进行赋值的时候 只能赋值为 这两个值 其中的一个
 <!-- 
   一般可以这么用, 这样b的值只能是male 或者 female其中的一个
   b = 'male';     // ok
@@ -662,7 +664,7 @@ module.exports = {
  -->
 
 - let c: boolean | string;
-- 我们可以通过这种方式来限制我们的变量在哪些值之间
+- 我们可以通过这种方式来*限制我们的变量在哪些值之间*
 
 ------------------
 
@@ -748,10 +750,10 @@ module.exports = {
   麻烦是麻烦 但是可以避免以后出各种的问题
   -->
 
+
 - 2. 类型断言
 - 语法:
-- <类型>变量
-- 变量 as 类型
+- <类型>变量 | 变量 as 类型
 
 - 告诉编辑器 变量的实际类型, e的类型就是字符串别给我报错了
 <!-- 
@@ -842,6 +844,7 @@ module.exports = {
   以这种形式给上面给变量指定类型不太实用 因为js里面一切皆对象, 定义一个变量的类型为object则相当于对这个对象没有任何的限制 在开发的时候不太用 
 -->
 
+- 在给 对象 指定类型的时候 最好具体指定对象中的属性的类型
 
 - 一般我们使用{ } 给一个变量指定类型, 类面指定必须包含有哪些的属性
 - 语法:
@@ -2961,3 +2964,46 @@ Db.add(user)            // 这里传入了Uesr的实例
 ### 大地的视频 从17集开始没看 讲的是模块的概念
 - https://www.bilibili.com/video/BV1yt411e7xV?p=17&spm_id_from=pageDriver
 - 还有4集 模块 命令空间 装饰器 方法装饰器等
+
+--------------------
+
+### 收集:
+```ts
+let data = {
+  code: 1,
+  msg: "读取成功",
+  items: [
+    {
+      id: 1,
+      content: "我是内容",
+    }
+  ]
+}
+
+interface item {
+  id: number | string,
+  content: string,
+}
+
+interface config {
+  code: number,
+  msg: string,
+  items: Array<item>
+}
+
+let test: config = data
+
+// ----
+
+interface obj<T> {
+  [propName: string]: T
+}
+
+let endObj = {
+  a: 1
+}
+
+let startObj:obj<number> = endObj
+
+
+```

@@ -138,8 +138,7 @@ function func() {
 }
 ```
 
-
-
+---
 
 ### 栈结构
 - 栈是一种特殊的线性表,它的存储空间是连续的。
@@ -255,6 +254,42 @@ function d2b(number) {
 console.log(d2b(168)) // 10101000
 ```
 
+- class的方式写的代码
+```js
+class Stack {
+
+    constructor() {
+        this.list = []
+    }
+
+    push(el) {
+        this.list.push(el)
+    }
+
+    pop() {
+        return this.list.pop()
+    }
+
+    getTopEl() {
+        return this.list[this.list.length - 1]
+    }
+
+    isEmpty() {
+        return this.list.length === 0
+    }
+
+    hasEl(el) {
+        return this.list.find(item => item == el) == "undefind"
+    }
+
+    each() {
+        return this.list.join(", ")
+    }
+}
+
+let stack = new Stack()
+```
+
 
 ### 队列结构
 - 上面我们说了 栈结构 栈结构的特点是先入后出
@@ -313,39 +348,39 @@ console.log(d2b(168)) // 10101000
 
     // 入队列
     Queue.prototype.enqueue = function(e) {
-    this.list.push(e)
+        this.list.push(e)
     }
 
 
     // 出队列
     Queue.prototype.dequeue = function() {
-    return this.list.shift()
+        return this.list.shift()
     }
 
     // 返回队列中的第一个元素
     Queue.prototype.front = function() {
-    return this.list[0]
+        return this.list[0]
     }
 
     // 判断队列是否为空
     Queue.prototype.isEmpty = function() {
-    let size = this.list.length
-    return size === 0
+        let size = this.list.length
+        return size === 0
     }
 
     // 返回队列中元素个数
     Queue.prototype.size = function () {
-    return this.list.length
+        return this.list.length
     }
 
     // 返回当前队列
     Queue.prototype.toString = function() {
-    let string = ""
-    for(let i in this.list) {
-        string += `${this.list[i]}`
-    }
+        let string = ""
+        for(let i in this.list) {
+            string += `${this.list[i]}`
+        }
 
-    return string
+        return string
     }
 }
 

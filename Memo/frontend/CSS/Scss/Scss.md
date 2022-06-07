@@ -10,8 +10,6 @@
 }
 ```
 
-
-
 -------------------
 
 ### Scss(Sass)
@@ -71,7 +69,7 @@
 
 > scss 和 sass之间的关系
 - sass有两套语法
-- 1. 第一种或最  新的语法被称为scss 它是css语言的扩展 这意味着每个有效的css样式表都是具有相同含义的有效的scss文件 下文描述的sass功能增强了此语法 使用此语法的文件扩展名为 .scss
+- 1. 第一种或*最新的语法被称为scss* 它是css语言的扩展 这意味着每个有效的css样式表都是具有相同含义的有效的scss文件 下文描述的sass功能增强了此语法 使用此语法的文件扩展名为 .scss
 
 - 2. 第二种或更旧的语法被称为sass 提供了一种更为简洁的css编写方式 它使用缩进而不是方括号来表示选择器的嵌套 并使用换行符而不是分号来分隔属性 使用此语法的文件扩展名为 .sass
 
@@ -149,10 +147,51 @@
 -------------------
 
 ### Vscode
+- 1. 在扩展商店 下载 easy sass
+- 2. 打开扩展设置
 - 点击插件右下角的设置图标后点击扩展设置 最后点击在 settings.json 中编辑 开始设置关于easy sass的配置
 
+- 3. 配置: (也可以可视化配置)
+- package.json中可以配置如下 关于 sass 配置
+
+- 1. easysass.compileAfterSave: 
+- 启用或禁用保存后自动编译功能
+
+- 2. easysass.formats
+- 指定导出文件的扩展名和格式。
+- 格式:
+- [{}]
+```js
+"easysass.formats": [
+  {
+    "format": "expanded",
+    "extension": ".css"
+  },
+
+  // 下面的可以注释掉
+  {
+    "format": "compressed",
+    "extension": ".min.css"
+  },
+],
+```
+
+- 3. easysass.targetDir:
+- 设置编译后文件的输出目录 说白了就是编译后的css的位置
+- 相对路径为 当前基于vscode打开的文件夹
+- 格式:
+- 字符串
+```js
+"easysass.targetDir": "./css/"
+```
+
+- 4. easysass.excludeRegex
+- 使用正则排除指定的文件目录
+
+---
+
 - 会自动生成下方图片内的配置
-<!-- 
+```json
   "easysass.formats": [
     {
       "format": "expanded",
@@ -168,7 +207,7 @@
 
   // 可以将编译后的文件输出到指定的目录 比如下面这样的当前目录 默认就是当前目录
   "easysass.targetDir": "./css/"
- -->
+```
 
 -------------------
 
