@@ -1273,6 +1273,10 @@ git push origin master
 
     git push origin --delete branchname
     - 这句是删除远程的分支
+
+
+    - 示例:
+    git push origin --delete feature/0621/message2
  -->
 
 ---------------------------

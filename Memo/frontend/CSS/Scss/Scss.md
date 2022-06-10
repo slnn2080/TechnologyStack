@@ -12,10 +12,168 @@
 
 -------------------
 
+### Sass的简介:
+- 在大家去找sass相关的教程的时候 肯定会搜到 sass 和 scss 相关信息, 这里可能会有的小伙伴比较迷惑
+- 1. 它俩嘛关系?
+- 2. 我学哪个？
+
+- 可能会是一脸懵逼的状态 这节课带大家简单的了解一下 sass 同时也说说他们之间的一个区别
+
+- 说到sass那就简单的说提下haml sass算是haml的一个部分 都是由玩ruby的大大开发的一门语言
+- 当时写ruby的大大们觉得写html太费劲了 还要写标签名 还要闭合标签等等 太费劲啊 这时候从他们身上就体现了一种程序员独有的特质 懒
+- 既然这么费劲 那我们就自己开发一门语言 来写html 所以haml的诞生了 我们可以说haml是html的模版引擎 预处理器 或者简单理解为 html的另一种简洁 且 优雅的写法 我们简单来看下
+
+```html
+<p>你好, sam</p>
+%p
+  你好, sam
+
+<p id="name">sam</p>
+%p#name
+  sam
+
+<p id="name" data-index="1">sam</p>
+%p#name(data-index=1)
+  sam
+```
+
+- 我们会发现它使用了一些预定的符号来代替标签 使用了缩进语法来表示子元素 除了看的不太习惯 确实让html代码简洁了很多 其实要真写多了 也会觉得haml写起来很舒服
+- 我们再把话题拉回来 拉到sass sass也是haml的一部分 haml是让html写起来更加的简洁
+- 那么sass就让css写起来 更加的简洁和优雅 同时扩展了css的功能 让css可以变的更加的强大 比如
+
+- 1. 定义变量
+- 2. 嵌套
+- 3. 混合
+- 4. 循环
+- 5. 函数
+
+- 后续我们都会陆续的进行讲解 我们简单的来体验下 sass 的写法
+
+```css
+p {
+  color: red;
+}
+
+p
+  color: red
+
+
+<div>
+  <h1>你好呀, <span>sam</span></h1>
+</div>
+
+
+div {
+  background: red;
+}
+
+div h1 {
+  color: green;
+}
+
+div h1 span {
+  font-size: 20px;
+}
+
+
+div
+  color: red
+  h1
+    color: green
+    span
+      font-size: 20px
+
+
+div {
+  color: red;
+
+  h1 {
+    color: green;
+
+    span {
+      font-size: 20px;
+    }
+  }
+}
+```
+
+- 我们会发现 写法简洁了很多 通过 一套缩进的语法 就能代替我们以前要写两套样式 结构上也更加清晰
+- 但是我们也会发现 这种没括号 结尾没分号的语法 看起来还是有些别扭 所以sass为了让熟悉css的人能够更加的平稳的过渡到sass
+- 在sass 3.0之后将 将.sass结尾的文件 改成 .scss结尾
+
+- 那有人说了 哥们就改了一个后缀名么？ 不是 语法规则也不一样了 3.0版本的scss和css的写法更加的贴近 更加的舒服
+- scss是彻底和 css 兼容的，这意味着学习scss几乎是零成本。或者说scss就是增加了一些功能的css。
+
+
+- 总结下 sass 和 scss 它俩是一个东西都是css的预处理器, 只是在sass3.0之后 写scss的风格发生了变化 本套课程也毋庸置疑以scss为主
+
+-------------------
+
 ### Scss(Sass)
-- 预处理器的代码并不能被浏览器直接解析 所以必须要将它们编译成css代码
-- 现有的框架已经提供了css预处理选项 编译相关配置会自动帮我们生成 
-- 所以只有在练习的情况下才有必要安装该环境
+- css预处理器你可以简单的理解为 就是用来写css的 但不同的是它额外的提供了很多编程语言才有的特性 比如变量 函数 逻辑控制等等 让css的功能更加的强大了 
+
+- 但是用预处理器的写出来的代码并不能被浏览器直接解析 所以必须要将它们编译成css代码 才能被浏览器识别
+
+-------------------
+
+### 为什么使用 sass 呢?
+- 回答这个问题之前我们看下 下面的场景
+```html
+<div class="controls">
+  <div class="progress">
+      <!-- 进度条 -->
+      <div class="progress-bar">
+          <!-- 内部创建拖动按钮 -->
+          <div class="progress-bar-btn"></div>
+      </div>
+      <!-- 和进度条 同级的 进度 -->
+      <div class="rate-progress"></div>
+  </div>
+
+
+  <div class="sound">
+      <!-- 音量按钮的容器 -->
+      <div class="switch">
+          <span></span>
+      </div>
+      <!-- 空间信息区域的进度条 -->
+      <div class="progress">
+          <!-- 进度条 -->
+          <div class="progress-bar">
+              <!-- 内部创建拖动按钮 -->
+              <div class="progress-bar-btn"></div>
+          </div>
+          <!-- 和进度条 同级的 进度 -->
+          <div class="rate-progress"></div>
+      </div>
+  </div>
+</div>
+```
+
+- 我们都用过一些播放器是吧 播放器上都有一根很长的进度条 通过在调节音量的地方也有可以拖动的进度条
+- 而且长的进度条的样式 和 调节音量的进度条的样式 还不一样 对么
+- 如果我们想修改 进度条上 拖动按钮的样式的话 势必会出现下面的css代码
+```css
+.controls > .progress .progress-bar .progress-bar-btn {
+
+}
+
+.controls > .sound > .progress .progress-bar .progress-bar-btn {
+
+}
+```
+
+- 兄dei你写的太长了 我可以直接这样 这样多简单呀 但这样操作是同时修改两个部分的进度条吧
+```css
+.progress-bar-btn {
+
+}
+```
+
+- 当我们写个复杂的页面的时候 肯定会遇到 嵌套层级很深的结构 或者 我们在写css选择器的时候 还要考虑权重的问题 不然很有可能我们写的样式 元素却没有添加上
+- 也就是说 为了准确 精确的找到目标元素 不会影响到其它的元素 我们会写很长的选择器 这样我们修改起来才是指哪打哪且不用考虑权重的问题
+
+- 
 
 -------------------
 

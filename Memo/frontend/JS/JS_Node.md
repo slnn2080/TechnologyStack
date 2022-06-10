@@ -1,6 +1,9 @@
 ### 待看前端的设计模式
 - FileReader Blob ArrayBuffer FormData URL.createObjectURL 上传文件 后台接收
 
+- 前端5种监视器
+- https://mp.weixin.qq.com/s/doBnp_fN8RpH_1rBfUfwhg
+
 
 
 ### 奇葩的初始化逻辑
@@ -4442,14 +4445,13 @@ lcEvent.on("fileSuccess", (data) => {
 
 ----------------
 
-### IntersectionObserver API
-- 该API在兼容性上有很大的问题 所以w3c提供了一个 npm包 专门用来解决兼容性的问题
-- 也就是我们 要我们要先使用这个包 然后才能接着用 IntersectionObserver API
+### IntersectionObserver
+- 该API在兼容性上有很大的问题 所以w3c提供了一个 npm包 专门用来解决兼容性的问题 也就是我们 要我们要先使用这个包 然后才能接着用 IntersectionObserver API
 
-- 安装:
+> 安装:
 - npm install intersection-observer
 
-- 引入:
+> 引入:
 - import "intersection-observer"
 - 确保它在最前面
 - 在html页面里面的话 相当于如下:
@@ -4457,7 +4459,8 @@ lcEvent.on("fileSuccess", (data) => {
 <script src="./js/intersection-observer.js" />
 ```
 
-
+> 作用:
+- 当我们想监听一个元素从不可见到可见，从可见到不可见 就可以使用这个api 
 - 自动"观察"元素是否进入视口  
 - 网页开发时，常常需要了解某个元素是否进入了“视口”（viewport），即用户能不能看到它。
 
@@ -4825,6 +4828,134 @@ observer.observe(video);
 ```
 上面代码中，IntersectionObserver()的第二个参数是配置对象，它的threshold属性等于1，即目标元素完全可见时触发回调函数。
 
+----------------
+
+### MutationObserver
+- 监听一个普通 JS 对象的变化，我们会用 Object.defineProperty 或者 Proxy
+
+```js
+const person = new Proxy({}, {
+    set(obj, prop, value) {
+        console.log("set", prop,value)
+        obj[prop] = value
+
+        return true
+    }
+})
+
+person.name = guang
+```
+
+> 作用:
+- 而*监听元素的属性和子节点*的变化，我们可以用 MutationObserver：
+
+```html
+<!-- 我们准备这样一个盒子： -->
+<div id="box"><button>光</button></div>
+```
+
+```css
+#box {
+    width: 100px;
+    height: 100px;
+    background: blue;
+
+    position: relative;
+}
+```
+
+- 我们定时对它做下修改：
+```js
+setTimeout(() => {
+    box.style.background = 'red';
+},2000);
+
+setTimeout(() => {
+    const dom = document.createElement('button');
+    dom.textContent = '东东东';
+    box.appendChild(dom);
+},3000);
+
+setTimeout(() => {
+   document.querySelectorAll('button')[0].remove();
+},5000);
+```
+
+- 2s 的时候修改背景颜色为红色，
+- 3s 的时候添加一个 button 的子元素，
+- 5s 的时候删除第一个 button。
+
+- 然后监听它的变化：
+```js
+const mutationObserver = new MutationObserver((mutationsList) => {
+    // 当节点有变化的时候 会执行回调
+    console.log(mutationsList)
+});
+
+// 监听 属性 和 子节点
+mutationObserver.observe(box, {
+    attributes: true,
+    childList: true
+});
+```
+
+- 创建一个 MutationObserver 对象，监听这个盒子的属性和子节点的变化。
+
+- mutationsList是一个对象
+- type: 字符串 可以知道是属性发生了变化 还是 节点发生了变化
+
+- addedNodes: 默认值是 NodeList[]
+- 当发生变化的时候 数组里面会有值
+
+- removedNodes: 默认值是 NodeList[]
+
+----------------
+
+### ResizeObserver
+- 窗口我们可以用 addEventListener 监听 resize 事件，那元素呢？
+- *元素可以用 ResizeObserver 监听大小的改变*，当 width、height 被修改时会触发回调。
+
+- 除了元素的大小、可见性、属性子节点等变化的监听外，还支持对 performance 录制行为的监听
+
+- 我们准备这样一个元素：
+```html
+<div id="box"></div>
+```
+
+```css
+
+#box {
+    width: 100px;
+    height: 100px;
+    background: blue;
+}
+```
+
+- 在 2s 的时候修改它的高度：
+```js
+const box = document.querySelector('#box');
+
+setTimeout(() => {
+    box.style.width = '200px';
+}, 3000);
+```
+
+- 然后我们用 ResizeObserver 监听它的变化：
+```js
+const resizeObserver = new ResizeObserver(entries => {
+    console.log('当前大小', entries)
+});
+
+resizeObserver.observe(box);
+```
+
+- target属性:
+- 监听的元素
+
+- contentRect属性
+- 这个元素的详细信息
+
+----------------
 
 
 
@@ -5127,14 +5258,11 @@ observer.observe(video);
 > 渲染引擎:
 - 用来解析HTML CSS 俗称内核, 比如chrome浏览器的blink 老版本的webkit
 
-
 > JS引擎: 
 - 也成为JS解释器, 用来读取网页中的js代码, 对其处理后运行, 比如chrome浏览器的v8
-<!-- 
-    浏览器本身并不会执行js代码, 而是通过内置js引擎(解析器)来执行js代码,
-    js引擎执行代码时逐行解释每一句源码转换为机器语言, 然后由计算机去执行
-    所以js语言归为脚本语言, 会逐行解释执行
- -->
+- 浏览器本身并不会执行js代码, 而是通过内置js引擎(解析器)来执行js代码,
+    
+- js引擎执行代码时逐行解释每一句源码转换为机器语言, 然后由计算机去执行 所以js语言归为脚本语言, 会逐行解释执行
 
 -------------------------
 
@@ -5142,9 +5270,14 @@ observer.observe(video);
 - 计算机是不能直接理解任何除机器语言以外的语言, 所以必须要把程序员所写的程序语言翻译成机器语言才能执行程序, 程序语言翻译成机器语言的工具, 被称为翻译器
 
 - 编程语言 -> 翻译器 -> 机器语言(二进制)
-- 翻译器翻译的方式有两种: 一种是编译(java), 另外一种是解释(js), 两种方式之间的区别在于翻译的时间点不同
 
-- 编译器在代码执行之前进行编译, 生成中间代码文件
+- 翻译器翻译的方式有两种: 
+    一种是编译(java)
+    一种是解释(js)
+    
+- 两种方式之间的区别在于翻译的时间点不同
+
+- 编译器在代码执行之前进行编译, 生成中间代码文件 比如.class字节码文件
 - 解释器是在运行时进行及时解释, 并立即执行(当编译器以解释方式运行的时候, 也称之为解释器)
 <!-- 
     编译语言: 先把所有的菜做好, 才能上桌吃饭
