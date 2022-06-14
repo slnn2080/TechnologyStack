@@ -6,6 +6,8 @@
     兼容性比较差
  -->
 
+----------------
+
 ### DOM & BOM
 
 - 文档对象模型                 - 浏览器对象模型
@@ -18,7 +20,7 @@
 
 - DOM是W3C标准                - BOM是浏览器厂商在各自浏览器上定义的, 兼容性差
 
----------------------------------
+----------------
 
 ### 结构树
 - BOM比DOM更大, 它包含了DOM
@@ -29,6 +31,7 @@ document   location   navigation   screen   history
 
 - 我们平时写的document.queryselector 其实应该是window.document.queryselector
 
+----------------
 
 ### BOM的构成
 - 它是js访问浏览器窗口的一个接口
@@ -38,6 +41,7 @@ document   location   navigation   screen   history
  -->
 > window下的一个特殊属性 window.name 所以name变量不要用
 
+----------------
 
 ### BOM事件
 window.onload = function(){ }
@@ -78,11 +82,113 @@ window.addEventListener('load', function(){ });
     }
  -->
 
+----------------
+
 ### BOM
 - 浏览器对象模型
 - DOM是通过JS操作网页的，BOM可以通过JS来操作浏览器的
 
 - 在BOM中为我们提供了一组对象，用来完成对浏览器的操作
+
+----------------
+
+### URL
+- URL全称: Uniform Resource Location 译为: 统一资源定位符;
+- 是互联网上标准资源的地址, 互联网上每个文件都有一个唯一的url, 它包含的信息指出文件的位置以及浏览器应该怎么处理它
+
+如: 
+    “http://www.baidu.com/index.html?name=mo&age=25#dowell”
+
+- 这算是一个比较完整的URL了 我就拿这个为例作为讲解;
+- 包括: 协议部分、域名、端口、路径(虚拟路径)、携带的参数、哈希值;
+
+> url一般的语法格式
+- protocol://host[:port]/path/[?query]#fragment
+- http://www.itcast.cn/index.html?name=andy&age=18#link
+
+> protocol  
+    通信协议 常用的http ftp matito等
+
+> host      
+    主机(域名) www.itheima.com
+
+> port      
+    端口号 可选 省略时使用方案的默认端口 如http默认端口80
+
+> path      
+    路径由零或多个/符号隔开的字符串, 一般用来表示主机上的一个目录或文字地址
+
+> query     
+    参数, 以键值对的形式 通过&符号分隔开来
+
+> fragment  
+    片段 #后面内容 常见于链接 锚点
+
+
+> 协议部分: http https;
+- 传输协议是用来完成客户端和服务器端之间数据传输的;这个使用的是http协议在internet中可以使用多种协议
+- 如: http  ftp等本例中使用的是http协议http后面. 为“//”为分隔符;
+
+
+> http协议: 
+- 客户端和服务器端传输的内容除了文本以外 还可以传输图片、音频和视频等文件流(二进制编码 | base64码)以及XML格式的数据等是目前应用最广泛的.
+
+
+> https协议: 
+- https它比http更加安全 因为*数据内容的传输通道是经过SSL加密的*(需要在服务器端进行特殊的处理)涉及金融类的网站一般都是使用https;
+
+
+> ftp资源文件传输协议: 
+- 用于客户端把资源文件(不是代码)上传到服务器端 或者从服务器端下载一些资源文件(一般传输的内容会比http这类协议传输的内容多)
+
+
+> 域名: www.baidu.com
+- 网站的域名baidu.com为一级域名www为服务器;
+
+1. 用于解析对应的IP地址便于记忆( 一个URL中也可以使用IP地址作为域名使用);
+2. 顶级域名(一级域名): baidu.com;
+3. 二级域名: www.baidu.com    sports.baidu.com    ai.baidu.com;
+4. 三级域名: my.sports.baidu.com;
+
+
+> 端口: 在没有填写的情况下默认端口就是80;
+- 在服务器发布项目的时候我们可以通过端口号区分当前服务器上不同的项目.
+- 如: www.baidu.com:8080一台服务器的端口号取值范围在 0 ~ 65535 之间
+如果电脑上安装了很多程序有一些端口号是被占用的;
+
+- 端口不是一个URL必须的部分 如果省略端口部分将采用默认端口
+- 如果有的话就是跟在域名后面的就是端口(www.baidu.com:80)域名和端口之间使用“ : ”作为分隔符;
+<!-- 
+    http: 默认端口号80 ;    https: 默认端口号443  ;  ftp: 默认端口号21 
+-->
+
+- 对于以上三个端口号其实很重要如果被其他程序占用则我们就不能使用了所以服务器上一般是禁止安装其他程序的.
+
+
+> 路径(虚拟路径): index.html虚拟目录;
+( http://www.baidu.com/路径1/路径2 ;    “ / ”表示根目录)
+
+- 在服务器中发布项目的时候我们一般都会配置一些默认文档 即使用户不输入文件的名称服务器也会默认找到配置好的文档(一般默认文档都是index.**);
+
+- 为了做SEO优化会把一些动态页面的地址(xxx.php、xxx.aspx、xxx.asp、 xxx.jsp)进行URL重写(需要服务器处理).
+
+
+> 携带的参数: ?name=mo     多个参数用&连接;
+> 问号传参(可有可无)
+- 把一些值通过 “key=value” 的方式放在一个URL的末尾通过?传递;
+- 作用: 
+- 在ajax请求中我们可以通过问号传递参数的方式在客户端把一些信息传递给服务器服务器根据传递信息的不一样返回不同的数据;
+
+- 清除ajax get方法的缓存?math_random=0.123456;
+- 通过URL传递参数的方式实现页面之间的通信;
+
+
+> 哈希值: #dowell;HASH值(可有可无)
+- 作用: 
+1. 可做页面中的锚点定位
+2. 在单页应用开发中作为前端路由使用(Vue Router、React Router);
+
+----------------
 
 ### BOM对象：
 > window
@@ -104,6 +210,7 @@ window.addEventListener('load', function(){ });
 
 <!-- 这些BOM对象 在浏览器中都是作为window对象的属性保存的我们可以通过window对象来使用，也可以直接使用 -->
 
+----------------
 
 ### navigator
 - 代表的当前浏览器的信息，通过该对象可以来识别不同的浏览器
@@ -133,6 +240,7 @@ window.addEventListener('load', function(){ });
 - Mozilla/5.0 (MSIE 9.0; Windows NT 6.1; Trident/5.0)
 <!-- IE11 中已经将微软和IE相关的标识都已经去除了，所以我们基本已经不能通过UserAgent来识别一个浏览器是否是ie11了 -->
 
+----------------
 
 ### 案例 怎么判断用户在哪个终端打开的页面 实现跳转
 <!-- 
@@ -143,6 +251,7 @@ window.addEventListener('load', function(){ });
     }
  -->
 
+----------------
 
 ### 案例 怎么判断是火狐浏览器
     var ua = navigator.userAgent;
@@ -169,6 +278,7 @@ window.addEventListener('load', function(){ });
         alert("你是ie")
     }
 
+----------------
 
 ### history
 - 对象可以用来操作浏览器向前或向后翻页
@@ -218,7 +328,7 @@ window.addEventListener('load', function(){ });
 > history.replaceState()
 history.replaceState方法的参数同上，区别说它修改浏览器历史中当前历史记录。
 
-
+----------------
 
 ### location
 - window对象给我们提供了一个location属性用于获取或设置窗体的URL, 并且可以用于解析url, 因为这个属性返回的是一个对象, 所以我们将这个属性也成为location对象
@@ -285,7 +395,7 @@ history.replaceState方法的参数同上，区别说它修改浏览器历史中
     location.reload();      //刷新
     location.reload(true);  //强制清空缓存刷新页面
 
----------------------------------
+----------------
 
 ### 案例 5秒钟自动跳转主页
 - 利用定时器
@@ -304,7 +414,7 @@ history.replaceState方法的参数同上，区别说它修改浏览器历史中
     }, 1000)
  -->
 
----------------------------------
+----------------
 
 ### 案例 获取url参数数据
 - 主要联系数据在不同页面中传递
@@ -372,6 +482,5 @@ console.log(res);
     return Object.fromEntries(map)
  -->
 
-
----------------------------------
+----------------
 

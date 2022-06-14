@@ -1,5 +1,37 @@
 ### Js技巧
 
+### 将代码整理成json
+```html
+<script data-target="content">
+let ul = document.querySelector("ul")
+let checkbox = document.querySelectorAll("[type='checkbox']")
+let all = document.querySelector("#all")
+
+let total = ul.querySelectorAll("[type='checkbox']")
+
+checkbox.forEach(el => {
+  el.addEventListener("click", function() {
+    let checkeds = ul.querySelectorAll(":checked")
+    all.checked = checkeds.length == total.length
+  })
+})
+</script>
+
+<script>
+  let target = document.querySelector("[data-target='content']")
+  let content = target.innerHTML
+  console.log(content)
+
+  let arr = []
+  content.replace(/^(.+)$/gm, (content, s1) => {
+    console.log(s1)
+    arr.push(s1)
+  })
+
+  console.log(JSON.stringify(arr, null, 2))
+</script>
+```
+
 ### 给对象添加属性
 ```js
 let res = list.map(item => {
