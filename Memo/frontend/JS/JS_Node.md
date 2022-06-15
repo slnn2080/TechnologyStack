@@ -10,6 +10,144 @@
 
 ----------------
 
+### 新 API 收集:
+
+### 重绘后执行的回调
+> window.requestAnimationFrame(callback)
+- 回调函数会在浏览器下一次重绘之前执行
+- 有点类似 setTimeout()
+
+- 回调函数执行次数通常是每秒 60 次, 但在大多数遵循 W3C 建议的浏览器中，回调函数执行次数通常与浏览器屏幕刷新次数相匹配
+
+- callback参数
+    - DOMHighResTimeStamp
+    - 它表示requestAnimationFrame() 开始去执行回调函数的时刻。
+<!-- 
+    指示当前被 requestAnimationFrame() 排序的回调函数被触发的时间。在同一个帧中的多个回调函数，它们每一个都会接受到一个相同的时间戳，即使在计算上一个回调函数的工作负载期间已经消耗了一些时间。 
+-->
+
+- 返回值:
+- id: window.cancelAnimationFrame() 以取消回调函数。
+
+
+- 兼容性不错
+
+- 示例:
+- 使用requestAnimationFrame代替setTimeout，减少了重排的次数，极大提高了性能，建议大家在渲染方面多使用requestAnimationFrame
+
+```js
+const renderList = async () => {
+    console.time('列表时间')
+    // 获取数据
+    const list = await getList()
+
+    // 总数据条数
+    const total = list.length
+
+    // 当前页码
+    const page = 0
+
+    // pageSize: 一页显示多少条
+    const limit = 200
+
+    // 一共有多少页
+    const totalPage = Math.ceil(total / limit)
+
+    // 创建渲染函数
+    const render = (page) => {
+        // 如果页码比总页数大 则停止 递归的停止条件
+        if (page >= totalPage) return
+
+        // 使用requestAnimationFrame代替setTimeout 传入回调 该回调会在重绘前执行
+        requestAnimationFrame(() => {
+
+            // 循环 分页
+            for (let i = page * limit; i < page * limit + limit; i++) {
+
+                // 每一个
+                const item = list[i]
+
+                const div = document.createElement('div')
+                div.className = 'sunshine'
+                div.innerHTML = `
+                    <img src="${item.src}" />
+                    <span>${item.text}</span>
+                `
+
+                container.appendChild(div)
+            }
+
+            // 递归调用
+            render(page + 1)
+        })
+    }
+    render(page)
+    console.timeEnd('列表时间')
+}
+```
+
+------
+
+### 文档碎片
+> document.createDocumentFragment()
+- 创建文档碎片
+- 会返回一个文档碎片的容器, 我们可以将每次加工后的dom节点放入到容器内
+- 然后一次性的将 文档碎片 插入到页面中 *页面只会渲染文档碎片包裹着的元素，而不会渲染文档碎片*
+
+```js
+const fragment = document.createDocumentFragment()
+for() {
+    fragment.appendChild(div)
+}
+
+// 一次性appendChild
+container.appendChild(fragment)
+```
+
+------
+
+### 滚动到指定的位置
+> Element.scrollTo()
+- 可以使界面滚动到给定元素的指定坐标位置。
+
+- 参数:
+- 方式1: (x-coord, y-coord)
+- x-coord 是期望滚动到位置水平轴上距元素左上角的像素。
+- y-coord 是期望滚动到位置竖直轴上距元素左上角的像素。
+
+- 方式2: {options}
+    - top: 100,
+    - left: 100,
+    - behavior: 'smooth'
+
+
+> 兼容性:
+- ie全系列不支持
+
+
+>场景: 滚动到底部
+- 当一个盒子内部的内容增加的时候 并且超过该盒子的高度的时候 我们希望它自动滚动到底部
+```js
+    element.scrollTo({
+        top: 100,
+        left: 100,
+        behavior: 'smooth'
+    });
+
+    element.scrollTo(0, 1000);
+
+---
+
+let box = ...
+box.scrollTo({
+    top: box.scrollHeight,
+    behavior: "smooth"
+})
+
+```
+
+----------------
+
 ### 奇葩的初始化逻辑
 - 我们可以先从一个地方取出一个变量先用 然后会其进行空判断 如果为空就赋初始值 然后在放回那个地方
 ```js
@@ -3457,21 +3595,6 @@ lcEvent.on("fileSuccess", (data) => {
 
 ----------------
 
-### 滚动到底部
-- 当一个盒子内部的内容增加的时候 并且超过该盒子的高度的时候 我们希望它自动滚动到底部
-
-    element.scrollTo({
-        top: 100,
-        left: 100,
-        behavior: 'smooth'
-    });
-
-    element.scrollTo(0, 1000);
-
-- 两种使用方式
-
-----------------
-
 ### WebSocket
 - WebSocket 是一种网络通信协议很多高级功能都需要它.
 - 叩丁狼 笔记:  http://codesohigh.com/subject/websocket/websocket.html
@@ -4421,26 +4544,44 @@ lcEvent.on("fileSuccess", (data) => {
 ----------------
 
 ### image对象
-- Image 对象代表嵌入的图像
-- <img> 标签每出现一次一个 Image 对象就会被创建.
+- 当我们创建一个 Image 对象时，就相当于给浏览器缓存了一张图片
 
-- 创建一个Image对象: var a=new Image();    定义Image对象的src: a.src=”xxx.gif”;    这样做就相当于给浏览器缓存了一张图片.
+> 通过构造函数的方式
+- 创建 image 对象:
+```js
+let img = new Image([宽度],[高度])
+```
+
+- img 也相当于一个节点对象 节点身上有的属性 它都有 如
+```js
+// 给浏览器缓存了一张图片
+img.src = ""
+```
+
 
 **注意:**
-- 需要注意的是: src 属性一定要写到 onload 的后面否则程序在 IE 中会出错.
+- src 属性一定要写到 onload 的后面否则程序在 IE 中会出错.
 
 
-> 属性
-- complete: 返回一个布尔值
-- 可以通过Image对象的complete 属性来检测图像是否加载完成
-<!-- 
-    每个Image对象都有一个complete属性当图像处于装载过程中时
-    该属性值false,
+> 图片对象身上的属性
+- img.complete:
+    - 返回一个布尔值
+    - 可以通过Image对象的complete 属性来检测图像是否加载完成
 
-    当发生了onload、onerror、onabort中任何一个事件后则表示图像装载过程结束(不管成没成功)此时complete属性为true)
- -->
+- 每个Image对象都有一个complete属性当图像处于装载过程中时该属性值false
+- 当发生了onload、onerror、onabort中*任何一个事件后则表示图像装载过程结束(不管成没成功)此时complete属性为true*
 
-> 事件
+- img.border  
+- img.height  
+- img.width
+- img.src  
+- img.name  
+- img.vspace  
+- img.hspace  
+- img.lowsrc  
+
+
+> 图片对象身上的事件
 - onabort
 - 当用户放弃图像的装载时调用
 
@@ -4450,12 +4591,29 @@ lcEvent.on("fileSuccess", (data) => {
 - onerror
 - 在装载图像的过程中发生错误时调用
 
-<!-- 
+```js
     var img = new Image();    
-    img.src = oImg[0].src = this.src.replace(/small/,"big");    
+    img.src = oImg[0].src = this.src.replace(/small/, "big");    
     oDiv.style.display = "block";    
     img.complete ? oDiv.style.display = "none" : (oImg[0].onload = function() {oDiv.style.display = "none"})  
- -->
+```
+
+- onkeydown 
+- onkeypress 
+- onkeyup
+
+
+> 应用场景
+- Image 对象也常用来做预加载图片（也就是将图片预先加载到浏览器中，当浏览图片的时候就能享受到极快的加载速度）。
+
+- 在HTML页面中，<img> 标签每出现一次，也就创建了一个 Image 对象。
+
+- HTML代码的加载 和 图片的加载是同时的，虽然 图片已经进行过预加载，但是尽管这样 加载的速度 相比较 HTML 代码的加载速度 还是要慢一些的。就需要用 Image对象中的 onload事件来解决这个问题了。。
+
+
+> image对象的src
+- 当我的src指向一个地址时 我会发送请求去拿它, 这是浏览器自己会做的
+- img.src = arr[i];
 
 ----------------
 
@@ -18443,6 +18601,256 @@ deepCopy(newobj, oldobj);
 
 ----------------
 
+### H5 Web Workers(多线程)
+- H5规范提供了js分线程的实现取名为 Web Workers
+- 它是H5提供的一个js多线程解决方案, 我们可以将一些大计算量的代码 交给web worker运行而不冻结用户界面
+
+- 但是子线程完全受主线程控制且不得操作DOM(只能是主线程操作页面) 所以这个新标准并没有改变js单线程的本质
+
+> 相关Api
+- worker: 构造函数加载分线程执行的js文件
+- worker.prototype.onmessage: 用于接收另一个线程的回调函数
+- worker.prototype.postMessage: 向另一个线程发送消息
+
+> 不足: 
+worker内代码不能操作DOM(更新UI)
+不能跨越加载JS, 不是每个浏览器都支持这个新特性
+<!-- 
+    编程实现 斐波那锲数列 (Fibonacci sequence)的计算
+    F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2)
+
+    <input type="text" placeholder="数值" id="number">      
+    <button id="btn">计算</button>
+
+    怎么设计一个函数 给它一个值 能对应的返回 斐波那契呢？
+ -->
+
+```js
+function fibonacci(n){
+    // 递归调用 函数内部调用自己  递归的效率是比较低的
+    return n<=2 ?1 :fibonacci(n-1) + fibonacci(n-2);
+};
+
+var input = document.getELementById("number")
+var btn = document.getELementById("btn");
+btn.onclick = function(){
+var number = input.value;               
+var result = fibonacci(number);    // 我们要把这条语句交给分线程
+alert(result);
+```
+
+-  上面的计算量太大导致在计算的时间中 用户不能操作浏览器等待时间过长 怎么把长时间的操作 放在 分线程里操作
+- 我要把number 传递给 分线程 分线程去计算 计算完以后把结果(result在分线程产生)返回主线程主线程拿到结果更新页面提示 
+
+
+> web worker
+> 创建在分线程执行的JS文件
+```js
+    // 不能用函数声明
+    var onmessage = function(event){    
+        console.log('onMessage()22');
+
+        // 通过event.data获得发送来的数据
+        var upper = event.data.toUpperCase();
+
+        // 将获取到的数据发送回主线程
+        postMessage(Upper);
+    }
+```
+
+> 在主线程中的我们向分线程发消息并设置回调
+```js
+    // 创建一个worker对象 并向它传递将在新线程中执行的脚本的url
+    var worker = new Worker('worker.js');
+
+    // 接受worker传过来的数据函数
+    worker.onmessage = function(event){
+        console.log(event.data);
+    };
+    // 向worker发送数据      向分线程发送消息
+    worker.postMessage('hello, world');
+```
+
+> 在主线程里的代码
+```js
+var input = document.getELementById("number")
+var btn = document.getELementById("btn");
+btn.onclick = function(){
+    var number = input.value;    
+
+    // 将number想办法传递给分线程 创建一个worker对象
+    var worker = new Worker(这里写 在分线程里执行的 js文件地址比如'worker.js');
+
+    // 绑定接收消息的监听
+    worker.onmessage = function(event){
+        console.log('主线程接收分线程返回的数据'+event.data);
+        console.log(event.data);
+    };
+
+    // 向分线程发送消息
+    worker.postMessage(number);
+    console.log('主线程向分线程发送数据'+number);
+};
+
+// 下面写分线程的代码 要在一个js文件中写 要写一些固定的东西
+function fibonacci(n){
+    return n<=2 ?1 :fibonacci(n-1) + fibonacci(n-2);
+};
+
+var onmessage = function(event){  
+    var number = event.data;
+    console.log('分线程接收到主线程发送的数据'+number);
+
+    // 计算
+    var result = fibonacci(number); 
+    // 将获取到的数据发送回主线程
+    postMessage(result);
+    console.log('分线程向主线程返回数据'+result);  
+}
+```
+
+- 我们思考下 在分线程 打印this this是谁 全局上面的属性和方法我们直接可以使用
+- 分线程中的this指向了 DedicatedWorkerGlobalScope这个全局对象
+
+- 我们平时在全局里面可以直接使用document 因为document是window的属性嘛
+
+- 问题是 我在分线程里能不能调用主线程的方法
+- 因为主线程的全局对象是window
+- 分线程的全局对象是DedicatedWorkerGlobalScope
+
+- 比如 alert是window的方法 能在 分线程里使用么？ 不能
+
+- 前面说过在分线程里不能操作界面 因为在分线程里看不到window
+- 分线程中的全局对象不再是window所以在分线程中不可能更新界面 因为更新界面要用window和document里的方法
+
+------------------
+
+### 本地存储 (localStorage, sessionStorage)
+- 随着互联网的快速发展, 基于网页的应用越来越普通, 同时也变的越来越复杂, 为了满足各种各样的需求, 会经常性在本地存储大量的数据, HTML5规范提出了相关解决方案
+<!-- 
+    以前我们会把数据放在数据库里, 还要去服务器里面取过来再拿来使用 
+    也有些东西根本就没有必要放在数据库里面
+ -->
+
+
+> 位置查看
+- F12 --- Application --- 左侧 Storage Session Storage
+
+
+> 本地存储的特性
+- 1. 数据存储在用户浏览器中
+- 2. 设置, 读取方便, 甚至页面刷新都不会丢失数据
+- 3. 容量较大
+    - sessionStorage    约5M
+    - localStorage      约20M
+
+- 4. 只能*存储字符串*, 可以*将对象JSON.stringify()*编码后存储
+
+
+> 5M的单位
+- 10M字节空间.
+- 而根据 UTF-16编码规则要么2个字节要么四个字节所以不如说是 10M 的字节数更为合理.
+
+```js
+"a".length      // 1
+"人".length     // 1
+"𠮷".length     // 2
+```
+
+- key的长度也会占用空间
+
+
+> window.sessionStorage
+- 生命周期为关闭浏览器窗口
+- 在同一个窗口(页面)下数据可以共享
+- 以键值对的形式存储使用的
+
+>sessionStorage.setItem(key, value);
+- 存储数据
+- 把数据存储在浏览器里 不关闭页面数据会一直存在
+
+- 修改数据
+- 在原来的数据上再次存储就是修改呗
+
+
+> sessionStorage.getItem(key);
+- 获取数据
+
+> sessionStorage.removeItem(key);
+- 删除数据
+
+> sessionStorage.clear();
+- 清空数据
+```js 
+    let set = document.querySelector('.set');
+    let get = document.querySelector('.get');
+    let remove = document.querySelector('.remove');
+    let del = document.querySelector('.del');
+    let text = document.querySelector('input');
+
+    set.addEventListener('click', function(){
+        // 当我们点击了之后, 就可以把表单里面的值存储起来
+        let val = text.value;
+
+        sessionStorage.setItem('uname', val);
+
+        // 点击一次存到uname中 再点击一次存到pwd中
+        sessionStorage.setItem('pwd', val);
+        console.log(val);
+    })
+
+    get.addEventListener('click', function(){
+        sessionStorage.getItem('uname')
+        // let result= sessionStorage.getItem('uname');
+        console.log(result);
+    })
+
+    remove.addEventListener('click', function(){
+        sessionStorage.removeItem('uname')
+    })
+
+    del.addEventListener('click', function(){
+        sessionStorage.clear()
+    })
+```
+
+---
+
+> window.localStorage
+- 声明周期永久生效, 除非手动删除 否则关闭页面也会存在
+- 可以*多窗口(页面)共享*, 同一浏览器都可以使用这个数据
+- 以键值对的形式存储使用
+
+>> localStorage.setItem(key, value);
+- 存储数据
+
+- 修改数据
+- 在原来的数据上再次存储就是修改呗
+
+> localStorage.getItem(key);
+- 获取数据
+
+> localStorage.removeItem(key);
+- 删除数据
+
+> localStorage.clear();
+- 清空数据
+
+------------------
+
+### 案例 记住用户名
+- 如果勾选记住用户名, 下次用户打开浏览器 就在文本框里面自动显示上次登录的用户名
+
+- 案例分析:
+- 把数据存起来, 用到本地存储
+- 关闭页面, 也可以显示用户名, 所以用到localStorage
+- 打开页面, 首先先判断是否有用户名这个数据, 如果有, 就在表单里面显示用户名, 并且勾选复选框
+
+- 当复选框发生改变的时候 change事件
+    - 如果勾选, 就存储 否则就移除
+
+------------------
+
 ### 一、基础总结深入 - 数据类型
 
 > 基本类型(值类型)
@@ -18555,29 +18963,32 @@ var b1 = {
 - 区别上面这b1,2,3的类型
 
 > 判断 b1 的类型:  
+
     console.log(b1 instanceof Object);      //true
  
     A instanceof B --- > A是不是B的实例
 
-    那也就是说B应该是一个 构造函数(因为在JS里类型是通过构造函数去表达的)
-    Object是一个 构造函数(平时的时候对象是 new Object()创建的吧所以Object是一个构造函数)
-
-    b1 是一个实例对象
+- 那也就是说B应该是一个 构造函数(因为在JS里类型是通过构造函数去表达的)
+- Object是一个 构造函数(平时的时候对象是 new Object()创建的吧所以Object是一个构造函数)
+- b1 是一个实例对象
 
  
 > 判断 b2 的类型: 
     console.log(b1.b2 instanceof Array, b1.b2 instanceof Object,);  //true true
+
 - 判断b2是数组还是对象 -> 既是数组 也是对象
         
 
 > 判断 b3 的类型: 
     console.log(b1.b3 instanceof Function, b1.b3 instanceof Object);
+
 - 判断b3是函数还是对象 -> 既是函数 也是对象
 
 ---
 
 > 案例2:
 - 我在函数内部 return一个函数, 那么这个函数怎么调用?
+
 ```js
     var b1 = {
         b2:[1, 'abc', console.log], 
@@ -18669,17 +19080,17 @@ var b1 = {
 ### 什么数据？
 - 存储在内存中代表特定信息的'东西'本质是010101...
 - 数据的特点: 
-1. 可传递
-2. 可运算
+    1. 可传递
+    2. 可运算
 
 - 一切皆数据
 - 内存中所有操作的目标是: 数据
-1. 算术运算
-2. 逻辑运算
-3. 赋值运算
-    var a = 3;
-    var b = a;      //拷贝a的内容赋值给b
-4. 运行函数
+    1. 算术运算
+    2. 逻辑运算
+    3. 赋值运算
+        var a = 3;
+        var b = a;      //拷贝a的内容赋值给b
+    4. 运行函数
 
 ----------------
 
@@ -18866,10 +19277,8 @@ console.log(obj2.name);     // 是tom 是bob？  bob
 
 > 理解2: 
 - 可能是值传递 也可能是引用传递(地址值)
-
-<!-- 
-    首先要知道 这里的a 和 函数中的形参a 不是一个东西 虽然长的一样
- -->
+- 首先要知道 这里的a 和 函数中的形参a 不是一个东西 虽然长的一样
+```js
     var a = 3;
 
     function fn(a){
@@ -18878,6 +19287,7 @@ console.log(obj2.name);     // 是tom 是bob？  bob
 
     fn(a);               
     console.log(a);     //为啥不是4？
+```
 
 > ↑ 解析: 
 <!-- 这里的a是一个变量 -->
@@ -18981,6 +19391,7 @@ fn();
 > 如何访问对象内部数据
 console.log(p.name);
 - 访问对象内部方式之一
+
 > .属性名
 - 才能得到属性值
 <!-- 之后得判断数据类型是什么 如果是一般的属性可以读 -->
@@ -19131,7 +19542,7 @@ new test();
     写在外面里面都执行 写在外面会产生全局变量a 写在里面就没有产生全局变量
  -->
 
-
+```js
 (function(){
     var a = 1;                  //定义一个变量
 
@@ -19148,6 +19559,7 @@ new test();
 <!-- 我想取a 想执行 console.log(++a) 能不能看见 看不见 -->
 test();         可以么？不行
 $().test();     可以    
+```
 
 <!-- 解析 ↑ :  -->
 window.$ = function(){          //向外暴露一个全局函数
@@ -19179,8 +19591,7 @@ $().test();
 ### 原型链
 
 ### 函数的prototype属性
-
-> 每个函数(和对象)都有一个prototype属性它默认指向一个Object空对象(即称为: 原型对象fun.prototype这就是)
+- 每个函数(和对象)都有一个prototype属性它默认指向一个Object空对象(即称为: 原型对象fun.prototype这就是)
 - 原型对象中有一个属性 constructor它指向函数对象
 <!-- 什么叫做空对象:  没有我们的属性 -->
 
@@ -19188,8 +19599,7 @@ $().test();
 - 作用: 
     函数的所有实例对象自动拥有原型中的属性(方法)
 
-<!-- 
-    每一个函数都有一个prototype属性那Date()是函数吧
+- 每一个函数都有一个prototype属性 那Date()是函数吧
     那它就有prototype
     console.log(Date.prototype);    object的实例对象 里面封装了很多的方法供实例去使用
 
@@ -19199,9 +19609,9 @@ $().test();
 
     Date.prototype 和 fun.prototype 它们都指向了一个Object对象它俩相比Date.prototype里面封装了很多的方法
     而fun.prototype里 有个属性叫constructor 还有个属性叫__proto__
- -->
 
-> 那假如我想在fun.prototype中加一个方法怎么加？
+
+- 那假如我想在fun.prototype中加一个方法怎么加？
     fun.prototype.test = function(){};     // 这个时候我们里面就有个属性了 test:function(){};
 
 
@@ -19236,7 +19646,7 @@ console.log(fun.prototype.constructor === fun);         //true
     var fun = new Fun();        创建一个实例
     fun.test();                 调用test
 
-
+----------------
 
 ### 显式原型 与 隐式原型
 
@@ -19286,7 +19696,7 @@ console.log(fun.prototype.constructor === fun);         //true
 <!-- 在创建函数对象的时候 内部做了什么事情, this.prototype = {}; -->
 
 > 结构图:
-
+```js
     function Fn(){ };
     var fn = new Fn();
 
@@ -19297,10 +19707,11 @@ console.log(fun.prototype.constructor === fun);         //true
         console.log("test()");
     };
     fn.test();
-
+```
 
 1. 创建了一个对象
 function Fn(){};
+
 2. 接下来干了下面的事情
 var fn = new Fn();
 
@@ -19368,9 +19779,7 @@ Fucntion = new Function;
 
 > Object 是 Function的实例 这是咋回事？
 - 因为任何函数都是 new Function产生的 无论是内置函数 还是我们定义的函数 都是new Function产生的 当然对了
-
-
-
+```js
     function Fn(){
         this.test1 = function(){
             console.log('test1()');
@@ -19380,8 +19789,10 @@ Fucntion = new Function;
     Fn.prototype.test2 = function(){
         console.log('test2()');
     };
+```
 
 - 创建实例对象
+```js
     var fn = new Fn();
 
     fn.test1();         //能不能调用 可以吧
@@ -19389,7 +19800,7 @@ Fucntion = new Function;
 
     console.log(fn.toString());         //能不能调用 可以吧
     fn.test3();         //能不能调用？ 不能 fn.test3 is not a function undefined
-
+```
 <!-- 
     当我们去访问一个对象的属性时, 就这上面的这句话 我们看这个Fn.test1(); 这是访问属性么？ 是 可这不是在调用方法么？ 调用方法 方法是不是属性
     首先我是不是根据test1的属性名找到的对应属性值 而且这个属性值 还必须是一个函数 我才能加上() test1(), 那怎么查找的 它应该有一个查找的流程 
@@ -19408,16 +19819,21 @@ Fucntion = new Function;
 
 
 > 小例子
+```js
     function Fn(){
 
     };
     Fn.prototype.a = "xxx";
+
     var fn1 = new Fn();
+
     console.log(fn1.a);     //现在能不能看到这个a呢？ 原型上面的属性 实例对象都可见
 
     var fn2 = new Fn();
+
     fn2.a = 'yyy';          //改变a的值
     console.log(fn1.a);     //是xxx 还是yyy  结果是xxx 为什么？ fn2.a 是yyy
+```
 
 > fn1.a 为什么不是 yyy 解析 ↓
 - 我们在查找fn1中的a时是利用原型链去查找这个a是在fn自身对象里面有的么？不是 明显放在原型里面了嘛
@@ -19436,6 +19852,7 @@ Fucntion = new Function;
 
 1. instanceof 是如何判断的？
     表达式 A instanceof B
+
 <!-- 如果B函数的显式原型对象在A对象的原型链上返回true 否则返回false -->
 2. Function是通过new自己产生的实例
 
@@ -19460,6 +19877,7 @@ A instanceof B  判断的标准 也就是什么时候返回true呢？
 
 ### 测试题
 > 第一题
+```js
 var A = function(){};
 A.prototype.n = 1;
 
@@ -19472,9 +19890,10 @@ m:3             //b 能看到 n么
 
 var c = new A();
 console.log(b.n, b.m, c.n, c.m)  1   undefined  2   3
-
+```
 
 > 第二题
+```js
 var F =function(){};
 Object.prototype.a = function(){
 console.log('a()');
@@ -19489,6 +19908,7 @@ f.a()       本身没有a方法去找原型 a和toString 是在一个容器里
 f.b()       找不到
 F.a()       相当于 把F看成实例对象 F 能调用
 F.b()
+```
 
 ----------------
 
@@ -19501,24 +19921,29 @@ F.b()
 > 函数声明提升
 - 通过function声明的函数在之前可以直接调用
 - 值: 函数定义(对象)
-
+```js
     fun();      //我是一段测试文字    
     function fun(){
         console.log("我是一段测试文字")
     };
+```
 
 \\ 问题: 变量提升和函数提升是如何产生的
 
+```js
 var a = 3;
-    function fn(
+function fn(
     console.log(a);
     var a = 4;
 )
 fn();       //undefined 
+```
+
 - 运行流程在函数体执行前var a; 
 
 
 > 函数声明提升
+```js
 fun();      //能不能调用？ 能 因为是函数提升 结果: 我是一段测试文字    
 
 function fun(){
@@ -19529,6 +19954,7 @@ fn3();                  //能不能调用 不能 因为它遵循的是变量提�
 var fn3 = function(){
     console.log('fn3()')
 };
+```
 
 ----------------
 
@@ -19585,7 +20011,7 @@ function a2(){ };
 
 <!-- 我们的内存空间是隔离的 你在你的区域 我在我的区域 不影响 -->
 
-
+```js
 function fn(a1){
     console.log(a1)             //2
     console.log(a2)             //undefined
@@ -19602,8 +20028,10 @@ function fn(a1){
     }
 };
 fn(2, 3);
+```
 
 > 测试题: 
+
 console.log('gb: ' + i);                //undefined
 00      var i = 1;
 11      foo(1);
@@ -19670,16 +20098,17 @@ console.log('ge'+i)
 
 
 > 测试题1     答案function
+- 无非就是两种可能性 一个undefined 一个是函数 这里面涉及到了变量提升 和 函数提升 谁先谁后的问题 
+- *先执行变量提升再执行函数提升* 最终 typeof a是function
+
 ```js
     function a(){};     // 来个a 定义了一个函数
     var a;              // var了个a
     console.log(typeof a)
-<!-- 
-    无非就是两种可能性 一个undefined 一个是函数 这里面涉及到了变量提升 和 函数提升 谁先谁后的问题 
-    先执行变量提升再执行函数提升 最终 typeof a是function
--->
+```
     
 - 最终的顺序应该这样的 所以是function:
+```js
 var a;
 function a(){}; 
 console.log(typeof a)
@@ -19692,9 +20121,7 @@ console.log(typeof a)
         var b = 1;
     }
     console.log(b);    
-<!-- 
-    先看 b in window 是true还是false 如果是true就不能进到var b = 1 所以最后的值就是undefined
- -->
+// 先看 b in window 是true还是false 如果是true就不能进到var b = 1 所以最后的值就是undefined
 ```
 
 
@@ -19706,20 +20133,33 @@ console.log(typeof a)
     }
     c(2);
 
-- 首先存在变量提升 和 函数提升
+---
+
+    var c
+    function c(c) {
+        console.log(c)
+    }
+
+    c = 1
+
+    c(2)
+```
+
+```js
+// 首先存在变量提升 和 函数提升
     function c(c){
         console.log(c);   
     }       
-- 实际上代码应该是这样的结构
+
+// 实际上代码应该是这样的结构
     var c;
     function c(c){
         console.log(c);   
     } 
     c=1;
     c(2); 
-<!-- 
-    c=1 是个数字类型了 就不能调用函数了 c不是函数了
- -->
+
+// c=1 是个数字类型了 就不能调用函数了 c不是函数了
 ```
 
 ----------------
@@ -19766,6 +20206,7 @@ this.__proto__ = fun.prototype
 > 构造函数 和 它的实例对象都指向了一个空对象这个空对象真的是空的么？
 - 它的里面还有 所有的实例对象 都有一个 隐式原型属性__proto__还有一个constructor(它叫构造器想想我一个实例对象我得知道我的构造器是谁吧)
 
+----------------
 
 ### 原型链: 
 - 用来查找对象的属性准确的说是查找实例对象的属性隐式原型组成的链 
@@ -19794,14 +20235,13 @@ this.__proto__ = fun.prototype
 ----------------
 
 ### 执行上下文 与 执行上下文栈 是根据变量提升和函数提升引申出来的
+- 变量提升()和函数提升() 是执行上下文 与 执行上下文栈的结果 
 
-变量提升()和函数提升() 是执行上下文 与 执行上下文栈的结果 
+> 要点:
+> 变量先提升 接下来是函数再提升 *函数的优先级更高 是指提升的晚 后执行*
 
-> 变量先提升 接下来是函数再提升
-> 函数的优先级更高 是指提升的晚 后执行
+- 变量提升后 var a 的a去哪去了 放在执行上下文里去了 执行上下文有两个 一个是全局上下文一个是函数上下文 得看这条语句是写在函数外面 还是写在函数里面 如果是全局的语句 那就是提高到window里面去了 如果你是一个函数内部的语句, 只有在执行调用函数的时候 才能产生提升
 
-- 变量提升后 var a 的a去哪去了 放在执行上下文里去了 执行上下文有两个 一个是全局上下文一个是函数上下文
-- 得看这条语句是写在函数外面 还是写在函数里面 如果是全局的语句 那就是提高到window里面去了 如果你是一个函数内部的语句, 只有在执行调用函数的时候 才能产生提升
 
 > 在执行上下文中 代码分为全局代码和函数内部代码 两种类型
 - 一个对应的是全局上下文 一个是函数上下文
@@ -19810,10 +20250,12 @@ this.__proto__ = fun.prototype
 
 - 而且把函数和变量放到哪去？ 放到window里面去 也就是保存到全局执行上下文里去了
 
+
 > 整个过程分3步
 1. 确定执行全局上下文 window
 2. 预处理
 3. 执行全局代码
+
 
 > 函数执行上下文调用函数的时候产生跟调用了几次函数
 1. 创建一个函数执行上下文
@@ -20201,255 +20643,5 @@ browser core
 js引擎模块(在主线程处理)
 其他模块(在主/分线程处理)
 运行原理图
-
-------------------
-
-### H5 Web Workers(多线程)
-- H5规范提供了js分线程的实现取名为 Web Workers
-- 它是H5提供的一个js多线程解决方案, 我们可以将一些大计算量的代码 交给web worker运行而不冻结用户界面
-
-- 但是子线程完全受主线程控制且不得操作DOM(只能是主线程操作页面) 所以这个新标准并没有改变js单线程的本质
-
-> 相关Api
-- worker: 构造函数加载分线程执行的js文件
-- worker.prototype.onmessage: 用于接收另一个线程的回调函数
-- worker.prototype.postMessage: 向另一个线程发送消息
-
-> 不足: 
-worker内代码不能操作DOM(更新UI)
-不能跨越加载JS, 不是每个浏览器都支持这个新特性
-<!-- 
-    编程实现 斐波那锲数列 (Fibonacci sequence)的计算
-    F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2)
-
-    <input type="text" placeholder="数值" id="number">      
-    <button id="btn">计算</button>
-
-    怎么设计一个函数 给它一个值 能对应的返回 斐波那契呢？
- -->
-
-```js
-function fibonacci(n){
-    // 递归调用 函数内部调用自己  递归的效率是比较低的
-    return n<=2 ?1 :fibonacci(n-1) + fibonacci(n-2);
-};
-
-var input = document.getELementById("number")
-var btn = document.getELementById("btn");
-btn.onclick = function(){
-var number = input.value;               
-var result = fibonacci(number);    // 我们要把这条语句交给分线程
-alert(result);
-```
-
--  上面的计算量太大导致在计算的时间中 用户不能操作浏览器等待时间过长 怎么把长时间的操作 放在 分线程里操作
-- 我要把number 传递给 分线程 分线程去计算 计算完以后把结果(result在分线程产生)返回主线程主线程拿到结果更新页面提示 
-
-
-> web worker
-> 创建在分线程执行的JS文件
-```js
-    // 不能用函数声明
-    var onmessage = function(event){    
-        console.log('onMessage()22');
-
-        // 通过event.data获得发送来的数据
-        var upper = event.data.toUpperCase();
-
-        // 将获取到的数据发送回主线程
-        postMessage(Upper);
-    }
-```
-
-> 在主线程中的我们向分线程发消息并设置回调
-```js
-    // 创建一个worker对象 并向它传递将在新线程中执行的脚本的url
-    var worker = new Worker('worker.js');
-
-    // 接受worker传过来的数据函数
-    worker.onmessage = function(event){
-        console.log(event.data);
-    };
-    // 向worker发送数据      向分线程发送消息
-    worker.postMessage('hello, world');
-```
-
-> 在主线程里的代码
-```js
-var input = document.getELementById("number")
-var btn = document.getELementById("btn");
-btn.onclick = function(){
-    var number = input.value;    
-
-    // 将number想办法传递给分线程 创建一个worker对象
-    var worker = new Worker(这里写 在分线程里执行的 js文件地址比如'worker.js');
-
-    // 绑定接收消息的监听
-    worker.onmessage = function(event){
-        console.log('主线程接收分线程返回的数据'+event.data);
-        console.log(event.data);
-    };
-
-    // 向分线程发送消息
-    worker.postMessage(number);
-    console.log('主线程向分线程发送数据'+number);
-};
-
-// 下面写分线程的代码 要在一个js文件中写 要写一些固定的东西
-function fibonacci(n){
-    return n<=2 ?1 :fibonacci(n-1) + fibonacci(n-2);
-};
-
-var onmessage = function(event){  
-    var number = event.data;
-    console.log('分线程接收到主线程发送的数据'+number);
-
-    // 计算
-    var result = fibonacci(number); 
-    // 将获取到的数据发送回主线程
-    postMessage(result);
-    console.log('分线程向主线程返回数据'+result);  
-}
-```
-
-- 我们思考下 在分线程 打印this this是谁 全局上面的属性和方法我们直接可以使用
-- 分线程中的this指向了 DedicatedWorkerGlobalScope这个全局对象
-
-- 我们平时在全局里面可以直接使用document 因为document是window的属性嘛
-
-- 问题是 我在分线程里能不能调用主线程的方法
-- 因为主线程的全局对象是window
-- 分线程的全局对象是DedicatedWorkerGlobalScope
-
-- 比如 alert是window的方法 能在 分线程里使用么？ 不能
-
-- 前面说过在分线程里不能操作界面 因为在分线程里看不到window
-- 分线程中的全局对象不再是window所以在分线程中不可能更新界面 因为更新界面要用window和document里的方法
-
-------------------
-
-### 本地存储 (localStorage, sessionStorage)
-- 随着互联网的快速发展, 基于网页的应用越来越普通, 同时也变的越来越复杂, 为了满足各种各样的需求, 会经常性在本地存储大量的数据, HTML5规范提出了相关解决方案
-<!-- 
-    以前我们会把数据放在数据库里, 还要去服务器里面取过来再拿来使用 
-    也有些东西根本就没有必要放在数据库里面
- -->
-
-
-> 位置查看
-- F12 --- Application --- 左侧 Storage Session Storage
-
-
-> 本地存储的特性
-- 1. 数据存储在用户浏览器中
-- 2. 设置, 读取方便, 甚至页面刷新都不会丢失数据
-- 3. 容量较大
-    - sessionStorage    约5M
-    - localStorage      约20M
-
-- 4. 只能*存储字符串*, 可以*将对象JSON.stringify()*编码后存储
-
-
-> 5M的单位
-- 10M字节空间.
-- 而根据 UTF-16编码规则要么2个字节要么四个字节所以不如说是 10M 的字节数更为合理.
-
-```js
-"a".length      // 1
-"人".length     // 1
-"𠮷".length     // 2
-```
-
-- key的长度也会占用空间
-
-
-> window.sessionStorage
-- 生命周期为关闭浏览器窗口
-- 在同一个窗口(页面)下数据可以共享
-- 以键值对的形式存储使用的
-
->sessionStorage.setItem(key, value);
-- 存储数据
-- 把数据存储在浏览器里 不关闭页面数据会一直存在
-
-- 修改数据
-- 在原来的数据上再次存储就是修改呗
-
-
-> sessionStorage.getItem(key);
-- 获取数据
-
-> sessionStorage.removeItem(key);
-- 删除数据
-
-> sessionStorage.clear();
-- 清空数据
-```js 
-    let set = document.querySelector('.set');
-    let get = document.querySelector('.get');
-    let remove = document.querySelector('.remove');
-    let del = document.querySelector('.del');
-    let text = document.querySelector('input');
-
-    set.addEventListener('click', function(){
-        // 当我们点击了之后, 就可以把表单里面的值存储起来
-        let val = text.value;
-
-        sessionStorage.setItem('uname', val);
-
-        // 点击一次存到uname中 再点击一次存到pwd中
-        sessionStorage.setItem('pwd', val);
-        console.log(val);
-    })
-
-    get.addEventListener('click', function(){
-        sessionStorage.getItem('uname')
-        // let result= sessionStorage.getItem('uname');
-        console.log(result);
-    })
-
-    remove.addEventListener('click', function(){
-        sessionStorage.removeItem('uname')
-    })
-
-    del.addEventListener('click', function(){
-        sessionStorage.clear()
-    })
-```
-
----
-
-> window.localStorage
-- 声明周期永久生效, 除非手动删除 否则关闭页面也会存在
-- 可以*多窗口(页面)共享*, 同一浏览器都可以使用这个数据
-- 以键值对的形式存储使用
-
->> localStorage.setItem(key, value);
-- 存储数据
-
-- 修改数据
-- 在原来的数据上再次存储就是修改呗
-
-> localStorage.getItem(key);
-- 获取数据
-
-> localStorage.removeItem(key);
-- 删除数据
-
-> localStorage.clear();
-- 清空数据
-
-------------------
-
-### 案例 记住用户名
-- 如果勾选记住用户名, 下次用户打开浏览器 就在文本框里面自动显示上次登录的用户名
-
-- 案例分析:
-- 把数据存起来, 用到本地存储
-- 关闭页面, 也可以显示用户名, 所以用到localStorage
-- 打开页面, 首先先判断是否有用户名这个数据, 如果有, 就在表单里面显示用户名, 并且勾选复选框
-
-- 当复选框发生改变的时候 change事件
-    - 如果勾选, 就存储 否则就移除
 
 ------------------

@@ -1,6 +1,165 @@
-### Js技巧
+### 整合对象
+- 需求:
+- 我们有 多个 数据数组 要整理成 一个 数组数组
+- 要求: 
+    - sam 的所有 num 属性收集在一起
+    - erin 的所有 num 属性收集在一起
+
+- 思路:
+- 1. 将多个数据 整理成一个 对象数组
+- 2. 使用filter()利用name 来找出同类别对象
+- 3. 将filter()过滤的对象中的num属性 push到一个数组中
+
+- 数据:
+```js
+let data1 = [
+  { name: "sam", num: 1 },
+  { name: "erin", num: 2 },
+  { name: "nn", num: 3 },
+]
+
+let data2 = [
+  { name: "sam", num: 5 },
+  { name: "erin", num: 7 },
+  { name: "nn", num: 9 },
+]
+
+let data3 = [
+  { name: "sam", num: 11 },
+  { name: "erin", num: 55 },
+  { name: "nn", num: 99 },
+]
+```
+
+- 要求数据格式:
+```json
+[
+  { "name": "sam", "num": [1,5,11] },
+  { "name": "erin", "num": [2,7,55] },
+  { "name": "nn", "num": [3,9,99] }
+]
+```
+
+> 实现方式1: 
+- 封装函数的方式:
+- 我们需要传入指定类别(sam), 和所有数据源:
+```js
+function getTotal(type, ...args) {
+  let obj = {
+    name: type,
+    num: []
+  };
+
+  [].concat(...args).filter(item => item.name == type).forEach(item => obj.num.push(item.num))
+  return obj
+}
+
+
+let data = getTotal("sam", data1, data2, data3)
+console.log(data)
+```
+
+
+> 实现方式2:
+- 整理成类的方式:
+- 使用方式来讲跟上面没有太多的区别 但是整理成类的方式
+```js
+class Integrate {
+
+  constructor(options) {
+    let {type, source} = options
+
+    this.arr = source.length > 0
+      ? [].concat(...source)
+      : []
+
+    this.type = type
+    this.data = this.get()
+  }
+
+  get() {
+    let obj = {
+      name: this.type,
+      num: []
+    }
+    this.arr.filter(item => item.name == this.type).forEach(item => obj.num.push(item.num))
+
+    return obj
+  }
+}
+
+let {data: res1} = new Integrate({
+  type: "sam",
+  source: [data1, data2, data3]
+})
+
+let {data: res2} = new Integrate({
+  type: "erin",
+  source: [data1, data2, data3]
+})
+
+let {data: res3} = new Integrate({
+  type: "erin",
+  source: [data1, data2, data3]
+})
+
+let data = [res1, res2, res3]
+console.log(data)
+```
+
+
+> 实现方式3:
+- 上面我们整个几个数据 需要创建几个实例 下面统一进行处理
+```js
+class Integrate {
+
+  constructor(options) {
+    let {type, source} = options
+
+    this.arr = source.length > 0
+      ? [].concat(...source)
+      : []
+
+    this.type = [...type]
+    this.data = this.get()
+  }
+
+  get() {
+
+    let data = []
+    this.type.forEach(name => {
+      let obj = {}
+      obj.name = name
+      obj.num = []
+      
+      this.arr.filter(item => item.name == name).forEach(item => obj.num.push(item.num))
+      data.push(obj)
+    })
+
+    return data
+  }
+}
+
+// 这里的参数都需要整理成数组的形式
+let {data} = new Integrate({
+  type: ["sam", "erin", "nn"],
+  source: [data1, data2, data3]
+})
+
+console.log(data)
+```
+
+----------------
 
 ### 将代码整理成json
+- 需求:
+- 用json的方式写代码
+
+- 思路:
+- 1. 将 要转成json的代码 写在script标签里面 <script data-target="content">
+- 2. 获取该标签中的文本 利用 replace 进行正则匹配提取
+- 3. 正则使用 m 模式
+
 ```html
 <script data-target="content">
 let ul = document.querySelector("ul")
@@ -32,7 +191,14 @@ checkbox.forEach(el => {
 </script>
 ```
 
-### 给对象添加属性
+----------------
+
+### 给数组中的对象额外添加属性
+- 思路:
+- 1. 利用map()加工每一个对象
+- 2. 利用 Object.assign() 方法给该对象添加属性 
+- 3. 添加的属性 要整理成 对象的形式 {mode: true}
+
 ```js
 let res = list.map(item => {
     return Object.assign(item, {mode: true})
@@ -43,11 +209,11 @@ let ret = list.map(item => {
 })
 ```
 
+----------------
+
 ### reduce完成promise队列
-- https://www.jianshu.com/p/d378bc9f967e
 - https://www.jianshu.com/p/aa6e6f2f9535
 - https://www.freesion.com/article/6149611365/
-- 再看看上面的网址
 
 ```js
 ;[1, 2, 3, 4, 5].reduce((pre, cur) => {
@@ -62,25 +228,109 @@ return pre.then(() => {
 }, Promise.resolve())
 ```
 
-### 获取图片主色调 添加到背景中
+- 在 JS_NODE 笔记里面 reduce() 方法的相关地方 我也总结了份使用方式 联合做下参考
+```js
+function handle1(res) {
+  return new Promise(resolve => {
+    resolve(res + 10)
+  })
+}
+
+function handle2(res) {
+  return new Promise(resolve => {
+    resolve(res + 20) 
+  })
+}
+
+function handle3(res) {
+  return new Promise(resolve => {
+    resolve(res + 30)
+  })
+}
+
+let arr = [handle1, handle2, handle3]
+
+let res = arr.reduce((promise, fn) => {
+  return promise.then(fn)
+}, Promise.resolve(10))
+
+// 因为我们return出来的也是 promise
+res.then(ret => console.log(ret))
+```
+
+- 示例2:
+```js
+let nums = []
+const a1 = new Promise(res => {
+    setTimeout(() => {
+        nums.push(`a`)
+        res(`a`)
+    }, 2000)
+})
+const a2 = new Promise((res, rej) => {
+    setTimeout(() => {
+        nums.push(`a1`)
+        res(`a1`)
+    }, 2000)
+})
+const a3 = new Promise(res => {
+    setTimeout(() => {
+        nums.push(`a2`)
+        res(`a2`)
+    }, 2000)
+})
+const arr = [a1, a2, a3]
+arr.reduce(async (pre, next) => {
+    await pre
+    return next
+}, Promise.resolve()).then(res => {
+    console.log(nums)
+})
+```
+
+----------------
+
+### 获取图片主色调 添加到背景中 (没事可以整理一下canvas mdn)
 - https://mp.weixin.qq.com/s/fAXiE3cVnbGCOO3-37iWwg
 
-- 首先如何给一个容器设置宽高比呢？
-- 通过padding-top设置对应的百分比值
-- 通过新属性aspect-ratio(safari不支持)
-- 这里，为了兼容性，我用的第一种。设置一个长宽比为2:1的盒子：
+> 要点:
+- 我们要用的图片是通过 background 属性添加的 那怎么给这个容器一个宽高呢
+- 1. 通过 padding-top 设置对应的百分比值
+- 2. 通过新属性aspect-ratio (safari不支持)
 ```css
 div{
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    /* 2:1 ，panding百分比值是相对于盒子的宽度的*/
+    /* 2:1 panding百分比值是相对于盒子的宽度的*/
     padding-top: 50%;
 }
-
 ```
 
-- 再次，如何获取图片的主色呢？我们借助Canvas的ctx.getImageData方法。
+> 如何获取图片的主色呢？
+- 借助Canvas的 ctx.getImageData() 方法。
+
+> 要点:
+- img元素对象.naturalWidth 
+    - 获取图片的自然宽度 该宽度是图片本身的宽度 永远不会改变
+    - width: 这个宽度可以通过css js来控制 本不是图片本身的宽度
+```js
+let imgSrc = "./img/img-1.png"
+let imgNode = document.createElement("img")
+
+imgNode.src = imgSrc
+
+  imgNode.onload = () => {
+
+    // js调整一下图片的大小
+    imgNode.width = 100
+
+    console.log(imgNode.width)          // 100
+    console.log(imgNode.naturalWidth)   // 1094
+
+  }
+```
+
 - 分一下几个步骤：
 - 将图片绘制到一个canvas元素上
 - 获取图像所有的rgba像素点
@@ -151,37 +401,82 @@ element.style.backgroundImage = `url("XXXX"),linear-gradient(90deg,rgba(${leftNe
 
 ```
 
+----------------
 
-### a=1&b=2&c=3
+### query参数的提取: a=1&b=2&c=3
 - 将上面的键值对组成一个对象
 - 如果有同名的key 就会放到一个数组中
 
 ```js
-function parseQueryString(queryStr) {
-    if (!queryStr || !queryStr.length) {
-        return {};
+let str = "a=1&b=2&c=3&c=10&c=20"
+
+function parseQueryStr(str) {
+  // 检查
+  if(!str || !str.length) return {}
+
+  let obj = {}
+
+  // 整理成 [a=1, b=2]
+  str.split("&").forEach(item => {
+
+    // 整理成[["a", "1"], ["b", "2"]]
+    let [key, value] = item.split("=")
+
+    // 如果obj中有 
+    if(obj[key]) {
+      
+      // 那么就要检查其值是不是已经是数组 如果已经是 则push追加
+      if(Array.isArray(obj[key])) {
+        obj[key].push(value)
+
+      // 如果不是数组 那么组织成数组的形式 添加新值
+      } else {
+        obj[key] = [...obj[key], value]
+      }
+    // 如果obj中没有 那么就组织成 a: 1 
+    } else {
+      obj[key] = value
     }
-    const queryObj = {};
-    const items = queryStr.split('&');
-    items.forEach(item => {
-        const [key, value] = item.split('=');
-        if (queryObj[key]) {
-            if(Array.isArray(queryObj[key])) {
-                queryObj[key].push(value);
-            } else {
-                queryObj[key] = [queryObj[key], value]
-            }
-        } else {
-            queryObj[key] = value;
-        }
-    });
-    return queryObj;
+  })
+
+  return obj
 }
+
+let res = parseQueryStr(str)
+console.log(res)
 ```
 
 - 这段代码很容易看出来就是做 query string 的 parse 的，会把 'a=1&b=2&c=3' 的字符串 parse 成 { a: 1, b: 2, c: 3 } 返回。如果有同名的 key 的话，就合并到一个数组里。
 
+------
 
+> url参数有编码的案例
+
+```js
+    let str = "?q=%E6%98%A5%E8%8A%82"
+    let str2 = "?q=春节"
+
+    const handleQuery = (url, obj={}) => {
+
+      let reg = /[%]/g
+      if(url.match(reg) != null ) {
+        url = decodeURI(url)
+      }
+      
+      url.substr(1).split("&").map(item => {
+        let arr = item.split("=")
+        obj[arr[0]] = arr[1]
+        return obj
+      })
+      
+      return obj
+    }
+
+    let res = handleQuery(str2)
+    console.log(res)
+```
+
+----------------
 
 ### 填写的数据 跳转页面消失
 - 解决方法:
@@ -197,7 +492,7 @@ function parseQueryString(queryStr) {
 
 - 5. 借助应用服务器自身的session机制
 
-
+----------------
 
 ### 点击对话框以外的部分关闭对话框
 - 需求
@@ -229,21 +524,19 @@ function parseQueryString(queryStr) {
 </body>
 ```
 
-
-
-
+----------------
 
 ### forEach解决异步问题
 - 这里面也涉及了很多的知识点
+
 - 比如:
 - forEach的重写
 - sleep函数的定义
-- 相当的知识点的介绍等等
+- 相关的知识点的介绍等等
 
-
-- 首先我们先说说ajax异步请求和同步代码之间的问题:
+- 首先我们先说说 ajax异步请求 和 同步代码之间的问题:
 - 比如:
-- 我们现在 要请求 ajax ajax是一个异步的请求 一旦出现下面的逻辑 同步的代码会先执行 我们拿不到对应的结果
+- 我们现在要请求ajax ajax是一个异步的请求 一旦出现下面的逻辑 同步的代码会先执行 我们拿不到对应的结果
 
 - 以下都是伪代码
 ```js
@@ -252,11 +545,18 @@ const data = ajax("url", (data) => {
 })
 
 console.log(data)       // 这里一定是 null 或者 undefined
+
+// 模拟下
+setTimeout(() => {
+  console.log("我是后台请求的数据")
+}, 1000)
+
+console.log("主线程")
 ```
 
 - 那怎么才能同步的拿到代码呢？ 
 
-- 方式1: 我们将 ajax请求 变为同步的
+> 方式1: 我们将 ajax请求 变为同步的
 - async: false 我们通过配置项 将async设置为false
 ```js
  const data = ajax("url", {
@@ -268,8 +568,7 @@ console.log(data)       // 这里一定是 null 或者 undefined
 console.log(data)       // 这样一定能拿到结果
 ```
 
-- 但是又引发了另一个问题 ajax是同步的了 就意味着它会阻塞下面的代码执行 必须等着它拿到结果后 才会执行下面的代码 就意味了 除了我们想同步获取data的console语句
-- 它下面的语句也会变为阻塞状态
+- 但是又引发了另一个问题 ajax是同步的了 就意味着它会阻塞下面的代码执行 必须等着它拿到结果后 才会执行下面的代码 就意味了 除了我们想同步获取data的console语句 它下面的语句也会变为阻塞状态
 
 ```js
  const data = ajax("url", {
@@ -307,6 +606,7 @@ test().then((res) => {
 
 
 console.log(123)
+
 ```
 
 - 从上面的代码我们可以发现 ajax请求 和 获取data的逻辑还是同步的
@@ -323,25 +623,45 @@ const getData = async () => {
 getData()
 
 console.log(123)
+
+---
+
+const query = () => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve("我是后台请求回来的数据")
+    }, 1000)
+  })
+}
+
+(async () => {
+  let res = await query()
+  console.log(res)
+})()
+
+console.log("我是主线程的代码")
 ```
 
 - 我们会发现上面的同步和异步更加的清晰了 ajax和获取data是同步的 而getData()函数是async和下面123还是异步的
 
+---
 
 > 面试题:
 ```js
-fun([
-  () => console.log("start"),
-  () => sleep(1000),
-  () => console.log("1"),
-  () => sleep(2000),
-  () => console.log("2"),
-  () => sleep(3000),
-  () => console.log("end")
-])
+fun(
+    [
+        () => console.log("start"),
+        () => sleep(1000),
+        () => console.log("1"),
+        () => sleep(2000),
+        () => console.log("2"),
+        () => sleep(3000),
+        () => console.log("end")
+    ]
+)
 ```
 
-- 需求:
+> 需求:
 - 要求1:
 - 写出fun函数 sleep函数 要求按顺序 按效果的依次输出结果
 
@@ -373,6 +693,33 @@ async function fun(arr) {
 }
 ```
 
+> 整理下:
+```js
+const sleep = (ms) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms)
+  })
+}
+
+const fun = async (arr) => {
+  for(let i=0; i<arr.length; i++) {
+    arr[i]()
+  }
+}
+
+fun(
+  [
+      () => console.log("start"),
+      () => sleep(1000),
+      () => console.log("1"),
+      () => sleep(2000),
+      () => console.log("2"),
+      () => sleep(3000),
+      () => console.log("end")
+  ]
+)
+```
+
 > 这里查下扩展 delay函数
 ```js
 function delay(init = 0) {
@@ -384,7 +731,6 @@ function delay(init = 0) {
     })
 }
 
-
 async handleChange(e) {
     let file = e.raw
     if(!file) return
@@ -395,7 +741,6 @@ async handleChange(e) {
     })
 
     await delay(100)
-
     let data = await readFile(file)
 }
 ```
@@ -470,93 +815,142 @@ Array.prototype.myForEach = async function(callback, thisArg ) {
 }
 ```
 
-
-
-
-
-
+----------------
 
 ### 函数的柯里化 和 重写toString()
+**要点:**
+- 箭头函数里面没有 arguments
 ```js
-function add() {
-    let args = [...arguments]
-    
-    let fn = function() {
-    args.push(...arguments)
-    return fn
+const fn = () => {
+  console.log(arguments)
 }
-    
-
-    // fn的toString方法会将接收到的所有参数做输出
-fn.toString = function() {
-    return args.reduce((pre, item) => pre + item, 0)
-}
-
-    return fn
-}
-
-console.log(add(1)(2).toString())
-    
+fn(1)   // 会报错
 ```
 
-### 正则提取参数
+> 下面的代码 我们从 3 2 1 的顺序开始倒推
+```js
+function add() {
+
+  // add(1) 传递进来的实参会在这个arguments里面
+  console.log(arguments)  // 1
+
+  let args = [...arguments]
+  
+
+  // 3. 定义 fn
+  function fn() {
+    // add(1)(2)传递进来的实参会在这个arguments里面
+    console.log(arguments)  // 2
+
+    // 这里我们可以将接到的参数 push到args中 同时 继续return fn 这样 add(1)(2)(3) 的3 还会被arguments接受并push到args数组中
+    args.push(...arguments)
+    return fn
+  }
+
+
+  // 2. 改写对象身上的toString()
+  fn.toString = function() {
+    let res = args.reduce((pre, item) => pre + item, 0)
+    console.log(res)
+  }
+
+  // 1. 只有对象上才有toString方法 所以我们return 一个对象 并改写对象身上的toString()
+  return fn
+}
+
+add(1)(2)(3).toString()
+/*
+  add(1) 调用的是 add() 拿到的是add()的返回值 fn
+  add(1)(2) 调用的是 add()的返回值fn => fn(2) 
+*/
+```
+
+----------------
+
+### 提取query参数
+
 > 方式1
+- 利用正则提取出来 name=sam 的结果集
 ```js
 let url = "?name=sam&age=54&na=dd"
-    
+
+// 然后整理到一个对象里面
 let obj = {}
 url.match(/\w+=\w+/ig).forEach(item => {
     let arr = item.split("=")
     obj[arr[0]] = arr[1]
 })
+
+---
+
+let query = "?name=sam&age=54&na=dd"
+
+let reg = /\w+=\w+/g
+let matched = query.match(reg)
+console.log(matched)  // [ 'name=sam', 'age=54', 'na=dd' ]
+
+let res = matched.map(item => item.split("="))
+console.log(res)
+// [ [ 'name', 'sam' ], [ 'age', '54' ], [ 'na', 'dd' ] ]
+
+// 利用这个api
+res = Object.fromEntries(res)
+console.log(res)
+// { name: 'sam', age: '54', na: 'dd' }
+
+---
+
+// 还可以整理成1行 但可读性不高
+let res = Object.fromEntries(query.match(reg).map(item => item.split("=")))
 ```
+
+
 > 方式2
 ```js
-let arr = []
-url.match(/\w+=\w+/ig).map(item => {
-    return arr.push(item.split("="))
-})
+let query = "?name=sam&age=54&na=dd"
 
-// Object.fromEntries的参数 需要一个2维数组
-// [[key, value], [key, value]]
-let obj = Object.fromEntries(arr)
-console.log(obj);
+let search = new URLSearchParams(query)
+console.log(search.get("na"))
+```
+
+----------------
+
+### 前后台时postman报错 编辑器报错
+- 在日常的开发过程中 我们发送请求的数据的时候 有的时候会将js对象转成json
+- 那什么时候需要将js对象转成json呢？
+
+- 场景:
+- 有一个人测试 传对象类型的数据到后台 在编辑器里面就不会报错 但是他用postman去测试就会报错
+```js 
+    Content-type: application/json
+```
+
+> 为什么呢？
+- 因为编辑器或请求框架(ajax axios jquery) 对数据进行了处理
+
+
+> 第一种情况: 请求头不指定格式
+- 请求数据不指定格式, 默认就是(application/x-www-form-urlencoded)
+- 看看后端接收参数是啥样子
+```js 
+    {"object Object": ""}
 ```
 
 
-### 为什么前后台交互要转成json
-- 在日常的开发过程中 我们发送请求的数据的时候 有的时候会将js对象转成json
-
-- 那什么时候需要将js对象转成json呢？
-- 有一个人在编辑器里面测试 传数据到后台一个对象 就不会报错 但是他用postman去测试就会报错
-<!-- 
-    Content-type: application/json
- -->
-
-- 为什么呢？
-- 因为ajax axios jquery对数据进行了处理
-
-- 第一种情况 请求头不指定格式
-- 请求数据不指定格式(application/x-www-form-urlencoded)，看看后端接收参数是啥样子
-<!-- 
-    {"object Object": ""}
- -->
-
-- 第二种情况 请求头指定为json格式
-<!-- 
+> 第二种情况: 请求头指定为json格式
+```js  
     application/json
     xhr.setRequestHeader("Content-Type": "application/json")
 
-    这里同时还要设置 我们传递的数据是json类型 json.stringify
- -->
+    // 这里同时还要设置 我们传递的数据是json类型 json.stringify
+```
 
-- 也就是说当我们指定了请求头的格式的为json的时候 
-- 我们发送的数据的格式也必须是json
+- 也就是说当我们指定了请求头的格式的为json的时候 我们发送的数据的格式也必须是json
+- 如果不指定的话 *默认就是 x-www-form-urlencoded*
 
-- 如果不指定的话 默认就是 x-www-form-urlencoded
+--- 
 
-
-- postman中参数的类型有
+> postman中参数的类型有
 - form-data
 - x-www-form-urlencoded
 - raw
@@ -564,10 +958,10 @@ console.log(obj);
 - graphql
 
 > raw：
-- 这种方式也可以成为json提交, 可能每种参数类型对应的 contentType类型是不一样的
+- 这种方式也可以成为json提交, 可能每种参数类型对应的 contentType类型 是不一样的
 - 使用的是纯字符串上传的方式 所以在post之前可能需要将json格式的数据转换为字符串
 
-<!-- 
+```js 
     contentType: "application/json"
     data: JSON.stringify({
         org,
@@ -575,16 +969,18 @@ console.log(obj);
     })
 
 
-    而 form-data 的方式就是 key-value 的提交，数据其实是分割的
--->
+    // 而 form-data 的方式就是 key-value 的提交，数据其实是分割的
+```
 
 - 比如 我选择了 raw 
 - 后面的类型选择text 那么请求头中的 Content-Type: text/plain
 - 后面的类型选择json 那么请求头中的 Content-Type: application/json
 
+---
 
 > 设置 contentType 的方式
 - "Content-Type" : "application/json"
+
 - 用于定义用户的浏览器或相关设备如何显示将要加载的数据，或者如何处理将要加载的数据，此属性的值可以查看 MIME 类型。
 
 - MIME:
@@ -632,42 +1028,43 @@ console.log(obj);
 - 规定在发送到服务器之前应该如何对表单数据进行编码，默认的表单数据会编码为 "application/x-www-form-urlencoded"
 - enctype的属性值有
 
-
-1. application/x-www-form-urlencoded
+- 1. application/x-www-form-urlencoded
    在发送前编码所有的字符
    这应该是最常见的 POST 提交数据的方式了。浏览器的原生
    表单，如果不设置 enctype 属性，那么最终就会以 application/x-www-form-urlencoded 方式提交数据。
-<!--
+
+```js
     Content-Type: application/x-www-form-urlencoded;charset=utf-8
     title=test&sub%5B%5D=1&sub%5B%5D=2&sub%5B%5D=3
+```
+- 提交的数据按照 key1=val1&key2=val2 的方式进行编码，key 和 val 都进行了 URL 转码。大部分服务端语言都对这种方式很好的支持，常用的如jQuery中的ajax请求，Content-Type 默认值都是「application/x-www-form-urlencoded;charset=utf-8
 
-    提交的数据按照 key1=val1&key2=val2 的方式进行编码，key 和 val 都进行了 URL 转码。
-   大部分服务端语言都对这种方式很好的支持，常用的如jQuery中的ajax请求，Content-Type 默认值都是「application/x-www-form-urlencoded;charset=utf-8
--->
 
-2. multipart/form-data
+- 2. multipart/form-data
    不对字符编码 在使用包含文件上传控件的表单时 必须使用该值
    这也是常见的post请求方式，一般用来上传文件，各大服务器的支持也比较好。所以我们使用表单 上传文件 时，必须让
-<!--
-    表单的enctype属性值为 multipart/form-data.
-    注意：以上两种方式：application/x-www-form-urlencoded和multipart/form-data都是浏览器原生支持的。
--->
+
+- 表单的enctype属性值为 multipart/form-data.
+- 注意：
+- 以上两种方式：application/x-www-form-urlencoded和multipart/form-data都是浏览器原生支持的。
 
 
-3. application/json    ---   它可能对应的就是 raw
-   application/json作为响应头并不陌生，实际上，现在很多时候也把它作为请求头，
-   用来告诉服务端消息主体是序列化的JSON字符串，
-   除了低版本的IE，基本都支持。除了低版本的IE都支持JSON.stringify()的方法，服务端也有处理JSON的函数，使用json不会有任何麻烦。
+- 3. application/json    ---   它可能对应的就是 raw
+
+- application/json作为响应头并不陌生，实际上，现在很多时候也把它作为请求头，
+- 用来告诉服务端消息主体是序列化的JSON字符串，除了低版本的IE，基本都支持。除了低版本的IE都支持JSON.stringify()的方法，服务端也有处理JSON的函数，使用json不会有任何麻烦。
 
    
-4. text/plain
-   空格转换为"+"加号，但不对特殊字符编码
+- 4. text/plain
+- 空格转换为"+"加号，但不对特殊字符编码
 
-> postman中 post请求 的form-data、x-www-form-urlencoded、raw、binary的区别
+> postman中 post请求的 form-data、 x-www-form-urlencoded、 raw、 binary 的区别
+
 > form-data:
-- 等价于http请求中的multipart/form-data,它会将表单的数据处理为一条消息，以标签为单元，用分隔符分开。
-- 既可以上传键值对，也可以上传文件。
+- 等价于http请求中的multipart/form-data,它会将表单的数据处理为一条消息，以标签为单元，用分隔符分开。既可以上传键值对，也可以上传文件。
+
 - 当上传的字段是文件时，会有Content-Type来表名文件类型；content-disposition，用来说明字段的一些信息
+
 - 由于有boundary隔离，所以multipart/form-data既可以上传文件，也可以上传键值对，它采用了键值对的方式，所以可以上传多个文件。
 
 
@@ -684,12 +1081,10 @@ console.log(obj);
 - 从字面意思得知，只可以上传二进制数据，通常用来上传文件，由于没有键值，所以，一次只能上传一个文件。
 
 
-
 > MIME 类型
 - MIME 类型是一种文本标记，表示一种*主要的对象类型和一个特定的子类型*，中间由一条斜杠来分隔。
 
-
-
+----------------
 
 ### 通过创建类 实例化该类的时候 自动给指定元素添加特殊的功能
 ```js
@@ -719,9 +1114,10 @@ export default class Scroll {
 
 ```
 
+----------------
+
 ### requestAnimationFrame API
-### 分页逻辑
-### 分页渲染结构
+### 分页逻辑 分页渲染结构
 
 > 后端逻辑
 - 后端逻辑： 组织好10w+数据 返回给前端
@@ -752,7 +1148,6 @@ http.craeteServer((req, res) => {
     console.log("server is listening on 3000 port")
 })
 ```
-
 
 > 前端逻辑
 - AJAX获取请求数据 封装强求函数
@@ -847,25 +1242,46 @@ const renderList = async () => {
 ```js
 const renderList = async () => {
     console.time('列表时间')
+    // 获取数据
     const list = await getList()
-    console.log(list)
+
+    // 总数据条数
     const total = list.length
+
+    // 当前页码
     const page = 0
+
+    // pageSize: 一页显示多少条
     const limit = 200
+
+    // 一共有多少页
     const totalPage = Math.ceil(total / limit)
 
+    // 创建渲染函数
     const render = (page) => {
+        // 如果页码比总页数大 则停止 递归的停止条件
         if (page >= totalPage) return
 
-        // 使用requestAnimationFrame代替setTimeout
+        // 使用requestAnimationFrame代替setTimeout 传入回调 该回调会在重绘前执行
         requestAnimationFrame(() => {
+
+            // 循环 分页
             for (let i = page * limit; i < page * limit + limit; i++) {
+
+                // 每一个
                 const item = list[i]
+
                 const div = document.createElement('div')
                 div.className = 'sunshine'
-                div.innerHTML = `<img src="${item.src}" /><span>${item.text}</span>`
+                div.innerHTML = `
+                    <img src="${item.src}" />
+                    <span>${item.text}</span>
+                `
+
                 container.appendChild(div)
             }
+
+            // 递归调用
             render(page + 1)
         })
     }
@@ -876,6 +1292,7 @@ const renderList = async () => {
 
 > 文档碎片 + requestAnimationFrame
 - 文档碎片的好处:
+
 - 1. 之前都是每次创建一个div标签就appendChild一次，但是有了文档碎片可以先把1页的div标签先放进文档碎片中，然后一次性appendChild到container中，这样减少了appendChild的次数，极大提高了性能
 
 - 2. 页面只会渲染文档碎片包裹着的元素，而不会渲染文档碎片
@@ -920,7 +1337,7 @@ const renderList = async () => {
 > vue3 + ts
 - 备用吧
 
-```js
+```html
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 const getList = () => {
@@ -1011,29 +1428,54 @@ function step(timestamp) {
 window.requestAnimationFrame(step);
 ```
 
-
-
-
+----------------
 
 ### 交换数组中元素的位置
-- 除了利用中间变量的另外一种方式
 
-<!-- 
-    let arr = [
-      {id:1, name: "1"},
-      {id:2, name: "2"},
-      {id:3, name: "3"},
-    ]
+> 方式1:
+- 利用 解构
+```js
+let arr = [
+    {id:1, name: "1"},
+    {id:2, name: "2"},
+    {id:3, name: "3"},
+]
 
-    let [item1, item2, item3] = arr
-    let newArr = [item3, item1, item2]
-    
-    console.dir(newArr);
- -->
+let [item1, item2, item3] = arr
+let newArr = [item3, item1, item2]
 
+console.dir(newArr);
+```
+ 
+> 方式2:
+- 利用 位运算
+- 位运算只能交换整数
+
+- 要点:
+- 1. num1 ^ num2 ^ num1 = num2的值 3个数结果跟最少的那个一样
+
+    num1 ^ *num2* ^ num1 = *num2*
+
+- 2. 我们把两个数的 ^ 结果保存起来
+
+    let temp = num1 ^ num2
+
+```js
+let [num1, num2] = [1, 2]
+
+let temp = num1 ^ num2
+
+num1 = temp ^ num1
+num2 = temp ^ num2
+
+let arr = [num1, num2]
+console.log(arr)    // [ 2, 1 ]
+```
+
+----------------
 
 ### 将数组中的元素 插入数组中指定的位置
-<!-- 
+```js 
     let arr = [
       {id:1, name: "sam"},
       {id:2, name: "erin"},
@@ -1058,50 +1500,103 @@ window.requestAnimationFrame(step);
 
     changeEl(3, 2, 1, arr)
     console.table(arr);
- -->
+```
 
+----------------
 
 ### once 实现原理
-> 传参：
-- 我们是once函数内传递参数(fn, 参数1, 参数2)
-- 然后由once函数将收到的参数 传递给 返回函数内部的函数调用fn.apply(this, name)
-- once --- return --- fn
 
-<!-- 
-    const once = (fn, ...name) => {
-      let flag = true
-      
-      return () => {
-        if(flag) {
-          flag = false
-          fn.apply(this, name)
-        }
-      }
-    }
+> 要点:
+- 1. 我们要解决 this 的问题 也就是给谁绑定的回调 this 就应该是谁 所以这里我们最好不要用 箭头函数
 
-    let fn = (name) => {
-      console.log(name)
+- 2. 利用 节流阀 的原理 来实现 once 操作
+
+- 3. btn.onclick = once(handle, "hello") 由于 once() 加上了小括号 所以它一上来就会调用 这是函数的形式调用 所以once()里面的this 是window
+
+- 4. 上面说了 once() 会自调用 所以我们要return 一个函数 将这个函数交给 onclick 作为回调 这时这个内部函数中的this 就是元素
+ 
+- 5. once(callback) 的第一个参数是一个回调 我们要将this传递给这个回调 同时考虑传递多个参数的问题 我们使用的是 fn.apply()
+
+```js 
+let btn = document.querySelector("div")
+
+function once(fn, ...args) {
+
+  // 节流阀
+  let flag = true
+
+  // window
+  console.log(this)
+
+  return function() {
+    if(flag) {
+      // 这个是onclick的回调 所以这里的this是元素
+      console.log(this)
+
+      // 关闭节流阀
+      flag = false
+
+      // 解决this的问题
+      fn.apply(this, args)
     }
-    btn.onclick = once(fn, "sam")
- -->
+  }
+}
+
+
+// 指定回调
+function handle(param) {
+  console.log(param)
+}
+
+// 实现
+btn.onclick = once(handle, "hello")
+```
+
+----------------
 
 ### 合并数组
+> 方式1:
+```js
 let arr1 = [1, 2, 3]
 let arr2 = [4, 5, 6]
 
-> Array.prototype.push.apply(arr1, arr2)
-> arr1.push.apply(arr1, arr2)
-console.log(arr1);
+let arr = [...arr1, ...arr2]
+console.log(arr)    // [ 1, 2, 3, 4, 5, 6 ]
+```
 
+> 方式2:
+```js
+let arr1 = [1, 2, 3]
+let arr2 = [4, 5, 6]
 
+let arr = [].concat(arr1, arr2)
+// 或者
+let arr = Array.prototype.concat.call([], arr1, arr2)
+console.log(arr)
+```
 
-### 请求技巧 等待上一个请求完成后 再请求下一个
+> 方式3:
+- 我怎么觉得这样的方式好别扭
+```js
+let arr1 = [1, 2, 3]
+let arr2 = [4, 5, 6]
+
+Array.prototype.push.apply(arr1, arr2)
+arr1.push.apply(arr1, arr2)
+```
+
+----------------
+
+### reduce的请求技巧 等待上一个请求完成后 再请求下一个
 - 在node爬虫里面遇到的问题
-<!-- 
+```js
 const host = "https://www.dydytt.net"
 const uri = "/html/gndy/rihan/list_6_2.html"
 
+// 创建 请求完整路径的数组
 let pageArr = []
+
+// 循环加工 完整的请求路径
 for(let i=1; i<= 100; i++) {
   pageArr.push(host + `/html/gndy/rihan/list_6_${i}.html`)
 }
@@ -1109,9 +1604,10 @@ for(let i=1; i<= 100; i++) {
 // 这个arr中装着一个分类下所有的电影页面
 console.log(pageArr)
 
+
 // 我们要请求 pageArr 中的每一项 但是我们需要的是 在一个请求结束后再进行下一个请求
-pageArr.reduce((rs, url) => {
-  return rs.then(() => {
+pageArr.reduce((promise, url) => {
+  return promise.then(() => {
     return new Promise(async (resolve) => {
       await req(url)
       resolve()
@@ -1119,13 +1615,15 @@ pageArr.reduce((rs, url) => {
   })
 }, Promise.resolve())
     // 这种方式会等待上一个req请求完成后 再执行下一个请求
-    // rs就是我们的默认值 Promise.resolve()
- -->
+    // promise参数就是我们的默认值 Promise.resolve()
+```
 
+----------------
 
 ### JavaScript 循环中使用 async/await
+
 > 按顺序读取Promise
-- 假设有一个文件列表，我们想按顺序读取并记录每个文件的内容。怎么做呢？我们可以在异步函数中使用for ...循环。请看代码片段
+- 假设有一个文件列表，我们想按顺序读取并记录每个文件的内容。怎么做呢？我们可以在异步函数中使用for ... 循环。请看代码片段
 
 ```js
 async function printFiles () {
@@ -1216,23 +1714,28 @@ async function printFiles () {
 
 - 每个async回调函数调用都会返回一个promise，我们将它们保存起来，并与Prmiss.all()并行地一次性进行解析。
 
-
+----------------
     
 ### 判断空对象
+> 方式1: JSON.stringify(oo)
+> 
 ```js
 let oo = {}
 oo = JSON.stringify(oo)     // '{}'
-
-Object.keys(oo).length == 0
 ```
 
+> 方式2: Object.keys(oo).length == 0
+
+----------------
+
 ### 有趣的数据结构遍历 启发
-<!-- 
+```js 
     let before = {
       Vmmare: ["128.203.64", "128.2.1.2"]
     }
 
     let handler = []
+
     !function(before, handler) {
       let obj = {}
       for(let key in before) {
@@ -1340,57 +1843,36 @@ Object.keys(oo).length == 0
 
     let res = dataForamt(data)
     console.log("修改", res);
- -->
+```
 
-### url参数提取
-<!-- 
-    let str = "?q=%E6%98%A5%E8%8A%82"
-    let str2 = "?q=春节"
-
-    const handleQuery = (url, obj={}) => {
-
-      let reg = /[%]/g
-      if(url.match(reg) != null ) {
-        url = decodeURI(url)
-      }
-      
-      url.substr(1).split("&").map(item => {
-        let arr = item.split("=")
-        obj[arr[0]] = arr[1]
-        return obj
-      })
-      
-      return obj
-    }
-    let res = handleQuery(str2)
-    console.log(res)
- -->
-
-
+----------------
 
 ### null和undefined 是否相等
-
+```js
     console.log(null==undefined)
     //true
 
     console.log(null===undefined)
     //false
+```
 
 - 观察可以发现：null和undefined 两者相等，但是当两者做全等比较时，两者又不等。
 
-- 原因：
+> 原因：
 - null： 
 - Null类型，代表“空值”，代表一个空对象指针，使用typeof运算得到 “object”，所以你可以认为它是一个特殊的对象值。
 
 - undefined： 
 - Undefined类型，当一个声明了一个变量未初始化时，得到的就是undefined。
 
-实际上，undefined值是派生自null值的，ECMAScript标准规定对二者进行相等性测试要返回true
+- 实际上，undefined值是派生自null值的，ECMAScript标准规定对二者进行相等性测试要返回true
 
+----------------
 
 ### 随机生成字符串
 - toString(36): 表示为由0-9, a-z组成的的36进制字符串。
-<!-- 
+
+```js 
     let res = getRandomString(48)
     console.log(res)
     console.log(res.length)
@@ -1400,141 +1882,156 @@ Object.keys(oo).length == 0
 
     function getRandomString(n) {
         let str = '';
+
+        // 循环拼接str直到指定位置
         while (str.length < n) {
+            // 得到的是 0.xxx 所以要截取
             str += Math.random().toString(36).substr(2);
         }
-
+        
+        // 结果肯定是比指定位数多 所以这里只取指定位置
         return str.substr(str.length - n);
     }
- -->
+```
 
-
+----------------
 
 ### 滚动到底部
 - 当一个盒子内部的内容增加的时候 并且超过该盒子的高度的时候 我们希望它自动滚动到底部
-
+```js
     element.scrollTo({
         top: 100,
         left: 100,
         behavior: 'smooth'
     });
-<!-- 
+```
+
+```js
     let box = ...
     box.scrollTo({
         top: box.scrollHeight,
         behavior: "smooth"
     })
- -->
+```
+
+----------------
 
 ### 过渡效果 / 动画效果 监听事件:
 > transitionend    /    animationend
+
 > 绑定方式:
-- obj.addEventListener('transitionend', fn, false);
-function fn(){};
+```js
+le.addEventListener('transitionend', fn, false);
+// 指定回调
+function fn(){ ... };
+```
 
 **注意事项: 事件多次触发问题:**
 - 1. 当存在多个属性过渡变化时，结束时会多次触发transitionend事件。
 - 2. 在transiton动画完成前设置display:none，事件不会触发。
 - 3. 当transition完成前移除transition一些属性时，事件也不会触发
 - 4. 元素从display:none到block，不会有过渡，导致无法触发transitionend事件
-<!-- 
-    .demo{
+
+> 示例:
+```css
+    .demo {
         width:100px;
         height: 100px;
         background-color: #ddc;
         transition: all 0.5s ease-out;
     }
-    .w200{
+
+    .w200 {
         width: 200px;
         background-color: #fef;
     }
-
+```
+```js
     var element = document.getElementById('demo')
     element.addEventListener('transitionend', handle, false)
     function handle(){
         alert('transitionend事件触发')
     }
+
     function change() {
         element.className = element.className === 'demo' ? 'demo w200': 'demo'
     }
- -->
+```
+
 
 > 解决方式:
 - 元素从none到block，刚生成未能即时渲染，导致过渡失效。
 - 所以需要主动触发页面重绘，刷新DOM。
+
 - 页面重绘可以通过改变一些CSS属性来触发，例如：offsetTop、offsetLeft、offsetWidth、scrollTop等。
 
-- 1、通过定时器延迟渲染
-<!-- 
+- 1. 通过定时器延迟渲染
+```js
     function change() {
         element.className = element.className === 'demo' ? 'demo opt': 'demo'
-        if(element.className === 'demo'){
-                    element.style.opacity = null
-                button.innerHTML = '点击'
-        }else{
+
+        if(element.className === 'demo') {
+            element.style.opacity = null
+            button.innerHTML = '点击'
+        } else {
+            // 这
             setTimeout(function(){
                 element.style.opacity = '1'
                 button.innerHTML = '重置'
             },10)
         }
     }
- -->
+```
 
-- 2、强制获取当前内联样式
-<!-- 
+- 2. 强制获取当前内联样式
+```js 
 function change() {
     element.className = element.className === 'demo' ? 'demo opt': 'demo'
     if(element.className === 'demo'){
                 element.style.opacity = null
             button.innerHTML = '点击'
-    }else{
-        // setTimeout(function(){
-        //     element.style.opacity = '1'
-        //     button.innerHTML = '重置'
-        // },10)
+    } else {
+
+        // 强制读取内联样式
         window.getComputedStyle(element, null).opacity
         element.style.opacity = '1'
         button.innerHTML = '重置'
     }
 }
- -->
+```
 
 - 3、触发重绘刷新DOM
-<!-- 
+```js
 function change() {
     element.className = element.className === 'demo' ? 'demo opt': 'demo'
-    if(element.className === 'demo'){
+    if(element.className === 'demo') {
                 element.style.opacity = null
             button.innerHTML = '点击'
-    }else{
-        // setTimeout(function(){
-        //     element.style.opacity = '1'
-        //     button.innerHTML = '重置'
-        // },10)
-        // window.getComputedStyle(element, null).opacity
-
-        // 这个很简单啊
+    } else {
+        
+        // 触发重绘
         element.clientWidth;
         element.style.opacity = '1'
         button.innerHTML = '重置'
     }
 }
- -->
+```
 
 ----------------
 
 ### new Image()宿主对象
 > 生成图片的3中方式:
 - 1. 方式一: 将 img标签字符串 填入body中 innerHTML方式
-<!-- 
+```js 
     function a() {
         document.getElementById("d1").innerHTML = "<img src='http://baike.baidu.com/cms/rc/240x112dierzhou.jpg'>";
     }
+
     a();
- -->
+```
 
 - 2. 方式二: 创建img标签 给src属性赋值 然后appenChild
-<!-- 
+```js
     function b() {
         var d1 = document.getElementById("d1");
         var img = document.createElement("img");
@@ -1542,68 +2039,17 @@ function change() {
         d1.appendChild(img);
     }
     b();
- -->
+```
 
 - 3. 方式三: 创建image对象
-<!-- 
+```js 
     function c() {
         var cc = new Image();
         cc.src = "http://baike.baidu.com/cms/rc/240x112dierzhou.jpg";
         document.getElementById("d1").appendChild(cc);
     }
     c();
- -->
-
-> Image()对象
-- Image 对象是 JS 中的宿主(或内置)对象，它代表嵌入的图像。当我们创建一个 Image 对象时，就相当于给浏览器缓存了一张图片
-
-> 应用场景
-- Image 对象也常用来做预加载图片（也就是将图片预先加载到浏览器中，当浏览图片的时候就能享受到极快的加载速度）。
-- 在HTML页面中，<img> 标签每出现一次，也就创建了一个 Image 对象。
-
-- HTML代码的加载 和 图片的加载是同时的，虽然 图片已经进行过预加载，但是尽管这样 加载的速度 相比较 HTML 代码的加载速度 还是要慢一些的。
-- 就需要用 Image对象中的 onload事件来解决这个问题了。。
-
-> Image对象应用
-- 创建一个Image对象：
-<!-- var img =new Image();    -->
-
-- 定义Image对象的src: a.src=”xxx.gif”; 这样做就相当于给浏览器缓存了一张图片。
-
-> 图像对象：
-- 语法: 
-- 建立图像对象：图像对象名称=new Image([宽度],[高度])
-
-> 图像对象的属性： 
-- border  
-- complete  
-- height  
-- hspace  
-- lowsrc  
-- name  
-- src  
-- vspace  
-- width
-
-> 图像对象的事件：
-- onabort onerror onkeydown onkeypress onkeyup onload
-<!-- src 属性一定要写到 onload 的后面，否则程序在 IE 中会出错 -->
-
-> Image对象的complete 属性
-- 来检测图像是否加载完成
-<!-- 
-    每个Image对象都有一个complete属性，当图像处于装载过程中时，该属性值false
-
-    当发生了onload、onerror、onabort中任何一个事件后，则表示图像装载过程结束（不管成没成功），此时complete属性为true
- -->
-
-<!-- 
-    img.complete ? oDiv.style.display = "none" : (oImg[0].onload = function() {oDiv.style.display = "none"})
--->
-
-> image对象的src
-- 当我的src指向一个地址时 我会发送请求去拿它, 这是浏览器自己会做的
-- img.src = arr[i];
+```
 
 ----------------
 
@@ -1613,59 +2059,71 @@ function change() {
 <div id="div-02">Here is div-02</div>
 <div id="div-03">Here is div-03</div>
 
+```js
 var el = document.getElementById('div-02');
 el.remove();
+```
 
 ----------------
 
 ### try和catch的用法
+
 > 执行规则：
 - 首先执行try中的代码 如果抛出异常会由catch去捕获并执行
 - 如果没有发生异常 catch去捕获会被忽略掉 但是不管有没有异常最后都会执行。
 
-- try       语句使你能够测试代码块中的错误。
-- catch     语句允许你处理错误。
-- throw     语句允许你创建自定义错误。（抛出错误）
-- finally   使你能够执行代码，在 try 和 catch 之后，无论结果如何。
+- try
+    语句使你能够测试代码块中的错误。
+- catch
+    语句允许你处理错误。
+- throw
+    语句允许你创建自定义错误。（抛出错误）
+- finally
+    使你能够执行代码，在 try 和 catch 之后，无论结果如何。
 
-<!-- 
-    try{
+```js
+    try {
         代码块；
         throw "字符"   //抛出错误
 
     //抓住throw抛出的错误
-    }catch(参数){      
+    } catch(参数) {      
             //处理错误并执行
 
-    }finally{
+    } finally {
             //无论try catch结果如何还是继续执行
     }
- -->
+```
 
 > 实例:
-<!-- 
-    <p>请输出一个 5 到 10 之间的数字:</p>
-    <input id="demo" type="text">
-    <button type="button" onclick="myFunction()">测试输入</button>
-    <p id="mess"></p>
-    
-    function myFunction(){
-        try{ 
-            var x=document.getElementById("demo").value;  // 取元素的值
-            
-            if(x=="")    throw "值为空";       //根据获取的值，抛出错误
-            if(isNaN(x)) throw "不是数字";
-            if(x>10)     throw "太大";
-            if(x<5)      throw "太小";
-        }
-        catch(err){
-            var y=document.getElementById("mess");     //抓住上面throw抛出的错误，给p标签显示
-            y.innerHTML="错误：" + err + "。";
-        } finally {
-            document.getElementById("demo").value = "";
-        }
+```html
+<p>请输出一个 5 到 10 之间的数字:</p>
+<input id="demo" type="text">
+<button type="button" onclick="myFunction()">测试输入</button>
+<p id="mess"></p>
+
+<script> 
+function myFunction(){
+    try { 
+        // 取元素的值
+        var x = document.getElementById("demo").value;  
+
+        //根据获取的值，抛出错误
+        if(x=="")    throw "值为空";       
+        if(isNaN(x)) throw "不是数字";
+        if(x>10)     throw "太大";
+        if(x<5)      throw "太小";
+    } catch(err) {
+        //抓住上面throw抛出的错误，给p标签显示
+        var y = document.getElementById("mess");     
+        y.innerHTML="错误：" + err + "。";
+
+    } finally {
+        document.getElementById("demo").value = "";
+    }
 }
- -->
+ </script> 
+```
 
 ----------------
 
@@ -1675,94 +2133,72 @@ el.remove();
 
 - 伪协议 
     是一种非标准化的协议, Javascript: 
-<!-- 
-    // 通过一个链接来调用Javascript函数 
+
+```html
+    <!-- 通过一个链接来调用Javascript函数  -->
     <a href='javascript:popUp('http://www.example.com')'>Example</a>
 
-    在HTML文档里通过javascript: 调用js代码的做法非常不好
--->
-
-----------------
-
-### 对象检测
-- 网站的访问者可能未启用js, 或者老旧浏览器不支持DOM的方法和属性, 所以要检测浏览器对js的支持程度
-
-- 把某个方法打包在一个if语句里, 就可以根据这条语句的条件表达式的求值结果是true 还是false来决定应该采取怎样的行动
-
-> 思路1: 如果支持某个方法
-- 测试条件 '如果你理解这个方法 ... '
-- 比如检测是否有getElementById()方法
-<!-- 
-    if(document.getElementById){
-        using getElementById()
-    }
-
-    检测用户所使用的浏览器是否支持这个方法, 使用对象检测时, 一定要删掉方法名后面的圆括号, 如果不删掉, 测试的将是方法的结果
- -->
-
-> 思路2: 如果不支持某个方法
-- 把测试条件改为 '如果你不理解这个方法, 请离开'
-<!-- 
-    if(!method){
-        return false;
-    }
-
-    使用 return 语句来实现, 相当于中途退出函数, 所以让它的返回值为false比较贴切
- -->
+    <!-- 在HTML文档里通过javascript: 调用js代码的做法非常不好 -->
+```
 
 ----------------
 
 ### 性能考虑
-> 尽量少访问DOM 和 尽量减少标记(减少在HTML文档中写没有用的结构)
+> 尽量少访问 DOM 和 尽量减少标记(减少在HTML文档中写没有用的结构)
 - 只要是查询DOM中的某些元素, 浏览器都会搜索整个DOM树, 从中查找可能匹配的元素, 我们可以尽量应用变量, 把第一次搜索到的结果保存到变量里 重复使用
-<!-- 
+```js
+
     if(document.getELementsByTagName('a').length > 0){
         let links = document.getElementsByTagName('a');
         for(let i = 0; i<links.length; i++){  }
     }
 
-    这里使用了两次document.getElementsByTagName('a'), 浏览器就搜索了两次DOM树
-
+    // 这里使用了两次document.getElementsByTagName('a'), 浏览器就搜索了两次DOM树
     ↓
 
     let links = document.getELementsByTagName('a');
     if(links.length>0){
 
     }
-
- -->
+```
 
 ----------------
 
 ### window.open(url, name, features)方法
 - 使用open()方法来创建新的浏览器窗口
+
 - 参数:
-- url:      新窗口的地址(如果省略将会是一个空白的页面)
+- url:
+    新窗口的地址(如果省略将会是一个空白的页面)
+
 - name:     
     新窗口的名字, 通过这个name可以在代码里与新窗口进行通信
 
 - features: 
     新窗口的各种属性(新窗口的尺寸, 新窗口被弃用或禁用的各种浏览器功能(工具条, 菜单条, 初始显示位置等))
-<!-- 
+
+```js 
     function popUp(winURL){
         window.open(winURL, 'popUp', 'width=320, height=480');
     }
-    这个函数将打一个320 * 480的新窗口 名字为popUp
- -->
+    // 这个函数将打一个320 * 480的新窗口 名字为popUp
+```
 
 ----------------
 
 ### 获取视口的尺寸
 - 不是根标签的可视区域 就是视口的大小 可以说是分辨率
 - 正常我们的可视区域是到padding 但是它就是视口大小 不受marginpadding的影响
-
+```js
 let w = document.documentElement.clientWidth;
 let h = document.documentElement.clientHeight; 
+```
 
 - 这个规则跟普通的clientWidth一样，到padding 比如分辨率是1366 我加了margin50，下面拿到的就是1266 上面拿到的就是1366
 
-
+```js
 let w = document.documentElement.offsetWidth
+```
 
 绝对位置：到body距离（html和body之间的margin要清除）
 
@@ -1919,50 +2355,36 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 
 ### 清空数组的技巧
 - 1. 赋空值     相当于将数组引向一个空对象
-<!-- 
+```js 
   let hd = [1,2,3]
   hd = []
- -->
+```
 
 - 2. 修改长度   修改原数组 彻底清除数组的好方式
-<!-- 
+```js 
   let hd = [1,2,3]
   hd.length = 0
- -->
+```
 
 - 3. 使用splice()
-<!-- 
+```js 
   let hd = [1,2,3]
 
   // 从0开始往后删除
   hd.splice(0)
- -->
- 
-----------------
-
-### 获取复数节点
-- 通过一些方法获取到复数节点 都是伪数组 这时候我们想使用一些数组才能应用的方法的时候
-- 就需要给它转成真正的数组
-
-- ...运算符应该也好用但是实测失败了 等找找原因后再继续补充
-<!-- 
-    let lis = document.getElementsByTagName("li")
-    Array.from(lis).forEach(el => {
-        console.log(el.innerHTML)
-    });
- -->
+```
 
 ----------------
 
 ### 判断是否是数组还是对象
 > Object.prototype.toString.call(目标对象)
-<!-- 
+```js 
     let objRes = Object.prototype.toString.call(obj)
     console.log(objRes)     // "[object Object]"
 
     let arrRes = Object.prototype.toString.call(arr)
     console.log(arrRes)     // "[object Array]"
- -->
+```
 
 ----------------
 
@@ -1992,7 +2414,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 
 ### 递归函数的定义
 - 通过递归的形式 获取角色下所有三级权限的id 并保存到 defKeys 数组中
-<!-- 
+```js  
     getLeafKeys(node, arr) {
     // node用来判断是否是3级权限节点 是否为3级节点我们可以判断它是否包含children属性
 
@@ -2006,58 +2428,12 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
       })
     }
   }
- -->
-
-----------------
-
-### 异步延迟函数
-- 要点
-- 就是在 async 函数里面做
-- 我们定义的延迟函数前加上 await
-
-- 应用场景
-- 老师这里用的是异步延迟 在a b之间使用这个方法做这个事 只有到达时间我们才返回一个成功的状态
-<!--
-    function delay(interval = 0) {
-        return new Promise(resolve => {
-
-            let timer = setTimeout(_ => {
-                clearTimeout(timer);
-                resolve()
-            }, interval)
-        })
-    }
--->
-<!--
-     async handleChange(e) {
-      let file = e.raw;
-      if (!file) return;
-
-      this.show = false
-      let loadingIntance = Loading.service({
-          text: "小主请您稍等片刻 奴家正在玩命处理当中",
-          background: "rgba(0,0,0,.5)"
-      })
-      
-      因为await本身也是异步的 如果他不返回成功状态下面的走不了 所以这里多等待了100ms 也就是说我们先让loading出来 100ms后解析数据 然后将数据展示在页面当中 然后关闭loading
-      await delay(100)
-     
-      let data = await readFile(file)
-
-      .......
-
-
-      为了防止页面解析太快 我们再等待100ms
-      await delay(100)
-      this.show = true
-      this.tableData = arr
-      loadingIntance.close()
--->
+```
 
 ----------------
 
 ### 检查重复字符串
-<!-- 
+```js  
     let str = "ca"
 
     function checkStr(str) {
@@ -2070,9 +2446,9 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     }
 
     console.log(checkStr(str))
- -->
 
-<!-- 
+
+
     let str = "abbbc"
     let o = {}
     for(let i=0; i<str.length; i++) {
@@ -2085,9 +2461,9 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     console.log(o)
     let res = Object.values(o)
     console.log(res);
- -->
 
-<!-- 
+
+
     let str = "abcc"
 
     function checkStr(str) {
@@ -2107,50 +2483,24 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     
     let res = checkStr(str)
     console.log(res);
- -->
-
-----------------
-
-### 三元表达式的连续写法
-- react中的应用 可以根据变量的状态来决定到底显示哪个结构
-<!-- 
-    isFirst ? <h3>欢迎使用, 输入关键字, 随后点击搜索</h3> :
-    isLoading ? <h3>Loading...</h3> :
-    err ? <h3>{err}</h3> : 
-    users.map...
- -->
-
-----------------
-
-### 解析url中的查询字符串
-<!-- 
-    // 解析url中的查询字符串
-    function decodeQuery(){
-        var search = decodeURI(document.location.search);
-        return search.replace(/(^\?)/, '').split('&').reduce(function(result, item){
-            values = item.split('=');
-            result[values[0]] = values[1];
-            return result;
-        }, {});
-    }
- -->
+```
 
 ----------------
 
 ### iframe 相关
 > 获取父网页中的iframe
-<!-- 
+```js 
     myFrame = window.frames[ifname的name名或者id之类的吧].document
- -->
+```
 
 > iframe也有onload事件
-<!-- 
+```js 
     let main_frame = $('.main_frame')
     main_frame.on('load', function() {
         let doc = window.frames['main_frame'].document
         main_frame.css('height', `${doc.documentElement.scrollHeight}px`)
     })
- -->
+```
 
 ----------------
 
@@ -2164,13 +2514,13 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 -
 - 解决办法:
 - 使用了 iframe.onload事件 当iframe加载完毕之后, 读取iframe内部网页的高度然后把值设置给iframe框架
-<!-- 
+```js
     let main_frame = $('.main_frame')
     main_frame.on('load', function() {
         let doc = window.frames['main_frame'].document
         main_frame.css('height', `${doc.documentElement.scrollHeight}px`)
     })
- -->
+```
 
 
 > 问题2:
@@ -2184,20 +2534,20 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 - 也可以是子网页向父网页发送数据
 
 > 接收方
-<!-- 
+```js 
     window.addEventListener('message', function(e) {
         if(e.orgin !== '目标网址') {
             return
         }
         event.data就是数据
     })
- -->
+```
 
 > 发送方
 - 这个是子网页(iframe里的)向父网页中发射数据, window.parent
-<!-- 
+```js 
     window.parent.postMessage(data, 'https://127-:5000')
- -->
+```
 
 ----------------
 
@@ -2206,14 +2556,20 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 ----------------
 
 ### 数组 和 字符串之间的灵活运用
-<!-- 
-    let arr = [
-      {id:1, name:'sam', age:9}
-    ]
+- 不知道干啥的
+
+```js
+let arr = [
+    {
+        id:1, 
+        name:'sam', 
+        age:9
+    }
+]
 
     for(let item of arr) {
       let data = Object.keys(item)
-      data.some(value=> {
+      data.some(value => {
         String(item[value]).toLocaleUpperCase().indexOf 
       })
     }
@@ -2226,14 +2582,14 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
         })
       })
     }
- -->
+```
 
 ----------------
 
 ### 关于模块之间的数据传递
 - 我们有的时候需要将一个模块中的数据传递到另一个模块 可以通过回调函数的方式
-<!-- 
-    A模块 在函数中创建两个函数形参 通过函数形参的方式将结果回调出去
+```js 
+    // A模块 在函数中创建两个函数形参 通过函数形参的方式将结果回调出去
     function request(config, success, failure) {
         instance(config)
             .then(res => {
@@ -2248,7 +2604,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
         })
     }
 
-    B模块接收的时候, 传入函数 形参就是A模块传递的实参
+    // B模块接收的时候, 传入函数 形参就是A模块传递的实参
     request({
         url: 'home/multidata'
 
@@ -2263,12 +2619,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
         // 这里就是请求失败的错误对象err是axios回调出来的
         console.log(err)
     })
- -->
-
-----------------
-
-### 有这个类的判断方式
-- if(sHandler.indexOf('comment_up')>=0)
+```
 
 ----------------
 
@@ -2284,7 +2635,6 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 - 1. 禁用缩放, 浏览器禁用默认的双击缩放行为 并且去掉300ms的点击延迟
 <!-- 
     <meta name='viewport' content='user-scalable=no'>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
  -->
 
@@ -2294,7 +2644,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
     - 当我们手指离开屏幕, 又会产生一个时间, 用离开的时间减去触摸的时间
     - 如果时间小于150ms 并且没有滑动过屏幕 那么我们就定义为点击
 
-<!-- 
+```js
     // 封装tap 解决click 300ms 延迟
     function tap(obj, callback) {
 
@@ -2324,7 +2674,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 
     // 调用
     tap(div, function() {  执行代码 ... })
- -->
+```
 
 > 方法2 一次只能给一个元素解决这个问题 如果页面有100个元素 就得调用100次
 > 方法3
@@ -2339,8 +2689,7 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 <div onselectstart="return false;" ></div>
 
 - react中
-- 用css解决
-    user-select:none
+- 用css解决 user-select:none
 
 ----------------
 
@@ -2361,112 +2710,24 @@ ele.style.cssText+=';width:300px;height:200px;border:1px solid red;'
 
 ----------------
 
-### 防抖函数
-- 为了防止用户误操作, 或者多次提交表单, 多次付款操作, 我们要设置防抖
-
-- 核心思路:
-- 如果在规定时间内又有点击事件, 那么就重新返回到清除延时的操作
-- 然后再次设置延时调用
-- 如果在规定时间内没有点击, 那么就可以执行表单的提交了
-<!-- 
-    5秒内不管多少次操作只会成为一次, 因为5秒内只要有事件的触发 就会重新计时, 5秒后才会提交
- -->
-> 第一步 设置两个函数 1.点击事件后的处理函数  2.防抖函数(定义形参, 实参接收事件处理函数) 并且把事件的处理函数放到防抖函数内部
-<!-- 
-    function payMoney() {
-        console.log('我买完了');
-    }
-
-    function debounce(fn) {
-        fn();
-    }
-
-    btn.addEventListener('click', debounce(payMonry));
- -->
-
-> 第二步 在防抖函数里添加setTimeout1
-- 要点1: timer要定义在返回函数外面
-- 要点2: 为了不让点击自动调用函数, 要在函数内部返回函数的方式
-- 要点3: 在返回函数内部 保存this
-- 要点4: 在返回函数内部 创建参数变量 值为arguments
-- 要点5: 调用事件的处理函数时 使用apply()方法
-
-<!-- 
-    function debounce(fn, delay) {
-        let timer;                  // 2
-
-        return function() {         // 1
-            let that = this;        // 3
-            let args = arguments;   // 4
-            clearTimeout(timer);
-            timer = setTimeout(function() {
-                fn.apply(that, args);   // 5
-            }, delay)
-        }
-    }
- -->
-
-
-### 节流函数
-<!-- 
-    function coloring() {
-    let r = Math.floor(Math.random() * 255);
-    let g = Math.floor(Math.random() * 255);
-    let b = Math.floor(Math.random() * 255);
-    document.body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-}
-
-function throttle(func, delay) {
-    let pre = 0;
-    return function() {
-        let now = new Date();
-        let that = this;
-        let args = arguments;
-        if(now - pre > delay) {
-            func.apply(that, args);
-            pre = now;
-        }
-    }
-}
- -->
-
-----------------
-
-### 正则
-// 对目标文本后面的情况作为条件
-// 查找abc 条件是abc的后面是d
-> let reg1 = /abc(?=d)/g
-
-// 查找abc 条件是abc的后面不是d
-> let reg2 = /abc(?!d)/g
-
-// 对目标文本前面的情况作为条件
-// 查找d 条件是d的前面是abc
-> let reg3 = /(?<=abc)d/g
-
-// 查找d 条件是d的前面不是abc
-> let reg4 = /(?<!abc)d/g
-
-----------------
-
 ### exec 和 match 的区别
-<!-- 
-    // 调用方法不一样 
-    match是字符串的方法, 调用的方式是str.match()
+- 1. match是字符串的方法, 调用的方式是str.match()
+- 2. exec是正则的方法, 调用的方式是reg.exec()
 
-    exec是正则的方法, 调用的方式是reg.exec()
+- 相同点:
+- match和exec在匹配成功时返回的都是数组, 在没有匹配上时返回的都是null
 
-    - 相同点:
-    match和exec在匹配成功时返回的都是数组, 在没有匹配上时返回的都是null
+- 不同点:
+- 当不使用g的时候, 返回结果都是第一次查询到的结果
+- 当使用g的时候, match会返回所有匹配的内容, 而exec仅匹配第一次匹配的内容
 
-    - 当不使用g的时候, 返回结果都是第一次查询到的结果
-    - 当使用g的时候, match会返回所有匹配的内容, 而exec仅匹配第一次匹配的内容
+- 当进行多次匹配时, exec会从匹配结束的下一位开始匹配，返回本次匹配上的内容，直至无可以匹配的内容，返回null
 
-    - 当进行多次匹配时, exec会从匹配结束的下一位开始匹配，返回本次匹配上的内容，直至无可以匹配的内容，返回null
     - 变量名1 = reg.exec(str)
     - 变量名2 = reg.exec(str)
     - 这就是多次
 
+```js 
     let str = 'aaa bbb ccc';
     let reg = /[a-z]{3}/g;
 
@@ -2481,59 +2742,47 @@ function throttle(func, delay) {
     // let reg = /(ha)/g;
     // let result = str.match(reg);
     // console.log(result)
- -->
-
-----------------
-
-### 判断一个对象是否有该属性 对象['属性名']
-
-----------------
-
-### 在全局定义 定时器的变量名时 最好 let timer = null;
-- 如果是let timer 的话 值为undefined 可能会引起别的问题
+```
 
 ----------------
 
 ### 让页面滚动到指定位置
 > window.scroll(x, y);
 - 可以让窗口的滚动到指定位置
-- 不用加单位 直接写数字即可
-    window.scroll(0, 100)
+- 不用加单位 直接写数字即可 window.scroll(0, 100)
 
 ----------------
 
 ### 节流阀
-> 当一个动画结束后再执行下一个
-> 需要flag变量 和 回调函数搭配使用
+
+> 要点:
+- 1. 当一个动画结束后再执行下一个
+- 2. 需要flag变量 和 回调函数搭配使用
+
 > if(flag){flag = false} --- 回调函数里( flag = true)
 - 防止轮播图按钮连续点击造成播放过快
-- 节流阀目的: 当上一个函数动画内容执行完毕, 再去执行下一个函数动画, 让事件无法连续触发
+- 节流阀目的: 
+    当上一个函数动画内容执行完毕, 再去执行下一个函数动画, 让事件无法连续触发
 
-- 核心思路: 利用回调函数, 添加一个变量来控制, 锁住函数 和 解锁函数
-- 在某些条件下 关上水龙头 在某些条件下打开水龙头
+- 核心思路: 
+    利用回调函数, 添加一个变量来控制, 锁住函数 和 解锁函数
+    在某些条件下 关上水龙头 在某些条件下打开水龙头
 
-<!-- 
+```js
     // 开始
-
     let flag = true;
+
     if(flag) {
         flag = false;
-
         do somethind;   
     }
 
     // 如果flag为true 进来我就给你变成false 锁住函数 然后可以做一些事情 现在就相当于水龙头已经关闭了 当再次点击的时候 你就没办法再放水了 因为是false了,if(flag) 为false了 就没办法执行里面的代码了 就没办法播放图片了
 
-    // 但不能一直不播放啊 什么情况下可以播放呢?
-    利用回调函数 动画执行完毕, flag = true > 打开水龙头
+    // 但不能一直不播放啊 什么情况下可以播放呢? 利用回调函数 动画执行完毕, flag = true > 打开水龙头 这时候我们又进入的新的开始
+```
 
-    这时候我们又进入的新的开始
- -->
-
-<!-- 
-    以右侧按钮为例
-
-
+```js
     let flag = true;
 
     arrowR.addEventListener('click', function () {
@@ -2558,21 +2807,21 @@ function throttle(func, delay) {
             circleChange();
         }
     });
- -->
+```
 
 ----------------
 
 ### 克隆节点的优势
 - 动态生成节点, 目前用法: 克隆 轮播图的第一张图片的节点 让它实现无缝轮播
-
-<!-- 定义一个变量 -->
+```js
+// 定义一个变量
 let num = 0;
 
-<!-- 克隆第一张图片放到ul的最后面 -->
+// 克隆第一张图片放到ul的最后面
 let first = ul.children[0].cloneNode(true);
 ul.appendChild(first);
 
-<!-- 完成点击按钮滚动图片的功能 -->
+// 完成点击按钮滚动图片的功能
 arrowR.addEventListener('click', function () {
     if(num >= ul.children.length-1){
         ul.style.left = 0;
@@ -2581,18 +2830,14 @@ arrowR.addEventListener('click', function () {
     num++;
     animate(ul, -num*focusWidth);
 });
-<!-- 
+/*
     点击到下一张肯定需要一个变量和图片的宽度(移动距离)联系起来, 下一张就是一个变量自增1 
--->
 
-<!-- 无缝滚动 点击最后一张会回到第一张 -->
-<!-- 
+    无缝滚动 点击最后一张会回到第一张
     实现方式: 
     1 2 3 1
     在3的后面再放一张跟1一样的图片 当到最后一张1的时候 让ul的left直接为0
--->
 
-<!-- 
     对上面初步完善的功能进行改善
     1. 我们是在html结构里克隆的li, 这样导致了导航点多了一个
     2. 能不能让js克隆一份放在最后面呢?
@@ -2605,7 +2850,8 @@ arrowR.addEventListener('click', function () {
     因为我们克隆的方法 写在了 动态生成导航点的下面
 
     这种方法实现了两个功能一个是导航点不会多, 又是动态生成
--->
+*/
+```
 
 ----------------
 
@@ -2614,96 +2860,12 @@ arrowR.addEventListener('click', function () {
 - pink轮播 自动播放的部分 实现的逻辑就是点击右侧按钮的逻辑 所以使用了元素对象.click() 这样可能就会调用这个元素对象身上的事件
 
 - 比如 想让定时器自动调用一个事件
+```js
 let timer = setInterval(function(){
     // 手动调用点击事件
     arrowR.click();
 }, 2000)
-
-----------------
-
-### 缓动动画
-- 核心算法: 
-    (目标值 - 现在的位置) / 10
-<!-- 作为每次移动的距离 (我们称之为步长) -->
-> 匀速动画 就是 盒子当前的位置 + 固定的值
-> 缓动动画 就是 盒子当前的位置 + 变化的值(目标位置 - 现在位置) / 10
-<!-- 变化在值 在定时器里面写 -->
-
-<!-- 
-    之所以是匀速运动就是因为
-    obj.style.left = obj.offsetLeft + 1 + 'px';
-
-    1的值是固定的, 我们把这个步长值改为一个慢慢变小的值
-    obj.style.left = obj.offsetLeft + step + 'px';
- -->
-
-----------------
-
-### window.pageYOffset 页面被卷进去的距离
-
-> window.pageYOffset / pageYOffset
-> window.pageXOffset / pageXOffset
-- 这两个属性 可以获取 页面被卷去了多少
-- 设置或返回当前页面相对于窗口显示区左上角的 X 位置。
-- 设置或返回当前页面相对于窗口显示区左上角的 Y 位置。
-
-- 页面被卷去的头部(scrollTop) 可以通过window.pageYOffset获得, 如果是被卷去的左侧 window.pageXOffset 
-
-> 注意: 
-- 元素的内容被卷进去多少是 ele.scrollTop获取的, 比如是某个盒子被卷进去多少
-- 如果是页面被卷进去多少则是window.pageYOffset
-
-> 兼容性注意:
-- 页面被卷去的头部, 有兼容性问题, 因此被卷去的头部通常有如下的几种写法
-
-> 声明了DTD 使用document.documentElement.scrollTop;
-
-> 未声明DTD 使用document.body.scrollTop;
-
-> 新方法    window.pageYOffset / pageYOffset  ie9以上支持
-
-> 自定义函数写法(pink)
-<!-- 
-    function getScroll() {
-        return {
-            left:window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0,
-
-            top:window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
-        }
-    }
-
-    // 使用的时候
-    getScroll().left / top
- -->
-
-> DTD
-- <!DOCTYPE html> 这个就是DTD 加上这个就可以使用 document.documentElement.scrollTop;
-
-
-> 最高兼容性写法(网上)
-<!-- 
-
-    \\判断是否支持 PageOffset (给 supportPageOffset赋值 true 或 false)
-    var supportPageOffset = window.pageXOffset !== undefined;
- 
-    \\检测浏览器渲染属性是否标准模式 (isCSS1Compat赋值 true 或 false)
-    var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
-    
-    \\如果不支持PageOffset，则要使用 scrollLeft; 
-    \\scrollLeft 根据浏览器模式（标准模式、怪异模式），使用不同语法
-            \\标准模式： document.documentElement 语法
-            \\怪异模式： document.body 语法
-    var x = supportPageOffset ? window.pageXOffset : isCSS1Compat ? document.documentElement.scrollLeft : document.body.scrollLeft;
-    
-    var y = supportPageOffset ? window.pageYOffset : isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop;
-
-    ----
-
-    var supportPageOffset = window.pageXOffset !== undefined;
-    var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
-    var x = supportPageOffset ? window.pageXOffset : isCSS1Compat ? document.documentElement.scrollLeft : document.body.scrollLeft;
-    var y = supportPageOffset ? window.pageYOffset : isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop;
--->
+```
 
 ----------------
 
@@ -2733,20 +2895,13 @@ var st = document.body.scrollTop || document.documentElement.scrollTop;
 > 具体的节点.nextSibling（也可能获取到空白文本）
 
 - 上述的方法都是能获取到空白文本的 所以我们可以使用nodeType来只获取元素节点
-<!-- 
+```js
     for(let i=0; i<ul.childNodes.length; i++) {
         if(ul.childNodes[i].nodeType == 1) {
             console.log(ul.childNodes[i]);
         }
     }
- -->
-
-----------------
-
-### 跳转另一个页面
-- location = "https://www.baidu.com";
-- window.location.href="你所要跳转的页面";
-- window.open('你所要跳转的页面');
+```
 
 ----------------
 
@@ -2767,7 +2922,7 @@ s = parseInt(总毫秒数 % 60);
 
 ### 全选选不选的两个思路
 > 方法一: 先定义一个变量 让全选的状态根据这个变量的状态来
-<!-- 
+```js 
     for(let i = 0; i<tbs.length; i++){
         tbs[i].onclick = function(){
 
@@ -2782,11 +2937,11 @@ s = parseInt(总毫秒数 % 60);
             cbAll.checked = flag;   
         }
     }
- -->
+```
 
 > 方法二:
 - 一上来就默认全选为选中状态, 然后根据判断里面的结果 更新全选按钮的状态
-<!-- 
+```js 
     for(var i=0 ; i<items.length ; i++){
         items[i].onclick = function(){
             
@@ -2799,7 +2954,7 @@ s = parseInt(总毫秒数 % 60);
             }
         };
     }
- -->
+```
 
 ----------------
 
@@ -2819,75 +2974,26 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
 ### 一个函数 两种情况都可以用的情况下 我们可以将 boolean值传递进去
 - 当 true 是一种效果
 - 当 false 是一种效果
-<!-- 
+```js 
     nextPage(false);
     
     function nextPage(next){
         let offset = next? -PAGE_WIDTH:PAGE_WIDTH;
     } 
--->
-
-----------------
-
-### if判断
-- 背景: 
-<!-- 
-    <div id='x' class="box1"></div>
-    <div class="box1" title='haha'></div>
-    <div class="box1"></div>
-    <div class="box1"></div>
-    <div class="box1"></div>
- -->
-- 我只想改变原本有title属性值为haha的元素
-<!-- 
-    let divs = document.getElementsByTagName('div');
-    for(let i = 0; i<divs.length; i++){
-        let titleText = divs[i].getAttribute('title');
-        
-        //上面得到了所有的div的title属性值, 有haha 有null, 进入下面的判断过滤了null的, 进入判断的是有title haha的值
-        if(titleText){
-            divs[i].setAttribute('title', 'heihei');
-
-            //这个divs[i], 竟然不是所有的 而只是title heihei
-            console.log(divs[i])
-        }
-
-        if(titleText){
-            divs[i].setAttribute('title', 'heihei');
-            console.log(divs[i].getAttribute('title'));
-        };
-}
- -->
-
-> 只改变符合 className 为 img-wrapper 的元素
-<!-- 
-    if(divs[i].className === 'img-wrapper')
-
-    if(divs[i].getAttribute('class') === 'img-wrapper')
- -->
+```
 
 ----------------
 
 ### 检查元素是否存在
 > 使用 nodeName 来检查一个元素是否存在, nodeName的值总是返回大写字母
-<!--
+```js
     if(eleObject.nodeName != 'IMG') { return false}
--->
+```
 
 > 使用nodeType 来检查一个元素是否存在 元素1 属性2 文本3
-<!-- 
+```js
     if(eleObject.nodeType == 3) { ... }
- -->
-
-----------------
-
-### getAttribute, setAttribute 的应用
-- 获取 图片的 href 地址, 然后通过setAttribute 设置给图片
-<!-- 
-    let source = this.getAttribute('href');
-    let showSite = document.getElementById('x');
-    showSite.setAttribute('src', source);
- -->
+```
 
 ----------------
 
@@ -2897,7 +3003,7 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
 - 1, 先通过getAttribute获取到<a>身上的 href 属性值(也就是地址)
 - 2, 把得到的地址 保存在变量中 source
 - 3, 再通过setAttribute设置<img>身上的 src 属性值
-<!-- 
+```html 
     页面结构:
     <ul>
         <li><a href="./links/1.jpg">第一张</a></li>
@@ -2908,10 +3014,10 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     </ul>
     
     <img src="./links/77.png" id='x' alt="">
- -->
+```
 
 - 我做了一个函数, 想用在 <a> 的事件回调中
-<!-- 
+```js 
     function showPic(obj){
         let source = obj.getAttribute('href');
         let showSite = document.getElementById('x');
@@ -2919,10 +3025,10 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
     };
 
     参数obj: 是<a>对象, 我要获取的是它身上的href
- -->
+```
 
 - 我想把这个函数 放入到 <a> 的事件回调中, 但是不知道传递什么实参进去
-<!-- 
+```js
     for(let i=0; i<allA.length; i++){
     allA[i].onclick = function(){
 
@@ -2933,96 +3039,44 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
         return false;
     };
 }
- -->
+```
+
 > ↑ 总结: 事件回调函数中的this 就是每一个 <a> 标签对象, 可以把this当做实参传递进去
-
-----------------
-
-### 巧用 apply()
-- 我们可以利用apply 借助于数学内置对象求最大值
-<!-- 
-    let arr = [1, 66, 3, 99, 4];
-    // 以前的话我们需要遍历数组
-
-    Math.max.apply()
-
-    Math.max是求数字中的最大值, 但是它求的是数字的 不是数组的 
-    Math.max()
-    Math.max.apply(null, arr)  我们可以写个空不需要改变this指向 
-    写null也不太好, 就好让它指向函数的调用者, Math调用的吧 
-    Math.max.apply(Math, arr)
-    让它重新指回Math
- -->
-
-----------------
-
-### 获取对象身上所有的属性名
-> Object.keys() 
-- 用于获取对象自身所有的属性名
-
-    Object.keys(obj)
-
-- 效果类似for...in
-- 返回一个由属性名组成的数组
-
-<!-- 
-    let obj = {
-        id:1,
-        pname:'小米',
-        price:1999,
-        num:2000
-    }
-    let arr = Object.keys(obj);   // [id, pname, price, num]
- -->
-
-----------------
-
-### for...in 遍历对象中的属性 
-- 它适合变量对象, 遍历的是键名 通过对象[键名]的方式获取属性值
-
-- for(var 变量 in 对象){  }
-- 变量: 属性名 / 索引值
-- 对象[变量]: 属性值
-<!-- 
-    let arr = ['name', 18, 'gender']
-    let newArr = [];
-    for(let item in arr){
-        newArr.push(arr[item]);
-    }
- -->
 
 ----------------
 
 ### for...of --- 遍历属性值
 - 它适合遍历数组 es6的新语法, 遍历的直接是属性值
-<!-- 
+```js
     const xiyou = ['唐僧', '孙悟空', '猪八戒'];
 
     // 使用for...of 遍历这个数组
     for(let value of xiyou){
         console.log(value);     
     }
- -->
+```
 
 > 自定义遍历目标
-- 1 现在对象内部定义接口, [Symbol.iterator](){}
-- 2 在[Symbol.iterator](){}函数内部, 先return一个对象
-<!-- 
+- 1. 现在对象内部定义接口, [Symbol.iterator](){}
+- 2. 在[Symbol.iterator](){}函数内部, 先return一个对象
+```js
     [Symbol.iterator](){
         return {}
     }
- -->
+```
+
 - 3 在return {}中, 创建next:function(){}
-<!-- 
+```js
     [Symbol.iterator](){
         return {
             next:function(){};
         }
     }
- -->
+```
+
 - 在next:function(){}中判断遍历是否完成, 如果index<要遍历的对象 那么done应该为false, else遍历完成, done应该为true, if else 中都要返回一个对象
 - 创建变量 index = 0; _this = this 让index++ 人为控制遍历下一个元素
-<!-- 
+```js
 [Symbol.iterator](){
     let index = 0;
     let _this = this;
@@ -3038,9 +3092,10 @@ element.className = element.className === 'demo' ? 'demo w200': 'demo';
             };
         }
     }
- -->
+```
+
 - 完整版如下:
-<!-- 
+```js 
 const banji = {
     name:'终极一班',
     stus:[
@@ -3074,20 +3129,7 @@ const banji = {
 for(let n of banji){
     console.log(n);
 }
- -->
-
-----------------
-
- ### for in 和 for of 的区别
-<!-- 
-    for in循环 for(let n in obj)
-        当中的 n 
-        数组    索引
-        对象    属性名
-
-    for of循环 for(let n of obj)
-        当中的 n 是属性名
- -->
+```
 
 ----------------
 
@@ -3095,7 +3137,7 @@ for(let n of banji){
 效果: 当系数为0时, 自增到100, 当到100时开始自减
 结果: 我们把结果除以一定的比例, 得到想到的范围, 比如 0-100 ---> 0-2
 > 1 2 3 4 5 4 3 2 1
-<!-- 
+```js 
 let num = 0;
 let ratio = 0;
 
@@ -3109,26 +3151,26 @@ setInterval(function(){
     num += ratio;
     console.log(num);
 }, 500);
- -->
+```
 
 > num % 5   0 1 2 3 4 0 1 2 3 4
-<!-- 
+```js 
     num++;
     num = num % 10;
     console.log(num);
- -->
+```
 
 ----------------
 
 ### 数组的用法
 > 把颜色保存在数组中, 利用下标赋值给对应的所有元素
-<!-- 
+```js 
     let color = ['red', 'yellow', 'blue', 'pink']
     span[i].style.color = color[i];
- -->
+```
 
 > 创建一个空数组, 一边往里注入信息, 一边循环往外取信息
-<!-- 
+```js 
     let arr = [];
 
     // 往数组中注入信息
@@ -3174,10 +3216,11 @@ setInterval(function(){
         });
 
     }, 1000);
- -->
+```
 
 > 循环读取信息
-<!-- 
+- canvas循环读取信息
+```js 
     setInterval(function(){
         // 每次上来都先清掉
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -3225,40 +3268,14 @@ setInterval(function(){
         // 颜色随机，位置随机
 
     },10);
- -->
-
-----------------
-
-### 获取下标的四种方式
-\\ aBtn[i].index=i;
-
-\\ let
-
-\\ 闭包
-<!-- 
-for(var i = 0;i<btns.length;i++){
-    (function(){
-        btn[i].click = function(){
-            console.log(i)
-        }
-    })();
-}
- -->
-
-----------------
-
-### ||   &&  两种书写格式代表的含义
-> event = event || window.event
-- 找false, 如果有 就用第一个, 如果没有 就用第二个
-
-> event && event()
-- 找true, 如果有event 你就调用event()
+```
 
 ----------------
 
 ### 怎么看图片加载完成
 ### 图片加载情况 和 开机动画关联
-<!-- 
+
+```js
 let flag = 0;
 
 for(let i=0; i<arr.length; i++){
@@ -3268,51 +3285,58 @@ for(let i=0; i<arr.length; i++){
     // 当我的src指向一个地址时 我会发送请求去拿它, 这是浏览器自己会做的
     img.src = arr[i];
 
-    // 既然现在是发请求拿数据, 那现在的 进度 怎么拿到
-    // 只要请求成功 就会触发下面的事情 图片加载成功
+    // 既然现在是发请求拿数据, 那现在的 进度 怎么拿到 只要请求成功 就会触发下面的事情 图片加载成功
     img.onload = function(){
         flag++;
         // 这段文字中的百分比是跟请求次数有关系的
         p.innerHTML = '已加载'+(Math.round(flag/arr.length)*100)+'%'
     };
+
     img.onerror = function(){
         console.log('地址有问题')
     };
 }
- -->
+```
 
 ----------------
 
 ### 在外部创建一个变量, 用来接收内部产生的结果
 ### 在外部创建一个变量, 用来默认一个结果, 在内部得到的结果来更新外部的变量
 > 应用场景1
-<!-- 
+```js 
     var flag = true;
+
+    // 什么情况下 修改 flag
     for(var i = 2; i<num; i++){
         if(num % i == 0){
             flag = false;
         }
     }
+
+    // 根据最终的flag来做什么样的处理
     if(flag){
         ...
-    }else{
+    } else {
         ...
     }
- -->
+```
 
 > 应用场景2
 - 要点 我先默认它为选中状态, 然后对它进行判断, 更改它的状态
-<!--
+```js
 for(i=0; i<items.length; i++){
     items[i].onclick = function(){
+        // 默认它是true
         checkedAllBox.checked = true;
+
         for(j=0; j<items.length; j++){
+            // 当某种场景下再修改它的值
             if(!items[j].checked){
                 checkedAllBox.checked = false; 
                 break;
         }
 }
--->
+```
 
 ----------------
 
@@ -3324,26 +3348,27 @@ console.time("") 和 console.timeEnd("")
 ### 判断滚动条是否到底
 > 当满足scrollHeight - scrollTop == clientHeight
 说明垂直滚动条 滚动到底了
+
 > 当满足scrollWidth - scrollLeft == clientWidth
 说明水平滚动条 滚动到底了
 
 ----------------
 
 ### 本身取反的用法
-<!-- 
+```js 
     if(items[i].checked){
         items[i].checked =false；
     }else{
         items[i].checked =true；
     }
     items[i].checked = !items[i].checked; 
--->
+```
 
 ----------------
 
 ### flag 和 switch配合使用
 > 场景1
-<!-- 
+```js
     let flag = '';
     if(event.wheelDelta){
         flag = event.wheelDelta>0?'up':'down';
@@ -3359,13 +3384,13 @@ console.time("") 和 console.timeEnd("")
         case 'down':
         break;
     } 
--->
-> 场景2
+```
 
-<!-- 
+> 场景2
+```js
     dir = event.keyCode; 
     switch(dir){ }
--->
+```
 
 ----------------
 
@@ -3373,12 +3398,14 @@ console.time("") 和 console.timeEnd("")
 > 在html标签结构中 设定标识, 配合Js应用
 - 解析：
 - 在html标签结构中添加了data-属性,用来动态的获取到属性值, 和网址关联在一起
+
 > 效果: 点哪个, 就播放对应的
-<!-- 
+```js 
 <li data-flag='g'>
     <a href="javascript">精彩回顾</a>
     <div class="nav-items-bg"></div>
 </li>
+
 for(let i=0; i<lis.length; i++){
     lis[i].addEventListener('mouseenter',function(){
     let flag = this.getAttribute('data-flag');
@@ -3388,33 +3415,32 @@ for(let i=0; i<lis.length; i++){
         }
     });
 }
- -->
+```
 
 ----------------
 
 ### 调整元素的高宽和视口一样
-<!-- 
+```js 
     video.width = document.documentElement.clientWidth;
     // 调整视频的高度 = 视口的高度 - 控件区域的高度
     video.height = document.documentElement.clientHeight - controls.offsetHeight;
-
- -->
+```
 
 ----------------
 
 ### 改变浏览器时, 重新获取元素的高宽
 > window.onresize = function(){};
-<!-- 
+```js 
     window.onresize = function(){
         video.width = document.documentElement.clientWidth;
         video.height = document.documentElement.clientHeight - controls.offsetHeight;
     };
- -->
+```
 
 ----------------
 
 ### 时间的获取
-<!-- 
+```js 
     let date = new Date();
     // 获取 秒
     let s = date.getSeconds();
@@ -3427,7 +3453,7 @@ for(let i=0; i<lis.length; i++){
 
     //现在的h是24小时制
     h = h>12?h-12:h;
- -->
+```
 
 ----------------
 
@@ -3464,28 +3490,12 @@ for(let i=0; i<lis.length; i++){
 
 ----------------
 
-### 保存this的场景 应用
-回调函数中的回调函数, 两个回调函数中的this不一致
-<!-- 
-function fn1(){
-
-    // 把外层函数作用域下的this保存
-    let _this = this;
-
-    function fn2(){
-    // 当内部函数调用_this时, 在当前作用域下找不到 就会往上找, 就找到了this
-        _this.style.background = 'pink'
-    }
-} -->
-
-----------------
-
 ### 数组对象的去重
 - https://www.jianshu.com/p/7c12cbaa817b
 
 
-### 利用indexOf() 进行的去重
-<!-- 
+> 利用indexOf() 进行的去重
+```js 
     var r,
     arr = ['apple', 'strawberry', 'banana', 'pear', 'apple', 'orange', 'orange', 'strawberry'];
 
@@ -3495,19 +3505,20 @@ function fn1(){
         return arr.indexOf(value) === index;
 
     });
--->
+```
 
 <!-- 
     indexOf()检查数组中某个指定的元素的位置
  -->
 
-> 数组去重的几种方式
+
+---
 
 - 旧数组: arr = ['c', 'a', 'z', 'a', 'x', 'a', 'x', 'c', 'b', ]
 
 > 方式一:
 - 思路: 我们遍历数组, 把前一个元素取出来和后一个元素比较相等 相等的话删掉后一个
-<!-- 
+```js
     for(let i=0; i<arr.length; i++){
         for(let j=i+1; j<arr.length; j++){
             if(arr[i] === arr[j]){
@@ -3518,11 +3529,11 @@ function fn1(){
     }
     arr.sort()
     console.log(arr);
- -->
+```
 
 > 方式二:
 - 思路: 使用arr.filter, 传入的函数会一次应用到每一个元素上,根据true和false来判断去留 我们用indexOf方法检查元素的第一次下标位置和下标相等不
-<!-- 
+```js 
     let newArr = arr.filter(function(value, index){
 
         if(arr.indexOf(value) === index){
@@ -3532,12 +3543,12 @@ function fn1(){
         }
     });
     console.log(newArr);
- -->
+```
 
 > 方式三: 
 - 思路: 遍历旧数组 然后拿着旧数组元素去查询新数组, 如果该元素在新数组里面没有出现过 我们就添加, 否则不添加
 - 使用indexOf 来判断该元素在新数组中存在与否, 如果结果为-1 说明新数组里面没有该元素
-<!-- 
+```js
 function unique(arr){
     let newArr = [];
     // 遍历旧数组
@@ -3550,16 +3561,16 @@ function unique(arr){
     }
     return newArr;
 }
- -->
+```
 
 ----------------
 
 ### 利用match() 检查目标内是否有相关文本, 如果有的话进行什么样的操作
-<!-- 
+```js 
     function changeImage(obj){
         if(obj.src.match('1.jpg')){
             obj.src = '../JS/JS_Study/links/2.jpg';
-        }else{
+        } else {
             obj.src = '../JS/JS_Study/links/1.jpg';
         }
         
@@ -3568,7 +3579,7 @@ function unique(arr){
     btn.onclick = function(){
         changeImage(image);   
     };
- -->
+```
 
 ----------------
 
@@ -3578,14 +3589,13 @@ function unique(arr){
 
 ----------------
 
-### 滚轮事件在多次触发时 影响用户体验
+### 滚轮事件在多次触发时 影响用户体验 (防抖)
 - 利用延迟定时器, 200ms后触发一个滚轮事件, 每次触发前清除上一次的定时器
-<!-- 
+```js
     if(content.addEventListener){
         content.addEventListener('DOMMouseScroll',function(event){
 
-        // 处理个问题，当鼠标滚轮滚动时，多次滚动只滚动一次, 触发事件时不是立即响应 而是等200ms才响应
-        // 只要触发事件在200ms之内 第二次触发的事件就会把第一次的清掉
+        // 处理个问题，当鼠标滚轮滚动时，多次滚动只滚动一次, 触发事件时不是立即响应 而是等200ms才响应 只要触发事件在200ms之内 第二次触发的事件就会把第一次的清掉
         event = event || window.event;
         
         clearInterval(timer);
@@ -3595,161 +3605,102 @@ function unique(arr){
 
     });
 } 
- -->
+```
 
 ----------------
 
-### 通过js创建标签
-> 利用for循环 创建标签
-<!-- 
+### 同时修改4张图片的位置
+
+    1, left:0   top:0           0       0
+    2, left:-w  top:0          -1       0
+    3, left:0   top:-h          0      -1
+    4  left:-w  top:-h         -1      -1
+
+```js
     for(let i=0; i<4; i++){
-        let liNode = document.createElement('li');
-        let imgNode = document.createElement('img');
-        
-        ul.appendChild(liNode);
-        liNode.appendChild(imgNode);
-
-        liNode.style.width = w+'px';
-        liNode.style.height = h+'px';
-
-        imgNode.src = src;
-    }
- -->
-
-> 同时修改4张图片的位置
-<!-- 
-    for(let i=0; i<4; i++){
-        1, left:0   top:0           0       0
-        2, left:-w  top:0          -1       0
-        3, left:0   top:-h          0      -1
-        4  left:-w  top:-h         -1      -1
-
-        imgNode.style.left =-(i%2)*w +'px'
+        imgNode.style.left = -(i%2)*w +'px'
         imgNode.style.top = Math.floor(i/2)*h +'px'
-
-### i%2 对下标 0 1 2 3 来说 -- i%2 的结果就是 0 1   0 1
-### i/2 对下标 0 1 2 3 来说 -- i/2 的结果就是 0 0.5 1 1.5 向下取整 0 1 0 1
     }
- -->
+```
+
+> i%2 对下标 0 1 2 3 来说 -- i%2 的结果就是 0 1   0 1
+> i/2 对下标 0 1 2 3 来说 -- i/2 的结果就是 0 0.5 1 1.5 向下取整 0 1 0 1
 
 ----------------
-
-### 数组的基础
 
 ### 筛选数组
-<!-- 
+```js
     let arr = [2,0,6,1,77,0,52,0,25,7];
     let newArr = [];
+    // 定义新数组的 index 初始值
     let j = 0;
 
     for(let i=0; i<arr.length; i++){
       if(arr[i] > 10){
-        // newArr[i] = arr[i];
         /* 
+          newArr[i] = arr[i];
+
           结果:
           (9) [empty × 4, 77, empty, 52, empty, 25] 
           当i为4时, arr[4]的值为77 > 10, 会把它存到newArr[4]里 所以从第5为开始存进去的
         */
 
-        // 也就是说新数组应该从0开始存 定义变量j = 0, 然后没存一次让j++一次
+        // 也就是说新数组应该从0开始存 定义变量j = 0, 然后每存一次手动让j++一次
         newArr[j] = arr[i];
         j++;
       }
     }
     console.log(newArr);
- -->
+```
 
 > length自动检测元素的变化
-<!-- 
+```js
     for(let i=0; i<arr.length; i++){
       if(arr[i] > 10){
-
         newArr[newArr.length] = arr[i];
       }
     }
- -->
+```
  
+----------------
 
 ### 反转数组
-<!-- 
+```js 
     let arr = ['pink', 'red', 'green', 'blue', 'purple'];
     let newArr = [];
 
-    /* 
-      i=arr.length-1
-      目的遍历arr, 下标从最后一个开始
-      i>=0
-      为了遍历出所有的元素, 得到0 一共5个元素 下标4 下标0为最后一个
-      i--
-    */
     for(let i=arr.length-1; i>=0; i--){
-      // 首先把第4个取过来, 第4个就是arr[i]
-      // 把第4个元素取过来后给新数组的第1个, 也就是newArr.length 新数组为空 length就是从0开始
-      newArr[newArr.length] = arr[i]
-
+        newArr[newArr.length] = arr[i]
     }
-    
-    /* 
-      思路:
-      把index为 4 的数组     给新数组   index为 0 的位置
-      把index为 3 的数组     给新数组   index为 1 的位置
-      把index为 2 的数组     给新数组   index为 2 的位置
-      把index为 1 的数组     给新数组   index为 3 的位置
-      把index为 0 的数组     给新数组   index为 4 的位置
+```
 
-      旧数组是递减的过程                新数组是递增的过程
-      一共是5个元素 最大是4 长度-1      newArr的length, 因为新数组是从无到有, 递增的过程
-      我们把i设置为i = 5-1
-      然后再i--
-      arr.length-1
-    */
- -->
-
-
-### 交换两个变量值
-- 思路:
-apple1      apple2      temp
-青苹果      红苹果      临时变量
-
-我们把apple1的值 给 临时变量, 然后我们把apple2的值给apple1, 最后我们再把临时变量的值给apple2
-
-<!-- 
-    let num1 = 10;
-    let num2 = 20;
-    let temp;
-    console.log(num1, num2, temp);  // 10 20 undefind
-
-    temp = num1;
-    num1 = num2;
-    num2 = temp;
-    console.log(num1, num2, temp);  // 20 10 10
-
-    // 这样不仅仅能交换数字 还能交换其他类型的值
- -->
-
+----------------
 
 ### 遍历字符串
 
 - 案例:
-判断一个字符串'abcoefoxyozzopp'中出现次数最多的字符, 并统计其次数
+- 判断一个字符串'abcoefoxyozzopp'中出现次数最多的字符, 并统计其次数
 
-- 思路:
-1, 利用charAt() 遍历整个字符串
-2, 把每个字符存储给对象, 如果对象没有该属性 就为1 有就让这个值+1 有几次加几次1
-3, 遍历对象, 得到最大值和该字符
+> 思路:
+- 1. 利用charAt() 遍历整个字符串
+- 2. 把每个字符存储给对象, 如果对象没有该属性 就为1 有就让这个值+1 有几次加几次1
+- 3. 遍历对象, 得到最大值和该字符
 (遍历字符串, 然后把每一个元素放到对象里 用属性值标记出现的次数)
-<!-- 
+```js 
     let str = 'abcoefoxyozzopp';
     let o = {};
+
     for(let i=0; i<str.length; i++){
         // chars 是字符串的每一个字符
         let chars = str.charAt(i)
+
         if(o[chars]){   //o[chars] 得到的是属性值
             o[chars]++;
         }else{
             o[chars] = 1;
         }
     }
+
     console.log(o);
 
     let max = 0;
@@ -3761,46 +3712,23 @@ apple1      apple2      temp
         }
     }
     console.log(ch, max);
- -->
+```
 
+----------------
 
 ### 求最大值
-<!-- 
+```js
     let max = 0;
     if(o[n] > max){
         max = o[n];     这样里面存的永远是最大的那个数
     }
- -->
+```
 
-
-### for循环 相关
-- 所有跟for循环相关的变量 只能在for循环内部起作用 我们想在外部使用它时
-- 可以在外部创建一个变量 用来接受for循环内部的结果
-<!-- 
-    let max = 0;
-    let ch = '';
-    for(let n in o){
-        if(o[n] > max){
-            max = o[n];
-            ch = n
-        }
-    }
-    console.log(ch, max);
- -->
-
-### ev = ev || event 
-找false的 如果第一个值是false 则会看第二个值
-如果ev存在 后面的就不执行
-如果ev不存在 就用后面的
-
-### ev && ev()
-找true的 如果第一个值是true 则会看第二个值
-如果有你就用后面的 没有就拉倒
-
+----------------
 
 ### 深浅拷贝的方法
 > 浅拷贝 方式一
-<!-- 
+```js 
     let obj = {
         id:1,
         name:'andy'
@@ -3817,18 +3745,18 @@ apple1      apple2      temp
         obj2[key] = obj[key];
     }
     console.log(obj2);
- -->
+```
 
 > 浅拷贝 方式二
 > Object.assign(拷贝给谁, 拷贝哪个对象);
 - ES6中的浅拷贝的新方法
-<!-- 
-    Object.assign(o, obj);
+```js 
+    let res = Object.assign(o, obj);
     console.log(o);
- -->
+```
 
 > 深拷贝
-<!-- 
+```js 
     let obj = {
         id: 1,
         name: 'andy',
@@ -3836,32 +3764,39 @@ apple1      apple2      temp
         msg: {
             age:1
         },
+
         color: ['pink', 'red', 'blue']
     };
 
     let o = {}
 
     function deepCopy(newobj, oldobj) {
+        // 循环遍历整个对象
         for(let k in oldobj) {
+
             let item = oldobj[k];
+
             if(item instanceof Array) {
+
                 newobj[k] = [];
                 deepCopy(newobj[k], item);
 
             } else if (item instanceof Object) {  
+
                 newobj[k] = {};
                 deepCopy(newobj[k], item);
+
             } else {
                 newobj[k] = item;
             }
         }
     }
+
     deepCopy(o, obj)
     console.log(o);
- -->
+```
 
-
----------------------
+----------------
 
 ### 高频手写题
 > call的实现
@@ -3874,7 +3809,7 @@ apple1      apple2      temp
 - 返回执行结果
 
 ```js
-Function.prototype.myCall = function(context,...args){
+Function.prototype.myCall = function(context, ...args){
     let cxt = context || window;
     //将当前被调用的方法定义在cxt.func上.(为了能以对象调用形式绑定this)
     //新建一个唯一的Symbol变量避免重复
@@ -3920,6 +3855,7 @@ Function.prototype.myApply = function(context,args = []){
 - 实现作用域绑定（apply）
 - 参数传递（apply 的数组传参）
 - 当作为构造函数的时候，进行原型继承
+
 ```js
 Function.prototype.myBind = function (context, ...args) {
     //新建一个变量赋值为this，表示当前函数

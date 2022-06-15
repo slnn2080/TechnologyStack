@@ -977,7 +977,7 @@ directives: {
       },
 
       // 注意 我们要写update 要不vue不知道我们更新的时候要干什么
-      updated() {
+      update() {
         el.value = binding.value
       }
     }
@@ -1021,7 +1021,7 @@ directives: {
       el.focus()
     },
     
-    updated() {
+    update() {
       el.value = binding.value
     }
 

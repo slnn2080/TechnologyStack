@@ -1,7 +1,8 @@
-### 日期格式化 例子:
+### 日期格式化
 - 2019年 5月 1日 星期三
+
 > 方法一: 使用swithc case语句 判断传入的数字 改为汉字
-<!-- 
+```js 
   let date = new Date();
         let year = date.getFullYear();
         let month = date.getMonth() + 1;
@@ -34,7 +35,7 @@
 
         let time = `${year}年${month}月${day}日 星期${week}`;
         console.log(time);
- -->
+```
 
 > 方法二: 利用了数组, 注意周日一定要放在前面 它的数字为0, 把得到的week当做index
 <!-- 
