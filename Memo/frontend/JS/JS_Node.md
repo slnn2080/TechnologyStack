@@ -1217,7 +1217,8 @@ DoublyLinkedList.prototype.getTail = function () {
 - 它可以放在类和类方法的定义前面.
 
 - 例如: 
-- 下面代码一共使用了四个装饰器一个用在类本身另外三个用在类方法.
+- 下面代码一共使用了四个装饰器一个用在类本身另外三个用在类方法
+
 ```js
 @frozen 
 class Foo {
@@ -1234,6 +1235,65 @@ class Foo {
 }
 ```
 
+> 装饰器 & webpack 的配置
+- 装饰器还不是 es 的标准 我们在js环境中要想使用装饰器 还需要webpack的配合编译
+- 1. 在完成webpack的基本安装后 想要安装 装饰器 对应的包 需要安装如下:
+- npm i @babel/plugin-proposal-decorators -D
+- npm i @babel/plugin-proposal-class-properties -D
+
+- npm i babel-loader @babel/core @babel/preset-env -D
+
+```js
+"devDependencies": {
+    "@babel/core": "^7.18.5",
+    "@babel/plugin-proposal-decorators": "^7.18.2",
+    "@babel/preset-env": "^7.18.2",
+    "babel-loader": "^8.2.5",
+    "babel-plugin-transform-decorators-legacy": "^1.3.5",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.10.3"
+},
+"dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.17.12"
+}
+
+// webpack配置 module配置项
+module: {
+  rules: [
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: "babel-loader",
+      options: {
+        presets: [
+          [
+            "@babel/preset-env", 
+            {
+              targets: {
+                "chrome": "58"
+              }
+            }
+          ]
+        ],
+        // 注意它们两个的配置顺序
+        plugins: [
+          [
+            "@babel/plugin-proposal-decorators",
+            {"legacy": true}
+          ],
+          [
+            "@babel/plugin-proposal-class-properties",
+            { "loose": false }
+          ]
+        ]
+      }
+    }
+  ]
+}
+```
+
 > 装饰器的定义
 - 装饰器就是一个函数 所以定义装饰器的方式 就是定义一个函数
 - 装饰器是一个对类进行处理的函数.装饰器函数的第一个参数就是所要装饰的目标类.
@@ -1245,6 +1305,8 @@ class Foo {
 
 > 定义格式:
 - 装饰器的定义和使用 
+
+---
 
 > 为类添加 静态属性:
 - 相当于给 MyTestableClass 类本身添加属性 因为 target就是类本身
@@ -1286,9 +1348,34 @@ class MyTestableClass {}
 MyTestableClass.isTestable  // true
 ```
 
+- 示例:
+```js
+const addProp = param => {
+
+  return clazz => {
+    clazz.staticProp = param
+  }
+}
+
+@addProp("通过实参传递进来的属性")
+class Person {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+
+  say() {
+    console.log(this.name)
+  }
+}
+
+console.log(Person.staticProp)  // 通过实参传递进来的属性
+```
+
+---
 
 > 为类添加实例属性 
-- 添加实例属性 可以通过 prototype 来操作
+- 添加实例属性 可以*通过 prototype 来操作*
 
 ```js
 // 定义装饰器
@@ -1305,7 +1392,6 @@ class MyTestableClass { }
 let obj = new MyTestableClass();
 obj.isTestable // true
 ```
-
 
 > 例子:
 ```js
@@ -1348,9 +1434,186 @@ export default connect(mapStateToProps, mapDispatchToProps)(MyReactComponent);
 export default class MyReactComponent extends React.Component {}
 ```
 
+- 自己尝试写装饰器时候做的示例:
+```js
+const addProp = param => {
+
+  return clazz => {
+    // 添加 静态属性
+    clazz.staticProp = param
+    // 添加 动态属性
+    clazz.prototype.dynamicProp = "我是动态属性"
+  }
+}
+
+@addProp("通过实参传递进来的属性")
+class Person {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+
+  say() {
+    console.log(this.name)
+  }
+}
+
+let p = new Person("sam", 18)
+console.log(Person.staticProp)  // 通过实参传递进来的属性
+console.log(p.dynamicProp)  // 我是动态属性
+```
+
+---
 
 > 方法的装饰
-- 装饰器不仅可以装饰类还可以装饰类的属性.
+- https://www.jianshu.com/p/c00750ecaa45
+- 装饰器不仅可以装饰类还可以装饰*类的属性*
+- 类的属性包括: 属性 和 方法 吧
+
+> 参数:
+- 1. clazzPrototype: 类的原型对象
+<!-- 
+    上例是Person.prototype
+    装饰器的本意是要“装饰”类的实例但是这个时候实例还没生成所以只能去装饰原型(这不同于类的装饰那种情况时target参数指的是类本身);
+-->
+
+- 2. prop: 装饰对象的名字(属性名)
+- 3. propDescriptor: 该属性的描述对象
+- propDescriptor.value 能获取 目标的值哦
+
+**如果没有装饰对象的时候 值为 undefined**
+
+- 返回值:
+- 装饰成员的时候 函数内部需要返回
+- 或者返回 clazzPrototype
+- 或者返回 propDescriptor
+- 或者返回 propDescriptor中的一个修改后的值
+
+- 示例
+```js
+// 类中方法的装饰器
+const clazzMethodDecorator = (clazzPrototype, prop, propDescriptor) => {
+  console.log("clazzPrototype", clazzPrototype)
+  console.log("prop", prop)
+  console.log("propDescriptor", propDescriptor)
+
+
+
+  // 要有返回值
+  return propDescriptor.value
+  // or
+  return {
+    ...descriptor,
+    writable: false // 覆盖为false
+  }
+  // or
+  return clazzPrototype
+}
+
+@clazzDecorator("通过实参传递进来的属性")
+class Person {
+
+  @clazzMethodDecorator // 装饰属性的时候 prop 就是 address
+  address = "日本"
+
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+
+  @clazzMethodDecorator // 装饰方法的时候 prop 就是 say
+  say() {
+    console.log(this.name)
+  }
+}
+
+
+// 不管装饰属性还是方法 描述对象是
+{
+    configurable: true
+    enumerable: true
+    initializer: ƒ ()
+    writable: true
+}
+```
+
+> 示例:
+> 要点: 我给类中的属性 绑定了 装饰器 内部使用了 set get
+```js
+// global属性
+let content = "我是全局属性"
+
+---
+
+// 类的装饰器
+const clazzDecorator = param => {
+
+  return clazz => {
+    clazz.staticProp = param
+    clazz.prototype.dynamicProp = "我是动态属性"
+  }
+}
+
+---
+
+// 类中属性的装饰器
+const clazzAttr = (clazzPrototype, prop, propDescriptor) => {
+
+  if(prop == "undefind") return
+
+  // 默认是属性描述 现在返回的是 get set 的描述对象
+  return {
+    configurable: true,
+    enumerable: true,
+    get() {
+      console.log("我读取全局中的属性")
+      return content
+    },
+    set(value) {
+      console.log("我设置了全局中的属性")
+      prop = value
+    }
+  }
+}
+
+---
+
+// 类中方法的装饰器
+const clazzMethodDecorator = (clazzPrototype, prop, propDescriptor) => {
+  console.log("我是类中方法" + prop + "的装饰器")
+}
+
+---
+
+// 装饰类
+@clazzDecorator("通过实参传递进来的属性")
+class Person {
+
+  // 装饰属性
+  @clazzAttr
+  address = "日本"
+
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+
+  // 装饰方法
+  @clazzMethodDecorator
+  say() {
+    console.log(this.name)
+  }
+}
+
+let p = new Person("sam", 18)
+console.log(p.address)
+```
+
+
+> 网道示例: 只读属性
+- 下面代码说明装饰器(readonly)会修改属性的描述对象(descriptor)
+- 然后被修改的描述对象再用来定义属性.
+
 ```js
 class Person {
     @readonly
@@ -1363,14 +1626,15 @@ class Person {
 
 // 定义 readonly 装饰器
 function readonly(target, name, decriptor) {
-    // descriptor对象原来的值如下
+    /*
+    descriptor对象原来的值如下
     {
         value: specifiedFunction,
         enumerable: false,
         configurable: true,
         writable: true
     };
-
+    */
     descriptor.writable = false;
     return descriptor;
 }
@@ -1380,20 +1644,7 @@ readonly(Person.prototype, 'name', descriptor);
 Object.defineProperty(Person.prototype, 'name', descriptor);
 ```
 
-- 参数:
-- 装饰器第一个参数是类的原型对象
-<!-- 
-    上例是Person.prototype
-    装饰器的本意是要“装饰”类的实例但是这个时候实例还没生成所以只能去装饰原型(这不同于类的装饰那种情况时target参数指的是类本身);
--->
-
-- 第二个参数是所要装饰的属性名
-- 第三个参数是该属性的描述对象.
-
-- 上面代码说明装饰器(readonly)会修改属性的描述对象(descriptor)
-- 然后被修改的描述对象再用来定义属性.
-
-
+- 示例2
 - 我们看下下面的例子:
 - 修改属性描述对象的enumerable属性使得该属性不可遍历.
 ```js
@@ -1410,6 +1661,37 @@ function nonenumerable(target, name, decriptor) {
     return decriptor
 }
 ```
+
+
+> 总结 getter setter
+- 1. 我们通过装饰器给属性和方法进行装饰的时候 可以返回 装饰器对象 内部添加set get
+```js
+const clazzAttr = (clazzPrototype, prop, propDescriptor) => {
+  return {
+    ...propDescriptor,
+    get() {
+      return content
+    },
+    set(val) {
+        prop = value
+    }
+  }
+}
+```
+
+- 2. 如果我们想给类中的属性 添加 get set 可以将属性写成方法的形式 在其前面添加 get set 关键字
+```js
+class Person {
+    // 定义test属性
+    get test() {
+        return ""
+    }
+}
+```
+- 同时这样我们在其上面添加装饰器 描述对象就会带有set get
+
+- https://wangdoc.com/es6/decorator.html#%E6%96%B9%E6%B3%95%E7%9A%84%E8%A3%85%E9%A5%B0
+- 还有一些比较好玩的用法
 
 ----------------
 

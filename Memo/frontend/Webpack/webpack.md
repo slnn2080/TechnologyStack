@@ -192,6 +192,10 @@ module.exports = {
  
 > 2. 局部安装(项目内安装)
 - npm i webpack webpack-cli -D
+```js
+"webpack": "^4.41.6",
+"webpack-cli": "^3.3.11"
+```
 
 
 > 3. 准备工作: 整理一个项目的结构
@@ -354,7 +358,7 @@ module.exports = {
 - 对象中的属性:
 ```js
 {
-  filename: <string> 输出到的文件名
+  filename: <string> 输出到的文件名   // "build.js"
   path: <string> 输出的路径 path一般使用resolve()函数来拼接路径
 }
 ```
@@ -1068,7 +1072,7 @@ module.exports = {
 - 类型: {}
 ```js
 devServer: {
-
+  // 填写的是目录
   contentBase: 运行项目的目录 一般都是以绝对路径书写 指向打包后的目录 不是源代码目录,
 
   compress: true 启动gizp压缩 代码体积会更小 传输速度越快,
@@ -2452,6 +2456,67 @@ module: {
 ```
 
 - 其实我们感觉 都使用项目根目录 配置文件 的方式可能会更清晰些
+
+---
+
+> 装饰器 & webpack 的配置
+- 装饰器还不是 es 的标准 我们在js环境中要想使用装饰器 还需要webpack的配合编译
+- 1. 在完成webpack的基本安装后 想要安装 装饰器 对应的包 需要安装如下:
+- npm i @babel/plugin-proposal-decorators -D
+- npm i @babel/plugin-proposal-class-properties -D
+
+- npm i babel-loader @babel/core @babel/preset-env -D
+
+```js
+"devDependencies": {
+    "@babel/core": "^7.18.5",
+    "@babel/plugin-proposal-decorators": "^7.18.2",
+    "@babel/preset-env": "^7.18.2",
+    "babel-loader": "^8.2.5",
+    "babel-plugin-transform-decorators-legacy": "^1.3.5",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.10.3"
+},
+"dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.17.12"
+}
+
+// webpack配置 module配置项
+module: {
+  rules: [
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: "babel-loader",
+      options: {
+        presets: [
+          [
+            "@babel/preset-env", 
+            {
+              targets: {
+                "chrome": "58"
+              }
+            }
+          ]
+        ],
+        // 注意它们两个的配置顺序
+        plugins: [
+          [
+            "@babel/plugin-proposal-decorators",
+            {"legacy": true}
+          ],
+          [
+            "@babel/plugin-proposal-class-properties",
+            { "loose": false }
+          ]
+        ]
+      }
+    }
+  ]
+}
+```
 
 ----------------
 
