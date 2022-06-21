@@ -14011,6 +14011,66 @@ export default new Vuex.Store({
 --------------------------
 
 ### 项目开发 - vue-config 和 .editorconfig
+### vue中配置webpack相关
+
+> configureWebpack
+- vue.config.js中通过设置configureWebpack来配置webpack插件
+- configureWebpack有两种形式
+  对象形式
+  函数形式
+
+- 并且都对生产环境和开发环境做了判断。
+
+> 对象形式
+```js
+module.exports = {
+  // 对象的形式配置configureWebpack
+  configureWebpack: {
+    name: 'xxx',
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src')
+      }
+    },
+    plugins: process.env.NODE_ENV === 'production' ? [
+      // 去除console.log
+      new UglifyPlugin(),
+      // 代码压缩
+      new CompressionPlugin()
+    ] : []
+  },
+};
+```
+
+
+> 函数形式
+- 参数 config 就是webpack对象 我们往它的身上加东西
+```js
+module.exports = {
+  // 函数的形式配置configureWebpack
+  configureWebpack: (config) => {
+    config.name = 'xxx'
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      }
+    }
+    // 对生产环境的配置
+    if (process.env.NODE_ENV === 'production') {
+      const plugns = [
+        // 去除console.log
+        new UglifyPlugin(),
+        // 代码压缩
+        new CompressionPlugin()
+      ]
+      config.plugins.push(...plugns)
+    }
+  },
+}
+
+```
+
 
 > cli3中配置别名
 - 配置完别名后就不用通过../../的形式找文件了

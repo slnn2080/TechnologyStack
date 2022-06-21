@@ -13,6 +13,77 @@
 ## 在 Vscode 里面快捷编写html
 https://www.jianshu.com/p/5432d194f7e5
 
+---
+
+### @use @forward @import scss的模块化
+- https://zhuanlan.zhihu.com/p/413294236
+
+> @use:
+- 从其他 sass 样式表中加载 mixins, functions, variables, *并将来自多个样式表的 CSS 组合在一起*
+
+- *由 @use 加载的样式表被称为模块*
+- 也就是说 我们使用 @use 引入的文件 可以在当前文件中使用 比如
+```scss
+// a.scss 文件中 引入了 variable.scss
+@use "variable.scss" as var
+
+// 引入的变量文件里面的内容只能在 a.scss 文件中使用
+var.$red
+```
+
+
+> 优点:
+- 通过 @use 加载的模块不管被引用了多少次，都只会在编译后输出一次到 css 中。
+- Sass 一些内置模块，其中有很多实用的函数。*但是使用 @import 多次引入同一模块，会反复输出到 css 中。*
+
+
+> 查找:
+- 2. 通过 @use "module" 使用模块时，不需要写扩展名，程序会自动查找：
+  查找 ./module.scss，没有则进行下一步
+  查找 ./module.sass，没有则进行下一步
+  查找 ./module.css，没有则进行下一步
+  查找 node_modules/module/sass/module.scss
+
+
+> _ 的使用
+- 如果 Sass文件只打算作为模块加载，而不是自己编译，文件名以 _ 开头即可，这些被称为部分（partials），它们告诉 Sass 工具不要尝试自己编译这些文件。
+- *但是在导入这些模块时可以不用书写 _ 符号。*
+
+---
+
+> @forward:
+- @forward 和 @use 使用方式相同，但作用却完全不一样。
+- 使用 @forward 的文件 更像是一个公共的文件 将不同的scss文件引入到这个公共的文件内 通过这个公共的文件 可以实现在不同的scss文件中访问公共文件使用 @forward 引入的scss文件
+
+- 一个scss文件使用 使用 @forward 引入了其它文件的情况下
+```scss
+// global.scss 公共文件 该文件引入了 variable.scss mixin.scss
+@forward "variable.scss";
+@forward "mixin.scss";
+
+
+// 别的文件 可以引入 公共文件(global.scss) 通过公共文件来访问 forward 指定的文件 这样实现了 不同样式组件内部可以使用公共文件中定义的多个scss功能
+// index.scss
+@use "../global" as g
+g.$red
+g.get()
+```
+
+- 文档释义:
+- 当本样式表被其他样式表使用 @use 加载之前，先加载一个 Sass 样式表，并且使其 mixins, functions, variables 可用
+
+- 当使用 @use 加载一个文件时， 这个文件中可以使用 @forward 来使另一个文件中的 mixin、函数和变量可以暴露出去。通常用于跨多个文件组织 Sass 库。
+
+- @forward 的作用是转发模块成员，而不是引入成员到当前文件使用，也就是说，通过 @forward 加载一个模块的成员，这些成员并不能在当前文件内访问，而仅仅是将这些成员当作自己的成员对外暴露出去。
+
+
+> @import 
+- 扩展自 css 的 @import，用来加载其他样式表的 styles, mixins, functions, variables
+
+- css 中本身就有 @import，sass 在其基础上进行扩展，可以用来导入模块中的变量，mixin，函数等，以及模块的样式。
+
+- 和 css 中的 @import 不同之处在于，*css 中的 @import 可以是一个线上 url 地址，浏览器会在运行时下载这个文件*，而 *sass 中的 @import 只能在编译打包阶段运行，所以在 sass 中只能导入一个本地存在的 sass/scss/css 文件。*
+
 -------------------
 
 ## Sass的简介:
@@ -201,6 +272,7 @@ css预处理器你可以简单的理解为 就是用来写css的 但不同的是
       安装的时候可能会出现版本上的错误 我使用的是node17 sass不知道 应该是最新吧
       经过测试这种搭配在 node: 14版本下可以正常的运行
 
+-------------------
 
 ### vue环境下
 1. 首先运行命令:  
@@ -214,6 +286,11 @@ css预处理器你可以简单的理解为 就是用来写css的 但不同的是
 "sass": "1.32.13",  // 这个并没有指定 没写这行 备忘用
 ```
 
+**注意:**
+- 在指定上方的软件版本的情况下 还要注意对应的 node 的版本 
+- 比如: 上面的版本在 node -v 14 的时候不会报错 但是 node -v 16 的时候就报错
+
+-------------------
 
 ### 编译文件
 #### 单文件编译 语法格式:  
@@ -225,11 +302,13 @@ node-sass a.scss b.css
 nod-sass a.scss -o css_file
 ```
 
+-------------------
 
 #### 多文件编译 语法格式:  
     node-sass 原有的scss文件目录 -o 生成的css文件目录
     node-sass c -o d
 
+-------------------
 
 #### 文件监听模式
 当文件改变的时候 自动编译 在 单 和 多 的基础上添加 -w 命令行参数即可  
@@ -238,8 +317,9 @@ node-sass -w 原有的scss文件 -o 生成目录
 node-sass -w 原有的scss文件目录 -o 生成的css文件目录
 ```
 
+-------------------
 
-> dart-sass 安装
+### dart-sass 安装
 npm i -g sass
 该模块为第三方库 所以可以考虑使用 npm i sass -D(-D == --save-dev)
 
@@ -793,10 +873,10 @@ sass中的注释的写法有两种
 -------------------
 
 ## 变量
-哪门计算机语言里面都有变量这个概念 为了照顾一些可能没有听过这个概念的小伙伴们 我们建档说下 变量的含义
+哪门计算机语言里面都有变量这个概念 为了照顾一些可能没有听过这个概念的小伙伴们 我们简单说下 变量的含义
 
 变量变量 代表一个可变的量, 举个例子:
-wai 老王 听说你昨天从3楼掉下来了 我今天买点 水果 去看看你 等到了你再聊聊是因为没藏好么？
+打电话, wai 老王 听说你昨天扒窗台从3楼掉下来了 我今天买点 *水果* 去看看你等到了 你再跟我聊聊咋掉下来的 是因为没藏好么？
 
 我说买点水果 这个水果就可以当看成一个变量 具体是什么水果 那就要看我去市场买什么了
 买香蕉 水果就是香蕉 买苹果 水果就是苹果
@@ -805,9 +885,11 @@ wai 老王 听说你昨天从3楼掉下来了 我今天买点 水果 去看看�
 
 等我见到老王了 nuo 这是我给你买的水果 这时候的水果指的就是香蕉是什么
 
-我在举一个例子啊, 我们都打游戏 一般游戏都会有个小地图 小地图下面 经常会有 x y
+我再举一个例子啊, 我们都打游戏 一般游戏都会有个小地图 小地图下面 经常会有 x y
 x: 123, y: 677
-这代表了人物的坐标 x y 就是变量名 里面的值是变化的是么
+这代表了人物的坐标 x y 人物不断地在界面上移动 x y的值就会发现变化 x就是变量名 123就是变量的值 这个值是可以发生变化的
+
+我们可以定义一个变量 就相当于定义了一个容器 一个塑料袋 里面可以存放各种类型的值
 
 这时候有人说了 好滴 兄dei我大概知道变量的作用了 就是我定义一个变量 里面的值是可变的
 那变量具体应用在哪里呢？
@@ -954,7 +1036,7 @@ $spare-bgcolor: #d71345;
 -------------------
 
 ## 数据类型
-scss在css的基础上提供了一些scssscript的新功能 听听这个词哈 scsscript scss脚本语言 它为扩展了可以使用变量啊 算数运算等功能
+scss在css的基础上提供了一些scssscript的新功能 听听这个词哈 scsscript scss脚本语言 或者说有点更贴近编程语言了 它为扩展了可以使用变量啊 算数运算 函数 判断等功能
 
 既然说是scssscript那么就会跟其他的语言一样 会有变量 和 数据类型的概念 上一节中我们介绍了变量的概念 这里我们讲讲在scss中的数据类型
 
@@ -963,607 +1045,797 @@ SassScript 支持 7 种主要的数据类型：
 > 字符串:
 - scss支持两种字符串类型
 - 1. 有引号的字符串
-  - 比如 
-  - content: "你好 可以认识一下嘛"
-  - "字符串"
+  - 比如
+```scss
+$str: "你好 可以认识一下嘛";
+$str: "滚"
+```
 
-- 2. 无引号的字符串 比如类似
-  - hello
-  - solid black
-  - bold
-  - center
+- 2. 无引号的字符串 
+  - 比如
+```scss
+$str: hellonicetomeetyou;
+$str: getout
+```
 
+```scss
+$str: "你好呀";
 
-> 数字类型
-1, 2, 13, 10px
-px在这里也属于属性型 但是5a类似这种格式也属于数字型 需要注意
-只要是带数字的都是数字类型
+.view {
+  width: 100%;
+  padding: 30px;
+  background: #003449;
+  color: #D3D9DD;
 
+  position: relative;
 
-> 颜色类型
-blue, #04a3f9, rgba(255,0,0,0.5)
-上面都是我们平常定义颜色的方式是么 这就是颜色类型
+  &::before {
+    // 我们在这里使用下变量
+    content: $str;
+    padding: 10px;
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
 
+    color: #2C353B;
+    background: #EEEFF0;
+  }
+}
+```
 
-> 布尔型
-true, false
+> 插值语法: #{变量名}
+- 通过该语法 可以将变量的值插入
+- 1. 字符串中
+- 2. css属性位置
+- 3. 选择器的位置
 
-> 空值
-null
+- 比如:
+- 我们定义一个变量 用于保存小伙告白时说的话
+```scss
+$content: "小张, 我喜欢你很久了 能做我的女朋友么？";
 
-> 数组 (list)
-用空格或逗号作分隔符，1.5em 1em 0 2em, Helvetica, Arial, sans-serif
+  小张: 滚！ 完了 没戏了
 
-> maps
-相当于 JavaScript 的 object，(key1: value1, key2: value2)
+// 小伙再接再厉 又定义了一个变量
+$content: "小王, 我喜欢你很久了 能做我的女朋友么？";
 
-SassScript 也支持其他 CSS 属性值，比如 Unicode 字符集，或 !important 声明。然而Sass 不会特殊对待这些属性值，一律视为无引号字符串。
+  小王: 滚！ 完了 又没戏了
+```
 
+- 我们就上面的例子看 有没有发现 两句话中只有 姓名的地方不一样呀 那我是不是可以 把姓名单独定义成一个变量 这样其他的文本都不变 我只需要该姓名的位置就可以了
+- 为了满足小伙的愿望 我决定帮助他
+```scss
+$name: "小张";
 
-> type-of($value)
-判断数据类型的方式
+// 那我们能不能把 $name 放进下面的字符串里面呢 可以
+$content: "小张, 我喜欢你很久了 能做我的女朋友么？";
 
--------------------
+// 改成:
+$content: "#{$name}, 我喜欢你很久了 能做我的女朋友么？";
 
-## 字符串 (Strings)
-SassScript 支持 CSS 的两种字符串类型：
-有引号字符串 (quoted strings)
-无引号字符串 (unquoted strings)
-<!-
-  $name1: "wang"
-  $name2: 'li'
-  $name3: zhang
+// 这样是不是我们每次只需要改变量里面保存的名字就可以了呀 我成功的为小伙的表白节省了大量的时间
+```
 
-  body { color: $name1 }  以上3种都会被编译到css里
- -->
+- 上面我们说了 字符串的形式有两种 一种是带引号的 一种是不带引号的字符串
+- 其实不带引号的字符串就是为了将变量插在 选择器 和 属性名 的位置上用的
+
+```scss
+$selector-name: div;
+$attr-name: width;
+
+#{$selector-name} {
+  #{$attr-name}: 100px;
+  height: 100px;
+  background: red;
+}
+```
+
+- 这里就简单了解下 以后我们讲函数的时候 会有更好玩的用法
 
 **注意：**
 在编译 CSS 文件时不会改变其类型。有引号的不会编译为无引号的
 只有一种情况例外，使用 `#{}` (相当于${}) 时，有引号字符串将被编译为无引号字符串，这样便于在 mixin 中引用选择器名
 
--------------------
+------
 
-## 数字(Numbers)
-SassScript支持两种数字类型：`带单位数字`和`不带单位数字`。（可正可负可为零，可正可浮点）
+> 数字类型
+- 可以简单的理解 只要有数字出现就是 数字类型
+- 我们验证一下
+  1, 1px 1em 1rem 100% 1.5
+
+```scss
+$num: 1a;
+$type: type-of($num);
+
+.view {
+  width: 100%;
+  padding: 30px;
+  background: #003449;
+  color: #D3D9DD;
+
+  position: relative;
+
+  &::before {
+    content: "#{$num} -- #{$type}";
+    padding: 10px;
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    color: #2C353B;
+    background: #EEEFF0;
+  }
+}
+```
 
 **注意：** 
-这里前面是数字 后面是字母 的格式也算是数字的类型 5a
 单位会和数字当做一个整体，进行算数运算
 
-<!-
-  $width: 19;
-  $height: 19.5;
-  $opacity: 120px;
- -->
+------
 
--------------------
+> 布尔型
+- 在讲布尔类型之前 我们先讲两个运算符 == !=
+- 这两个运算符有什么用呢? 用来比较 运算符两端的值 是否相等 或 不等
+- 比如:
+  1 == 1    // true 真
+  1 == 2
+  2 != 3
 
-## 空值(Null)
-只有一个取值`null`
+- 返回值为: 布尔类型
+- true / false
+
+- 不知道你们看没看过 一款王自健主持的 是真的么？ 的节目
+- 崴过一次脚后,很容易再次扭伤是真的吗? 是 真的就是 true 假的就是 false
+
+- 我们来验证一下:
+```scss
+$num: 1.5;
+$result: $num == 1.5;
+$type: type-of($result);    // true  --  bool
+
+
+$num: 1.5;
+$result: $num == 2;
+$type: type-of($result);    // false  --  bool
+```
+
+- 布尔值有什么用呢? 
+- 举个例子 但具体的东西我们拿到 @if 的部分去讲
+- 举例:
+- 我们进行过html布局都知道 会将整个网页分为几个大的部分 那部分和部分之间是不是有间距呀 margin-bottom 
+- 这是一种情况 每一个部分里面可能还会有 标题 和 正文 标题下面是不是会有间距呀 margin-bottom
+
+- 这时候我们就可以这么做
+- 如果 是情况1 那么margin-bottom的值为60px
+- 如果 是情况2 那么margin-bottom的值为24px
+
+-------
+
+> maps
+- map是scssscript中的一种类型 相当于javascript里面的对象
+- 它呢也是保存数据的一种方式 我们前面了解过变量 我们前面都是将数据保存到变量里面
+
+- 比如:
+```scss
+  $name: "青青";
+  $age: 18;
+  $adress: "江南";
+```
+
+- 我们利用变量相展示一个人的信息 但是它们都是单一的一个值 值与值之前并没有联系
+- 那我们想体现一个人的完整的信息 也就是将上面的定义的数据 变成一个整体 就可以利用对象
+- 我们把上面的3个变量放在一个塑料袋里 它们就变成一个整体的 怎么放呢
+
+> map定义的格式:
+```scss
+$person: (
+  $name: "青青";
+  $age: 18;
+  $adress: "江南";
+);
+```
+
+- 现在 name age address 就作为person身上的一个属性出现了
+- 我们将这些变量装在一起的好处就是关系明确 方便操作 
+
+- 比如:
+- 一般我们都会将 定义的变量放到一个 文件里面 variable.scss 这个文件里面全是变量
+- 我们也知道起变量名的时候要见名知意
+
+- 那现在有个需求 我要存下 青青 小兰 的信息怎么办?
+```scss
+// 青青
+$name: "青青";
+$age: 18;
+$address: "江南";
+
+// 小兰
+$name2: "小兰";
+$ag2e: 18;
+$address2: "江苏";
+
+// 小花 我再来个name3么 既然我们定义的都是一个人的属性 那我是不是在定义变量的时候 定义这个人就好了 将这个人定义成一个map
+$qingqing: (
+  name: "青青",
+  age: 18,
+  address: "江南"
+);
+
+$xiaolan: (
+  name: "小兰",
+  ag: 18,
+  address: "江苏"
+);
+```
+
+- 这样这些数据之间的关系是不是明确了很多 也方便管理
+- 有人这时候说了 兄嘚啊 我们定义成普通变量的时候 直接可以使用
+```scss
+$w-full: 100%;
+
+width: $w-full;
+```
+
+- 那我们定义成对象 该怎么使用呢?
+- scss里面呀 有很多的内置函数 方便我们去操作我们现在在讲的数据类型
+- 比如: 字符串 有字符串相关的内置函数 或者 你们就理解为 操作字符串的工具 数组呢 有操作数组的工作 对象map也有操作对象的工具
+
+- 这些工具我们放在后面再讲 这里我们先介绍一个
+
+> map-get(我们定义的对象, 对象中的key)
+- 比如我们想把青青的名字取出来 在页面中显示
+```scss
+&::before {
+  content: "#{map-get($qingqing, name)}";
+}
+```
+
+------
+
+> 空值
+- null 代表空
+- 比如我们上面定义了 map
+```scss
+$qingqing: (
+  name: "青青",
+  age: 18,
+);
+
+// 如果我们把对象中的name 取出来展示到页面上 是ok的没有问题的
+&::before {
+  content: "#{map-get($qingqing, name)}";
+}
+
+// 如果我们要展示 address 可以么 对象中没有address吧 我们看看
+// 我们将 address 取出来放在一个变量里面
+$res: map-get($obj, address);
+
+// 然后检测下 这个变量的类型
+$type: type-of($res);
+
+// 然后展示到页面上查看效果
+&::before {
+  content: "#{$res} -- #{$type}";   // -- null
+}
+```
+
+- 这就是null 在后续还会有具体的应用 来巩固 不要着急
 
 **注意：**
 由于它代表空，所以不能够使用它与任何类型进行算数运算
-<!-$value: null; -->
 
--------------------
+-------
 
-## 布尔型(Booleans)
-只有两个取值：`true`和`false`
-<!-
-  $a: true;
-  $b: false;
- -->
+> 数组 (list)
+- 数组呢 也是存储数据的一种方式
+- 我们先看看数组的定义: 
+- 用空格或逗号作分隔符都属于数组 被分隔的每一项就称之为数组的成员
 
-**注意：**
-只有自身是false和null才会返回false，其他一切都将返回true
+```scss
+div {
+  font-family: 'Courier New', Courier, monospace;
+  border: 1px solid black;
+  padding: 1px 2px 3px 4px;
+}
+```
 
--------------------
+- 我们可以想象成 它将被分隔的每一项(也就是每一个成员)放在了一个个的小格子里面
+- 每一个小格子都会有一个编号 这个编号 叫做下标
 
-## 数组 (Lists)
-scss中的数组一般处理css中的
-margin: 10px 15px 0 0
-font-face: Helvetica, Arial, sans-serif
-这样通过空格或者逗号分隔的一系列的值。事实上，独立的值也被视为数组 —— 只包含一个值的数组。
+- 下标是从1开始的
 
-通过空格或者逗号分隔的一系列的值。事实上，独立的值也被视为数组 —— 只包含一个值的数组。索引从`1`开始
-<!-
-  const arr1 = [1,2,5,6]      一维数组
-  const arr2 = [[1,2],[5,6]]  二维数组
+- 在scss里面 这个数组本身我觉得没有太大的作用 平时我们存个数据也不会特意去用这个数组, 但是scssscript给这个数组提供了一些内置函数 用来操作这个数组 配合一些条件判断 也有很好玩的用法
 
+- 也就是我们先了解完整个scss的语法 api 功能 然后才能进行综合应用
+- 还是一样 这里我们先简单的介绍下操作数组的内置函数 也就是操作数组的工具
 
-  // 一维 scss 数组
-  $list0: 1px 2px 5px 6px;
-      区别 不用写中括号，不用写逗号 但是必须有空格
+- 例子:
+```html
+<div class="box1"></div>
+<div class="box2"></div>
+<span class="target"></span>
+```
 
-
-  // 二维 scss 数组
-  $list1: 1px 2px, 5px 6px;  $list2: (1px 2px) (5px 6px);
-      区别 使用 逗号 或者 括号 以子数组为单位进行分割 子数组之间用空格分割
- -->
-
-数组中可以包含子数组，比如 `1px 2px, 5px 6px` 是包含 `1px 2px` 与 `5px 6px` 两个数组的数组。如果内外两层数组使用相同的分隔方式，需要用圆括号包裹内层，所以也可以写成 `(1px 2px) (5px 6px)`。变化是，之前的 `1px 2px, 5px 6px` 使用逗号分割了两个子数组 (comma-separated)，而 `(1px 2px) (5px 6px)` 则使用空格分割(space-separated)。
-
-当数组被编译为 CSS 时，Sass 不会添加任何圆括号（CSS 中没有这种写法），所以 `(1px 2px) (5px 6px)` 与 `1px 2px, 5px 6px` 在编译后的 CSS 文件中是完全一样的，但是它们在 Sass 文件中却有不同的意义，前者是包含两个数组的数组，而后者是包含四个值的数组。
-
-用 `()` 表示不包含任何值的空数组（在 Sass 3.3 版之后也视为空的 map）。空数组不可以直接编译成 CSS，比如编译 `font-family: ()` Sass 将会报错。如果数组中包含空数组或空值，编译时将被清除，比如 `1px 2px () 3px` 或 `1px 2px null 3px`。
-
-基于逗号分隔的数组允许保留结尾的逗号，这样做的意义是强调数组的结构关系，尤其是需要声明只包含单个值的数组时。例如 `(1,)` 表示只包含 `1` 的数组，而 `(1 2 3,)` 表示包含 `1 2 3` 这个以空格分隔的数组的数组。
+```scss
+// 定义个数组
+$margin-arr: 50px 100px;
 
 
-> 扩展：
-> nth()函数   可以  直接访问数组中的某一项
-> join()函数  可以  将多个数组连接在一起
-> append()函数可以  在数组中添加新值
-> @each指令   可以  遍历数组中的每一项
+div {
+  width: 300px;
+  height: 200px;
+}
 
--------------------
-
-## 映射(Maps)
-
-Maps必须被圆括号包围，可以映射任何类型键值对（任何类型，包括内嵌maps，不过不推荐这种内嵌方式）
-<!-
-  const map = {
-    key: "value1"
-    key: "value2"
-    key: "value3"
-  }
+.box1 {
+  background: #EF5A40;
+}
 
 
-  // map类似于js中的对象 也是变量 值 的形式 当是scss中的map是以小括号为块 区别于js中的 { }
-  $map: ( 
-    $key1: value1, 
-    $key2: value2, 
-    $key3: value3 
-  )
- -->
+// 应用在这个盒子里面
+.box2 {
+  background: #00708D;
+  margin: $margin-arr;
+}
+```
 
--------------------
+> length(数组)
+- 获取数组的长度 有几个成员就是几
 
-## 7.颜色 (Colors)
-CSS原有颜色类型，十六进制、RGB、RGBA、HSL、HSLA和色彩单词
-SCSS提供了内置Colors函数，从而更方便地使用颜色
-比如 我们从网上下载下来的颜色都是16进制的字符 如果我们还想给这个颜色加上透明度就非常的麻烦 scss里面提供了 rgba() 函数
-<!-
-  $color: rgba(#212121, 0.3)
+```scss
+$margin-arr: 50px 100px;
+$len: length($margin-arr);    // 2
+```
 
-  body {color: $color}
- -->
+> nth(数组, 下标)
+- 我们说了数组的下标是从1开始的
+```scss
+$margin-arr: 50px 100px;
+$item: nth($margin-arr, 1);  // 50px
+```
+
+- 还有几个以后再说 这个章节我们主要讲的是数组类型 不在这里介绍太多别的知识
+
+------
+
+> 颜色类型
+- 表示颜色的值 都属于颜色类型
+- 比如
+  blue, #004961, rgba(255,0,0,0.5)
+
+```scss
+// 以下的值都是 color
+$bg-color: #004961;
+$bg-color: red;
+$bg-color: rgba(255,0,0,0.5)
+
+$type: type-of($bg-color);
+
+&::before {
+  content: "#{$type}";   // color
+}
+```
+
+- 颜色类型之间也是可以计算的 用的不多 比如一个16进制的数
+- 它会分成3段
+  11 | 11 | 11
+  +
+  22 | 22 | 22
+  得到
+  33 | 33 | 33
+
+-  但一般没有对颜色进行运算的 即使有也是使用 scss提供的函数 比如
+
+> mix(color1, color2, 比例(0-1))
+- 将两个颜色按照一定的比例 混合在一起
+- 比例的默认值是50%
+```scss
+$color1: #F7AD25;
+$color2: #EF5A40;
+
+background: mix($color1, $color2, 20%);
+```
 
 -------------------
 
 ## 运算
-所有数据类型均支持相等运算 == 或 !=，此外，每种数据类型也有其各自支持的运算方式。
+> 相等运算符 == 和 != 
+- 相等操作符常用于条件语句 用来判断 运算符两端的值是否相等 或 不等 返回值为布尔类型
+- 前面我们在说布尔类型的时候 简单的使用过 相等运算符 这里就不在展开说了哈 比较简单
 
-> 1. 数字运算符
-SassScript 支持数字的加减乘除、取整等运算 (`+, -, *, /, %`)，如果必要会在不同单位间转换值
+---
 
-如果要保留运算符号，则应该使用插值语法
+> 算术操作符 + - * / %
+- 这些操作符的作用 就跟我们小时候学的数学是一样的
+- 这里我们主要关注下 需要注意的部分
 
-我们在对数值进行运算的时候需要考虑它是什么样的类型
-比如 会存在数字和数字 数字和字符串 字符串和字符串之前的运算
+> 1. 数字类型之间的运算
 
-`+`
+> 加法:
+```scss
+// 两个数字没有单位 结果也不带单位
+1 + 2   // 3 
 
-> 纯数字
-这里注意 scss 中 2px 也是数字类型
-两个数字都不带单位结果就不带单位，两个数字其中有一个带单位 结果就是那个单位
+// 两个数字有单位 结果也带单位 单位也一样
+1 + 2px   // 3px
+1px + 2   // 3px
+1px + 2px // 3px
 
-  $add1: 1 + 2;	    // 3
-  $add2: 1 + 2px;   // 3px
-  $add3: 1px + 2;   // 3px
-  $add4: 1px + 2px; //3px
-  
+// 需要注意的是: 如果两个数字带的单位不一样会报错
+1px + 2em // 编译期就报错了
+```
 
-> 纯字符串
-纯字符串进行运算的时候 我们要关注带不带引号
-如果前面的带引号结果就会带引号
-如果前面的不带引号结果也不带引号
+> 减法:
+- 跟加法一样
+```scss
+10 - 1     // 9
+10px - 1   // 9px
+10 - 1px   // 9px
+10px - 1px // 9px
 
-  $add5: "a" + "b";   // "ab"
-  $add6: "a" + b;	    // "ab"
-  $add7: a + "b";	    // ab
-  $add8: a + b;	      // ab
+10px - 1em  // 编译器报错
+```
 
-  
-> 数字和字符串
-第一位有引号，结果必为引号；第一位对应数字非数字且最后一位带有引号，则结果必为引号
-  $add9: 1 + a;	// 1a
-  $adda: a + 1;	// a1
-  $addb: "1" + a; // "1a"
-  $addc: 1 + "a"; // "1a"
-  $addd: "a" + 1; // "a1"
-  $adde: a + "1"; // a1
-  $addf: 1 + "1"; // "11"
-  ```
+> 乘法:
+```scss
+10 * 2    // 20
+10px * 2  // 20px
+10 * 2px  // 20px
 
+// 注意: 两个数字都带单位的话 会报错
+10px * 2px  // 报错
+10px * 1em  // 单位不一致报错
+```
 
-`-`
-减法和加法一样
-每个字段必须前部分为数字，且两个字段只能一个后部分是字符(因为此时后缀被当被单位看待了)。
-只要其中一个值首位不为数字的，结果就按顺序去除空格后拼接起来
+> 除法:
+- / 操作符 本身就是css简写语法的一部分 
+- 比如
+- font-size: 16px / 24px  代表字号/行高
 
-  $add1: 1 2;	    // -1
-  $add2: 1 2px;   // -1px
-  $add3: 1px 2;   // -1px
-  $add4: 1px 2px; //-1px
-  
-  $sub1: a 1;     // a-1
-  $sub2: 1 a;     // 1-a
-  $sub3: "a" 1;   // "a"-1
-  $sub4: a "1";   // a-"1"
+- 差不多的情况还有background属性
+- background: url("http://example.com") no-repeat fixed center / cover;
 
+- 所以我们要进行除法计算的时候 要区别于上面的情况的是么 不然就被当做是简写语法是么
 
-
-`*`
-每个字段必须前部分为数字，且两个字段只能一个后部分是字符(因为此时后缀被当被单位看待了)。
-总结来说两个数都带代码 编译就会不通过
-
-  $num1: 1 * 2;     // 2
-  $mul2: 1 * 2px;   // 2px
-  $num3: 1px * 2;   // 2px
-  $num4: 2px * 2px; // 编译不通过
-  
-  $num5: 1 * 2abc; // 2abc
+- 所以想要被当做是除法 要满足下面的情况
+- 1. 计算的时候使用 () 包起来
+- 2. 第二个数字后面不能带单位
+- 3. 或者两个操作数其中的任意一个作为变量出现的时候 可以不用() 但还是要注意 2 必须是满足的
 
 
-
-`/`
-不会四舍五入，精确到小数点后5位
-每个字段必须前部分为数字，且当前者只是单纯数字无单位时，后者(除数)后部分不能有字符。其余结果就按顺序去除空格后拼接起来。(因为此时后缀被当被单位看待了)
-在使用除法的时候 需要使用 () 进行包裹 要不 / 会被视为分隔符
+```scss
+10 / 2  // 5
+10 / 3  // 3.3333333333
 
 
-`%`
-值与"%"之间必须要有空格，否则会被看做字符串
-<!-
-  $num: 2px % 2px   // 值与值之间必须有空格
+$num: 100px
+width: (100px / 2);   // 50px 
+width: $num / 2       // 50px
+
+
+width: 100px / 200px  // 会被直译为 100px / 200px
+```
+
+> 取模 %
+- 两个数字相除 取余数部分
+
+```scss
+10px % 7      // 3px
+10 % 7px      // 3px
+10px % 7px    // 3px
+
+// 单位不同会报错
+10em % 7px
+```
+
+> 2. 字符串类型 和 任意类型 做 + 运算 结果会是拼串
+- 什么叫拼串呢? 简单的说就是两个串拼接在一起
+
+- 比如:
+```scss
+ "你好" + "中国"     // "你好中国"
+ "你好" + 2         // 你好2
+ true + "你好"      // true你好
+```
+
+- 其实里面还有一些细节, 比如说在进行拼串的时候
+- 我们在前面讲解了字符串有两种类型 一个是带引号的 一个是不带引号
+- 上面在示例中我们使用的都是带引号的情况 那么不带引号 和 带引号的字符串进行拼串的时候 结果是什么样的呢？
+
+- 这个留作作业 你们自己去验证 我就不在这里进行过多的总结 什么情况拼串带引号 什么情况拼串不带引号 太繁琐
+
+- 那要说 兄嘚 我较真 我就想总结明白 ok 
+- 上面在做演示的时候 我们都是通过 ::before content 属性来在页面上显示的
+- 接下来我们使用另一种方式
+- 1. 打开终端 全局安装 sass
+- npm i sass -g
+<!-- 
+  卸载的话:
+    打开终端 npm uninstall sass -g
  -->
 
--------------------
+- 2. sass -i
+- 进入交互模式
 
-## 函数 (Functions)
-SassScript 定义了多种函数，有些甚至可以通过普通的 CSS 语句调用：
-
+- 3. 开始验证: 比如
 ```scss
-p {
-  color: hsl(0, 100%, 50%);
-}
+>> "你好" + 1
+>> "你好1"
 
-// 编译为:
-p {
-  color: #ff0000; }
+>> "你好" + "小花"
+>> "你好小花"
+
+>> 你好 + "小花"
+>> 你好小花   // 看到了么 这种情况的字符串结果就不带 ""
+```
+
+- 简单的说句就是开始的字符串带引号 结果就带引号
+- 开始的字符串不带引号 结果就不带引号 自己验证下哈
+
+- 4. 退出交互模式
+- ctrl + c
+
+- 交互模式下还可以验证一些运算哈 自己可以课后玩会
+
+------
+
+> 比较运算符 < > <= >=
+- 比较运算符 用来比较的是 数值类型
+- 比较运算符 用来比较 符号两端的数值 是 大于 还是 小于 是大于等于 还是小于等于
+
+- 返回的结果是 布尔型
+```scss
+$res: 2px > 1px;    // true
+```
+
+- 比较运算符一般用于条件判断 等待我们后面讲到 @if 的时候 再详细的展开
+
+------
+
+> 逻辑操作符 and or not
+- and: 
+  我们理解为 且 的关系 也就是 and操作符的两端的表达式 结果都要满足 都要为true的时候 结果才是 true 两端有任意一端不满足条件 结果就是false
+```scss
+$num: 10px;
+
+// num必须大于1px 同时且 num必须小于20px res的结果才是true 如果任意一段不满足 则结果就是false
+$res: $num > 1px and $num < 20px;
+
+---
+
+$num: 2px;
+
+// num必须要大于1px 同时且 num的类型必须是字符串 res的结果是
+$res: $num > 1px and type-of($num) == string;   // false
+```
+
+- or:
+- 我们理解为 或 的关系 也就是 or操作符的两端的表达式 只要有一端是true 那么结果就是true 如果全是false 结果就是false
+```scss
+$num: 10px;
+// 两端 只要任意一段结果为true 那么res的结果就是true
+$res: $num > 1px or $num > 20px;
 ```
 
 
-scss中的函数也可以传递参数
+- not:
+- 取反, true 变 false, false 变 true
 ```scss
-p {
-  color: hsl($hue: 0, $saturation: 100%, $lightness: 50%);
-}
+$bool: true;
+
+content: "#{not $bool}";
 ```
 
 -------------------
 
-## 插值语句 #{}
-通过 #{} 插值语句可以在选择器或属性名中使用变量：
+## @extend 继承
+- 从字面意思也能很好理解, 比如我老爹有钱 我继承了我老爹的资产 那资产是不是就属于我了
+- 再比如:
+- 你说个很有意思的笑话 结果我笑死了 你成功的继承了我的花呗(当然你只能继承我的欠款)
 
-```scss
-$name: foo;
-$attr: border;
+- 在写网页的时候也是一样的, 有的时候一个元素使用的样式与另一个元素完全相同，相同的样式没有必要再写 这时候我们就可以使用继承 相当于 将一个元素的样式 复制到另一个元素中一样 而且还可以扩展额外的样式。
 
-p.#{$name} {
-  #{$attr}-color: blue;
-}
-
-
-// 编译为:
-p.foo {
-  border-color: blue; }
-```
-
--------------------
-
-## @import  --> @use
-允许其导入 SCSS 或 Sass 文件。被导入的文件将合并编译到同一个 CSS 文件中，另外，被导入的文件中所包含的变量或者混合指令 (mixin) 都可以在导入的文件中使用。
-
--------------------
-
-## @extend 选择器名;
-在设计网页的时候常常遇到这种情况：一个元素使用的样式与另一个元素完全相同，但又添加了额外的样式。
-
-通常会在 HTML 中给元素定义两个 class，一个通用样式，一个特殊样式。
-
-比如:
-现在要设计一个普通错误样式与一个严重错误样式，一般会这样写：
-
+- 比如:
 ```html
-<div class="error seriousError">
-  Oh no! You've been hacked!
-</div>
-
-<style>
-.error {
-  border: 1px #f00;
-  background-color: #fdd;
-}
-
-.seriousError {
-  border-width: 3px;
-}
-</style>
+<div class="box1"></div>
+<div class="box2"></div>
 ```
 
-那我们在应用样式的时候 共通样式 和 特殊的样式的类名都在添加在元素上
-
-这个时候我们可以这样做
 ```scss
-.error {
-  border: 3px #f00 solid;
-  background-color: #fdd;
+.box1 {
+  width: 500px;
+  height: 300px;
+  background: #F7AD25;
 }
 
-.seriousError {
+.box2 {
+  // 使用 extend 继承 .box1 中的样式 相当于 复制了一份
+  @extend .box1;
+
+  // 还可以扩展自己的样式
+  background: #00708D;
+}
+```
+
+> 格式: @extend 目标选择器
+- 在{ }使用 @extend 选择器 记住就*相当于*将目标选择器里面的css内容复制一份 到元素里面
+
+> 特点:
+- 1. 可以继承多个;
+```scss
+.box1 {
+  width: 500px;
+  height: 300px;
+  background: #F7AD25;
+}
+
+.error {
+  background: red;
+}
+
+.box2 {
+  @extend .box1;
   @extend .error;
-  border-width: 10px;
 }
 ```
 
-告诉 Sass 将.error选择器下的所有样式继承给.seriousError选择器。
+- 2. 可以连锁继承
+- box2继承了box1和error里面的内容 box3继承了box2
+```scss
+.box1 {
+  width: 500px;
+  height: 300px;
+  background: #F7AD25;
+}
 
-这样我们在应用样式的时候 只需要使用 一个类名就可以了
-```html
-<div class="seriousError">
-  Oh no! You've been hacked!
-</div>
+.error {
+  background: red;
+}
+
+.box2 {
+  @extend .box1;
+  @extend .error;
+}
+
+.box3 {
+  @extend .box2;
+  background: #4493B1;
+}
 ```
 
--------------------
 
-## @media
-Sass 中 @media 指令与 CSS 中用法一样，只是增加了一点额外的功能：允许其在 CSS 规则中嵌套。如果 @media 嵌套在 CSS 规则内，编译时，@media 将被编译到文件的最外层，包含嵌套的父选择器。这个功能让 @media 用起来更方便，不需要重复使用选择器，也不会打乱 CSS 的书写流程。
+> % 占位符选择器
+- 我们上面介绍了 @extend 继承的使用方式 但实际上我们不太会直接继承一个元素的样式
+- 更多的是 @extend 和 % 配合使用
+
+- 我们先看看怎么定义 占位符选择器
+- 我们定义class id的时候 都是这样是么
+```scss
+// id
+#content { ... }
+
+// class
+.item { ... }
+
+// 定义占位符选择器
+%base { ... }
+```
+
+- 那占位符选择器有什么样的用处呢?
+- 1. 占位符选择器里面的内容 不会被编译到 css 文件中
+
+- 
+- 有种情况 被继承的css类并没有被实际应用，也就是说html代码中没有使用该类，它的唯一目的就是给别人继承的
+
+- 对于这样的类，我们不希望被编译输出到最终的css文件中，编译过去只会增加CSS文件的大小，永远不会被使用。这时候我们就会选择用占位符选择器
+```scss
+%content-base {
+  width: 500px;
+  height: 100px;
+  border: 1px solid black;
+}
+
+.box1 {
+  @extend %content-base;
+  background: #F7AD25;
+}
+.box2 {
+  @extend %content-base;
+  background: #00A65E;
+}
+```
+
+
+- % 和 @extend 配合最大的好处就是 逻辑清晰 方便管理 方便复用
+- 我们体会下下面的例子
+
+- 需求:
+- 正常的链接 点我跳转 >
+- 加上 target="_blank" 窗口图标
+- 加上 连接 pdf 的时候 我们显示的是 pdf图标
 
 ```scss
-.sidebar {
-  width: 300px;
-  @media screen and (orientation: landscape) {
-    width: 500px;
+.btn {
+  width: 200px;
+  height: 40px;
+  border-radius: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // background: g.$color-primary;
+}
+
+
+%link-base {
+  text-decoration: none;
+  font-size: 1.4rem;
+  position: relative;
+  padding-right: calc(1em + 12px);
+  line-height: 1.5;
+
+  &::after {
+    content: "";
+    display: block;
+
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    
+    background-repeat: no-repeat;
+    transition: all 0.2s;
+  }
+
+  &:hover {
+    opacity: .8;
   }
 }
 
-// 编译为
-.sidebar {
-  width: 300px; 
+%arrow {
+  background-image: url("/image/ic_arrow.svg");
+  background-size: 1.5em 3em;
+  width: 1.5em;
+  height: 1.5em;
 }
 
-// 吧
-@media screen and (orientation: landscape) {
-  .sidebar {
-    width: 500px; 
-  } 
+%blank {
+  background-image: url("/image/ic_blank.svg");
+  background-size: 1.5em 3em;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+%pdf {
+  background-image: url("/image/ic_pdf.svg");
+  background-size: 1.75em 7em;
+  width: 1.75em;
+  height: 1.75em;
+}
+
+.link\:normal {
+  @extend %link-base;
+
+  &::after {
+    @extend %arrow;
+  }
+
+  &[target="_blank"] {
+    &::after {
+      @extend %blank;
+    }
+  }
+
+  &[href*=".pdf"] {
+    &::after {
+      @extend %pdf;
+    }
+  }
 }
 ```
 
 -------------------
-
-## 关系运算符
-大前提：两端必须为`数字` 或 `前部分数字后部分字符`
-返回值：true or false
-
-
-`>`
-
-  ```scss
-  $a: 1 > 2; // false
-  ```
-
-`<`
-
-  ```scss
-  $a: 1 > 2; // true
-  ```
-
-`>=`
-
-  ```scss
-  $a: 1 >= 2; // false
-  ```
-
-`<=`
-
-  ```scss
-  $a: 1 <= 2; // true
-  ```
-
--------------------
-
-## 相等运算符
-
-作用范围：相等运算 `==, !=` 可用于所有数据类型
-
-返回值：`true` or `false`
-
-  $a: 1 == 1px; // true
-  $b: "a" == a; // true
-
-**总结：**
-前部分为不带引号数字时，对比的仅仅是数字部分；反之，忽略引号，要求字符一一对应
-
--------------------
-
-## 布尔运算符
-SassScript 支持布尔型的 `and` `or` 以及 `not` 运算。
-返回布尔值
-布尔运算符前后要有空格
-
-<!-
-  $a: 1>0 and 0>=5; // fasle
- -->
-
--------------------
-
-## 颜色值运算
-颜色值的运算是分段计算进行的，也就是分别计算红色，绿色，以及蓝色的值
-
-`颜色值与颜色值`
-16进制和16进制来进行运算
-16进制分3个部分 比如 #010203  01 02 03
-16进制在进行运算的时候 是分3个部分相加得到结果的
-
-<!-
-  p {
-    color: #010203 + #040506;
-  }
-
-  // 计算 
-    01 + 04 = 05
-    02 + 05 = 07
-    03 + 06 = 09
-
-  // 结果
-    color: #050709;
- -->
-
-
-`颜色值与数字`
-分3个部分 分别去乘
-<!-
-  p {
-    color: #010203 * 2;
-  }
-
-  01 * 2 = 02
-  02 * 2 = 04
-  03 * 2 = 06
-
-
-  color: #020406;
- -->
-
-
-`RGB和HSL`
-如果颜色值包含 alpha channel（rgba 或 hsla 两种颜色值），必须拥有相等的 alpha 值才能进行运算，因为算术运算不会作用于 alpha 值。
-
-这个注意 前面如果是rgba 后面也要是rgba才能进行运算
-<!-
-  p {
-    color: rgba(255, 0, 0, 0.75) + rgba(0, 255, 0, 0.75);
-  }
-
-  color: rgba(255, 255, 0, 0.75);
- -->
-
--------------------
-
-## 运算优先级
-0. `()`
-1. `*`、`/`、`%`
-2. `+`、`-`
-3. `>` 、`<`、`>=`、`<=`
-
--------------------
-
-## 嵌套语法
-举例说明
-<!-
-  #app {
-    span { }
-    .font {
-      a { }
-    }
-  }
- -->
-
--------------------
-
-## 插值语法
-
-> #{}
-通过 `#{}` 插值语句可以在选择器、属性名和属性值中使用变量。
-js中的 ${ }
-
-但大多数情况下，这样使用属性值可能还不如直接使用变量方便，但是使用 `#{}` 可以避免 Sass 运行运算表达式，直接编译 CSS。
-
-<!-
-  $name: foo;
-  $attr: border;
-  p.#{$name} {
-    #{$attr}-color: $name;
-  }
-
-  // 编译后：
-  p.foo {
-    border-color: foo;
-  }
- -->
-
-
-> 父选择器 &
-`&`为父选择器
-
-<!-
-  a {
-    color: yellow;
-    &:hover{
-        color: green;
-    }
-    &:active{
-        color: blank;
-    }
-  }
- -->
-
-
-> !default
-语法：
-$变量: "值" !default
-
-如果变量已经被赋值，不会再被重新赋值，但是如果变量还没有被赋值，则会被赋予新的值。
-
-也就是说 该变量没有被定义过的时候 该值才会生效
-<!-
-  $content: "First content";
-  $content: "Second content?" !default;
-  $new_content: "First time reference" !default;
-
-  #main {
-    content: $content;
-    new-content: $new_content;
-  }
-
-  // 编译为：
-  #main {
-    content: "First content";
-    new-content: "First time reference"; }
- -->
-
-注意：变量是 null 空值时将视为未被定义 会被 `!default` 赋值。
-
-
-
-> !global
-将局部变量提升为全局变量
-正常来说我们定义在一个块里面的变量 另一个块里是不能够使用的
-但是使用 !global 之后该变量就会被提升到全局作用域下
-<!-
-  #foo {
-    $width: 5em !global
-  }
-
-  #bar {
-    width: $width
-  }
- -->
-
-
-> !optional
-如果 `@extend` 失败会收到错误提示，比如，这样写 `a.important {@extend .notice}`，当没有 `.notice` 选择器时，将会报错，只有 `h1.notice` 包含 `.notice` 时也会报错，因为 `h1` 与 `a` 冲突，会生成新的选择器。
-
-如果要求 `@extend` 不生成新选择器，可以通过 `!optional` 声明达到这个目的.
-
-简而言之：当`@extend`相关代码出现语法错误时，编译器可能会给我们"乱"编译为css，我们加上这个参数可以在出现问题后不让他编译该部分代码
-
--------------------
-
+### 书签
 ## 控制指令
 
 > if(expression, value1, value2)
@@ -1935,7 +2207,6 @@ $gutter-width: 10px;
 | random($number?:number) | 不传入值：获得0-1的随机数；传入正整数n：获得0-n的随机整数（左开右闭） |
 
 
-
 > 数组函数
 
 | 函数名和参数类型                 |                           函数作用                           |
@@ -2009,3 +2280,5 @@ $gutter-width: 10px;
 | unit($number)                  |                      返回$number的单位                       |
 | unitless($number)              |           判断$number是否带单位，返回对应的布尔值            |
 | comparable($number1, $number2) | 判断$number1和$number2是否可以做加、减和合并，返回对应的布尔值 |
+
+- https://baijiahao.baidu.com/s?id=1707847578036700250&wfr=spider&for=pc
