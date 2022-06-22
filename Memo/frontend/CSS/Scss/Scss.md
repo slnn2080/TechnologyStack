@@ -10,6 +10,49 @@
 }
 ```
 
+> 导入文件 @import 指令
+- 我们上面讲解了 变量的使用方式 我们发现上面我们在一个scss文件里面既定义了变量 又写了样式 都混在了一起
+
+- 而实际上在实际的开发中 我们会将变量单独的抽离成一个scss文件 用来集中的管理变量 未来在修改的时候 我们可以直接定位到这个文件进行修改就可以了
+
+- ok我们定义一个 variable.scss 文件
+```scss
+$w-full: 100%;
+$w-main: 1008px;
+$txt-size-base: 14px;
+$color_primary: #005D77;
+```
+
+- 那我们定义好了 variable.scss 文件 怎么在其他的文件里面使用呢?
+- 比如 我应该怎么在 index.scss 里面使用 variable.scss 的变量呢?
+
+- @import 指令
+- 我们在 index.scss 文件的开始处 使用 @import "路径"; 的形式引入 这样 index.scss 文件里面就可以直接使用变量了
+```scss
+@import "./style/variable/variable";
+
+$content: "你好";
+$content: "hello" !default;
+
+.target {
+  background-color: $color_primary;
+  padding: 30px;
+
+  &::before {
+    content: "#{$content}";
+    display: block;
+    padding: 30px;
+    background-color: papayawhip;
+  }
+}
+```
+
+- 至于 @import指令 @use指令 区别 _xxx.scss 相当知识点 我们放在后面在细谈 这里面还是有很多细节的
+
+- 有人说 老哥 @import 都被弃用啦 但是吧 因为我们使用的是 vscode + EasySass 目前呢 我们先使用着 @import 为什么的话 以后再说 咱以后再说
+
+
+
 ## 在 Vscode 里面快捷编写html
 https://www.jianshu.com/p/5432d194f7e5
 
@@ -371,7 +414,6 @@ npm i -g sass
 - 参考链接
 - https://blog.csdn.net/weixin_43193877/article/details/122221052
 
-
 -------------------
 
 ## Vscode 下安装 Sass
@@ -417,7 +459,10 @@ easysass.formats表示生成2种文件的格式。
 ```
 
 4. easysass.excludeRegex
-使用正则排除指定的文件目录
+提供文件名正则表达式，匹配到的文件会被排除，不会编译为css，默认为空，则功能关闭
+```js
+"easysass.excludeRegex": "^_+"
+```
 
 ---
 
@@ -604,10 +649,10 @@ ul li span {
 
 -------------------
 
-## 父选择器 &
-这节课我们介绍下嵌套规则里面的几个符号 首先就是 & 它代表父选择器
+## 父选择器标识符 &
+这节课我们介绍下scss在嵌套规则里面给我们提供的几个符号 首先要介绍的就是 & 它代表父选择器的标识符
 
-&: 
+> & 使用要点
   1. 写在内层嵌套里面 说白了它要写在括号的里面
   2. 选择器的位置上 
   3. 代表上一层级的选择器 说白了它代表的是括号外的选择器
@@ -780,6 +825,124 @@ ul li:hover a {
 }
 ```
 
+> 为什么要提供 &标识符呢?
+- 我们上面知道了 & 怎么使用 那么我们返回来想想为什么要有这个 &标识符呢?
+- 我们看看下面这个例子 
+
+- 我们就权当它是一个banner 整体我们使用了a标签来包裹主体内容 就说明点击banner会进行跳转 那么我想给用户一点点提示 当我们hover上去的时候 整体会有透明度的变化
+
+```html
+<div class="banner-link">
+  <a href="www.baidu.com">
+    <div class="content">
+      肯德基新品
+    </div>
+    <div class="image-area">
+      <img src="./img/img-9.png" alt="">
+    </div>
+  </a>
+</div>
+```
+
+```scss
+html, body {
+  font-size: 62.5%;
+  background: #eee;
+}
+
+.nav {
+  background-color: papayawhip;
+  padding: 30px;
+  color: #fff;
+
+  a {
+    display: block;
+    padding: 30px;
+    background-color: powderblue;
+    
+    .content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 200px;
+      height: 50px;
+      background-color: palevioletred;
+      margin-top: 20px;
+    }
+
+    :hover {
+      opacity: .7;
+    }
+  }
+}
+
+.banner-link {
+  background: #EF5A40;
+  border: 5px solid #fff;
+  border-radius: 10px;
+  width: 500px;
+  padding: 30px;
+  margin: 50px auto;
+
+  a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+
+    .content {
+      width:200px;
+      font-size: 40px;
+      color: #fff;
+      font-weight: bold;
+      margin-right: 20px;
+    }
+  
+    .image-area {
+      flex: 1;
+
+      img {
+        width: 100%;
+        height: auto;
+      }
+    }
+
+    // 我就这么写 在a的层级里面 直接写 hover
+    :hover {
+      opacity: .6;
+    }
+  }
+}
+```
+
+- 上面这么写的话 当我们hover到a上的时候 发生透明度变化的并不是a元素本身(它包裹的所有) 而是a的后代元素(文字 和 图片部分)
+```css
+/* a 空格 :hover 这不就是后代选择器的写法么*/
+.banner-link a :hover {
+  opacity: .6;
+}
+```
+
+- 当我们使用 &:hover 的时候 我们看下编译结果 空格没有了 我们再看看效果
+```scss
+.banner-link a:hover {
+  opacity: .6;
+}
+```
+
+- 为什么呢？
+- 我们写scss的这种嵌套(套娃)的写法 sass在解开一个嵌套规则时就会把 父选择器 + 空格 再连接到子选择器的前面 所以会出现编译后
+
+  .banner-link a :hover
+
+- 这种情况 这种情况在css中是后代选择器的写法吧 写在里面的样式只会对 a 的后代生效是吧
+- 但事实上 有些情况下 我们并不希望得到上面那样的结果是么(不希望以 后代选择器的方式连接)
+
+- 解决方式就非常的简单 使用一个特殊的sass选择器，即父选择器标识符。
+- 当包含父选择器标识符的嵌套规则被打开时，它不会像后代选择器那样进行拼接，而是&被父选择器直接替换：
+
+- .banner-link a:hover
+
+
 ok到这里我相信大家对嵌套的写法 和 &符号的用法有一定的了解了 有人会说兄dei 我知道了
 &代表 括号外的选择器 同时它的后面可以加 :link > + ~ ::before 
 
@@ -808,67 +971,6 @@ ok到这里我相信大家对嵌套的写法 和 &符号的用法有一定的了
 - 当然公司开发中尽可能的写代码的风格要统一 如果你去了一个项目组 大家都这么写 那咱也别另类了哈
 
 - 还有一个 % 占用符 这个等到我们讲继承的时候 我们再展开讲讲 这节课就到这里
-
-## 占位选择器 %
-使用方式和 .className #className 相似
-
-%className
-
-需要和 @extend 选择器名; 配合使用
-
-需要定义一套样式并不是给某个元素用，而是定义样式模板
-
-比如:
-我定义了一套样式模板
-
-```scss
-%sample {
-  border-radius: 10px;
-}
-```
-
-占位选择器 % 需要和 @extend 选择器名; 配合使用
-
-```scss
-.app_inner {
-  @extend %sample;
-  width: 300px;
-  height: 150px;
-  border: 1px solid black;
-} 
-
-
-// 相当于
-
-.app_inner {
-
-  border-radius: 10px;
-
-  width: 300px;
-  height: 150px;
-  border: 1px solid black;
-} 
-```
-
-
-```scss
-#context a%extreme {
-  color: blue;
-  font-weight: bold;
-  font-size: 2em;
-}
-
-.notice {
-  @extend %extreme;
-}
-
-// 编译结果
-#context a.notice {
-  color: blue;
-  font-weight: bold;
-  font-size: 2em; 
-}
-```
 
 -------------------
 
@@ -1072,6 +1174,45 @@ $spare-bgcolor: #d71345;
 
 -------------------
 
+### 变量的默认值 !default
+- 我们在声明一个变量的时候 可以变量值后面加上 !default 关键字 代表该值为变量的默认值
+
+- 格式:
+```scss
+$content: 123 !default;
+```
+
+- 使用变量的时候 
+  如果变量之前已经赋值 那么该变量还是之前的值
+  如果变量之前没有被复制 那么该变量则使用默认值
+
+
+```scss
+// 如果变量之前被赋值了 就使用这个值 即使下面再定义默认值也没用
+$content: "你好";
+
+// 但是如果我们上面的变量注释掉 之前没有声明过 $content 那么则使用默认值
+$content: "hello" !default;
+
+.target {
+  background-color: palevioletred;
+  padding: 30px;
+
+  &::before {
+    content: "#{$content}";
+    display: block;
+    padding: 30px;
+    background-color: papayawhip;
+  }
+}
+```
+
+- 比如我们编写了一个 UI组件库 肯定会暴露出去一些参数设置供用户自定义 比如用户可以选择个主题颜色 背景色等等对吧
+
+- 所以我们在scss文件里面需要用上用户选择的这些配置参数 但是用户如果没有选择的话 我们是不是也应该提供默认值啊 这就是默认值该干的事儿
+
+-------------------
+
 ## 数据类型
 scss在css的基础上提供了一些scssscript的新功能 听听这个词哈 scsscript scss脚本语言 或者说有点更贴近编程语言了 它为扩展了可以使用变量啊 算数运算 函数 判断等功能
 
@@ -1098,25 +1239,15 @@ $str: getout
 ```scss
 $str: "你好呀";
 
-.view {
-  width: 100%;
+.target {
+  background-color: palevioletred;
   padding: 30px;
-  background: #003449;
-  color: #D3D9DD;
-
-  position: relative;
 
   &::before {
-    // 我们在这里使用下变量
-    content: $str;
-    padding: 10px;
-    position: absolute;
-    left: 50px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    color: #2C353B;
-    background: #EEEFF0;
+    content: "#{$str}";
+    display: block;
+    padding: 30px;
+    background-color: papayawhip;
   }
 }
 ```
@@ -1185,24 +1316,15 @@ $attr-name: width;
 $num: 1a;
 $type: type-of($num);
 
-.view {
-  width: 100%;
+.target {
+  background-color: palevioletred;
   padding: 30px;
-  background: #003449;
-  color: #D3D9DD;
-
-  position: relative;
 
   &::before {
-    content: "#{$num} -- #{$type}";
-    padding: 10px;
-    position: absolute;
-    left: 50px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    color: #2C353B;
-    background: #EEEFF0;
+    content: "#{$str}";
+    display: block;
+    padding: 30px;
+    background-color: papayawhip;
   }
 }
 ```
@@ -1631,6 +1753,11 @@ $res: 2px > 1px;    // true
 ------
 
 > 逻辑操作符 and or not
+
+    部分1 and 部分2
+
+- 兄弟啥叫表达式 那你就理解成 部分1 和 部分2 我们关注 部分1 和 部分2 的布尔值结果
+
 - and: 
   我们理解为 且 的关系 也就是 and操作符的两端的表达式 结果都要满足 都要为true的时候 结果才是 true 两端有任意一端不满足条件 结果就是false
 ```scss
@@ -1872,345 +1999,1033 @@ content: "#{not $bool}";
 ```
 
 -------------------
-### 书签
-## 控制指令
 
-> if(expression, value1, value2)
-*三元运算符*
-如果没有理解错的话 如果表达式是true 那么会返回value1 否则函数 value2
+## 控制指令 @if
+- 我们上面说过 布尔类型 也了解过 相等运算符 比较运算符 逻辑运算符 这里简单的回顾下
+  - 布尔类型:
+  - 一共有两个值 true 和 false
 
-```scss
-p {
-  color: if(1 + 1 = 2, green, yellow);
-}
+  - 相等运算符 == != 
+  - 用于判断 运算符两端的值 是否相等 或 是否不等 其结果是布尔类型的值
+  - 比如 1 == 1 结果就是个 true
 
-// compile:
-p{
-  color: green;
-}
-```
+  - 比较运算符 > < >= <=
+  - 用于比较数值 运算符两端的数值 是否符合逻辑 结果也是布尔类型的值
+  - 比如 1 > 2 结果就是 false
 
-
-
-> @if 表达式 { 样式... }
-当表达式成立的话 会输出 {} 内的表达式
-@if 是写在 .p { 内部的 }
-
-`@if` 声明后面可以跟多个 `@else if` 声明，或者一个 `@else` 声明。
-
-如果 `@if` 声明失败，Sass 将逐条执行 `@else if` 声明，如果全部失败，最后执行 `@else` 声明
-
-> `单@if`
-
-```scss
-p {
-  @if 1 + 1 == 2 {
-    color: red;
-  }
-}
-
-// compile:
-p {
-  color: red;
-}
-```
-
-> `@if @else`
-
-```scss
-p {
-  @if 1 + 1 != 2 {
-    color: red;
-  } @else {
-    color: blue;
-  }
-}
-
-// compile:
-p {
-  color: blue;
-}
-```
-
-> `@if @else if @else`
-```scss
-$age: 19;
-
-p {
-  @if $age == 18 {
-    color: red;
-  } @else if $age == 19 {
-    color: blue;
-  } @else {
-    color: green;
-  }
-}
-
-// compile:
-p {
-  color: blue;
-}
-```
+  - 逻辑运算符 and or not
+  - 格式就是 部分1 and 部分2 我们拿到 部分1 和 部分2 的布尔值结果 然后进行逻辑运算
+  - 结果也是布尔值
+  - 比如: $num: 15px; $num > 10px and $num < 20px; 
+  - true and true 返回的是不是就是true啊
 
 
-> @for
-指令可以在限制的范围内重复输出格式，每次按要求（变量的值）对输出结果做出变动
+- 有了上面的知识后 我们再看看 @if 指令的使用方式
 
-*循环语句*
+- @if 可以理解为分支结构 什么叫做分支结构呢? 
 
-这个指令包含两种格式:
+- 举个例子: 
+- 现在呢 你妈妈和老婆掉水里了 你需要思考救谁
+<!-- 
+    老婆    妈妈
 
-> @for $var from <start> through <end> { ... }
-> @for $var from <start> to <end> { ... }
-循环输出 { ... } 中的逻辑 
+        ↖ ↗
+        条件
+         ↓
 
-start
-end
-必须是整数值
-
-
-区别在于 through 与 to 的含义：
-当使用 through 时, 条件范围包含 <start> 与 <end> 的值
-<!-
-  包含两端
+         你
  -->
 
-当使用 to 时条件范围
-  *只包含 <start> 的值*
-  *不包含 <end> 的值*
+  如果 老婆会游泳 救妈妈
+  如果 妈妈会游泳 救老婆
 
+- 反正你回答啥都是挂
 
+- 也就是说根据不同的条件 执行不同的操作 它是一个多选一的过程
+
+- 我们看下 条件判断语句的格式 @if指令
+
+> 语法1:
 ```scss
-@for $i from 1 through 3 {
-  .item-#{$i} { width: 2em * $i; }
+@if 条件 {
+  ...
 }
-
-// compile:
-.item-1 {
-  width: 2em; }
-.item-2 {
-  width: 4em; }
-.item-3 {
-  width: 6em; }
 ```
 
+> 执行思路:
+- 在执行 { } 内的逻辑之前需要对条件进行判断 查看条件的结果
+- 如果条件返回的结果为 true 则执行 { ... } 内的逻辑
+- 如果条件返回的结果为 false 则不会执行 { ... } 内的逻辑
+  
+- 举个例子:
+- 如果 template 的值为 girl 则 执行后面{ }中的逻辑
 ```scss
-@for $i from 1 through 3 {
-  .item-#{$i} { width: 2em * $i; }
-}
+$template: "girl";
 
-// compile:
-.item-1 {
-  width: 2em; }
-.item-2 {
-  width: 4em; }
-.item-3 {
-  width: 6em; }
+.test {
+  width: 200px;
+  height: 100px;
+  border: 1px solid black;
+
+  // 我们利用 条件判断语句 对背景色进行赋值
+  @if $template == "girl" {
+    background-color: palevioletred;
+  }
+
+  // 那如果 是boy呢？ 条件为false 则后面的逻辑就不执行了
+  @if $template == "boy" {
+    background-color: palevioletred;
+  }
+}
+```
+  
+> 语法2:
+```scss
+@if 条件 {
+  ...
+}
+@else {
+  ...
+}
 ```
 
+- 多了一个@else, 上面只有@if的时候是查看条件 如果符合条件则执行后面的逻辑是么
 
-> @each $var in <list>
-list
-是一连串的值 也就是值列表
+> @if ... @else 的执行逻辑
+- 还是先会对条件进行判断 
+  如果结果为true 则执行if后面的逻辑
+  如果结果为false 则指定else后面的逻辑
 
-遍历值列表
+- 也就是 2选1 两个肯定会选一个
 
 ```scss
-@each $animal in puma, sea-slug, egret, salamander {
-  .#{$animal}-icon {
-    background-image: url('/images/#{$animal}.png');
+$template: "boy";
+
+.test {
+  width: 200px;
+  height: 100px;
+  border: 1px solid black;
+
+  @if $template == "girl" {
+    background-color: palevioletred;
+  }
+  @else {
+    background-color: powderblue;
+  }
+}
+```
+- 首先会判断条件 看看 $template == "girl" 的结果 结果是什么呀 false 那么执行的就是 @else 里面的语句
+  
+
+
+> 语法3:
+```scss
+@if 条件 {
+  ...
+}
+@else if 条件 {
+
+}
+@else 条件 {
+  ...
+}
+```
+
+- 多分支语句 就是利用多个条件来选择不同的语句执行 是一个多选1的过程
+
+> 执行逻辑:
+- @if @else if @else 当语句执行时 会从上到下一次对象条件表达式进行求值判断
+- 如果求值的结果为true 则执行当前语句
+- 如果求值的结果为false 则继续向下判断
+- 如果所有的条件都不满足则执行最后的else语句(备胎) 
+
+- 多选一 当一个{}逻辑被执行之后 后面的语句判断都不会进行下去了
+
+```scss
+$template: "man";
+
+.test {
+  width: 200px;
+  height: 100px;
+  border: 1px solid black;
+
+  // 我们利用 条件判断语句 对背景色进行赋值
+  @if $template == "girl" {
+    background-color: palevioletred;
+  }
+  @else if $template == "boy" {
+    background-color: powderblue;
+  }
+  @else if $template == "man" {
+    background-color: palegreen;
+  }
+  @else {
+    background-color: purple;
   }
 }
 ```
 
+- 首先会从if开始进行判断 如果不符合 则继续向下判断 直到匹配上为止 一旦其中的任意一条匹配后 整体的逻辑就结束了
+
+- 多选1 只会选择一个
+
+
+> 这里再介绍个 内置的函数 if()
+> if(条件, value1, value2)
+- 会根据条件返回的布尔值 决定返回的是value1 还是value2
+- 如果表达式是true 那么会返回value1 否则函数 value2
+
+*三元运算符*
+
+- 比如:
+- 我们有这样的一个场景, 我们都知道页面布局的时候 会将网页分割成几个大块
+- 这种大的部分之间的间距 往往外边距都是很大的 而利用元素之间的间距 可能就没有那么大 比如标题和正文之间的间距对么
+
+- 所以呢 我们可以利用变量 动态的设置margin-top的值
+- section就意味着大块 如果 template 的值是section则间距就是60px 如果不是就是20px
+
+- 是不是跟 if else 一样
+
 ```scss
-@each $header, $size in (h1: 2em, h2: 1.5em, h3: 1.2em) {
-  #{$header} {
-    font-size: $size;
-  }
+$template: "section";
+
+.test {
+  width: 200px;
+  height: 100px;
+  border: 1px solid black;
+
+  margin-top: if($template == "element", 60px, 20px);
 }
 ```
 
-一维列表
+----------------
 
-  ```scss
-  @each $animal in puma, sea-slug, egret, salamander {
-    .#{$animal}-icon {
-      background-image: url('/images/#{$animal}.png');
+### @for 循环结构 循环指令
+- 我们先看看 循环指令的语法
+```scss
+@for 变量 form <start(int)> [to/through] <end(int)> {
+  循环体...
+}
+```
+
+> start ~ end:
+- 要求: 他们两个必须是整数值, 也就是指定循环的次数 
+
+> [to/through]:
+- 这两个关键字选择一个
+- to: 包括 start 但是不包括 end
+- 比如: start to end: 1 to 3 那么会循环几次呢? 1 2 两次不包括end的值
+
+- through: 包括 start 包括 end
+- 比如: start through end: 1 through 3 那么会循环几次呢? 1 2 3 三次包括end值
+
+> 变量
+- 变量名是随便起的 你起什么都可以 比如我们起一个 $index
+- 那么
+  循环第一次的时候 index的值就是1 
+  循环第二次的时候 index的值就是2
+  循环第三次的时候 index的值就是3
+
+- 该变量可以在循环体内部使用
+
+
+- 举例:
+- 我们通过循环给li添加背景色
+```scss
+ul {
+  list-style-type: none;
+  li {
+    width: 200px;
+    height: 100px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+  }
+}
+
+--- 
+
+ul {
+  list-style-type: none;
+  li {
+    width: 200px;
+    height: 100px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+
+    
+    @for $index from 1 through 6 {
+      /*
+        这个部分是循环体吧 循环体会执行几次? 1 2 3 4 5 6
+
+        执行第一次的时候 index 是 1 对么 这个 index 变量可以在 循环体内部使用
+
+        这个部分是 #{} 语法吧 可以将变量插入到指定的位置吧 那是不是就相当于
+        &:nth-child(1)
+        &:nth-child(2)
+        &:nth-child(3)
+        &:nth-child(4)
+        &:nth-child(5)
+        &:nth-child(6)
+      */
+      &:nth-child(#{$index}) {
+
+        // 颜色值可以参与运算吧 那就让这个颜色值 * index 那么循环第一次的时候 * 1 * 2 * 3 * 4 * 5 * 6 是么
+        background-color: (#293875 * $index);
+      }
     }
   }
-  
-  // compile:
-  .puma-icon {
-    background-image: url('/images/puma.png'); }
-  .sea-slug-icon {
-    background-image: url('/images/sea-slug.png'); }
-  .egret-icon {
-    background-image: url('/images/egret.png'); }
-  .salamander-icon {
-    background-image: url('/images/salamander.png'); }
-  ```
+}
+```
 
-二维列表
+- 我们验证下 $index 是不是 1 2 3 4 5 6 我们修改下样式
+```scss
+&::before {
+  content: "#{$index}";
+  display: block;
+  padding: 30px;
+}
+```
 
-  ```scss
-  @each $animal, $color, $cursor in (puma, black, default),
-                                    (sea-slug, blue, pointer),
-                                    (egret, white, move) {
-    .#{$animal}-icon {
-      background-image: url('/images/#{$animal}.png');
-      border: 2px solid $color;
-      cursor: $cursor;
+- 循环能利用在很多地方 你想法有多么的狂野 效果就有多么的惊人
+- 比如我们可以这样
+```scss
+&::before {
+  content: "今天是我爱你的第#{$index}天";
+  display: block;
+  padding: 30px;
+}
+```
+
+- hetui 渣男 周天你去找谁
+
+- 再举个例子
+- 给所有的li添加不同的背景图片
+```scss
+ul {
+  list-style-type: none;
+  li {
+    width: 300px;
+    height: 100px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+
+    @for $index from 1 through 6 {
+      &:nth-child(#{$index}) {
+        background-image: url(../img/img-#{$index}.png);
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
     }
   }
-  
-  // compile:
-  .puma-icon {
-    background-image: url('/images/puma.png');
-    border: 2px solid black;
-    cursor: default; }
-  .sea-slug-icon {
-    background-image: url('/images/sea-slug.png');
-    border: 2px solid blue;
-    cursor: pointer; }
-  .egret-icon {
-    background-image: url('/images/egret.png');
-    border: 2px solid white;
-    cursor: move; }
-  ```
+}
+```
 
-maps
+----------------
 
-  ```scss
-  @each $header, $size in (h1: 2em, h2: 1.5em, h3: 1.2em) {
-    #{$header} {
-      font-size: $size;
+## @each $var in <list|map>
+- 这节里面我们讲下 数组 和 对象的遍历
+- 这里面有说到了数组 和 对象 还是一样我们简单的回顾下 数组和对象的概念
+
+- scss中的数组:
+- 由空格或,分割的值 就称之为数组 比如:
+- 1px solid black
+- Helvetica, Arial, sans-serif
+- 像这样的结构 都可以称之为数组, 不仅仅只能是css语法中出现的关键字 还可以自定义 只要是满足由空格 或者 ,分割的值都算
+- 比如 I love you
+
+- scss中的对象(maps)
+- 定义方式:
+```scss
+$person: (
+  name: "sam",
+  age: 18,
+  address: "江苏"
+)
+
+$title: (
+  h1: 60px;
+  h2: 48px;
+  h3: 24px;
+)
+```
+
+- 由小括号包裹 里面是 key:value 形式的一组组的值 就可能称之为对象
+
+- 那什么又是遍历呢? 很简单就是将保存在 数组和对象结构里面的数据一个一个的取出来使用 就叫做数组的遍历 和 对象的遍历
+
+> 语法结构:
+```scss
+@each 变量 in [数组结构 | 对象结构] {
+  ...
+}
+```
+
+- 变量:
+- 变量名自己定义随意 变量可以在 { ... } 内部使用
+
+- 数组或对象中有多少个成员 就会执行多少次逻辑 直到全部取出为止
+- 1, 2, 3
+- 先取出1 然后执行一遍逻辑
+- 再取出2 然后执行一遍逻辑
+- 再取出3 然后执行一遍逻辑 没了就结束了
+
+
+- 举个例子:
+- 给不同的li添加不同的背景色
+- 之前我们说过 每一种数组结构 scss就提供了一套操作对应数据结构的函数(工具)
+- 之前我们在介绍数组的时候 介绍过 nth() length() 等工具的使用方式 这里我们先回顾一下
+```scss
+// 我们定义一个颜色的数组
+$img-url: #673AB7, #E91E63, #FF5252;
+
+// 使用 nth() 工具 取出数组中第一个元素
+$item: nth($img-url, 1);
+
+
+.target {
+  background-color: #FF5252;
+  padding: 30px;
+
+  &::before {
+    content: "#{$item}";  // 结果是#673AB7
+    display: block;
+    padding: 30px;
+    background-color: papayawhip;
+  }
+}
+```
+
+- 现在我们介绍一个新的 工具
+> index(数组, 成员)
+- 上面的 nth() 是根据数组中元素的索引 返回对应的成员对吧
+- index() 则是根据成员 返回对应成员所在的索引
+```scss
+// 我们定义一个颜色的数组
+$img-url: #673AB7, #E91E63, #FF5252;
+
+// 使用 index() 工具 获取 成员#673AB7所在的下标
+$index: index($img-url, #673AB7);
+
+
+.target {
+  background-color: #FF5252;
+  padding: 30px;
+
+  &::before {
+    content: "#{$index}";  // 1
+    display: block;
+    padding: 30px;
+    background-color: papayawhip;
+  }
+}
+```
+
+- ok 接下来我们要做什么呢? 前戏够了 进入下一个环节
+```scss
+$color-bg: #673AB7, #E91E63, #FF5252;
+
+ul {
+  list-style-type: none;
+  li {
+    width: 300px;
+    height: 100px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+
+    // 有几个成员就要遍历几次 因为遍历的目的就是依次取出数组中的成员
+    @each $item in $color-bg {
+      // item 在第一次的时候 是 #673AB7
+
+      // 那我是不是可以获取到 #673AB7 所在的下标呀 
+      $i: index($color-bg, $item); // #673AB7 对应的下标
+      
+      // 第一个li吧
+      &:nth-child(#{$i}) {
+        background-color: $item;
+      }
     }
   }
-  
-  // compile:
-  h1 {
-    font-size: 2em; }
-  h2 {
-    font-size: 1.5em; }
-  h3 {
-    font-size: 1.2em; }
-  ```
+}
+
+
+// 编译后的代码
+ul li:nth-child(1) {
+  background-color: #673AB7;
+}
+
+ul li:nth-child(2) {
+  background-color: #E91E63;
+}
+
+ul li:nth-child(3) {
+  background-color: #FF5252;
+}
+```
+
+
+- 上面说的是list数组的遍历 map对象同样能遍历的
+```scss
+@each key, value in maps {
+  ...
+}
+```
+
+- 我们上面定义两个变量是么? 为什么? 因为对象的形式就是
+
+  (
+    key: value,
+  )
+
+- 也就是一样 对象有多少组key value那么就会遍历多少次 每次会取出key和value
+
+- 举例:
+```html
+<h1>我是大标题</h1>
+<h2>我是中标题</h2>
+<h3>我是小标题</h2>
+```
+
+```scss
+$title: (
+  h1: 80px,
+  h2: 60px,
+  h3: 30px
+);
+
+@each $key, $value in $title {
+  // 我们要是想在字符串或者选择器的位置使用变量 需要用插值语法
+  #{$key} {
+    background: $value;
+  }
+}
+```
 
 -------------------
 
-## 混合指令
-混合指令（Mixin）用于定义可重复使用的样式
+## 混合指令 Mixin
+- 我们在写样式的时候 肯定有很多部分的样式可以复用 我们在编写样式的时候 可以将这些需要重复复用的的代码 提取出来封装成一个 mixin
 
-> 定义混合指令
-> @mixin 样式名 { 样式... }
-
+- 这样在需要封装起来的样式的时候 可以直接调用 mixin命令就可以了
+- 比如:
+- 我想让一个元素在父元素中 上下左右居中 我们就拿一个特别长的代码就演示
 ```scss
-// 格式：
-@mixin name {
-    // 样式....
-}
-```
+.container {
+  width: 500px;
+  height: 300px;
+  background-color: palevioletred;
+  padding: 30px;
+  margin: 0 auto;
+  position: relative;
 
-```scss
-// example：
-@mixin large-text {
-  font: {
-    family: Arial;
-    size: 20px;
-    weight: bold;
-  }
-  color: #ff0000;
-}
-```
+  .inner {
+    width: 100px;
+    height: 100px;
+    background-color: papayawhip;
 
-> @mixin 样式名($参数, $参数) { 样式... }
-参数用于给混合指令中的样式设定变量，并且赋值使用
-
-
-> 引用混合
-> @include 混合名称
-引用指令时，按照参数的顺序，再将所赋的值对应写进括号：
-```scss
-.page-title {
-  @include large-text;
-  padding: 4px;
-  margin-top: 10px;
-}
-```
-
-
-> @include 混合名称(实参, 实参)
-```scss
-@mixin sexy-border($color, $width) {
-  border: {
-    color: $color;
-    width: $width;
-    style: dashed;
+    // 这部分就是元素居中的代码是么
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
   }
 }
+```
 
-p { 
-  @include sexy-border(blue, 1in); 
+- 那假如页面上还有很多元素 需要居中 是不是说每一个想要居中的元素里面都要写上这段代码
+- 这时候我们就可以考虑使用 mixin
+
+- 将这段代码封装起来 在需要的位置上调用就可以了
+- 相当于
+<!-- 
+    一段代码
+    一段代码
+    一段代码    装到一个容器里面  容器A
+    一段代码
+    一段代码
+
+    在需要使用这段代码的地方调用 容器A
+
+    // 调用容器A
+    容器A() 
+
+    就相当于将塑料袋打开 把里面的东西倒出来是一样的
+ -->
+
+- 我们看看 mixin的时候方式
+
+> 定义 mixin
+```scss
+@mixin 容器名 {
+  ...要被封装起来的样式
 }
 ```
 
-> @mixin 可以用 = 表示，
-> @include 可以用 + 表示
 
+- 那封装起来怎么调用呢?
 
-> 混合中插槽 @content
-上面我们知道 我们定义混合 @mixin name[()] { ... }
-然后我们可以通过 @include name 的方式来调用混合
-
-也就是我们写在混合中的样式 当我们@include的时候 会被复制到该位置
-有的时候 我们不喜欢混合中的内容是定死的 我们希望在调用的时候 由我们自己传递样式
-
-所以就有了 混合中插槽
-1. 在混合中使用插槽 @content
-2. 在调用@include的时候 写在方法体中的样式 会出现在 @content的区域
+> 调用 mixin
+- 别忘记加小括号哦
+```scss
+@include 容器名();
+```
 
 ```scss
-@mixin bgColor {
-  @content
+// 定义 mixin
+@mixin item-center {
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
 }
 
-.banner {
-  @include bgColor {
+.container {
+  width: 500px;
+  height: 300px;
+  background-color: palevioletred;
+  padding: 30px;
+  margin: 0 auto;
+  position: relative;
+
+  .inner {
+    width: 100px;
+    height: 100px;
+    background-color: papayawhip;
+    
+
+    // 调用mixin
+    @include item-center();
+  }
+}
+```
+
+- mixin就是为了复用样式的
+
+> mixin的优势:
+- 1. 可以传递参数
+- 我们上面封装起来的代码 都是写死的是么 那就是说 我们在哪里调用 代码都是一样的
+- 复用是解决了 但是不能实现 私人定制的要求
+
+- 比如 还是居中 有的元素调用居中的时候 我希望将元素改成红色 有的元素调用居中的时候我希望将元素修改为蓝色
+
+- 这是不是由调用者来指定复用样式的属性值呀
+
+- 那怎么传递参数呢?
+
+> 定义带参数的 mixin
+```scss
+@mixin 容器名($形参1, $形参n) {
+  ... 样式里面就可以使用 $形参
+}
+```
+
+> 调用 mixin 的时候 向其传递参数
+```scss
+@include 容器名(实参, 实参n)
+```
+
+- 我们在定义mixin的时候 我们可以指定一个或多个形参 多个形参之间使用,号分割
+- 声明的形参就相当于 声明了一个变量 但是该变量没有值 没有被赋值
+
+- 当我们调用 mixin 的时候 可以在小括号内传递实参(实际的参数) 相当于给形参进行了赋值
+
+- 我们先来看个简单的例子
+```scss
+// 定义一个 带参数的 mixin  参数就相当于一个变量 那么我们就可以在 { } 里面使用这个变量是么
+@mixin bg($color) {
+
+  // 未来我在调用 mixin 的时候 会给这个变量赋值
+  background-color: $color;
+}
+
+div {
+  // 这个 red 会传递到形参 相当于给变量进行了赋值 $color 有值了 那是不是就意味着有背景色了
+  @include bg(red);
+}
+```
+
+---
+
+> 形参的默认值
+- 当我们定义了带形参之后 我们必须要传递实参 如果不传递的话 scss的编译器就会报错
+- 也可以理解 我们调用 mixin 就是为了将其内部的代码倒出来 可内部的代码里面使用了变量 我们却没给这个变量赋值 那用个寂寞
+
+- 为了避免上面的事情发生 我们可以给形参赋一个默认值 当我们调用mixin却没有给实参的时候 那么它就会使用默认值 当我们指定了实参的话 就使用我们指定的值
+
+- 那么默认值该怎么定义呢?
+
+```scss
+@mixin 容器名($形参: 默认值) {
+  ... 样式里面就可以使用 $形参
+}
+```
+
+- 设置了默认值之后 我们再调用 mixin 也不会报错
+```scss
+@mixin bg($color: red) {
+  background-color: $color;
+}
+
+div {
+  // 即使我们没有传递实参也不会报错
+  @include bg();
+}
+```
+
+
+> 稍微总结下要点:
+- 1. 调用mixin的时候 @include 容器名() 的时候 必须在 选择器内调用
+- 2. 定义 mixin 使用的是 @mixin 指令 调用 mixin 的时候使用的是 @include 指令
+- 3. 当我们定义形参的时候 定义几个形参 就需要对应的传递几个实参 形参和实参的位置顺序是一一对应的
+```scss
+@mixin bg($color, $padding) {
+  background: $color;
+  padding: $padding;
+}
+
+div {
+  // 对的
+  @include bg(red, 13px)
+
+  // 错的
+  @include bg(13px, red)
+}
+```
+
+- 4. 形参的个数 和 实参的个数也要一一匹配 比如我定义了1个形参 但是我传递了2个实参也是不行的
+
+---
+
+- 接下来我们再讲点 mixin 的知识点
+
+
+> 命名实参
+- 我们上面说了 如果我们定义了多个形参的情况下 当我们传递实参的时候 传递的顺序要和形参的顺序一一匹配上 不然就会错乱是吧
+
+- 那有人说了 我就不想按顺序来 怎么办？ 能解决么? 可以
+- 我们定义了 $color $padding 两个形参是么 相当于声明了两个变量是不 它们是不是就是变量名呀
+
+- 我们在传递实参的时候 可以指定 $color的值是什么 和 指定 $padding的值是什么
+```scss
+@mixin bg($color, $padding) {
+  background: $color;
+  padding: $padding;
+}
+
+div {
+  // 即使顺序没有和形参的顺序一一匹配 但是我们在传递实参的时候 就指定形参对应的值了
+  @include bg($padding: 13px, $color: red)
+}
+```
+
+
+> 可变形参
+- 我们看下下面的例子 这是一个有阴影的盒子
+```scss
+html {
+  background: rgba(221, 215, 215, 0.7);
+  color: #fff;
+}
+
+div {
+  width: 300px;
+  height: 200px;
+  background: #fff;
+  border-radius: 10px;
+  margin: 50px auto;
+  
+  box-shadow:
+    12.5px 12.5px 10px rgba(0, 0, 0, 0.035),
+    100px 100px 80px rgba(0, 0, 0, 0.07);
+}
+```
+
+- 现在我们就将阴影部分封装起来
+```scss
+@mixin shadow($val) {
+  box-shadow: $val
+}
+```
+
+- 那我们传递值的时候怎么传递?
+
+12.5px 12.5px 10px rgba(0, 0, 0, 0.035), 100px 100px 80px rgba(0, 0, 0, 0.07);
+
+- 我们要传递这个吧, 这不就相当于两个实参了么 我们先试试哈 看看可不可以
+- 其实不行吧 因为形参的个数 和 实参的个数不一致是么
+
+> 定义 可变形参
+```scss
+@mixin 容器名($形参...) {
+  ... 样式里面就可以使用 $形参
+}
+```
+
+- 当我们传递多个实参的时候 实参会被封装到参数数组(arglist)中被可变形参接收
+```scss
+@mixin shadow($val...) {
+  box-shadow: $val;
+}
+
+div {
+  width: 300px;
+  height: 200px;
+  background: #fff;
+  border-radius: 10px;
+  margin: 50px auto;
+
+  @include shadow(12.5px 12.5px 10px #333, 100px 100px 80px #ccc);
+}
+```
+
+- 别看 可变形参 长的怪 后面还带了 ... 
+- $val... 这只是声明成可变形参的一种方式 你就还当变量用 $val 用的时候你也不用把...带上
+
+---
+
+> @content 和 代码片段
+- 有人可能会说 兄嘚 怎么还有啊 是啊 还有呀 怎么地吧
+- 因为 mixin 很强大 很灵活 在开发中用的是最多的哈 所以呢mixin的功能也会对应的多一些
+- 其实也有好处 因为功能多 就代表着可以玩的花样就多 能下节课的时候给你们做几个功能
+ 
+- 我们先看看代码片段在哪哈
+
+```scss
+// 定义 带参数的mixin
+@mixin bg($color) {
+  background: $color;
+}
+
+// 调用mixin并传递实参
+div {
+  @include bg(red);
+}
+```
+
+- 到这都没有问题是么 看啊 代码片段来了 在调用 mixin 的时候 我在最后给它整个 {} 
+```scss
+@mixin bg($color) {
+  background: $color;
+}
+
+div {
+  @include bg(red) {
+    ... 代码片段
+  }
+}
+```
+
+- 注意啊 是在调用mixin的最后 追加了一对花括号是么
+```scss
+div {
+  @include 容器名(实参) {
+    代码片段
+  }
+}
+```
+
+- 代码判断有什么用呢? 使用代码片段必须和 @content 一起配合使用
+
+> @content的位置 在定义 mixin 的阶段 写在了定义mixin的花括号里面
+```scss
+// 定义
+@mixin 容器名($形参) {
+  background: $color;
+
+  @content;
+}
+
+
+// 调用
+div {
+  @include 容器名(实参) {
+    代码片段
+  }
+}
+```
+
+- 我们调用mixin时指定的代码片段会传递到@content的位置 换句话说就是将 代码片段 替换掉 @content
+
+- 啊 有人说了 我好像明白点了 就是在定义 mixin 的阶段 我挖个坑对吧
+- 在调用 mixin 的阶段 传点代码片段 把坑埋了是吧
+
+- 那这玩意有啥用啊？
+
+- 我们定义的形参还是实参 都是传值吧, 在调用mixin的时候 将值传递进行 动态的设置 *已经定义好的* 属性
+
+- 而代码片段可以实现往里面追加内容
+
+- 举例:
+```scss
+html {
+  background: rgba(221, 215, 215, 0.7);
+  color: #fff;
+}
+
+@mixin custom($color, $align) {
+  background-color: $color;
+  text-align: $align;
+
+  @content; // line-height: 200px; 我们传递的代码片段 相当于替换掉 @content
+}
+
+div {
+  width: 300px;
+  height: 200px;
+  background: #fff;
+  border-radius: 10px;
+  margin: 50px auto;
+  color: black;
+
+  @include custom(#E91E63, center) {
+    // 传递代码片段
+    line-height: 200px;
+  }
+}
+```
+- 比如我们还可以干什么呢? 在调用mixin的时候 给它元素追加不同的背景图片是不是也可以
+- 还是那句话 你的想法决定了你能玩出什么样的花样
+
+- 这时候有个老哥又说了 xiongdei 没了吧
+- 哈哈 不好意识 其实还有 但剩下的知识点 细节 我们在以后在进行补充哈 先到这里
+
+-------------------
+
+## @media 媒体查询
+- 关于媒体查询怎么使用 我们就不说了哈 因为这里scss和css中的@media的使用方式是一样的 只不过 scss中的@media增加了一点点点点的功能
+
+- 我们先回顾下 css 中的媒体查询的书写方式
+```css
+@media only screen and (min-width: 500px) {
+  选择器 {
+    样式
+  }
+}
+```
+
+- css中的媒体查询肯定是包裹着选择器的 当符合规则的时候里面的样式就会执行对么
+
+- scss中的 @media 用法和css一样 但它允许写在 嵌套规则的里面
+```scss
+div {
+  // 小于 500px 时候的样式
+  width: 100%;
+  height: 150px;
+  background-color: palevioletred;
+  padding: 30px;
+  text-align: center;
+  line-height: 150px;
+
+  // 大于 500px 的时候
+  @media screen and (min-width: 500px) {
+    background-color: palegoldenrod;
+  }
+}
+```
+
+- 我们将 @media 写在了嵌套规则的里面 这样逻辑是顺下来的 上面小于500px的样式 下面就可以定义 当大于500px的时候是什么样式 很顺很丝滑
+
+- 有人说兄嘚 我就不!!! 额 开心就好
+
+-------------------
+
+### 封装 媒体查询
+- 我们有没有发现 媒体查询的代码有点长啊 还有我们只指定了一个断点(大于500px) 那一个响应式的页面 要指定好几个断点吧
+
+- 比如 大屏 pc 平板 sp 这就四个是么
+- 那每次都要记尺寸 还要写这么长的代码 不累么？ 程序员最大的优点就是懒 来 这节课我们讲讲怎么减少代码量 将媒体查询的逻辑进行封装
+
+> 1. 将断点定义为一个对象
+```scss
+$breakpoints: (
+  "xs": "screen",
+  "sm": "screen and (min-width: 600px)",
+  "md": "screen and (min-width: 1240px)",
+  "lg": "screen and (min-width: 1440px)"
+);
+```
+
+- 这样我们是不是可以根据 属性名 获取属性值呀 比如 sm 对应的就是 screen and (min-width: 600px) 是不
+
+> 2. 使用 mixin 封装 @media
+```scss
+@mixin mq($bp: md) {
+  @media #{map-get($breakpoints, $bp)} {
+    @content;
+  }
+}
+```
+
+- 解析:
+- 使用 mixin 是不是相当于 将一些代码封装起来 装到一个塑料袋里面
+- 在选择器内调用 mixin 的时候 相当于将封装的代码倒出来对么
+```scss
+div {
+  // 比如我们这里调用mixin
+  @include mq() {}
+}
+
+-- 是不是相当于
+
+div {
+  @media #{map-get($breakpoints, $bp)} {
+    @content;
+  }
+}
+
+-- 对么
+```
+
+- map-get($breakpoints, $bp) 是不是根据指定的属性名 获取对应的属性值
+- 默认值是 md 我们拿着md 去对应里面能找到什么?
+
+- screen and (min-width: 1240px) 对不
+
+- #{} 是不是差值语法 那是不是说 相当于把我们取到的值放在了 #{} 的位置 代码就会变成下面的样子吧
+```scss
+div {
+  // 是不是变成能看懂的媒体查询了
+  @media screen and (min-width: 1240px) {
+    @content;
+  }
+}
+```
+
+- 代码片段 当我们调用mixin的时候 如果有代码片段 是不是最终会替换掉@content的位置
+- 也就是说
+```scss
+@mixin mq($bp: md) {
+  @media #{map-get($breakpoints, $bp)} {
+    @content;
+  }
+}
+
+div {
+  @include mq() {
+    // 当大于1240px的时候 背景颜色为红色
     background: red;
   }
 }
-```
 
+--- 相当于
 
--------------------
-
-## 函数指令
-Sass 支持自定义函数，并能在任何属性值或 Sass script 中使用：
-
-> 自定义函数:
-
-```scss
-// 定义变量:
-$grid-width: 40px;
-$gutter-width: 10px;
-
-@function grid-width() {
-  @return $n * $grid-width + ($n 1) * $gutter-width;
+div {
+  // 是不是变成能看懂的媒体查询了
+  @media screen and (min-width: 1240px) {
+    background: red;
+  }
 }
 
-
-#sidebar { width: grid-width(5); }
+-- 对不
 ```
 
-  @function 函数名(形参列表) {
-    @return 返回值
-  }
+- 没事写两边哈
 
-调用:
-函数名()
-
----
+-------------------
 
 > 内置函数
 
@@ -2319,3 +3134,29 @@ $gutter-width: 10px;
 | comparable($number1, $number2) | 判断$number1和$number2是否可以做加、减和合并，返回对应的布尔值 |
 
 - https://baijiahao.baidu.com/s?id=1707847578036700250&wfr=spider&for=pc
+
+
+## 函数指令
+Sass 支持自定义函数，并能在任何属性值或 Sass script 中使用：
+
+> 自定义函数:
+
+```scss
+// 定义变量:
+$grid-width: 40px;
+$gutter-width: 10px;
+
+@function grid-width() {
+  @return $n * $grid-width + ($n 1) * $gutter-width;
+}
+
+
+#sidebar { width: grid-width(5); }
+```
+
+  @function 函数名(形参列表) {
+    @return 返回值
+  }
+
+调用:
+函数名()

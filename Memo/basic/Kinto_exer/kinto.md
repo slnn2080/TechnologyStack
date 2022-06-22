@@ -1,6 +1,10 @@
 ### Kinto项目 页面练习 要点集锦
 
 ### css3属性
+> ::before ::after
+- 它们是伪元素 但也可以理解为 *目标元素的第一个子元素* 会插入到其它子元素的前面
+
+
 > -webkit-text-size-adjust: 100%
 - 在移动端为防止字体变大, 添加-text-size-adjust属性为100%可防止字体变大
 - 放在body会导致页面缩放失效, 可以使body继承html的样式
@@ -342,7 +346,7 @@ div {
 > 2. font-smoothing
 - 作用:
 - 该属性的作用就是让页面上的字体变得更加清晰。
-- webkit在自己的渲染引擎中*增加的对字体的抗锯齿的调整*, 这个调整在iOS中表现明显, 在Windows中表现不明显；
+- webkit在自己的渲染引擎中*增加的对字体的抗锯齿的调整*, 这个调整在iOS中表现明显, 在Windows中表现不明显
 
 - 一般就是像下面这样使用
 ```scss
@@ -354,11 +358,13 @@ body {
 
 > 3. html font-size: 62.5%
 - 一般的, 各大主流浏览器的font-size默认值为 16px, 此时 
-  1rem = 16px(所以 12px = 0.75rem)；
+
+  1rem = 16px (12px = 0.75rem)
 
 - 把 html 设置成 font-size: 62.5%, 此时 
-  1rem = 16px * 62.5% = 10px(所以 12px = 1.2rem)
-  (1：10的比例更好换算)
+
+  1rem = 16px * 62.5% = 10px( 12px = 1.2rem)
+  <!-- (1：10的比例更好换算) -->
 
 ```scss
 html {
@@ -371,22 +377,20 @@ html {
 - 参考资料:
 - https://blog.csdn.net/xueli_2017/article/details/91492971
 
+> 作用:
+- dips可以用来辅助区分 视网膜设备 还是 非视网膜设备, *devicePixelRatio = 几倍屏*
 
 - window.devicePixelRatio是*设备物理像素*和*设备独立像素*之间的比率
 
   window.devicePixelRatio = 物理像素 / 设备独立像素(dips)
 
-
+- 设备独立像素也叫做:
 - dip或dp(device independent pixels, 设备独立像素)与屏幕密度有关。
-- *dips可以用来辅助区分 视网膜设备 还是 非视网膜设备。*
-
-> 技巧:
-- devicePixelRatio = 几倍屏
 
 
 > 扩展:
 - 所有非视网膜屏幕的iphone在垂直的时候, 宽度为320物理像素。
-- 当你使用<meta name="viewport" content="width=device-width">的时候, 会设置视窗布局宽度(不同于视觉区域宽度, 不放大显示情况下, 两者大小一致, 见下图)为320px, 于是, 页面很自然地覆盖在屏幕上
+- 当你使用<meta name="viewport" content="width=device-width">的时候, 会设置*视窗*布局宽度(不同于视觉区域宽度, 不放大显示情况下, 两者大小一致, 见下图)为320px, 于是, 页面很自然地覆盖在屏幕上
 
 - 这样, 非视网膜屏幕的iphone上, 屏幕物理像素320像素, 独立像素也是320像素, 因此, window.devicePixelRatio等于1.
 
@@ -396,17 +400,17 @@ html {
 
 
 > 设备物理像素:
-- 是一个物理概念, 比如设备的分辨率, Phone 5的分辨率640 x 1136px。
+- 是一个物理概念, 比如设备的分辨率, Phone 5 的分辨率 640 x 1136px。
 
 > 设备独立像素 device-independent pixels (dips):
-- 是一个抽象像素, 用于向CSS中的宽度、高度、媒体查询和meta 的viewport 中的device-width提供信息。通过观察retina和非retina设备之间的区别, 可以最好地解释它们。
+- 是一个抽象像素, 用于向CSS中的宽度、高度、媒体查询 和 meta 的 viewport 中的 device-width 提供信息。
+- 通过观察retina和非retina设备之间的区别, 可以最好地解释它们。
 
 > CSS像素:
 - 指的是CSS中使用的逻辑像素。在CSS规范中, 长度单位可以分为两类, 绝对(absolute)单位以及相对(relative)单位。px是一个相对单位, 相对的是设备物理像素。
 
-- 比如iPhone 5使用的是Retina屏幕, 使用 
-  2px x 2px 的设备物理像素  代表 
-  1px x 1px 的 CSS像素, 
+- 比如iPhone 5 使用的是Retina屏幕, 使用 
+  2px x 2px 的设备物理像素  代表 1px x 1px 的 CSS像素, 
   
 - 所以设备物理像素为640 x 1136px, 而CSS逻辑像素数为320 x 568px。
 
@@ -506,9 +510,11 @@ body {
 
 - 也就是说我们既可以通过 g 获取变量 还可以通过 g 获取混合
 
+
 > variable.scss
 - 用来管理变量: color width margin
 - 利用这里公共的变量 在多个地方使用 达成共同管理的目的
+
 
 > 要点示例1:
 - 示例:
