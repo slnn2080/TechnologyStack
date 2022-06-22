@@ -305,8 +305,8 @@ nod-sass a.scss -o css_file
 -------------------
 
 #### 多文件编译 语法格式:  
-    node-sass 原有的scss文件目录 -o 生成的css文件目录
-    node-sass c -o d
+node-sass 原有的scss文件目录 -o 生成的css文件目录
+node-sass c -o d
 
 -------------------
 
@@ -326,7 +326,7 @@ npm i -g sass
 
 > dart-sass 使用
 需要手动的调用dart语言的api 来去执行一些命令
-<!-
+```js
   let sass = require("sass")
   sass.render({file: scss_filename}, function(err, res) { ... })
 
@@ -334,8 +334,43 @@ npm i -g sass
 
   let res = sass.renderSync({file: scss_filename})
 
-  默认情况下 renderSync的速度是render的两倍以上 这是由于异步回调所带来的开销导致的
- -->
+  // 默认情况下 renderSync的速度是render的两倍以上 这是由于异步回调所带来的开销导致的
+```
+
+-------------------
+
+### node-sass 和 dart-sass 的区别
+- node-sass 和 dart-sass 都是将 sass 文件编译为css文件的工具
+
+- 通过 npm i sass -g 安装的是 dart-sass
+
+> 区别:
+- node-sass 是用 node(调用 cpp 编写的 libsass)来编译 sass, 而dart-sass 是用 drat VM 来编译 sass。
+- node-sass是自动编译实时的, dart-sass需要保存后才会生效。
+- node-sass不包含最新语法, 而dart-sass包含。
+
+> Easy Sass
+- VScode的一款插件, 可以自动编译SASS/SCSS文件生成.css和.min.css（去空格注释的压缩文件）保存。您还可以快速编译项目中的所有SCSS/SASS文件。
+
+**注意:**
+- 使用easy sass自动编译产生的文件不支持sass的最新语法（可能是该插件支持的是node-sass, 是不包含最新语法, 而我们下载的是dart-sass是包含最新语法的）, 例如下面语法介绍中的模块化（@use）语法就不支持。出现如下提示：
+
+-------------------
+
+## node-sass sass 版本的问题
+- vue中欲想使用sass，需要下载sass-loader，sass-loader需要依托于node-sass运行，node-sass的运行环境是node，所以说需要下载sass-loader和node-sass两个包，同时node-sass要兼容node版本。
+
+> 以当前node版本为起点，寻找兼容的node-sass，根据node-sass版本寻找兼容的sass-loader版本，依次安装即可安然使用。(为啥以node为起点呢？因为如果sass是项目开发中途加入的话，肯定以项目为基础)
+
+- node-sass版本库：
+  https://github.com/sass/node-sass/tags
+
+- sass-loader版本库：
+  https://github.com/webpack-contrib/sass-loader/releases/tag
+
+- 参考链接
+- https://blog.csdn.net/weixin_43193877/article/details/122221052
+
 
 -------------------
 
@@ -353,6 +388,8 @@ package.json中可以配置如下 关于 sass 配置
 
 2. easysass.formats
 指定导出文件的扩展名和格式。
+easysass.formats表示生成2种文件的格式。
+
 格式:
 [{}]
 ```js

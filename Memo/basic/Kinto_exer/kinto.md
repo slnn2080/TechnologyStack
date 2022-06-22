@@ -1,48 +1,53 @@
-### Kinto 网页链接要点集锦
+### Kinto项目 页面练习 要点集锦
 
 ### css3属性
 > -webkit-text-size-adjust: 100%
-- 在移动端为防止字体变大，添加-text-size-adjust属性为100%可防止字体变大
-- 放在body会导致页面缩放失效
-- 可以使body继承html的样式
-
-- CSS 控制将一些手机或平板设备上使用的文本溢出算法（text inflation algorithm）。其他类型的设备上的浏览器会忽略此属性。
+- 在移动端为防止字体变大, 添加-text-size-adjust属性为100%可防止字体变大
+- 放在body会导致页面缩放失效, 可以使body继承html的样式
+- CSS 控制将一些手机或平板设备上使用的文本溢出算法(text inflation algorithm)。其他类型的设备上的浏览器会忽略此属性。
 
 > 作用:
 - 检索或设置移动端页面中对象文本的大小调整。
 
 > 要点:
 - 该属性只在移动设备上生效
-- *如果你的页面没有定义meta viewport，此属性定义将无效*
+- *如果你的页面没有定义meta viewport, 此属性定义将无效*
 
-```
-  因为许多网站还没有适配屏幕较小的设备，移动设备的浏览器和桌面浏览器在渲染网页时可能会有不同。他们不是以设备屏幕宽度布局网页，而是用比屏幕宽一些的 视窗 去布局网页，通常是 800 到 1000 像素。为了将视窗上的布局映射到原始设备屏幕上，手机浏览器要么只渲染整个页面的一部分，要么将视窗缩放至原始屏幕大小。
 
-  因为缩放适配小屏幕而导致文字会变得很小，许多手机浏览器会使用文本溢出算法放大文本，改善可读性。当一个包含文本的元素使用了 100% 的屏幕宽度，该算法会增加文本大小，但是不会修改布局。text-size-adjust 这个属性允许开发者去除或者修改浏览器的这种行为，比如，当网页已经适配了小屏幕之后，就不需要这么做了。
-```
+    因为许多网站还没有适配屏幕较小的设备, 移动设备的浏览器和桌面浏览器在渲染网页时可能会有不同。
+    
+    他们不是以设备屏幕宽度布局网页, 而是用比屏幕宽一些的 视窗 去布局网页, 通常是 800 到 1000 像素。
+    
+    为了将视窗上的布局映射到原始设备屏幕上, 手机浏览器要么只渲染整个页面的一部分, 要么将视窗缩放至原始屏幕大小。
+
+    因为缩放适配小屏幕而导致文字会变得很小, 许多手机浏览器会使用文本溢出算法放大文本, 改善可读性。
+    
+    当一个包含文本的元素使用了 100% 的屏幕宽度, 该算法会增加文本大小, 但是不会修改布局。
+    
+    *text-size-adjust* 这个属性允许开发者去除或者修改浏览器的这种行为, 比如, 当网页已经适配了小屏幕之后, 就不需要这么做了。
+
 
 ------
 
 > initial属性值
-- 修改所有元素属性或父元素的值为其初始化值（浏览器的默认值）
+- 修改所有元素属性 或 父元素的值为其 *初始化值(浏览器的默认值)*
 
 
 > inherit属性值
-- 修改所有元素属性或父元素的值为其父元素的值（是继承的意思，跟随父元素的值的变化而变化）
+- 修改所有元素属性 或 父元素的值为其 *父元素的值*(是继承的意思, 跟随父元素的值的变化而变化)
 
 
 > unset属性值
-- 修改所有元素属性或父元素的值为其父元素的值(如果有继承)或其初始值（具有继承特性的CSS，则使用继承，例如color）
+- 修改所有元素属性 或 父元素的值为其 *父元素的值*(如果有继承)或其初始值(具有继承特性的CSS, 则使用继承, 例如color)
 
 ------
 
 > @media
-
 > 格式: @media [媒体类型] (媒体特性) { ... }
 - 每条媒体查询语句都由一个 *可选的媒体类型* 和 *任意数量的媒体特性* 表达式构成。
 - 可以使用 *多种逻辑操作符* 合并多条媒体查询语句。
 
-- 当媒体类型（如果指定）与在其上显示文档的设备匹配并且所有媒体功能表达式都计算为 true 时，媒体查询将计算为 true。涉及未知媒体类型的查询始终为 false。
+- 当媒体类型(如果指定)与在其上显示文档的设备匹配并且所有媒体功能表达式都计算为 true 时, 媒体查询将计算为 true。涉及未知媒体类型的查询始终为 false。
 
 > 媒体类型:
 - 指的就是设备类型
@@ -72,7 +77,7 @@
   盲文打印机
 
 - speech
-  “听觉”类似的媒体设备
+  "听觉"类似的媒体设备
 
 - tty
   不适用像素的设备
@@ -102,7 +107,7 @@
   横竖屏切换
 
 - resolution
-  输出设备的像素密度（分辨率）
+  输出设备的像素密度(分辨率)
 
 
 > 逻辑操作符:
@@ -125,6 +130,32 @@
 /* 必须是屏幕 在500-700之间 */
 @media only screen and (min-width:500px) and (max-width:700px) {
     background-color:#bfa;
+}
+```
+
+> 结合scss的使用方式:
+```scss
+@use "./assets/style/foundation/global" as g;
+
+$breakpoint: (
+  md: "only screen and (min-width: 835px)"
+);
+
+@mixin mq($key: md) {
+  @media #{map-get($breakpoint, $key)} {
+    @content;
+  }
+}
+
+.l-cnt__main {
+  width: 100%;
+  max-width: 1008px;
+  margin: 0 auto 60px;
+  background-color: gold;
+
+  @include mq() {
+    background-color: palevioletred;
+  }
 }
 ```
 
@@ -158,7 +189,14 @@
 ```
 
 **注意:**
-- 当在CSS样式表中定义一个网络字体时，总是要*列出至少一个网络安全的回退字体*（fallback web-safe font ）用来避免不希望的行为。特别是在列表的最后*添加一个CSS默认字体*，像名为“serif”或者“sans-serif”的字体。这样的话在必要的时候浏览器可以回退到它的默认字体。
+- 当在CSS样式表中定义一个网络字体时, 总是要*列出至少一个网络安全的回退字体*(fallback web-safe font)用来避免不希望的行为。
+
+- 特别是在列表的最后*添加一个CSS默认字体*, 像名为"serif"或者"sans-serif"的字体。这样的话在必要的时候浏览器可以回退到它的默认字体。
+```scss
+body {
+  font-family: 'Tangerine', serif;
+}
+```
 
 
 > Google Fonts Api的使用方式
@@ -168,48 +206,87 @@
 - 谷歌字体API的BaseUrl: 
   http://fonts.googleapis.com/css
 
-- 参数:
-  ?family=字体名称
-  字体名称之间有空格的情况下要使用 + 连接
-
+> 参数: 
+> ?family=字体名称
+- 字体名称之间有空格的情况下要使用 + 连接
 - 请求多个字体集时: 要用竖线 *|* 来隔开名字
 
 - 请求字体的样式:
-  字体API默认情况下提供了所请求字体的普通版本。要请求其它的样式或大小，在字体的名字后面加一个冒号
-  跟随在后的一系列的样式和大小用逗号（，）分割
+  字体API默认情况下提供了所请求字体的普通版本。要请求其它的样式或大小, 在字体的名字后面加一个冒号 : 
+  跟随在后的一系列的样式和大小用逗号(, )分割
 ```css
-http://fonts.googleapis.com/css?family=Tangerine:bold,bolditalic|Inconsolata:italic|Droid+Sans  
+@import "url(http://fonts.googleapis.com/css?family=Tangerine:bold,bolditalic|Inconsolata:italic|Droid+Sans)"
 ```  
 
-对于您所请求的每一个样式，您既可以提供全名也可以提供缩写，对于大小，您可以另外指定一个数字：
+- 对于您所请求的每一个样式, 您既可以提供全名也可以提供缩写, 对于大小, 您可以另外指定一个数字：
 
   样式	符号
 
   斜体	italic 或 i
-  粗体	bold 或 b 或者是一个数字，就像700
+  粗体	bold 或 b 或者是一个数字, 就像700
   粗体  斜体	bolditalic 或 bi
 
 - 文档:
 - https://developers.google.com/fonts/docs/getting_started
-- https://fonts.google.com/
+- https://fonts.google.com/ (这个是官网)
 
 > &display=swap
-- 让字体文件本身变成异步的——浏览器会先显示我们的回退（fallback）文本，等Web字体可用时再切换过去。
+- 让字体文件本身变成异步的——浏览器会先显示我们的回退(fallback)文本, 等Web字体可用时再切换过去。
 ```scss
 @import url("https://fonts.googleapis.com/css?family=Noto+Sans+JP:400,700&display=swap");
 ```
 
 ----------------
 
-### scss存放位置
+### scss文件存放位置
 - scss 文件应该存放在 src/assets/ 文件目录下
 
 ----------------
 
-### scss 的前缀名 _ & scss样式组件
-- 所有的 scss文件 也类似一个样式树 那有一个最外层的样式文件 用来包含各个样式组件
+### 图片存放的位置
+- 比如 background-image: url()
+- cli3的情况下 放在 public 里面
+
 - 比如:
+  | - public
+    | - image
+      - pic1.png
+
+```scss
+div {
+  background-image: url(/image/pic1.png);
+}
+```
+
+----------------
+
+### scss 的前缀名 _ & scss样式组件
+- 组件有组件树
+  | - 根组件
+    | - loginPage组件
+      - loginPageParts组件...
+
+    | - cartPage组件
+      - cartPageParts组件...
+
+
+- scss文件也可以组织成样式树
+
+  | - 根样式: 该样式也是最终引入到页面里面的样式
+    | - loginPage组件的样式
+      - loginPageParts组件的样式...
+
+    | - cartPage组件样式
+      - cartPageParts组件样式...
+
+
+- 所有的 scss文件 也类似一个样式树 那有一个最外层的样式文件 用来包含各个样式组件
+
+- 最终:
 - main.js 应该引入一个 style.scss (类似app组件)
+
+- 如果一个目录正在被Sass程序监测, 该目录下的所有scss/sass源文件都会被编译, 但通常不希望局部文件被编译, 
+- 因为局部文件是用来被导入到其他文件的。如果不想局部文件被编译, 文件名可以以下划线 （_）开头。
 
 - 每一个模块下对应应该有一个 _all.scss 然后 style.scss 引入各个模块下的 _all.scss
 
@@ -222,6 +299,10 @@ http://fonts.googleapis.com/css?family=Tangerine:bold,bolditalic|Inconsolata:ita
 > 要点:
 - 1. 这样 style.scss 文件中 引入各个样式组件
 - 2. 各个 样式组件 前面需要加上 _ 这样单独的样式组件不会被编译
+
+**注意:**
+- 我发现在vue项目里面 我们是用 @use 可以达到样式组件化的目的 但是在普通的vscode里面的项目使用 @use 引入的文件并没有被编译
+- 类似 vscode 这种情况我们不能使用 @use 而是要使用 @import
 
 ----------------
 
@@ -261,7 +342,7 @@ http://fonts.googleapis.com/css?family=Tangerine:bold,bolditalic|Inconsolata:ita
 > 2. font-smoothing
 - 作用:
 - 该属性的作用就是让页面上的字体变得更加清晰。
-- webkit在自己的渲染引擎中*增加的对字体的抗锯齿的调整*，这个调整在iOS中表现明显，在Windows中表现不明显；
+- webkit在自己的渲染引擎中*增加的对字体的抗锯齿的调整*, 这个调整在iOS中表现明显, 在Windows中表现不明显；
 
 - 一般就是像下面这样使用
 ```scss
@@ -272,8 +353,8 @@ body {
 ```
 
 > 3. html font-size: 62.5%
-- 一般的, 各大主流浏览器的font-size默认值为 16px，此时 
-  1rem = 16px（所以 12px = 0.75rem）；
+- 一般的, 各大主流浏览器的font-size默认值为 16px, 此时 
+  1rem = 16px(所以 12px = 0.75rem)；
 
 - 把 html 设置成 font-size: 62.5%, 此时 
   1rem = 16px * 62.5% = 10px(所以 12px = 1.2rem)
@@ -296,7 +377,7 @@ html {
   window.devicePixelRatio = 物理像素 / 设备独立像素(dips)
 
 
-- dip或dp（device independent pixels，设备独立像素）与屏幕密度有关。
+- dip或dp(device independent pixels, 设备独立像素)与屏幕密度有关。
 - *dips可以用来辅助区分 视网膜设备 还是 非视网膜设备。*
 
 > 技巧:
@@ -304,30 +385,30 @@ html {
 
 
 > 扩展:
-- 所有非视网膜屏幕的iphone在垂直的时候，宽度为320物理像素。
-- 当你使用<meta name="viewport" content="width=device-width">的时候，会设置视窗布局宽度（不同于视觉区域宽度，不放大显示情况下，两者大小一致，见下图）为320px, 于是，页面很自然地覆盖在屏幕上
+- 所有非视网膜屏幕的iphone在垂直的时候, 宽度为320物理像素。
+- 当你使用<meta name="viewport" content="width=device-width">的时候, 会设置视窗布局宽度(不同于视觉区域宽度, 不放大显示情况下, 两者大小一致, 见下图)为320px, 于是, 页面很自然地覆盖在屏幕上
 
-- 这样，非视网膜屏幕的iphone上，屏幕物理像素320像素，独立像素也是320像素，因此，window.devicePixelRatio等于1.
+- 这样, 非视网膜屏幕的iphone上, 屏幕物理像素320像素, 独立像素也是320像素, 因此, window.devicePixelRatio等于1.
 
-- 而对于视网膜屏幕的iphone，如iphone4s, 纵向显示的时候，屏幕物理像素640像素。同样，当用户设置<meta name="viewport" content="width=device-width">的时候，其视区宽度并不是640像素，而是320像素，这是为了有更好的阅读体验 – 更合适的文字大小。
+- 而对于视网膜屏幕的iphone, 如iphone4s, 纵向显示的时候, 屏幕物理像素640像素。同样, 当用户设置<meta name="viewport" content="width=device-width">的时候, 其视区宽度并不是640像素, 而是320像素, 这是为了有更好的阅读体验 – 更合适的文字大小。
 
-- 这样，在视网膜屏幕的iphone上，屏幕物理像素640像素，独立像素还是320像素，因此，window.devicePixelRatio等于2.
+- 这样, 在视网膜屏幕的iphone上, 屏幕物理像素640像素, 独立像素还是320像素, 因此, window.devicePixelRatio等于2.
 
 
 > 设备物理像素:
-- 是一个物理概念，比如设备的分辨率，Phone 5的分辨率640 x 1136px。
+- 是一个物理概念, 比如设备的分辨率, Phone 5的分辨率640 x 1136px。
 
 > 设备独立像素 device-independent pixels (dips):
-- 是一个抽象像素，用于向CSS中的宽度、高度、媒体查询和meta 的viewport 中的device-width提供信息。通过观察retina和非retina设备之间的区别，可以最好地解释它们。
+- 是一个抽象像素, 用于向CSS中的宽度、高度、媒体查询和meta 的viewport 中的device-width提供信息。通过观察retina和非retina设备之间的区别, 可以最好地解释它们。
 
 > CSS像素:
-- 指的是CSS中使用的逻辑像素。在CSS规范中，长度单位可以分为两类，绝对(absolute)单位以及相对(relative)单位。px是一个相对单位，相对的是设备物理像素。
+- 指的是CSS中使用的逻辑像素。在CSS规范中, 长度单位可以分为两类, 绝对(absolute)单位以及相对(relative)单位。px是一个相对单位, 相对的是设备物理像素。
 
-- 比如iPhone 5使用的是Retina屏幕，使用 
+- 比如iPhone 5使用的是Retina屏幕, 使用 
   2px x 2px 的设备物理像素  代表 
-  1px x 1px 的 CSS像素，
+  1px x 1px 的 CSS像素, 
   
-- 所以设备物理像素为640 x 1136px，而CSS逻辑像素数为320 x 568px。
+- 所以设备物理像素为640 x 1136px, 而CSS逻辑像素数为320 x 568px。
 
 - 也就是说 我们可以从两点上来考虑
 - 1. 如果 dpr 是 2 的话 那么我们写的css像素当中的 1px 在retina屏下 代表 2px
@@ -335,19 +416,19 @@ html {
 
 
 > dpr就是设置像素比
-- 获得设备像素比后，便可得知 *设备物理像素 与 CSS像素 之间的比例*。
-  - 当这个比率为1:1时，使用1个设备物理像素显示1个CSS像素。
-  - 当这个比率为2:1时，使用4个设备物理像素显示1个CSS像素，
-  - 当这个比率为3:1时，使用9（3*3）个设备物理像素显示1个CSS像素。
+- 获得设备像素比后, 便可得知 *设备物理像素 与 CSS像素 之间的比例*。
+  - 当这个比率为1:1时, 使用1个设备物理像素显示1个CSS像素。
+  - 当这个比率为2:1时, 使用4个设备物理像素显示1个CSS像素, 
+  - 当这个比率为3:1时, 使用9(3*3)个设备物理像素显示1个CSS像素。
 
 - 关于设计师和前端工程师之间如何协同：
   一般由设计师按照设备像素(device pixel)为单位制作设计稿
-  前端工程师，参照相关的设备像素比(device pixel ratio)，进行换算以及编码。
+  前端工程师, 参照相关的设备像素比(device pixel ratio), 进行换算以及编码。
 
 > 思考:
-- 一般普通图在的1920*1080，是很正常的，但是如果放在的2k或者4K屏幕里面，背景图就是模糊掉，为什么呢？
+- 一般普通图在的1920*1080, 是很正常的, 但是如果放在的2k或者4K屏幕里面, 背景图就是模糊掉, 为什么呢？
 
-- 在不同的屏幕上(普通屏幕 vs retina屏幕)，css像素所呈现的大小(物理尺寸)是一致的，不同的是1个css像素所对应的物理像素个数是不一致的。
+- 在不同的屏幕上(普通屏幕 vs retina屏幕), css像素所呈现的大小(物理尺寸)是一致的, 不同的是1个css像素所对应的物理像素个数是不一致的。
 
   普通屏幕:
     1个css像素 对应 1个物理像素(1:1)
@@ -535,7 +616,7 @@ div {
     @return val.$mgn-m;
   }
 
-  // TODO: PC，SPそれぞれのマージンを調整, 現状共通
+  // TODO: PC, SPそれぞれのマージンを調整, 現状共通
   @if $mg_type=='block' {
     @return val.$mgn-m;
   }
