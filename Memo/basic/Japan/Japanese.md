@@ -4473,3 +4473,195 @@ https://devtest3-www.kinto-jp.com/kinto_one/lineup/lexus/?__karte_opts={"api_key
 首題の件、対応お願いします。
 
 
+販売店もやるで合っています。別資材なんですね・・知らなかった！
+
+
+yusuke.ikeda 
+4 時間前
+@坂本真紀 
+これ販売店の方もやるで認識あってます？
+
+
+yusuke.ikeda 
+22 時間前
+@坂本真紀 @河津　明笑 
+ではこちらでリリース準備の方入らせていただきます！度々すみませんでした
+
+
+:thumbsup:
+1
+
+河津　明笑 
+22 時間前
+@yusuke.ikeda 確認できました！ OKです。ご対応ありがとうございます！
+
+
+yusuke.ikeda 
+23 時間前
+@河津　明笑 
+GRの方もあわせて反映致しました！よろしくおねがいします
+
+
+河津　明笑 
+一昨日
+
+@yusuke.ikeda  toyotaはOKです！
+grは古いままです(´;ω;｀)明日また確認＆修正お願いしますm(__)m
+
+
+:astonished:
+1
+
+yusuke.ikeda 
+一昨日
+@河津　明笑 
+失礼致しました、こちら再度反映致しました。よろしくおねがい致します。
+
+
+河津　明笑 
+一昨日
+@yusuke.ikeda ありがとうございます！が、文言が古いのに戻ってしまってます＞＜
+旧：お申し出可能な中途解約希望日は、お申し出日より30日以上先かつ3ヶ月先の日を含む、契約開始日に対応する日の前日（契約開始日に対応する日のない月は、その月の末日）となります。
+新：お申し出可能な中途解約希望日は、お申し出日より30日以上～3ヶ月先までの中の、契約開始日に対応する日の前日（契約開始日に対応する日のない月は、その月の末日）となります。
+
+
+
+yusuke.ikeda 
+一昨日
+@河津　明笑 
+失礼しましたー！こちら反映致しました
+
+
+河津　明笑 
+一昨日
+@yusuke.ikeda ありがとうございます。
+トヨタの規約ですが、同じ文言がはいっているようなので、修正お願いできますでしょうか？
+
+
+
+yusuke.ikeda 
+一昨日
+@坂本真紀 こちらdevtest3に反映致しました。よろしくおねがい致します。
+
+
+坂本真紀 
+3 日前
+@岡安留美子 (@yusuke.ikeda ）まとめました！以下2つの規約に対して添付の内容でご対応をお願いしたいです。お手数をおかけします。
+
+★https://devtest3-www.kinto-jp.com/terms/toyota/
+★https://devtest3-www.kinto-jp.com/terms/gr/
+
+
+初期フリ追加修正箇所.pptx
+20 6 2022, 05:38 午後
+ 
+
+
+:thumbsup:
+1
+
+坂本真紀 
+3 日前
+@岡安留美子 (@yusuke.ikeda @河津　明笑 ）
+
+再提出の文章ですが、取りこぼしている差分が他にもありそうなので指示書にまとめますので一旦お待ち下さい
+
+
+:man_bowing:
+1
+
+:face_with_monocle:
+1
+
+河津　明笑 
+3 日前
+@岡安留美子（ @yusuke.ikeda @坂本真紀 ）
+
+ご対応ありがとうございます。
+https://devtest3-www.kinto-jp.com/terms/toyota/?archive=220331
+https://devtest3-www.kinto-jp.com/terms/toyota/cancel_free/?archive=220331
+https://devtest3-www.kinto-jp.com/terms/lexus/?archive=220331
+https://devtest3-www.kinto-jp.com/terms/gr/?archive=220331
+https://devtest3-www.kinto-jp.com/terms/gr/cancel_free/?archive=220331
+→これは古いもの、なので確認しておりません。
+
+★https://devtest3-www.kinto-jp.com/terms/toyota/cancel_free/
+★https://devtest3-www.kinto-jp.com/terms/lexus/
+★https://devtest3-www.kinto-jp.com/terms/gr/cancel_free/
+→OKです
+
+★https://devtest3-www.kinto-jp.com/terms/toyota/
+★https://devtest3-www.kinto-jp.com/terms/gr/
+→【リース契約条項の契約終了時の特約事項】内、【参考：第5条】の表③～⑤を削除、【第6条:証明書類】の表③～⑤を削除でお願いさせていただきたく‥
+　※0620再提出【修正箇所赤字】KINTO ONE（トヨタ）をご確認ください
+一度で提出できず申し訳ございません。ご確認をお願いいたします。
+
+
+0620再提出【修正箇所赤字】KINTO ONE(トヨタ) 初期費用フリープラン利用規約_0610修正.docx
+20 6 2022, 03:21 午後
+
+0620再提出【修正箇所赤字】KINTO ONE(GR) 初期費用フリープラン利用規約_0630修正.docx
+20 6 2022, 03:21 午後
+ 
+
+
+岡安留美子 
+3 日前
+@坂本真紀 @yusuke.ikeda 
+
+こちらテストアップしましたので、ご確認お願いします
+
+https://devtest3-www.kinto-jp.com/terms/
+
+https://devtest3-www.kinto-jp.com/terms/toyota/
+https://devtest3-www.kinto-jp.com/terms/toyota/cancel_free/
+https://devtest3-www.kinto-jp.com/terms/toyota/?archive=220331
+https://devtest3-www.kinto-jp.com/terms/toyota/cancel_free/?archive=220331
+
+https://devtest3-www.kinto-jp.com/terms/lexus/
+https://devtest3-www.kinto-jp.com/terms/lexus/?archive=220331
+
+https://devtest3-www.kinto-jp.com/terms/gr/
+https://devtest3-www.kinto-jp.com/terms/gr/cancel_free/
+https://devtest3-www.kinto-jp.com/terms/gr/?archive=220331
+https://devtest3-www.kinto-jp.com/terms/gr/cancel_free/?archive=220331
+
+
+
+坂本真紀 
+6 日前
+@yusuke.ikeda こちら、ご対応お願いします。規約のwordファイル群は修正点が赤字になってます。
+
+
+:clap:
+1
+
+河津　明笑 
+6 日前
+新しい規約を掲載させていただきました。
+【修正箇所赤字】
+・トヨタ（初期費用フリープラン）
+・トヨタ（解約金フリープラン）
+・レクサス（利用規約）
+・GR（初期費用フリープラン）
+・GR（解約金フリープラン）
+ご確認をお願いいたします。
+
+
+:thumbsup:
+1
+
+河津　明笑 
+7 日前
+申し訳ございません。ファイル差し替えさせていただきたく、昨日掲載させていただきましたファイルを一度削除させていただきます。
+
+
+河津　明笑 
+8 日前
+特約廃止に伴う変更規約につきまして、掲載させていただきました。
+★【最終版】KINTO ONE（トヨタ）初期費用フリープラン利用規約
+★【最終版】KINTO ONE（レクサス）利用規約
+★【最終版】KINTO ONE（GR）初期費用フリープラン
+※それぞれ、修正箇所を赤字で反映した分も掲載しております。
+
+ご対応のほどよろしくお願いいたします。

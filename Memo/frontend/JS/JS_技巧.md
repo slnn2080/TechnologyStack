@@ -1,3 +1,465 @@
+### 提高代码可读性
+
+> 1. 避免对布尔变量使用否定意义的名称
+- 比如: 
+  isStarted *Vs* isNotStarted
+```js
+// 原代码
+const isInvalidApiKey = apiKey === null
+if (isInvalidApiKey) {}
+
+// 改进后的代码
+const isValidApiKey = apiKey != null
+if (!isValidApiKey) {}
+```
+
+
+> 2. 避免使用标记位参数
+```js
+// 原代码
+renderResult(true)
+function renderResult(isAuthenticated) {
+    if (isAuthenticated) {
+       return <p>App</p>
+    } else {
+        return <p>Please login</p>
+    }
+}
+
+// 使用对象参数：
+renderResult({isAuthenticated: true})
+
+function renderResult({isAuthenticated}) {
+    if (isAuthenticated) {
+        return <p>App</p>
+    } else {
+        return <p>Please login</p>
+    }
+
+}
+
+// 使用两个函数
+function renderAuthenticatedApp() {
+    return <p>App</p>
+}
+
+function renderUnAuthenticatedApp() {
+    return <p>Please login</p>
+}
+
+isAuthenticated ? renderAuthenticatedApp() : renderUnAuthenticatedApp()
+```
+
+
+> 3. 使用卫语句
+- 卫语句:
+- 把复杂的条件表达式拆分成多个条件表达式
+- 比如一个很复杂的表达式，嵌套了好几层的if-else语句，将其转换为多个if语句，实现它的逻辑，这多条的if语句就是卫语句。
+
+```js
+if (statusCode === 200) {
+    // success
+} else {
+    if (statusCode === 500) {
+        // Internal Server Error
+    } else if (statusCode === 400) {
+        // Not Found
+    } else {
+        // Other error
+    }
+}
+
+
+// 修改后的代码
+if (statusCode === 500) {
+    // Internal Server Error
+}
+
+if (statusCode === 400) {
+    // Not Found
+}
+
+if (statusCode !== 200) {
+    // Other error
+}
+
+```
+
+
+> 条件判断的整理方式
+```js
+// 之前
+if (country !== 'finland' &&
+    country !== 'germany' &&
+    country !== 'vietnam' &&
+    country !== 'russia' &&
+    type !== '💣'
+) {
+    return Promise.reject('Not available')
+}
+
+// 优化一次
+const isInAvailableCountries = (
+    country === 'finland' ||
+    country === 'germany' ||
+    country === 'vietnam' ||
+    country === 'russia'
+)
+
+const hasBoom = type === '💣'
+
+if (!isInAvailableCountries || hasBoom) {
+    return Promise.reject('Not available')
+}
+
+
+// 最终
+const availableCountries = ['finland', 'germany', 'vietnam', 'russia']
+
+const isInAvailableCountries = availableCountries.includes(country)
+
+const hasBoom = type === '💣'
+
+if (!isInAvailableCountries || hasBoom) {
+    return Promise.reject('Not available')
+}
+```
+
+
+> 不可能的状态就让它不可能
+- 易于理解
+- 预防出现大量bug
+- 停止使用类似于isLoading的布尔值
+
+```js
+isLoading: true
+isError: false
+
+isLoading: false
+isError: true
+
+// imposible states
+isLoading: true
+isError: true
+
+
+// 改进后：
+const LOADING_STATE = 'LOADING_STATE'
+const ERROR_STATE = 'ERROR_STATE'
+
+const state = LOADING_STATE
+
+---
+
+// 例子2
+const [isLoading, setIsLoading] = React.useState(false)
+const [error, setError] = React.useState(null)
+const [coffee, setCoffee] = React.useState(null)
+
+function handleButtonClick() {
+    setIsLoading(true)
+    setError(null)
+    setCoffee(null)
+
+    getCoffee('cappuccino', 'small', 'finland', true).then(coffee => {
+        setIsLoading(false)
+        setError(null)
+        setCoffee(coffee)
+    }).catch(error => {
+        setIsLoading(false)
+        setError(error)
+    })
+}
+
+// 改进后
+const state = {
+    idle: 'idle',
+    loading: 'loading',
+    error: 'error',
+    success: 'success',
+}
+
+const [error, setError] = React.useState(null)
+const [coffee, setCoffee] = React.useState(null)
+const [status, setStatus] = React.useState(state.idle) 
+
+function handleButtonClick() {
+    setStatus(state.loading)
+
+    getCoffee('cappuccino', 'small', 'finland', true).then(coffee => {
+        setStatus(state.success)
+        setCoffee(coffee)
+    }).catch(error => {
+        setStatus(state.error)
+        setError(error)
+    })
+}
+```
+
+
+> 参数个数太多，可以用对象代替
+- 参数顺序无关紧要
+- 方便传递可选参数
+
+```js
+function getBox(type, size, price, color) {}
+getBox('carry', undefined, 10, 'red')
+
+
+// 改进后：
+function getBox(options) {
+    const {type, size, price, color} = options
+}
+
+getBox({
+    type: 'carry',
+    price: 10,
+    color: 'red'
+})
+```
+
+
+> 使用Object.assign赋默认值
+```js
+unction getBox(options) {
+
+    options.type = options.type || 'carry'
+    options.size = options.size || 'small'
+    options.price = options.price || 10
+    options.color = options.color || 'red'
+
+    const {type, size, price, color} = options
+}
+
+// 改进后
+function getBox(customOptions) {
+
+    const defaults = {
+        type: 'carry',
+        size: 'small',
+        price: 10,
+        color: 'red',
+    }
+
+    // customOptions 参数对象放在后面 有的话就覆盖默认的了
+    const options = Object.assign(defaults, customOptions)
+
+    const {type, size, price, color} = options
+}
+```
+
+- 例子2:
+```js
+export function getCoffee(type, size, country, hasIce) {
+
+    type = type || 'cappuccino'
+    size = size || 'small'
+    country = country || 'finland'
+    hasIce = hasIce || false
+}
+
+
+// 用以下的3种方式 改进
+function getCoffee(customOptions) {
+    const defaultOptions = {
+        type: 'cappuccino',
+        size: 'small',
+        country: 'finland',
+        hasIce: false
+    }
+
+    const options = Object.assign(defaultOptions, customOptions)
+}
+
+
+function getCoffee(options = {}) {
+    const {
+        type = 'cappuccino',
+        size = 'small',
+        country = 'finland',
+        hasIce = false
+    } = options
+}
+
+function getCoffee({
+    type = 'cappuccino', 
+    size = 'small',
+    country = 'finland',
+    hasIce = false
+} = {}) {
+}
+```
+
+
+> 用对象字面量替换switch语句
+```js
+let drink
+switch(type) {
+    case 'cappuccino':
+        drink = 'Cappuccino';
+        break;
+    case 'flatWhite':
+        drink = 'Flat White';
+        break;
+    case 'espresso':
+        drink = 'Espresso';
+        break;
+    default:
+        drink = 'Unknown drink';
+}
+
+
+// 改进后
+const menu = {
+    'cappuccino': 'Cappuccino',
+    'flatWhite': 'Flat White',
+    'espresso': 'Espresso',
+    'default': 'Unknown drink'
+}
+
+const drink = menu[type] || menu['default']
+```
+
+------
+
+### 记忆函数
+- 第一次调用函数 缓存参数或者函数的结果 在第二次调用的时候可以直接访问缓存的东西 因为我们拿到的是缓存的结果所以会提高性能优化的作用
+
+- 比如: n的阶乘
+```js
+function factorial(n) {
+    // 出口
+    if(n ==0 || n == 1) return 1
+
+    return * factorial(n-1);
+}
+
+console.time("factorial")
+factorial(500)
+console.timeEnd("factorial")
+```
+
+> 记忆函数
+```js
+let cache = {}
+function factorialCache(n) {
+    // 验证缓存
+    if(cache[n]) {
+        return cache[n]
+    }
+
+    // 缓存到cache上 出口
+    if(n ==0 || n == 1) {
+        return (cache[0] = cache[1] = 1)
+    }
+
+    // 缓存到cache的n上
+    return cache[n] = n * factorial(n-1);
+}
+```
+
+---
+
+> 通用的记忆函数
+- 
+```js
+function memorize(fn) {
+    let cache = {}
+
+    return function() {
+        let key = fn.name + "_" + [].join.call(arguments, ",")
+
+        return cache[key] = cache[key] || fn.apply(this, arguments)
+    }
+}
+
+// 调用
+let factorialMemorize = memorize(factorial)
+factorialMemorize(5000)
+```
+
+---
+
+> Promise.resolve 缓存后台数据
+```js
+  Promise.resolve('后盾人').then(value => {     // <resolved>
+    console.log(value)
+  })
+```
+
+有的时候我们在写单页面复应用的时候, 我们会在不同的组件里面可能会请求同一个数据, 既然是同一个数据 那么我希望走本地的缓存 不要反复的请求后台 减少请求次数 减少服务器的压力 前台用户的访问也会变快
+
+```js
+  // name 请求的用户 请求谁
+  function query(name) {
+    return ajax('url').then(user => {   // users就是请求的数据
+      return user
+    })
+  }
+
+  // 使用封装的query函数 请求 后盾人
+  query('后盾人').then(user => {
+    console.log(user)
+  })
+
+
+  // 现在有还有一个 1秒钟后的请求  但是 我不希望这个请求还要从后台读取 我希望它走缓存
+  setTimeout(() => {
+     query('后盾人').then(user => {
+      console.log(user)
+    })
+  }, 1000)
+
+```
+
+我们先铺垫一个前提, 函数也是对象 我们也可以往函数中添加属性
+```js
+  // 1. 我们创建一个空函数, 
+  function hd() {} 
+
+  // 2. 函数也是对象, 所以也可以添加属性
+  hd.site = 'slnn2080.com'
+  console.dir(hd)   // 里面有我们添加的site属性
+```
+
+修改上面的函数
+```js
+  function query(name) {
+
+    // 定义缓存 我们先看看函数中有没有定义的缓存 如果没有这个属性就给它加上 是一个map类型
+    const cache = query.cache || (query.cache = new Map())
+  
+    // 每次取的时候 我们要检查一下 在我们的缓存中是否有这个数据 如果有直接返回出去
+    if(cache.has(name)) {
+
+      // 返出去一个成功状态的promise
+      return Promise.resolve(cache.get(name))
+    }
+
+    return ajax('url').then(user => {   users就是请求的数据
+
+      // 当我们取完数据的时候 就把数据压入map中
+      cache.set(name, user)   // key就是name 值为user
+      return user
+    })
+  }
+```
+
+走缓存了 实际上是没有发生异步请求的 因为return的是if里面的  
+
+还有一个需要注意地方 因为下面的ajax的请求是异步的 需要花费时间, 所以直接走缓存的时候 还没有取到数据 所以我们再调用的时候, 要加个延时定时器 确保先取到数据 之后再走缓存
+
+确保从后台拿完数据再走缓存
+```js
+  setTimeout(() => {
+     query('后盾人').then(user => {
+      console.log(user)
+    })
+  }, 1000)
+```
+
+---
+
 ### 整合对象
 - 需求:
 - 我们有 多个 数据数组 要整理成 一个 数组数组

@@ -207,8 +207,16 @@ div
     color: green
     span
       font-size: 20px
+```
 
+我们会发现 写法简洁了很多 通过 一套缩进的语法 就能代替我们以前要写两套样式 结构上也更加清晰
 
+但是我们也会发现 这种没括号 结尾没分号的语法 看起来还是有些别扭 所以sass为了让熟悉css的人能够更加的平稳的过渡到sass
+
+在sass 3.0之后将 将.sass结尾的文件 改成 .scss结尾
+
+那有人说了 哥们就改了一个后缀名么？ 不是 语法规则也不一样了 3.0版本的scss和css的写法更加的贴近 更加的舒服
+```scss
 div {
   color: red;
 
@@ -221,14 +229,6 @@ div {
   }
 }
 ```
-
-我们会发现 写法简洁了很多 通过 一套缩进的语法 就能代替我们以前要写两套样式 结构上也更加清晰
-
-但是我们也会发现 这种没括号 结尾没分号的语法 看起来还是有些别扭 所以sass为了让熟悉css的人能够更加的平稳的过渡到sass
-
-在sass 3.0之后将 将.sass结尾的文件 改成 .scss结尾
-
-那有人说了 哥们就改了一个后缀名么？ 不是 语法规则也不一样了 3.0版本的scss和css的写法更加的贴近 更加的舒服
 
 scss是彻底和 css 兼容的，这意味着学习scss几乎是零成本。或者说scss就是增加了一些功能的css。<br><br>
 
@@ -2836,6 +2836,7 @@ div {
 @mixin 容器名($形参) {
   background: $color;
 
+  // 代码片段会替换掉 @content
   @content;
 }
 
@@ -3027,136 +3028,503 @@ div {
 
 -------------------
 
-> 内置函数
+## 自定义函数
+- 自定义函数的使用方式 跟 mixin 很像 比如
+- 1. 可以定义形参 和 实参
+- 2. 形参 和 实参的个数 传参时候的顺序 也要一一匹配
+- 3. 也可以使用 命名实参
+- 4. 也可以使用 可变形参
 
-> 字符串函数
-索引第一个为1，最后一个为-1；切片两边均为闭区间
+- 这点上和 mixin 一样 但是作用却不相同 
+- mixin的目的是:
+  css 代码的复用 我们把一些需要多个地方使用的代码放在mixin里面 然后在想要复用的位置上调用 mixin 就可以了对么
 
-| 函数名和参数类型                        |                  函数作用                   |
-| :-------------------------------------| :-----------------------------------------: |
-| quote($string)                          |                  添加引号                   |
-| unquote($string)                        |                  除去引号                   |
-| to-lower-case($string)                  |                  变为小写                   |
-| to-upper-case($string)                  |                  变为大写                   |
-| str-length($string)                     |        返回$string的长度(汉字算一个)        |
-| str-index($string，$substring)          |        返回$substring在$string的位置        |
-| str-insert($string, $insert, $index)    |       在$string的$index处插入$insert        |
-| str-slice($string, $start-at, $end-at） | 截取$string的$start-at和$end-at之间的字符串 |
+- 函数的目的是:
+  要通过函数体里面的逻辑 最终返回一个我们需要的值 也就是*返回值*
 
+- 我们先看看函数长什么样
 
-
-> 数字函数
-
-| 函数名和参数类型        |                           函数作用                           |
-| ----------------------| :----------------------------------------------------------: |
-| percentage($number)     |                       转换为百分比形式                       |
-| round($number)          |                        四舍五入为整数                        |
-| ceil($number)           |                         数值向上取整                         |
-| floor($number)          |                         数值向下取整                         |
-| abs($number)            |                          获取绝对值                          |
-| min($number...)         |                          获取最小值                          |
-| max($number...)         |                          获取最大值                          |
-| random($number?:number) | 不传入值：获得0-1的随机数；传入正整数n：获得0-n的随机整数（左开右闭） |
-
-
-> 数组函数
-
-| 函数名和参数类型                 |                           函数作用                           |
-| -------------------------------| :----------------------------------------------------------: |
-| length($list)                    |                         获取数组长度                         |
-| nth($list, n)                    |                      获取指定下标的元素                      |
-| set-nth($list, $n, $value)       |                   向$list的$n处插入$value                    |
-| join($list1, $list2, $separator) | 拼接$list1和list2；$separator为新list的分隔符，默认为auto，可选择comma、space |
-| append($list, $val, $separator)  | 向$list的末尾添加$val；$separator为新list的分隔符，默认为auto，可选择comma、space |
-| index($list, $value)             |                返回$value值在$list中的索引值                 |
-| zip($lists…)                     | 将几个列表结合成一个多维的列表；要求每个的列表个数值必须是相同的 |
-
-
-
-> 映射函数
-
-| 函数名和参数类型        |                 函数作用                 |
-| ----------------------| :--------------------------------------: |
-| map-get($map, $key)     |        获取$map中$key对应的$value        |
-| map-merge($map1, $map2) |     合并$map1和$map2，返回一个新$map     |
-| map-remove($map, $key)  |     从$map中删除$key，返回一个新$map     |
-| map-keys($map)          |            返回$map所有的$key            |
-| map-values($map)        |           返回$map所有的$value           |
-| map-has-key($map, $key) | 判断$map中是否存在$key，返回对应的布尔值 |
-| keywords($args)         |  返回一个函数的参数，并可以动态修改其值  |
-
-
-
-> 颜色函数
-
-**RGB函数**
-
-  | 函数名和参数类型               |                           函数作用                           |
-  | -----------------------------| :----------------------------------------------------------: |
-  | rgb($red, $green, $blue)       |                     返回一个16进制颜色值                     |
-  | rgba($red,$green,$blue,$alpha) | 返回一个rgba；$red,$green和$blue可被当作一个整体以颜色单词、hsl、rgb或16进制形式传入 |
-  | red($color)                    |                   从$color中获取其中红色值                   |
-  | green($color)                  |                   从$color中获取其中绿色值                   |
-  | blue($color)                   |                   从$color中获取其中蓝色值                   |
-  | mix($color1,$color2,$weight?)  |     按照$weight比例，将$color1和$color2混合为一个新颜色      |
-
-**HSL函数**
-
-  | 函数名和参数类型                         | 函数作用                                                     |
-  | ---------------------------------------| -----------------------------------------------------------|
-  | hsl($hue,$saturation,$lightness)         | 通过色相（hue）、饱和度(saturation)和亮度（lightness）的值创建一个颜色 |
-  | hsla($hue,$saturation,$lightness,$alpha) | 通过色相（hue）、饱和度(saturation)、亮度（lightness）和透明（alpha）的值创建一个颜色 |
-  | saturation($color)                       | 从一个颜色中获取饱和度（saturation）值                       |
-  | lightness($color)                        | 从一个颜色中获取亮度（lightness）值                          |
-  | adjust-hue($color,$degrees)              | 通过改变一个颜色的色相值，创建一个新的颜色                   |
-  | lighten($color,$amount)                  | 通过改变颜色的亮度值，让颜色变亮，创建一个新的颜色           |
-  | darken($color,$amount)                   | 通过改变颜色的亮度值，让颜色变暗，创建一个新的颜色           |
-  | hue($color)                              | 从一个颜色中获取亮度色相（hue）值                            |
-
-**Opacity函数**
-
-  |                                                             |                  |
-  | ----------------------------------------------------------| ---------------|
-  | alpha($color)/opacity($color)                               | 获取颜色透明度值 |
-  | rgba($color,$alpha)                                         | 改变颜色的透明度 |
-  | opacify($color, $amount) / fade-in($color, $amount)         | 使颜色更不透明   |
-  | transparentize($color, $amount) / fade-out($color, $amount) | 使颜色更加透明   |
-
-
-
-> Introspection函数
-
-| 函数名和参数类型               |                           函数作用                           |
-| -----------------------------| :----------------------------------------------------------: |
-| type-of($value)                |                       返回$value的类型                       |
-| unit($number)                  |                      返回$number的单位                       |
-| unitless($number)              |           判断$number是否带单位，返回对应的布尔值            |
-| comparable($number1, $number2) | 判断$number1和$number2是否可以做加、减和合并，返回对应的布尔值 |
-
-- https://baijiahao.baidu.com/s?id=1707847578036700250&wfr=spider&for=pc
-
-
-## 函数指令
-Sass 支持自定义函数，并能在任何属性值或 Sass script 中使用：
-
-> 自定义函数:
-
+> 函数的定义
 ```scss
-// 定义变量:
-$grid-width: 40px;
-$gutter-width: 10px;
+@function 函数名() {
+  ... 函数体
 
-@function grid-width() {
-  @return $n * $grid-width + ($n 1) * $gutter-width;
+  @return 一个我们需要的值
+}
+```
+
+- 我们先看一个简单的例子:
+- 需求:
+- 两个盒子之间的间距 必须是盒子宽度的 1/10
+
+```html
+<div></div>
+<div></div>
+```
+```scss
+$box-width: 200px;
+
+@function getGutter($width) {
+  @return $width / 10
 }
 
 
-#sidebar { width: grid-width(5); }
+html, body {
+  height: 100%;
+  display: flex;
+}
+
+div {
+  width: $box-width;
+  height: 100px;
+  border: 1px solid black;
+
+  &:nth-child(1) {
+    margin-right: getGutter($box-width);
+  }
+}
 ```
 
-  @function 函数名(形参列表) {
-    @return 返回值
-  }
 
-调用:
-函数名()
+- 需求:
+- 根据我传递进来的条件 动态设置背景图片
+```scss
+@function bg($type: "white") {
+  @if $type == "white" {
+    @return url(../img/img-1.png);
+  }
+  @else {
+    @return url(../img/img-2.png);
+  }
+};
+
+
+div {
+  width: 200px;
+  height: 100px;
+  border: 1px solid black;
+  
+  background-image: #{bg()};
+}
+```
+
+- 首先从写法上看 和 mixin 一样对吧
+- 只是函数注重的是 通过函数体内的逻辑执行 最终会返回一个结果
+
+- 这个结果可以插入到 我们要用的地儿
+
+
+- 我们还可以利用 @function 来帮助我们进行移动端的适配
+- 作为前端选手 他不光光要会pc端的布局 还要会移动端的布局
+
+- pc端考虑的事儿没有那么多 我们呢只需要拿着漂亮的ui小姐姐的设计稿标记的尺寸写代码就好了对吧 这时候啊 我们写的 1css像素 == 1物理像素
+
+- 什么是css像素 和 物理像素呢 
+- 物理就是设备的分辨率 比如有的电脑的分辨率是 1920 * 1020 那就是说 横向有1920个像素点 是真实的
+
+- 这个像素就是物理像素
+- 那css像素 就是我们在编辑器里面写的像素 比如我们写个 width: 100px;
+- 这就是css像素
+
+- 为什么说在写pc端页面的时候 我们不用考虑太多呢 就是因为写pc端的时候 1css像素 == 1物理像素
+
+- 但是在写移动端布局的时候 就不是这样的了 它要考虑dpr的概念 
+- 关于移动端的适配方式的知识 网上有很多 具体的细节 我就不在这里讲了 因为里面涉及到的知识点也非常的多 这部分知识在网上的资料很全 我们可以去看看这方面的教程
+
+- 比如说 我们可以看下 一个750px的盒子 在各个设备上的效果 都不一样
+
+- 那当我们拿着漂亮的ui小姐姐的移动端设计稿的时候 我们首先要考虑什么呢？ 适配 就是我们做出的页面效果 要保证在各个设备中显示都要正常
+
+- 上面我们看了 我们的元素在各个设备上显示的效果都不一样 这时候我们就要知道 我们不能再写死px了 怎么办呢？ 
+
+- 我们可以按比例, 什么意思呢 比如啊 一个元素 假如我们给它的宽度设置为50% 屏幕的一半 那么这个元素是不是在各个设备下 宽度都是一样的对吧 都是屏幕的一半吗
+
+- 那是不是说 当我们拿到ui小姐姐的设计稿的时候 我们只要算出各个元素和设计稿之间的比例关系 那么我们用比例去设置元素的大小 就能确保在各个设备上显示的效果都一样了对么
+
+- 比如 一行两个元素 左边的占70% 右边的占30% 以这样的比例关系去布局 就没有问题了对么
+
+- 那适配的方案有很多 比如 vw rem 都能做适配 这里我们说下 vw 适配
+- vw呢是相对单位 相对于视口(也就是屏幕宽度) vw呢把屏幕分成100份
+
+- 1vw = 1%
+
+- 我们怎么利用vw做适配呢？ 我们举个例子
+- 比如我们现在有ui小姐姐给我们提供的 移动端的设计稿 宽度为 750px
+- 现在呢
+- 设计稿上有一个 搜索框 + 搜索按钮
+- 搜索框为600px 搜索按钮是150px
+
+- 那请问 这个搜索框 和 按钮 各占 设计稿的百分比是多少？
+
+  (600 / 750) * 100
+  (150 / 750) * 100
+
+```html
+<section>
+  <div>
+    搜索框
+  </div>
+  <div>搜索</div>
+</section>
+```
+```scss
+section {
+  display: flex;
+  text-align: center;
+  line-height: 50px;
+  
+  div {
+    &:nth-child(1) {
+      width: 600px;
+      background: peachpuff;
+    }
+  
+    &:nth-child(2) {
+      width: 150px;
+      background: palevioletred;
+    }
+  }
+}
+```
+
+- 我们发现当我们没有进行适配的时候 发现 在各个屏幕下 元素的大小都不一样
+- 那我们看看进行完适配后的效果
+```scss
+section {
+  display: flex;
+  text-align: center;
+  line-height: 50px;
+
+  div {
+    &:nth-child(1) {
+      width: calc(600 / 750 * 100vw);
+      background: peachpuff;
+    }
+  
+    &:nth-child(2) {
+      width: calc(150 / 750 * 100vw);
+      background: palevioletred;
+    }
+  }
+}
+```
+
+- 当我们进行完适配后我们会发现 所有设备下的效果都是一样的 为什么呀？ 因为我们不是写死的px 而是求的是比例是么？
+
+- 终于到正题了 我们上面是不是还需要手动输入计算啊 输入的值还不一样 很麻烦 我们观察下哈 这不就是想求一个值么对吧 那 @function 是不是就是为了求一个值 对吧 所以我们用function来做下
+
+```scss
+@function getVw($size, $type: 750) {
+  @return $size / $type * 100vw;
+}
+
+section {
+  display: flex;
+  text-align: center;
+  line-height: 50px;
+
+  div {
+    &:nth-child(1) {
+      width: getVw(600);
+      background: peachpuff;
+    }
+  
+    &:nth-child(2) {
+      width: getVw(150);
+      background: palevioletred;
+    }
+  }
+}
+```
+
+- 函数的应用场景还有很多哈 开动你们智慧的小脑袋瓜 好好想想
+
+-------------------
+
+### 内置函数
+- scss到这里 整个语法部分就要结束了 我们上面讲的都是些概念 还有一些api的用法 仅仅是了解这些 那只能说我们接触过scss 懂一些基本的东西 实际上 我们想要灵活的运用scss 还要通过不断的写页面 敲代码 练习
+
+- 接下来我们讲讲 scss中提供的内置函数 我们前面讲了数据的类型 每一种类型 scss都对应的提供了 操作该类型的一些方法 你就可以理解工具 不难 所以接下来我就带大家 去过一遍 这些api的使用方式
+
+
+> 字符串函数
+- 字符串的索引 
+- 有人会问 字符串也有索引么？ 我们可以这么理解 比如我们定义一个字符串
+- abc
+
+- 你可以想象成把abc这个字符串 放在了一个数组中 [a,b,c] 每一个元素就是字符串当中的一个字符
+
+- 既然是放在了数组中 那么前面也说过 数组中每一个元素 都对应着有一个索引(下标)是么
+- 字符串的索引也是这个意思
+
+- 字符串的索引从1开始, 比如
+  索引为1的元素就是 a
+  索引为2的元素就是 b
+  索引为3的元素就是 c
+
+
+- 了解了索引的概念后 我们看下下面的方法
+
+> quote(字符串)
+- 将传入的字符串 添加上引号 返回
+- 返回的是新的字符串
+
+- 参数:
+- 字符串
+```scss
+$str: abc;
+
+// 调用 quote() 传入字符串 会返回一个新的字符串 加引号的
+$res: quote($str);   // "abc"
+
+$str;   // abc
+```
+- 怎么验证呢? 我们可以在终端中输入 sass -i 打开交互模式 在里面进行验证
+
+
+> unquote(字符串)
+- 很简单 跟上面的作用正好相反 将传入的带引号的字符串 返回一个去掉引号后的新的字符串
+
+
+> to-lower-case(字符串)
+- 将字符串转为小写
+
+> to-upper-case(字符串)
+- 将字符串转为大写
+- 返回的都是新的字符串
+
+
+> str-length(字符串)
+- 返回字符串的长度
+- 汉字算一个
+
+
+> str-index(字符串, 字符)
+- 返回给定字符 在字符串中的下标(索引)
+```scss
+$str: "hello"
+str-index($str, h)  // 1
+
+str-index($str, o)  // 5
+```
+
+
+> str-insert(字符串, 新字符, 位置)
+- 在字符串中指定的位置的*前面* 插入新字符 返回的是 插入新字符后的字符串
+
+```scss
+$str: abc;
+$res: str-insert($str, d, 3);   // abdc 注意是将新字符串插入到指定位置的前面
+
+// 比如我要是想插入到c的后面 我们可以传递个4
+$res: str-insert($str, d, 4);   // abcd
+```
+
+- 传多了也没有用 传递5还是最后一个字符
+
+
+> str-slice(字符串, 起始位置, 结束位置）
+- 截取字符串 
+- 从开始的位置 截取到结束的位置 包括两端
+
+```scss
+$str: abcdefg;
+$res: str-slice($str, 1, 3);  //abc 我们能看到是 1 3 位置都算都会截取到
+```
+
+- 结束位置还可以传递负数 -1代表最后一个
+```scss
+$str: abcdefg;
+// -2就是f 那就是从a截取到f
+$res: str-slice($str, 1, -2);
+```
+
+------
+
+> 数字函数
+- 操作数字的函数 见名知意 很简单 简单的过下
+
+> percentage(数字)
+- 将传入的数字 * 100% 返回 单位是%
+```scss
+percentage(0.9) // 90%
+```
+
+> round(数字)
+- 四舍五入为整数
+```scss
+>> round(1.33)
+>> 1
+>> round(1.53)
+>> 2
+```
+
+> ceil(数字)
+- 数值向上取整 有小数就进1
+```scss
+>> ceil(1.33)
+>> 2
+```
+
+> floor(数字)
+- 数值向下取整 会舍弃小数位
+
+> abs(数字)
+- 获取绝对值
+
+> min(多个数字)
+- 获取最小值
+```scss
+>> min(1,3,4,5)
+>> 1
+```
+
+> max(多个数字)
+- 获取最大值
+
+> random(数字 | 空)
+- 不传入值：获得0-1的随机数
+```scss
+>> random()
+>> 0.996883854
+```
+
+- 传入正整数n：获得0-n的随机整数（左开右闭）不包括左边的 包括右边的
+```scss
+>> random(10)
+>> 6
+```
+
+------
+
+> 数组函数
+
+> length($list)
+- 获取数组长度
+
+> nth($list, n)
+- 获取指定下标的元素
+
+> set-nth($list, $n, $value)
+- 向$list的$n处插入$value
+
+> join($list1, $list2, $separator)
+- 拼接$list1和list2；$separator为新list的分隔符，默认为auto，可选择comma、space
+
+> append($list, $val, $separator)
+- 向$list的末尾添加$val；$separator为新list的分隔符，默认为auto，可选择comma、space
+
+> index($list, $value)
+- 返回$value值在$list中的索引值
+
+> zip($lists…)
+- 将几个列表结合成一个多维的列表；要求每个的列表个数值必须是相同的
+
+------
+
+> 映射函数
+> map-get($map, $key)
+- 获取$map中$key对应的$value        |
+
+> map-merge($map1, $map2)
+- 合并$map1和$map2，返回一个新$map
+
+> map-remove($map, $key)
+- 从$map中删除$key，返回一个新$map
+
+> map-keys($map)
+- 返回$map所有的$key
+
+> map-values($map)
+- 返回$map所有的$value
+
+> map-has-key($map, $key)
+- 判断$map中是否存在$key，返回对应的布尔值
+
+> keywords($args)
+- 返回一个函数的参数，并可以动态修改其值
+
+------
+
+> 颜色函数
+> rgb($red, $green, $blue) 
+- 返回一个16进制颜色值
+
+> rgba($red,$green,$blue,$alpha)
+- 返回一个rgba；$red,$green和$blue可被当作一个整体以颜色单词、hsl、rgb或16进制形式传入
+
+> red($color) 
+- 从$color中获取其中红色值
+
+> green($color)
+- 从$color中获取其中绿色值
+
+> blue($color)
+- 从$color中获取其中蓝色值
+
+> mix($color1,$color2,$weight?)
+- 按照$weight比例，将$color1和$color2混合为一个新颜色
+
+> lighten(颜色, 百分比)
+- 通过改变颜色的亮度值，让颜色变亮，创建一个新的颜色
+
+> darken(颜色, 百分比)
+- 通过改变颜色的亮度值，让颜色变暗，创建一个新的颜色
+
+------
+
+
+> HSL函数
+
+> hsl($hue,$saturation,$lightness)
+- 通过色相（hue）、饱和度(saturation)和亮度（lightness）的值创建一个颜色
+
+> hsla($hue,$saturation,$lightness,$alpha)
+- 通过色相（hue）、饱和度(saturation)、亮度（lightness）和透明（alpha）的值创建一个颜色
+
+> saturation($color)
+- 从一个颜色中获取饱和度（saturation）值 
+
+> lightness($color)
+- 从一个颜色中获取亮度（lightness）值
+
+> adjust-hue($color,$degrees)
+- 通过改变一个颜色的色相值，创建一个新的颜色
+
+> hue($color)
+- 从一个颜色中获取亮度色相（hue）值 
+
+------
+
+> Opacity函数
+
+> alpha($color)/opacity($color) 
+- 获取颜色透明度值
+
+> rgba($color,$alpha)
+- 改变颜色的透明度
+
+> opacify($color, $amount) / fade-in($color, $amount)
+- 使颜色更不透明
+
+> transparentize($color, $amount) / fade-out($color, $amount)
+- 使颜色更加透明
+
+------
+
+> Introspection函数
+> type-of($value)
+- 返回$value的类型
+
+> unit($number) 
+- 返回$number的单位
+
+> unitless($number) 
+- 判断$number是否带单位，返回对应的布尔值
+
+> comparable($number1, $number2) 
+- 判断$number1和$number2是否可以做加、减和合并，返回对应的布尔值
+
+
+- https://baijiahao.baidu.com/s?id=1707847578036700250&wfr=spider&for=pc
+

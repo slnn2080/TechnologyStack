@@ -30,6 +30,104 @@
 
 ------
 
+### setup语法糖
+> 要点:
+- 1. 在 <script setup> 标签内部 import 的组件 会自动暴露到模板中 不需要使用 components 配置项
+
+- 2. 声明在 <script setup> 标签内部 的变量 会自动导出 可以在模版中直接使用
+```html
+<div>{{num}}</div>
+
+<script setup>
+  let num = 1   // 自动导出的
+</script>
+```
+
+- 3. Vue3的动态组件
+```html
+<div>
+  <component 
+    :is="num % 2 == 0 ? Hello : About"
+  ></component>
+</div>
+
+<script setup>
+  import Hello from "./components/Hello.vue"
+  import About from "./components/About.vue"
+</script>
+```
+
+- 4. 在 <script setup> 标签内部 使用 props 的时候 使用 *defineProps()*
+```html
+<div>
+  
+</div>
+
+<script setup>
+  
+  const props = defineProps({
+    msg: String
+  })
+  
+</script>
+```
+
+- 5. 在 <script setup> 标签内部 使用 emits 的时候 使用 *defineEmits()*
+
+```html
+<div>
+  
+</div>
+
+<script setup>
+  
+  const emits = defineEmits(["sendParam"])
+  const send = () => {
+    emits("sendParam", data)
+  }
+  
+</script>
+```
+
+- 5. 在 <script setup> 标签内部 导出数据 使用 *defineExpose()*
+
+- 子组件: 导出数据
+```html
+<div>
+  
+</div>
+
+<script setup>
+  
+  const a = b = 2
+
+  // 主动导出数据
+  defineExpose({
+    a, b
+  })
+  
+</script>
+```
+
+- 父组件: 通过 getCurrentInstance() 方法获取当前组件的实例对象 在实例对象的refs身上能够得到子组件实例对象 然后获取 子组件导出的数据
+```html
+<div>
+  <!-- 这里不要忘记给子组件绑定一个ref -->
+  <子组件 ref="target">
+</div>
+
+<script setup>
+  
+  // 要获取当前实例
+  import {getCurrentInstance, ref} from "vue"
+
+  const instance = getCurrentInstance()
+
+</script>
+```
+
+------
+
 ### 禁用 Attribute 继承
 - 如果你不想要一个组件自动地继承 attribute，你可以在子组件选项中设置 inheritAttrs: false。
 - 如果你使用了 <script setup>，你需要一个额外的 <script> 块来书写这个选项声明：
@@ -40,7 +138,7 @@
 export default {
   inheritAttrs: false
 }
-</script>
+</>
 
 <script setup>
 // ...setup 部分逻辑
