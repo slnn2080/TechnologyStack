@@ -1,3 +1,69 @@
+### A12排序
+```js
+let arr = ["B3","D2","F1","A9","D12","A2","C1","Z0","B1"]
+
+let res = arr.map(item => {
+  return {
+    origin: item,
+    flag: +item.match(/([A-Z])(\d+)/)[2]
+  }
+})
+  .sort((a, b) => a.flag - b.flag)
+  .map(item => {
+    delete item.flag
+    return item.origin
+  })
+
+console.log(res)
+
+--- 精进
+
+let res = arr.map(item => {
+  return {
+    origin: item,
+    num: +item.match(/([A-Z])(\d+)/)[2],
+    alphabet: item.match(/([A-Z])(\d+)/)[1]
+  }
+})
+  .sort((a, b) => {
+    if(b.alphabet < a.alphabet) { return 1 } else { return -1 }
+  })
+  .sort((a, b) => a.num - b.num)
+  .map(item => {
+    delete item.num
+    delete item.alphabet
+    return item.origin
+  })
+
+--- 精进2: 两个sort合并为一个
+let res = arr.map(item => {
+  return {
+    origin: item,
+    num: +item.match(/([A-Z])(\d+)/)[2],
+    alphabet: item.match(/([A-Z])(\d+)/)[1]
+  }
+})
+  .sort((a, b) => {
+    // 这里
+    if(a.num > b.num) {
+      return 1
+    } else if(a.num < b.num) {
+      return -1
+    } else {
+      if(a.alphabet < b.alphabet) {
+        return -1
+      } else {
+        return 1
+      }
+    }
+  })
+  .map(item => {
+    delete item.num
+    delete item.alphabet
+    return item.origin
+  })
+```
+
 ### 日期格式化
 - 2019年 5月 1日 星期三
 
