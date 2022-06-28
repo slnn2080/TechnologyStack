@@ -172,5 +172,107 @@ DNS2=8.8.8.8  #dns2 地址解析
 > 将 nginx 启动配置成系统服务
 - 上面我们在启动 nginx 的时候 是去 sbin/ 目录下 执行 ./nginx 命令 启动nginx 我们还可以创建一个脚本文件
 
-- 创建服务脚本
-- 
+> 创建服务脚本
+- vi /usr/lib/systemd/system/nginx.service
+
+> 添加文件内容
+- 如果我们的nginx 不在/usr/local 下我们要修改下面代码里面的路径
+```
+[Unit]
+Description=nginx -  web server
+After=network.target remote-fs.target nss-lookup.target
+[Service]
+Type=forking
+PIDFile=/usr/local/nginx/logs/nginx.pid
+ExecStartPre=/usr/local/nginx/sbin/nginx -t -c /usr/local/nginx/conf/nginx.conf
+ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s stop
+ExecQuit=/usr/local/nginx/sbin/nginx -s quit
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+```
+
+> 重新加载系统服务
+- systemctl daemon-reload
+
+
+> 启动服务 (配置完服务脚本后 启动nginx的命令为)
+- systemctl start nginx
+
+
+> 检查是否启动成功
+- systemctl status nginx
+
+
+> 配置开机启动
+- systemctl enable nginx.service
+
+----------------
+
+### Nginx目录结构
+
+- 刚开始安装好的目录为
+```js
+    | - conf
+      // nginx主配置文件
+
+      - nginx.conf
+        // 这里会引用其他的配置文件
+
+    | - html
+      // 默认的页面
+
+    | - logs
+      - access.log  
+      // 访问日志 用户的访问时间 请求地址文件 附加参数
+
+      - error.log
+      // 系统出现错误的 会记录这里
+
+      - nginx.pid
+      // nginx 的 id
+
+    | - sbin
+      // nginx的执行程序
+```
+
+- 其中运行后会产生几个 _temp 结尾的目录
+```js
+    | - conf
+    | - html
+    | - logs
+    | - sbin
+
+    | - client_body_temp
+    | - fastcgi_temp
+    | - proxy_temp
+    | - scgi_temp
+    | - uwsgi_temp
+```
+
+----------------
+
+### Nginx多进程模型 和 基本请求流程
+- 1. 用户会通过网络访问 nginx 
+- 2. nginx 在响应请求的时候 过程是
+  - ./nginx 开启nginx会它会开启 master 主进程
+  - master会读取配置文件 并 检验(conf/nginx.conf)
+  - 如果配置文件没有错误会开启子进程 worker
+
+  - master 主进程 并不处理业务 它会协调子进程
+  - worker 子进程
+
+  - 当主进程 和 子进程 都启动之后 就会等待用户请求
+  - 用户请求进到nginx中的时候是由 worker 线程 来响应并解析的
+
+- 3. 用户请求过来后 worker会解析请求 看看用户请求的资源 worker会读取 conf/nginx.conf 配置文件里面写了站点的主目录 然后根据配置文件里的指定的内容 去对应的目录找资源
+
+
+> 总结:
+- nginx在启动后 是多进程同时运行的模式 多进程同时完成用户的请求
+
+----------------
+
+### Nginx基础配置
