@@ -5,7 +5,7 @@ const question = {
   getAnswer() {
     console.log('回答だよ');
   }
-}
+} 
 
 // 
 const question = {

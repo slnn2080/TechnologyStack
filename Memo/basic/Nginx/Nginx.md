@@ -1,81 +1,176 @@
-### 项目部署的相关知识：
-
-客户端     服务器
------     -------------------------
-          -----     -----     -----
-          防火墙     Nginx      系统
-
-域名A                           项目A
-
-域名B                           项目B
-
-域名C                           项目C
+### Nginx是一个服务器
 
 
-- 客户端通过域名访问服务器 通过域名解析 然后通过Nginx将我们的域名指向系统中的一个指定的项目里面去
-
-- Nginx可以配置很多的域名指向不同的系统中的目录里面去
-
-
-- 一共分成2个大部分
-> 1. 客户端:
-- 可以输入很多的域名 然后通过域名解析 来到服务器
+### Nginx环境安装
+- 
 
 
-> 2. 服务器
-- 服务器里面又分了3个部分
+### Centos7
+- root
+- 111111
 
-- 1. 防火墙:
-- 它会开放一些ip的端口 可以通过开放的端口进行访问 如果没有开放端口 就没有办法访问
-- 80    
-- 443
-- 3306      ->  Nginx (前面的所有端口都指向Nginx)
-- 2222
-- 8081
+> 第一安装虚拟os要配置网卡
+- 1. vi /etc/sysconfig/network-scripts/ifcfg-ens33
 
-- 如果端口没有打开的情况下 外面的域名是没有办法进入到服务器的
-
-- 2. Nginx:
-
-- 3. 系统(里面有很多的项目):
-
-
-
-
----
-
-                      请求路径为 / 代理到8000端口
-                  ↗
-请求  ---  8080服务器
-                  ↘   请求路径为  /api 代理到3000端口
-
-
-- localhost:8080/index.html, 代理到localhost:8000/index.html
-- localhost:8080/api/login, 代理到localhost:3000/api/login
-
-- 8080是一个台服务器 我们请求都发往8080这台服务器 然后内部由8080转发到 8000 或者 3000
-- 比如我们要访问index就由代理服务器转发到前端服务器
-
-- 也就是说我们不管请求前端页面 还是请求后台的接口都是通过 8080服务器进行转发
-- 这样前端和后台通讯都在8080端口就不会产生跨域问题
-
-- 1. 前端请求只写相对路径 .get("/login") 这样它就会往当前服务器所在的地址发请求
-- 2. 下载Nginx服务器
-- 3. 配置Nginx服务器
+- 2. 修改 ONBOOT=yes
 <!-- 
-  serever {
-    linsten       8080;     // 要修改
-    server_name   localhost;
+  // 参考
+  TYPE=Ethernet   # 网卡类型：为以太网
+  PROXY_METHOD=none  # 代理方式：关闭状态
+  BROWSER_ONLY=no  # 只是浏览器：否
+  BOOTPROTO=static  # 网卡协议 static 静态主机配置协议
+  DEFROUTE=yes  # 默认路由：是
+  IPV4_FAILURE_FATAL=no   # 是否开启IPV4致命错误检测：否
+  NAME=ens33  # 网卡名字（与DEVICE一致）
+  UUID=61bd3c1f-e4ca-40ef-bc6a-f3266763fe8d  #唯一标识码
+  DEVICE=ens33  #网卡设备
+  ONBOOT=yes  # 是否激活网卡
 
-    location / {
-      proxy_pass http://localhost:8000;
-    }
-    location /api {
-      proxy_pass http://localhost:3000;
-    }
-  }
+
+  IPADDR=192.168.159.10  #ip地址（static设置）
+  NETMASK=255.255.255.0  #子网掩码
+  GATEWAY=192.168.159.2  #网关
+  DNS1=114.114.114.114   #dns1 地址解析
+  DNS2=8.8.8.8  #dns2 地址解析
  -->
 
-- 4. 启动nginx
-- nginx
+- 3. 重启网络服务
+- systemctl restart network
 
+- 4. 测试 ping qq.com
+
+
+> 查看虚拟机 ip 地址
+- ip addr
+- 192.168.25.128
+
+
+> 关掉虚拟机
+- init 0
+
+
+> 配置静态ip
+- 之前的网络配置使用dhcp方式分配ip地址 这种方式会在系统每次联网的时候分配一个ip给我们用 也就是说有可能系统下次启动的时候ip会变 这样非常不方便我们管理
+
+- 1. 配置静态ip首先打开网卡配置文件
+- vi /etc/sysconfig/network-scripts/ifcfg-ens33
+
+- 2. 在打开的文件的最后添加
+```
+# 先把上面的修改为 static
+BOOTPROTO=static
+
+IPADDR=192.168.25.101  #ip地址（static设置）
+NETMASK=255.255.255.0  #子网掩码
+GATEWAY=192.168.25.2  #网关
+DNS1=114.114.114.114   #dns1 地址解析
+DNS2=8.8.8.8  #dns2 地址解析
+```
+
+- 3. 重启网络服务
+- systemctl restart network
+
+
+**注意:**
+- 我们配置的网关必须跟 vmware 的网关一致
+- 查看 vmware 网关的方式
+- 1. 点击编辑 - 虚拟网络编辑器 nat设置 查看网关 
+<!-- 
+  https://www.bilibili.com/video/BV1yS4y1N76R?p=5&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
+ -->
+
+
+- 2. 真正的环境中 不要随意修改地址 会照成别人上不了网
+
+----------------
+
+### Nginx 4个发行版本
+- 1. Nginx开源版
+- http://nginx.org
+<!-- 
+  该班干净纯粹 额外的其它功能都没有 主要就是完成了网站服务器 代理服务器 负债均衡器
+
+  不是特别的丰满
+ -->
+
+- 2. Nginx商业版
+- https://www.nginx.com
+
+
+- 3. Openresty
+- http://openresty.org
+
+
+- 4. Tengine
+- http://tengine.taobao.org
+
+----------------
+
+### Nginx在Centos 7中编译安装成系统服务
+- 要安装Nginx的话 先要搭载运行环境 下面我们通过虚拟机来进行安装
+
+> Nginx开源版安装
+- 弹幕说 下面的安装步骤都不用 直接
+- yum install nginx
+
+
+- 安装的部分 参考pdf 上面记载的很全
+- https://www.bilibili.com/video/BV1yS4y1N76R?p=7&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
+
+- 安装完所有的东西后 要依次执行
+- ./configure --prefix=/usr/local/nginx
+- make  (编译)
+- make install  (安装)
+
+
+> 启动 nginx
+- 1. 进入 nginx 所在的目录 /usr/local/nginx 下的 sbin 目录
+- 2. ./nginx 启动 nginx
+<!-- 
+  该命令是后台启动了nginx
+ -->
+
+> 快递停止 nginx
+- ./nginx -s stop
+
+
+> 优雅关闭 在退出前完成已经接受的链接请求
+- ./nginx -s quit
+
+
+> 重新加载配置
+- ./nginx -s reload
+<!-- 
+  更改完配置文件后立即生效 而不重启nginx整个服务器
+ -->
+
+------
+
+> 检查看看是否启动了 nginx 
+- ip addr 查看ip
+- 浏览器上输入ip验证
+
+- 如果访问不到的话 可以关闭防火墙
+
+
+> 关闭内网的防火墙
+- 我们的nginx是安装下centos7下的linux系统中 而系统又在虚拟机中 属于一个内网
+
+
+> 关闭防火墙
+- systemctl disable firewalld.service
+
+> 放行防火墙
+- 如果这台虚拟机要对外网进行开放的话 可以开放下端口
+- firewall-cmd --zone=public --add-port=80/tcp --permanent
+
+> 重启防火墙
+- firewall-cmd --reload
+
+----------------
+
+> 将 nginx 启动配置成系统服务
+- 上面我们在启动 nginx 的时候 是去 sbin/ 目录下 执行 ./nginx 命令 启动nginx 我们还可以创建一个脚本文件
+
+- 创建服务脚本
+- 

@@ -17,6 +17,55 @@
 - https://www.cnblogs.com/mfyngu/p/13675004.html
 
 
+### hash 配合 <component is>
+- https://tech.unifa-e.com/entry/2019/05/29/095443
+```js
+<template>
+  <div>
+    <transition :name="fade" mode="out-in">
+      <!-- susPageの値に応じてコンポーネントを切り替えて、擬似的にページ遷移を表現 -->
+      <component :is="subPage"></component>
+    </transition>
+  </div>
+</template>
+
+<script>
+import Input1SubPage from './subPages/Input1.vue'
+import Input2SubPage from './subPages/Input2.vue'
+import ConfirmSubPage from './subPages/Confirm.vue'
+import CompleteSubPage from './subPages/Complete.vue'
+
+export default {
+  computed: {
+    subPage () {
+      // URLのhashの値に基づいて、返すコンポーネントを切り替え
+      switch (this.$route.hash) {
+        case '#input2':
+          return Input2SubPage
+        case '#confirm':
+          return ConfirmSubPage
+        case '#complete':
+          return CompleteSubPage
+        default:
+          return Input1SubPage
+      }
+    }
+  }
+}
+</script>
+```
+
+```js
+<template>
+  <div>
+    <h1>入力画面1</h1>
+
+    <!-- vue-routerを使ってURLのhashを変更 -->
+    <router-link :to="{ hash: '#input2' }">次へ</router-link>
+  </div>
+</template>
+```
+
 
 ### vue2中怎么使用 composition API
 
@@ -10175,6 +10224,7 @@ export default {
 
 > this.$router.resolve()
 - 该方法并不会改变 url 和 跳转路径
+- 根据router.js文件中定义的path 返回我们传入的给定path
 - 而是根据传递的 url 返回一个对象 对象中包含了 有关 这条路由的所有信息
 
 - 参数:
