@@ -12451,6 +12451,17 @@ export default new Vuex.Store({
 
 --- 
 
+> ...mapGetters("模块名", ["getters中的属性名"])
+```js
+<h3>{{listLen}}</h3>
+
+computed: {
+  ...mapGetters("goods", ["listLen"])
+},
+```
+
+--- 
+
 > 读取模块化后 getters 中的数据
 - 我们在读取state中的数据的时候使用的是通过
   

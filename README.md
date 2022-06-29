@@ -10,6 +10,9 @@
     - mongodb
     - mysql
     - nodejs
+    - prisma
+    - rust
+    - spring
 
   | - basic
     - aws
@@ -22,7 +25,17 @@
     - http
     - ie
     - linux
-    - package    
+    - mock
+    - nginx
+    - package
+    - postman
+    - restfull
+    - styleresourcesloader
+    - sweetscroll
+    - swiper
+    - test
+    - vpn
+    - vuelayload
 
   | - frontend
     - ajax
@@ -32,8 +45,8 @@
     - element
     - jq
     - js
+    - next
     - nuxt
-    - plugins
     - pug
     - react
     - svelte
@@ -41,3 +54,4 @@
     - vue
     - vuetify
     - webpack
+    - webrtc
