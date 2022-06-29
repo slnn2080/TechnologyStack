@@ -1,3 +1,57 @@
+### 字符串汉字后面没空格 英文数字有
+```js
+let arr1 = ["播放", "Tales", "from", "the", "1001", "nights"]
+let arr2 = ["107", "加", "139", "等于", "几"]
+let arr3 = ["今天", "天气", "怎么", "样"]
+
+function convert(arr, str="") {
+
+  let en = /\w+/i
+  let han = /\p{sc=Han}+ /u
+
+  arr.forEach(item => {
+    if(en.test(item)) {
+      str += ` ${item}`
+    } else {
+      str += item
+    }
+  })
+
+  return str.replace(han, content => {
+    return content.trim()
+  })
+}
+
+function convert(arr) {
+  let han = / ?\p{sc=Han}+ ?/ug
+  return arr.join(" ").replace(han, content => content.trim())
+}
+
+function convert(arr, str="") {
+
+  let en = /\w+/i
+
+  for(let i = 0; i < arr.length; i++) {
+    let item = arr[i]
+    item = `${item} `
+
+    if(!en.test(item)) {
+      item = item.trim()
+      str += item
+    } else {
+      str += `${item}`
+    }
+  }
+  
+  return str
+}
+
+console.log(convert(arr2))
+
+```
+
+
+
 ### 提高代码可读性
 
 > 1. 避免对布尔变量使用否定意义的名称

@@ -13230,6 +13230,86 @@ computed: {
 
 --------------------------
 
+### Vuex computed
+
+- dispatch -> actions -> mutations -> stroe 页面调用 dispatch 经过 actions store里面才会有数据
+
+- 而 计算属性 和 生命周期的执行顺序是
+
+  created
+  computed
+  mounted
+
+- 我忘记你在哪个组件 哪个生命周期里 dispatch 的了
+
+- 但是你要确保在 created 里面调用 dispatch 这样 store 里面才会有数据 cpmputed 才能读到
+
+```js
+// vuex
+import Vue from 'vue'
+import Vuex from 'vuex'
+import {request} from "../api";
+
+Vue.use(Vuex)
+
+const graph = {
+  namespaced: true,
+  state: {
+    list: []
+  },
+  actions: {
+    async getList({commit}) {
+      let res = await request({
+        url: "/"
+      })
+      console.log("actions")
+      commit("saveList", res)
+    }
+  },
+  mutations: {
+    saveList(state, data) {
+      state.list = data.data
+    }
+  }
+}
+
+export default new Vuex.Store({
+  modules: {
+    graph
+  }
+})
+
+
+// 页面
+import {mapGetters} from "vuex"
+export default {
+  data() {
+    return {list: []}
+  },
+  created() {
+    console.log("created")
+    // this.showData()
+  },
+  mounted() {
+    console.log("mounted")
+  },
+  computed: {
+    show() {
+      console.log("computed")
+      // console.log("computed", this.$store.state.graph.list)
+      return this.$store.state.graph.list
+    }
+  },
+  methods: {
+    showData() {
+      this.$store.dispatch("graph/getList")
+    }
+  }
+}
+```
+
+--------------------------
+
 ### axios
 - 程序开发中离不开请求, 即使我们选择了第三方框架 我们也对这个第三方框架进行封装, 然后使用我们自己封装好的模块进行网络请求
 

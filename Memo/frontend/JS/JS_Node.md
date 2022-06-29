@@ -15,6 +15,52 @@
 
 ### 新 API 收集:
 
+### 链判断运算符
+> ?.
+- 以往我们要读取对象内容的属性的时候 往往需要判断一下 属性的上层是否存在
+- 比如：message.body.user.firstName
+
+- 错误的写法：
+- let name = message.body.user.firstName || "default"
+- 有哪个用哪个
+
+- 正确的写法：
+- let name = (
+    message && message.body && message.body.user && message.body.user.firstName
+  ) || "default"
+- 我们要层层的判断一下属性的上层有没有值 但是我们需要的属性在第4层 所以要判断4次 每一层是否有值
+
+> ?.
+- es6中引入了 ?. 运算符 在链式调用的时候判断 左侧的对象是否为null或者undefined
+- 如果是 null 或者 undefined 那么就返回undefined
+- 如果不是 就执行
+
+```js
+  a?.b
+  // 等同于
+  a == null ? undefined : a.b
+  
+  a?.[x]
+  // 等同于
+  a == null ? undefined : a[x]
+  
+  a?.b()
+  // 等同于
+  a == null ? undefined : a.b()
+  
+  a?.()
+  // 等同于
+  a == null ? undefined : a()
+```
+
+> ??
+- 当运算符的左侧为null或者是undefined的时候 给予默认值
+```js
+- const animationDuration = response.settings?.animationDuration ?? 300;
+```
+
+------
+
 ### 重绘后执行的回调
 > window.requestAnimationFrame(callback)
 - 回调函数会在浏览器下一次重绘之前执行
@@ -11674,6 +11720,51 @@ let o = Object.create(Object.prototype, {
 
 > 配置项: set: 
 - 当我们修改给定属性的时候会调用set函数, set函数的形参value就是新修改之后的值
+
+```js
+const address = "白山"
+
+const obj = {
+  name: "sam",
+  age: 18
+}
+
+Object.defineProperty(obj, "address", {
+  get() {
+    return address
+  }
+})
+
+console.log(obj.address)  // 白山
+```
+
+**注意:**
+- 如果我们使用 Object.defineProperty 往对象中添加 对象已有属性 那么该对象该属性会被删掉
+- 比如 我们往 obj 中添加 name 属性 那么obj本身就变成 obj:{age: 18} name就没有了
+
+- 利用上面的特性 我们可以进行通过指定的属性名 过滤对象剩余属性
+```js
+const obj = {
+  name: "sam",
+  age: 18
+}
+
+Object.defineProperty(obj, "name", {
+  get() {
+    return obj
+  }
+})
+
+function filter(obj, key) {
+  return Object.defineProperty(obj, key, {
+    get() {
+      return obj
+    }
+  })
+}
+
+console.log(filter(obj, "age"))
+```
     
 
 > 案例一: 
