@@ -1,3 +1,396 @@
+### 大文件切片上传
+> 思路:
+- 比如我们拿到了 file 对象 我们将这个file对象切成很多块 每次上传一块 直到上传完成
+
+- 后台进行合并 把上传的东西 不断地往一个文件里面append append完了之后就是一个完整的文件
+
+
+> 后台要点:
+- 1. npm i express express-fileupload
+- express-fileupload 用于处理上传的file
+- 可以看看这小工具的用法
+
+**注意:**
+- 代码有问题 有的时候能上传成功 有的时候不行 参考为主
+
+
+> 前端代码
+- 部分代码:
+```html
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.27.2/axios.min.js"></script>
+  <script>
+
+    // 建立提示信息 统一进行管理
+    const UPLOAD_INFO = {
+      "NO_FILE": "请先选择文件",
+      "INVALID_TYPE": "不支持该类型的文件上传",
+      "UPLOAD_FAILED": "上传失败",
+      "UPLOAD_SUCCESS": "上传成功"
+    }
+
+    // 创建文件类型限制 文件类型列表(允许的列表)
+    const FILE_TYPE = ["video/mp4", "video/ogg"]
+
+    // 64k 为一个 chunk 文件切割的基本单位
+    const CHUNK_SIZE = 1024 * 1024
+
+    // 已上传了多少size (保存了当前上传了多少)
+    let uploadedSize = 0
+    /*
+      uploadedSize < file.size 代表还有没有上传完
+      uploadedSize = file.size 代表上传完了
+    */
+
+
+    // 上传完成后 返回的结果
+    let uploadedRet = null
+
+
+    // 获取各个节点
+    // 进度条
+    const oProgress = document.querySelector("#progress")
+    const oBtn = document.querySelector("#btn")
+    const oInfo = document.querySelector("#info")
+
+    // file input
+    const oFile = document.querySelector("#video")
+
+
+
+    oBtn.addEventListener("click", async function() {
+      /*
+        lastModified: 1655435973258
+        lastModifiedDate: Fri Jun 17 2022 12:19:33 GMT+0900 (日本標準時) {}
+        name: "harrier.mp4"
+        size: 31812699
+        type: "video/mp4"
+        webkitRelativePath: ""
+      */
+      // console.log(oFile.files)  // 类数组
+      
+      // 还可以像下面这样写 解构
+      const file = oFile.files[0]
+      // const {files: [file]} = oFile
+
+      // 判断是否有文件 并做出提示
+      if(!file) {
+        oInfo.innerHTML = UPLOAD_INFO["NO_FILE"]
+        return
+      }
+
+      // 如果不在文件类型列表里面 则
+      if(!FILE_TYPE.includes(file.type)) {
+        oInfo.innerHTML = UPLOAD_INFO["INVALID_TYPE"]
+        return
+      }
+
+      // 走到这里证明上面的情况都抛出了 把 oInfo 清空
+      oInfo.innerHTML = ""
+
+      // 注意: file里面的size属性是非常有用的！！！
+      const {name, type, size} = file
+      console.log(name)
+
+      // 创建唯一的文件名(这个写法不行)
+      const fileName = new Date().getTime() + "_" + name;
+
+      // 将 进度条的max 设置为 文件的size
+      oProgress.max = size
+
+
+      // 切片上传
+      while (uploadedSize < size) {
+        // 从 uploadedSize 开始, 切到 uploadedSize + CHUNK_SIZE
+        // fileChunk是Blob类型 比如 size 100
+        const fileChunk = file.slice(uploadedSize, uploadedSize + CHUNK_SIZE)
+
+        console.log("fileChunk", fileChunk)
+
+        const formdata = createFormData({
+          name,
+          type,
+          size,
+          fileName,
+          uploadedSize,
+          file: fileChunk
+        })
+
+        try {
+          // 每一次循环都要上传后 后台都会返回一个结果
+          uploadedRet = await axios({
+            url: "http://127.0.0.1:3333/upload",
+            method: "post",
+            data: formdata
+          })
+
+          // 看看每一次上传后 后台的返回结果是什么
+          console.log("uploadedRet", uploadedRet.data)
+
+        } catch(err) {
+          // 上传失败
+          oInfo.style.background = "black"
+          oInfo.innerHTML = UPLOAD_INFO["UPLOAD_FAILED"] + err.message
+          return
+        }
+
+        // 上传完成后 更新 uploadedSize 的值
+        // 每次截取会返回了一个blob对象 它的size 就是截取的size
+        uploadedSize += fileChunk.size
+
+        console.log("end", uploadedSize)
+        // 更新进度条
+        oProgress.value = uploadedSize
+      }
+
+      // while 出来后就是上传成功 提示上传成功
+      oInfo.innerHTML = UPLOAD_INFO["UPLOAD_SUCCESS"]
+
+      // 将 file input 的 value 值 置为 空
+      oFile.value = null
+
+      // 上传成功后 动态添加视频
+      createVideo(uploadedRet.data.video_url)
+    })
+
+    // 将文件的相关信息都要传递到后台 传入数据 组织一个 formdata
+    function createFormData({
+      name,
+      type,
+      size,
+      fileName,
+      uploadedSize,
+      // 这个是我们切出来的 fileChunk
+      file
+    }) {
+
+      // uploadedSize: 第一传递到后台是0 那么后台根据uploadedSize为0 会创建一个新文件(因为第一次后台并没有这个文件) 不断地往里面append
+      const formdata = new FormData()
+      formdata.append("name", name)
+      formdata.append("type", type)
+      formdata.append("size", size)
+      formdata.append("fileName", fileName)
+      formdata.append("uploadedSize", uploadedSize)
+      formdata.append("file", file)
+
+      return formdata
+    }
+
+    // 当上传完毕后 后台会返回一个 url 我们动态的创建 video 标签
+    function createVideo(src) {
+      const video = document.createElement("video")
+      video.controls = true
+      video.width = "500"
+      video.src = src
+      document.body.appendChild(video)
+    }
+  </script>
+```
+
+
+> 后台代码
+```js
+const express = require("express")
+
+// 引入 fileloader
+const uploader = require("express-fileupload")
+
+// 取文件后缀的方法
+const {extname, resolve} = require("path")
+
+// 检查文件是否存在的方法 和 往文件里面追加的方法 写文件的方法
+const {existsSync, appendFileSync, writeFileSync} = require("fs")
+
+
+const FILE_TYPE = ["video/mp4", "video/ogg"]
+
+
+const app = express()
+
+app.use(express.urlencoded({extended: false}))
+app.use(express.json())
+
+// 注册 uploader
+app.use(uploader())
+
+// 如果访问 / 资源 那么久去 upload_temp 里面找
+app.use("/", express.static("upload_temp"))
+
+// 跨域处理
+app.all("*", (req, res, next) => {
+  res.header("Access-Control-Allow-origin", "*")
+  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+
+  next()
+})
+
+app.get("/", (req, res) => {
+  res.send({
+    msg: "首页信息",
+    code: 0
+  })
+})
+
+app.post("/upload", (req, res) => {
+
+  // 因为前端是 while 上传的 那边上传一次 这边就会接收一次 请求体body
+  /*
+    {
+      name: 'harrier.mp4',
+      type: 'video/mp4',
+      size: '31812699',
+      fileName: '1656512162705_harrier.mp4',
+      uploadedSize: '31784960'
+    }
+  */
+  // console.log(req.body)
+
+  // 解构 我们发现并没有 file, file 需要再 req.files 里面获取
+  const {name, type, size, fileName, uploadedSize} = req.body
+
+  // 获取 file 文件 这个file是上传过来的 filechunk express-uploader 帮我们处理好了
+  const {file} = req.files
+
+  /*
+    {
+      name: 'blob',
+      data: <Buffer cc c2 5f f9 2f 6a f5 22 3c 75 38 32 ac c5 5a 85 cc f7 24 7d 43 58 96 32 62 4f 95 4d 99 49 fe bd a4 7c 35 a5 de b5 35 32 7c 7a e1 14 7a 5c 92 5b a0 67 ... 65486 more bytes>,
+      size: 65536,
+      encoding: '7bit',
+      tempFilePath: '',
+      truncated: false,
+      mimetype: 'application/octet-stream',
+      md5: '41b4c4adcee2e7fc562c6e7d6209aa99',
+      mv: [Function: mv]
+    }
+  */
+  // file.data 就是每一个 chunk 
+  // console.log(file)
+
+  // 如果没有file
+  if(!file) {
+    res.send({
+      code: 1001,
+      msg: "no file uploaded"
+    })
+
+    return
+  }
+
+  // 虽然前端判断过类型 后台也要进行判断
+  if(!FILE_TYPE.includes(type)) {
+    res.send({
+      code: 1002,
+      msg: "the type is not allowed for uploading"
+    })
+    return
+  }
+  
+  // 组织文件名 name是harrier.mp4
+  const filename = fileName + extname(name)
+  const filePath = resolve(__dirname, "upload_temp", filename)
+
+  // 什么时候创建文件 不是0 证明有上传了
+  if(uploadedSize != "0") {
+    console.log("!=0")
+    // 进来后 我们要判断 filePath 是否存在 存在做什么 不存在做什么
+    // 如果没有这个文件
+    if(!existsSync(filePath)) {
+      // 报错 因为 != 0 的时候 说明已经上传了 但是却找不到这个文件 说明有某些原因将这个文件删掉了
+      res.send({
+        code: 1003,
+        msg: "no file exists"
+      })
+
+      return
+    }
+
+    // 能到这个部分 代表文件存在 文件存在就往里面追加数据 file.data 就是每一个 chunk
+    appendFileSync(filePath, file.data)
+    res.send({
+      code: 0,
+      msg: "appended",
+      video_url: "http//127.0.0.1:3333/" + filename
+      // 返回url
+    })
+
+    return
+  }
+
+  console.log("==0 文件不存在")
+  // 到这里说明 uploadedSize 为 0 说明第一次上传 说明还没有 文件 所以这里创建文件
+  // 创建一个文件并写入file.data
+  writeFileSync(filePath, file.data)
+
+  // 响应
+  res.send({
+    code: 0,
+    msg: "file is created"
+  })
+})
+
+app.listen(3333, () => {
+  console.log("3333端口已监听")
+})
+```
+
+
+> express-fileupload
+- 上传的文件 在 req.files 里面
+- 当我们输出这个 file 输出如下
+```js
+{
+    name: 'blob',
+    data: <Buffer cc c2 5f f9 2f 6a f5 22 3c 75 38 32 ac c5 5a 85 cc f7 24 7d 43 58 96 32 62 4f 95 4d 99 49 fe bd a4 7c 35 a5 de b5 35 32 7c 7a e1 14 7a 5c 92 5b a0 67 ... 65486 more bytes>,
+    size: 65536,
+    encoding: '7bit',
+    tempFilePath: '',
+    truncated: false,
+    mimetype: 'application/octet-stream',
+    md5: '41b4c4adcee2e7fc562c6e7d6209aa99',
+    mv: [Function: mv]
+}
+```
+
+- name: 
+    上传文件的名字。
+
+- data：
+    上传文件数据，是一个Buffer，可以通过writeFile方法写入到本地文件中。
+
+- size：
+    上传文件的大小，单位为字节。
+
+- tempFilePath：
+    临时文件路径。
+
+- truncated：
+    表示文件是否超过大小限制。
+
+- mimetype：
+    文件的mimetype类型。
+
+- md5：
+    文件的MD5值，可用于检验文件。
+
+- mv：
+    将文件移动到服务器上其他位置的回调函数。
+
+
+> mv 回调
+- filePath
+    指定是上传文件的保存路径
+- callback
+    是回调函数用来处理判断是否上传成功并且有一个参数err表示错误对象
+
+```js
+mv(uploadPath, (err) => { ... })
+```
+
+- 参考资料
+- https://blog.csdn.net/cnds123321/article/details/121548117
+
+----------------
+
 ### 字符串汉字后面没空格 英文数字有
 ```js
 let arr1 = ["播放", "Tales", "from", "the", "1001", "nights"]
