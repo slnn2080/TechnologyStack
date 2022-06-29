@@ -2,7 +2,14 @@
 
 
 ### Nginx环境安装
-- 
+- nginx秘钥
+- https://www.xitongcheng.com/jiaocheng/dnrj_article_72794.html
+
+- vmware下载地址
+- https://www.vmware.com/cn/products/workstation-pro/workstation-pro-evaluation.html
+
+- finalshell
+- http://www.hostbuf.com/t/988.html
 
 
 ### Centos7
