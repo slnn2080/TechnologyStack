@@ -120,7 +120,6 @@ DNS2=8.8.8.8  #dns2 地址解析
 - 弹幕说 下面的安装步骤都不用 直接
 - yum install nginx
 
-
 - 安装的部分 参考pdf 上面记载的很全
 - https://www.bilibili.com/video/BV1yS4y1N76R?p=7&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
 
@@ -218,6 +217,11 @@ WantedBy=multi-user.target
 
 ----------------
 
+### Nginx所在的位置
+- /usr/local/nginx
+
+----------------
+
 ### Nginx目录结构
 
 - 刚开始安装好的目录为
@@ -283,3 +287,182 @@ WantedBy=multi-user.target
 ----------------
 
 ### Nginx基础配置
+- nginx 的配置文件在 /usr/local/nginx/conf/nginx.conf
+
+- 这个就是nginx的默认的配置文件 我们可以用记事本打开 里面的代码带井号为注释
+
+- 我们把nginx原本配置文件中的注释删掉 看看还剩什么部分 这些也是保证nginx能够运行的最小的配置文件的版本
+
+```sql
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+}
+```
+
+---
+
+> 最小配置
+**worker_processes**
+- 默认为1，表示开启一个业务进程 工作的进程个数
+- 这个部分设置多少 基本上会对应电脑cpu的物理内核数 比如我们这台虚拟机我们分配了一个内核 那就设置为1 如果设置为10 并没有太多的意义 如果把一个cpu绑定到多个进程上执行任务 它会分开时间段同时去执行好多任务 这样的话效率反而会变低 
+<!-- 
+  上面我们说到了 nginx 的运行模型 它是由一个主进程 和 多个子进程 同时运行的
+  主进程叫做 master
+  子进程叫做 worker
+
+  这个配置项代表在启动nginx的时候 需要启动多少个 worker
+ -->
+
+
+**events**
+- 事件驱动模块 
+
+  - 配置项：
+    - worker_connections
+      - 单个业务进程可接受连接数 每一个worker可以创建多少连接 默认就是1024
+
+
+**http**
+- http模块
+
+  - 配置项:
+    \\ include
+      - 可以将另一个配置文件 引入当前的配置文件中
+      - 如：
+      - include mime.types; 
+      - 引入http mime类型 响应头里面会标明当前返回的文件是什么类型的 比如我们传送一张图片 我们给它的mime type加到头信息里面 那么浏览器就会按照服务器端返回的数据类型（图片的类型）来展示这个文件 
+      - 比如我们上网我们输入网址打开一张图片的时候 浏览器会默认将图在页面上展示出来 而不是下载
+      - 如果我们上面图片的类型换成exe会怎么样 浏览器会根据mimetype 弹出一个下载框供我们下载 **所以文件是展示还是下载并不是由后缀名来决定的 是由我们返回的mime types来决定的**
+
+      - mime.types 文件里面 是根据文件的后缀 和 mimetype 进行一一对应 比如我们得文件后缀是html 那么html对应这 text/html 这样就会在返回的响应头里面加上 text/html 
+      - 这样浏览器就会根据 响应头里面的 mime types 来解析我们响应回的文件
+
+      - 这个 mime types 是告诉浏览器 让浏览器进行解析的
+      - 同样 比如.css文件 那就会在响应头里面添加 text/css 这样浏览器才会根据 css的规则去读这个文件
+      <!-- 一般来说 都是通过 content-type 来添加该mime类型的吧 -->
+
+      - 当我们有特殊的文件后缀比如 .mp5 但是它没有对应的 mime 类型 这时假如我们想告诉浏览器 使用 mp4 的方式让浏览器打开 就可以在这个 mime types 配置文件里面 这么些
+      - video/mp4   mp5
+
+    \\ default_type
+      - 因为 mime types 里面不可能添加所有后缀对应的mime类型
+      - 这时候我们就可以使用这个配置项 默认值为 application/octet-stream
+      - 以octet格式的流的方式传送给客户端（如果mime类型没匹配上，默认使用二进制流的方式传输。）
+      
+    \\ sendfile
+      - 请求发送给服务器 服务器中有请求所需要的资源 
+      - 比如 ooxx.mp4 nginx它是一个软件 软件是运行在操作系统之上的 我们现在使用的是 linux操作系统 
+      - 请求发送过来后 nginx 怎么接收的呢？
+      - 是由操作系统的网络接口转发给 nginx 然后它才能读到用户的请求 
+      - 怎么转发的呢？ 绑定注册 java也是启动一个程序的时候 会向操作系统注册某个端口 注册也就是告诉它 以后通过xx端口发送过来的请求转发给nginx
+      - 然后nginx接收到请求了 它需要去磁盘中找文件 它会根据配置目录然后去指定的文件夹下面找文件 然后将找到的文件发送给客户端 这个过程开启了 我们是否使用 sendfile 
+
+      - 如果：
+        - sendfile off
+        - 当我们关闭的话 就会有 read write 两个过程 read就是nginx去read这个文件 将这个文件的内容加载到应用程序的内存里面 然后再发送给计算机的网络接口
+        - 这个过程需要层层的复制
+        - nginx读文件是一层复制 它复制完成后将数据复制到自己的内存里 然后还要将数据复制给网络接口 再由网络接口将数据推送给用户
+
+        - sendfile on
+        - 当客户端向nignx请求资源 当我们开启on之后 nginx不会去找资源 读资源 而是会向网络接口发送一个信号 网络接口读取文件 然后直接发送给客户端 **这里面减少了一次数据拷贝的过程** 
+
+    \\ keepalive_timeout
+      - 保持连接的超时时间
+      - 如果想要保持长链接的话 一般从两个方向聊 一是客户端 二是代理端
+
+
+**server**
+- server模块
+- server模块用来配置主机 一个主机和多个主机都可以配置在一个 nginx.conf 配置文件里面
+- 一个 nginx 可以同时运行多个主机 一个server就代表一个主机 
+- 一个主机就代表了它有一个独立的站点 有独立的根目录 互相不干扰 我们可以通过端口号的方式区别不同的主机
+
+- 开启多个主机的方式叫做虚拟主机（别名：vhost）
+
+  - 配置项:
+    \\ listen
+      - 服务器监听的端口号 是当前一个主机所监听的端口号
+
+    \\ server_name
+      - 当前这台主机的名字
+      - 这里可以配置域名或者是主机名 
+      - 配置主机名的时候 也必须是解析的了的主机名（当我们写域名的时候 会将域名解析为ip地址）比如 localhost 就能解析 因为系统文件中写着 localhost对应着 127.0.0.1
+
+    \\ location
+      - 这个是重点内容 会放在后面的章节里面再讲
+      - 格式：
+
+        location / {
+          root html;
+          index index.html index.htm;
+        }
+
+      - / 
+        - 代表资源路径 当匹配上这个资源路径的时候（完整或者模糊匹配） 就会进入到 { } 的逻辑中
+
+      - root
+       - 当匹配上资源路径后 去root标记的目录中找对应的资源
+
+      - root html 
+        - html 这是一个相对路径 相对于
+          | - use
+            | - local
+              | - nginx
+                | - html
+        ML目录 我们也可以将html目录改为其他的目录
+
+      - index index.html index.htm;
+        - 进入到 html 目录后 如果有这几个后缀的文件就进行展示
+
+    \\ error_page
+      - 比如值为 500 502 503 504 /50x.html
+      - 发生服务端错误的时候 当发生 500 - 504 的错误码的时候 会定向到 /50x.html 这个地址展示里面的内容
+
+      location = /50.html {
+        root html
+      }
+
+      - 一旦用户访问 /50.html 的时候 会指向html目录 让它在这个目录下找 50x.html 文件
+
+----------------
+
+### 浏览器 nginx 与 Http协议
+- 当我们拿到ip地址后 浏览器怎么向nginx发送请求呢
+- 当电脑从dns服务器拿到ip地址 会发起tcp/ip请求 http协议在tcp/ip协议之上 
+  http协议叫做高级的网络协议 
+  tcp/ip叫做基础的网络协议
+
+- tcp/ip协议能够包容一切上层的协议 
+- nginx实现了http协议 浏览器也实现了http协议 协议就是双方商量好的一件事情 因为tcp/ip协议只能传递一些2进制的数据 这些数据以数据流的形式发送给目标服务器
+
+----------------
+
+### 虚拟主机的原理
+- 当我们访问这台主机的时候 通过ip地址访问到 nginx 服务器上 http协议就将数据报文返回了 不管是以网页的形式还是以视频图片的形式  
+
+- 当我们开启一个站点 其实并没有那么高的访问量 那这台主机的资源不就浪费了么
+
