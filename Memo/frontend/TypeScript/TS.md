@@ -581,13 +581,13 @@ module.exports = {
  -->
 
 > 示例
-<!-- 
+```js 
   // 声明一个变量b 同时指定它的类型是number
   let b: number;
 
   // b的类型设置为了number 在以后的使用过程中b的值只能是数字
   b = 'aaa';    // 此行代码会报错 b的类型是number 不能赋值字符串
- -->
+```
 
 
 > 类型声明 方式二 :
@@ -612,10 +612,11 @@ module.exports = {
 - 3. (形参):类型
 - 4. (形参):给函数的返回值定义类型
 
+```js 
   function sum(a:number, b:number): number {
     return a + b;
   }
-
+```
 
 - 上面我们了解了 给变量定义 number string boolean类型 还可以定义很多其他的类型
 
@@ -652,18 +653,22 @@ module.exports = {
 
 > 联合类型
 - 可以定义我们的变量的类型, 值可以是在某几个值之间
-
-- let b: 'male' | 'female';
+```js 
+  let b: 'male' | 'female';
+```
 
 - 当我们给 b 变量进行赋值的时候 只能赋值为 这两个值 其中的一个
-<!-- 
-  一般可以这么用, 这样b的值只能是male 或者 female其中的一个
+```js  
+  // 一般可以这么用, 这样b的值只能是male 或者 female其中的一个
   b = 'male';     // ok
   b = 'female';   // ok
   b = 'hello'     // err
- -->
+```
 
-- let c: boolean | string;
+```js 
+  let c: boolean | string;
+```
+
 - 我们可以通过这种方式来*限制我们的变量在哪些值之间*
 
 ------------------
@@ -671,44 +676,44 @@ module.exports = {
 > 变量类型: any
 - 变量: any
 - 这个变量的值可以是任意类型, 可以任意赋值, 一个变量设置类型为any后相当于对该变量关闭了TS的类型检测
-<!-- 
-  使用ts的时候, 不建议使用any类型, 那不跟js一样了
 
-  let d:any;    变量d可以是任意类型
+- 使用ts的时候, 不建议使用any类型, 那不跟js一样了
+```js 
+  let d:any;    // 变量d可以是任意类型
   d=10;
   d='hello'
   d=true
- -->
+```
 
 > 隐式any
 - 声明变量如果不指定类型, 则TS解析器会自动判断变量的类型为any (隐式的any)
-<!-- 
-  let d;    隐式any
+```js 
+  let d;    // 隐式any
   d = 10;
   d = 'hello'
- -->
+```
 
-> 注意:
+**注意:**
 - any类型的值 可以赋值给任意变量, 不仅霍霍自己还霍霍别人
-<!-- 
+```js 
   let s: string;    // s 是字符串类型
   let d;            // d 是any类型 没指定就是any
 
   s = d;            // 这时 我们将any类型的值 赋值给 s(string) 不会报错
 
-  我们使用TS的时候就是为了检测变量的类型, 当使用了any类型后 会导致和使用js一样的隐患
- -->
+  // 我们使用TS的时候就是为了检测变量的类型, 当使用了any类型后 会导致和使用js一样的隐患
+```
 
 
 > any的应用场景
 - 比如我们要获取html结构中的div节点
-<!-- 
-  在页面有效果 但是ts会报错 这时候我们就可以给div指定一个any类型
+```js 
+  // 在页面有效果 但是ts会报错 这时候我们就可以给div指定一个any类型
   let div = document.querySelector("div")
   div.style.color = "red"
 
   let div: any = document.querySelector("div")
- -->
+```
 
 ------------------
 
@@ -718,8 +723,8 @@ module.exports = {
 - 在ts中就是有些情况我们不知道该变量具体应该是什么类型的时候 我们可以使用unknown
 - 当遇到类型不确定的时候 能用unknown就用unknown
 
-<!-- 
-  它跟any有些像 也是可以给变量赋值任意类型的值
+```js 
+  // 它跟any有些像 也是可以给变量赋值任意类型的值
   let e: unknown;
   e = 10;
   e = 'hello';
@@ -728,16 +733,16 @@ module.exports = {
   let s: string;
   s = e;            // 报错
 
-  unknown类型的值不能赋值给别的类型, 说白unknown只霍霍自己 自己愿意是啥类型就是啥类型, 但是不能赋值给别人
- -->
+  // unknown类型的值不能赋值给别的类型, 说白unknown只霍霍自己 自己愿意是啥类型就是啥类型, 但是不能赋值给别人
+```
 
 - unknown实际上就是一个类型安全的any unknown类型的变量, 不能直接赋值给其他的变量
 
 
 > 那要是就是想把unknown的值赋值给其他的变量呢?
-- 1. 赋值之前需要做类型检测
+> 1. 赋值之前需要做类型检测
 - 检测unknown自身的数据类型, 如果和目标变量类型一致的时候 才可以赋值
-<!-- 
+```js 
   let e: unknown;
   let s: string;
 
@@ -747,23 +752,23 @@ module.exports = {
     s = e;
   }
 
-  麻烦是麻烦 但是可以避免以后出各种的问题
-  -->
+  // 麻烦是麻烦 但是可以避免以后出各种的问题
+```
 
 
-- 2. 类型断言
+> 2. 类型断言
 - 语法:
 - <类型>变量 | 变量 as 类型
 
 - 告诉编辑器 变量的实际类型, e的类型就是字符串别给我报错了
-<!-- 
+```js 
   let e: unknown;
   let s: string;
 
   // 两种写法
   s = e as string;    告诉编辑器e就是string
   s = <string>e;      告诉编辑器e就是string
- -->
+```
 
 ------------------
 
@@ -771,32 +776,32 @@ module.exports = {
 - 很多情况下 我们定义变量 没有赋值的时候 它就是undefined 但是这样在ts中会报错 这时我们可以这么写
 
 - 赋值了就是number 没有赋值就是undefined
-<!-- 
+```js
   let num: number | undefined;
- -->
+```
 
 
 > 变量类型: null
-<!-- 
+```js
   let num: null;
-  该变量不能赋其它的值了
+  // 该变量不能赋其它的值了
 
-  一个元素可能是number类型 可能是undefined 可能是null
+  // 一个元素可能是number类型 可能是undefined 可能是null
   let num: number | null | undefined;
- -->
+```
 
 
 > 变量类型: void
 - 用来表示空值, 以函数为例 就表示没有返回值 
 - 一般用于定义方式的时候 该方法没有返回值的时候应用
-<!-- 
-  某种程度来说undefined也是返回值 
+```js 
+  // 某种程度来说undefined也是返回值 
   function run():void {
     console.log("test")
   }
 
-  当一个方法没有返回值的时候 我们可以给这个方法定义为 void 型
--->
+  // 当一个方法没有返回值的时候 我们可以给这个方法定义为 void 型
+```
 
 
 > 变量类型: never
@@ -804,16 +809,15 @@ module.exports = {
 
 - 它包含(undefined null)
 
-<!-- 
-  前面我们可以直接给函数的返回值设置类型
+```js 
+  // 前面我们可以直接给函数的返回值设置类型
   function fn(): number {
     return 123;
   }
 
 
   // void
-  但函数没有返回值的时候 比如函数内部的结果是 console alter等
-  这时候我们可以给函数的返回值设置类型
+  // 但函数没有返回值的时候 比如函数内部的结果是 console alter等 这时候我们可以给函数的返回值设置类型
   function fn(): void {
     // 报错 只要有返回值就会报错, 因为我们设置了void表示我们的函数根本就不能有返回值
     return 123;   
@@ -824,91 +828,115 @@ module.exports = {
 
   // never
   function fn(): never {
-    在js中有一种函数 不会返回结果 连undefined也不会返回 用来报错的
-    当程序出错的时候 我们利用这种函数来报错
+    // 在js中有一种函数 不会返回结果 连undefined也不会返回 用来报错的当程序出错的时候 我们利用这种函数来报错
 
     throw new Error('报错了')
 
-    就类型这种函数只要一调用就会报错 一旦报错了, 程序就不往下执行了, 就不会有返回值了
-
-    这种函数就没有返回值, 这种函数就可以设置为never
+    // 就类型这种函数只要一调用就会报错 一旦报错了, 程序就不往下执行了, 就不会有返回值了这种函数就没有返回值, 这种函数就可以设置为never
   }
- -->
+```
 
 ------------------
 
 > 变量类型: object
 - obj表示一个js对象
 - let a: object;
-<!-- 
-  以这种形式给上面给变量指定类型不太实用 因为js里面一切皆对象, 定义一个变量的类型为object则相当于对这个对象没有任何的限制 在开发的时候不太用 
--->
+- 以这种形式给上面给变量指定类型不太实用 因为js里面一切皆对象, 定义一个变量的类型为object则相当于对这个对象没有任何的限制 在开发的时候不太用 
 
-- 在给 对象 指定类型的时候 最好具体指定对象中的属性的类型
+- 在给 对象 指定类型的时候 *最好具体指定对象中的属性的类型*
 
-- 一般我们使用{ } 给一个变量指定类型, 类面指定必须包含有哪些的属性
+- 一般我们使用 { } 给一个对象指定类型, 里面指定*必须包含有哪些的属性*
+
 - 语法:
-- let b: { name : string | 里面可以指定多个属性名和属性值 }
+```js
+  let b: {
+    name : string | 里面可以指定多个属性名和属性值
+  }
+```
+
 - 指定变量b的类型是对象, 同时里面必须有name属性, 且类型为string
-<!-- 
-  let b: {name : string};
+
+```js
+  let b: {
+    name : string
+  };
 
   b = {}              // 报错 因为里面没有name属性
   b = { name: 'sam'}  // OK
 
-  要求 我们指定的对象 和 结构 必须一某一样, 比如 我们上面定义了name
-  b = {name: 'sam', age:19}   // 报错
+  // 要求 我们指定的对象 和 结构 必须一某一样, 比如 我们上面定义了name
+  b = {
+    name: 'sam', 
+    age:19
+  }   // 报错
 
   多了不行 少了不行
- -->
+```
 
 
->> 属性名?   定义可选属性 
+> 属性名?   定义可选属性 
 - 有一些时候, 我们定义多个属性名, 可能用不到 我们我们可以通过 ? 让这个属性名可选
-let b: { name:string, age?: number }
-<!-- 
-  b = {name: 'sam'}    // 也不会报错
- -->
+```js
+let b: {
+  name:string, 
+  age?: number
+}
+
+b = {name: 'sam'}    // 也不会报错
+```
 
 
->> [属性名(自定义): string] : any   定义任意属性
-- 有的时候 我们除了必须要填写的属性名外, 后面的属性可以任意的时候 我们就可以采用这种方式
-- let c: {name: string, [propName: string]: any}
+> [属性名(自定义): string] : any   定义任意属性
+- 有的时候 我们除了必须要填写的属性名外, 后面的属性值可以任意的时候 我们就可以采用这种方式
+```js
+let c: {
+  name: string, 
+  // 任意属性名 任意类型的属性值
+  [propName: string]: any
+}
+```
+- 
 - [propName: string]  表示任意属性名
 - : any               表示任意类型
-<!-- 
+
+```js
+  // 要求 我的对象里必须有一个name属性, 其它的属性我不管
   let c: {
     name: string, 
     [propName: string]: any
   }
-
-  要求 我的对象里必须有一个name属性, 其它的属性我不管
- -->
-
+```
+  
 
 > 定义函数的类型, 具体有什么参数, 返回值的类型是什么样的
-- let d: (a: number, b: number) => number;
+```js
+  let d: (a: number, b: number) => number;
+```
+
 - 定义d的类型是一个函数, 形参有两个a b且类型都是number 返回值也是number
 - 使用箭头函数的形式 定义函数的结构
-<!-- 
+```js
   // 定义
   let d: (a: number, b: number) => number;
   d = function(n1: number, n2:number): number {
     return n1 + n2
   }
- -->
+```
 
 
-> interface和对象的搭配使用
-- 在定义对象的类型时，我们通常会使用 interface。如果我们需要检查多个对象是否具有相同的特定属性和值类型时，是很有用的：
+> interface接口和对象的搭配使用
+- *在定义对象的类型时，我们通常会使用 interface*。
+- 如果我们需要检查多个对象是否具有相同的特定属性和值类型时，是很有用的：
 
 ```js
+// 定义接口 相当于 设定了 属性的类型
 interface Person {
   name: string;
   age: number;
   isProgrammer: boolean;
 }
 
+// 让一个对象实现这个接口 相当于 让接口去检查对象中的属性的类型 是否是接口中定义好的
 let person1: Person = {
   name: 'ConardLi',
   age: 17,
@@ -922,6 +950,7 @@ let person2: Person = {
 };
 ```
 
+- 接口中还可以指定 方法的各个类型
 - 我们还可以用函数的类型签名声明一个函数属性，通用函数(sayHi)和箭头函数(sayBye)都可以声明：
 ```js
 interface Animal {
@@ -942,20 +971,18 @@ console.log(tom.speak('哈哈哈'));
 
 ------------------
 
-> DOM 和类型转换 !
+> DOM 和类型转换 ! (非空断言运算符)
 - TypeScript 没办法像 JavaScript 那样访问 DOM。这意味着每当我们尝试访问 DOM 元素时，TypeScript 都无法确定它们是否真的存在。
-
 - 使用非空断言运算符 (!)，我们可以明确地告诉编译器一个表达式的值不是 null 或 undefined。当编译器无法准确地进行类型推断时，这可能很有用：
 
 ```js
 // 我们明确告诉 TS a 标签肯定存在
 const link = document.querySelector('a')!;
-
 ```
 
 - 这里我们没必要声明 link 变量的类型。这是因为 TypeScript 可以通过类型推断确认它的类型为 HTMLAnchorElement。
-
 - 但是如果我们需要通过 class 或 id 来选择一个 DOM 元素呢？这时 TypeScript 就没办法推断类型了：
+
 ```js
 const form = document.getElementById('signup-form');
 
@@ -967,7 +994,6 @@ console.log(form.method);
 - 我们需要告诉 TypeScript form 确定是存在的，并且我们知道它的类型是  HTMLFormElement。我们可以通过类型转换来做到这一点：
 ```js
 const form = document.getElementById('signup-form') as HTMLFormElement;
-
 console.log(form.method); // post
 ```
 
@@ -981,24 +1007,27 @@ console.log(form.method); // post
 - let a: string[];
 - 希望我们的a是一个数组, 数组里面存放的都是字符串
 - 先定义再赋值 和 初始化
-<!-- 
+```js 
   - 1. 
   let a: string[];
   a = ['a', 'b'];
 
   - 2. 
   let a: string[] = ["sam", "erin", "nn"]
- -->
+```
 
+```js
 - let b: number[];
 - b = [1, 2, 3]
 - let b:number[] = [1, 2, 3]
-- b是一个装数字的数组
-
+// b是一个装数字的数组
+```
 
 > 方式二: Aarray<类型>
+```js
 - let arr: Array<number>;
 - arr = [1, 2, 3]
+```
 
 - let arr: Array<number> = [1, 2, 3]
 - 跟上面的意思一样 这种写法是泛型的写法
@@ -1016,8 +1045,10 @@ console.log(form.method); // post
 ```js
 [{name: "sam", age: 18}, {name: "sam", age: 18}]
 
+// 声明为对象数组
 let docs: {}[]
 
+// 还可以在{}指定 成员对象中的属性的类型
 let docs: {
   text: string,
   flag: boolean,
@@ -1050,30 +1081,30 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 ------------------
 
 > 变量类型: tuple 元组
-- 元组, 属于数组的一种 就是固定长度的数组
+- 元组, *属于数组的一种 就是固定长度的数组*
 - 元组类型可以指定数组当中 值的类型
 <!-- 当我们数组里面的值是固定的时候, 使用元组比较好一些 -->
 
 - let arr: [string, number, boolean] = ["sam", 123, true]
 - 后面传入的值必须和元组中指定的类型和数量一致 不能多也不能少 且 类型必须一样
-<!-- 
+```js 
   let h = [string, string]
   h = ['abc', 'cbv']          // ok
   h = ['abc', 'cbv', 123]     // err
   h = ['abc']                 // err
- -->
+```
 
 ------------------
 
 > 变量类型: enum
 - 枚举 把所有可能的情况全部的列出来
+
 - 场景：
 - 比如我们有这样一个 pay_status 变量
 <!-- 
   pay_status: 0未支付 1支付 2交易成功
 
   刚开始的时候我们知道 012代表什么 当以后我们再来看代码的时候我们会发现我们不知道012代表什么意思了
-
   这时候我们就可以使用枚举
  -->
 
@@ -1081,108 +1112,120 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 - 当我们在使用该值的时候可以通过 枚举类.描述符 的形式 清晰的拿到对应的值
 - 这样即使我们给谁都可以清晰的知道该变量的值对应着什么意思
 
-<!-- 
+```js
   enum Pay {
     non_payment: 0,
     pay: 1,
     pay_done: 2,
   }
 
-  当我们在其它地方使用上面的 status 的时候可以
+  // 当我们在其它地方使用上面的 status 的时候可以
   Pay.non_payment
   Pay.pay
   Pay.pay_done
+```
 
+- 意义在于
+- 以前的话 我们直接看到的是 pay_status： 0
+- 这样不能清晰的知道 0 代表着什么意思
 
-  意义在于
-  以前的话 我们直接看到的是 pay_status： 0
-  这样不能清晰的知道 0 代表着什么意思
+- 但是现在通过枚举类我们可以这样写 pay_status: Pay.non_payment
 
-  但是现在通过枚举类我们可以这样写 pay_status: Pay.non_payment
- -->
+- 目标值 通过 枚举类(枚举对象去调用) 定义 通过调用枚举类中的属性名 得到 目标值
+- 这样目标值就有了 key 作为描述 我们可以通过key来更加清晰的认识 目标值的用途
+
 
 > 使用方式
 - 1. 定义枚举类
-- enum 枚举名 {
-  标识符[=整型常数]
+```js
+enum 枚举名 {
+  标识符(可以) = 值
   ...
 }
-<!-- 
-  定义一个Flag枚举
+```
+
+```js 
+  // 定义一个Flag枚举
   enum Flag {
     success = 1,
     error = -1
   }
- -->
+```
 
 - 2. 将定义的变量的类型指定为枚举类
-<!-- 
+```js 
   let f: Flag = Flag.success
   console.log(f)  // 1
- -->
+```
 
 
 > 场景2
-<!-- 
-  人有性别比如男 女 
+```js 
+  // 人有性别比如男 女 
   let i: {name: string, gender: string}
   i = {
     name: 'sam',
     gender: '男'
   }
+```
 
-  我们在开发的时候一般不会这么这样存
-  存gender的目的就是为了判断 gender是男 还是女
+- 我们在开发的时候一般不会这么这样存 存gender的目的就是为了判断 gender是男 还是女 所以 我们判断gender是男是女可以这样 i.gender === '男' 
+- 但是 我们对象里的gender 不管是存 '男'也好 还是存 'male'也好 都是字符串 字符串存储在数据库中占地儿比较大, 所以我们期望我们存的数据尽可能的小
+- 类似 gender 这种东西, 要么是 男 要么是女 最多来个保密, 3个值也就够了 所以像这种值在一定的范围之内的
 
-  所以 我们判断gender是男是女可以这样 i.gender === '男'
-
-  但是 我们对象里的gender 不管是存 '男'也好 还是存 'male'也好 都是字符串
-  字符串存储在数据库中占地儿比较大, 所以我们期望我们存的数据尽可能的小
-
-  类似 gender 这种东西, 要么是 男 要么是女 最多来个保密, 3个值也就够了
-  所以像这种值在一定的范围之内的
-
-  比如 我们把gender的类型改成number
+- 比如 我们把gender的类型改成number
+```js
   let i: {name:string, gender:number}
   i = {
     name: 'sam',
     gender: 1
   }
+```
 
-  这样接下来我再判断的时候就可以这样 i.gender === 1
-  比如我们还可以给gender设置范围
+- 这样接下来我再判断的时候就可以这样 i.gender === 1
+- 比如我们还可以给gender设置范围
+```js
   let i: {name:string, gender: 0|1}
+```
 
-  但是上面写还是有问题, 我们是想以后拿去给别人做判断的, 我们设置的女生是0男生是1但是这个值, 不是我们自己用吧有可能别人用 但是别人不知道0 1代表男还是女
+- 但是上面写还是有问题, 我们是想以后拿去给别人做判断的, 我们设置的女生是0男生是1但是这个值, 不是我们自己用吧有可能别人用 但是别人不知道0 1代表男还是女
+- 所以这时候我们就可以用到枚举了
 
-  所以这时候我们就可以用到枚举了
- -->
 
->> 枚举的使用
+>枚举的使用
 
 - 定义一个枚举类
+```js
   enum Gender {
     Male = 0,
     Female = 1
   }
+```
 
 - 在定义变量类型的时候 将性别的变量类型指定为枚举类
+```js
   let i: { name: string, gender: Gender}
+```
 
 - 设置性别
+```js
   i = {
     name: 'sam',
     gender: Gender.Male
   }
+```
+
 
 - 判断的时候
 - i.gender === Gender.Male
-<!-- 
+```js 
   enum Gender {
     Male,
     Female
   }
-
+```
+```js
+  // 指定 gender 属性 为枚举类型
   let a: {name: string, gender: Gender}
   a = {
     name: 'sam',
@@ -1190,37 +1233,37 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
   }
 
   console.log(a.gender === Gender.Male);
- -->
+```
 
 
-> |   &
+> |  &
 - 上面简单的说了下 | 的用法
 - let c: boolean | string; 变量c的类型可以是布尔 或者是字符串
 
 - 还有 & 的用法
 - let a: { name: string } & { age: number }
-- 表示变量a 两者之间进行 & 也就是说 变量a既要满足 { name: string } 也要满足 { age: number } 再直接点说 变量a中要有两个值
-<!-- 
+- 表示变量a 两者之间进行 & 也就是说 *变量a既要满足 { name: string } 也要满足 { age: number } 再直接点说 变量a中要有两个值*
+```js
   a = {
     name: 'sam',
     age: 18
   }
- -->
+```
 
 **注意**
-- 当我们定义 枚举类 的时候 没有给枚举类赋值 那么对应的就是索引值
-<!-- 
+- 当我们定义 枚举类 的时候 *没有给枚举类赋值 那么对应的就是索引值*
+```js
   enum Color {
-    red,      0
-    blue,     1
-    orange    2
+    red,      // 0
+    blue,     // 1
+    orange    // 2
   }
 
   let c: Color = Color.blue
   console.log(c)   // 1
 
 
-  情况2
+  // 情况2
   enum Color {
     red,
     blue=5,
@@ -1232,54 +1275,55 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 
   Color.red     为0
   Color.blue    为5
-  Color.orange  为6     它会延续上一个的数字
+  Color.orange  为6     // 它会延续上一个的数字
+```
 
- -->
 
-
-> 类型的别名 type
+> 类型的别名 type关键字
 - 有一种情况 我们定义了一个类型, 这个类型比较繁琐, 然后还需要在别的地方用
 - 我们就可以给这个类型起个别名( 有点像 less中的变量 啊)
 
 - 语法:
 - type 自定义名 = 类型
-<!-- 
+
+```js
   type myType = 1|2|3|4|5;
   let k: myType;
- -->
+```
 
 ------------------
 
 ### Ts中定义函数的方式
+
 - 1. 函数要给返回值定类型
-<!-- 
+```js 
   function fn():string {}
   let fn = function():string {}
- -->
+```
 
 - 2. 函数要给参数定义类型
-<!-- 
+```js
   function fn(a:number, b:string):string { }
   let fn = function(a:number, b:string):string { }
- -->
+```
 
 - 3. 如果方法没有返回值 只用 void
-<!-- 
+```js 
   function fn():void { }
- -->
+```
 
 - 4. 可选参数
 - es5里面方法的实参和形参可以不一样 但是ts中必须一样 如果不一样就需要配置可选参数
 - 比如我们函数定义了两个形参 当调用函数的时候 我们传递一个实参也可以
 - 但是ts中就不行 我们定义了几个形参那我们必须要传递几个实参
-<!-- 
+```js 
   function fn(name:string, age:number):string {
     if(age) { return `${name} -- ${age}` }
     else { return name }
   }
 
   fn("sam")   // es5没有问题 但是 ts会报错
- -->  
+```  
 
 
 > 可以参数 可选形参后面?: (age?:类型)
@@ -1287,37 +1331,39 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 - 就是不传递对应的实参也不会报错？
 
 - 可选参数配置后 该参数可传可不传
-<!-- 
+```js 
   function fn(name:string, age?:number):string { }
- -->
+```
 
 **注意：**
 - 可选参数必须配置到参数的最后面
-<!-- 
+```js 
   function fn(name?:string, age?:number):void { } 
-  - name的部分是错的
- -->
+  // name的部分是错的
+```
 
 
 > 默认参数
 - es5中没有办法设置默认参数的 但是es6和ts中是可以配置默认参数的
-<!-- 
+```js
   function fn(name:string = "sam", age:number = 20) { }
- -->
+```
 
 
 > 剩余参数 ...args
 - 接收实参传递过来的值
 - ...args的类型是一个数组 args既然是数组 那就可以使用数组的所有方法
+
 - 同时 我们需要注意的是
 - args的类型是数组 但是不代表我们在传递实参的时候 需要传递一个数组进去
 - 我们传递 1，2，3 ...args 会将我们传递的实参 收集到一个数组里面
-<!-- 
+```js 
   function fn(num1:number, num1:number, num1:number):number {
     return a + b + c
   }
   fn(1,3,4)
 
+  // 给 ...args 指定类型
   function fn(...args:number[]):number {
 
     console.log(typeof args)  // Array
@@ -1330,18 +1376,18 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
   }
 
   console.log(fn(1,2,3))
- -->
+```
 
 
 > 函数的重载
 - js是没有重载的
 
-- java中方法的重载 重载指的是两个或者两个以上同名函数 但它们的参数不一样 这时会出现函数重载的情况
-<!-- 
+- java中方法的重载 重载指的是两个或者两个以上*同名函数* 但它们的*参数不一样 这时会出现函数重载的情况*
+```js 
   // java中类似重载的写法
-  function fn(config:any):any { 。。。 }
-  function fn(config:any, value:any):any { 。。。 }
- -->
+  function fn(config:any):any { ... }
+  function fn(config:any, value:any):any { ... }
+```
 
 - ts中也出现了函数的重载 通过为同一个函数提供多个函数类型定义来实现多种功能的目的
 <!-- 
@@ -1354,7 +1400,7 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 - 2. 在第三个函数中书写方法体 并在方法体内可以对 1 中的定义形参类型函数中的形参做判断
 - 3. 我们在第三个函数中 return 的是第三个函数的形参
 - 4. 那是不是说 第三个函数的形参类型必须是any
-<!-- 
+```js 
   function fn(name:string):string;    1
   function fn(age:number):number;     2
   function fn(str:any):any {          3   形参和返回值都是any
@@ -1367,11 +1413,7 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
       return str + 10
     }
   }
- -->
-
-------------------
-
-### 
+```
 
 ------------------
 
@@ -1425,19 +1467,19 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 
 
 > ts中定义类的方式(es6)
-<!-- 
+```js 
   class Person {
 
     // 定义 死数据 实例属性
-    name:string = "张三"    前面省略了 public 关键字
+    name:string = "张三"    
+        - 前面省略了 public 关键字
         - 死数据我们可以通过实例对象访问到 p.name 打印结果会是 “张三”
         - 死数据的定义 也相当于我们在实例对象身上定义了一个name属性
-
         - 所以我们还可以这样 将实例化时传递进来的参数 赋值给这个 name属性
 
 
     // 定义 实例属性 name  
-    - 注意 ts中必须要先定义变量才能在下面constructor中赋值
+    // 注意 ts中必须要先定义变量才能在下面constructor中赋值
     name:string;
 
     // constructor 会在实例化的时候自动调用
@@ -1455,8 +1497,7 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
       return this.name
     }
 
-    // 这里的形参name是在调用setName的时候传递进去的参数
-    该函数用来修改name 所以没有返回值 使用的是void型
+    // 这里的形参name是在调用setName的时候传递进去的参数 该函数用来修改name 所以没有返回值 使用的是void型
     setName(name:string):void {
       this.name = name
     }
@@ -1467,12 +1508,12 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
   // 实例化
   let p = new Person("张三")
   p.run()
- -->
+```
 
 
 > ts中如何实现继承
 - extends super
-<!-- 
+```js 
   class Person {
     name:string
     constructor(name:string) {
@@ -1507,14 +1548,14 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 
   let p = new P("erin", 18)
   p.say()
- -->
+```
 
 
 
 > 总结：
 - 1. 实例属性 和 方法 在class中 直接定义 就可以在该实例中访问到
-<!-- 
-  定义实例属性 和 方法有两种情况
+```js 
+  // 定义实例属性 和 方法有两种情况
 
   - 1. 情况1 定义为死数据
   class Fn {
@@ -1527,25 +1568,25 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
       this.name = name
     }
   }
- -->
+```
 
 - 2. 定义静态属性 和 方法 需要在属性和方法的前面使用static关键字
 
 - 3. ts中要想在constructor中赋值 实例属性 必须要先定义
-<!-- 
+```js 
   name: string;   要先定义
   定义后 this.name = name  后面的name是传递进来的参数 前面的this.name是上面定义的实例属性
 
   constructor(name, age) {
     this.name = name
   }
- -->
+```
 
 - 4. 当子类中的方法和父类中的方法同名的时候 会覆盖掉父类中的方法
 
 ------
 
-<!-- 
+```js 
   class Person {
     /*
       对象(类)中主要包含两个部分
@@ -1591,18 +1632,18 @@ let person: (string | number | boolean)[] = ['ConardLi', 1, true];
   console.log(per.name)         // 孙悟空
   per.name = '猪八戒'
   console.log(per.name)         // 猪八戒
- -->
+```
 
 
 > constructor构造函数 和 this
 - 我们的类一般不会只创建一个对象, 所以通常情况下我们的类都是会创建多个对象
 - 但是有个问题 上面我们简单的了解类的时候 我们是这么定义类的
-<!-- 
+```js
   class Person {
     name: string = 'sam';
     age: number = 30;
   }
- -->
+```
 
 - 这样会有一个问题, 当我们创建实例的时候 实例里面的属性都是 sam 30
 <!-- 

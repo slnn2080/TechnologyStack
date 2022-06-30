@@ -32,6 +32,146 @@ md rd hello.txt d: dir rm
 
 ----------------------
 
+### 提交表单的相关总结
+> 1. 情景1:
+- 直接获取 username password 的值 
+- 使用 axios 发送 post 请求 发送到后台
+- 观察 network 发现 有两次请求 options post
+
+\\ 204 options
+- 响应头信息:
+```js
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET,HEAD,PUT,PATCH,POST,DELETE
+Vary: Access-Control-Request-Headers
+Access-Control-Allow-Headers: content-type
+Content-Length: 0
+Date: Thu, 30 Jun 2022 03:15:54 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+```
+
+- 1. options 请求 响应回来 204 通知没有 响应体
+- 2. 跨域请求需要填写如下信息
+    Access-Control-Allow-Origin: *
+    Access-Control-Allow-Methods: GET,HEAD,PUT,PATCH,POST,DELETE
+    Vary: Access-Control-Request-Headers
+    Access-Control-Allow-Headers: content-type
+
+\\ 200 post
+- 请求头信息:
+```js
+POST /upload HTTP/1.1
+Accept: application/json, text/plain, */*
+Accept-Encoding: gzip, deflate, br
+Accept-Language: ja,en-US;q=0.9,en;q=0.8,zh-CN;q=0.7,zh;q=0.6
+Cache-Control: no-cache
+Connection: keep-alive
+Content-Length: 38
+Content-Type: application/json
+Host: localhost:3333
+Origin: http://127.0.0.1:5500
+Pragma: no-cache
+Referer: http://127.0.0.1:5500/
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36
+sec-ch-ua: ".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+```
+
+- 1. Accept: application/json, text/plain, */*
+- 期望服务端返回 application/json 类型等数据
+
+- 2. **使用 axios 发送post请求 请求体类型 自动为 Content-Type: application/json**
+
+
+> 情景2:
+- 使用 formdata axios 将 post 请求发送给后台
+- 后台只定义了 下面两句代码 接收 请求体
+    app.use(express.urlencoded({extended: true}))
+    app.use(express.json())
+
+- 发现, req.body 里面为空
+    { }
+
+- 使用 express-fileupload 后 发现 req.body 里面可以正常的接收到 formdata
+    const uploader = require("express-fileupload")
+    app.use(uploader())
+
+- 使用 formdata 传递数据 发现 请求头 和 响应头 的 content-type 都是 application/json
+
+
+> 情景3:
+- 使用 formdata axios 将 post 请求发送给后台 (带文件)
+- 并没有设置 content-type: multipart-formdata
+
+- 发现请求头 响应头 都是 application/json
+- 表单项在 req.body 里面接收
+- 文件在 req.files 里面接收
+
+- 当发送图片的情况下:
+- req.files: 是一个对象
+```js
+{
+    file input 的 name值 : {
+        各种数据
+        name: 'harrier.mp4',
+        data: <Buffer 00 00 00 18 66 74 79 70 6d 70 34 32 00 00 00 00 6d 70 34 32 6d 70 34 31 00 01 38 55 6d 6f 6f 76 00 00 00 6c 6d 76 68 64 00 00 00 00 db 15 fc 88 db 15 ... 31812649 more bytes>,
+        size: 31812699,
+        encoding: '7bit',
+        tempFilePath: '',
+        truncated: false,
+        mimetype: 'video/mp4',
+        md5: 'c8163926b977b7ae535063dec50b5270',
+
+        // 函数
+        mv: [Function: mv]
+    }
+}
+```
+
+- name: 
+    上传文件的名字。
+
+- data：
+    上传文件数据，是一个Buffer，可以通过writeFile方法写入到本地文件中。
+
+- size：
+    上传文件的大小，单位为字节。
+
+- tempFilePath：
+    临时文件路径。
+
+- truncated：
+    表示文件是否超过大小限制。
+
+- mimetype：
+    文件的mimetype类型。
+
+- md5：
+    文件的MD5值，可用于检验文件。
+
+- mv：
+    将文件移动到服务器上其他位置的回调函数。
+
+
+> mv 回调
+- filePath
+    指定是上传文件的保存路径
+- callback
+    是回调函数用来处理判断是否上传成功并且有一个参数err表示错误对象
+
+```js
+[input file name 的值].mv(uploadPath, (err) => { ... })
+```
+
+----------------------
+
 ### 进入node环境
 - cmd -- 输入 node 命令 -- 然后就可以输入js代码了
 - 可以快速的验证某一个结论 跟我们再浏览器中的控制台里输入是一样的
