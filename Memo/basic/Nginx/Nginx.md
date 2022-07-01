@@ -206,10 +206,16 @@ WantedBy=multi-user.target
 
 > 启动服务 (配置完服务脚本后 启动nginx的命令为)
 - systemctl start nginx
+- 没有配置 关闭nginx的服务命令 所以我们想要关闭的时候 还是要进入 sbin 目录下 执行下面的命令
+- ./nginx -s stop
 
 
 > 检查是否启动成功
 - systemctl status nginx
+
+
+> 重新加载配置文件 (不用重启)
+- systemctl reload nginx
 
 
 > 配置开机启动
@@ -323,6 +329,16 @@ http {
 }
 ```
 
+> 检查配置文件是否ok
+- 我们在修改完 nginx 配置文件后 在重新启动 或者 reload nginx 的之前 要检查下配置文件是否ok
+
+- nginx -t
+
+- nginx -tc /etc/nginx/nginx.conf
+- 加上 c 参数可以指定路径
+
+- 这里有些问题 看看后面能不能补上 说找不到nginx命令
+
 ---
 
 > 最小配置
@@ -403,6 +419,11 @@ http {
 
 - 开启多个主机的方式叫做虚拟主机（别名：vhost）
 
+**注意：**
+- 上面说的server模块是配置主机 这里其实就是配置 站点 
+- 一个server配置项就代表了一个站点的配置
+
+
   - 配置项:
     \\ listen
       - 服务器监听的端口号 是当前一个主机所监听的端口号
@@ -428,7 +449,7 @@ http {
        - 当匹配上资源路径后 去root标记的目录中找对应的资源
 
       - root html 
-        - html 这是一个相对路径 相对于
+        - html 这是一个相对路径 相对于当前 nginx.conf 配置文件
           | - use
             | - local
               | - nginx
@@ -573,4 +594,125 @@ http {
 
 ### Nginx虚拟主机域名配置
 - 这个部分我们在虚拟机中配置多个站点
-- 现在我们访问 192.168.25.101 都会指向这一个站点 下面我们就来配置多个站点
+- 我们虚拟机会有一个ip 虚拟机就相当于一台电脑 nginx 只是电脑中的一个软件
+- 上面我们是通过虚拟机的ip 加上 nginx 监听的80端口 实现了输入ip地址 访问到了 nginx 服务器 呈现了 nginx 服务器的页面
+
+- 下面我们就来配置多个站点
+
+- 1. 进入到 根目录
+- cd /
+
+- 2. 在根目录下创建 www 目录 并进入 在这里创建几个站点
+- mkdir site_one site_two
+| - /
+  | - www
+    | - site_one
+      - index.html
+    | - site_two
+      - index.html
+
+- 3. 修改 nginx.conf 配置文件
+- /usr/local/nginx/conf/nginx.conf
+
+<!-- 
+  不用担心我们把配置文件修改坏了 因为还有一个 nginx.conf.default 文件
+  如果真的修改错了 我们还可以从这个默认的配置文件中 拷贝正确的东西
+ -->
+
+> 配置多个虚拟主机(相当于配置多个server配置项)
+- 虚拟主机的配置是在 http 模块下的 server 配置项里面
+- 其中 一个 server 配置项就代表着一个主机
+
+- 方式1. 使用 不同端口号 标记不同的站点
+- 这种方式不需要区分域名只需要配置不同的端口号而已
+```js
+// 主机1
+server {
+    listen       80;
+    server_name  localhost;
+
+    location / {
+        root   html;
+        index  index.html index.htm;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+}
+
+// 主机2
+server {
+    listen       81;
+    server_name  localhost;
+
+    location / {
+        root   /www/site_one;
+        index  index.html index.htm;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+}
+
+// 主机3
+server {
+    listen       82;
+    server_name  localhost;
+
+    location / {
+        root   /www/site_two;
+        index  index.html index.htm;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+}
+```
+
+- 方式2. 我们还可以通过 server_name 来指定不同的域名(花钱了的那种域名)
+
+----------------
+
+### http模块下 server配置项下 server_name 选项 的匹配规则
+
+> server_name 的匹配规则
+- nginx会查看 server_name 的值 来进行匹配
+- 如果有多个server配置项的话 会从上往下依次对server配置项进行匹配 如果匹配成功 则不会继续向下匹配
+- 如果没有匹配上 会展示第一个server配置项里面的逻辑
+
+
+> 要点
+- 1. server_name的值 可以是多个
+- 配置两个域名指向同一个主机(站点)
+```js
+http {
+  server {
+    server_name vod.mmban.com vod1.mmban.com;
+  }
+}
+```
+
+- 2. server_name的值 可以包含通配符
+- 只要是2级域名都会指向同一个主机
+```js
+http {
+  server {
+    server_name *.mmban.com;
+  }
+}
+```
+
+- 3. server_name的值 可以包含正则 使用 ~ 开始
+```js
+http {
+  server {
+    server_name ~^[0-9]+\.mmban.com$;
+  }
+}
+```
