@@ -1208,6 +1208,7 @@ Cacnhe-Control: no-transform
 
 - Referer
     - 提供了包含当前请求URI 的文档的URL
+    - nginx教程中说 该请求头在第二次请求的时候才有
 
 - UA-Color
     - 提供了与客户端显示器的显示颜色有关的信息
