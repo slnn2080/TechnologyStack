@@ -2442,9 +2442,17 @@ configure: error
 - yum安装
 - yum install -y keepalived
 
+
+> 检查是否成功安装 keepalived
+- rpm -q -a keepalived
+
+
 > 配置
+- 对于高可用的配置 我们只需要改 keepalived 的配置就可以 nginx 的配置不用动
+
 - 使用 yum 安装后配置文件在 
 - /etc/keepalived/keepalived.conf
+
 
 > 最小配置
 - 主服务器
@@ -2456,18 +2464,33 @@ global_defs {
   router_id lb111 
 }
 
+
+-- 该部分可以不用配置
+-- 监测脚本 监测nginx是否还活着
+vrrp_script chk_http_port {
+  script "/usr/local/nginx/nginx/check.sh"
+  interval 2
+  weight 2
+}
+
+
 -- vrrp是keeplived在内网当中的通信的协议
 -- atguigu是实例名称自己起的
 vrrp_instance atguigu { 
 
   -- 主服务器
   state MASTER
+
+  -- 在哪个网卡上绑定虚拟ip
   -- interface后面要填写网卡的名字 ip addr 可以看到
   interface ens33 
-  -- 这个不用改
+
+  -- 这个不用改 主从服务器的这个值必须相同
   virtual_router_id 51
+
   -- 优先级 当两个nginx都好用的时候 会开始竞选 谁的优先级越高谁就是master
   priority 100 
+
   -- 间隔检测时间
   advert_int 1 
 
@@ -2523,6 +2546,30 @@ vrrp_instance atguigu {
 
 - 查看 keepalived 的状态
 - systemctl status keepalived
+
+
+> 测试 
+- 1. ping 主服务器
+- 2. 停掉主服务器
+- 3. 查看从服务器
+
+
+> 扩展:
+- 如果写监测nginx是否还活着的脚本了 那就看下面的代码
+```sql
+#!/bin/bash
+A=`ps -C nginx -no-header |wc -1`
+if [ $A -eq 0 ]; then
+  -- nginx启动的路径
+  /usr/local/nginx/sbin/nginx
+  sleep 2
+  if [ `ps -C nginx -no-header |wc -1` -eq 0 ];then
+  fi
+fi
+```
+
+- 配置详解:
+- https://www.bilibili.com/video/BV1zJ411w7SV?p=16&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
 
 ----------------
 
