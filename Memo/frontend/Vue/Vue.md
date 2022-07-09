@@ -959,6 +959,7 @@ http://xxx/search?keyword="><script>alert('XSS');</>
 
 ```js
 directives: {
+
   自定义指令: {
     // 当指令与元素成功绑定的时该函数会被调用
     bind(el, binding) {}       
@@ -19497,7 +19498,7 @@ setup(props, context) {
 
 
 > vue3中 将deep 和 immediate等配置放在了watch函数的第三个参数的位置
-> watch(要监视的属性, (n, o) => { }, {配置对象}, [{配置项}])
+> watch(要监视的属性, (n, o) => { }, [{配置项}])
 ```js 
   watch([sum, msg], (newValue, oldValue) => {
     console.log(newValue, oldValue)

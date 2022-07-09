@@ -1845,8 +1845,7 @@ head: {
   }
 ```
 
-> 扩展:
-- context参数
+> 扩展: context参数
   - context是服务端的上下文集合里面有很多的内容 我们可以从context中解构出来 
   - context可以将形参 写成 这样 {store, route, redirect, params, query, req, res}
   
@@ -1858,6 +1857,20 @@ head: {
   - req      请求对象
   - res      响应对象
 
+```js
+{
+  isDev, 
+  route, 
+  store, 
+  env, 
+  params, 
+  query, 
+  req, 
+  res, 
+  redirect, 
+  error
+}
+```
 
 > nuxt.config.js 中的配置注释
 ```js 

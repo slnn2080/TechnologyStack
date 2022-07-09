@@ -1,3 +1,19 @@
+### 将实参对象中的值 赋值给默认对象中的值
+- 将对象的key value转为[key, value]数组 并获取每一对的kv
+- 赋值操作 将实参对象中k所对应的值 赋值给实例对象默认k所对应的值 如果实参对象中没有该值 则使用原本的值
+```js
+let obj = {
+    name: "sam",
+    age: 18,
+    address: "花果山"
+}
+
+Object.entries(obj).forEach(([k, v]) => {
+  obj[k] = rawStartupParameter[k] || v
+})
+```
+
+
 ### 大文件切片上传
 > 思路:
 - 比如我们拿到了 file 对象 我们将这个file对象切成很多块 每次上传一块 直到上传完成
