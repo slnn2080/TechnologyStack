@@ -96,8 +96,11 @@ data() {
 ```
 
 
-> middlware中的类型推论
-- 我们能看到 我们从 @nuxt/types 导出了 Context 类型
+> middlware | Context 中的类型推论
+- 我们能看到 我们从 @nuxt/types 导出了 Middleware | Context 类型
+- import { Middleware, Context } from '@nuxt/types';
+
+- 并将该类型用在了 写middleware的地方
 - 并将该类型用在了 写context的地方
 
 ```js
@@ -106,6 +109,8 @@ import { Context } from '@nuxt/types'
 export default ({ redirect, isDev }: Context) => {
   //
 }
+
+const guardActorPageMiddleware: Middleware = (context: Context) => { ... }
 ```
 
 

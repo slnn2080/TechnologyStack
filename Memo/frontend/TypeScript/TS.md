@@ -269,6 +269,52 @@ let Sam: keyof PersonType = "name"
 ```
 
 
+> 数组的数据类型 定义的两种方式
+- 1. Array<Item>
+- 2. Item[]
+
+```ts
+export enum Actor {
+  /** 受験者 */
+  TESTER = 1,
+  /** 監視者 */
+  CHECKER,
+  /** 試験管理者 */
+  TEST_MANAGER,
+  /** システム管理者 */
+  SYSTEM_MANAGER,
+  /** 監督官 */
+  SUPERVISOR,
+}
+
+
+// 下面返回的数据 就是一个 枚举类型的数组
+public static getList(): Actor[] {
+  return [
+    Actor.TESTER,
+    Actor.CHECKER,
+    Actor.TEST_MANAGER,
+    Actor.SYSTEM_MANAGER,
+    Actor.SUPERVISOR,
+  ];
+}
+```
+
+
+> Vue中 给 props 定义类型
+- 1. 引出 PropType
+- import Vue, { PropType } from 'vue';
+
+- 2. 应用
+```js
+props: {
+  testerConditions: {
+    type: Object as PropType<TesterConditions>,
+    required: true,
+  },
+},
+```
+
 ---------------
 
 ### Ts给变量指定类型
