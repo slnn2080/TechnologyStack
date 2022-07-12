@@ -2543,6 +2543,34 @@ computed: {
   <h3>{{computed中的变量名}}</h3>
 ```
 
+
+> 计算属性 监视 对象
+```js
+<script>
+export default {
+  name: 'App',
+  data() {
+    return {
+      obj: {
+        name: "sam",
+        age: 18
+      }
+    }
+  },
+  computed: {
+    computedObj() {
+      return this.obj
+    }
+  },
+  methods: {
+    changeObj() {
+      this.obj.name = "nn"
+    },
+  }
+}
+</script>
+```
+
 ------
 
 ### 案例 v-model & computed setter
@@ -2789,7 +2817,7 @@ export default {
 - watch配置项: {} 
 
 - 作用: 
-- 监视属性的变化 在配置项中写监视谁 监视哪个属性n不仅可以监视data中的属性 计算属性也可以监视
+- 监视属性的变化 在配置项中写监视谁 监视哪个属性 *不仅可以监视data中的属性 计算属性也可以监视*
 
 - 注意：
 - 在watch里面配置监视属性的时候 要监视的属性前面*不用使用this*
@@ -2925,6 +2953,15 @@ watch: {
 
 > 技巧：
 - *watch还可以监视$route*
+- watch还可以监听数组中一项的属性
+```js
+watch: {
+  // 监听 数组中第0项的name属性
+  "arr.0.name"() {
+
+  }
+}
+```
 
 --------------------------
 
@@ -10900,6 +10937,11 @@ const About = resolve => require(['../components/Home.vue'], resolve);
   }
 ]
 ```
+
+--------------------------
+
+### Vuex补足
+> 1. A模块的 actions中 还可以分发到 B模板的 actions 中
 
 --------------------------
 

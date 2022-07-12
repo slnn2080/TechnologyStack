@@ -132,7 +132,7 @@ export enum RecordingStatus {
 const DataPollingMixin = Vue.extend({
   data() {
     return {
-      // データポーリング用データ
+      // データポーリング用データ 轮询数据所需用的data
       dataPolling: {
         intervalTimer: null as (NodeJS.Timeout | number | null),
       },
@@ -153,13 +153,15 @@ const DataPollingMixin = Vue.extend({
      * サーバやS3に対してデータポーリングする場合はここで行うこと
      *
      * @return {Promise<boolean>}
-     */
+     */ 
 
     // 在这个页面上 开始轮询你需要的数据 因为这个轮询是向服务器发送api 所以要参考 StartupAdapter::matchingTimeout 如果你要对服务器或s3进行数据轮询请在这里进行
     startDataPolling(): Promise<boolean> {
       return new Promise((resolve, reject) => {
+
+        // 开了一个定时器
         this.dataPolling.intervalTimer = window.setInterval(() => {
-          // この「受験者」画面では常に、「試験状況（試験ステータス）」を常に監視する必要があるので、ポーリングで監視し続ける
+          // 在这个页面上 因为要长时间监视 考试的情况 所以要使用轮询的方式来持续监视
           this.$store.dispatch(testerPageTypes.ACTION_TESTER_PAGE_GET_TESTER)
         }, this.inParams.matchingTimeout * 1000)
 

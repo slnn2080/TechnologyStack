@@ -315,6 +315,39 @@ props: {
 },
 ```
 
+
+> Vuex 和 Ts 搭配写 配置项的时候
+- 1. 引入
+- import { GetterTree, ActionTree, MutationTree } from 'vuex';
+
+- 2. 定义 state 的类型
+```js
+const state = () => {
+  return new TesterAdapter();
+};
+
+// 获取 state 的类型
+type TesterState = ReturnType<typeof state>;
+```
+
+- 3. getters 的写法
+```js
+const getters: GetterTree<TesterState, TesterState> = {
+  // 下面是函数(想想computed)
+  [types.GETTER_TESTER](state: TesterState): TesterAdapter {
+    return { ...state };
+  }
+};
+```
+
+- 4. actions 的写法
+```js
+const actions: ActionTree<TesterState, TesterState> = { }
+```
+
+- 5. mutation 的写法
+- const mutations: MutationTree<TesterState> = { }
+
 ---------------
 
 ### Ts给变量指定类型
