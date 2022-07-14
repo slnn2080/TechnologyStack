@@ -6135,6 +6135,8 @@ app.use(express.static('files'));
   // 前端可以通过 /lib/bootstrap 这个路径 访问到 node_modules/bootstrap/dist 这个路径里面的资源
  ```
 
+> 比如 vue打包后的目录就可以丢到 public 里面 这样用户请求根路径的时候 可以直接访问页面了
+
 ----------------------
 
 ### 使用express渲染模板页面 -- art-template模板引擎的使用

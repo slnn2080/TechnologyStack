@@ -669,7 +669,7 @@ class LinkedList {
 - 由于列表项使用了Node 就需要重写继承自js默认的toString方法 让其只输出元素的值
 
 
-> append() 实现
+> append(data) 实现
 - 向链表尾部追加数据可能有两种情况
 - 1. 链表本身为空 新添加的数据是唯一的节点
 - 2. 链表本身非空 需要向其它节点后面追加节点
@@ -706,8 +706,11 @@ append(data) {
     let current = this.head
 
     // 判断 current.next 是否为空 为空表示为最后一个
+    // current.next表示下一个节点  -- 节点 节点 null
     while(current.next) {
       // 如果 current.next 不为空 那么我就让 current(第一个节点) = 下一个节点
+
+      // 让 current 指针不断的移动 直到最后一个
       current = current.next
     }
 
@@ -716,6 +719,7 @@ append(data) {
   }
 
   // 添加新节点后 修改 length  ++ 也可以但是python就不支持++
+  // 注意 因为最开始我们是根据length来判断是否往第一个节点位置添加节点的 所以这里要+1 不然只会在第一个节点的位置添加节点
   this.length += 1
 }
 ```
@@ -737,7 +741,7 @@ toString() {
   
   // 如果有东西就一直循环 这里while 不能是current.next 不然获取不到最后一个node
   while(current) {
-    str += current.data + " -- "
+    str += current.data + " -- "    // 这个必须要放在上面
 
     // 如果有值的话 就让当前节点指向下一个节点
     current = current.next
@@ -756,3 +760,1004 @@ ll.append("erin")
 ll.toString()
 console.log(ll)
 ```
+
+---
+
+> insert(position, data) 实现
+- 在任意位置插入数据
+
+> 思路:
+- 1. 添加到第一个位置(position = 0)
+  - 添加到第一个位置 表示新添加的节点是头 就需要将原来的头节点做为新的节点的next 另外这个时候的head应该指向新节点
+
+- 2. 添加到其它位置
+  - 如果是添加到其它位置 就需要先找到这个节点的位置
+  - 我们通过while循环 一点点向下找 并且在这个过程中 保存上一个节点 和 下一个节点
+  - 找到正确的位置后 将新节点的next指向下一个节点 将上一个节点的next指向新的节点
+
+
+> 分析:
+<!-- 
+           new node
+         ------------
+          item | next
+         ------------
+
+      ↗               ↘     node1
+                        ------------
+head                     item | next 
+                        ------------
+ -->
+
+
+> 参数:
+- 1. position (0为第一个元素)
+- 2. data
+
+> 实现:
+- 1. 首先我们要对 position 进行越界判断(如我们传递-100可以么?)
+  - position不能为负数
+  - position不能大于length(链表有4个元素 我们可以往4的后面插入5)
+
+- 2. 然后我们开始插入新的节点 分为两种情况
+ - 1. 新节点在 position: 0 的时候
+ - 2. 新节点在 position: 任意 的时候
+  - 这时候我们要找到指定位置的节点 while
+  - 同时我们在while中要存 当前节点和前一个节点
+
+```js
+insert(position, data) {
+  // 对 position 进行越界判断
+  if(position < 0 || position > this.length) return false
+
+  // 根据 data 创建 node
+  let node = new Node(data)
+
+  // 情况1: position=0 插入第一个节点的位置 我们需要让head指向新节点 新节点的next指向原来的第一个节点
+  if(position == 0) {
+    /*
+      伪代码: 
+      this.head = node
+      node.next = 原来的第一个
+
+      原来的第一个怎么获取? 我们把上面的代码上下换下位置 原来第一个就好获取了
+      node.next = 原来的第一个 原来的第一个就是head
+      this.head = node
+
+              node
+            ↗     ↘
+      head          原来的第一个节点
+    */
+    
+    // 让新节点的 next 指向原来的第一个元素
+    node.next = this.head
+
+    // 让head指向新节点 这样就完成了添加操作
+    this.head = node
+
+    /*
+      这样行么? 保存原来的第一个
+      current = this.head
+      node.next = current
+      this.head = node
+    */
+
+  // 情况2: postion为任意位置 比如 positon: 2
+  // 0 1 2 如果position:2 那么就应该是 0 1 new 2 原来位置2上的元素后移动 新节点添加到位置2上
+  } else {
+
+    let index = 0
+
+    // current就是第一个节点
+    let current = this.head
+    
+    // current的前一个节点
+    let previous = null
+
+    // 只要index<position就一直往后找 一旦 index == position while就停了 就意味着找到了
+    while(index++ < position) {
+      // current会移动到指定的位置 在current被赋值之前 我们将current的值保存起来
+      previous = current
+
+      // 让 current 开始移动 到指定的位置 这是current就是指定位置的节点 而previous就是它前面的节点
+      current = current.next
+    }
+
+    // 到这里就说明 current 到了指定位置 将 current 移动到 新节点的后面
+    node.next = current
+    previous.next = node
+
+  }
+
+  // length + 1
+  this.length += 1
+  
+  // 因为下标越界的时候 return的false 插入成功的时候我们return true
+  return true
+}
+```
+
+---
+
+> get(position) 实现
+- 获取对应位置的元素 找到指定位置的节点后 返回data
+
+**注意:**
+- 我们获取的时候 最多获取 length - 1 位置的元素
+<!-- 
+  insert()插入的时候 我们可以插到length的位置没有问题
+    length: 6
+    0 1 2 3 4 5
+  获取的时候不行 length的位置是没有东西的
+ -->
+```js
+get(position) {
+  // 越界判断 return null
+  if(position < 0 || position >= this.length) return null
+
+  // 从 head 开始找
+  let current = this.head
+  let index = 0
+  
+  // position:0 的时候 不满足条件 会直接到 return current.data 获取的就是第一个元素 
+  while(index++ < position) {
+    current = current.next
+  }
+
+  return current.data
+}
+```
+
+---
+
+> 总结:
+- 一直往后找的话 就是 定义 current + while + current = current.next
+
+- 如果要指定的循环次数 定义 index + while + index++ < position
+
+---
+
+> indexOf(data)
+- 根据给定数据, 返回该数据在列表中的索引 如果没有该元素则返回-1
+
+- 思路:
+- 我们先让 current 指向链表中的第一个元素 然后对比下 current.data 和 给定的data 是否一样 不一样的话就接着往后找 如果找到最后仍然没有找到 则返回-1
+
+- 我们需要两个变量:
+- 1. current: 当前的节点
+- 2. index: 用于记录找到第几个了
+
+```js
+indexOf(data) {
+  // 拿到第一个节点
+  let current = this.head
+  let index = 0
+
+  // 开始查找 一旦current指向null(最后一个节点就是指向null)
+  while(current) {
+
+    // 进来就开始判断 是否相同
+    if(current.data == data) {
+      return index
+    }
+
+    current = current.next
+    index += 1
+  }
+
+  // 到这里就是没有找到 应该返回 -1
+  return -1
+}
+```
+
+---
+
+> update(position, data)
+- 根据指定位置信息 修改该位置上的元素的数据 为给定数据
+- 跟 get() 方法很像
+
+```js
+update(position, data) {
+  if(position < 0 || position >= this.length) return false
+
+  // 查找正确的节点
+  let index = 0
+  let current = this.head
+
+  while(index++ < position) {
+    current = current.next
+  }
+
+  // 到这里就是目标节点 修改数据
+  current.data = data
+
+  return true
+}
+```
+
+---
+
+> removeAt(position)
+- 根据指定的位置 删除指定的元素
+
+> 思路:
+- 删除数据的情况
+- 1. position: 0 的情况
+- head - 1 - 2 - null
+- 我们删除第一个节点 那么我们可以让 head 指向 节点2
+<!-- 
+  head -> 节点2
+        ↗
+  节点1 
+
+  虽然节点1的next属性仍然指向节点2 但是因为没有东西指向节点1(也就是节点1没有引用 过会节点1就会被回收掉)
+ -->
+
+- 2. position: 任意的情况
+- 首先我们要先找到 position 位置的节点
+- 然后找到该节点的 *前一个节点*
+- 让 *前一个节点的next* 指向 该节点的 *下一个节点*
+<!-- 
+  节点1 节点2 节点3 节点4 节点5
+                    ↑
+
+  节点1 节点2 节点3   →  节点5
+
+  找到前一个节点 3 让它直接指向 5
+
+  它的前一个 = 它的下一个
+ -->
+
+```js
+removeAt(position) {
+  // = this.length 也是越界 因为没有这个东西 删啥 想想数组
+  if(position < 0 || position >= this.length) return false
+
+  if(position == 0) {
+    // 让 head 跳过 第一个节点 指向 第二个节点
+    this.head = this.head.next
+
+  } else {
+
+    let index = 0
+    let current = this.head
+    let previous = null
+
+    // 移动到指定的位置 同时保存下前一个节点
+    while(index++ < position) {
+      previous = current
+      current = current.next
+    }
+
+    // 出了循环就是找到正确的东西了 让 目标的前一个 指向 目标的下一个
+    previous.next = current.next
+  }
+
+  // 注意: length-1
+  this.length--
+
+  // 还可以返回删除的数据 return current.data 记得把current放到公共的位置
+  return true
+}
+```
+
+---
+
+> removeAt(data)
+- 根据数据 删除对应的节点
+- 直接调用上面定义好的方法 indexOf() removeAt()
+```js
+remove(data) {
+  let position = this.indexOf(data)
+  // removeAt()里面有越界判断了
+  let res = this.removeAt(position)
+
+  this.length--
+  return res
+}
+```
+
+--- 
+
+> isEmpty()
+- 判断当前链表是否为空 为空返回 true 
+```js
+isEmpty() {
+  return this.length == 0
+}
+```
+
+---
+
+> size()
+- 返回链表中的节点个数
+```js
+size() {
+  return this.lenth
+}
+```
+
+
+> 完整代码:
+```js
+class Node {
+  constructor(data) {
+    this.data = data
+    this.next = null
+  }
+}
+
+class LinkedList {
+
+  head = null
+  length = 0
+
+  append(data) {
+    let node = new Node(data)
+
+    if(this.length == 0) {
+      this.head = node
+    } else {
+      let current = this.head
+      while(current.next) {
+        current = current.next
+      }
+
+      current.next = node
+    }
+
+    this.length++
+  }
+
+  insert(position, data) {
+    if(position < 0 || position > this.length) return false
+    let node = new Node(data)
+
+    if(position == 0) {
+      node.next = this.head
+      this.head = node
+    } else {
+      let current = this.head
+      let previous = null
+      let index = 0
+
+      while(index++ < position) {
+        previous = current
+        current = current.next
+      }
+
+      previous.next = node
+      node.next = current
+    }
+    this.length++
+    return true
+  }
+
+  get(position) {
+    if(position < 0 || position >= this.length) return null
+    let index = 0
+    let current = this.head
+    while(index++ < position) {
+      current = current.next
+    }
+
+    return current.data
+  }
+
+
+  update(position, data) {
+    if(position < 0 || position >= this.length) return false
+
+    // 查找正确的节点
+    let index = 0
+    let current = this.head
+
+    while(index++ < position) {
+      current = current.next
+    }
+
+    // 到这里就是目标节点 修改数据
+    current.data = data
+
+    return true
+  }
+
+
+  indexOf(data) {
+    let index = 0
+    let current = this.head
+
+    while(current) {
+      if(current.data == data) {
+        return index
+      }
+
+      current = current.next
+      index++
+    }
+
+    return -1
+  }
+
+
+
+  toString() {
+    let str = ""
+    let current = this.head
+
+    while(current) {
+      str += current.data + " -- "
+      current = current.next
+    }
+
+    str = str.replace(/ -- $/, "")
+    console.log(str)
+  }
+
+  removeAt(position) {
+    if(position < 0 || position >= this.length) return false
+
+    if(position == 0) {
+      // 让 head 跳过 第一个节点 指向 第二个节点
+      this.head = this.head.next
+
+    } else {
+
+      let index = 0
+      let current = this.head
+      let previous = null
+
+      while(index++ < position) {
+        previous = current
+        current = current.next
+      }
+
+      // 出了循环就是找到正确的东西了 让 目标的前一个 指向 目标的下一个
+      previous.next = current.next
+    }
+
+    // 注意: length-1
+    this.length--
+    return true
+  }
+
+  remove(data) {
+    let position = this.indexOf(data)
+    return this.removeAt(position)
+
+    // 这里不用再--了 因为 removeAt 已经 - 过了
+    // this.length--
+    // return res
+  }
+
+  isEmpty() {
+    return this.length == 0
+  }
+
+  size() {
+    return this.lenth
+  }
+}
+```
+
+----------------
+
+### 双向链表结构
+
+> 回顾单向链表的特点:
+- 1. 只能从头遍历到尾 或者 从尾遍历到头(一般头从到尾) 也就是链表相连的过程是单向的
+- 2. 实现的原理是上一个链表中有一个指向下一个的引用
+
+
+> 单向链表的缺点
+- 我们可以轻松的到达下一个节点 但是回到前一个节点是很难的 但是 在实际开发中 经常会遇到需要回到上一个节点的情况
+
+
+> 举例:
+- 假设一个文本编辑用链表来存储文本 每一行用一个String对象存储在链表的一个节点中
+- 当编辑器用户向下移动光标时 链表直接操作到下一个节点即可
+- 但是当将光标向上移动呢？这个时候为了回到上一个节点 我们可能需要从head开始 依次走到想要的节点上
+
+
+> 双向链表的特点
+- 1. 既可以从头遍历到尾 又可以从尾遍历到头 也就是链表相连的过程是双向的 
+
+- 2. 实现原理 一个节点既有向前连接的引用 也有一个向后连接的引用 双向链表可以有效的解决单向链表中提到的问题
+
+
+> 双向链表的缺点
+- 每次在插入或删除某个节点的时候 需要处理4个引用 而不是两个 也就是实现可以要困难一些 并且相当于单向链表 必然*占用内存空间更大*一些 但是这些缺点和我们使用起来的方便程度相比 是微不足道的
+
+- java中的LinkedList就是一个双向链表
+
+<!--      
+                                   tail
+                                    ↓
+         -------------   -------------
+  head →               →
+         pre data next   pre data next → null
+  null ←               ←
+         -------------   -------------
+ -->
+
+- head指针: 指向第一个节点
+- tail指针: 指向最后一个节点
+
+
+> 双向链表的特点
+- 1. 可以使用一个head和一个tail分别指向头部和尾部的节点
+- 2. 每个节点都由3个部分组成
+  - 前一个节点的指针 prev
+  - 保存的元素      data
+  - 后一个节点的指针 next
+
+- 3. 双向链表的 *第一个节点* 的 *prev* 是 null
+- 4. 双向链表的 *最后的节点* 的 *next* 是 null
+
+
+> 双向链表的封装 -- 内部的属性
+```js
+class Node {
+  constructor(data) {
+    this.pre = null
+    this.data = data
+    this.next = null
+  }
+}
+
+
+class LinkedList {
+
+  // 会指向第一个节点的指针
+  head = null
+
+  // 会指向最后一个节点的指针
+  tail = null
+
+  // 链表的长度
+  length = 0
+
+}
+```
+
+**为什么 head prev 要为null**
+- 因为要遍历吧 到空才能移动到末尾 才会退出循环
+
+
+> 双向链表中的常见方法
+- append(data)
+- 向链表的尾部添加一个新的项
+
+- insert(position, data)
+- 向链表的特定位置插入一个新的项
+
+- get(position)
+- 获取对应位置的元素
+
+- indexOf(data)
+- 根据给定元素 找出该元素在链表中的索引 没有返回-1
+
+- update(position, data)
+- 修改某个位置的元素
+
+- removeAt(position)
+- 从链表的特定位置移除一项
+
+- remove(data)
+- 从链表中移除一项
+
+- isEmpty()
+- 查看链表是否为空 为空返回true
+
+- size()
+- 返回链表包含的元素的个数
+
+- toString()
+- 输出链表中元素的情况
+
+- forwardString()
+- 从后往前开始进行遍历, 返回字符串形式就可以
+
+- backwordString()
+- 从前往后开始进行遍历, 返回字符串形式就可以
+
+
+> 我们要实时关注下面的5个变量的情况
+- 1. head
+- 2. tail *我们要实时更新 tail*
+- 3. pre
+- 4. next
+- 5. length
+
+---
+
+> append(data)
+- 往链表的末尾添加节点
+
+> 思路:
+- 向链表尾部追加数据可能有两种情况
+- 1. 链表本身为空 新添加的数据是唯一的节点
+  - 直接让 head 和 tail 指向这个新的节点
+  - head = 新节点
+  - tail = 新节点
+
+- 2. 链表本身非空 需要向其它节点后面追加节点
+  - 首先我们要找到原链表中的最后一个节点 也就是 tail
+  - 我们要将 新节点的prev 指向 tail
+  - 新节点的next 指向 null
+
+  - 同时 新节点 已经变成最后一个节点了 我们要*更新 tail 指向 新节点*
+
+- 3. 最后 length++
+
+```js
+append(data) {
+  let node = new Node(data)
+  if(this.length == 0) {
+    // 让 head指针 指向新节点
+    this.head = node
+
+    // 让 tail指针 指向新节点(既是开头也是结尾)
+    this.tail = node
+  } else {
+    // tail 就是 最后一个节点
+    // 让原链表中最后一个元素的next 指向新节点 让新节点的prev指向原链表的最后一个节点
+    this.tail.next = node
+    node.prev = this.tail
+
+    // 更新 tail 指针为最后一个节点
+    this.tail = node
+  }
+
+  this.length++
+}
+```
+
+---
+
+> toString()
+```js
+toString() {
+  let str = ""
+  let current = this.head
+
+  // 依次向后遍历
+  while(current) {
+    str += current.data + " -- "
+    current = current.next
+  }
+
+  str = str.replace(/ -- $/, "")
+  console.log(str)
+}
+```
+
+
+> forwardString()
+```js
+forwardString() {
+  let str = ""
+  let current = this.tail
+
+  // 依次向前遍历
+  while(current) {
+    str += current.data + " -- "
+    current = current.prev
+  }
+
+  str = str.replace(/ -- $/, "")
+  console.log(str)
+}
+```
+
+
+> backwordString()
+```js
+backwordString() {
+  this.toString()
+}
+```
+
+---
+
+> insert(position, data)
+
+> 思路
+- 当我们插入 新节点 的时候 分为两种情况 (单向链表中没有考虑下面这面详细 这个逻辑也可以用在单向链表中)
+
+- 1. 链表为空的情况 也就是原链表中没有任何节点
+  - 新节点既是 第一个节点 也是 最后一个节点
+  - 所以我们插入进去之后 
+  - head = 新节点
+  - tail = 新节点
+
+- 2. 链表中已经有节点了 这个部分也需要考虑几种情况
+ - 1. position: 0的情况, 也就是原来有节点了 我们还要插入0的位置
+ - 新节点在0的位置
+ - 旧节点后移
+
+ - 当我们将新节点插入到0的位置上后 我们要处理下面的逻辑
+ - 旧节点.prev(原来head指向的这个节点) 指向 新节点
+ - 新节点.next 指向 旧节点(原来head指向的这个节点)
+ - 再让 head 指向 新节点
+
+ - 2. position: this.length的情况 也就是要插入到最后一个节点的后面 也就是要插入null的位置
+ - 节点1 节点2 节点3 null
+
+ - 插入后我们要考虑
+ - 原来最后一个节点.next = 新节点
+ - 新节点.prev = 原来最后一个节点
+ - 更新tail为新节点
+
+ - 3. position: 任意 插入任意位置
+ - 既然是插入任意位置 那么我们就要找到该位置上的节点 该节点就称之为旧节点 目标节点 
+
+ - 节点1 节点2 节点3(旧节点)
+ - 我们插入 新节点 那么原先的节点3就会变成旧节点(旧的节点3)
+              *新节点*
+ - 节点1 节点2          节点3(旧节点)
+
+ - 我们插入后 就要考虑 以下的问题
+ - 新节点.prev 指向 旧节点的前一个节点(节点2)
+ - 新节点.next 指向 旧节点
+ - 旧节点的前一个节点(节点2).next 指向 新节点
+ - 旧节点.prev 指向 新节点
+
+> 代码部分
+```js
+insert(position, data) {
+  // 越界判断
+  if(position < 0 || position > this.length) return false
+
+  // 创建节点
+  let node = new Node(data)
+
+  // 根据 position 找到正确的位置
+  if(this.length == 0) {
+    // 能进入该if证明 原先的链表为空
+    this.head = node
+    this.tail = node
+  } else {
+    // 在链表中已有节点的情况下 要插入第一个节点的位置
+    if(position == 0) {
+      // 旧节点.prev = node 因为是0的位置 this.head 就是0位置的节点 就是旧节点
+      this.head.prev = node
+      // 让新旧节点互相引用
+      node.next = this.head
+
+      // 这时再让 head 指向正确的节点 新节点
+      this.head = node
+
+      // 插入目标为 链表中最后一个元素的后面的null的位置上
+    } else if(position == this.length) {
+      this.tail.next = node
+      node.prev = this.tail
+      
+      // 更新 tail 为正确的节点
+      this.tail = node
+
+      // position为任意位置
+    } else {
+      // 我们要找到 position 的位置的节点
+      let current = this.head
+      let index = 0
+
+      while(index++ < position) {
+        current = current.next
+      }
+
+      // 到这就意味着找到了目标节点(旧节点)
+      // 1. 新节点.prev 指向 旧节点的前一个节点
+      // 2. 新节点.next 指向 旧节点
+      // 3. 旧节点的前一个节点.next 指向 新节点
+      // 4. 旧节点.prev 指向 新节点
+      node.next = current
+      node.prev = current.prev // current.prev 就是旧节点的前一个节点 双向链表维护了前一个后一个节点
+      current.prev.next = node
+      current.prev = node
+
+      // 注意上面的顺序 不能颠倒 不然指向就乱了
+    }
+  }
+
+  this.length++
+  return true
+}
+```
+
+---
+
+> get(position)
+- 获取指定位置的数据
+```js
+get(position) {
+  if(position < 0 || position >= this.length) return null
+
+  let index = 0
+  let current = this.head
+
+  while(index++ < position) {
+    current = current.next
+  }
+
+  // 到这里就找到了
+  return current.data
+}
+```
+
+- 我们还可以考虑是从前往后 还是从后往前
+```js
+// 等式成立说明 position 比 一半还要小 所在从head开始查找
+let flag = (this.length / 2) > position
+let current = this.tail
+let index = this.length -1
+while(index-- ...)
+```
+
+--- 
+
+> indexOf(data)
+- 根据给定的元素 返回该元素在链表中的索引 没有返回-1
+```js
+indexOf(data) {
+
+  let current = this.head
+  let index = 0
+
+  while(current) {
+
+    if(data == current.data) return index
+
+    current = current.next
+    index++
+  }
+
+  return -1
+}
+```
+
+---
+
+> update(position, data)
+- 根据给定的position 修改该节点的数据
+
+```js
+update(position, data) {
+  // 越界判断
+  if(position < 0 || position >= this.length) return false
+  
+  // 找到正确的节点
+  let current = this.head
+  let index = 0
+
+  while(index++ < position) {
+    current = current.next
+  }
+
+  current.data = data
+  return false
+}
+```
+
+---
+
+> removeAt(position)
+- 根据对应的信息将对应的节点删除掉
+
+> 思路:
+- 我们删除一个节点 也分几种情况
+- 1. 只有一个节点的情况 我们需要做的就是 
+  - head tail 指向 null
+  - 我们可以根据 this.length == 1
+
+- 2. 长度不为1的时候 还分3种情况
+  - 1. 删除第一个节点的情况(position: 0) 
+    - 我们需要做如下的操作
+    - 让第二个节点.prev 指向 null (第一个节点的prev始终都会指向null)
+    - 让head 指向 第二个节点
+
+  - 2. 删除最后一个节点的情况(position: this.length - 1)
+    - 拿到最后一个节点的前一个节点.next 指向 null
+    - tail 指向倒数第二个节点
+
+  - 3. 删除任意节点的情况
+    - 找到指定位置的节点
+    - 1. 目标位置的前一个节点.next 指向 目标位置的后一个节点
+    - 2. 目标位置的后一个节点.prev 指向 目标位置的前一个节点
+
+
+> 代码部分:
+```js
+removeAt(position) {
+  // 这里我们设计下 将删除的信息返回 所以越界的情况下 我们返回null
+  if(position < 0 || position >= this.length) return null
+
+  let current = this.head
+
+  // 只有一个节点的情况 判断是否只有一个节点
+  if(this.length == 1) {
+    this.head = null
+    this.tail = null
+
+    // 长度不为1的时候
+  } else {
+    
+    // 判断删除的是否为第一个节点
+    if(position == 0) {
+      // 让第一个节点的下一个节点(第二个节点).prev指向 null
+      this.head.next.prev = null
+      // 让head指向第二个节点
+      this.head = this.head.next
+
+      // 删除最后一个节点
+    } else if(position == this.length - 1) {
+      // 我们最终要返回删除节点的数据 所以这么做 保存下未删除之前的tail
+      current = this.tail
+
+
+      this.tail.prev.next = null
+      this.tail = this.tail.prev
+
+      // 删除任意位置的节点
+    } else {
+      let index = 0
+
+      // 我们把current提出去了 所以这里注释掉
+      // let current = this.head 
+
+      while(index++ < position) {
+        current = current.next
+      }
+
+      // 找到了 目标位置(要删除的节点)
+      // 1. 目标位置的前一个节点.next 指向 目标位置的后一个节点
+      // 2. 目标位置的后一个节点.prev 指向 目标位置的前一个节点
+      current.prev.next = current.next
+      current.next.prev = current.prev
+    }
+  }
+
+  this.length--
+  return current.data
+}
+```
+
+--- 
+
+> remove(data)
+- 根据指定的元素删除节点
+```js
+remove(data) {
+  let position = this.indexOf(data)
+  return this.removeAt(position)
+}
+```
+
+---
+
+> isEmpty()
+> size()
+> getHead()
+> getTail()
+```js
+isEmpty() {
+  return this.length == 0
+}
+
+size() {
+  return this.length
+}
+
+getHead() {
+  return this.head.data
+}
+
+getTail() {
+  return this.tail.data
+}
+```
+
+----------------
+
+### 集合
+

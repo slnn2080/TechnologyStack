@@ -383,7 +383,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
 > 安装express框架
 - npm i express
 
------------------------------------------------
+---------------------------
 
 ### 使用Ajax要分为两个部分
 - 1. 我要们先搭建服务器
@@ -691,7 +691,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     });
  -->
 
-------------------------------------
+----------------
 
 ### 服务器端响应的数据格式
 - 上面服务器端只是向客户端响应了一段文字, 在真是的项目中, 服务器端大多数情况下会以json对象作为响应数据的格式
@@ -742,7 +742,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     }
  -->
 
-------------------------------------
+----------------
 
 ### 使用Ajax发送请求如果传递参数
 - 在传统的网站当中 请求的参数都是通过表单的形式传递的
@@ -866,7 +866,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     报文体主要存储一些内容 post的请求参数就是存储在报文体中的
  -->
 
-------------------------------------
+----------------
 
 ### Ajax请求中如果设置url的参数
 - 在平时我们使用的时候都是在地址栏中去传参的 操作方式一样 也是在url的后面去缀参数
@@ -894,7 +894,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
  -->
 
-------------------------------------
+----------------
 
 ### 浏览器端 请求头的设置
 - 一般会把身份校验的信息放在头信息里面, 把它传递给服务器, 由服务器对参数做提取对用户的身份做校验
@@ -925,7 +925,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
  -->
 
 
-------------------------------------
+----------------
 
 ### AJAX发送POST请求
 <!-- 
@@ -952,7 +952,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     });
  -->
 
-------------------------------------
+----------------
 
 ### AJAX中 服务器 响应JSON数据
 - 在实际工作中 我们向服务端发送请求，服务端返回结果 实际上大部分都是JSON格式的数据 所以我们要知道结果怎么处理
@@ -1002,7 +1002,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
 
  -->
 
-------------------------------------
+----------------
 
 ### nodemon 自动重启工具安装
 - 当文件内容修改的时候，它能够帮我们去自动重启nodejs服务
@@ -1016,7 +1016,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     2. 输入set-ExecutionPolicy RemoteSigned
  -->
 
-------------------------------------
+----------------
 
 ### AJAX IE浏览器的缓存问题
 - ie浏览器会对AJAX的请求结果做一个缓存，把结果缓存起来，这样就会导致一个问题 下一次再去发送请求时，走的是本地缓存, 而并不是服务器返回的最新数据
@@ -1034,7 +1034,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     这次点和下次点的时间戳肯定不一样 不一样的话浏览器就会认为是两次不同的请求 这时候它就会重新发一个新的请求而不是本地的缓存
  -->
 
-------------------------------------
+----------------
 
 ### AJAX请求超时 与 网络异常处理
 - 我们的项目在上限后一定会出现网络异常的情况, 我们不能保证服务端永远及时快速的响应 所以肯定会遇到 请求超时 和 网络异常的情况
@@ -1073,7 +1073,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     },false);
  -->
 
-------------------------------------
+----------------
 
 ### 取消请求
 - 在请求的过程当中，在结果还没有回来之前，我们可以通过代码来吧请求取消掉
@@ -1102,7 +1102,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     };
  -->
 
-------------------------------------
+----------------
 
 ### 请求重复发送的问题
 - 比如上面的案例 我创建了按钮用来发送请求 每点击一次就会创建一个请求
@@ -1167,7 +1167,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     })
  -->
 
-------------------------------------
+----------------
 
 ###  JQ发送AJAX请求
 > $.get('服务器地址', {参数}, function(data) { ... }, 'json')
@@ -1256,7 +1256,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
 
 完结撒花！视频挺好的，我在23/24集遇到了问题。axios.get和axios.post设置了请求头，也在js文件中设置了响应头但是还是没有实现跨域请求，说一下解决方法：下载个插件，cnpm install cors --save,在js文件中，const cors=require(cors);app.use(cors()); 这样后不用设置响应头也能解决所有问题实现跨域。
 
-------------------------------------
+----------------
 
 ### Axios
 - Axios是目前前端最热门的工具库, 它是AJAX的工具库，使用的频率特别的高 也是Vue和react推荐的 AJAX请求的工具包
@@ -1343,7 +1343,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     })
  -->
 
-------------------------------------
+----------------
 
 ### axios
 - 程序开发中离不开请求, 即使我们选择了第三方框架 我们也对这个第三方框架进行封装, 然后使用我们自己封装好的模块进行网络请求
@@ -2131,7 +2131,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
 
 - 3. 某些网络请求(比如登录 token), 必须携带一些特殊的信息 
 
-------------------------------------
+--------------------------
 
 ### Axios入门和安装
 - axios.js是一个基于promise的HTTP库, 支持浏览器和node环境, 说明白点, 就是使用这个库来执行ajax请求, 获取json数据, 我们可以利用axios可以发送get post等一系列请求, 然后得到数据
@@ -2350,7 +2350,64 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
   })
  -->
 
+----------------
 
+### axios 取消请求
+- 官网的位置:
+- http://www.axios-js.com/zh-cn/docs/#%E5%8F%96%E6%B6%88
+
+- 取消请求又两种方法
+
+> 1. 可以利用CancelToken工厂函数创建cancel token
+```js
+const CancelToken = axios.CancelToken
+// 再次通过 CancelToken.source() 拿到 source
+const source = CancelToken.source();
+
+
+// get的使用案例
+// 在配置对象中 添加 cancelToken 
+axios.get('user/12345', {
+
+  cancelToken: source.token
+
+}).catch(function(thrown) {
+  if (axios.isCancel(thrown)) {
+    console.log('Request canceled', thrown.message)
+  } else {
+    // TODO: handle error
+  }
+})
+
+
+// post的使用案例
+axios.post('/user/12345', {
+  name: 'name what'
+}, {
+  cancelToken: source.token
+})
+
+// 执行取消请求操作
+source.cancel(‘请求已取消’)
+```
+
+
+> 2. 传递executor函数到CancelToken的够造函数来创建cancel token
+```js
+const CancelToken = axios.CancelToken;
+let cancel;
+
+axios.get('/user/12345', {
+  cancelToken: new CancelToken(function executor(c) {
+    cancel = c
+  })
+})
+
+// 执行取消请求操作
+cancel()
+```
+
+----------------
 
 ### Mock 拦截 axios 请求
 - 这个也是最终的需求功能, 我们假设axios异步请求的数据尚未上线或者不全
@@ -2398,7 +2455,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
   console.log(res.data.list[0].id)
  -->
 
-------------------------------------
+----------------
 
 ### 使用fetch()函数来发送AJAX请求
 - fetch()是属于全局对象的 可以直接去调用返回的结果是一个promise对象
@@ -2440,7 +2497,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     })
  -->
 
-------------------------------------
+----------------
 
 ### 跨域
 - 同源策略 是浏览器的一种安全策略
@@ -2616,7 +2673,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     })
  -->
 
-------------------------------------
+----------------
 
 ### 案例: 原生jsonp的实现
 - 在表单中输入文字, 当失去焦点的时候向服务端发送请求, 对用户名做一个是否存在的检测(我们服务端直接返回一个已存在 不进行比对), 然后把input框的颜色变成红色
@@ -2679,7 +2736,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     })
  -->
 
-------------------------------------
+----------------
 
 ### JQ使用jsonp发送请求
 > $.getJSON()
@@ -2727,7 +2784,7 @@ https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%B0%B7%E7
     })
  -->
 
-------------------------------------
+----------------
 
 ### 跨域请求的第二份方案
 
