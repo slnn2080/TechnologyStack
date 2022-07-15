@@ -1,5 +1,103 @@
 ### Ts的扩展知识体系
 
+> const & as const
+```js
+let a:string = "aaa";
+const b = "aaa";
+```
+- 上面的代码 不光光是 let const 的区别 其通过他们定义的类型也不一样
+
+- a变量: 
+- 实际为一种宽泛的字符串类型，只要是字符串，即可赋值给变量a
+
+- b变量:
+- 实际为一种具体的值类型，*类型为“aaa”*，不可被修改
+
+> 总结:
+- const关键字实际是将宽泛的类型，例如字符串，数字等转化为具体的*值类型*。
+
+- 值类型也是单独的一种类型
+
+
+> as const 断言
+- 我们先看看下面的代码
+```js
+let m = 100
+let n = "aaa"
+
+// let arr: (string | number)[]
+let arr = [m, n]
+
+// let f: string | number
+let f = arr[0]
+
+f = 2000
+f = "bbb"
+```
+- 我们能观察到 当我们把 m n 放入数组中后 arr的元素允许的类型就被推断为 (string | number)
+
+- 所以我们取出数组中的任意一个元素 它的类型都是 联合类型
+
+- 但是上面的情况我们要尽量的避免 这时候我们就可以使用 as const 断言 将 宽泛的联合类型 限定为具体的数值类型
+
+```js
+let m = 100
+let n = "aaa"
+
+// let arr: readonly [number, string]
+let arr = [m, n] as const
+```
+
+- 这样 首先我们能看到 arr 被当做了只读 而且它相当于被限定成了一个元祖 第一个数组只能是number 第一个数据只能是string
+
+
+> as const 在解构中的应用
+- 当涉及到数组中 x y 的类型组合的时候 每个元素都会有两个类型 或者是 每个元素都是联合类型
+
+- 当编辑器无法准确的识别 元素的类型的时候 我们就可以使用 as const
+
+```js
+function test() {
+  let a = "abc"
+  let b = (fname:string, lname: string): string => fname + lname
+
+  return [a, b]
+}
+
+let [x, y] = test()
+console.log(y("sam", "erin"))
+
+// 编译器认为 y 的类型是:
+let y: 
+  string | 
+  ((fname: string, lname: string) => string)
+
+- string | (xxx) 这是什么类型?
+```
+
+- 上面的内容编译失败 y 的类型 编译器并不能认定 y 是一个函数
+- 这时候我们可以 as const 将宽泛的 string | (xxx) 转为 只读的 值类型
+
+```js
+function test() {
+  let a = "abc"
+  let b = (fname:string, lname: string): string => fname + lname
+
+  return [a, b] as const
+}
+
+let [x, y] = test()
+console.log(y("sam", "erin"))
+
+
+// 这时编译器会认出 y 为 函数
+let y: (fname: string, lname: string) => string
+```
+
+- as const断言，可以将代码中宽泛的数据类型定义具体话，从而避免我们在开发过程中，因为定义过于宽泛，造成的各种数据处理的错误，通过精准的数据类型定义，更好的管理我们前端代码。
+
+---
+
 > type 自定义名 = 类型
 - 用于给目标定义类型
 ```js
@@ -347,6 +445,17 @@ const actions: ActionTree<TesterState, TesterState> = { }
 
 - 5. mutation 的写法
 - const mutations: MutationTree<TesterState> = { }
+
+---
+
+> Vue中this Ts可能会利用类型断言 实现this指向不同的对象
+- 场景:
+- 一个组件中通过 Vue.extend({}) 创建了很多的组件实例 DataPollingMixin 就是一个
+
+```js
+// 首先先断言这个this是实例类型 然后泛型中指明是哪个实例类型
+(this as InstanceType<typeof DataPollingMixin>).startDataPolling();
+```
 
 ---------------
 

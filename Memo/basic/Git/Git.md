@@ -1211,6 +1211,12 @@ Your public key has been saved in sam.pub.
 - git stash apply stash@{0}
 
 
+> 添加 信息 的 stash
+> git stash save "信息"
+> git stash list
+> git stash apply stash@{0}  -- 恢复指定的 stash
+
+
 > git cherry-pick 4c805e2
 - 在master分支上修复了bug后，我们要想一想，dev分支是早期从master分支分出来的，所以，这个bug其实在当前dev分支上也存在。
 - 那怎么在dev分支上修复同样的bug？重复操作一次，提交不就行了？
