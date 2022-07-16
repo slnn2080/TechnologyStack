@@ -208,6 +208,10 @@ HOST_NAME=http://127.0.0.1
 - 的一长串的命令通过 glob 语法简化成 
   npm-run-all clean build:css build:js build:html
 
+- 总结:
+- "命令": "脚本"
+- 我们可以利用这个包 执行多个 命令 部分
+
 > 使用方式:
 - 1. 下载: npm install npm-run-all --save-dev
 
@@ -239,7 +243,7 @@ HOST_NAME=http://127.0.0.1
 ---
 
 > 参数: --parallel 脚本并行执行
-- 并行执行 --parallel 后面指定的 脚本
+- 并行执行 --parallel *后面指定的 脚本*
 ```js
 {
   "start": "npm-run-all --parallel lint build"

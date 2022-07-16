@@ -67,7 +67,7 @@
 ----------------
 
 ### Nginx环境安装
-- nginx秘钥(可以不用花钱的钥匙)
+- vmware秘钥(可以不用花钱的钥匙)
 - https://www.xitongcheng.com/jiaocheng/dnrj_article_72794.html
 
 - vmware下载地址
