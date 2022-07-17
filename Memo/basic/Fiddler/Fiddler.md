@@ -244,6 +244,7 @@ Content-Length: 5431
 - 1. 安装的话很简单 直接下一步就可以 安装完毕后 打开fiddler会提示英文 选择no
 
 
+> 菜单栏的相关信息
 > file
 - Capture Traffic：
 - 开启 关闭 捕获请求
@@ -412,7 +413,102 @@ Content-Length: 5431
 
 > Options面板详解
 > 选项卡 - General
-- notify 
+- notify me for updates on startup
+- 更新时进行提醒
+
+- offer upgrade to beta versions
+- 提供升级至测试版本
+
+- enable ipv6 
+- 允许ipv6
+
+- partcipate in the fiddler improvement program
+- 参与到改善fiddler的过程中
+
+- enable high-reolution timers
+- 启用高分辨率计时器
+
+- auto matically stream audio and video
+- 音频 视频自动选择流模式
+
+- if protocol violations are observed 
+- 如果协议产生冲突 发出严重警告提示
+
+
+> 选项卡 - HTTPS
+- capture HTTPS CONNECTS
+- 捕获https请求
+
+- decrypt https traffic
+- 通过认证等级引擎生成整数
+  - form all processes
+  - 捕获所有https请求
+
+  - from browsers only
+  - 仅捕获浏览器的https请求
+
+  - from non-browses only
+  - 除了浏览器的https请求不捕获 其它https请求均捕获
+
+  - from remote dients only
+  - 仅捕获远程客户端的https请求
+
+- ignore server certificate errors
+- 忽略系统证书问题
+
+- check for certificate revocation
+- 检查证书是否被撤销
+
+- skip decryption for the following hosts
+- 设置不被捕获的hosts
+
+
+> 选项卡 - connections: 连接设置
+- capture ftp requests
+- 捕获ftp请求
+
+- allow remote computers to connect
+- 允许远程电脑连接
+
+- reuse client connections
+- 允许客户端连接
+
+- reuse server connection
+- 允许服务器连接
+
+- act as system proxy on startup
+- 启动时自动更新脚本
+
+- monitor all connections
+- 监听所有连接
+
+
+> Gateway - 网关设置
+- use system proxy
+- 使用系统代理
+
+- automatically detect proxy using wpad
+- 使用 wpad 自动监测代理
+
+- manual proxy configuration
+- 手动配置代理
+
+- no proxy
+- 无代理
+
+
+> Perfomance
+- show memory panel in status bar
+- 在状态栏中显示内存面板
+
+- parse websocketMessage
+- 解析websocket消息
+
+- stream and forget bodies over 
+- 设置body最大数据量
+
+- if client aborts while streaming
+- 设置客户端在数据流处理时终止方案
 
 
 
