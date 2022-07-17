@@ -97,29 +97,6 @@
 
 ----------------
 
-### 技巧:
-> 强制刷新清缓存
-- F12 - 刷新按钮上右键 - 去缓存刷新
-
-> 清除 选中的 请求项 之外 的请求项
-- shift + del
-
-> 查看 请求条目 
-- 双击该条目 该请求条目分为上下两块展示区 上面是请求 下面是响应 
-- 我们上下两块展示区 都选择 Row 模式展示(原始)
-
-> 乱码
-- 我们可以看下 响应回来的数据的 Content-Type: text/html; charset=GBK
-
-- 那当我们用UTF-8来看的话就是乱码
-
-
-> fiddler中去掉缓存
-- Rules选项卡
-  - 
-
-----------------
-
 ### HTTP相关
 - 我们可以通过 fiddler 将一次请求导出到 txt 文档中
 
@@ -251,3 +228,237 @@ Content-Length: 5431
 
 > 响应体可以是任意格式
 - 我们可以根据响应体来判断请求有没有被正常的处理
+
+----------------
+
+### Fiddler安装相关
+- http的网站：
+- test.lemonban.com/ningmengban/app/login/login.html
+
+- fiddler的面板组成
+- 左侧： 监控面板(会话列表)
+- 上边： 菜单栏 和 工具条
+- 右侧： 辅助标签 + 工具条
+- 下边： 命令行 + 状态栏
+
+- 1. 安装的话很简单 直接下一步就可以 安装完毕后 打开fiddler会提示英文 选择no
+
+
+> file
+- Capture Traffic：
+- 开启 关闭 捕获请求
+
+- New View
+- 打开新的视图界面
+
+- Load Archive
+- 加载 打开已存储的请求数据
+
+- Recent Archives
+- 最近存储的请求数据
+
+- save
+- 保存会话
+
+- import Sesstion
+- 导入会话
+
+- export Sesstion
+- 导出当前会话
+
+
+> Edit
+- copy
+- 复制
+  - session
+  - 复制选中的会话
+
+  - just url
+  - 复制url
+
+  - headers only
+  - 复制头部信息
+
+  - full summary
+  - 复制整个session列表数据
+
+  - terse summary
+  - 复制session的简要说明
+
+
+- remove
+- 移除
+  - selected sessions
+  - 移除选中的session会话
+
+  - unselected session
+  - 移除未选中的会话 session
+
+  - all session
+  - 移除所有的session会话
+
+
+- paste as sessions
+- 将复制的session粘贴回来
+
+- mark
+- 用颜色 删除线标记会话
+
+- unlock for editing
+- 解锁session
+
+- find sessions
+- 搜索session
+
+
+> Rules
+- Hide Image Requests：
+- 隐藏图片请求，session中不显示这类请求
+
+- Hide CONNECTs：
+- 隐藏CONNECT方法请求，session中不显示这类请求
+
+- Automatic Breakpoints：
+- 自动断点
+  - Before Requests：
+  - 在请求之前进行断点，多用于修改传递给服务器的请求内容
+
+  - After Requests：
+  - 在请求之后进行断点，多用来修改返回给客户端的响应内容
+
+  - Disabled：
+  - 禁用断点功能
+
+  - Ignore Images：
+  - 忽略图片请求
+
+- customize Rules
+- 自定义规则
+- 打开Fiddler ScriptEditor工具，调取脚本操作，用于网络修改、抓取某些如websoket包的修改，以及其它自定义的使用
+
+- require proxy authentication
+- 要求代理认证
+- 勾选该项，则所有未提交require proxy authentication的请求头的请求都会返回HTTP/407响应，要求客户端安装证书
+
+- apply gzip encoding
+- 请求gzip编码
+- 请求GZIP编码，勾选该项，则只要请求头包含了gzip标志的Accept-Encoding请求头都会1对除了图片以外的请求使用GZIP HTTP进行压缩
+
+- remove all encodings
+- 删除所有编码
+- 删除所有响应请求的http内容编码和传输编码
+
+- hide 304
+- 隐藏304请求
+- 隐藏所有304请求，不在session中展示
+
+- request japanses content
+- 以日语发送请求
+- 将所有请求头转换为ja标志，标志客户端希望以日语的形式发送
+
+- automatically authenticate
+- 自动认证
+- 自动进行验证
+
+- user-agents
+- 选择用户代理
+- 选择相应的用户代理模式（即你是用的浏览器信息），默认是diasbled
+
+- performance
+- 影响web性能的简单选项
+  - Simulate Modem Speeds：
+  - 模拟调制解调器速度，会使所有下载数据延迟150ms/kb
+
+  - Disable Caching：
+  - 删除所有 If-None-Matc h和 If-Modified-Since 请求头，并添加Pragma:no-cache请求头；还会删除Expires头，并将Cache-Control设置成no-cache。但浏览器还是可以重用之前浏览器所缓存的响应
+
+
+> Tools
+- options
+- 抓包设置选项
+
+- WinINET Options…：
+- 打开IE浏览器的option进行设置
+
+- Clear WinINET Cache：
+- 清空IE和其它应用中使用WinINET的缓存文件
+
+- Clear WinINET Cookies：
+- 清空IE和其它应用中使用WinINET的cookies文件
+
+- TextWizard：
+- 文本向导工具，可将text文本encode和decode
+
+- compare sessions
+- 比较session
+
+- reset script
+- 重置脚本
+
+- sandbox
+- sanbox官方文档
+
+- view ie Cache- 查看本地文件ie缓存
+
+- win8 loopback exemptions
+- 回环豁免
+
+- new session clipboard
+- 打开一个新的剪切板
+
+- hosts
+- 主机重定向工具
+
+
+> Options面板详解
+> 选项卡 - General
+- notify 
+
+
+
+
+
+> 配置 fiddler 位置
+- Tools
+  - options
+
+
+> 配置 fiddler 端口
+- Tools
+  - options
+    - Connections 
+      - port: 默认8888
+
+
+> 不让fiddler做系统代理的配置
+- Tools
+  - options
+    - Connections
+    - Act as system proxy on startup
+
+- 如果需要开起 fiddler 后让其自动作为系统代理 则前面打上 √ 反之则 不打 这种情况下需要我们自己配置
+
+
+
+
+> 监控面板 - 相关说明
+- host：
+- Tunnel-to: 中间建立通道的请求
+
+
+> 强制刷新清缓存
+- F12 - 刷新按钮上右键 - 去缓存刷新
+
+
+> 清除 选中的 请求项 之外 的请求项
+- shift + del
+
+
+> 查看 请求条目 
+- 双击该条目 该请求条目分为上下两块展示区 上面是请求 下面是响应 
+- 我们上下两块展示区 都选择 Row 模式展示(原始)
+
+
+> 乱码
+- 我们可以看下 响应回来的数据的 Content-Type: text/html; charset=GBK
+- 那当我们用UTF-8来看的话就是乱码
