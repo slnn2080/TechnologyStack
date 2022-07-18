@@ -775,28 +775,90 @@ Content-Length: 5431
 
 - 这个面板中有好几种方式来进行请求过滤条件(相当于where后面的条件)的设置
 
-- Hosts
+- 过滤指的是 过请求进行各种过滤 得到指向查看的请求 *过滤出我想要的请求*
+
+> Hosts
 - 主机的过滤
 
+- 域的过滤
+  - No Zone Filter
+    - show only intranet hosts
+    - show only internet hosts
+     - 监控面板上只展示 局域网 或 广域网 的请求
+     - 比如 当我们选择 局域网的话 那么广域网上的请求就抓不到了
 
-- Client Process
+  - No Host Filter
+    - hide the following hosts
+    - 隐藏以下的主机
+
+    - show only the following hosts
+    - 只展示以下的主机
+    - 比如我们可以只抓取 指定 主机的请求(在监控面板中请求上右键 copy - this column)
+
+    - flag the following hosts
+    - 标记以下的主机
+
+
+> Client Process
 - 进程的过滤
+- show only traffic form
+- 只展示指定进程的请求
 
-- Request Headers
+- show only internet explorer traffic
+- 只展示 ie 浏览器的请求
+
+
+> Request Headers
 - 请求头的过滤
 
-- BreakPoint
+- show only if url contains
+- 只展示 url 中包含 给定内容 的请求
+
+
+- hide if url contains
+- 隐藏 url 中包含 给定内容 的请求
+
+- flag reqests with headers
+- 对 请求头中有指定内容的进行标记
+
+- delete request Headers
+- 在请求过程中 删除指定的 headers
+
+- set request header 
+- 在请求过程中 设置指定的 请求头
+- 比如 我想我所有的请求中都带有 header
+
+
+> BreakPoint
 - 断点的过滤
 
-- Reponse StatusCode
-- 响应状态码的过滤
+- break request on post
+- 当 post 请求的时候 才开始断点
 
-- Reponse type and size
+- break on ajax
+- 当 ajax 的时候才开始断点
+
+- break response on content-Type
+- 当有指定的内容类型的时候 才开始断点
+
+- break request on get with query string
+- 当get请求有参数的时候 才开始断点
+
+
+> Reponse StatusCode
+- 响应状态码的过滤
+- 可以隐藏指定的响应码的请求
+
+
+> Reponse type and size
 - 响应类型 和 大小的过滤
+- 
+
+
+> Response Headers
+- 跟 *request headers* 功能类似
 
 ------
-
-
 
 > 配置 fiddler 位置
 - Tools
@@ -842,3 +904,114 @@ Content-Length: 5431
 > 乱码
 - 我们可以看下 响应回来的数据的 Content-Type: text/html; charset=GBK
 - 那当我们用UTF-8来看的话就是乱码
+
+----------------
+
+### 断点的设置
+- 断点的设置方式有两种 
+- 1. 全局断点
+- 2. 局部断点
+
+- 设置断点后 我们可以进行数据篡改
+- autoresponder 是设置好规则 自动进行响应(篡改)
+- 设置断点是 请求 或 响应停下来了 我们手动进行修改 或 篡改 接口调试
+
+
+> 全局断点
+- 把所有的请求都会断点
+
+- Rules 
+  - Automatic BreakPoints
+    - Before Requests   请求前 请求已经到fiddler 没有发给服务器
+    - After Responses   响应后 响应已经到fiddler 没有发给客户端
+
+
+> 局部断点
+- 局部断点要通过 命令 去完成
+
+> bpu 请求url中包含的文本(关键字或完整的路径都可以)
+- 该命令就是 *请求前断点*
+- 当 指定文本 的时候 开始请求前断点
+
+> bpafter 请求url中包含的文本(关键字或完整的路径都可以)
+- 该命令就是 *响应后断点*
+- 当 指定文本 的时候 开始响应后断点
+
+
+> bpu
+- 直接输入这个命令就是取消断点
+
+
+> 模拟网络中断
+- 我们可以设置 响应后断点 一直不点go 一直不让响应回到客户端 就相当于在模拟网络中断
+- 因为客户端是有超时机制的 1 2 秒没有发回来就超时了
+
+----------------
+
+### 弱网测试
+
+- Rules
+  - Performance
+    - simulate modem speeds
+
+- 模拟网络限速
+- 当我们勾选上这个选项后 请求就会变的非常的慢了
+
+
+- Rules
+  - Customize Rules
+    - 在源代码中搜索 simulate
+    - if(m_simulateModem) 到这里
+
+- 我们上面 选择的 vsimulate modem speeds 其实就是修改的这个变量
+- 我们能看到源代码中 请求和响应的延时时长 1kb延迟300ms 我们可以修改这个数值
+```js 
+oSession("request-trickle-delay") = 300
+```
+
+----------------
+
+### 抓取 HTTPS 请求
+- fiddler是一个代理 所以请求都能到fiddler中
+- 但是如果我们不设置的话 fiddler 是没有办法对https的请求进行解码的
+
+- 为什么要解码？
+- 因为 https 相当于 http + ssl + TLS 对http进行加密的结果
+- 加密的http是有证书存在的
+
+- 比如我们访问 百度 百度就是https 那么百度会分配给客户端一个证书的
+- 证书里面会有 对称 或 非对称 的算法 有秘钥的存在 它会分配给客户端一个公钥 进行数据的通信 如果没有公钥是没有办法解密的
+
+- 如果我们要对请求数据进行解密的话 就需要安装证书
+
+
+- 1. 
+  - Tools 
+    - fiddler options 
+      - https
+       - 勾选 decrypt https traffic 解密https的流量
+
+- 2. 过程中有安装证书
+
+
+- 如果抓不到的话 我们这么操作
+- 同面板 点击 Actions
+
+  - Actions 
+    - Reset All Cerificates 重置所有的证书
+    - 然后安装证书
+
+
+- 如何查看安装的证书
+- Actions
+ - Open windows Cerificates manager
+
+
+> 谷歌和ie读的是系统证书 所以按照上面那样就可以了 *但是火狐不行*
+- 因为火狐是自己管理自己的证书
+- https://www.bilibili.com/video/BV1c4411c7zH?p=21&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
+
+
+
+> App抓包
+- https://www.bilibili.com/video/BV1c4411c7zH?p=22&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
