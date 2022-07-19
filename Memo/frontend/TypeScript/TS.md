@@ -546,6 +546,7 @@ const actions: ActionTree<TesterState, TesterState> = { }
 
 > 字面量 定义变量 类型
 - let 变量:10
+- 这相当于 变量的类型就是 10 也就是值类型 相当于常量的感觉
 <!-- 
   变量的初始值是10 类型是number 固定了 已经指定了下面就不能修改了
   整的有点想常量似的赋值一次不能修改了 一般不用这中方式
@@ -561,7 +562,7 @@ num = 20
 
 ---
 
-> 联合类型 (可选值)
+> 联合类型 (可选值(值类型) 相当于在两个常量之间选择)
 - 可以定义我们的变量的类型, 值可以是在某几个值之间
 
 ```js 
@@ -658,6 +659,9 @@ num = 20
   let s: string;
   s = e;            // 报错
 ```
+
+> 它可以接受任意类型的值 但是不能将 e 赋值给别的变量
+
 - unknown类型的值不能赋值给别的类型, 说白unknown只霍霍自己 自己愿意是啥类型就是啥类型, 但是不能赋值给别人
 - unknown实际上就是一个类型安全的any unknown类型的变量, 不能直接赋值给其他的变量
 
@@ -671,6 +675,8 @@ num = 20
 
   e = '我是文本'
 
+
+  // 在赋值前 要对 unknown 做类型的校验 看看是不是 目标的类型
   if(typeof e === 'string') {
     s = e;
   }
@@ -700,8 +706,9 @@ num = 20
 
 > 变量类型: undefined
 - 很多情况下 我们定义变量 没有赋值的时候 它就是undefined 但是这样在ts中会报错 这时我们可以这么写
-
 - 赋值了就是number 没有赋值就是undefined
+
+- undefined 本身就是一种类型
 
 ```js
   let num: number | undefined;
@@ -805,6 +812,7 @@ num = 20
 
 > 可选属性 属性名?
 - 有一些时候, 我们定义多个属性名, 可能用不到 我们我们可以通过 ? 让这个属性名可选
+- 在给变量定义类型的时候 放在 *变量?: 类型*
 ```js
 let b: {
   name:string, 
@@ -847,6 +855,8 @@ let c: {
 ---
 
 > 定义函数的类型, 具体有什么参数, 返回值的类型是什么样的
+- 注意： 这是在使用 ： 定义函数类型的时候 => 的后面是返回值的类型
+- 如果是在 定义函数阶段 返回值的类型要在 形参的小括号的后面
 ```js
   let d: (a: number, b: number) => number;
 ```
@@ -911,9 +921,11 @@ console.log(tom.speak('哈哈哈'));
 
 ------------------
 
-> DOM 和类型转换 ! (非空断言运算符)
-- TypeScript 没办法像 JavaScript 那样访问 DOM。这意味着每当我们尝试访问 DOM 元素时，TypeScript 都无法确定它们是否真的存在。
+> DOM 和 类型转换 ! (非空断言运算符)
+- *TypeScript 没办法像 JavaScript 那样访问 DOM*。这意味着每当我们尝试访问 DOM 元素时，TypeScript 都无法确定它们是否真的存在。
 - 使用非空断言运算符 (!)，我们可以明确地告诉编译器一个表达式的值不是 null 或 undefined。当编译器无法准确地进行类型推断时，这可能很有用：
+
+- *告诉编译器这不是空*
 
 ```js
 // 我们明确告诉 TS a 标签肯定存在
@@ -930,6 +942,10 @@ console.log(form.method);
 // ERROR: Object is possibly 'null'.
 // ERROR: Property 'method' does not exist on type 'HTMLElement'.
 ```
+
+
+> as HTMLXxxElement
+- 除了告诉 ts 这不是空之外 我们还可以 具体的指定一个类型
 
 - 我们需要告诉 TypeScript form 确定是存在的，并且我们知道它的类型是  HTMLFormElement。我们可以通过类型转换来做到这一点：
 ```js
@@ -1002,6 +1018,20 @@ let docs: {
   id: number,
   children: Array<any>
 }[]
+
+
+// 还可以这样
+type ArrItem = {
+  name: string,
+  age: number
+}
+
+let arr:Array<ArrItem> = [
+  {
+    name: "sam",
+    age: 18
+  }
+]
 ```
 
 
@@ -1022,6 +1052,7 @@ let arr: any[] = ['hello', 1, true]; // 啥都行，回到了 JS
 
 > 联合类型的数组
 - 定义该数组的类型 只能中可选类型中选择
+- 每一个元素的类型 可以是联合类型中的一个
 ```js
 let person: (string | number | boolean)[] = ['ConardLi', 1, true];
 ```
@@ -1103,7 +1134,7 @@ enum 枚举名 {
   }
 ```
 
-- 2. *将定义的变量的类型指定为枚举类*
+- 2. *将定义的变量的类型指定为枚举类* 变量 f 的类型就是枚举类型
 - 这样该变量才可以使用枚举类中的属性
 
 ```js 
@@ -1157,7 +1188,7 @@ enum Gender {
   Female
 }
 ```
-- 我们只声明了一个key 相当于我们目标对象 仅使用key就可以了
+- 我们只声明了一个key 相当于我们目标对象 仅使用key就可以了 枚举类中第一个元素的默认值为0
 - 如
 ```js
 let person: Gender = {
@@ -1473,51 +1504,47 @@ enum Gender {
 ```js
   class 类名 {
 
-    对象(类)中主要包含两个部分:
+    // 对象(类)中主要包含两个部分:
 
-    实例属性
-      - 直接在类里面定义的属性就是实例属性
+    实例属性: 直接在类里面定义的属性就是实例属性
 
-    静态属性
-      - 在属性前使用static关键字可以定义类属性(静态属性)
+    static 静态属性： 在属性前使用static关键字可以定义类属性(静态属性)
 
-    实例方法
-      - 直接在类里面定义的方法就是实例方法
+    ---
+    
+    实例方法: 直接在类里面定义的方法就是实例方法
 
-    静态方法
-      - 如果方法以static开头则方法就是类方法 可以直接通过类去调用
-
-
-    关键字
-      - static
-        - 如果使用static关键字 则需要
-
-      - readonly  
-        - 加上readonly关键字, 实例对象只能访问 
-
-      - static readonly
-        - 关键字还可以连用 只读的静态属性 static 放在前面
+    static 静态方法:  如果方法以static开头则方法就是类方法 可以直接通过类去调用
   }
 ```
 
-> ts中定义类的方式(es6)
+> 关键字
+- static
+- 静态属性 需要通过 类本身 来进行访问
+
+- readonly  
+- 加上readonly关键字, 实例对象只能访问 
+
+- static readonly
+- 关键字还可以连用 只读的静态属性 static 放在前面
+
+
+
+> ts中定义类的方式(es6) 类的定义 示例:
 ```js 
   class Person {
 
     // 定义 死数据 实例属性
-    name:string = "张三"
+    (相当于省略了 public) name:string = "张三"
 
     /*
     - 前面省略了 public 关键字
-    - 死数据我们可以通过实例对象访问到 p.name 打印结果会是 “张三”
-    - 死数据的定义 也相当于我们在实例对象身上定义了一个name属性
-    - 所以我们还可以这样 将实例化时传递进来的参数 赋值给这个 name属性
+      - 死数据我们可以通过实例对象访问到 p.name 打印结果会是 “张三”
+      - 死数据的定义 也相当于我们在实例对象身上定义了一个name属性
     */
         
 
-
-    // 定义 实例属性 name  
-    // 注意 ts中必须要先定义变量才能在下面constructor中赋值
+    // 定义: 动态实例属性 但注意 ts 中 属性一定要先声明其类型才能在下面constructor中赋值
     name:string;
 
     // constructor 会在实例化的时候自动调用
@@ -1573,8 +1600,11 @@ enum Gender {
 
     // 当子类想要有自己的属性的时候要使用 constructor
     constructor(name:string, age:number) {
+      // 先调用super 将父类需要的参数传递过去
       super(name)
-      this.name = name
+
+      // this.name = name 这句写与不写 都行
+
       this.age = age
     }
 
@@ -1634,8 +1664,6 @@ enum Gender {
 
         类属性  
           - 在属性前使用static关键字可以定义类属性(静态属性)
-
-      方法:
     */
 
     // 定义实例属性, 必须创建实例对象 通过实例对象来访问
@@ -1674,7 +1702,7 @@ enum Gender {
 
 
 > constructor构造函数 和 this
-- 我们的类一般不会只创建一个对象, 所以通常情况下我们的类都是会创建多个对象
+- 我们的类一般不会只创建一个对象, 所以通常情况下我们的类都是会创建多个对象 *类就是用来创建对象的*
 - 但是有个问题 上面我们简单的了解类的时候 我们是这么定义类的
 ```js
   class Person {
@@ -1698,8 +1726,7 @@ enum Gender {
         写在这里面的属性, 会在new的时候被自动调用
 
         这里的this
-        在实例方法中, this就表示当前的实例
-        在构造函数中当前对象就是当前新建的那个对象
+        在实例方法中, this就表示当前的实例 在构造函数中当前对象就是当前新建的那个对象
 
         下面sam就是new出来的 this就是sam这个实例
         如果我在创建erin实例对象, 那么this就是erin这个实例
@@ -1756,6 +1783,7 @@ enum Gender {
 
 - 覆盖掉父类中的同名方法, 如果在子类中添加了和父类相同的方法, 则子类方法会覆盖掉父类的方法
 - 我们称之为方法的重写
+
 **注意当我们在子类中写了跟父类一样的属性名 和 方法名 都会发生重写现象 包括 constructor**
 
 ```js 
@@ -1814,14 +1842,12 @@ enum Gender {
 
 - 我们也可以通过 super() 调用父类的constructor
 - 我们在子类中要定义自己的独有属性还是要通过constructor构造函数, 但是如果我们直接在之类中写了constructor, 因为父类中也有constructor 就会发生重写的现象
-<!-- 
+```js 
   constructor() {
 
-    如果直接写 constructor 构造函数 会报错, 相当于重写了父类中的constructor(名字相同的函数会发生重写), 
-    
-    也就是说父类中的constructor就不会执行了 父类中的constructor中的属性就没有了 会报错
+    // 如果直接写 constructor 构造函数 会报错, 相当于重写了父类中的constructor(名字相同的函数会发生重写), 也就是说父类中的constructor就不会执行了 父类中的constructor中的属性就没有了 会报错
   }
- -->
+```
 
 - 所以在子类中调用 constructor 的时候 必须在子类的constructor内部调用 super() 
 - 注意父类中的参数 也要写进子类的constructor的形参中, 同时super(实参)也要传入实参
@@ -1851,22 +1877,20 @@ enum Gender {
 
 > public 公有
 - 在类里面 子类 类外面都可以访问
-<!-- 
-  我们上面在Person类中定义了name属性
+```js 
+  // 我们上面在Person类中定义了name属性
   name:string
 
-  该name属性可以在 类中访问 this.name
-  该name属性可以在 子类中访问 子类extends父类后就可以利用name属性
-  - eg
+  // 该name属性可以在 类中访问 this.name 该name属性可以在 子类中访问 子类extends父类后就可以利用name属性
     constructor(name) {
       super(name)
     }
 
-  该name属性可以在 在类外部可以访问该属性
+  // 该name属性可以在 在类外部可以访问该属性
   class Person { ... }
   let p = new Person("sam")
   p.name    // 类外部访问属性
- -->
+```
 
 > protected 保护
 - 在类里面 和 子类里面可以访问 在类外面不可以访问
@@ -1875,7 +1899,7 @@ enum Gender {
 - 在类里面可以访问 在子类和类外面都不可以访问
 
 > 注意：
-- 属性如果不加修饰符默认就是公有 public
+- *属性如果不加修饰符默认就是公有 public*
 
 
 > 静态方法 静态属性
@@ -1905,6 +1929,7 @@ enum Gender {
 ```
 
 - ts中定义静态方法
+
 **注意**
 - 静态方法中没办法访问类中的属性(实例对象身上的属性 因为实例属性会在实例对象身上)
 - 静态方法可以访问静态属性
@@ -1949,7 +1974,7 @@ enum Gender {
 - 父类定义一个方法不去实现 让继承它的子类去实现 每一个子类有不同的表现
 - 多态属于继承 也是一种继承的表现形式
 
-- 其实多态就是子类重写父类中的方法
+- 其实**多态就是子类重写父类中的方法**
 ```js 
   class Animal {
     name:string
@@ -1997,10 +2022,10 @@ enum Gender {
 
 - 注意：
 - 抽象类是专门用来被其他类所继承的类，它只能被其他类所继承不能用来创建实例
-<!-- 
+```js 
   // 定义抽象类
   abstract class Animal { }
- -->
+```
 
 - 抽象方法只是定义这个方法的结构 不定义这个方法的具体实现, 具体的实现由子类来决定
 
