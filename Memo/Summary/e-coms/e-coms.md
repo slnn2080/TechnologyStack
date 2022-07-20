@@ -1,4 +1,51 @@
+### xxxTypes.ts
+- 该文件都是些 常量 也就是页面中通过调用该文件中的常量 对应去call vuex
+
+
+### console 些什么东西
+- 1. 计算属性: inParams
+- inParams 应该是获取 RTTools 启动参数
+
+- 2. methods: startDataPolling()
+- 这个方法是一个循环定时器会不断获取 考生的状态 所以这里我们看看考生状态是什么
+- 也就是说我们可以看下 这个方法返回什么东西
+<!-- 
+  // testerPageStore.ts
+  acitons这里有
+    stepbar 更新
+    [环境设定]页面 是否点击 阅读等处理
+    摄像头 和 麦克风 更新处理
+    [本人认证]页面 确认中 确认完了 确定失败 等处理
+    [考试 / 考试终了]页面 
+        考生状态更新
+        考生情况获取
+    
+    考试开始 and 结束 处理
+    录像开始处理
+    录像结束处理
+    获取录像状态
+
+    考生退出(vuex内的数据全部初期化)
+
+  // action 获取考生的情报
+  testerPageTypes.ACTION_TESTER_PAGE_GET_TESTER
+  
+  // action 获取考生录像状态
+  testerPageTypes.ACTION_TESTER_PAGE_GET_TESTER_RECORDING
+ -->
+
+
+
 ### 问题: www下用户考试时摄像头没有开启
+- 现在知道是 recordingStatus 的问题了
+- 1. 这个变量既然是在 Exam组件中定义的 那么就应该会在这个组件内被改变
+- 也就是说答案应该就在这个组件里
+
+- 2. 领导说这个组件之前是好用的 但是现在不好用了 那就说明可能是注释引起的问题
+
+- 研究方向:
+- 可以试试 多console
+- ~~可以试试 去掉注释~~ -- 这个不行 
 
 > 目标页面
 - /examining

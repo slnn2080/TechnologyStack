@@ -3301,7 +3301,12 @@ class HashTable {
 - 主体数组
 
 > count:
-- 主体数组的长度(当前hash表中已经存放了多少元素)
+- 主体数组(当前hash表)中已经存放了多少元素
+<!-- 
+  也就由于我们使用的是链地址法 链表中的数据的存储可以无限的长
+
+  所以主体数组的长度 不能代表 主体数组有有多少数据了
+ -->
 
 - count的作用: 计算装填因子
 - count为已经存放了多少元素 / hash表的总长度 = 装填因子(loadFactor)
@@ -3385,7 +3390,7 @@ if(!bucket) {
 bucket.push([key,value])
 ```
 
-- 4. hash表的长度+1
+- 4. *hash表的长度+1*
 
 > 代码部分:
 ```js
@@ -3426,3 +3431,631 @@ put(key, value) {
   this.count++
 }
 ```
+
+---
+
+> get(key) 获取元素
+- 参数: key
+- 根据关键字获取对应的value
+
+- 要点:
+```js
+let arr = []
+console.log(arr[0] == undefined)  // true
+console.log(arr[0] == null)       // true
+```
+
+> 思路:
+- 1. 根据key获取对应的index 这样才知道去哪个位置的桶里面找
+- 2. 根据index获取bucket
+- 3. 判断 bucket 是否为 null 如果为 null 直接返回null
+- 4. 如果继续往下走说明 bucket 不为null 则线性查找 bucket每一个元素的key 是否为传入的key 如果等于则返回value
+- 5. 遍历完后依然没有找到对应的key 则直接return null
+
+> 代码部分:
+```js
+// 获取元素
+get(key) {
+  // 1. 根据 key 获取 index
+  let index = this.hashFn(key, this.limit)
+
+  // 2. 根据 index 获取 bucket
+  let bucket = this.storage[index]
+
+  // 3. 判断 bucket 是否为null
+  if(!bucket) return null
+
+  // 4. 如果有 bucket 则遍历判断 
+  for(let i=0; i<bucket.length; i++) {
+    let tuple = bucket[i]
+    if(key == tuple[0]) {
+      return tuple[1]
+    }
+  }
+
+  // 5. for循环都没有找到的话 则为null
+  return null
+}
+```
+
+---
+
+> remove(key)
+- 根据 key 关键字 删除对应的 key和value
+
+- 要点:
+- 删除会使用 splice(i, 1)
+<!-- 
+   它的返回值是 删除的元素的数组
+   但是返回删除的元素 我们不是利用该方法的返回值 
+   而是 
+   直接 return tuple[1]
+ -->
+
+> 思路:
+- 1. 根据 key 获取 index
+- 2. 根据 index 获取 bucket
+- 3. 判断 bucket 是否为空 不存在返回 false / null
+- 4. 线性查找bucket 寻找对应的数据 并且删除
+- 5. 依然没有找到 那么返回null
+
+- 6. *this.count--*
+
+```js
+remove(key) {
+  let index = this.hashFn(key, this.limit)
+
+  let bucket = this.storage[index]
+
+  if(!bucket) return null
+
+  // 线性查找 并 删除
+  for(let i=0; i<bucket.length; i++) {
+    let tuple = bucket[i]
+
+    if(tuple[0] == key) {
+      // 删除指定位置的元素
+      bucket.splice(i, 1)
+      this.count--
+
+      // 因为进入这个判断了 说明就是一个指定的 tuple 了 直接return 这个tuple[1] !!!!
+      return tuple[1]
+    }
+  }
+
+  return null
+}
+```
+
+---
+
+> isEmpty()
+- 判断hash表是否为空
+```js
+isEmpty() {
+  return this.count == 0
+}
+```
+
+> size()
+- 获取hash表元素的个数
+```js
+size() {
+  return this.count
+}
+```
+
+----------------
+
+### 哈希表的扩容
+
+> 哈希表扩容的思想:
+- 上面 我们是将所有的数据放在长度为7的数组中的 
+
+- 因为我们使用的是*链地址法 loadFactor可以大于1* 所以这个哈希表可以无限制的插入新的数据
+<!-- 
+  loadFactor是 主体数组 的 
+    
+    数据量 / 主体数组的长度
+    count / limit
+ -->
+
+- 但是 *随着数据量的增多* 每一个index对应的bucket会越来越长 也就*造成效率的降低* 
+
+- 所以在合适的情况对数组进行扩容 比如扩容两倍
+
+
+> 如何进行扩容
+- 扩容可以简单的将容量增大两倍(不是质数么?质数的问题后面再讨论) 
+
+**注意:**
+- 一旦主体数组扩容两倍 但是这种情况下 所有的数据项一定要同时进行*重新插入和修改*(重新调用哈希函数 来获取不同的位置)
+
+- 比如 
+  hashCode = 12 的数据项 
+    在length =  8 的时候呢 index = 4
+    在length = 16 的时候呢 index = 12
+
+- 这虽然是一个耗时的过程 *但是数组需要扩容 那么这个过程就是必要的*
+
+
+> 什么情况下扩容?
+- 比较常见的情况是 loadFactor > 0.75 的时候进行扩容
+- 比如 java的哈希表就是在装填因子大于0.75的时候 对哈希表进行扩容
+
+------
+
+> 哈希表的扩容实现:
+
+> 思路:
+- 当 原主体数组的装填因子 > 0.75 后 
+- 1. 先创建一个新的变量 oldStorage 我们让 oldStorage 指向 原主体数组( oldStorage = this.storage)
+<!-- 
+  这时有两个变量指向 一个主体数组
+  - 1. this.storage
+  - 2. oldStorage
+ -->
+
+- 2. 然后我们创建一个新的主体数组(扩容后的) 我们让 this.storage 指向新的主体数组
+<!-- 
+  oldStorage 指向 原主体数组
+  this.storage 指向 扩容后的新主体数组
+ -->
+
+- 3. 我们从 oldStorage 中
+  把每一个bucket取出来 
+  再把桶里的每一个元素取出来
+- 然后往新的桶里面插入 一旦重新插入的时候 就会根据前面实现的put方法 获取新的index 再判断index在新数组中的新位置
+
+
+> resize(newLimit)
+- 参数:
+- newLimit: 新数组的长度
+
+```js
+resize(newLimit) {
+
+  // 1. 保存旧的主体数组 (oldStorage指向了未扩容的数组)
+  let oldStorage = this.storage
+
+  // 2. 重置所有属性 做新主体数组的初始化
+  this.storage = []
+  this.count = 0
+  this.limit = newLimit
+
+  // 3. 遍历 oldStorage 中所有的 bucket
+  for(let i=0; i<oldStorage.length; i++) {
+    let bucket = oldStorage[i]
+
+    // 判断bucket是否为空 为空跳过本次循环 去找下一个
+    if(!bucket) continue
+
+    // 到这的话就说明有bucket 且它里面有数据 则取出数据 重新插入
+    for(let i=0; i<bucket.length; i++) {
+      // 取出bucket中的 [k,v]
+      let tuple = bucket[i]
+
+      // 调用 put() 放入到扩容后的主体数组里面 this.storage
+      this.put(tuple[0], tuple[1])
+    }
+  }
+
+}
+```
+
+- 上面 扩容方法 resize() 做好了 那什么时候 调用该方法呢? 在每次调用 put() 方法的时候
+
+
+> put() 每次的添加元素 要判断下是否扩容
+- 每次添加元素的时候 我们都会判断下 loadFactor 一旦 > 0.75 则调用 resize() 
+
+```js
+put(key, value) {
+  let index = this.hashFn(key, this.limit)
+
+  let bucket = this.storage[index]
+  if(!bucket) {
+    bucket = []
+    this.storage[index] = bucket
+  }
+
+  for(let i=0; i<bucket.length; i++) {
+    let tuple = bucket[i]
+    if(tuple[0] == key) {
+      tuple[1] = value
+      return 
+    }
+  }
+
+  bucket.push([key,value])
+  this.count++
+
+
+
+  // 判断是否需要扩容操作
+  if(this.count > this.limit * 0.75) {
+    this.resize(this.limit * 2)
+  }
+}
+```
+
+
+> remove() 每次删除元素 要判断数组是否要减小
+- 比如我们未来可能扩容至10000 但是有可能删除到只剩10个 这时候 10000的数组只存10个元素就太浪费空间了 所以我们不仅仅要扩容 还要减小容量
+
+- 当 填充因子 < 0.25 的时候
+
+```js
+remove(key) {
+  let index = this.hashFn(key, this.limit)
+
+  let bucket = this.storage[index]
+
+  if(!bucket) return null
+
+  for(let i=0; i<bucket.length; i++) {
+    let tuple = bucket[i]
+
+    if(tuple[0] == key) {
+      bucket.splice(i, 1)
+      this.count--
+
+
+
+      // 缩小容量 不要无限缩小 最小容量为7
+      if(this.limit > 7 && this.count < this.limit * 0.25) {
+        this.resize(Math.floor(this.limit / 2))
+      }
+
+
+
+      return tuple[1]
+    }
+  }
+
+  return null
+}
+```
+
+----------------
+
+### 哈希表 -- 普通判断质数的算法
+- 我们前面提到过 容量最好是质数
+- 虽然在链地址法中将容量设置为质数 没有在开放地址法中重要
+- 但是其实链地址法中质数作为容量 也更利于数据的均匀分布 所以我们还是要完成一下这个步骤
+
+- 也就是我们在扩容的时候 不要把 limit * 2 的结果直接作为 newLimit 的值 而是 * 2后再判断一下 它是不是质数 如果不是质数的话 我们寻找一个最接近 *2后的数 的质数 
+
+- 用这个质数做为 newLimit 
+
+- 我们先想 怎么判断一个质数?
+
+
+> 质数的特点
+- 质数也称素数 质数表示大于1的自然数中 *只能被1和自己整除的数* 
+
+```js
+function isPrime(num) {
+  // 不能被 2 ~ num - 1 之间的数整除
+  for(let i=2; i<num; i++) {
+    if(num % i == 0) {
+      return false
+    }
+  }
+
+  // 到这说明都没有能整除 num 的 说明它是一个质数
+  return true
+}
+
+isPrime(num) {
+  for(let i=2; i<num; i++) {
+    if(num % i == 0) return false
+  }
+
+  return true
+}
+```
+
+> 优化 质数算法
+- 上面的做法效率并不高 因为对于每个数n 其实并不需要从2判断到n-1
+
+- 一个数若可以进行因数分解 那么分解时得到的两个数一定是
+  一个小于等于sqrt(n) 
+  一个大于等于sqrt(n)
+
+- 比如 16 那么是 2 * 8
+- 2 < sqrt(16) (4)
+- 8 > sqrt(16) (4)
+
+- 而 4 * 4 = sqrt(n)
+- 所以其实我们遍历到等于 sqrt(n) 就可以
+
+```js
+// 判断是否为质数
+isPrime(num) {
+  // 优化的方式 获取 num 的平方根
+  let temp = parseInt(Math.sqrt(num))
+  
+  for(let i=2; i<=temp; i++) {
+    if(num % i == 0) return false
+  }
+
+  return true
+}
+```
+
+----------------
+
+### 哈希表 -- 容量设置为质数
+- 上面我们哈希表的容量 limit 为 * 2 的扩展
+- 那么 开始 limit:7 
+
+- 7 * 2 = 14
+- 14 * 2 = 28
+
+- 后面的容量都不再是质数了 所以我们要让 扩容后的limit仍然为质数
+
+```js
+// 获取质数的方法
+getPrime(num) {
+  // 不是质数就循环
+  while(!this.isPrime(num)) {
+    // 如果不是质数就让 num++
+    num++
+  }
+
+  // 到这里 退出 while 循环了 就是一个质数了
+  return num
+}
+```
+
+- ok 现在方法都准备好了 我们要在合适的位置 使用该方法去获取质数 并指定质数为 hash表的容量
+
+- 添加的 put() 方法中 我们要指定新主体数组的容量
+```js
+put(key, value) {
+  let index = this.hashFn(key, this.limit)
+
+  let bucket = this.storage[index]
+  if(!bucket) {
+    bucket = []
+    this.storage[index] = bucket
+  }
+
+  // 修改 取出桶中的每一项
+  for(let i=0; i<bucket.length; i++) {
+    let tuple = bucket[i]
+    if(tuple[0] == key) {
+      tuple[1] = value
+      return 
+    }
+  }
+
+  // 新增
+  bucket.push([key,value])
+  this.count++
+
+  
+  // 判断是否需要扩容操作
+  // 将 *2 的值保存起来 调用getPrime()方法得到一个质数
+  let newLimit = this.limit * 2
+  newLimit = this.getPrime(newLimit)
+
+  if(this.count > this.limit * 0.75) {
+    this.resize(newLimit)
+  }
+}
+```
+
+- 删除的 remove() 方法中 我们要指定新主体数组的容量
+```js
+remove(key) {
+  let index = this.hashFn(key, this.limit)
+
+  let bucket = this.storage[index]
+
+  if(!bucket) return null
+
+  // 线性查找 并 删除
+  for(let i=0; i<bucket.length; i++) {
+    let tuple = bucket[i]
+
+    if(tuple[0] == key) {
+      bucket.splice(i, 1)
+      this.count--
+
+
+      // 缩小容量 不要无限缩小 最小容量为7
+      // 将 /2 的结果保存起来 调用 getPrime() 方法得到质数
+      let newLimit = Math.floor(this.limit / 2)
+      newLimit = this.getPrime(newLimit)
+
+      if(this.limit > 7 && this.count < this.limit * 0.25) {
+        this.resize(newLimit)
+      }
+
+      return tuple[1]
+    }
+  }
+```
+
+
+> 哈希表的完整代码
+```js
+class HashTable {
+
+  storage = []
+  count = 0
+  limit = 7
+
+  put(key, value) {
+    let index = this.hashFn(key, this.limit)
+
+    let bucket = this.storage[index]
+    if(!bucket) {
+      bucket = []
+      this.storage[index] = bucket
+    }
+
+    // 修改 取出桶中的每一项
+    for(let i=0; i<bucket.length; i++) {
+      let tuple = bucket[i]
+      if(tuple[0] == key) {
+        tuple[1] = value
+        return 
+      }
+    }
+
+    // 新增
+    bucket.push([key,value])
+    this.count++
+
+    
+    // 判断是否需要扩容操作
+    let newLimit = this.limit * 2
+    newLimit = this.getPrime(newLimit)
+    if(this.count > this.limit * 0.75) {
+      this.resize(newLimit)
+    }
+  }
+
+
+  // 获取元素
+  get(key) {
+    // 1. 根据 key 获取 index
+    let index = this.hashFn(key, this.limit)
+
+    // 2. 根据 index 获取 bucket
+    let bucket = this.storage[index]
+
+    // 3. 判断 bucket 是否为null
+    if(!bucket) return null
+
+    // 4. 如果有 bucket 则遍历判断 
+    for(let i=0; i<bucket.length; i++) {
+      let tuple = bucket[i]
+      if(key == tuple[0]) {
+        return tuple[1]
+      }
+    }
+
+    // 5. for循环都没有找到的话 则为null
+    return null
+  }
+
+
+  remove(key) {
+    let index = this.hashFn(key, this.limit)
+
+    let bucket = this.storage[index]
+
+    if(!bucket) return null
+
+    // 线性查找 并 删除
+    for(let i=0; i<bucket.length; i++) {
+      let tuple = bucket[i]
+
+      if(tuple[0] == key) {
+        // 删除指定位置的元素
+        bucket.splice(i, 1)
+        this.count--
+
+        // 缩小容量 不要无限缩小 最小容量为7
+        let newLimit = Math.floor(this.limit / 2)
+        newLimit = this.getPrime(newLimit)
+        if(this.limit > 7 && this.count < this.limit * 0.25) {
+          this.resize(newLimit)
+        }
+
+        // 因为进入这个判断了 说明就是一个指定的 tuple 了 直接return 这个tuple[1]
+        return tuple[1]
+      }
+    }
+
+    return null
+  }
+
+  isEmpty() {
+    return this.count == 0
+  }
+
+  size() {
+    return this.count
+  }
+
+  
+  hashFn(str, size) {
+    let hashCode = 0
+    for(let i=0; i<str.length; i++) {
+      hashCode = 37 * hashCode + str.charCodeAt(i)
+    }
+
+    return hashCode % size    
+  }
+
+  resize(newLimit) {
+
+    // 1. 保存旧的主体数组 (oldStorage指向了未扩容的数组)
+    let oldStorage = this.storage
+
+    // 2. 重置所有属性 做新主体数组的初始化
+    this.storage = []
+    this.count = 0
+    this.limit = newLimit
+
+    // 3. 遍历 oldStorage 中所有的 bucket
+    for(let i=0; i<oldStorage.length; i++) {
+      let bucket = oldStorage[i]
+
+      // 判断bucket是否为空 为空跳过本次循环 去找下一个
+      if(!bucket) continue
+
+      // 到这的话就说明有bucket 且它里面有数据 则取出数据 重新插入
+      for(let i=0; i<bucket.length; i++) {
+        // 取出bucket中的 [k,v]
+        let tuple = bucket[i]
+
+        // 调用 put() 放入到扩容后的主体数组里面 this.storage
+        this.put(tuple[0], tuple[1])
+      }
+    }
+
+  }
+
+
+  // 判断是否为质数
+  isPrime(num) {
+    // 优化的方式 获取 num 的平方根
+    let temp = parseInt(Math.sqrt(num))
+
+    for(let i=2; i<=temp; i++) {
+      if(num % i == 0) return false
+    }
+
+    return true
+  }
+
+
+  // 获取质数的方法
+  getPrime(num) {
+    // 不是质数就循环
+    while(!this.isPrime(num)) {
+      // 如果不是质数就让 num++
+      num++
+    }
+
+    // 到这里 退出 while 循环了 就是一个质数了
+    return num
+  }
+}
+
+let hashTable = new HashTable()
+hashTable.put("sam", "帅气")
+hashTable.put("erin", "漂亮")
+hashTable.put("sam", "可爱")
+```
+
+----------------
+
+### 树结构的认识
+- 

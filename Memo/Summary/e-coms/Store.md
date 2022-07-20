@@ -17,6 +17,8 @@
       .dispatch(testerTypes.ACTION_TESTER)
       .then((testerAdapter: TesterAdapter) => {
         context.commit(testerPageTypes.MUTATION_TESTER_PAGE_SET_TESTER, testerAdapter)
+
+        // 外面接收结果的话 能得到  esterAdapter.status
         resolve(testerAdapter.status)
       })
       .catch((e: any) => {

@@ -161,7 +161,8 @@ const DataPollingMixin = Vue.extend({
 
         // 开了一个定时器
         this.dataPolling.intervalTimer = window.setInterval(() => {
-          // 在这个页面上 因为要长时间监视 考试的情况 所以要使用轮询的方式来持续监视
+          // 在这个页面上 因为要长时间监视 考试的情况 所以要使用轮询的方式来持续监视 不断的获取 
+          // 如果我们接下结果的话 能够得到 testerAdapter.status
           this.$store.dispatch(testerPageTypes.ACTION_TESTER_PAGE_GET_TESTER)
         }, this.inParams.matchingTimeout * 1000)
 
