@@ -4058,4 +4058,2263 @@ hashTable.put("sam", "可爱")
 ----------------
 
 ### 树结构的认识
-- 
+- 我们想象下真实的树 然后想想它有什么样的特点
+- 树通常有一个*根* 
+- 连接着根的是*树干*
+- 树干到上面之后进行分叉成*树枝*
+- 树枝还会分叉成更小的树枝
+- 在树枝的最后是*叶子*
+
+- 专家们对树的结构进行了抽象 发现树可以模拟生活中很多的场景 生活中很多关系就类似于这种树结构
+
+- 1. 公司组织架构
+<!-- 
+                   总经理
+                ↙         ↘
+        市场部               生产部
+       ↙   ↘                ↙   ↘
+  海外实参  国内市场     工艺编制   生产制造
+ -->
+
+- 2. 红楼梦的家谱
+- 比较复杂就不画了 跟上面的结构差不多
+
+- 接下来我们对上面的图进行一个抽象 我们把里面的数据移除掉 这样就仅剩结构了 这个结构就是*树结构*
+
+<!-- 
+                  A
+              ↙   ↓   ↘
+          B       C       D
+        ↙ ↓ ↘     ↓      ↙ ↘
+       E  F  G    H     I   J
+ -->
+
+- 我们能看到 
+  B 分出 3个节点
+  C 分出 1个节点
+  D 分出 2个节点
+- 树结构在需要的时候可以分出多个节点 一般开发中会分出 2个节点(因为分出多个节点的方式最后都可以转化为使用2个节点来表示)
+
+- 也就是我们后面会学习的二叉树
+
+- *我们可以将数据放在每一个节点上 这样不仅能保存数据 还可以表示出数据之间的一种关系*
+
+----------------
+
+### 树结构的优点
+- 之前我们已经学习了多种数据结构来保存数据 为什么要用 树结构 来保存数据呢？
+
+- 比如我们上面的图里是公司的组织架构 假如我们就保存这样一份数据 我们要采用什么样的数据结构?
+- 我们可以选择 数组 链表 哈希表 为什么我们要选择树结构呢？
+
+- 树结构 和 数组 链表 哈希表 的对比有什么优点？
+- 我们先回顾下其它的数据结构
+
+---
+
+> 数组:
+- 优点:
+- 数组的主要优点是根据下标值访问 效率会很高(一下就能定位到数据)
+- 但是如果我们希望根据元素来查找对应的位置呢？ 比较好的方式是先对数组进行排序 然后再进行二分查找
+
+
+- 缺点:
+- 需要先对数组进行排序 生成有序的数组 才能提高查找效率
+- 另外数组在插入和删除数据的时候 需要有大量的位移操作 效率很低
+
+---
+
+> 链表
+- 优点:
+- 链表的插入和删除操作效率很高
+
+
+- 缺点:
+- 查找效率很低 需要从头开始依次访问链表中的每个数据项 直到找到
+- 而且即使插入和删除操作效率很高 但是如果要插入和删除中间位置的数据 还是需要重头先找到对应的数据
+
+---
+
+> 哈希表
+- 优点:
+- 哈希表的插入 查询 删除效率都是非常高的
+- 但是哈希表也有很多缺点
+
+- 缺点:
+- 空间利用率不高 底层使用的都是数组 并且某些单元格是没有被利用的
+- 哈希表中的元素是无序的 不能按照固定的顺序来遍历哈希表中的元素 
+- *不能快速的找出哈希表中的最大值或最小值* 这些特殊的值
+
+---
+
+> 树结构:
+- 优点
+- 树结构的空间利用率高
+- 树结构中的元素是有序的 (它是按照固定的次序遍历)
+- 树结构可以快速的查找到最值 比如最大值
+
+- 我们不能说树结构其它结构都要好 因为每种数据结构都有自己特定的应用场景 但是树确实也综合了上面数据结构的优点(当然优点不足于盖过其他数据结构 比如效率一般情况下没有哈希表高)
+
+- 并且也弥补了上面数据结构的缺点
+- 为了模拟某些场景 我们使用树结构会更加方便 因为数据结构的非线性的 可以表示一对多的关系
+
+- 比如文件的目录结构
+
+----------------
+
+### 树结构的术语
+- 在描述树的各个部分的时候有很多术语
+- 不过大部分术语都与真实世界的树相关 或者 和 家庭关系相关(如父节点和子节点) 所以还是比较容易理解的
+
+```sql
+             A
+          ↙     ↘
+      B             C
+    ↙   ↘         ↙   ↘
+  D       E     F       G
+   ↘           ↙ ↘
+    H         I   J
+```
+
+- A: 根(r)
+- B: 是 D E 的父节点
+- D: 是B的左子节点
+- E: 是B的右子节点
+- H E I J G: 是叶子节点(没有继续分支的原因么?)
+
+
+- 树(Tree):
+- n(n>=0)个节点构成的有限集合
+- 当 n = 0 的时候 称之为 空树
+
+- 对于任一棵 非空树(n>0) 它具备以下性质
+- 树中有一个成为 根(root) 的特殊节点 用 r 表示
+- 其余节点可分为m(m>0)个互不相交的有限集T1 T2 ... Tm
+- 其中每个集合本身又是一棵树 称为原来树的 子树(SubTree)
+
+
+> 树的常用术语
+> 1. 节点的度(Degree):
+- 节点的 *子树个数*
+- 我们数度就是数该节点的子节点
+- 比如上图中 A节点 就有两个子节点 B C 所以A节点的度为2
+
+> 2. 树的度:
+- 树中所有节点中 *最大的度数*
+- 上面我们说的是数子节点 我们上图最大的度是2 树的度就是节点的度中最大的那个度
+
+> 3. 叶节点(Leaf)
+- *度为0的节点* (叫做叶子节点)
+- 也就是没有子节点的节点
+
+> 4. 父节点(parent)
+- 有子树的节点是 其子树的根节点为父节点
+
+> 5. 子节点(child)
+- 若A节点是B节点的父节点 则B节点是A节点的子节点
+
+> 6. 兄弟节点(sibling)
+- 具有同一父节点的各节点彼此是兄弟节点
+
+> 7. 路径和路径长度
+- 路径
+- 比如上图中 A - H 就有一条路径为
+- A - B - D - H
+
+- 路径的长度
+- 路径的长度不是经过节点的个数 而是包含边的个数
+- A - B 有一条线 这条线 就叫做边
+- A 到 H 一共有3条边
+- A - B - D - H 
+- 这种情况下 路径的长度就位3
+
+> 8. 节点的层次(Level)
+- 规定 根节点在1层 其它任一节点的层数是其父节点的层数加1
+
+> 9. 树的深度(Depth)
+- 树中所有节点的最大层次是这棵树的深度
+- 直接从根几点开始数有几层 上图中 树的深度就位4
+
+----------------
+
+### 树结构的表示
+- 现在有一个树结构 用什么样的方式展示成代码 也就是我们用代码来模拟树
+
+> 树结构中的属性
+> root:
+- 指针 指向根节点
+
+> 内部类Node:
+- Node节点的表现方式有两种
+- 一种是 *最普通的表示方式*:
+```sql 
+          A
+        ↙ ↓ ↘
+      B   C    D
+    ↙↘   ↓   ↙↓↘
+    E F   G  H I J
+   ↙↘        ↓
+  K L        M
+```
+
+- 这种表示方式 每一个节点需要定义几个属性
+```js 
+// 我们拿A来说 我们发现 A 有3个子节点 C有1个子节点
+class Node {
+  constractor(data) {
+    this.data = data
+    this.left = 
+    this.middle =
+    this.right = 
+  }
+}
+```
+
+- 一个 Node 里面 我们要定义保存数据用的 data
+- 也要定义 保存与其它节点之间的引用
+- 但是有一个问题 就是 节点的子节点的个数是不定的
+- 比如 A节点有3个节点 C节点有1个节点 这是一方面 
+- 写死还有一个问题 当A节点 想要增加节点的时候 我们怎么处理呢？
+
+- 所以 这里还有*另外的一种表示树结构的方式*
+
+> 儿子 - 兄弟表示法
+```sql 
+          A
+        ↙ ↓ ↘
+      B   C    D
+    ↙↘    ↓   ↙↓↘
+    E F   G  H I J
+   ↙↘        ↓
+  K L        M
+```
+
+- 转换为:
+```sql 
+
+          A
+         ---
+         □ N
+        ↙
+       B           C           D
+      ---         ---         ---
+      □ □    →    □ □    →    □ N
+     ↙            ↓          ↙
+    E      F      G          H      I
+   ---    ---    ---        ---    ---
+   □ □  → N N    N N        □ □  → N □  → J(NN)
+  ↙                         ↓
+ K     L                    M
+---   ---                  ---
+N □ → N N                  N N
+```
+
+- 自我总结:
+- 层级还是跟原图一样 如果该节点有子节点则有□ 代表指针
+- 如果是叶子那就是NN
+
+- 上面的内部类转换为代码为:
+```js
+class Node {
+  constractor(data) {
+    this.data = data
+
+    // 用于记录左子节点
+    this.leftChild = 
+
+    // 用于记录节点的相邻兄弟节点
+    this.subling = 
+  }
+}
+```
+
+- data: 
+- 用于记录*数据*
+
+- leftChild:
+- 用来记录该节点的*左子节点*
+
+- subling
+- 用来记录该节点的*右侧的兄弟节点*
+
+- 比如A节点: 
+- A节点有 B C D
+- 这样A节点使用 leftChild 标记左子节点B
+- 那么 A节点的CD字节点 是通过 B来连接的
+- B使用 subling 来标记(体现) 与 A节点之间的关系
+```js
+{
+  this.data = data
+  this.leftChild = B
+  this.subling = null
+}
+```
+
+- 上面的表示方式的优势在于 我们的 Node 类中的属性都是确定下来的
+
+- 当我们把上面的结构 右旋转45度的时候发现 竟然是一颗二叉树 也就是说不管几个节点的树 都可以使用上面的方式 将多节点的树模拟成二叉树(任何树都可以用二叉树来进行模拟)
+
+```js
+// Node 换个变量名整理如下
+{
+  this.data = data 
+  this.left = 
+  this.right = 
+}
+```
+
+----------------
+
+### 二叉树的概念
+- 如果树中每个节点最多只能由两个子节点 这样的树就称为 二叉树
+- 前面 我们已经提过二叉树的重要性 不仅仅是因为简单 也因为几乎所有的树都可以表示成二叉树的形式
+
+> 二叉树的定义
+- 二叉树可以为空 也就是没有节点
+- 若不为空 则它是由 
+  根节点 + 
+  左子树TL +
+  右子树TR
+- 两个不相交的二叉树组成
+
+- 二叉树有五种形态
+
+- 1. 空树
+<!-- 
+    空
+ -->
+
+- 2. 只有一个根节点
+<!-- 
+    root
+ -->
+
+- 3. 只有左子节点 TL
+<!-- 
+    root
+    ↙
+  TL
+ -->
+
+- 4. 只有右子节点 TR
+<!-- 
+    root
+       ↘
+        TR
+ -->
+
+- 5. 根节点 + TL + TR
+<!-- 
+    root
+   ↙   ↘
+  TL   TR
+ -->
+
+**注意:** 3 4 是不同的二叉树
+
+
+> 二叉树的特性
+- 二叉树有几个比较重要的特性
+- 1. 一个二叉树第i层的最大节点数: 
+    2^(i-1)
+<!-- 
+  i >= 1
+  一层最大的节点数为1
+  二层最大的节点数为2
+ -->
+
+- 2. 深度为k的二叉树有最大节点总数为
+    2^k-1
+<!-- 
+  k >= 1
+ -->
+
+- 3. 对任何非空二叉树T 若
+  n0表示叶节点的个数 
+  n2是度为2的非叶节点个数
+- 两者满足关系 n0 = n2 + 1
+
+```sql
+             A
+          ↙     ↘
+      B             C
+    ↙   ↘         ↙   
+  D       E     F       
+         ↙ ↘     ↘
+        J   K      H
+```
+
+- 上面的图一共有4层
+- A   
+- BC
+- DEF
+- JKH
+
+
+> 特性1: 一个二叉树第i层的最大节点数 2^(i-1)
+- A    : 第1层 = 2^0  = 1
+- BC   : 第2层 = 2^1  = 2
+- DEF  : 第3层 = 2^2  = 4
+- JKH  : 第4层 = 2^3  = 8
+
+
+> 特性2: 深度为k的二叉树有最大节点总数为 2^k-1
+- 就是 n层树的时候 *最多包含*的节点数
+
+- 比如
+- 假设 树 的深度 只有2层 深度为2
+```sql 
+             A
+          ↙     ↘
+      B             C
+```
+- 这时 这棵树 一共有 3 个节点
+
+- 2^k-1 = 2^2 - 1 = 3
+
+```sql 
+             A
+          ↙     ↘
+      B             C
+    ↙   ↘         ↙   
+  D       E     F       
+         ↙ ↘     ↘
+        J   K      H
+```
+
+- 比如上面这棵树的层次为4 深度为4
+- 2^k-1 = 2^4-1 = 9
+
+
+> 特性3: 对任何非空二叉树T 若n0表示叶节点的个数 n2是度为2的非叶节点个数 满足 n0 = n2 + 1
+
+- 叶节点个数 = 有2个子节点的节点数 + 1
+
+```sql
+             A
+          ↙     ↘
+      B             C
+    ↙   ↘         ↙   
+  D       E     F       
+         ↙ ↘     ↘
+        J   K      H
+```
+
+- 叶节点数为:  4个 (分别是 DJKH)
+- 度为2的节点: 3个 (分别是 ABE)
+
+- 公式: 4 = 3 + 1
+
+- 叶子节点就是 度为0 -- n0
+
+---
+
+> 完美二叉树
+- 完美二叉树 也成为*满二叉树*
+- 在二叉树中 *除了最下一层的叶节点外* 每层节点都有2个子节点 就构成了满二叉树
+
+---
+
+> 完全二叉树
+- *除了二叉树最后一层外* 其它各层的节点数*都达到最大个数*
+- 且最后一层从*左向右的叶节点连续存在* 只缺右侧若干节点
+
+- 完美二叉树 是 特殊的 完全二叉树
+
+- 下面不是完全二叉树 因为D节点还没有右节点 但是E节点就有了左右节点
+
+```sql
+              A
+            ↙     ↘
+        B             C
+      ↙   ↘         ↙   ↘
+    D       E     F       G
+  ↙        ↙ ↘
+H         J   K
+```
+
+- 比如
+- 上面要是JK也缺掉的话 就是完全二叉树
+- 或者将D的右子节点加上去 也是完全二叉树
+
+----------------
+
+### 二叉树的存储
+- 二叉树的存储常见的方式是 数组 和 链表
+- 二叉树最好的存储方式应该是 **链表**
+
+> 使用数组 (存储二叉树不合适)
+- **完全二叉树**: 按 从上至下 从左到右的顺序 存储
+
+```sql
+              A
+            ↙     ↘
+        B             O
+      ↙   ↘         ↙   ↘
+    C       S     M       Q
+  ↙ ↘
+W     K
+```
+
+- 存储方式:
+
+  节点: A B O C S M Q W K
+  序号: 1 2 3 4 5 6 7 8 9
+
+- 我们在存储某些数据的时候 主要是考虑两个问题
+- 1. 数据怎么放进去
+- 2. 数据怎么取出来
+
+- 放的时候我们按照上面的顺序放就可以
+- 取的时候也很简单 比如我们取 S节点 再取任何一个节点的时候 我们先观察 S节点 是它父节点的 左子节点还是右子节点
+
+- 如果 S节点是它父节点的*左子节点* 只需要用*父节点的引用 * 2 就可以了*
+- 比如我们取C 它是B的左子节点 那么B的引用是2 2*2=4 那么C的引用就应该是4
+
+- 如果 S节点是它父节点的*右子节点* 只需要用*父节点的引用 * 2 + 1就可以了*
+- 比如我们取S 它是B的右子节点 那么B的引用是2 2*2+1 = 5 那么S的引用就应该是5
+
+---
+
+- **非完全二叉树**: 要转成完全二叉树才可以按照上面的方案存储 但是会造成很大的空间浪费
+```sql
+              A
+            ↙     ↘
+        B             O
+                    ↙ 
+                   M
+                    ↘
+                      C
+
+-- 要先转成 完全二叉树
+              A
+            ↙     ↘
+        B             O
+      ↙   ↘         ↙   ↘
+    □       □      M     □
+   ↙ ↘     ↙ ↘    ↙ ↘ 
+ □     □  □   □  □   C
+```
+
+  节点: A B O X X M X X X  X  X  X C
+  序号: 1 2 3 4 5 6 7 8 9 10 11 12 13
+
+- X: 为空 **造成了巨大空间的浪费**
+
+- M的引用(序号):
+- M是O的左子节点 = 3 * 2 = 6 所以M的序号应该是6
+
+------
+
+> 二叉树最常见的方式还是使用 链表 存储
+- 每个节点封装成一个Node Node中包含存储的数据 左节点的引用 和 右节点的引用
+
+```js
+{
+  this.data = data
+  this.left = 
+  this.right = 
+}
+```
+
+----------------
+ 
+### 二叉搜索树 (BST)
+- 二叉树当中使用最多的树就是二叉搜索树
+- 二叉搜索树也叫做 *二叉排序树* 或 *二叉查找树*
+
+- 它是在二叉树上加了一些限制 或者说 是特性 普通的二叉树我们只需要保证每一个节点只需要有两个子节点就可以了 二叉树对子节点没有限制 想怎么插就怎么插 只需要保证有两个子节点就可以了
+
+- 但是 二叉搜索树 在对插入子节点的时候有一些特殊的要求
+
+
+> 二叉搜索树:
+- 1. 二叉搜索树可以是空树
+- 2. 当二叉搜索树为空的时候 需要满足以下的性质:
+
+  - 1. 非空左子树的所有键值小于其根节点的键值
+  - 2. 非空右子树的所有键值大于其根节点的键值
+  - 3. 左右子树本身也都是二叉搜索树
+
+
+- 下面的图中 哪些是二叉搜索树 哪些不是
+- 下面的数字就对应着二叉树上的键值
+
+- 下面的不是
+```sql
+        18
+      ↙   ↘
+    10    20
+   ↙  ↘      ↘
+  7   5      22
+```
+
+> 解析:
+- 1 非空左子树的键值: 
+- 左子树为 10 7 5 的部分 其键值要小于根节点 18
+- 10 7 5 每个都小于 18 这个部分满足
+
+- 2. 非空右子树的键值:
+- 右子树为 20 22 其键值要大于根节点 18
+- 20 22 每个都大于 18 这个部分满足
+
+- 3. 左右子树本身也都是二叉搜索树:
+- 既然10 7 5 要求也是二叉搜索树 那么这个子树也要求要满足条件
+- 左边的要小于10 右边的要大于10
+- 那么其中 5 没有大于 10 所以 这棵树不是二叉搜索树
+
+
+- 下面的是
+```sql
+        30
+      ↙   ↘
+     15    41
+          ↙  ↘
+        33    50
+```
+
+
+- 下面的是
+```sql
+        6
+      ↙   ↘
+    3       9
+  ↙  ↘     ↙  ↘
+1     4   7    10
+  ↘     ↘   ↘    ↘
+    2    5   8    11
+```
+
+
+> 二叉搜索树的特点
+- 二叉搜索树的特点就是
+  相对较小的值总是保存在左节点上
+  相对较大的值总是保存在右节点上
+
+- 那么利用这个特点 我们查找的效率非常高 这也是二叉搜索树中搜索两个字的来源
+
+```sql
+             9
+          ↙     ↘
+        5        13
+      ↙  ↘       ↙  ↘
+    2     7    11    15
+   ↙ ↘   ↙ ↘   ↙ ↘     
+  1  3  6  8  10  12   
+```
+
+- 比如我们查找下 10 节点
+- 假如我们上面的数据是放在数组里面的
+
+- 当我们查找10的时候 先找根节点 跟节点不是10 是9
+- 那么我们要查找的10是大于根节点的 因为是二叉搜索树所以我们的目标一定在右边 左边的所有东西我们都可以排除掉了
+
+- 然后依次比较父节点 如果小就往左边找 如果大就往右边找
+
+- 我们发现 如果是线性查找的话要10次才能找到目标值
+
+  1 2 3 4 5 6 7 8 9 10 11 12 13
+                     ↑
+
+- 但是二叉搜索树的话4次就可以 每层一次 它相对于数组的效率非常高
+
+- 但是上面的数组 也可以用2分查找 其本质就是因为2分查找就是二叉搜索树
+
+- *查找效率非常高*
+
+----------------
+ 
+### 二叉搜索树的封装
+- 上面介绍了什么是二叉搜索树 接下来我们进行封装
+- BinarySearchTree
+
+> 二叉搜索树的属性
+- 它只有一个属性就可以了 就是 root
+- 因为不管是查找还是插入还是删除 都是从根节点开始的 从根节点开始依次往下进行延伸
+
+- root: 指针 连接着 根节点 
+
+- Node: 内部类
+  - 可以直接保存数据
+    {
+      right:
+      key:
+      left:
+    }
+
+  - 也可以保存键值对
+    {
+      right:
+      key:
+      value:
+      left:
+    }
+
+<!-- 
+
+                root
+                  ↓
+          --------------
+          left key right
+          --------------
+
+          ↙             ↘
+--------------        --------------
+left key right        left key right
+--------------        --------------
+ -->
+
+```js
+class Node {
+  constructor(key) {
+    this.key = key
+    this.left = null
+    this.right = null
+  }
+}
+
+class BinarySearchTree {
+
+  root = null
+  
+}
+```
+
+
+> 二叉搜索树常见的操作
+- insert(key)
+- 向树中插入一个新的键
+<!-- 
+  我们需要将插入的key 依次从根开始进行比较 看看是大于根还是小于根决定插入到左侧 还是右侧
+ -->
+
+- search(key)
+- 在树中查找一个键 如果节点存在 返回 true 否则返回 false
+
+- inOrderTraverse()
+- 通过中序遍历方式遍历所有节点
+
+- preOrderTraverse()
+- 通过先序遍历方式遍历所有节点
+
+- postOrderTraverse()
+- 通过后序遍历方式遍历所有节点
+
+- min()
+- 返回树中最小的值/键
+- 树的最左边最角落的值就是最小值
+
+- max()
+- 返回树中最大的值/键
+- 树的最右边最角落的值就是最大值
+
+- remove(key)
+- 从树中移除某个键
+
+---
+
+> insert(key)
+- 向树中插入数据
+- 老师的 Node 内部类中只封装了 key 我们还可以 封装 value 所以当我们封装 value 的时候 也可以定义 这样的方法
+
+ insert(key, value)
+
+
+> 代码解析:
+- 1. 根据传入的 key 创建对应的 Node 节点
+- 2. 向树中插入数据需要分成两种情况
+  - 1. 第一次插入 直接修改根节点即可(让 root 指针指向 Node节点)
+  - 2. 其它次插入 需要与树中节点依次进行比较 决定插入的位置
+    - 如果新插入的数据比根节点大 那么就应该在根节点的右侧 反之就应该在左侧
+    - 当我们跟根节点比较过后 知道往右走了 那么紧接着就要取出根节点的右节点 继续比较
+    - 直到找到 我们要插入的位置为空的时候
+<!-- 
+  先和一个节点比较 看结果 决定是取这个节点的左节点 还是 右节点继续比较 直到为空 为空的位置 就是我们插入的位置
+-->
+
+- 为了依次比较 我们可以使用 循环 但是还可以 使用 递归 在树中我们使用递归的场景是非常多的
+
+- 下面的代码分为两种情况
+  - 如果 root 为空 则说明 空树 我们直接往里面插
+  - 如果 root 非空 则说明 有节点 我们调用递归查找函数
+
+```js
+insert(key) {
+  // 1. 创建 节点
+  let node = new Node(key)
+
+  // 2. 判断根节点是否有值 (有值说明存在根节点 我们开始跟根节点进行比较 如果没值就是第一次插入)
+  if(!this.root) {
+    this.root = node
+  } else {
+    // 说明 树中有节点 我们要从根节点开始依次比较
+    // 调用递归方法 从root开始比较 直到找到 目标位置
+    this.insertNode(this.root, node)
+  }
+}
+```
+
+
+> 递归: 查找要插入的位置
+- 在我们往树中插入元素的时候 会从 根节点开始 依次比较 这个比较的过程我们选择使用递归函数来完成
+```js
+insertNode(treeNode, newNode) {
+
+}
+```
+
+> 参数:
+- treeNode:
+- 树中的节点
+
+- newNode:
+- 我们要插入的新的节点
+
+> 思路:
+- 我们会将 newNode 和 treeNode 进行比较
+- 如果 newNode.key < treeNode.key 成立: 说明 要取出树中节点的左子节点
+  - 取出的左子节点先判断是否为空 
+    - 如果为空 则直接插入 treeNode.left = newNode
+    - 如果非空 则递归调用函数 将 treeNode.left 和 newNode 继续传入
+
+- 如果 newNode.key < treeNode.key 不成立: 说明要取出树中节点的右子节点
+  - 取出的右子节点先判断是否为空 
+    - 如果为空 则直接插入 treeNode.right = newNode
+    - 如果非空 则递归调用函数 将 treeNode.right 和 newNode 继续传入
+
+- 代码部分:
+```js
+insertNode(treeNode, newNode) {
+    // 这时候的 treeNode 就是 root指向的根节点
+    if(newNode.key < treeNode.key) {
+      // 向左查找: 往 根节点的左边 走
+      if(!treeNode.left) {
+        // 根节点的左边的节点为空 那么我们可以直接插入
+        treeNode.left = newNode
+      } else {
+        // 进入这里说明 根节点左边的节点非空 那么我们就调用递归函数 将左节点传入 继续比较
+        this.insertNode(treeNode.left, newNode)
+      }
+    } else {
+      // 向右查找: 往 根节点的右边 走
+      if(!treeNode.right) {
+        treeNode.right = newNode
+      } else {
+        // 进入这里说明 根节点右边的节点非空 那么我们就调用递归函数 将右节点传入 继续比较
+        this.insertNode(treeNode.right, newNode)
+      }
+    }
+  }
+}
+```
+
+- 还是有一个疑问
+- 上面是从 root 开始比较 key 然后根据结果 取 root 左边的节点 还是 右边的节点 
+- 之后在节点为空的时候 将节点插入
+- 之后再节点非空的时候 递归接续查找
+
+- 但是 上面只是 < 或者 > 那*等于的情况怎么处理?*
+
+------
+
+> 遍历二叉搜索树
+- 前面 我们向树中插入了很多的数据 为了能看到测试的结果 我们先看看树的遍历
+- 这里我们学习的是树的遍历 针对所有的二叉树都是适用的 不仅仅是二叉搜索树
+
+
+> 树的遍历:
+- 遍历一棵树是指访问树的每个节点(也可以对每个节点进行某些操作 我们这里就是简单的打印) 但是树和线性结构不太一样 线性结构我们通常按照 从前到后的顺序进行遍历 但是树不是
+
+- 那是应该从树的顶端开始 还是从树的低端开始呢？从左开始还是从右开始呢？
+
+
+> 二叉树的遍历的 *三种方式*
+- 先序遍历
+- 中序遍历
+- 后序遍历
+- 层序遍历(这里没给, 按树的层每层左到右遍历)
+
+------
+
+> 先序遍历:
+- 遍历的过程
+- 1. 访问根节点
+- 2. 先序遍历其左子树
+- 3. 先序遍历其右子树
+
+```sql
+        A
+      ↙   ↘
+    B       C
+  ↙  ↘     ↙  ↘
+D     F   G    I
+    ↙       ↘
+    E         H
+```
+
+- 1 - A
+- 2 - B
+- 3 - D
+- 4 - F
+- 5 - E
+- 6 - C
+- 7 - G
+- 8 - H
+- 9 - I
+
+- 从左子树开始 遍历完后 去右子树 然后去右部分
+
+
+- 我们遍历树中数据的过程中 也会使用到 递归函数 下面的递归函数很简单 我们看下代码 然后分析下
+```js
+// 先序遍历方法中要使用的递归函数
+preOrderTraversalNode(node) {
+  // 判断该节点是否为 null
+  if(node) {
+
+    // 因为我们要将 每一个节点的key取出来 输出到控制台 所以我们在类中定义了str属性 将每次取出的key 拼接到str属性中 (处理经过的节点中的数据)
+    this.str += node.key + " "
+
+    // 处理经过节点的左子节点 然后继续传入 左子节点
+    this.preOrderTraversalNode(node.left)
+
+    // 上面处理左子节点的时候遇null出栈了 栈顶还是 node -> 3 所以接下来处理经过节点的右子节点
+    this.preOrderTraversalNode(node.right)
+  }
+}
+```
+
+
+- 除了 str 属性之外 我们看到了 两次调用了
+```js
+if(node) {
+  this.preOrderTraversalNode(node.left)
+  this.preOrderTraversalNode(node.right)
+}
+```
+- 这是为什么?
+
+- 我们先回忆一下函数的调用栈
+- 栈结构 是一个杯子的形状 只能在栈顶来操作元素 后进来的会压在上面
+- 函数调用栈也是如此 当栈顶的函数执行完毕后 会弹出栈 
+- 这时栈顶就是刚才压在下面的函数
+<!-- 
+
+栈顶:
+    函数6   -> 如果函数6执行完 那么它就会出栈
+    函数5   -> 函数5 为栈顶函数
+    函数4
+    函数3
+    函数2
+    函数1
+ -->
+
+- 什么时候算执行完? 我们上面的逻辑是 if(node) { ... } 也就是说 当node为null的时候 进不去if中的逻辑 整个函数就执行完了
+
+- 这时候 该次函数就会出栈 就会轮到压在下面的函数执行
+- 比如:
+<!-- 
+  第一次: node = 11
+  第二次: node = 7
+  第三次: node = 5
+  第四次: node = 3
+  第五次: node = null
+ -->
+
+ - 当 node 为null 的时候 本地调用就会出栈 此时栈顶的函数结果为 node = 3
+ - 到 node 为 null 的时候 其实就是遍历完所有左子树左节点
+
+ - 当回退到 node = 3 的时候 我们希望继续遍历 3 的右子节点 而不是继续回退到 
+ - node = 5 
+
+ - 所以调用了两次
+ ```js
+if(node) {
+  this.preOrderTraversalNode(node.left)
+  // 这里就是回退到3 并继续遍历该节点的呃右子节点的过程
+  this.preOrderTraversalNode(node.right)
+}
+```
+
+
+- 我们再看看图解
+```js
+/*
+  - 解释下递归函数
+                    11
+
+            7                   15
+
+      5       9         13          20
+
+    3   6   8   10    12    14    18    25
+
+
+  - 我们调用 preOrderTraversalNode(node) 递归方法的时候
+  - 第一次 node -> 11 (因为我们走的是 if(node) 的逻辑 会不断的 传入左节点继续调用)
+  - 第二次 node -> 7
+  - 第三次 node -> 5
+  - 第四次 node -> 3
+  - 第五次 node -> null 3左边没有了 所以是null 
+      - 当 node 为 null 的时候 if(node) { ... } 就结束了 函数就执行完了
+      - 这时候 会回到上一个函数 回到 node = 3 的时候
+      - 因为我们是递归进去的 压入栈的 第五次的函数 就执行完了 执行完后就会弹出 然后回到上一个函数 node = 3
+
+
+  -- 下面的因为上面出栈了 下面开始回退的一个过程
+
+  - 第四次(因为左节点为null出栈了 栈顶现在是 node -> 3 的时候)
+    - 回退到 node = 3 了 说明左子节点处理完了 我们要开始处理右子节点了
+    - this.preOrderTraversalNode(node.right) 我们传入右子节点
+
+    - 第四次 node -> null 因为3没有右子节点 为空 还是null 所以还是会出栈
+
+  - 第三次 node -> 5
+    - 因为上面 node -> null 出栈所以回退了 此时栈顶的元素为5
+*/
+```
+
+> 先序遍历的方法
+- 内部调用了 递归方法
+```js
+preOrderTraversal(handler) {
+  // 首先我们对 根节点进行遍历
+  this.preOrderTraversalNode(this.root)
+
+  // 这里是回调 用于打印 str
+  handler && handler()
+}
+
+
+// 测试
+let bst = new BinarySearchTree()
+
+bst.preOrderTraversal(() => {
+  console.log(bst.str)
+})
+```
+
+- 为什么叫做先序遍历？
+- 我们在递归方法preOrderTraversalNode()中 一上来就是处理 节点.key 
+
+- 我们先处理的节点中的数据 所以叫做先序
+
+- 另外一种区分叫 先序 中序 后序 的方式 是看什么时候处理 根节点A
+  - 如果我们在前面处理 A节点就是 先序
+    A (B D F E) (C G H I)
+
+  - 如果我们在中间处理 A节点就是 中序
+    (D B E F) A (G H C I) 
+
+  - 如果我们在最后处理 A节点就是 后序
+    (D E F B) (H G I C) A
+
+- 到这个章节的完整代码
+```js
+class Node {
+  constructor(key) {
+    this.key = key
+    this.left = null
+    this.right = null
+  }
+}
+
+class BinarySearchTree {
+
+  root = null
+
+  // 遍历用的字符串
+  str = ""
+
+  insert(key) {
+    // 1. 创建 节点
+    let node = new Node(key)
+
+    // 2. 判断根节点是否有值 (有值说明存在根节点 我们开始跟根节点进行比较 如果没值就是第一次插入)
+    if(!this.root) {
+      this.root = node
+    } else {
+      // 说明 树中有节点 我们要从根节点开始依次比较
+      // 调用递归方法 从root开始比较 直到找到 目标位置
+      this.insertNode(this.root, node)
+    }
+  }
+
+  // 插入的递归函数
+  insertNode(treeNode, newNode) {
+    // 这时候的 treeNode 就是 root指向的根节点
+    if(newNode.key < treeNode.key) {
+      // 向左查找: 往 根节点的左边 走
+      if(!treeNode.left) {
+        // 根节点的左边的节点为空 那么我们可以直接插入
+        treeNode.left = newNode
+      } else {
+        // 进入这里说明 根节点左边的节点非空 那么我们就调用递归函数 将左节点传入 继续比较
+        this.insertNode(treeNode.left, newNode)
+      }
+    } else {
+      // 向右查找: 往 根节点的右边 走
+      if(!treeNode.right) {
+        treeNode.right = newNode
+      } else {
+        // 进入这里说明 根节点右边的节点非空 那么我们就调用递归函数 将右节点传入 继续比较
+        this.insertNode(treeNode.right, newNode)
+      }
+    }
+  }
+
+
+  -- 遍历操作 如下:
+
+  // 先序遍历
+  preOrderTraversal(handler) {
+    // 首先我们对 根节点进行遍历
+    this.preOrderTraversalNode(this.root)
+
+    handler && handler()
+  }
+
+
+  // 遍历时 使用的递归方法 对某一个节点进行遍历
+  preOrderTraversalNode(node) {
+    // 判断该节点是否为 null
+    if(node) {
+      // 将 key 拼接到 str属性中 处理经过的节点
+      this.str += node.key + " "
+
+      // 处理经过节点的左子节点 然后继续传入 左子节点
+      this.preOrderTraversalNode(node.left)
+
+      // 上面处理左子节点的时候遇null出栈了 栈顶还是 node -> 3 所以接下来处理经过节点的右子节点
+      this.preOrderTraversalNode(node.right)
+    }
+  }
+}
+
+let bst = new BinarySearchTree()
+bst.insert(11)
+bst.insert(7)
+bst.insert(15)
+bst.insert(5)
+bst.insert(3)
+bst.insert(9)
+bst.insert(8)
+bst.insert(10)
+bst.insert(13)
+bst.insert(12)
+bst.insert(14)
+bst.insert(20)
+bst.insert(18)
+bst.insert(25)
+
+bst.preOrderTraversal(() => {
+  console.log(bst.str)
+})
+
+// 11 7 5 3 9 8 10 15 13 12 14 20 18 25 
+```
+
+------
+
+> 中序遍历
+- 遍历过程:
+- 1. 中序遍历其左子树
+- 2. 访问根节点
+- 3. 中序遍历其右子树
+
+
+```sql
+        A
+      ↙   ↘
+    B       C
+  ↙  ↘     ↙  ↘
+D     F   G    I
+    ↙       ↘
+    E         H
+```
+
+- 1 - D
+- 2 - B
+- 3 - E
+- 4 - F
+- 5 - A
+- 6 - G
+- 7 - H
+- 8 - C
+- 9 - I
+
+- 中序遍历: 
+- 先访问左子树 然后处理节点 之后再访问右子树
+- 代码的话只需要将 先序遍历中递归函数的第一行代码和第二行代码对调下就可以了
+```js
+// 中序遍历
+midOrderTraversal(handler) {
+  this.midOrderTraversalNode(this.root)
+  handler && handler()
+}
+
+
+// 中序遍历的递归函数
+midOrderTraversalNode(node) {
+  if(node) { 
+    // 和先序遍历换了一个位置
+    // 处理左子树中的节点 找到左子树中最左边的节点
+    this.midOrderTraversalNode(node.left)
+
+    // 处理节点
+    this.str += node.key + " "
+
+    // 处理右子树中的节点
+    this.midOrderTraversalNode(node.right)
+  }
+}
+
+
+// 测试:
+bst.midOrderTraversal(() => {
+  console.log(bst.str)
+})
+
+// 3 5 7 8 9 10 11 12 13 14 15 18 20 25
+```
+
+<!-- 
+  - 解释下中序遍历
+                    11
+
+            7                   15
+
+      5       9         13          20
+
+    3   6   8   10    12    14    18    25
+
+
+  - 会先找到3 
+    然后看3有没有左子节点(node.left) null
+    然后看3有没有右子节点(node.right) null
+
+  - 弹出栈 返回到 5 
+    因为3访问完了 会找5的右边
+
+  - 弹出栈 返回到 7
+    因为 7 左边访问完了 会找右边 会先找9 但是9有左子节点 所以会先访问 8 然后再访问 9 然后 访问 10
+
+  - 弹出栈 返回到 11
+ -->
+
+> 我发现中序遍历是 *升序* 哦
+
+------
+
+> 后序遍历
+- 遍历过程:
+- 1. 后序遍历其左子树
+- 2. 后序遍历其右子树
+- 3. 访问根节点
+
+
+```sql
+        A
+      ↙   ↘
+    B       C
+  ↙  ↘     ↙  ↘
+D     F   G    I
+    ↙       ↘
+    E         H
+```
+
+- 1 - D
+- 2 - E
+- 3 - F
+- 4 - B
+- 5 - H
+- 6 - G
+- 7 - I
+- 8 - C
+- 9 - A
+
+
+```js
+// 后序遍历
+postOrderTraversal(handler) {
+  this.postOrderTraversalNode(this.root)
+  handler && handler()
+}
+
+
+// 后序遍历的递归函数
+postOrderTraversalNode(node) {
+  if(node) {
+    this.postOrderTraversalNode(node.left)
+    this.postOrderTraversalNode(node.right)
+    // 换个位置
+    this.str += node.key + " "
+  }
+}
+
+
+// 测试:
+bst.postOrderTraversal(() => {
+  console.log(bst.str)
+})
+
+// 3 5 8 10 9 7 12 14 13 18 25 20 15 11 
+```
+
+- 后序遍历就是每一棵小树 最后访问小树的定点
+- 比如 
+<!-- 
+  5
+
+3  6
+ -->
+- 3 - 6 - 5 最后访问5
+
+<!-- 
+  9
+
+8  10
+ -->
+- 8 - 10 - 9 最后访问9
+
+- 最后访问顶点的样式 就叫做后序遍历
+
+
+> 先序遍历应用:
+- 打印一个结构化的文档
+
+> 中序遍历应用:
+- 对树进行排序操作
+
+> 后序遍历应用:
+- 计算一个目录及其子目录中所有文件所占空间的大小
+
+------
+
+> 获取 最大值 & 最小值
+- 在二叉搜索树中获取最值是一件非常简单的事情 就是
+  树最左下角的值为 最小值
+  树最右下角的值为 最大值
+
+```js
+max() {
+  // 获取 根节点
+  let node = this.root
+
+  // 依次向右不断的查找直到null
+  while(node.right) {
+    node = node.right
+  }
+
+  return node.key
+}
+
+min() {
+  let node = this.root
+  while(node.left) {
+    node = node.left
+  }
+
+  return node.key
+}
+```
+
+------
+
+> 搜索特定的key
+- 二叉搜索树不仅仅获取最值效率非常高 搜索特定的值效率也非常高
+
+- 代码解析:
+- 这里我们还是用了递归的方式 待会儿 我们来写一个非递归的实现
+
+- 递归必须有退出条件 我们这里是两种情况下退出
+- 1. node == null
+- 也就是后面不再有节点的时候
+
+- 2. 找到对应的key 
+- 也就是 node.key == key 的时候
+
+
+- 在其它情况下 根据 node.key 和 传入的 key 进行比较来决定向左 还是 向右查找
+- 1. 如果 node.key > key
+- 那么说明传入的值更小 需要向左查找
+
+- 2. 如果 node.key < key
+- 那么说明传入的值更大 需要向右查找
+
+
+<!-- 
+                      11
+
+            7                   15
+
+       5       9         13          20
+
+    3   6   8   10    12    14    18    25
+ -->
+
+- 比如 我们要搜索 18
+- 首先 我们会将 18 和 11 进行比较 
+- 18 > 11 所以我们要取 根节点的右子节点 拿来继续比较
+- 18 > 15 所以我们要去 15的右子节点 拿来继续比较
+- 依次类推 直到为null
+
+
+- 一般情况下 递归操作都可以转成循环操作
+
+> 递归实现:
+- 因为老师这里 Node 节点只有 key
+- 所以我们所搜 搜到了 返回 true 没有搜到 返回 false
+
+```js
+// 搜索特定的值
+search(key) {
+  return this.searchNode(this.root, key)
+}
+
+// 搜索特定的值的递归函数
+searchNode(node, key) {
+  // 出口: 如果传入的node为null 那么退出递归
+  if(!node) return false
+
+  // 判断node节点的值 和 传入的key大小
+  if(node.key > key) {
+    // 向左查找
+    return this.searchNode(node.left, key)
+  } else if(node.key < key) {
+    // 向右查找
+    return this.searchNode(node.right, key)
+  } else {
+    // 出口
+    return true
+  }
+}
+```
+
+
+> 循环实现:
+```js
+// 循环实现搜索操作
+searchWhile(key) {
+  // 从根节点开始搜索 获取根节点
+  let node = this.root
+
+  // 循环搜索key 有节点一直循环 没有节点停下来
+  while(node) {
+    if(key < node.key) {
+      node = node.left
+    } else if (key > node.key) {
+      node = node.right
+    } else {
+      // else的情况为相等
+      return true
+    }
+  } 
+
+  // 找到最后没有找到返回 false
+  return false
+}
+```
+
+------
+
+> 删除操作分析:
+- 二叉搜索树的删除有些复杂 我们一点点完成
+- 删除节点要从查找要删的节点开始 找到节点后 需要考虑3种情况
+
+- 要删除一个节点 就要先找到这个节点
+
+- 1. 该节点是叶节点(没有子节点 比较简单 直接删除不会有影响)
+- 2. 该节点有一个子节点(也相对简单)
+- 3. 该节点有两个子节点(情况比较复杂)
+
+- 我们先从查找要删除的节点入手
+
+
+> 步骤:
+- 1. 先找到要删除的节点
+  如果没有找到该节点 则不需要删除
+  
+- 2. 找到要删除的节点
+  - 1. 删除叶子节点
+  - 2. 删除只有一个子节点的节点
+  - 3. 删除有两个子节点的节点
+
+---
+
+> remove(key) 
+- 我们要根据 key 删除树中对应的节点
+
+> remove()方法中要定义的变量:
+- 1. current:
+- 要删除的目标节点
+
+- 2. parent:
+- 要删除目标节点的父节点
+- 因为我们要将 目标节点的父节点的 左/右子节点 = null
+
+- 3. isLeftChild:
+- 用来标记 current 是 parent 的左子节点 还是 右子节点 我们会根据这个值 设置
+  parent.left = null or
+  parent.right = null
+
+```js
+remove(key) {
+  
+  // 定义变量 保存相关信息
+  // 要删除的节点
+  let current = this.root
+
+
+  // 要删除的节点的父节点 最初(默认)current是root root没有父节点 所以 parent的初始值为null
+  let parent = null
+
+
+  // current节点在父节点的左边还是右边 我们要根据这个变量 决定设置 父节点.left 还是 父节点.right
+  let isLeftChild = true
+}
+```
+
+
+> remove(key) -- 逻辑部分
+- 既然要删除 所有我们要找到 目标节点 下面的部分逻辑就是找到目标节点
+```js
+remove(key) {
+    
+  // 定义变量 保存相关信息
+  // 要删除的节点
+  let current = this.root
+  // 要删除的节点的父节点 最初(默认)current是root root没有父节点 所以 parent的初始值为null
+  let parent = null
+  // current节点在父节点的左边还是右边 我们要根据这个变量 决定设置 父节点.left 还是 父节点.right
+  let isLeftChild = true
+
+
+  // 开始循环查找要删除的节点 
+  // 当前节点的key 和 我们传入的key 不等 就一直循环 就是要找到等的时候呗
+  // current.key == key 的情况就意味着退出这个循环了 循环外的 current 就是目标节点
+  while(current.key != key) {
+    // 最开始 current = root 那么一旦 current.key != key 那么 current 就会移动到下一个节点
+    // 这时 parent 就应该是 root
+    parent = current
+
+    // isLeftChild 是 true 还是 false 决定了 current 往下移动的时候 是往左下移动 还是往右下移动
+    if(key < current.key) {
+
+      isLeftChild = true
+
+      // 往左走
+      current = current.left
+    } else {
+      isLeftChild = false
+
+      // 往右走
+      current = current.right
+    }
+
+    // 已经找到叶子节点了 还没有找到 current.key == key
+    if(current == null) return false
+  }
+
+  // 循环的外侧 就是 current.key == key 找到目标节点了
+  
+  !!!!!到这里就是找到了!!!!!
+
+}
+```
+
+---
+
+> 上面找到了要删除的节点 接下来我们就要开始删除节点的逻辑了 删除我们分为3种情况
+
+<!-- 
+                      11
+
+            7                   15
+
+       5       9         13          20
+
+    3       8   10    12    14    18    25
+ -->
+
+
+> 情况1: 没有子节点(查找到的都是叶子节点)
+- 比如我们已经查找到了目标节点 我们将目标节点保存到 current 上
+
+- 判断 current 是否为叶子节点
+- 我们接下来判断 current 的 left 以及 right 是否都为null (叶子节点的特点就是左子节点和右子节点都是null)
+
+- 都为 null 之后还要检测 current 是否就是根 如果都为null且还是根 那么相当于清空二叉树 (如果只有一个单独的根 直接删除即可)
+
+- 否则就把父节点的 left 或者 right 设置为 null 即可
+
+- 如果是 叶子节点 3 6 8 10 12 14 18 25 中的任何一个叶子节点(current)
+
+- 那么可以拿到 current 的父节点(parent) 然后把父节点的左节点 或 右节点 设置为null就可以了
+
+```js
+// 判断是否为叶子节点
+if(!current.left && !current.right) {
+  // 进来的话 肯定是叶子节点
+  if(current == this.root) {
+    // 根节点
+    this.root = null
+  } else if(isLeftChild){
+    // 不是根节点
+    // 相对于 parent 是左子节点
+    parent.left = null
+  } else {
+    parent.right = null
+  }
+}
+```
+
+
+> 情况2: 删除只有一个子节点的节点
+- 比如: 我们要删除的是 5
+<!--    
+            11
+          ↙
+        7
+      ↙   ↘
+    5       9
+  ↙       ↙   ↘
+3       8       10
+ -->
+- 5节点只有一个节点(3) 并且5这个节点下的所有节点 
+- 不管5节点下的 
+    左子节点 还是
+    右子节点
+
+- 包括5在内的所有节点都是比7小 只要是比7小 那么我们只需要将 7 -> 3 直接指向3就可以了
+<!-- 
+  让 7 直接指向 当前要删除的节点(5) 的 唯一一个子节点就可以了
+ -->
+
+- 这种情况下:
+- parent: 7
+- current: 5
+
+- 当我们删除 5 的话 5下面还有子节点3 伪代码就是:
+- parent.left = current.left
+
+
+- 当我们 删除 5 的话 5下面还有子节点6 伪代码就是:
+<!--    
+            11
+          ↙
+        7
+      ↙   ↘
+    5       9
+     ↘     ↙  ↘
+      6   8   10
+ -->
+- 这时候注意 6 是 current的右子节点
+- parent.left = current.right
+
+
+- 当我们 删除 9 的话 9下面还有子节点8 伪代码就是:
+<!--    
+            11
+          ↙
+        7
+      ↙   ↘
+    5       9
+     ↘     ↙   
+      6   8  
+ -->
+
+- parent.right = current.left
+
+- 当我们 删除 9 的话 9下面还有子节点10 伪代码就是:
+<!--    
+            11
+          ↙
+        7
+      ↙   ↘
+    5       9
+     ↘        ↘  
+      6        10  
+ -->
+
+- parent.right = current.right
+
+- 也就是说 我们删除一个子节点的节点的时候 都有4种情况
+
+- 同时 我们还要考虑一种情况
+- 如果我们删除的是 11
+<!-- 
+      11
+    ↙
+  7
+
+
+      11
+        ↘
+          15
+ -->
+
+- 这时候 我们就不能调用 parent 了 因为 root节点没有parent 这时候我们可以让 
+- this.root = current.left
+- this.root = current.right
+
+- 情况2的代码部分
+```js
+else if(!current.right) {
+
+  // 能进来的 要删除的节点(current)的右节点为空 说明目标节点只有左子节点 current.left
+
+  // 先判断 current 是否为 root
+  if(current == this.root) {
+    this.root = current.left
+
+
+  } else if(isLeftChild) {
+    // 相对于 parent 要删除的节点为左子节点
+    // current.left 因为 current 只有左子节点
+    parent.left = current.left
+  } else {
+    // 相对于 parent 要删除的节点为右子节点
+    parent.right = current.left
+  }
+  
+} else if(!current.left) {
+
+  // 能进来的 要删除的节点(current)的左节点为空 说明目标节点只有→子节点 current.right
+
+  // 进入到这里也要先判断 current 是否为 root
+  if(current == this.root) {
+    this.root = current.right
+
+  } else if(isLeftChild) {
+    // 相对于 parent 要删除的节点为左子节点
+    parent.left = current.right
+  } else {
+    // 相对于 parent 要删除的节点为右子节点
+    parent.right = current.right
+  }
+}
+```
+
+
+> 情况3: 删除有两个子节点的节点
+- 我们要保证删除一个节点后 *后面的节点仍然能够保持二叉搜索树的特性*
+<!-- 
+              11
+          ↙       ↘   
+       7            15
+      ↙ ↘           ↙ ↘
+    5    9      13      20
+   ↙    ↙ ↘     ↙ ↘     ↙ ↘
+  3    8  10  12  14  18  25
+                        ↘
+                         19
+ -->
+
+- 看下面的几种情况 怎么处理?
+
+> 情况1: 删除 9 节点
+- 我们要考虑当删除 9 节点之后 9节点下面的两个子节点怎么处理 能保证二叉搜索树的特性
+
+- 删除 9 节点 比较简单
+- 因为 9 节点的下面 就只有两个子节点 再下面没有其它的子节点了
+
+- 没有其它子节点了处理方式相对简单 将 8 或 10 *替换到* 9 的位置
+- (注意我们是替换 也就是 8 位置替换到 9 的时候 7 -> 8 -> 10)
+
+
+> 情况2: 删除 7 节点
+- 删除7节点的时候 有点复杂了 因为7节点的左右子节点下面还有其他的子节点
+
+- 一种方式是将5拿到7的位置 3依然指向5 但是5有一个right需要指向9 依然是二叉搜索树 没有问题
+<!-- 
+      11
+    5
+  3  9
+ -->
+
+- 另一种方式 是在右侧找一个 找谁？ 8
+- 也就是将8替换到7的位置 8的left指向5 right指向9 依然是二叉搜索树 没有问题
+<!-- 
+      11
+    8
+  5  9
+3     10
+ -->
+
+> 情况3: 删除 15 节点 并且我希望也在右边找
+- 你找到的是谁? 其实我们观察一下你能找到18(我们还可以提14)
+- 18替换15的位置 20的left指向19 也是一个二叉搜索树 也没有问题
+<!-- 
+    11
+          ↘
+                18
+               ↙  ↘
+          13         20
+         ↙  ↘       ↙  ↘
+       12   14     19   25
+ -->
+
+
+
+
+### 书签
+- https://www.bilibili.com/video/BV1kJ411Q7mA?p=23&spm_id_from=pageDriver&vd_source=66d9d28ceb1490c7b37726323336322b
+> 规律:
+- 如果我们要删除的节点有两个子节点, 甚至子节点还有子节点, 这种情况下我们需要从下面的子节点中找到一个节点, 来替换当前的节点. 用来保证二叉搜索树的特性
+
+- 但是找到的这个节点有什么特征呢? *应该是current节点下面所有节点中最接近current节点的*.
+
+- 要么比current节点小一点点, 要么比current节点大一点点.
+- 总结你最接近current, 你就可以用来替换current的位置.
+
+- 这个节点怎么找呢?
+- *比current小一点点的节点, 一定是current左子树的最大值*
+- *比current大一点点的节点, 一定是current右子树的最小值*
+
+<!-- 
+              11
+          ↙       ↘   
+       7            15
+      ↙ ↘           ↙ ↘
+    5    9      13      20
+   ↙    ↙ ↘     ↙ ↘     ↙ ↘
+  3    8  10  12  14  18  25
+                        ↘
+                         19
+ -->
+
+- 比如我们要删除 7 
+  - 如果我们要找 比7小的 那么就是左树中的最大值 5
+  - 如果我们要找 比7大的 那么久是右树中的最小值 8
+
+- 前驱&后继:
+- 而在二叉搜索树中, 这两个特别的节点, 有两个特别的名字
+- 比current小一点点的节点, 称为current节点的*前驱*
+- 比current大一点点的节点, 称为current节点的*后继*
+
+- 也就是为了能够删除有两个子节点的current, 要么找到它的前驱, 要么找到它的后继
+
+- 所以, 接下来, 我们先找到这样的节点(前驱或者后继都可以, 我这里以找后继为例)
+
+
+- 那怎么用代码来找到 前驱 和 后继 呢？
+
+> 寻找后继的方法
+```js
+getSuccessor(delNode) {
+  // 1.使用变量保存临时的节点
+  var successorParent = delNode
+  var successor = delNode
+  var current = delNode.right // 要从右子树开始找
+
+  // 2.寻找节点
+  while (current != null) {
+      successorParent = successor
+      successor = current
+      current = current.left
+  }
+
+  // 3.如果是删除图中15的情况, 还需要如下代码
+  if (successor != delNode.right) {
+      successorParent.left = successor.right
+      successor.right = delNode.right
+  }
+  
+  return successor
+}
+```
+
+
+> 删除操作的完整代码:
+```js
+class Node {
+  constructor(key) {
+    this.key = key
+    this.left = null
+    this.right = null
+  }
+}
+
+class BinarySearchTree {
+
+  root = null
+
+  // 遍历用的字符串
+  str = ""
+
+  
+
+
+  // 先序遍历
+  preOrderTraversal(handler) {
+    // 首先我们对 根节点进行遍历
+    this.preOrderTraversalNode(this.root)
+
+    handler && handler()
+  }
+
+
+
+
+  /*
+  - 解释下递归函数
+                    11
+
+            7                   15
+
+      5       9         13          20
+
+    3   6   8   10    12    14    18    25
+
+
+  - 我们调用 preOrderTraversalNode(node) 递归方法的时候
+  - 第一次 node -> 11 (因为我们走的是 if(node) 的逻辑 会不断的 传入左节点继续调用)
+  - 第二次 node -> 7
+  - 第三次 node -> 5
+  - 第四次 node -> 3
+  - 第五次 node -> null 3左边没有了 所以是null 
+      - 当 node 为 null 的时候 if(node) { ... } 就结束了
+      - 这时候 会回到上一个函数 回到 node = 3 的时候
+      - 因为我们是递归进去的 压入栈的 第五次的函数 就执行完了 执行完后就会弹出 然后回到上一个函数 node = 3
+
+  -- 下面的因为上面出栈了 下面开始回退的一个过程
+
+  - 第四次(因为左节点为null出栈了 栈顶现在是 node -> 3 的时候)
+    - 回退到 node = 3 了 说明左子节点处理完了 我们要开始处理右子节点了
+    - this.preOrderTraversalNode(node.right) 我们传入右子节点
+
+    - 第四次 node -> null 因为3没有右子节点 为空 还是null 所以还是会出栈
+
+  - 第三次 node -> 5
+    - 因为上面 node -> null 出栈所以回退了 此时栈顶的元素为5
+  */
+
+  // 遍历时 使用的递归方法 对某一个节点进行遍历
+  preOrderTraversalNode(node) {
+    // 判断该节点是否为 null
+    if(node) {
+      // 将 key 拼接到 str属性中 处理经过的节点
+      this.str += node.key + " "
+
+      // 处理经过节点的左子节点 然后继续传入 左子节点
+      this.preOrderTraversalNode(node.left)
+
+      // 上面处理左子节点的时候遇null出栈了 栈顶还是 node -> 3 所以接下来处理经过节点的右子节点
+      this.preOrderTraversalNode(node.right)
+    }
+  }
+
+
+  // 中序遍历
+  midOrderTraversal(handler) {
+    this.midOrderTraversalNode(this.root)
+    handler && handler()
+  }
+
+
+  // 中序遍历的递归函数
+  midOrderTraversalNode(node) {
+    if(node) {
+      this.midOrderTraversalNode(node.left)
+      this.str += node.key + " "
+      this.midOrderTraversalNode(node.right)
+    }
+  }
+
+
+  // 后序遍历
+  postOrderTraversal(handler) {
+    this.postOrderTraversalNode(this.root)
+    handler && handler()
+  }
+
+
+  // 后序遍历的递归函数
+  postOrderTraversalNode(node) {
+    if(node) {
+      this.postOrderTraversalNode(node.left)
+      this.postOrderTraversalNode(node.right)
+      // 换个位置
+      this.str += node.key + " "
+    }
+  }
+
+
+  insert(key) {
+    // 1. 创建 节点
+    let node = new Node(key)
+
+    // 2. 判断根节点是否有值 (有值说明存在根节点 我们开始跟根节点进行比较 如果没值就是第一次插入)
+    if(!this.root) {
+      this.root = node
+    } else {
+      // 说明 树中有节点 我们要从根节点开始依次比较
+      // 调用递归方法 从root开始比较 直到找到 目标位置
+      this.insertNode(this.root, node)
+    }
+  }
+
+  // 插入的递归函数
+  insertNode(treeNode, newNode) {
+    // 这时候的 treeNode 就是 root指向的根节点
+    if(newNode.key < treeNode.key) {
+      // 向左查找: 往 根节点的左边 走
+      if(!treeNode.left) {
+        // 根节点的左边的节点为空 那么我们可以直接插入
+        treeNode.left = newNode
+      } else {
+        // 进入这里说明 根节点左边的节点非空 那么我们就调用递归函数 将左节点传入 继续比较
+        this.insertNode(treeNode.left, newNode)
+      }
+    } else {
+      // 向右查找: 往 根节点的右边 走
+      if(!treeNode.right) {
+        treeNode.right = newNode
+      } else {
+        // 进入这里说明 根节点右边的节点非空 那么我们就调用递归函数 将右节点传入 继续比较
+        this.insertNode(treeNode.right, newNode)
+      }
+    }
+  }
+
+
+  max() {
+    // 获取 根节点
+    let node = this.root
+
+    // 依次向右不断的查找直到null
+    while(node.right) {
+      node = node.right
+    }
+
+    return node.key
+  }
+
+  min() {
+    let node = this.root
+    while(node.left) {
+      node = node.left
+    }
+
+    return node.key
+  }
+
+
+  search(key) {
+    return this.searchNode(this.root, key)
+  }
+  
+  // 搜索特定的值的递归函数
+  searchNode(node, key) {
+    // 出口: 如果传入的node为null 那么退出递归
+    if(!node) return false
+  
+    // 判断node节点的值 和 传入的key大小
+    if(node.key > key) {
+      // 向左查找
+      return this.searchNode(node.left, key)
+    } else if(node.key < key) {
+      // 向右查找
+      return this.searchNode(node.right, key)
+    } else {
+      return true
+    }
+  }
+
+
+  // 循环实现搜索操作
+  searchWhile(key) {
+    // 从根节点开始搜索 获取根节点
+    let node = this.root
+
+    // 循环搜索key 有节点一直循环 没有节点停下来
+    while(node) {
+      if(key < node.key) {
+        node = node.left
+      } else if (key > node.key) {
+        node = node.right
+      } else {
+        return true
+      }
+    } 
+
+    // 找到最后没有找到返回 false
+    return false
+  }
+
+
+  remove(key) {
+    
+    // 定义变量 保存相关信息
+    // 要删除的节点
+    let current = this.root
+    // 要删除的节点的父节点 最初(默认)current是root root没有父节点 所以 parent的初始值为null
+    let parent = null
+    // current节点在父节点的左边还是右边 我们要根据这个变量 决定设置 父节点.left 还是 父节点.right
+    let isLeftChild = true
+
+
+    // 开始循环查找要删除的节点 
+    // 当前节点的key 和 我们传入的key 不等 就一直循环 就是要找到等的时候呗
+    // current.key == key 的情况就意味着退出这个循环了 循环外的 current 就是目标节点
+    while(current.key != key) {
+      // 最开始 current = root 那么一旦 current.key != key 那么 current 就会移动到下一个节点
+      // 这时 parent 就应该是 root
+      parent = current
+
+      // isLeftChild 是 true 还是 false 决定了 current 往下移动的时候 是往左下移动 还是往右下移动
+      if(key < current.key) {
+
+        isLeftChild = true
+
+        // 往左走
+        current = current.left
+      } else {
+        isLeftChild = false
+
+        // 往右走
+        current = current.right
+      }
+
+      // 已经找到叶子节点了 还没有找到 current.key == key
+      if(current == null) return false
+    }
+
+    // 循环的外侧 就是 current.key == key 找到目标节点了
+    
+
+    // 根据对应的情况删除节点
+    // 情况1: 没有子节点(查找到的都是叶子节点)
+
+    // 判断是否为叶子节点
+    if(!current.left && !current.right) {
+      // 进来的话 肯定是叶子节点
+      if(current == this.root) {
+        // 根节点
+        this.root = null
+      } else if(isLeftChild){
+        // 不是根节点
+        // 相对于 parent 要删除的节点是左子节点
+        parent.left = null
+      } else {
+        parent.right = null
+      }
+
+
+    // 情况2: 删除只有一个子节点的节点
+    } else if(!current.right) {
+
+      // 能进来的 要删除的节点(current)的右节点为空 说明目标节点只有左子节点 current.left
+
+      // 先判断 current 是否为 root
+      if(current == this.root) {
+        this.root = current.left
+
+
+      } else if(isLeftChild) {
+        // 相对于 parent 要删除的节点为左子节点
+        // current.left 因为 current 只有左子节点
+        parent.left = current.left
+      } else {
+        // 相对于 parent 要删除的节点为右子节点
+        parent.right = current.left
+      }
+      
+    } else if(!current.left) {
+
+      // 能进来的 要删除的节点(current)的左节点为空 说明目标节点只有→子节点 current.right
+
+      // 进入到这里也要先判断 current 是否为 root
+      if(current == this.root) {
+        this.root = current.right
+
+      } else if(isLeftChild) {
+        // 相对于 parent 要删除的节点为左子节点
+        parent.left = current.right
+      } else {
+        // 相对于 parent 要删除的节点为右子节点
+        parent.right = current.right
+      }
+
+      // 情况3: 删除有两个子节点的节点
+    } else {
+
+      // 1.获取后继节点 找到了删除目标节点后 使用哪个节点来继承
+      let successor = this.getSuccessor(current)
+      
+      // 2.判断是否是根节点
+      if (current == this.root) {
+        // 如果是根节点 那么直接让后继节点作为根节点
+        this.root = successor
+
+      } else if (isLeftChild) {
+        // 是父节点的左结点, parent.left = successor, 并且successor的left应该等于current的left
+        parent.left = successor
+
+      } else {
+        // 是父节点的右结点, parent.right = successor, 并且successor的left应该等于current的left
+        parent.right = successor
+      }
+      
+      // 3.将删除节点的左子树赋值给successor
+      // 就是将successor.left = current.left从判断中抽取出来.
+      successor.left = current.left
+    }
+
+    return true
+    
+  }
+
+
+  // 寻找后继的方法 Successor 继承者
+  getSuccessor(delNode) {
+    // 1. 使用变量保存临时的节点
+    // successorParent 就是要 删除的节点 
+    let successorParent = delNode
+    let successor = delNode
+
+    // 后继就是从右子树中招
+    let current = delNode.right
+
+
+    // 寻找节点:
+    while (current != null) {
+      successorParent = successor
+      successor = current
+      current = current.left
+    }
+
+    // 3.如果是删除图中15的情况, 还需要如下代码
+    if (successor != delNode.right) {
+      successorParent.left = successor.right
+      successor.right = delNode.right
+    }
+    
+    return successor
+  }
+
+}
+
+let bst = new BinarySearchTree()
+bst.insert(11)
+bst.insert(7)
+bst.insert(15)
+bst.insert(5)
+bst.insert(3)
+bst.insert(9)
+bst.insert(8)
+bst.insert(10)
+bst.insert(13)
+bst.insert(12)
+bst.insert(14)
+bst.insert(20)
+bst.insert(18)
+bst.insert(25)
+
+
+bst.remove(18)
+
+
+
+```
